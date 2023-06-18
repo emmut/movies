@@ -1,0 +1,54 @@
+# Authenticate
+GET https://api.themoviedb.org/3/authentication
+Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
+Accept: application/json
+
+###
+
+# Genres
+GET https://api.themoviedb.org/3/genre/movie/list
+Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
+Accept: application/json
+
+
+###
+
+# Trending
+GET https://api.themoviedb.org/3/trending/movie/day
+Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
+Accept: application/json
+
+###
+
+# Single movie
+GET https://api.themoviedb.org/3/movie/343611
+Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
+Accept: application/json
+
+### 
+
+# Now playing
+GET https://api.themoviedb.org/3/movie/now_playing
+Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
+Accept: application/json
+
+###
+
+# Top rated
+GET https://api.themoviedb.org/3/discover/movie
+  ?sort_by=vote_average.desc
+  &region=SE
+  &page=2
+Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
+Accept: application/json
+
+###
+
+# Discover by genre
+GET https://api.themoviedb.org/3/discover/movie
+  ?sort_by=polularity.desc
+  &with_genres=action
+  &region=SE
+  &page=1
+Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
+Accept: application/json
