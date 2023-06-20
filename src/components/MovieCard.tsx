@@ -6,9 +6,7 @@ type MovieProp = {
   movie: Movie;
 };
 
-export default function MovieCard(props: MovieProp) {
-  const { movie } = props;
-
+export default function MovieCard({ movie }: MovieProp) {
   // TODO: link to single page
   return (
     <a

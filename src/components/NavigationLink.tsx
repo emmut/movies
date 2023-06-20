@@ -8,8 +8,7 @@ type LinkProps = {
   link: NavLink;
 };
 
-export default function NavigationLink(props: LinkProps) {
-  const { link } = props;
+export default function NavigationLink({ link }: LinkProps) {
   const pathname = usePathname();
   const isActive = pathname === link.href;
 

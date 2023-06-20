@@ -1,3 +1,5 @@
+'use client';
+
 import Brand from '@/components/Brand';
 import SearchBar from '@/components/SearchBar';
 import MenuIcon from '@/icons/MenuIcon';
@@ -9,12 +11,17 @@ type HeaderProps = {
   setNavOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-export default function Header({ navOpen }: HeaderProps) {
+export default function Header({ navOpen, setNavOpen }: HeaderProps) {
+  function handleOnClick() {
+    setNavOpen((prevNavOpen) => !prevNavOpen);
+  }
   return (
     <div className="container col-span-10 col-start-3 mx-auto px-4 py-6">
-      <div className="flex">
+      <div className="flex w-full items-center justify-between">
         <Brand />
-        <button>{navOpen ? <MenuIcon /> : <UnionIcon />}</button>
+        <button className="text-neutral h-8 w-8" onClick={handleOnClick}>
+          {navOpen ? <MenuIcon /> : <UnionIcon />}
+        </button>
       </div>
       <SearchBar />
     </div>

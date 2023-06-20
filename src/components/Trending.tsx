@@ -7,9 +7,7 @@ type MovieProp = {
   movie: Movie;
 };
 
-export default async function Tredning(props: MovieProp) {
-  const { movie } = props;
-
+export default async function Tredning({ movie }: MovieProp) {
   // TODO: link to movie single page
   return (
     <a href="#" className="relative grid flex-1 grid-cols-2 grid-rows-6">

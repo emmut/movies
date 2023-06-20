@@ -1,6 +1,15 @@
-export default function UnionIcon() {
+type UnionIconProps = {
+  className?: string;
+};
+
+export default function UnionIcon({ className }: UnionIconProps) {
   return (
-    <svg viewBox="0 0 40 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      className={className}
+      viewBox="0 0 40 34"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path
         fillRule="evenodd"
         clipRule="evenodd"
