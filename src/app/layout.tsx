@@ -19,14 +19,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <div className="grid min-h-screen grid-cols-12 grid-rows-6 bg-neutral-800 text-neutral-50">
+        <div className="grid min-h-screen grid-cols-12 grid-rows-[repeat(12,minmax(0,1fr))] bg-neutral-800 text-neutral-50">
           <aside className="col-span-2 row-span-full flex flex-col items-center border-r border-zinc-600 bg-neutral-900 p-1 md:p-3">
             <Brand />
             <Navigation />
           </aside>
           <Header />
 
-          <main className="container col-span-10 col-start-3 row-start-2 row-end-7 mx-auto overflow-y-auto p-4">
+          <main className="container col-span-10 col-start-3 row-start-2 row-end-[13] mx-auto overflow-y-auto p-4">
             {children}
           </main>
         </div>

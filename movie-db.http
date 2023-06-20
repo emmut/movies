@@ -29,6 +29,7 @@ Accept: application/json
 
 # Now playing
 GET https://api.themoviedb.org/3/movie/now_playing
+  ?region=SE
 Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
 Accept: application/json
 
