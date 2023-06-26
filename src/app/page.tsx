@@ -2,8 +2,9 @@ import { env } from 'process';
 import { Suspense } from 'react';
 import SectionTitle from '@/components/SectionTitle';
 import Trending from '@/components/Trending';
-import { Movie, MovieResponse } from '@/types/Movie';
 import MovieCard from '@/components/MovieCard';
+import Spinner from '@/components/Spinner';
+import { Movie, MovieResponse } from '@/types/Movie';
 
 async function fetchTrendingMovies() {
   const res = await fetch('https://api.themoviedb.org/3/trending/movie/day', {
@@ -76,10 +77,10 @@ export default async function Home() {
 
       <h3 className="mb-3 mt-5 text-xl font-semibold">Trending</h3>
       <div className="flex flex-col lg:flex-row">
-        <Suspense fallback="Loading...">
+        <Suspense fallback={<Spinner />}>
           <Trending movie={first} />
         </Suspense>
-        <Suspense fallback="Loading...">
+        <Suspense fallback={<Spinner />}>
           <Trending movie={second} />
         </Suspense>
       </div>
@@ -87,7 +88,7 @@ export default async function Home() {
       <h3 className="mb-3 mt-5 text-xl font-semibold">Now playing</h3>
       <div className="flex snap-x space-x-4 overflow-x-auto">
         {nowPlaying.map((movie: Movie) => (
-          <Suspense key={movie.id} fallback="Loading...">
+          <Suspense key={movie.id} fallback={<Spinner />}>
             <MovieCard movie={movie} />
           </Suspense>
         ))}
@@ -95,9 +96,9 @@ export default async function Home() {
 
       <h3 className="mb-3 mt-5 text-xl font-semibold">Top Rated</h3>
       <div className="flex snap-x space-x-4 overflow-x-auto">
-        <Suspense fallback="Loading...">
+        <Suspense fallback={<Spinner />}>
           {topRated.map((movie: Movie) => (
-            <Suspense key={movie.id} fallback="Loading...">
+            <Suspense key={movie.id} fallback={<Spinner />}>
               <MovieCard movie={movie} />
             </Suspense>
           ))}
