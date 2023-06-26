@@ -11,10 +11,10 @@ export default function Pill(props: PillProps) {
   return (
     <div
       className={cn([
-        'cursor-pointer rounded-full border-2 border-neutral-50 px-4 py-1 text-center text-sm font-semibold hover:bg-transparent hover:text-neutral-50',
+        'cursor-pointer rounded-full border-2 border-neutral-50 px-4 py-1 text-center text-sm font-semibold hover:bg-neutral-50 hover:text-zinc-900',
         {
-          'bg-transparent text-neutral-50': active,
-          'bg-neutral-50 text-neutral-950': !active,
+          'bg-neutral-50 text-neutral-950': active,
+          'bg-transparent text-neutral-50': !active,
         },
       ])}
       {...rest}
