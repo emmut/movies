@@ -1,11 +1,11 @@
+import { env } from 'process';
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { Movie } from '@/types/Movie';
 import SectionTitle from '@/components/SectionTitle';
 import Pill from '@/components/Pill';
 import MovieCard from '@/components/MovieCard';
-import { baseUrl } from '@/lib/config';
 import { fetchAvailableGenres } from '@/lib/discover';
+import { MovieResponse } from '@/types/Movie';
 
 type DiscoverWithGenreParams = {
   params: {
@@ -13,19 +13,25 @@ type DiscoverWithGenreParams = {
   };
 };
 
-async function fetchDiscoverMovies(genre: number) {
-  const res = await fetch(`${baseUrl}/api/discover?genre=${genre}`, {
-    next: {
-      revalidate: 60 * 60 * 5,
-    },
-  });
+async function fetchDiscoverMovies(genreId: number) {
+  const res = await fetch(
+    `https://api.themoviedb.org/3/discover/movie?with_genres=${genreId}&sort_by=polularity.desc&region=SE&include_adult=false&include_video=false`,
+    {
+      headers: {
+        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      },
+      next: {
+        revalidate: 60 * 60 * 5,
+      },
+    }
+  );
 
   if (!res.ok) {
-    throw new Error('Error loading discover movies with genre');
+    throw new Error('Error loading discover movies');
   }
 
-  const movies: Movie[] = await res.json();
-  return movies;
+  const movies: MovieResponse = await res.json();
+  return movies.results;
 }
 
 export default async function DiscoverWithGenrePage({

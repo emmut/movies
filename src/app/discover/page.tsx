@@ -1,26 +1,32 @@
+import { env } from 'process';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import SectionTitle from '@/components/SectionTitle';
 import MovieCard from '@/components/MovieCard';
 import Pill from '@/components/Pill';
-import { fetchAvailableGenres } from '@/lib/discover';
-import { baseUrl } from '@/lib/config';
-import { Movie } from '@/types/Movie';
 import Spinner from '@/components/Spinner';
+import { fetchAvailableGenres } from '@/lib/discover';
+import { MovieResponse } from '@/types/Movie';
 
 async function fetchDiscoverMovies() {
-  const res = await fetch(`${baseUrl}/api/discover`, {
-    next: {
-      revalidate: 60 * 60 * 5,
-    },
-  });
+  const res = await fetch(
+    'https://api.themoviedb.org/3/discover/movie?sort_by=polularity.desc&region=SE&include_adult=false&include_video=false',
+    {
+      headers: {
+        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      },
+      next: {
+        revalidate: 60 * 60 * 5,
+      },
+    }
+  );
 
   if (!res.ok) {
     throw new Error('Error loading discover movies');
   }
 
-  const movies: Movie[] = await res.json();
-  return movies;
+  const movies: MovieResponse = await res.json();
+  return movies.results;
 }
 
 export default async function DiscoverPage() {
