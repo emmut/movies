@@ -19,7 +19,9 @@ export default async function Tredning({ movie }: MovieProp) {
       />
       <div className="z-10 col-span-full row-start-6 row-end-7 bg-zinc-950/25 px-3 py-2">
         <h4 className="text-lg font-semibold">{movie.title}</h4>
-        <p className="text-sm">{formatDateYear(movie.release_date)}</p>
+        {movie.release_date && (
+          <p className="text-sm">{formatDateYear(movie.release_date)}</p>
+        )}
       </div>
     </a>
   );

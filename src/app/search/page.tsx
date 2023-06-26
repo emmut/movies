@@ -1,7 +1,10 @@
 import MovieCard from '@/components/MovieCard';
 import SectionTitle from '@/components/SectionTitle';
+import Spinner from '@/components/Spinner';
+import { castSearchedMovieToMovie } from '@/lib/utils';
 import { SearchedMovieResponse } from '@/types/Movie';
 import { env } from 'process';
+import { Suspense } from 'react';
 
 type SearchProps = {
   searchParams: {
@@ -33,14 +36,17 @@ export default async function SearchPage({ searchParams }: SearchProps) {
   const movies = await fetchMoviesBySearchQuery(query);
 
   return (
-    <div className="">
+    <>
       <SectionTitle>Search</SectionTitle>
 
       <div className="mt-8 grid max-w-screen-lg grid-cols-5 gap-4">
-        {movies.map((movie) => (
-          <MovieCard.Searched key={movie.id} movie={movie} />
-        ))}
+        <Suspense fallback={<Spinner />}>
+          {movies.map((movie) => (
+            <MovieCard key={movie.id} movie={castSearchedMovieToMovie(movie)} />
+          ))}
+          {movies.length === 0 && <p>No movies was found</p>}
+        </Suspense>
       </div>
-    </div>
+    </>
   );
 }
