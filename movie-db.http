@@ -40,6 +40,16 @@ GET https://api.themoviedb.org/3/discover/movie
   ?sort_by=vote_average.desc
   &region=SE
   &page=2
+  &include_adult=false
+  &include_video=false
+Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
+Accept: application/json
+
+###
+
+# Official genres
+
+GET https://api.themoviedb.org/3/genre/movie/list
 Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
 Accept: application/json
 
@@ -51,5 +61,20 @@ GET https://api.themoviedb.org/3/discover/movie
   &with_genres=action
   &region=SE
   &page=1
+  &include_adult=false
+  &include_video=false
+Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
+Accept: application/json
+
+###
+
+# Search 
+
+GET https://api.themoviedb.org/3/search/collection
+  ?query=star%20wars
+  &page=1
+  &sort_by=popularity.desc
+  &include_adult=false
+  &include_video=false
 Authorization: Bearer {{$dotenv MOVIE_DB_ACCESS_TOKEN}}
 Accept: application/json
