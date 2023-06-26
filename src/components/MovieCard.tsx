@@ -2,17 +2,17 @@ import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import { Movie } from '@/types/Movie';
 import cn from 'classnames';
 import Image from 'next/image';
+import Link from 'next/link';
 
 type MovieProp = {
   movie: Movie;
 };
 
 function MovieCard({ movie }: MovieProp) {
-  // TODO: link to single page
   return (
-    <a
-      href="#"
-      className="group relative grid aspect-[2/3] w-full flex-[150px] flex-shrink-0 snap-center"
+    <Link
+      href={`/movie/${movie.id}`}
+      className="group relative grid aspect-[2/3] w-full flex-[150px] flex-shrink-0 snap-center overflow-hidden rounded-md"
     >
       {movie.poster_path !== null && (
         <Image
@@ -26,7 +26,7 @@ function MovieCard({ movie }: MovieProp) {
 
       <div
         className={cn([
-          'col-span-full row-span-full grid place-items-center bg-zinc-950/80 p-3 text-center opacity-0 transition-opacity duration-200 ease-in',
+          'col-span-full row-span-full grid place-items-center rounded-md border-white bg-zinc-950/80 p-3 text-center opacity-0 transition-opacity duration-200 ease-in group-hover:border',
           {
             'group-hover:opacity-100': movie.poster_path !== null,
             'opacity-100': movie.poster_path === null,
@@ -35,12 +35,13 @@ function MovieCard({ movie }: MovieProp) {
       >
         <div>
           <h4 className="text-lg font-semibold leading-snug">{movie.title}</h4>
-          <p className="text-sm">{formatDateYear(movie.release_date)}</p>
+          {movie.release_date && (
+            <p className="text-sm">{formatDateYear(movie.release_date)}</p>
+          )}
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
-
 
 export default MovieCard;

@@ -65,11 +65,12 @@ export default function Layout({ children }: ClientLayoutProps) {
         </nav>
       </aside>
 
-      <div className="container col-span-10 col-start-3 mx-auto px-4 py-6">
+      <div className="container col-span-10 col-start-3 mx-auto px-4 py-6 desktop:px-8">
         <div className="mb-4 flex w-full items-baseline justify-between desktop:mb-0">
           <Link href="/">
             <Brand className="desktop:hidden" />
           </Link>
+
           <button
             className="text-neutral relative z-20 grid h-8 w-8 place-items-center desktop:hidden"
             onClick={handleOnClick}
@@ -92,7 +93,7 @@ export default function Layout({ children }: ClientLayoutProps) {
         />
       )}
 
-      <div className="container col-span-10 col-start-3 row-start-2 row-end-[13] mx-auto px-4 pb-16 pt-4 desktop:max-h-screen desktop:overflow-y-auto">
+      <div className="container col-span-10 col-start-3 row-start-2 row-end-[13] mx-auto px-4 pb-16 pt-4 desktop:max-h-screen desktop:overflow-y-auto desktop:px-8">
         {children}
       </div>
     </div>
