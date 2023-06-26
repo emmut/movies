@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import cn from 'classnames';
 import Brand from '@/components/Brand';
 import NavigationLink from '@/components/NavigationLink';
@@ -12,6 +12,7 @@ import SearchBar from './SearchBar';
 import UnionIcon from '@/icons/UnionIcon';
 import MenuIcon from '@/icons/MenuIcon';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 type ClientLayoutProps = {
   children: ReactNode;
@@ -19,6 +20,7 @@ type ClientLayoutProps = {
 
 export default function Layout({ children }: ClientLayoutProps) {
   const [navOpen, setNavOpen] = useState(false);
+  const pathname = usePathname();
 
   const links: NavLink[] = [
     {
@@ -37,6 +39,10 @@ export default function Layout({ children }: ClientLayoutProps) {
     setNavOpen((prevNavOpen) => !prevNavOpen);
   }
 
+  useEffect(() => {
+    setNavOpen(false);
+  }, [pathname]);
+
   return (
     <div className="grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12 desktop:grid-rows-[repeat(12,minmax(0,1fr))]">
       <aside
@@ -49,6 +55,7 @@ export default function Layout({ children }: ClientLayoutProps) {
         <Link href="/">
           <Brand className="hidden desktop:block" />
         </Link>
+
         <nav className="grid h-full flex-1 place-items-center bg-neutral-900">
           <ul className="grid grid-cols-1 gap-4">
             {links.map((link) => {
