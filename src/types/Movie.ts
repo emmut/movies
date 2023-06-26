@@ -6,7 +6,7 @@ export type Movie = {
   original_language: string;
   original_title: string;
   overview: string;
-  poster_path: string;
+  poster_path: string | null;
   media_type: string;
   genre_ids: number[];
   popularity: number;
@@ -14,6 +14,17 @@ export type Movie = {
   video: boolean;
   vote_average: number;
   vote_count: number;
+};
+
+export type SearchedMovie = {
+  adult: boolean;
+  backdrop_path: string;
+  id: number;
+  name: string;
+  original_language: string;
+  original_name: string;
+  overview: string;
+  poster_path: string;
 };
 
 export type MovieResponse = {
@@ -27,4 +38,11 @@ export type MovieResponse = {
         minimum: string;
       }
     | undefined;
+};
+
+export type SearchedMovieResponse = {
+  page: number;
+  results: SearchedMovie[];
+  total_pages: number;
+  total_results: number;
 };

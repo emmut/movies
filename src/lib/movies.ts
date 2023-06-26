@@ -1,4 +1,4 @@
-import { Movie } from '@/types/Movies';
+import { Movie } from '@/types/Movie';
 import { env } from 'process';
 
 export async function getMovieDetails(movie: Movie) {

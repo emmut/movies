@@ -2,10 +2,10 @@ import { env } from 'process';
 import { Suspense } from 'react';
 import SectionTitle from '@/components/SectionTitle';
 import Trending from '@/components/Trending';
-import { Movie, MovieResponse } from '@/types/Movies';
+import { Movie, MovieResponse } from '@/types/Movie';
 import MovieCard from '@/components/MovieCard';
 
-async function getTrendingMovies() {
+async function fetchTrendingMovies() {
   const res = await fetch('https://api.themoviedb.org/3/trending/movie/day', {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
@@ -24,19 +24,16 @@ async function getTrendingMovies() {
   return movies.results;
 }
 
-async function getNowPlayingMovies() {
-  const res = await fetch(
-    'https://api.themoviedb.org/3/movie/now_playing?region=SE',
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-      next: {
-        revalidate: 60 * 5,
-      },
-    }
-  );
+async function fetchNowPlayingMovies() {
+  const res = await fetch('https://api.themoviedb.org/3/movie/now_playing', {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+    next: {
+      revalidate: 60 * 5,
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading now playing movies');
@@ -48,7 +45,7 @@ async function getNowPlayingMovies() {
 
 async function fetchTopRatedMovies() {
   const res = await fetch(
-    'https://api.themoviedb.org/3/discover/movie?sort_by=vote_average.desc&region=SE',
+    'https://api.themoviedb.org/3/discover/movie?sort_by=vote_average.desc&include_adult=false&include_video=false',
     {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
@@ -69,8 +66,8 @@ async function fetchTopRatedMovies() {
 }
 
 export default async function Home() {
-  const [first, second] = await getTrendingMovies();
-  const nowPlaying = await getNowPlayingMovies();
+  const [first, second] = await fetchTrendingMovies();
+  const nowPlaying = await fetchNowPlayingMovies();
   const topRated = await fetchTopRatedMovies();
 
   return (
@@ -78,7 +75,7 @@ export default async function Home() {
       <SectionTitle>Home</SectionTitle>
 
       <h3 className="mb-3 mt-5 text-xl font-semibold">Trending</h3>
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         <Suspense fallback="Loading...">
           <Trending movie={first} />
         </Suspense>

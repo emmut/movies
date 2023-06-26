@@ -1,7 +1,6 @@
-import { Movie } from '@/types/Movies';
+import { Movie } from '@/types/Movie';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import Image from 'next/image';
-import { IMAGE_CDN_URL } from '@/lib/constants';
 
 type MovieProp = {
   movie: Movie;
@@ -14,7 +13,7 @@ export default async function Tredning({ movie }: MovieProp) {
       <Image
         src={formatImageUrl(movie.backdrop_path)}
         alt={`Poster of ${movie.title}`}
-        className="col-span-full row-span-full h-full w-full"
+        className="col-span-full row-span-full h-full w-full object-cover"
         width="750"
         height="380"
       />
