@@ -44,7 +44,7 @@ async function fetchNowPlayingMovies() {
 
 async function fetchTopRatedMovies() {
   const res = await fetch(
-    'https://api.themoviedb.org/3/discover/movie?sort_by=vote_average.desc&include_adult=false&include_video=false',
+    'https://api.themoviedb.org/3/discover/movie?sort_by=vote_average.desc&region=SE&include_adult=false&include_video=false',
     {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
