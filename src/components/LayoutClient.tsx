@@ -40,8 +40,9 @@ export default function Layout({ children }: ClientLayoutProps) {
           ])}
         >
           <div className="flex-1">{children}</div>
-          <footer className="mt-auto pt-4">
-            <p className="text-center text-xs text-zinc-500">
+
+          <footer className="mt-auto pt-5">
+            <p className="text-center text-xs text-zinc-400">
               This product uses the TMDb API but is not endorsed or certified by
               TMDb
             </p>

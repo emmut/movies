@@ -34,7 +34,7 @@ export default function NavigationAside({ navOpen }: NavigationAsideProps) {
         { 'translate-x-0': navOpen },
       ])}
     >
-      <Link href="/">
+      <Link href="/" title="Go to home">
         <Brand className="hidden desktop:block" />
       </Link>
 

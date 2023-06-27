@@ -11,14 +11,16 @@ type HeaderProps = {
 
 export default function Header({ navOpen, handleOnClick }: HeaderProps) {
   return (
-    <header className="">
+    <header>
       <div className="mb-4 flex w-full items-baseline justify-between desktop:mb-0">
-        <Link href="/">
+        <Link href="/" title="Go to home">
           <Brand className="desktop:hidden" />
         </Link>
+
         <button
           className="text-neutral relative z-20 grid h-8 w-8 place-items-center desktop:hidden"
           onClick={handleOnClick}
+          aria-label="Open menu"
         >
           {navOpen ? (
             <UnionIcon className="w-6" />

@@ -25,9 +25,9 @@ async function TredningCard({ movie }: TrendingCardProp) {
       )}
 
       <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col justify-center bg-zinc-950/25 px-3 py-2">
-        <h4 className="text-md truncate whitespace-nowrap font-semibold md:text-lg">
+        <h3 className="text-md truncate whitespace-nowrap font-semibold md:text-lg">
           {movie.title}
-        </h4>
+        </h3>
         {movie.release_date && (
           <p className="text-sm">{formatDateYear(movie.release_date)}</p>
         )}
