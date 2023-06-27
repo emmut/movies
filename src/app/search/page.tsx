@@ -39,12 +39,14 @@ export default async function SearchPage({ searchParams }: SearchProps) {
     <>
       <SectionTitle>Search</SectionTitle>
 
-      <div className="mt-8 grid max-w-screen-lg grid-cols-5 gap-4">
+      <div className="mt-8 grid max-w-screen-lg grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         <Suspense fallback={<MovieCard.Ghost />}>
           {movies.map((movie) => (
             <MovieCard key={movie.id} movie={castSearchedMovieToMovie(movie)} />
           ))}
-          {movies.length === 0 && <p>No movies was found</p>}
+          {movies.length === 0 && (
+            <p className="col-span-full text-center">No movies was found</p>
+          )}
         </Suspense>
       </div>
     </>
