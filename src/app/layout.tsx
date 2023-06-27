@@ -1,6 +1,6 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
-import ClientLayout from '@/components/LayoutClient';
+import LayoutClient from '@/components/LayoutClient';
 import cn from 'classnames';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -18,9 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={cn([inter.className, 'bg-neutral-800'])}>
-        <ClientLayout>
+        <LayoutClient>
           <main>{children}</main>
-        </ClientLayout>
+        </LayoutClient>
       </body>
     </html>
   );

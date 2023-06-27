@@ -47,7 +47,7 @@ export default async function DiscoverPage() {
         </Suspense>
       </div>
 
-      <div className="mt-8 grid max-w-screen-lg grid-cols-5 gap-4">
+      <div className="mt-8 grid max-w-screen-lg grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         <Suspense fallback={<Spinner />}>
           {movies.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />

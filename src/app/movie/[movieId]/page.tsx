@@ -35,11 +35,12 @@ export default async function MoviePage({ params }: MoviePageProps) {
   return (
     <div className="grid max-w-screen-lg gap-4 md:grid-cols-12">
       <Image
-        className="col-span-4 w-auto"
+        className="col-span-4"
         src={formatImageUrl(movie.poster_path, 300)}
         alt={`Poster image of ${movie.title}`}
         width={300}
         height={500}
+        priority
       />
       <div className="col-span-8 text-sm">
         <h1 className="text-lg font-bold">{movie.title}</h1>

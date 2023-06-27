@@ -47,7 +47,9 @@ export default function Layout({ children }: ClientLayoutProps) {
     <div className="grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12 desktop:grid-rows-[repeat(12,minmax(0,1fr))]">
       <aside
         className={cn([
-          'absolute z-20 col-span-2 row-span-full flex h-full w-full max-w-screen-xs flex-col items-center border-r border-zinc-600 bg-neutral-900 p-3 shadow-2xl transition-all duration-200 xs:w-[calc(100vw-7rem)] desktop:static desktop:left-auto desktop:w-auto',
+          'max-w-screen-xs absolute z-20 col-span-2 row-span-full flex h-full w-full flex-col ',
+          'items-center border-r border-zinc-600 bg-neutral-900 p-3 shadow-2xl transition-all duration-200',
+          'min-[320px]:w-[calc(100vw-7rem)] desktop:static desktop:left-auto desktop:w-auto',
           { 'translate-x-[-100vw] desktop:translate-x-0': !navOpen },
           { 'translate-x-0': navOpen },
         ])}
@@ -57,7 +59,7 @@ export default function Layout({ children }: ClientLayoutProps) {
         </Link>
 
         <nav className="grid h-full flex-1 place-items-center bg-neutral-900">
-          <ul className="grid grid-cols-1 gap-4">
+          <ul className="grid grid-cols-1 gap-8">
             {links.map((link) => {
               return <NavigationLink key={link.href} link={link} />;
             })}
@@ -65,7 +67,7 @@ export default function Layout({ children }: ClientLayoutProps) {
         </nav>
       </aside>
 
-      <div className="container col-span-10 col-start-3 mx-auto px-4 py-6 desktop:px-8">
+      <header className="container col-span-10 col-start-3 mx-auto px-4 py-6 desktop:px-8">
         <div className="mb-4 flex w-full items-baseline justify-between desktop:mb-0">
           <Link href="/">
             <Brand className="desktop:hidden" />
@@ -84,7 +86,7 @@ export default function Layout({ children }: ClientLayoutProps) {
         </div>
 
         <SearchBar />
-      </div>
+      </header>
 
       {navOpen && (
         <div

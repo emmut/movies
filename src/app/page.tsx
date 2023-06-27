@@ -72,10 +72,8 @@ export default async function Home() {
   const topRated = await fetchTopRatedMovies();
 
   return (
-    <div className="">
-      <SectionTitle>Home</SectionTitle>
-
-      <h3 className="mb-3 mt-5 text-xl font-semibold">Trending</h3>
+    <>
+      <h2 className="mb-3 mt-5 text-xl font-semibold">Trending</h2>
       <div className="flex flex-col lg:flex-row">
         <Suspense fallback={<Spinner />}>
           <Trending movie={first} />
@@ -85,7 +83,7 @@ export default async function Home() {
         </Suspense>
       </div>
 
-      <h3 className="mb-3 mt-5 text-xl font-semibold">Now playing</h3>
+      <h2 className="mb-3 mt-5 text-xl font-semibold">Now playing</h2>
       <div className="flex snap-x space-x-4 overflow-x-auto">
         {nowPlaying.map((movie: Movie) => (
           <Suspense key={movie.id} fallback={<Spinner />}>
@@ -94,7 +92,7 @@ export default async function Home() {
         ))}
       </div>
 
-      <h3 className="mb-3 mt-5 text-xl font-semibold">Top Rated</h3>
+      <h2 className="mb-3 mt-5 text-xl font-semibold">Top Rated</h2>
       <div className="flex snap-x space-x-4 overflow-x-auto">
         <Suspense fallback={<Spinner />}>
           {topRated.map((movie: Movie) => (
@@ -104,6 +102,6 @@ export default async function Home() {
           ))}
         </Suspense>
       </div>
-    </div>
+    </>
   );
 }

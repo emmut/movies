@@ -22,7 +22,7 @@ export default function NavigationLink({ link }: LinkProps) {
         ])}
       >
         <div className="w-6">{link.icon}</div>
-        <div className="">{link.label}</div>
+        <div>{link.label}</div>
       </Link>
     </li>
   );
