@@ -16,7 +16,7 @@ type DiscoverWithGenreParams = {
 
 async function fetchDiscoverMovies(genreId: number) {
   const res = await fetch(
-    `https://api.themoviedb.org/3/discover/movie?with_genres=${genreId}&sort_by=polularity.desc&region=SE&include_adult=false&include_video=false`,
+    `https://api.themoviedb.org/3/discover/movie?with_genres=${genreId}&sort_by=polularity.desc&include_adult=false&include_video=false`,
     {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,

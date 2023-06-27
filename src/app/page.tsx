@@ -2,7 +2,6 @@ import { env } from 'process';
 import { Suspense } from 'react';
 import TrendingCard from '@/components/TrendingCard';
 import MovieCard from '@/components/MovieCard';
-import Spinner from '@/components/Spinner';
 import { Movie, MovieResponse } from '@/types/Movie';
 
 async function fetchTrendingMovies() {
