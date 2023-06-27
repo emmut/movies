@@ -1,18 +1,11 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
-import cn from 'classnames';
-import Brand from '@/components/Brand';
-import NavigationLink from '@/components/NavigationLink';
-import CompassIcon from '@/icons/CompassIcon';
-import HouseIcon from '@/icons/HouseIcon';
-
-import { NavLink } from '@/types/NavLink';
-import SearchBar from './SearchBar';
-import UnionIcon from '@/icons/UnionIcon';
-import MenuIcon from '@/icons/MenuIcon';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import cn from 'classnames';
+import Header from '@/components/Header';
+import Overlay from './Overlay';
+import NavigationAside from './NavigationAside';
 
 type ClientLayoutProps = {
   children: ReactNode;
@@ -21,19 +14,6 @@ type ClientLayoutProps = {
 export default function Layout({ children }: ClientLayoutProps) {
   const [navOpen, setNavOpen] = useState(false);
   const pathname = usePathname();
-
-  const links: NavLink[] = [
-    {
-      href: '/',
-      label: 'Home',
-      icon: <HouseIcon />,
-    },
-    {
-      href: '/discover',
-      label: 'Discover',
-      icon: <CompassIcon />,
-    },
-  ];
 
   function handleOnClick() {
     setNavOpen((prevNavOpen) => !prevNavOpen);
@@ -45,54 +25,28 @@ export default function Layout({ children }: ClientLayoutProps) {
 
   return (
     <div className="grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12">
-      <aside
-        className={cn([
-          'max-w-screen-xs absolute z-20 col-span-2 row-span-full flex h-full w-full flex-col ',
-          'items-center border-r border-zinc-600 bg-neutral-900 p-3 shadow-2xl transition-all duration-200',
-          'min-[320px]:w-[calc(100vw-7rem)] desktop:static desktop:left-auto desktop:w-auto',
-          { 'translate-x-[-100vw] desktop:translate-x-0': !navOpen },
-          { 'translate-x-0': navOpen },
-        ])}
-      >
-        <Link href="/">
-          <Brand className="hidden desktop:block" />
-        </Link>
+      <NavigationAside navOpen={navOpen} />
 
-        <nav className="grid h-full flex-1 place-items-center bg-neutral-900">
-          <ul className="grid grid-cols-1 gap-8">
-            {links.map((link) => {
-              return <NavigationLink key={link.href} link={link} />;
-            })}
-          </ul>
-        </nav>
-      </aside>
+      <Overlay navOpen={navOpen} handleOnClick={handleOnClick} />
 
-      <div className="container col-span-10 col-start-3 row-span-full mx-auto flex max-h-screen flex-col px-4 py-6 desktop:px-8">
-        <header className="">
-          <div className="mb-4 flex w-full items-baseline justify-between desktop:mb-0">
-            <Link href="/">
-              <Brand className="desktop:hidden" />
-            </Link>
-            <button
-              className="text-neutral relative z-20 grid h-8 w-8 place-items-center desktop:hidden"
-              onClick={handleOnClick}
-            >
-              {navOpen ? (
-                <UnionIcon className="w-6" />
-              ) : (
-                <MenuIcon className="w-7" />
-              )}
-            </button>
-          </div>
-          <SearchBar />
-        </header>
-        {navOpen && (
-          <div
-            className="absolute inset-0 z-10 cursor-pointer bg-neutral-900/40"
-            onClick={handleOnClick}
-          />
-        )}
-        <div className="pb-16 pt-4 desktop:overflow-y-auto">{children}</div>
+      <div className="container col-span-10 col-start-3 row-span-full mx-auto flex max-h-screen flex-col px-4 pt-6 desktop:px-8">
+        <Header navOpen={navOpen} handleOnClick={handleOnClick} />
+
+        <div
+          className={cn([
+            'flex flex-1 flex-col pb-8 pt-4',
+            { 'overflow-y-auto': !navOpen },
+            { 'overflow-y-hidden': navOpen },
+          ])}
+        >
+          <div className="flex-1">{children}</div>
+          <footer className="mt-auto pt-4">
+            <p className="text-center text-xs text-zinc-500">
+              This product uses the TMDb API but is not endorsed or certified by
+              TMDb
+            </p>
+          </footer>
+        </div>
       </div>
     </div>
   );

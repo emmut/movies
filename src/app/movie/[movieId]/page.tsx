@@ -31,23 +31,24 @@ async function getMovieDetails(movieId: number) {
 export default async function MoviePage({ params }: MoviePageProps) {
   const movieId = parseInt(params.movieId);
   const movie = await getMovieDetails(movieId);
+  const { title, release_date, overview, poster_path } = movie;
 
   return (
     <div className="grid max-w-screen-lg gap-4 md:grid-cols-12">
       <Image
-        className="col-span-4"
-        src={formatImageUrl(movie.poster_path, 300)}
-        alt={`Poster image of ${movie.title}`}
+        className="col-span-4 rounded-lg"
+        src={formatImageUrl(poster_path, 300)}
+        alt={`Poster image of ${title}`}
         width={300}
         height={500}
         priority
       />
       <div className="col-span-8 text-sm">
-        <h1 className="text-lg font-bold">{movie.title}</h1>
+        <h1 className="text-lg font-bold">{title}</h1>
         <h2 className="mt-3 font-semibold uppercase text-zinc-400">Released</h2>
-        <p className="mt-1">{movie.release_date}</p>
+        <p className="mt-1">{release_date}</p>
         <h2 className="mt-3 font-semibold uppercase text-zinc-400">Overview</h2>
-        <p className="mt-1">{movie.overview}</p>
+        <p className="mt-1">{overview}</p>
       </div>
     </div>
   );
