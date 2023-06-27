@@ -34,7 +34,7 @@ export default function Layout({ children }: ClientLayoutProps) {
 
         <div
           className={cn([
-            'flex flex-1 flex-col pb-8 pt-4',
+            'flex flex-1 flex-col pb-16 pt-4',
             { 'overflow-y-auto': !navOpen },
             { 'overflow-y-hidden': navOpen },
           ])}
