@@ -23,6 +23,7 @@ function MovieCard({ movie }: MovieProp) {
           alt={`Poster image of ${title}`}
           width={300}
           height={500}
+          quality={85}
         />
       )}
 

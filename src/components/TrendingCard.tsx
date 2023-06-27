@@ -19,6 +19,7 @@ async function TredningCard({ movie }: TrendingCardProp) {
           alt={`Poster of ${movie.title}`}
           className="col-span-full row-span-full object-cover"
           sizes="(max-width:1024px) 100vw, 33vw"
+          quality={85}
           fill
           priority
         />
