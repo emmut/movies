@@ -17,7 +17,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={cn([inter.className, 'bg-neutral-800'])}>
+      <body
+        className={cn([
+          inter.className,
+          'max-h-screen overflow-hidden bg-neutral-800',
+        ])}
+      >
         <LayoutClient>
           <main>{children}</main>
         </LayoutClient>
