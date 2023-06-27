@@ -1,7 +1,6 @@
 import { env } from 'process';
 import { Suspense } from 'react';
-import SectionTitle from '@/components/SectionTitle';
-import Trending from '@/components/Trending';
+import TrendingCard from '@/components/TrendingCard';
 import MovieCard from '@/components/MovieCard';
 import Spinner from '@/components/Spinner';
 import { Movie, MovieResponse } from '@/types/Movie';
@@ -74,19 +73,19 @@ export default async function Home() {
   return (
     <>
       <h2 className="mb-3 mt-5 text-xl font-semibold">Trending</h2>
-      <div className="flex flex-col lg:flex-row">
-        <Suspense fallback={<Spinner />}>
-          <Trending movie={first} />
+      <div className="flex flex-col gap-4 lg:flex-row">
+        <Suspense fallback={<TrendingCard.Ghost />}>
+          <TrendingCard movie={first} />
         </Suspense>
-        <Suspense fallback={<Spinner />}>
-          <Trending movie={second} />
+        <Suspense fallback={<TrendingCard.Ghost />}>
+          <TrendingCard movie={second} />
         </Suspense>
       </div>
 
       <h2 className="mb-3 mt-5 text-xl font-semibold">Now playing</h2>
       <div className="flex snap-x space-x-4 overflow-x-auto">
         {nowPlaying.map((movie: Movie) => (
-          <Suspense key={movie.id} fallback={<Spinner />}>
+          <Suspense key={movie.id} fallback={<MovieCard.Ghost />}>
             <MovieCard movie={movie} />
           </Suspense>
         ))}
@@ -94,11 +93,9 @@ export default async function Home() {
 
       <h2 className="mb-3 mt-5 text-xl font-semibold">Top Rated</h2>
       <div className="flex snap-x space-x-4 overflow-x-auto">
-        <Suspense fallback={<Spinner />}>
+        <Suspense fallback={<MovieCard.Ghost />}>
           {topRated.map((movie: Movie) => (
-            <Suspense key={movie.id} fallback={<Spinner />}>
-              <MovieCard movie={movie} />
-            </Suspense>
+            <MovieCard key={movie.id} movie={movie} />
           ))}
         </Suspense>
       </div>

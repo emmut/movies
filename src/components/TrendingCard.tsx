@@ -3,15 +3,15 @@ import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 
-type MovieProp = {
+type TrendingCardProp = {
   movie: Movie;
 };
 
-export default async function Tredning({ movie }: MovieProp) {
+async function TredningCard({ movie }: TrendingCardProp) {
   return (
     <Link
       href={`/movie/${movie.id}`}
-      className="relative h-52 lg:h-72 lg:flex-1"
+      className="relative h-52 overflow-hidden rounded-xl lg:h-72 lg:flex-1"
     >
       {movie.backdrop_path && (
         <Image
@@ -35,3 +35,13 @@ export default async function Tredning({ movie }: MovieProp) {
     </Link>
   );
 }
+
+TredningCard.Ghost = function Ghost() {
+  return (
+    <div className="relative h-52 animate-pulse overflow-hidden rounded-xl bg-neutral-50/10 lg:h-72 lg:flex-1">
+      <div className="absolute bottom-0 left-0 right-0 z-10 flex h-12 flex-col justify-center bg-zinc-950/10 px-3 py-2"></div>
+    </div>
+  );
+};
+
+export default TredningCard;

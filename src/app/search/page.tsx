@@ -40,7 +40,7 @@ export default async function SearchPage({ searchParams }: SearchProps) {
       <SectionTitle>Search</SectionTitle>
 
       <div className="mt-8 grid max-w-screen-lg grid-cols-5 gap-4">
-        <Suspense fallback={<Spinner />}>
+        <Suspense fallback={<MovieCard.Ghost />}>
           {movies.map((movie) => (
             <MovieCard key={movie.id} movie={castSearchedMovieToMovie(movie)} />
           ))}
