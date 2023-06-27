@@ -44,7 +44,7 @@ export default function Layout({ children }: ClientLayoutProps) {
   }, [pathname]);
 
   return (
-    <div className="grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12 desktop:grid-rows-[repeat(12,minmax(0,1fr))]">
+    <div className="grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12">
       <aside
         className={cn([
           'max-w-screen-xs absolute z-20 col-span-2 row-span-full flex h-full w-full flex-col ',
@@ -67,36 +67,32 @@ export default function Layout({ children }: ClientLayoutProps) {
         </nav>
       </aside>
 
-      <header className="container col-span-10 col-start-3 mx-auto px-4 py-6 desktop:px-8">
-        <div className="mb-4 flex w-full items-baseline justify-between desktop:mb-0">
-          <Link href="/">
-            <Brand className="desktop:hidden" />
-          </Link>
-
-          <button
-            className="text-neutral relative z-20 grid h-8 w-8 place-items-center desktop:hidden"
+      <div className="container col-span-10 col-start-3 row-span-full mx-auto flex max-h-screen flex-col px-4 py-6 desktop:px-8">
+        <header className="">
+          <div className="mb-4 flex w-full items-baseline justify-between desktop:mb-0">
+            <Link href="/">
+              <Brand className="desktop:hidden" />
+            </Link>
+            <button
+              className="text-neutral relative z-20 grid h-8 w-8 place-items-center desktop:hidden"
+              onClick={handleOnClick}
+            >
+              {navOpen ? (
+                <UnionIcon className="w-6" />
+              ) : (
+                <MenuIcon className="w-7" />
+              )}
+            </button>
+          </div>
+          <SearchBar />
+        </header>
+        {navOpen && (
+          <div
+            className="absolute inset-0 z-10 cursor-pointer bg-neutral-900/40"
             onClick={handleOnClick}
-          >
-            {navOpen ? (
-              <UnionIcon className="w-6" />
-            ) : (
-              <MenuIcon className="w-7" />
-            )}
-          </button>
-        </div>
-
-        <SearchBar />
-      </header>
-
-      {navOpen && (
-        <div
-          className="absolute inset-0 z-10 cursor-pointer bg-neutral-900/40"
-          onClick={handleOnClick}
-        />
-      )}
-
-      <div className="container col-span-10 col-start-3 row-start-2 row-end-[13] mx-auto px-4 pb-16 pt-4 desktop:max-h-screen desktop:overflow-y-auto desktop:px-8">
-        {children}
+          />
+        )}
+        <div className="pb-16 pt-4 desktop:overflow-y-auto">{children}</div>
       </div>
     </div>
   );

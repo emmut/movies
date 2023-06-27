@@ -11,7 +11,7 @@ export default async function Tredning({ movie }: MovieProp) {
   return (
     <Link
       href={`/movie/${movie.id}`}
-      className="relative grid max-h-64 flex-1 grid-cols-2 grid-rows-6"
+      className="relative h-52 lg:h-72 lg:flex-1"
     >
       {movie.backdrop_path && (
         <Image
@@ -24,7 +24,7 @@ export default async function Tredning({ movie }: MovieProp) {
         />
       )}
 
-      <div className="z-10 col-span-full row-start-5 row-end-7 bg-zinc-950/25 px-3 py-2">
+      <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col justify-center bg-zinc-950/25 px-3 py-2">
         <h4 className="text-md truncate whitespace-nowrap font-semibold md:text-lg">
           {movie.title}
         </h4>
