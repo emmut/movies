@@ -25,6 +25,7 @@ async function getMovieDetails(movieId: number) {
   }
 
   const movie: Movie = await res.json();
+
   return movie;
 }
 

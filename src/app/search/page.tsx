@@ -1,6 +1,5 @@
 import MovieCard from '@/components/MovieCard';
 import SectionTitle from '@/components/SectionTitle';
-import Spinner from '@/components/Spinner';
 import { castSearchedMovieToMovie } from '@/lib/utils';
 import { SearchedMovieResponse } from '@/types/Movie';
 import { env } from 'process';

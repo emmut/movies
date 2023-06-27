@@ -24,12 +24,12 @@ export default function Layout({ children }: ClientLayoutProps) {
   }, [pathname]);
 
   return (
-    <div className="grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12">
+    <div className="h-full grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12">
       <NavigationAside navOpen={navOpen} />
 
       <Overlay navOpen={navOpen} handleOnClick={handleOnClick} />
 
-      <div className="container col-span-10 col-start-3 row-span-full mx-auto flex max-h-screen flex-col px-4 pt-6 desktop:px-8">
+      <div className="container col-span-10 col-start-3 row-span-full mx-auto flex h-full max-h-screen flex-col px-4 pt-6 desktop:px-8">
         <Header navOpen={navOpen} handleOnClick={handleOnClick} />
 
         <div

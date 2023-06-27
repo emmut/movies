@@ -20,7 +20,7 @@ export default function RootLayout({
       <body
         className={cn([
           inter.className,
-          'max-h-screen overflow-hidden bg-neutral-800',
+          'h-screen max-h-screen overflow-hidden bg-neutral-800',
         ])}
       >
         <LayoutClient>
