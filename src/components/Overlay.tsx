@@ -1,9 +1,11 @@
-type OverlayProps = {
-  navOpen: boolean;
-  handleOnClick: () => void;
-};
+import { useContext } from 'react';
+import { NavigationContext } from './LayoutClient';
 
-export default function Overlay({ navOpen, handleOnClick }: OverlayProps) {
+export default function Overlay() {
+  const { navOpen, handleOnClick } = useContext(
+    NavigationContext
+  ) as NavigationContext;
+
   return (
     navOpen && (
       <div

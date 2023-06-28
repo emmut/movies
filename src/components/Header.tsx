@@ -1,15 +1,16 @@
+import { useContext } from 'react';
+import Link from 'next/link';
+import { NavigationContext } from '@/components/LayoutClient';
 import MenuIcon from '@/icons/MenuIcon';
 import UnionIcon from '@/icons/UnionIcon';
-import Link from 'next/link';
-import SearchBar from './SearchBar';
-import Brand from './Brand';
+import SearchBar from '@/components/SearchBar';
+import Brand from '@/components/Brand';
 
-type HeaderProps = {
-  navOpen: boolean;
-  handleOnClick: () => void;
-};
+export default function Header() {
+  const { navOpen, handleOnClick } = useContext(
+    NavigationContext
+  ) as NavigationContext;
 
-export default function Header({ navOpen, handleOnClick }: HeaderProps) {
   return (
     <header className="sticky top-0 z-20 bg-neutral-800 py-4">
       <div className="mb-4 flex w-full items-baseline justify-between desktop:mb-0">

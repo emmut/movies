@@ -5,12 +5,10 @@ import NavigationLink from '@/components/NavigationLink';
 import CompassIcon from '@/icons/CompassIcon';
 import HouseIcon from '@/icons/HouseIcon';
 import { NavLink } from '@/types/NavLink';
+import { useContext } from 'react';
+import { NavigationContext } from './LayoutClient';
 
-type NavigationAsideProps = {
-  navOpen: boolean;
-};
-
-export default function NavigationAside({ navOpen }: NavigationAsideProps) {
+export default function NavigationAside() {
   const links: NavLink[] = [
     {
       href: '/',
@@ -23,6 +21,8 @@ export default function NavigationAside({ navOpen }: NavigationAsideProps) {
       icon: <CompassIcon />,
     },
   ];
+
+  const { navOpen } = useContext(NavigationContext) as NavigationContext;
 
   return (
     <aside
@@ -40,8 +40,8 @@ export default function NavigationAside({ navOpen }: NavigationAsideProps) {
 
       <nav className="grid h-full flex-1 place-items-center bg-neutral-900">
         <ul className="grid grid-cols-1 gap-8">
-          {links.map((link) => {
-            return <NavigationLink key={link.href} link={link} />;
+          {links.map((link, i) => {
+            return <NavigationLink key={link.href} link={link} index={i} />;
           })}
         </ul>
       </nav>
