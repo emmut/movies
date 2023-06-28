@@ -32,13 +32,11 @@ export default function Layout({ children }: ClientLayoutProps) {
 
       <Overlay navOpen={navOpen} handleOnClick={handleOnClick} />
 
-      <div className="container col-span-10 col-start-3 row-span-full mx-auto flex h-full max-h-screen flex-col px-4 pt-6 desktop:px-8">
+      <div className="container col-span-10 col-start-3 row-span-full mx-auto flex h-full max-h-screen flex-col px-4 desktop:px-8">
         <Header navOpen={navOpen} handleOnClick={handleOnClick} />
 
         <div
-          className={cn([
-            'flex flex-1 flex-col pb-16 pt-4 desktop:overflow-y-auto',
-          ])}
+          className={cn(['flex flex-1 flex-col pb-16 desktop:overflow-y-auto'])}
         >
           <div className="flex-1">{children}</div>
 
