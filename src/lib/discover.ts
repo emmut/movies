@@ -1,5 +1,5 @@
-import { GenreResponse } from '@/types/Genre';
 import { env } from 'process';
+import type { GenreResponse } from '@/types/Genre';
 
 export async function fetchAvailableGenres() {
   const res = await fetch('https://api.themoviedb.org/3/genre/movie/list', {

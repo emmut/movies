@@ -1,8 +1,8 @@
-import { formatDateYear, formatImageUrl } from '@/lib/utils';
-import { Movie } from '@/types/Movie';
-import cn from 'classnames';
-import Image from 'next/image';
 import Link from 'next/link';
+import Image from 'next/image';
+import cn from 'classnames';
+import { formatDateYear, formatImageUrl } from '@/lib/utils';
+import type { Movie } from '@/types/Movie';
 
 type MovieProp = {
   movie: Movie;

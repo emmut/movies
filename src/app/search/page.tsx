@@ -1,6 +1,6 @@
-import MovieCard from '@/components/MovieCard';
 import { env } from 'process';
 import { Suspense } from 'react';
+import MovieCard from '@/components/MovieCard';
 import SectionTitle from '@/components/SectionTitle';
 import { SearchedMovieResponse } from '@/types/Movie';
 

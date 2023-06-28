@@ -1,7 +1,7 @@
-import { Movie } from '@/types/Movie';
-import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
+import { formatDateYear, formatImageUrl } from '@/lib/utils';
+import type { Movie } from '@/types/Movie';
 
 type TrendingCardProp = {
   movie: Movie;

@@ -2,7 +2,7 @@ import { env } from 'process';
 import { Suspense } from 'react';
 import TrendingCard from '@/components/TrendingCard';
 import MovieCard from '@/components/MovieCard';
-import { Movie, MovieResponse } from '@/types/Movie';
+import type { Movie, MovieResponse } from '@/types/Movie';
 
 async function fetchTrendingMovies() {
   const res = await fetch('https://api.themoviedb.org/3/trending/movie/day', {

@@ -6,7 +6,7 @@ import MovieCard from '@/components/MovieCard';
 import Pill from '@/components/Pill';
 import Spinner from '@/components/Spinner';
 import { fetchAvailableGenres } from '@/lib/discover';
-import { MovieResponse } from '@/types/Movie';
+import type { MovieResponse } from '@/types/Movie';
 
 async function fetchDiscoverMovies() {
   const res = await fetch(

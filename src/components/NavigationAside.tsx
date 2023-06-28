@@ -1,12 +1,12 @@
+import { useContext } from 'react';
 import Link from 'next/link';
 import cn from 'classnames';
 import Brand from '@/components/Brand';
 import NavigationLink from '@/components/NavigationLink';
+import { NavigationContext } from '@/components/LayoutClient';
 import CompassIcon from '@/icons/CompassIcon';
 import HouseIcon from '@/icons/HouseIcon';
-import { NavLink } from '@/types/NavLink';
-import { useContext } from 'react';
-import { NavigationContext } from './LayoutClient';
+import type { NavLink } from '@/types/NavLink';
 
 export default function NavigationAside() {
   const links: NavLink[] = [
@@ -40,8 +40,8 @@ export default function NavigationAside() {
 
       <nav className="grid h-full flex-1 place-items-center bg-neutral-900">
         <ul className="grid grid-cols-1 gap-8">
-          {links.map((link, i) => {
-            return <NavigationLink key={link.href} link={link} index={i} />;
+          {links.map((link) => {
+            return <NavigationLink key={link.href} link={link} />;
           })}
         </ul>
       </nav>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, createContext, useEffect, useRef, useState } from 'react';
+import { ReactNode, createContext, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Overlay from './Overlay';

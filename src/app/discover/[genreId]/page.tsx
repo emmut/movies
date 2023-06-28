@@ -4,9 +4,9 @@ import Link from 'next/link';
 import SectionTitle from '@/components/SectionTitle';
 import Pill from '@/components/Pill';
 import MovieCard from '@/components/MovieCard';
-import { fetchAvailableGenres } from '@/lib/discover';
-import { MovieResponse } from '@/types/Movie';
 import Spinner from '@/components/Spinner';
+import { fetchAvailableGenres } from '@/lib/discover';
+import type { MovieResponse } from '@/types/Movie';
 
 type DiscoverWithGenreParams = {
   params: {

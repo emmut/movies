@@ -1,7 +1,7 @@
-import { formatImageUrl } from '@/lib/utils';
-import { Movie } from '@/types/Movie';
-import Image from 'next/image';
 import { env } from 'process';
+import Image from 'next/image';
+import { formatImageUrl } from '@/lib/utils';
+import type { Movie } from '@/types/Movie';
 
 type MoviePageProps = {
   params: {
