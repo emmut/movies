@@ -6,6 +6,7 @@ import cn from 'classnames';
 import Header from '@/components/Header';
 import Overlay from './Overlay';
 import NavigationAside from './NavigationAside';
+import { useLockScroll } from '@/hooks/use-lock-scroll';
 
 type ClientLayoutProps = {
   children: ReactNode;
@@ -18,6 +19,8 @@ export default function Layout({ children }: ClientLayoutProps) {
   function handleOnClick() {
     setNavOpen((prevNavOpen) => !prevNavOpen);
   }
+
+  useLockScroll({ locked: navOpen });
 
   useEffect(() => {
     setNavOpen(false);
@@ -34,9 +37,7 @@ export default function Layout({ children }: ClientLayoutProps) {
 
         <div
           className={cn([
-            'flex flex-1 flex-col pb-16 pt-4',
-            { 'overflow-y-auto': !navOpen },
-            { 'overflow-y-hidden': navOpen },
+            'flex flex-1 flex-col pb-16 pt-4 desktop:overflow-y-auto',
           ])}
         >
           <div className="flex-1">{children}</div>
