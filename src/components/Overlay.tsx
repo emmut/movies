@@ -7,7 +7,7 @@ export default function Overlay({ navOpen, handleOnClick }: OverlayProps) {
   return (
     navOpen && (
       <div
-        className="absolute inset-0 z-10 cursor-pointer bg-neutral-900/40"
+        className="fixed inset-0 z-30 cursor-pointer bg-neutral-900/40"
         onClick={handleOnClick}
       />
     )

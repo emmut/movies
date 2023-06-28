@@ -27,9 +27,9 @@ export default function NavigationAside({ navOpen }: NavigationAsideProps) {
   return (
     <aside
       className={cn([
-        'max-w-screen-xs absolute z-20 col-span-2 row-span-full flex h-full w-full flex-col ',
+        'max-w-screen-xs fixed top-0 z-30 col-span-2 row-span-full flex h-full w-full flex-col',
         'items-center border-r border-zinc-600 bg-neutral-900 p-3 shadow-2xl transition-all duration-200',
-        'min-[320px]:w-[calc(100vw-7rem)] desktop:static desktop:left-auto desktop:w-auto',
+        'w-[calc(100vw-4rem)] min-[320px]:w-[calc(100vw-7rem)] desktop:static desktop:left-auto desktop:w-auto',
         { 'translate-x-[-100vw] desktop:translate-x-0': !navOpen },
         { 'translate-x-0': navOpen },
       ])}
