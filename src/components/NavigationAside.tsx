@@ -22,7 +22,9 @@ export default function NavigationAside() {
     },
   ];
 
-  const { navOpen } = useContext(NavigationContext) as NavigationContext;
+  const { navOpen, navigation } = useContext(
+    NavigationContext
+  ) as NavigationContext;
 
   return (
     <aside
@@ -33,9 +35,11 @@ export default function NavigationAside() {
         { 'translate-x-[-100vw] desktop:translate-x-0': !navOpen },
         { 'translate-x-0': navOpen },
       ])}
+      tabIndex={0}
+      ref={navigation}
     >
-      <Link href="/" title="Go to home">
-        <Brand className="hidden desktop:block" />
+      <Link className="hidden desktop:block" href="/" title="Go to home">
+        <Brand />
       </Link>
 
       <nav className="grid h-full flex-1 place-items-center bg-neutral-900">

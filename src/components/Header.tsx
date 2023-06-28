@@ -14,8 +14,8 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-20 bg-neutral-800 py-4">
       <div className="mb-4 flex w-full items-baseline justify-between desktop:mb-0">
-        <Link href="/" title="Go to home">
-          <Brand className="desktop:hidden" />
+        <Link className="desktop:hidden" href="/" title="Go to home">
+          <Brand />
         </Link>
 
         <button

@@ -1,6 +1,13 @@
 'use client';
 
-import { ReactNode, createContext, useEffect, useState } from 'react';
+import {
+  ReactNode,
+  RefObject,
+  createContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Overlay from './Overlay';
@@ -14,6 +21,7 @@ type ClientLayoutProps = {
 export type NavigationContext = {
   navOpen: boolean;
   handleOnClick: () => void;
+  navigation: RefObject<HTMLElement> | null;
 };
 
 export const NavigationContext = createContext<NavigationContext | null>(null);
@@ -24,6 +32,10 @@ export default function Layout({ children }: ClientLayoutProps) {
 
   function handleOnClick() {
     setNavOpen((prevNavOpen) => !prevNavOpen);
+
+    if (navigation.current) {
+      navigation.current.focus();
+    }
   }
 
   useLockScroll({ locked: navOpen });
@@ -32,8 +44,10 @@ export default function Layout({ children }: ClientLayoutProps) {
     setNavOpen(false);
   }, [pathname]);
 
+  const navigation = useRef<HTMLElement>(null);
+
   return (
-    <NavigationContext.Provider value={{ navOpen, handleOnClick }}>
+    <NavigationContext.Provider value={{ navOpen, handleOnClick, navigation }}>
       <div className="h-full grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12">
         <Overlay />
 
