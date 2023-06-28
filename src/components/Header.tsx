@@ -25,7 +25,7 @@ export default function Header({ navOpen, handleOnClick }: HeaderProps) {
           {navOpen ? (
             <UnionIcon className="w-6" />
           ) : (
-            <MenuIcon className="w-7" />
+            <MenuIcon className="h-[15px] w-[28px]" />
           )}
         </button>
       </div>
