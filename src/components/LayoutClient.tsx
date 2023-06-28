@@ -13,6 +13,7 @@ import Header from '@/components/Header';
 import Overlay from './Overlay';
 import NavigationAside from './NavigationAside';
 import { useLockScroll } from '@/hooks/use-lock-scroll';
+import SkipToElement from './SkipToElement';
 
 type ClientLayoutProps = {
   children: ReactNode;
@@ -49,6 +50,11 @@ export default function Layout({ children }: ClientLayoutProps) {
   return (
     <NavigationContext.Provider value={{ navOpen, handleOnClick, navigation }}>
       <div className="h-full grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12">
+        <SkipToElement
+          className="absolute left-3 top-3 z-40"
+          elementId="main-content"
+        />
+
         <Overlay />
 
         <NavigationAside />
@@ -57,7 +63,9 @@ export default function Layout({ children }: ClientLayoutProps) {
           <Header />
 
           <div className="flex flex-1 flex-col pb-16 desktop:overflow-y-auto">
-            <div className="flex-1">{children}</div>
+            <div id="main-content" className="flex-1">
+              {children}
+            </div>
 
             <footer className="mt-auto pt-5">
               <p className="text-center text-xs text-zinc-400">

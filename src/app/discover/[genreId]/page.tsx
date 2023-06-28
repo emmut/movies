@@ -7,6 +7,7 @@ import MovieCard from '@/components/MovieCard';
 import Spinner from '@/components/Spinner';
 import { fetchAvailableGenres } from '@/lib/discover';
 import type { MovieResponse } from '@/types/Movie';
+import SkipToElement from '@/components/SkipToElement';
 
 type DiscoverWithGenreParams = {
   params: {
@@ -44,9 +45,14 @@ export default async function DiscoverWithGenrePage({
 
   return (
     <>
-      <SectionTitle>Discover</SectionTitle>
+      <div className="flex items-center gap-4">
+        <SectionTitle>Discover</SectionTitle>
+        <SkipToElement elementId="movies-container">
+          Skip to movies
+        </SkipToElement>
+      </div>
 
-      <div className="mt-2 flex max-w-screen-lg flex-wrap gap-2 pt-3">
+      <div className="relative mt-2 flex max-w-screen-lg flex-wrap gap-2 pt-3">
         <Suspense fallback={<Spinner />}>
           {genres.map((genre) => (
             <Link key={genre.id} href={`/discover/${genre.id}`}>
@@ -56,7 +62,10 @@ export default async function DiscoverWithGenrePage({
         </Suspense>
       </div>
 
-      <div className="mt-8 grid max-w-screen-lg grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <div
+        id="movies-container"
+        className="mt-8 grid max-w-screen-lg grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
+      >
         <Suspense fallback={<MovieCard.Ghost />}>
           {movies.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
