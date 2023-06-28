@@ -15,7 +15,7 @@ export default function NavigationAside({ navOpen }: NavigationAsideProps) {
     {
       href: '/',
       label: 'Home',
-      icon: <HouseIcon />,
+      icon: <HouseIcon className="-mt-0.5" />,
     },
     {
       href: '/discover',

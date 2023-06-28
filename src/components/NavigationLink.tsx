@@ -17,7 +17,7 @@ export default function NavigationLink({ link }: LinkProps) {
       <Link
         href={link.href}
         className={cn([
-          'flex items-center gap-2',
+          'flex h-6 min-w-[7rem] items-center gap-2',
           { 'font-bold': isActive, 'text-zinc-400': !isActive },
         ])}
       >
