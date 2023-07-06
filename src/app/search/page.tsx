@@ -26,7 +26,6 @@ async function fetchMoviesBySearchQuery(query: string) {
   }
 
   const movies: SearchedMovieResponse = await res.json();
-
   return movies.results;
 }
 

@@ -65,9 +65,13 @@ async function fetchTopRatedMovies() {
 }
 
 export default async function Home() {
-  const [first, second] = await fetchTrendingMovies();
-  const nowPlaying = await fetchNowPlayingMovies();
-  const topRated = await fetchTopRatedMovies();
+  const [trending, nowPlaying, topRated] = await Promise.all([
+    fetchTrendingMovies(),
+    fetchNowPlayingMovies(),
+    fetchTopRatedMovies(),
+  ]);
+
+  const [first, second] = trending;
 
   return (
     <>

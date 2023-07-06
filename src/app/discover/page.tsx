@@ -31,8 +31,10 @@ async function fetchDiscoverMovies() {
 }
 
 export default async function DiscoverPage() {
-  const genres = await fetchAvailableGenres();
-  const movies = await fetchDiscoverMovies();
+  const [genres, movies] = await Promise.all([
+    fetchAvailableGenres(),
+    fetchDiscoverMovies(),
+  ]);
 
   return (
     <>
