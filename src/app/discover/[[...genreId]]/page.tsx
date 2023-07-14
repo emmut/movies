@@ -1,7 +1,6 @@
 import { env } from 'process';
 import { Suspense } from 'react';
 import SectionTitle from '@/components/SectionTitle';
-import MovieCard from '@/components/MovieCard';
 import Spinner from '@/components/Spinner';
 import { fetchAvailableGenres } from '@/lib/discover';
 import type { MovieResponse } from '@/types/Movie';
@@ -20,7 +19,7 @@ async function fetchDiscoverMovies(genreId: number | null) {
     'https://api.themoviedb.org/3/discover/movie?sort_by=polularity.desc&region=SE&include_adult=false&include_video=false';
 
   if (genreId !== null) {
-    url += `with_genres=${genreId}`;
+    url += `&with_genres=${genreId}`;
   }
 
   const res = await fetch(url, {
