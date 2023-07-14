@@ -14,12 +14,16 @@ export default async function AvailableGenresNavigation({
   const genreId = currentGenreId ?? 0;
 
   return (
-    <nav className="flex max-w-screen-lg flex-wrap gap-2 pt-3">
-      {genres.map((genre) => (
-        <Link key={genre.id} href={`/discover/${genre.id}`}>
-          <Pill active={genreId === genre.id}>{genre.name}</Pill>
-        </Link>
-      ))}
+    <nav>
+      <ul className="flex max-w-screen-lg flex-wrap gap-2 pt-3">
+        {genres.map((genre) => (
+          <li key={genre.id}>
+            <Link href={`/discover/${genre.id}`}>
+              <Pill active={genreId === genre.id}>{genre.name}</Pill>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 }
