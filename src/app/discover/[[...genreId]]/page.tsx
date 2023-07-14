@@ -3,24 +3,34 @@ import { Suspense } from 'react';
 import SectionTitle from '@/components/SectionTitle';
 import MovieCard from '@/components/MovieCard';
 import Spinner from '@/components/Spinner';
-import SkipToElement from '@/components/SkipToElement';
-import AvailableGenresNavigation from '@/components/AvailableGenresNavigation';
 import { fetchAvailableGenres } from '@/lib/discover';
 import type { MovieResponse } from '@/types/Movie';
+import SkipToElement from '@/components/SkipToElement';
+import AvailableGenresNavigation from '@/components/AvailableGenresNavigation';
 import Movies from '@/components/Movies';
 
-async function fetchDiscoverMovies() {
-  const res = await fetch(
-    'https://api.themoviedb.org/3/discover/movie?sort_by=polularity.desc&region=SE&include_adult=false&include_video=false',
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      },
-      next: {
-        revalidate: 60 * 60 * 5,
-      },
-    }
-  );
+type DiscoverWithGenreParams = {
+  params: {
+    genreId: string;
+  };
+};
+
+async function fetchDiscoverMovies(genreId: number | null) {
+  let url =
+    'https://api.themoviedb.org/3/discover/movie?sort_by=polularity.desc&region=SE&include_adult=false&include_video=false';
+
+  if (genreId !== null) {
+    url += `with_genres=${genreId}`;
+  }
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+    },
+    next: {
+      revalidate: 60 * 60 * 5,
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Error loading discover movies');
@@ -30,10 +40,13 @@ async function fetchDiscoverMovies() {
   return movies.results;
 }
 
-export default async function DiscoverPage() {
+export default async function DiscoverWithGenrePage({
+  params,
+}: DiscoverWithGenreParams) {
+  const genreId = parseInt(params.genreId);
   const [genres, movies] = await Promise.all([
     fetchAvailableGenres(),
-    fetchDiscoverMovies(),
+    fetchDiscoverMovies(genreId),
   ]);
 
   return (
@@ -45,9 +58,9 @@ export default async function DiscoverPage() {
         </SkipToElement>
       </div>
 
-      <div className="relative mt-2">
+      <div className="relative mt-2 flex max-w-screen-lg flex-wrap gap-2 pt-3">
         <Suspense fallback={<Spinner />}>
-          <AvailableGenresNavigation genres={genres} />
+          <AvailableGenresNavigation genres={genres} currentGenreId={genreId} />
         </Suspense>
       </div>
 
