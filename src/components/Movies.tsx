@@ -21,7 +21,7 @@ export async function Movies({ movies }: MoviesProps) {
 Movies.Ghosts = function Ghosts() {
   return (
     <>
-      {[...Array(20)].map((i) => (
+      {[...Array(20)].map((_, i) => (
         <MovieCard.Ghost key={i} />
       ))}
     </>
