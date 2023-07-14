@@ -1,8 +1,8 @@
-import cn from 'classnames';
+import clsx from 'clsx';
 
 type BrandProps = {
   className?: string;
 };
 export default function Brand({ className }: BrandProps) {
-  return <h1 className={cn(['font-semibold', className])}>Movies</h1>;
+  return <h1 className={clsx(['font-semibold', className])}>Movies</h1>;
 }

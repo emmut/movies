@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import Link from 'next/link';
-import cn from 'classnames';
+import clsx from 'clsx';
 import Brand from '@/components/Brand';
 import NavigationLink from '@/components/NavigationLink';
 import { NavigationContext } from '@/components/LayoutClient';
@@ -28,7 +28,7 @@ export default function NavigationAside() {
 
   return (
     <aside
-      className={cn([
+      className={clsx([
         'max-w-screen-xs fixed top-0 z-30 col-span-2 row-span-full flex h-full w-full flex-col',
         'items-center border-r border-zinc-600 bg-neutral-900 p-3 shadow-2xl transition-all duration-200',
         'w-[calc(100vw-4rem)] max-w-screen-sm min-[320px]:w-[calc(100vw-8rem)] desktop:static desktop:left-auto desktop:w-auto',

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import cn from 'classnames';
+import clsx from 'clsx';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import type { Movie } from '@/types/Movie';
 
@@ -28,7 +28,7 @@ function MovieCard({ movie }: MovieProp) {
       )}
 
       <div
-        className={cn([
+        className={clsx([
           'col-span-full row-span-full grid place-items-center rounded-md border-white bg-zinc-950/80 p-3 text-center opacity-0 transition-opacity duration-200 ease-in group-hover:border',
           {
             'group-hover:opacity-100': poster_path !== null,

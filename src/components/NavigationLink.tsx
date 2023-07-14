@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import cn from 'classnames';
+import clsx from 'clsx';
 import { usePathname } from 'next/navigation';
 import type { NavLink } from '@/types/NavLink';
 
@@ -16,7 +16,7 @@ export default function NavigationLink({ link }: LinkProps) {
     <li key={link.href}>
       <Link
         href={link.href}
-        className={cn([
+        className={clsx([
           'flex h-6 min-w-[7rem] items-center gap-2',
           { 'font-bold': isActive, 'text-zinc-400': !isActive },
         ])}

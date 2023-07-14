@@ -1,4 +1,4 @@
-import cn from 'classnames';
+import clsx from 'clsx';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import LayoutClient from '@/components/LayoutClient';
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={cn([
+        className={clsx([
           inter.className,
           'h-screen max-h-screen bg-neutral-800 desktop:overflow-y-hidden',
         ])}
