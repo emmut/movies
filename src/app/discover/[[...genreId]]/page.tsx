@@ -58,7 +58,11 @@ export default async function DiscoverWithGenrePage({
       </div>
 
       <div className="relative mt-2 flex max-w-screen-lg flex-wrap gap-2 pt-3">
-        <Suspense fallback={<Spinner />}>
+        <Suspense
+          fallback={
+            <Spinner className="flex h-12 items-center justify-center" />
+          }
+        >
           <AvailableGenresNavigation genres={genres} currentGenreId={genreId} />
         </Suspense>
       </div>

@@ -1,9 +1,14 @@
+import { twMerge } from 'tailwind-merge';
 import SpinnerIcon from '@/icons/SpinnerIcon';
 
-export default function Spinner() {
+type SpinnerProps = {
+  className?: string;
+};
+
+export default function Spinner({ className }: SpinnerProps) {
   return (
-    <div className="h-6 w-6 animate-spin text-zinc-700">
-      <SpinnerIcon />
+    <div className={twMerge('h-6 w-6', className)}>
+      <SpinnerIcon className="animate-spin text-zinc-700" />
     </div>
   );
 }
