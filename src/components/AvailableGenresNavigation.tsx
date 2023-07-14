@@ -11,7 +11,7 @@ export default async function AvailableGenresNavigation({
   genres,
   currentGenreId,
 }: AvailableGenreProps) {
-  const genreId = currentGenreId ?? 0;
+  const genreId = currentGenreId;
 
   return (
     <nav>

@@ -10,15 +10,15 @@ import Movies from '@/components/Movies';
 
 type DiscoverWithGenreParams = {
   params: {
-    genreId: string;
+    genreId?: string;
   };
 };
 
-async function fetchDiscoverMovies(genreId: number | null) {
+async function fetchDiscoverMovies(genreId: number) {
   let url =
     'https://api.themoviedb.org/3/discover/movie?sort_by=polularity.desc&region=SE&include_adult=false&include_video=false';
 
-  if (genreId !== null) {
+  if (genreId !== 0) {
     url += `&with_genres=${genreId}`;
   }
 
@@ -42,7 +42,14 @@ async function fetchDiscoverMovies(genreId: number | null) {
 export default async function DiscoverWithGenrePage({
   params,
 }: DiscoverWithGenreParams) {
-  const genreId = parseInt(params.genreId);
+  let genreId: number;
+
+  if (params.genreId) {
+    genreId = Number(params.genreId);
+  } else {
+    genreId = 0;
+  }
+
   const [genres, movies] = await Promise.all([
     fetchAvailableGenres(),
     fetchDiscoverMovies(genreId),
