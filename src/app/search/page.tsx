@@ -1,8 +1,8 @@
 import { env } from 'process';
 import { Suspense } from 'react';
-import MovieCard from '@/components/MovieCard';
 import SectionTitle from '@/components/SectionTitle';
-import { SearchedMovieResponse } from '@/types/Movie';
+import Movies from '@/components/Movies';
+import type { SearchedMovieResponse } from '@/types/Movie';
 
 type SearchProps = {
   searchParams: {
@@ -38,13 +38,8 @@ export default async function SearchPage({ searchParams }: SearchProps) {
       <SectionTitle>Search</SectionTitle>
 
       <div className="mt-8 grid max-w-screen-lg grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-        <Suspense fallback={<MovieCard.Ghost />}>
-          {movies.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
-          ))}
-          {movies.length === 0 && (
-            <p className="col-span-full text-center">No movies was found</p>
-          )}
+        <Suspense fallback={<Movies.Ghosts />}>
+          <Movies movies={movies} />
         </Suspense>
       </div>
     </>

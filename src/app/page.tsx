@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import TrendingCard from '@/components/TrendingCard';
 import MovieCard from '@/components/MovieCard';
 import type { Movie, MovieResponse } from '@/types/Movie';
+import Movies from '@/components/Movies';
 
 async function fetchTrendingMovies() {
   const res = await fetch('https://api.themoviedb.org/3/trending/movie/day', {
@@ -80,6 +81,7 @@ export default async function Home() {
         <Suspense fallback={<TrendingCard.Ghost />}>
           <TrendingCard movie={first} />
         </Suspense>
+
         <Suspense fallback={<TrendingCard.Ghost />}>
           <TrendingCard movie={second} />
         </Suspense>
@@ -87,19 +89,15 @@ export default async function Home() {
 
       <h2 className="mb-3 mt-5 text-xl font-semibold">Now playing</h2>
       <div className="flex snap-x space-x-4 overflow-x-auto">
-        {nowPlaying.map((movie: Movie) => (
-          <Suspense key={movie.id} fallback={<MovieCard.Ghost />}>
-            <MovieCard movie={movie} />
-          </Suspense>
-        ))}
+        <Suspense fallback={<Movies.Ghosts />}>
+          <Movies movies={nowPlaying} />
+        </Suspense>
       </div>
 
       <h2 className="mb-3 mt-5 text-xl font-semibold">Top Rated</h2>
       <div className="flex snap-x space-x-4 overflow-x-auto">
-        <Suspense fallback={<MovieCard.Ghost />}>
-          {topRated.map((movie: Movie) => (
-            <MovieCard key={movie.id} movie={movie} />
-          ))}
+        <Suspense fallback={<Movies.Ghosts />}>
+          <Movies movies={topRated} />
         </Suspense>
       </div>
     </>
