@@ -82,6 +82,7 @@ export default async function DiscoverWithGenrePage({
 
       <div
         id="movies-container"
+        tabIndex={0}
         className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
         <Suspense fallback={<Movies.Ghosts />}>
