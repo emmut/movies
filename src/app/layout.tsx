@@ -23,9 +23,7 @@ export default function RootLayout({
           'h-screen max-h-screen bg-neutral-800 desktop:overflow-y-hidden',
         ])}
       >
-        <LayoutClient>
-          <main>{children}</main>
-        </LayoutClient>
+        <LayoutClient>{children}</LayoutClient>
       </body>
     </html>
   );

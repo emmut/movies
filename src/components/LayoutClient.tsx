@@ -59,13 +59,13 @@ export default function Layout({ children }: ClientLayoutProps) {
 
         <NavigationAside />
 
-        <div className="container col-span-10 col-start-3 row-span-full mx-auto flex h-full max-h-screen flex-col px-4 desktop:px-8">
+        <div className="container col-span-10 col-start-3 row-span-full mx-auto flex h-full max-h-screen max-w-screen-xl flex-col px-4 desktop:px-8">
           <Header />
 
           <div className="flex flex-1 flex-col pb-16 desktop:overflow-y-auto">
-            <div id="main-content" className="flex-1">
+            <main id="main-content max-w-screen-xl" className="flex-1">
               {children}
-            </div>
+            </main>
 
             <footer className="mt-auto pt-5">
               <p className="text-center text-xs text-zinc-400">

@@ -37,7 +37,7 @@ export default async function SearchPage({ searchParams }: SearchProps) {
     <>
       <SectionTitle>Search</SectionTitle>
 
-      <div className="mt-8 grid max-w-screen-lg grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         <Suspense fallback={<Movies.Ghosts />}>
           <Movies movies={movies} />
         </Suspense>
