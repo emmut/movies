@@ -7,16 +7,19 @@ import type { MovieResponse } from '@/types/Movie';
 import SkipToElement from '@/components/SkipToElement';
 import AvailableGenresNavigation from '@/components/AvailableGenresNavigation';
 import Movies from '@/components/Movies';
+import { PaginationControls } from '@/components/PaginationControls';
 
 type DiscoverWithGenreParams = {
   params: {
     genreId?: string;
   };
+  searchParams: {
+    page?: string;
+  };
 };
 
-async function fetchDiscoverMovies(genreId: number) {
-  let url =
-    'https://api.themoviedb.org/3/discover/movie?sort_by=polularity.desc&region=SE&include_adult=false&include_video=false';
+async function fetchDiscoverMovies(genreId: number, page: number = 1) {
+  let url = `https://api.themoviedb.org/3/discover/movie?page=${page}&sort_by=polularity.desc&region=SE&include_adult=false&include_video=false`;
 
   if (genreId !== 0) {
     url += `&with_genres=${genreId}`;
@@ -36,23 +39,26 @@ async function fetchDiscoverMovies(genreId: number) {
   }
 
   const movies: MovieResponse = await res.json();
-  return movies.results;
+  return movies;
 }
 
 export default async function DiscoverWithGenrePage({
   params,
+  searchParams,
 }: DiscoverWithGenreParams) {
   let genreId: number;
 
-  if (params.genreId) {
-    genreId = Number(params.genreId);
+  if (params.genreId && params.genreId.length > 0) {
+    genreId = Number(params.genreId[0]);
   } else {
     genreId = 0;
   }
 
+  const page = Number(searchParams.page ?? '1');
+
   const [genres, movies] = await Promise.all([
     fetchAvailableGenres(),
-    fetchDiscoverMovies(genreId),
+    fetchDiscoverMovies(genreId, page),
   ]);
 
   return (
@@ -79,9 +85,11 @@ export default async function DiscoverWithGenrePage({
         className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
         <Suspense fallback={<Movies.Ghosts />}>
-          <Movies movies={movies} />
+          <Movies movies={movies.results} />
         </Suspense>
       </div>
+
+      <PaginationControls totalPages={movies.total_pages} />
     </>
   );
 }
