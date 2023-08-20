@@ -57,7 +57,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             <div className="sr-only">Previous page</div>
             <ChevronLeft />
           </button>
-          <div className="">
+          <div>
             {page}
             {' / '}
             {totalPages}
