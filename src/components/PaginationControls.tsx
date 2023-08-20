@@ -50,18 +50,20 @@ export function PaginationControls({ totalPages }: PaginationControls) {
       {totalPages > 0 && (
         <nav className="mb-3 mt-6 flex items-center justify-center gap-4">
           <button
-            className="rounded border border-solid border-neutral-50 p-2"
+            className="rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950"
             disabled={!hasPrevPage}
             onClick={() => handleSwitchPage(Number(page) - 1)}
           >
             <div className="sr-only">Previous page</div>
             <ChevronLeft />
           </button>
-          <div>
-            {page} / {totalPages}
+          <div className="">
+            {page}
+            {' / '}
+            {totalPages}
           </div>
           <button
-            className="rounded border border-solid border-neutral-50 p-2"
+            className="rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950"
             disabled={!hasNextPage}
             onClick={() => handleSwitchPage(Number(page) + 1)}
           >

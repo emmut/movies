@@ -1,7 +1,8 @@
 import { env } from 'process';
 import Image from 'next/image';
 import { formatImageUrl } from '@/lib/utils';
-import type { Movie } from '@/types/Movie';
+import type { Movie, MovieDetails } from '@/types/Movie';
+import ChevronRight from '@/icons/ChevronRight';
 
 type MoviePageProps = {
   params: {
@@ -24,7 +25,7 @@ async function getMovieDetails(movieId: number) {
     throw new Error('Failed loading movie details');
   }
 
-  const movie: Movie = await res.json();
+  const movie: MovieDetails = await res.json();
 
   return movie;
 }
@@ -33,6 +34,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
   const movieId = parseInt(params.movieId);
   const movie = await getMovieDetails(movieId);
   const { title, release_date, overview, poster_path } = movie;
+  const score = Math.ceil(movie.vote_average * 10) / 10;
 
   return (
     <div className="grid max-w-screen-lg gap-4 md:grid-cols-12">
@@ -50,6 +52,22 @@ export default async function MoviePage({ params }: MoviePageProps) {
         <p className="mt-1">{release_date}</p>
         <h2 className="mt-3 font-semibold uppercase text-zinc-400">Overview</h2>
         <p className="mt-1">{overview}</p>
+        <h2 className="mt-3 font-semibold uppercase text-zinc-400">
+          Vote Score
+        </h2>
+        <p className="mt-1">
+          {score} / 10
+          <span className="ml-1 text-xs italic text-zinc-500">
+            {movie.vote_count} voters
+          </span>
+        </p>
+        <h2 className="mt-3 font-semibold uppercase text-zinc-400">Imdb</h2>
+        <a
+          className="mt-1 block"
+          href={`https://imdb.com/title/${movie.imdb_id}`}
+        >
+          Go to IMDB
+        </a>
       </div>
     </div>
   );
