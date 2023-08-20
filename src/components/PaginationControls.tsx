@@ -47,7 +47,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
 
   return (
     <>
-      {totalPages > 0 && (
+      {totalPages > 1 && (
         <nav className="mb-3 mt-6 flex items-center justify-center gap-4">
           <button
             className="rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950"
