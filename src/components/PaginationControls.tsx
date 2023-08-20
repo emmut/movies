@@ -24,18 +24,18 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   }
 
   function handleSwitchPage(pageNumber: number) {
-    let newSearchParams: URLSearchParams;
+    let newSearchParams: string;
     const q = searchParams.get('q');
 
     if (q !== null) {
       newSearchParams = new URLSearchParams({
         q,
         page: String(pageNumber),
-      });
+      }).toString();
     } else {
       newSearchParams = new URLSearchParams({
         page: String(pageNumber),
-      });
+      }).toString();
     }
 
     if (currentGenreId !== 0) {
