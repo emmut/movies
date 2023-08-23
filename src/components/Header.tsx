@@ -1,15 +1,12 @@
-import { useContext } from 'react';
 import Link from 'next/link';
-import { NavigationContext } from '@/components/LayoutClient';
 import MenuIcon from '@/icons/MenuIcon';
 import UnionIcon from '@/icons/UnionIcon';
 import SearchBar from '@/components/SearchBar';
 import Brand from '@/components/Brand';
+import { useNavigationContext } from '@/contexts/NavigationProvider';
 
 export default function Header() {
-  const { navOpen, handleOnClick } = useContext(
-    NavigationContext
-  ) as NavigationContext;
+  const { navOpen, handleOnClick } = useNavigationContext();
 
   return (
     <header className="sticky top-0 z-20 bg-neutral-800 py-4">

@@ -1,10 +1,7 @@
-import { useContext } from 'react';
-import { NavigationContext } from '@/components/LayoutClient';
+import { useNavigationContext } from '@/contexts/NavigationProvider';
 
 export default function Overlay() {
-  const { navOpen, handleOnClick } = useContext(
-    NavigationContext
-  ) as NavigationContext;
+  const { navOpen, handleOnClick } = useNavigationContext();
 
   return (
     navOpen && (

@@ -1,12 +1,11 @@
-import { useContext } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import Brand from '@/components/Brand';
 import NavigationLink from '@/components/NavigationLink';
-import { NavigationContext } from '@/components/LayoutClient';
 import CompassIcon from '@/icons/CompassIcon';
 import HouseIcon from '@/icons/HouseIcon';
 import type { NavLink } from '@/types/NavLink';
+import { useNavigationContext } from '@/contexts/NavigationProvider';
 
 export default function NavigationAside() {
   const links: NavLink[] = [
@@ -22,9 +21,7 @@ export default function NavigationAside() {
     },
   ];
 
-  const { navOpen, navigation } = useContext(
-    NavigationContext
-  ) as NavigationContext;
+  const { navOpen, navigation } = useNavigationContext();
 
   return (
     <aside

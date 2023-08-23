@@ -1,31 +1,17 @@
 'use client';
 
-import {
-  ReactNode,
-  RefObject,
-  createContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
-import Overlay from './Overlay';
-import NavigationAside from './NavigationAside';
+import Overlay from '@/components/Overlay';
+import NavigationAside from '@/components/NavigationAside';
+import SkipToElement from '@/components/SkipToElement';
 import { useLockScroll } from '@/hooks/use-lock-scroll';
-import SkipToElement from './SkipToElement';
+import NavigationProvider from '@/contexts/NavigationProvider';
 
 type ClientLayoutProps = {
   children: ReactNode;
 };
-
-export type NavigationContext = {
-  navOpen: boolean;
-  handleOnClick: () => void;
-  navigation: RefObject<HTMLElement> | null;
-};
-
-export const NavigationContext = createContext<NavigationContext | null>(null);
 
 export default function Layout({ children }: ClientLayoutProps) {
   const [navOpen, setNavOpen] = useState(false);
@@ -48,7 +34,11 @@ export default function Layout({ children }: ClientLayoutProps) {
   const navigation = useRef<HTMLElement>(null);
 
   return (
-    <NavigationContext.Provider value={{ navOpen, handleOnClick, navigation }}>
+    <NavigationProvider
+      navOpen={navOpen}
+      handleOnClick={handleOnClick}
+      navigation={navigation}
+    >
       <div className="h-full grid-cols-1 text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12">
         <SkipToElement
           className="absolute left-3 top-3 z-40"
@@ -76,6 +66,6 @@ export default function Layout({ children }: ClientLayoutProps) {
           </div>
         </div>
       </div>
-    </NavigationContext.Provider>
+    </NavigationProvider>
   );
 }
