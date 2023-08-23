@@ -20,7 +20,7 @@ export default function RootLayout({
       <body
         className={clsx([
           inter.className,
-          'h-screen max-h-screen bg-neutral-800 desktop:overflow-y-hidden',
+          'bg-neutral-800 desktop:overflow-y-hidden',
         ])}
       >
         <LayoutClient>{children}</LayoutClient>
