@@ -4,9 +4,9 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
 
-interface PaginationControls {
+type PaginationControls = {
   totalPages: number;
-}
+};
 
 export function PaginationControls({ totalPages }: PaginationControls) {
   const router = useRouter();
