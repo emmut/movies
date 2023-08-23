@@ -63,7 +63,7 @@ export default function Layout({ children }: ClientLayoutProps) {
           <Header />
 
           <div className="flex flex-1 flex-col pb-16 desktop:overflow-y-auto">
-            <main id="main-content max-w-screen-xl" className="flex-1">
+            <main id="main-content" className="max-w-screen-xl flex-1">
               {children}
             </main>
 
