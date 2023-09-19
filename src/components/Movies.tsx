@@ -1,17 +1,20 @@
+import { fetchDiscoverMovies } from '@/lib/discover';
 import MovieCard from './MovieCard';
-import type { Movie } from '@/types/Movie';
 
 type MoviesProps = {
-  movies: Movie[];
+  currentGenreId: number;
+  currentPage: number;
 };
 
-export async function Movies({ movies }: MoviesProps) {
+export async function Movies({ currentGenreId, currentPage }: MoviesProps) {
+  const movies = await fetchDiscoverMovies(currentGenreId, currentPage);
+
   return (
     <>
-      {movies.map((movie) => (
+      {movies.results.map((movie) => (
         <MovieCard key={movie.id} movie={movie} />
       ))}
-      {movies.length === 0 && (
+      {movies.results.length === 0 && (
         <p className="col-span-full text-center">No movies was found</p>
       )}
     </>

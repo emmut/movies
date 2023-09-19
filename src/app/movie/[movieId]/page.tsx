@@ -1,8 +1,7 @@
 import { env } from 'process';
 import Image from 'next/image';
 import { formatImageUrl } from '@/lib/utils';
-import type { Movie, MovieDetails } from '@/types/Movie';
-import ChevronRight from '@/icons/ChevronRight';
+import type { MovieDetails } from '@/types/Movie';
 
 type MoviePageProps = {
   params: {

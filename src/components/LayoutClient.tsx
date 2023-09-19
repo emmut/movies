@@ -39,7 +39,7 @@ export default function Layout({ children }: ClientLayoutProps) {
       handleOnClick={handleOnClick}
       navigation={navigation}
     >
-      <div className="w-full text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12">
+      <div className="text-neutral-50 desktop:grid desktop:h-screen desktop:grid-cols-12">
         <SkipToElement
           className="absolute left-3 top-3 z-40"
           elementId="main-content"

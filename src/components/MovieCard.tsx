@@ -22,7 +22,7 @@ function MovieCard({ movie }: MovieProp) {
           src={formatImageUrl(poster_path, 200)}
           alt={`Poster image of ${title}`}
           width={300}
-          height={500}
+          height={450}
           quality={85}
         />
       )}
@@ -49,8 +49,8 @@ function MovieCard({ movie }: MovieProp) {
 
 MovieCard.Ghost = function Ghost() {
   return (
-    <div className="group relative grid aspect-[2/3] w-full flex-[150px] flex-shrink-0 animate-pulse snap-center overflow-hidden rounded-md">
-      <div className="col-span-full row-span-full grid place-items-center rounded-md border border-white/25 bg-neutral-50/10 p-3 text-center transition-opacity duration-200 ease-in"></div>
+    <div className="relative grid aspect-[2/3] w-full flex-[150px] flex-shrink-0 animate-pulse overflow-hidden rounded-md">
+      <div className="rounded-md border border-white/25 bg-neutral-50/10 p-3 transition-opacity duration-200 ease-in"></div>
     </div>
   );
 };

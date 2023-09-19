@@ -1,17 +1,16 @@
 import Link from 'next/link';
 import Pill from './Pill';
-import type { Genre } from '@/types/Genre';
+import { fetchAvailableGenres } from '@/lib/discover';
 
 type AvailableGenreProps = {
-  genres: Genre[];
   currentGenreId?: number;
 };
 
 export default async function AvailableGenresNavigation({
-  genres,
   currentGenreId,
 }: AvailableGenreProps) {
   const genreId = currentGenreId;
+  const genres = await fetchAvailableGenres();
 
   return (
     <nav>

@@ -1,13 +1,21 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
-import type { Movie } from '@/types/Movie';
+import { fetchTrendingMovies } from '@/lib/homepage';
 
 type TrendingCardProp = {
-  movie: Movie;
+  index: number;
 };
 
-async function TredningCard({ movie }: TrendingCardProp) {
+async function Trending({ index }: TrendingCardProp) {
+  const movies = await fetchTrendingMovies();
+
+  if (movies.length < index - 1) {
+    return null;
+  }
+
+  const movie = movies[index];
+
   return (
     <Link
       href={`/movie/${movie.id}`}
@@ -37,7 +45,7 @@ async function TredningCard({ movie }: TrendingCardProp) {
   );
 }
 
-TredningCard.Ghost = function Ghost() {
+Trending.Ghost = function Ghost() {
   return (
     <div className="relative h-52 animate-pulse overflow-hidden rounded-xl bg-neutral-50/10 lg:h-72 lg:flex-1">
       <div className="absolute bottom-0 left-0 right-0 z-10 flex h-12 flex-col justify-center bg-zinc-950/10 px-3 py-2"></div>
@@ -45,4 +53,4 @@ TredningCard.Ghost = function Ghost() {
   );
 };
 
-export default TredningCard;
+export default Trending;
