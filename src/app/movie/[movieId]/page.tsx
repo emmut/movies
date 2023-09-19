@@ -38,11 +38,11 @@ export default async function MoviePage({ params }: MoviePageProps) {
   return (
     <div className="grid max-w-screen-lg gap-4 md:grid-cols-12">
       <Image
-        className="col-span-4 rounded-lg"
+        className="col-span-4 aspect-[2/3] rounded-lg"
         src={formatImageUrl(poster_path, 300)}
         alt={`Poster image of ${title}`}
         width={300}
-        height={500}
+        height={450}
         priority
       />
       <div className="col-span-8 text-sm">
