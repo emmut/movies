@@ -7,14 +7,14 @@ type MoviesProps = {
 };
 
 export async function Movies({ currentGenreId, currentPage }: MoviesProps) {
-  const movies = await fetchDiscoverMovies(currentGenreId, currentPage);
+  const { movies } = await fetchDiscoverMovies(currentGenreId, currentPage);
 
   return (
     <>
-      {movies.results.map((movie) => (
+      {movies.map((movie) => (
         <MovieCard key={movie.id} movie={movie} />
       ))}
-      {movies.results.length === 0 && (
+      {movies.length === 0 && (
         <p className="col-span-full text-center">No movies was found</p>
       )}
     </>

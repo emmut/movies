@@ -1,13 +1,11 @@
-import { env } from 'process';
 import { Suspense } from 'react';
 import SectionTitle from '@/components/SectionTitle';
 import Spinner from '@/components/Spinner';
-import { fetchAvailableGenres, fetchDiscoverMovies } from '@/lib/discover';
-import type { MovieResponse } from '@/types/Movie';
 import SkipToElement from '@/components/SkipToElement';
 import AvailableGenresNavigation from '@/components/AvailableGenresNavigation';
 import Movies from '@/components/Movies';
 import { PaginationControls } from '@/components/PaginationControls';
+import { fetchDiscoverMovies } from '@/lib/discover';
 
 type DiscoverWithGenreParams = {
   params: {
@@ -31,7 +29,7 @@ export default async function DiscoverWithGenrePage({
   }
 
   const page = Number(searchParams.page ?? '1');
-  const movies = await fetchDiscoverMovies(genreId, page);
+  const { totalPages } = await fetchDiscoverMovies(genreId, page);
 
   return (
     <>
@@ -63,7 +61,7 @@ export default async function DiscoverWithGenrePage({
         </Suspense>
       </div>
 
-      <PaginationControls totalPages={movies.total_pages} />
+      <PaginationControls totalPages={totalPages} />
     </>
   );
 }

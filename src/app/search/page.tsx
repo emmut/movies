@@ -16,19 +16,18 @@ export default async function SearchPage({ searchParams }: SearchProps) {
   const query = searchParams.q ?? '';
   const page = searchParams.page ?? '1';
 
-  const movies = await fetchMoviesBySearchQuery(query, page);
+  const { totalPages } = await fetchMoviesBySearchQuery(query, page);
 
   return (
     <>
       <SectionTitle>Search</SectionTitle>
-
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         <Suspense fallback={<Movies.Ghosts />}>
           <SearchMovies currentQuery={query} currentPage={page} />
         </Suspense>
       </div>
-
-      <PaginationControls totalPages={movies.total_pages} />
+      movies
+      <PaginationControls totalPages={totalPages} />
     </>
   );
 }

@@ -17,5 +17,5 @@ export async function fetchMoviesBySearchQuery(query: string, page: string) {
   }
 
   const movies: SearchedMovieResponse = await res.json();
-  return movies;
+  return { movies: movies.results, totalPages: movies.total_pages };
 }
