@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import LayoutClient from '@/components/LayoutClient';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], fallback: ['sans-serif'] });
 
 export const metadata = {
   title: 'Movies',
