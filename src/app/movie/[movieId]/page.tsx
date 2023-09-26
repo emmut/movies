@@ -36,16 +36,16 @@ export default async function MoviePage({ params }: MoviePageProps) {
   const score = Math.ceil(movie.vote_average * 10) / 10;
 
   return (
-    <div className="grid max-w-screen-lg gap-4 md:grid-cols-12">
+    <div className="grid max-w-screen-lg grid-cols-12 gap-4">
       <Image
-        className="col-span-4 aspect-[2/3] rounded-lg"
+        className="col-span-7 aspect-[2/3] rounded-lg md:col-span-4"
         src={formatImageUrl(poster_path, 300)}
         alt={`Poster image of ${title}`}
         width={300}
         height={450}
         priority
       />
-      <div className="col-span-8 text-sm">
+      <div className="col-span-full text-sm md:col-span-8">
         <h1 className="text-lg font-bold">{title}</h1>
         <h2 className="mt-3 font-semibold uppercase text-zinc-400">Released</h2>
         <p className="mt-1">{release_date}</p>
@@ -62,7 +62,7 @@ export default async function MoviePage({ params }: MoviePageProps) {
         </p>
         <h2 className="mt-3 font-semibold uppercase text-zinc-400">Imdb</h2>
         <a
-          className="mt-1 block"
+          className="mt-1 block font-bold underline hover:no-underline"
           href={`https://imdb.com/title/${movie.imdb_id}`}
         >
           Go to IMDB
