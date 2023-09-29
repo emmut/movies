@@ -60,13 +60,17 @@ export default async function MoviePage({ params }: MoviePageProps) {
             {movie.vote_count} voters
           </span>
         </p>
-        <h2 className="mt-3 font-semibold uppercase text-zinc-400">Imdb</h2>
-        <a
-          className="mt-1 block font-bold underline hover:no-underline"
-          href={`https://imdb.com/title/${movie.imdb_id}`}
-        >
-          Go to IMDB
-        </a>
+        {movie.imdb_id !== null && (
+          <>
+            <h2 className="mt-3 font-semibold uppercase text-zinc-400">Imdb</h2>
+            <a
+              className="mt-1 block font-bold underline hover:no-underline"
+              href={`https://imdb.com/title/${movie.imdb_id}`}
+            >
+              Go to IMDB
+            </a>
+          </>
+        )}
       </div>
     </div>
   );
