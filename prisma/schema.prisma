@@ -44,6 +44,15 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  userSettings  UserSettings[]
+}
+
+model UserSettings {
+  id            Int       @id @default(autoincrement())
+  userId        String    @unique
+  name          String
+  value         String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
