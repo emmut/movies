@@ -1,11 +1,15 @@
 import Link from 'next/link';
 import clsx from 'clsx';
 import Brand from '@/components/Brand';
-import NavigationLink from '@/components/NavigationLink';
+import NavigationLink from '@/components/nav/NavigationLink';
 import CompassIcon from '@/icons/CompassIcon';
 import HouseIcon from '@/icons/HouseIcon';
 import type { NavLink } from '@/types/NavLink';
-import { useNavigationContext } from '@/contexts/NavigationProvider';
+import { useNavigationContext } from '@/providers/NavigationProvider';
+import { signIn, useSession } from 'next-auth/react';
+import Auth from '../auth/Auth';
+import UserDetails from '../UserDetails';
+import Guest from '../auth/Guest';
 
 export default function NavigationAside() {
   const links: NavLink[] = [
@@ -22,6 +26,8 @@ export default function NavigationAside() {
   ];
 
   const { navOpen, navigation } = useNavigationContext();
+
+  const { data: session, status } = useSession();
 
   return (
     <aside
@@ -46,6 +52,20 @@ export default function NavigationAside() {
           ))}
         </ul>
       </nav>
+
+      <div className="">
+        <Auth>
+          <UserDetails />
+        </Auth>
+        <Guest>
+          <button
+            className="rounded-md border border-neutral-50 px-4 py-1.5 text-sm"
+            onClick={() => signIn()}
+          >
+            Sign in
+          </button>
+        </Guest>
+      </div>
     </aside>
   );
 }

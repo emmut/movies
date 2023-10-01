@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import LayoutClient from '@/components/LayoutClient';
+import LayoutClient from '@/components/layouts/LayoutClient';
 
 const inter = Inter({ subsets: ['latin'], fallback: ['sans-serif'] });
 

@@ -4,10 +4,10 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Header from '@/components/Header';
 import Overlay from '@/components/Overlay';
-import NavigationAside from '@/components/NavigationAside';
+import NavigationAside from '@/components/nav/NavigationAside';
 import SkipToElement from '@/components/SkipToElement';
 import { useLockScroll } from '@/hooks/use-lock-scroll';
-import NavigationProvider from '@/contexts/NavigationProvider';
+import NavigationProvider from '@/providers/NavigationProvider';
 
 type ClientLayoutProps = {
   children: ReactNode;
