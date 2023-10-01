@@ -53,7 +53,7 @@ export default function NavigationAside() {
         </ul>
       </nav>
 
-      <div className="">
+      <div className="min-h-[3.5rem]">
         <Auth>
           <UserDetails />
         </Auth>
