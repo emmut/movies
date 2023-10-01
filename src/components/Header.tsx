@@ -3,7 +3,7 @@ import MenuIcon from '@/icons/MenuIcon';
 import UnionIcon from '@/icons/UnionIcon';
 import SearchBar from '@/components/SearchBar';
 import Brand from '@/components/Brand';
-import { useNavigationContext } from '@/contexts/NavigationProvider';
+import { useNavigationContext } from '@/providers/NavigationProvider';
 
 export default function Header() {
   const { navOpen, handleOnClick } = useNavigationContext();

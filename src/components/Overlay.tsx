@@ -1,4 +1,4 @@
-import { useNavigationContext } from '@/contexts/NavigationProvider';
+import { useNavigationContext } from '@/providers/NavigationProvider';
 
 export default function Overlay() {
   const { navOpen, handleOnClick } = useNavigationContext();
