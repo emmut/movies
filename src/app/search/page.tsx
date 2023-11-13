@@ -26,7 +26,7 @@ export default async function SearchPage({ searchParams }: SearchProps) {
           <SearchMovies currentQuery={query} currentPage={page} />
         </Suspense>
       </div>
-      movies
+
       <PaginationControls totalPages={totalPages} />
     </>
   );
