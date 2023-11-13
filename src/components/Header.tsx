@@ -1,9 +1,11 @@
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { useNavigationContext } from '@/contexts/NavigationProvider';
 import MenuIcon from '@/icons/MenuIcon';
 import UnionIcon from '@/icons/UnionIcon';
 import SearchBar from '@/components/SearchBar';
 import Brand from '@/components/Brand';
-import { useNavigationContext } from '@/contexts/NavigationProvider';
+import Spinner from '@/components/Spinner';
 
 export default function Header() {
   const { navOpen, handleOnClick } = useNavigationContext();
@@ -27,7 +29,9 @@ export default function Header() {
           )}
         </button>
       </div>
-      <SearchBar />
+      <Suspense fallback={<Spinner />}>
+        <SearchBar />
+      </Suspense>
     </header>
   );
 }
