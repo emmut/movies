@@ -3,13 +3,14 @@
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
+import clsx from 'clsx';
 
 type PaginationControls = {
   totalPages: number;
 };
 
 export function PaginationControls({ totalPages }: PaginationControls) {
-  const router = useRouter();
+  const { replace } = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
 
@@ -23,7 +24,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     currentGenreId = Number(params.genreId);
   }
 
-  function handleSwitchPage(pageNumber: number) {
+  function buildPageUrl(pageNumber: number) {
     let newSearchParams: string;
     const q = searchParams.get('q');
 
@@ -50,20 +51,48 @@ export function PaginationControls({ totalPages }: PaginationControls) {
       {totalPages > 1 && (
         <nav className="mb-3 mt-6 flex items-center justify-center gap-4">
           <a
-            className="rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950"
-            href={handleSwitchPage(Number(page) - 1)}
+            className={clsx([
+              'rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
+              !hasPrevPage && 'pointer-events-none opacity-40',
+            ])}
+            href={buildPageUrl(Number(page) - 1)}
+            aria-disabled={!hasPrevPage}
           >
             <div className="sr-only">Previous page</div>
             <ChevronLeft />
           </a>
-          <div>
-            {page}
-            {' / '}
-            {totalPages}
+
+          <div className="grid grid-cols-1 grid-rows-1 rounded ring-offset-2 focus-within:ring-2">
+            <span className="sr-only">Current page</span>
+            <div className="col-start-1 col-end-1 row-start-1 row-end-1">
+              {page}
+              {' / '}
+              {totalPages}
+            </div>
+            <select
+              onChange={(e) => {
+                const newPageUrl = buildPageUrl(Number(e.target.value));
+
+                if (newPageUrl !== page) {
+                  replace(newPageUrl);
+                }
+              }}
+              className="z-10 col-start-1 col-end-1 row-start-1 row-end-1 appearance-none opacity-0"
+            >
+              {Array.from({ length: totalPages }, (_, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {i + 1}
+                </option>
+              ))}
+            </select>
           </div>
           <a
-            className="rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950"
-            href={handleSwitchPage(Number(page) + 1)}
+            className={clsx([
+              'rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
+              !hasNextPage && 'pointer-events-none opacity-40',
+            ])}
+            href={buildPageUrl(Number(page) + 1)}
+            aria-disabled={!hasNextPage}
           >
             <div className="sr-only">Next page</div>
             <ChevronRight />
