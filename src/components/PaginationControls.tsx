@@ -39,9 +39,9 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     }
 
     if (currentGenreId !== 0) {
-      router.push(`${currentGenreId}?${newSearchParams}`);
+      return `${currentGenreId}?${newSearchParams}`;
     } else {
-      router.push(`?${newSearchParams}`);
+      return `?${newSearchParams}`;
     }
   }
 
@@ -49,27 +49,25 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     <>
       {totalPages > 1 && (
         <nav className="mb-3 mt-6 flex items-center justify-center gap-4">
-          <button
+          <a
             className="rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950"
-            disabled={!hasPrevPage}
-            onClick={() => handleSwitchPage(Number(page) - 1)}
+            href={handleSwitchPage(Number(page) - 1)}
           >
             <div className="sr-only">Previous page</div>
             <ChevronLeft />
-          </button>
+          </a>
           <div>
             {page}
             {' / '}
             {totalPages}
           </div>
-          <button
+          <a
             className="rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950"
-            disabled={!hasNextPage}
-            onClick={() => handleSwitchPage(Number(page) + 1)}
+            href={handleSwitchPage(Number(page) + 1)}
           >
             <div className="sr-only">Next page</div>
             <ChevronRight />
-          </button>
+          </a>
         </nav>
       )}
     </>
