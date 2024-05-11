@@ -48,5 +48,6 @@ export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
   }
 
   const movies: MovieResponse = await res.json();
-  return { movies: movies.results, totalPages: movies.total_pages };
+  const totalPages = movies.total_pages >= 500 ? 500 : movies.total_pages;
+  return { movies: movies.results, totalPages };
 }
