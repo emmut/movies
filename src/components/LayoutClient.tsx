@@ -49,7 +49,7 @@ export default function Layout({ children }: ClientLayoutProps) {
 
         <NavigationAside />
 
-        <div className="container col-span-10 col-start-3 row-span-full mx-auto flex max-w-screen-xl flex-col px-4 desktop:max-h-screen desktop:px-8">
+        <div className="container col-span-10 col-start-3 row-span-full mx-auto flex max-w-screen-xl flex-col px-4 desktop:max-h-screen h-full desktop:px-8">
           <Header />
 
           <div className="flex flex-1 flex-col pb-16 desktop:overflow-y-auto">

@@ -16,11 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className='desktop:overflow-hidden desktop:h-full'>
       <body
         className={clsx([
           inter.className,
-          'bg-neutral-800 desktop:overflow-y-hidden',
+          'bg-neutral-800 desktop:overflow-y-hidden desktop:h-full',
         ])}
       >
         <LayoutClient>{children}</LayoutClient>
