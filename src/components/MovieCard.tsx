@@ -29,9 +29,10 @@ function MovieCard({ movie }: MovieProp) {
 
       <div
         className={clsx([
-          'col-span-full row-span-full grid place-items-center rounded-md border-white bg-zinc-950/80 p-3 text-center opacity-0 transition-opacity duration-200 ease-in group-hover:border',
+          'col-span-full row-span-full grid place-items-center rounded-md border-white bg-zinc-950/80 p-3 text-center opacity-0 transition-opacity duration-200 ease-in group-hover:border group-focus:border',
           {
-            'group-hover:opacity-100': poster_path !== null,
+            'group-hover:opacity-100 group-focus:opacity-100':
+              poster_path !== null,
             'opacity-100': poster_path === null,
           },
         ])}
