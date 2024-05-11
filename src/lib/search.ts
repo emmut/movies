@@ -2,8 +2,15 @@ import { SearchedMovieResponse } from '@/types/Movie';
 import { env } from 'process';
 
 export async function fetchMoviesBySearchQuery(query: string, page: string) {
+  const searchParams = new URLSearchParams();
+  searchParams.set('query', query);
+  searchParams.set('page', page);
+  searchParams.set('sort_by', 'popularity.desc');
+  searchParams.set('include_adult', 'false');
+  searchParams.set('include_video', 'false');
+
   const res = await fetch(
-    `https://api.themoviedb.org/3/search/movie?query=${query}&page=${page}&sort_by=popularity.desc&include_adult=false&include_video=false`,
+    `https://api.themoviedb.org/3/search/movie?${searchParams.toString()}`,
     {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,

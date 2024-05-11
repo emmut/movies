@@ -21,7 +21,14 @@ export async function fetchAvailableGenres() {
 }
 
 export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
-  let url = `https://api.themoviedb.org/3/discover/movie?page=${page}&sort_by=polularity.desc&region=SE&include_adult=false&include_video=false`;
+  const searchParams = new URLSearchParams();
+  searchParams.set('page', String(page));
+  searchParams.set('sort_by', 'popularity.desc');
+  searchParams.set('region', 'SE');
+  searchParams.set('include_adult', 'false');
+  searchParams.set('include_video', 'false');
+
+  let url = `https://api.themoviedb.org/3/discover/movie?${searchParams.toString()}`;
 
   if (genreId !== 0) {
     url += `&with_genres=${genreId}`;
