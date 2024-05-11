@@ -4,6 +4,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
+import Link from 'next/link';
 
 type PaginationControls = {
   totalPages: number;
@@ -50,7 +51,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     <>
       {totalPages > 1 && (
         <nav className="mb-3 mt-6 flex items-center justify-center gap-4">
-          <a
+          <Link
             className={clsx([
               'rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasPrevPage && 'pointer-events-none opacity-40',
@@ -60,7 +61,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
           >
             <div className="sr-only">Previous page</div>
             <ChevronLeft />
-          </a>
+          </Link>
 
           <div className="grid grid-cols-1 grid-rows-1 rounded ring-offset-2 focus-within:ring-2">
             <span className="sr-only">Current page</span>
@@ -86,7 +87,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               ))}
             </select>
           </div>
-          <a
+          <Link
             className={clsx([
               'rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasNextPage && 'pointer-events-none opacity-40',
@@ -96,7 +97,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
           >
             <div className="sr-only">Next page</div>
             <ChevronRight />
-          </a>
+          </Link>
         </nav>
       )}
     </>
