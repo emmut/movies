@@ -19,13 +19,13 @@ export default async function Home() {
       </div>
 
       <h2 className="mb-3 mt-5 text-xl font-semibold">Now playing</h2>
-      <div className="scrollbar-thin flex snap-x space-x-4 overflow-x-auto pb-2 text-neutral-500">
+      <div className="scrollbar-thin flex snap-x space-x-4 overflow-x-auto pb-2">
         <Suspense fallback={<Movies.Ghosts />}>
           <NowPlayingMovies />
         </Suspense>
       </div>
       <h2 className="mb-3 mt-5 text-xl font-semibold">Top Rated</h2>
-      <div className="scrollbar-thin flex snap-x space-x-4 overflow-x-auto pb-2 text-neutral-500">
+      <div className="scrollbar-thin flex snap-x space-x-4 overflow-x-auto pb-2">
         <Suspense fallback={<Movies.Ghosts />}>
           <TopRatedMovies />
         </Suspense>
