@@ -11,8 +11,8 @@ const nextConfig = {
     ],
   },
   experimental: {
-    ppr: true,
-  }
+    ppr: false,
+  },
 };
 
 module.exports = nextConfig;

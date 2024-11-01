@@ -5,7 +5,7 @@ import { RefObject, useContext } from 'react';
 export type NavigationContext = {
   navOpen: boolean;
   handleOnClick: () => void;
-  navigation: RefObject<HTMLElement> | null;
+  navigation: RefObject<HTMLElement | null> | null;
 };
 
 type NavigationProviderProps = {

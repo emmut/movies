@@ -8,18 +8,17 @@ import { PaginationControls } from '@/components/PaginationControls';
 import { fetchDiscoverMovies } from '@/lib/discover';
 
 type DiscoverWithGenreParams = {
-  params: {
+  params: Promise<{
     genreId?: string[];
-  };
-  searchParams: {
+  }>;
+  searchParams: Promise<{
     page?: string;
-  };
+  }>;
 };
 
-export default async function DiscoverWithGenrePage({
-  params,
-  searchParams,
-}: DiscoverWithGenreParams) {
+export default async function DiscoverWithGenrePage(props: DiscoverWithGenreParams) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   let genreId: number;
 
   if (params.genreId && params.genreId.length > 0) {

@@ -4,9 +4,9 @@ import { formatImageUrl } from '@/lib/utils';
 import type { MovieDetails } from '@/types/Movie';
 
 type MoviePageProps = {
-  params: {
+  params: Promise<{
     movieId: string;
-  };
+  }>;
 };
 
 async function getMovieDetails(movieId: number) {
@@ -29,7 +29,8 @@ async function getMovieDetails(movieId: number) {
   return movie;
 }
 
-export default async function MoviePage({ params }: MoviePageProps) {
+export default async function MoviePage(props: MoviePageProps) {
+  const params = await props.params;
   const movieId = parseInt(params.movieId);
   const movie = await getMovieDetails(movieId);
   const { title, release_date, overview, poster_path } = movie;

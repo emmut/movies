@@ -6,13 +6,14 @@ import SearchMovies from './search-movies';
 import { fetchMoviesBySearchQuery } from '@/lib/search';
 
 type SearchProps = {
-  searchParams: {
+  searchParams: Promise<{
     q?: string;
     page?: string;
-  };
+  }>;
 };
 
-export default async function SearchPage({ searchParams }: SearchProps) {
+export default async function SearchPage(props: SearchProps) {
+  const searchParams = await props.searchParams;
   const query = searchParams.q ?? '';
   const page = searchParams.page ?? '1';
 
