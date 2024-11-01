@@ -1,3 +1,27 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-color: currentColor transparent;
+    scrollbar-width: thin;
+  }
+
+  @supports selector(::-webkit-scrollbar) {
+    .scrollbar-thin {
+      scrollbar-width: auto;
+      scrollbar-color: unset;
+    }
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    background-color: transparent;
+    height: 0.6rem;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    cursor: grab;
+    background-color: currentColor;
+  }
+}
