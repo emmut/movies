@@ -28,8 +28,8 @@
     "typescript": "5.4.5"
   },
   "volta": {
-    "node": "20.9.0",
-    "pnpm": "8.10.4"
+    "node": "22.11.0",
+    "pnpm": "9.12.3"
   },
   "devDependencies": {
     "eslint-config-prettier": "9.0.0",
