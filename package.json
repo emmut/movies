@@ -16,6 +16,7 @@
     "@vercel/analytics": "^1.3.2",
     "@vercel/speed-insights": "^1.0.14",
     "autoprefixer": "10.4.20",
+    "babel-plugin-react-compiler": "19.0.0-beta-6fc168f-20241025",
     "clsx": "^2.1.1",
     "eslint": "9.13.0",
     "eslint-config-next": "15.0.2",
