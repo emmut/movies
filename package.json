@@ -21,7 +21,7 @@
     "eslint": "9.13.0",
     "eslint-config-next": "15.0.2",
     "next": "15.0.3-canary.3",
-    "postcss": "8.4.47",
+    "postcss": "8.4.49",
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
     "tailwind-merge": "^2.5.4",
