@@ -4,8 +4,7 @@ import Spinner from '@/components/Spinner';
 import SkipToElement from '@/components/SkipToElement';
 import AvailableGenresNavigation from '@/components/AvailableGenresNavigation';
 import Movies from '@/components/Movies';
-import { PaginationControls } from '@/components/PaginationControls';
-import { fetchDiscoverMovies } from '@/lib/discover';
+import Pagination from './pagination';
 
 type DiscoverWithGenreParams = {
   params: Promise<{
@@ -16,7 +15,9 @@ type DiscoverWithGenreParams = {
   }>;
 };
 
-export default async function DiscoverWithGenrePage(props: DiscoverWithGenreParams) {
+export default async function DiscoverWithGenrePage(
+  props: DiscoverWithGenreParams
+) {
   const searchParams = await props.searchParams;
   const params = await props.params;
   let genreId: number;
@@ -28,7 +29,6 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
   }
 
   const page = Number(searchParams.page ?? '1');
-  const { totalPages } = await fetchDiscoverMovies(genreId, page);
 
   return (
     <>
@@ -60,7 +60,9 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
         </Suspense>
       </div>
 
-      <PaginationControls totalPages={totalPages} />
+      <Suspense fallback={<Spinner className="mx-auto mt-8" />}>
+        <Pagination currentGenreId={genreId} currentPage={page} />
+      </Suspense>
     </>
   );
 }

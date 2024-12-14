@@ -4,7 +4,6 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
-import Link from 'next/link';
 
 type PaginationControls = {
   totalPages: number;
