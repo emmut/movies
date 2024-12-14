@@ -80,7 +80,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               className="z-10 col-start-1 col-end-1 row-start-1 row-end-1 appearance-none opacity-0"
             >
               {Array.from({ length: totalPages }, (_, i) => (
-                <option key={i + 1} value={i + 1}>
+                <option key={i + 1} className="text-black" value={i + 1}>
                   {i + 1}
                 </option>
               ))}
