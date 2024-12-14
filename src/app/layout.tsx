@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full desktop:overflow-hidden">
+    <html lang="en" className="desktop:h-full desktop:overflow-hidden">
       <body
         className={clsx([
           inter.className,
