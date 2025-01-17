@@ -1,4 +1,4 @@
-import { env } from 'process';
+import { env } from '@/env.mjs';
 import Image from 'next/image';
 import { formatImageUrl } from '@/lib/utils';
 import type { MovieDetails } from '@/types/Movie';

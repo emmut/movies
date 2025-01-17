@@ -1,4 +1,4 @@
-import { env } from 'process';
+import { env } from '@/env.mjs';
 import type { MovieResponse } from '@/types/Movie';
 
 export async function fetchTrendingMovies() {

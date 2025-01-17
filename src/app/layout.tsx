@@ -4,6 +4,7 @@ import './globals.css';
 import LayoutClient from '@/components/LayoutClient';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { PHProvider } from '@/contexts/PosthogProvider';
 
 const inter = Inter({ subsets: ['latin'], fallback: ['sans-serif'] });
 
@@ -25,7 +26,9 @@ export default function RootLayout({
           'bg-neutral-800 desktop:h-full desktop:overflow-y-hidden',
         ])}
       >
-        <LayoutClient>{children}</LayoutClient>
+        <PHProvider>
+          <LayoutClient>{children}</LayoutClient>
+        </PHProvider>
         <Analytics />
         <SpeedInsights />
       </body>

@@ -1,4 +1,4 @@
-import { env } from 'process';
+import { env } from '@/env.mjs';
 import MovieCard from '@/components/MovieCard';
 import { MovieResponse } from '@/types/Movie';
 
