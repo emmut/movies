@@ -1,4 +1,4 @@
-import { env } from 'process';
+import { env } from '@/env.mjs';
 import type { GenreResponse } from '@/types/Genre';
 import { MovieResponse } from '@/types/Movie';
 
