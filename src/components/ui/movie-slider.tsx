@@ -1,6 +1,7 @@
 'use client';
 import { ReactNode, useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type MovieSliderProps = {
   children: ReactNode;
@@ -10,6 +11,7 @@ export function MovieSlider({ children }: MovieSliderProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
+  const [disableArrows, setDisableArrows] = useState(false);
 
   // Check scroll position and update arrow visibility
   const updateArrowVisibility = () => {
@@ -25,6 +27,12 @@ export function MovieSlider({ children }: MovieSliderProps) {
   useEffect(() => {
     const controller = new AbortController();
     const container = scrollContainerRef.current;
+    const supportsHover = window.matchMedia('(hover: hover)').matches;
+
+    if (!supportsHover) {
+      setDisableArrows(true);
+    }
+
     if (container) {
       container.addEventListener('scroll', updateArrowVisibility, {
         signal: controller.signal,
@@ -55,7 +63,10 @@ export function MovieSlider({ children }: MovieSliderProps) {
         <>
           <button
             onClick={() => scroll('left')}
-            className="border-muted-foreground/30 hover:bg-muted/30 bg-background/80 absolute top-1/2 left-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border p-2 transition-all"
+            className={cn(
+              'border-muted-foreground/30 hover:bg-muted/30 bg-background/80 absolute top-1/2 left-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border p-2 transition-all',
+              { 'opacity-0': disableArrows }
+            )}
           >
             <ChevronLeft className="h-6 w-6" />
           </button>
@@ -76,7 +87,10 @@ export function MovieSlider({ children }: MovieSliderProps) {
         <>
           <button
             onClick={() => scroll('right')}
-            className="border-muted-foreground/30 hover:bg-muted/30 bg-background/80 absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border p-2 transition-all"
+            className={cn(
+              'border-muted-foreground/30 hover:bg-muted/30 bg-background/80 absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border p-2 transition-all',
+              { 'opacity-0': disableArrows }
+            )}
           >
             <ChevronRight className="h-6 w-6" />
           </button>
