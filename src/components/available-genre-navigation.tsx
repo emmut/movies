@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Pill from './Pill';
+import Pill from './pill';
 import { fetchAvailableGenres } from '@/lib/discover';
 
 type AvailableGenreProps = {

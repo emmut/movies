@@ -1,4 +1,4 @@
-import { PaginationControls } from '@/components/PaginationControls';
+import { PaginationControls } from '@/components/pagination-controlls';
 import { fetchDiscoverMovies } from '@/lib/discover';
 
 type PaginationProps = {

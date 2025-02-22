@@ -1,4 +1,4 @@
-import MovieCard from '@/components/MovieCard';
+import MovieCard from '@/components/movie-card';
 import { fetchMoviesBySearchQuery } from '@/lib/search';
 
 type SearchMoviesProps = {

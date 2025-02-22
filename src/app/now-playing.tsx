@@ -1,5 +1,5 @@
 import { env } from '@/env';
-import MovieCard from '@/components/MovieCard';
+import MovieCard from '@/components/movie-card';
 import { MovieResponse } from '@/types/Movie';
 
 async function fetchNowPlayingMovies() {

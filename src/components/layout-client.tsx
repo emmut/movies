@@ -2,10 +2,10 @@
 
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import Header from '@/components/Header';
-import Overlay from '@/components/Overlay';
-import NavigationAside from '@/components/NavigationAside';
-import SkipToElement from '@/components/SkipToElement';
+import Header from '@/components/header';
+import Overlay from '@/components/overlay';
+import NavigationAside from '@/components/navigation-aside';
+import SkipToElement from '@/components/skip-to-element';
 import { useLockScroll } from '@/hooks/use-lock-scroll';
 import NavigationProvider from '@/contexts/NavigationProvider';
 

@@ -3,9 +3,9 @@ import { Suspense } from 'react';
 import { useNavigationContext } from '@/contexts/NavigationProvider';
 import MenuIcon from '@/icons/MenuIcon';
 import UnionIcon from '@/icons/UnionIcon';
-import SearchBar from '@/components/SearchBar';
-import Brand from '@/components/Brand';
-import Spinner from '@/components/Spinner';
+import SearchBar from '@/components/search-bar';
+import Brand from '@/components/brand';
+import Spinner from '@/components/spinner';
 
 export default function Header() {
   const { navOpen, handleOnClick } = useNavigationContext();

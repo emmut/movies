@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import clsx from 'clsx';
-import Brand from '@/components/Brand';
-import NavigationLink from '@/components/NavigationLink';
+import Brand from '@/components/brand';
+import NavigationLink from '@/components/navigation-link';
 import CompassIcon from '@/icons/CompassIcon';
 import HouseIcon from '@/icons/HouseIcon';
 import type { NavLink } from '@/types/NavLink';

@@ -1,5 +1,5 @@
 import { fetchDiscoverMovies } from '@/lib/discover';
-import MovieCard from './MovieCard';
+import MovieCard from './movie-card';
 
 type MoviesProps = {
   currentGenreId: number;

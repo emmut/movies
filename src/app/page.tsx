@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import Movies from '@/components/Movies';
+import Movies from '@/components/movies';
 import NowPlayingMovies from './now-playing';
 import TopRatedMovies from './top-rated';
 import Trending from './trending';

@@ -1,9 +1,9 @@
 import { Suspense } from 'react';
-import SectionTitle from '@/components/SectionTitle';
-import Spinner from '@/components/Spinner';
-import SkipToElement from '@/components/SkipToElement';
-import AvailableGenresNavigation from '@/components/AvailableGenresNavigation';
-import Movies from '@/components/Movies';
+import SectionTitle from '@/components/section-title';
+import Spinner from '@/components/spinner';
+import SkipToElement from '@/components/skip-to-element';
+import AvailableGenresNavigation from '@/components/available-genre-navigation';
+import Movies from '@/components/movies';
 import Pagination from './pagination';
 
 type DiscoverWithGenreParams = {

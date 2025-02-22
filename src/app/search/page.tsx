@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
-import SectionTitle from '@/components/SectionTitle';
-import Movies from '@/components/Movies';
-import { PaginationControls } from '@/components/PaginationControls';
+import SectionTitle from '@/components/section-title';
+import Movies from '@/components/movies';
+import { PaginationControls } from '@/components/pagination-controlls';
 import SearchMovies from './search-movies';
 import { fetchMoviesBySearchQuery } from '@/lib/search';
 
