@@ -14,7 +14,7 @@ export default async function AvailableGenresNavigation({
 
   return (
     <nav>
-      <ul className="flex max-w-screen-lg flex-wrap gap-2 pt-3">
+      <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
         {genres.map((genre) => (
           <li key={genre.id}>
             <Link href={`/discover/${genre.id}`}>

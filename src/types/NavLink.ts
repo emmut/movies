@@ -1,6 +1,6 @@
-import type { JSX } from "react";
+import type { ReactNode } from 'react';
 export type NavLink = {
   href: string;
   label: string;
-  icon: JSX.Element;
+  icon: ReactNode;
 };

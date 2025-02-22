@@ -49,10 +49,10 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   return (
     <>
       {totalPages > 1 && (
-        <nav className="mb-3 mt-6 flex items-center justify-center gap-4">
+        <nav className="mt-6 mb-3 flex items-center justify-center gap-4">
           <a
             className={clsx([
-              'rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
+              'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasPrevPage && 'pointer-events-none opacity-40',
             ])}
             href={buildPageUrl(Number(page) - 1)}
@@ -62,7 +62,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             <ChevronLeft />
           </a>
 
-          <div className="grid grid-cols-1 grid-rows-1 rounded ring-offset-2 focus-within:ring-2">
+          <div className="grid grid-cols-1 grid-rows-1 rounded-sm ring-offset-2 focus-within:ring-2">
             <span className="sr-only">Current page</span>
             <div className="col-start-1 col-end-1 row-start-1 row-end-1">
               {page}
@@ -88,7 +88,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
           </div>
           <a
             className={clsx([
-              'rounded border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
+              'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasNextPage && 'pointer-events-none opacity-40',
             ])}
             href={buildPageUrl(Number(page) + 1)}

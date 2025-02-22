@@ -23,7 +23,7 @@ export default function RootLayout({
       <body
         className={clsx([
           inter.className,
-          'bg-neutral-800 desktop:h-full desktop:overflow-y-hidden',
+          'desktop:h-full desktop:overflow-y-hidden bg-neutral-800',
         ])}
       >
         <PHProvider>

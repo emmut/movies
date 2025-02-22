@@ -37,9 +37,9 @@ export default async function MoviePage(props: MoviePageProps) {
   const score = Math.ceil(movie.vote_average * 10) / 10;
 
   return (
-    <div className="grid max-w-screen-lg grid-cols-12 gap-4">
+    <div className="grid max-w-(--breakpoint-lg) grid-cols-12 gap-4">
       <Image
-        className="col-span-7 aspect-[2/3] rounded-lg md:col-span-4"
+        className="col-span-7 aspect-2/3 rounded-lg md:col-span-4"
         src={formatImageUrl(poster_path, 300)}
         alt={`Poster image of ${title}`}
         width={300}
@@ -48,22 +48,22 @@ export default async function MoviePage(props: MoviePageProps) {
       />
       <div className="col-span-full text-sm md:col-span-8">
         <h1 className="text-lg font-bold">{title}</h1>
-        <h2 className="mt-3 font-semibold uppercase text-zinc-400">Released</h2>
+        <h2 className="mt-3 font-semibold text-zinc-400 uppercase">Released</h2>
         <p className="mt-1">{release_date}</p>
-        <h2 className="mt-3 font-semibold uppercase text-zinc-400">Overview</h2>
+        <h2 className="mt-3 font-semibold text-zinc-400 uppercase">Overview</h2>
         <p className="mt-1">{overview}</p>
-        <h2 className="mt-3 font-semibold uppercase text-zinc-400">
+        <h2 className="mt-3 font-semibold text-zinc-400 uppercase">
           Vote Score
         </h2>
         <p className="mt-1">
           {score} / 10
-          <span className="ml-1 text-xs italic text-zinc-500">
+          <span className="ml-1 text-xs text-zinc-500 italic">
             {movie.vote_count} voters
           </span>
         </p>
         {movie.imdb_id !== null && (
           <>
-            <h2 className="mt-3 font-semibold uppercase text-zinc-400">Imdb</h2>
+            <h2 className="mt-3 font-semibold text-zinc-400 uppercase">Imdb</h2>
             <a
               className="mt-1 block font-bold underline hover:no-underline"
               href={`https://imdb.com/title/${movie.imdb_id}`}

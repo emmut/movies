@@ -1,27 +1,43 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-@layer utilities {
-  .scrollbar-thin {
-    scrollbar-color: theme('colors.neutral.500') transparent;
-    scrollbar-width: thin;
+@theme {
+  --breakpoint-desktop: 1024px;
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
   }
+}
+
+@utility scrollbar-thin {
+  scrollbar-color: var(--color-neutral-500) transparent;
+  scrollbar-width: thin;
 
   @supports selector(::-webkit-scrollbar) {
-    .scrollbar-thin {
-      scrollbar-width: auto;
-      scrollbar-color: unset;
-    }
+    scrollbar-width: auto;
+    scrollbar-color: unset;
   }
 
-  .scrollbar-thin::-webkit-scrollbar {
+  &::-webkit-scrollbar {
     background-color: transparent;
     height: 0.6rem;
   }
 
-  .scrollbar-thin::-webkit-scrollbar-thumb {
+  &::-webkit-scrollbar-thumb {
     cursor: grab;
-    background-color: theme('colors.neutral.500');
+    background-color: var(--color-neutral-500);
   }
 }
