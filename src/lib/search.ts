@@ -1,5 +1,5 @@
 import { SearchedMovieResponse } from '@/types/Movie';
-import { env } from '@/env.mjs';
+import { env } from '@/env';
 
 export async function fetchMoviesBySearchQuery(query: string, page: string) {
   const searchParams = new URLSearchParams();
