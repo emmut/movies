@@ -9,7 +9,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { Separator } from '@/components/ui/separator';
 import { Search } from './search';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 
 const inter = Inter({ subsets: ['latin'], fallback: ['sans-serif'] });
 
@@ -33,7 +33,9 @@ export default async function RootLayout({
               <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
                 <SidebarTrigger className="-ml-1" />
                 <Separator orientation="vertical" className="h-4" />
-                <Search />
+                <Suspense>
+                  <Search />
+                </Suspense>
               </header>
               <div className="mx-auto w-full max-w-screen-xl p-4">
                 {children}
