@@ -5,7 +5,13 @@ import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
 import Link from 'next/link';
-import { useNavigationContext } from '@/contexts/NavigationProvider';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from './ui/select';
 
 type PaginationControls = {
   totalPages: number;
@@ -57,10 +63,10 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   return (
     <>
       {totalPages > 1 && (
-        <nav className="mt-6 mb-3 flex items-center justify-center gap-4">
+        <nav className="mt-6 mb-3 flex w-full items-center justify-center gap-2">
           <Link
             className={clsx([
-              'bg-muted/60 hover:bg-muted text-foreground rounded-sm border border-solid p-2',
+              'bg-muted/60 hover:bg-muted text-foreground hover:ring-border rounded-sm p-1.5 transition-colors',
               !hasPrevPage && 'pointer-events-none opacity-40',
             ])}
             href={buildPageUrl(Number(page) - 1, currentGenreId, searchParams)}
@@ -71,16 +77,14 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             <ChevronLeft />
           </Link>
 
-          <div className="grid grid-cols-1 grid-rows-1 rounded-sm ring-offset-2 focus-within:ring-2">
-            <span className="sr-only">Current page</span>
-            <div className="col-start-1 col-end-1 row-start-1 row-end-1">
-              {page}
-              {' / '}
-              {totalPages}
-            </div>
-            <select
-              onChange={(e) => {
-                const newPage = Number(e.target.value);
+          <div className="max-w-[min(8rem,100%)] flex-1">
+            <span aria-labelledby="page-select" className="sr-only">
+              Current page
+            </span>
+            <Select
+              name="page-select"
+              onValueChange={(value) => {
+                const newPage = Number(value);
                 const newPageUrl = buildPageUrl(
                   newPage,
                   currentGenreId,
@@ -92,18 +96,22 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   handlePageChange();
                 }
               }}
-              className="z-10 col-start-1 col-end-1 row-start-1 row-end-1 appearance-none opacity-0"
             >
-              {Array.from({ length: totalPages }, (_, i) => (
-                <option key={i + 1} className="text-black" value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-full w-full px-4">
+                <SelectValue placeholder={`${page} / ${totalPages}`} />
+              </SelectTrigger>
+              <SelectContent align="center">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <SelectItem key={i + 1} value={String(i + 1)}>
+                    {i + 1}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Link
             className={clsx([
-              'bg-muted/60 hover:bg-muted text-foreground rounded-sm border border-solid p-2',
+              'bg-muted/60 hover:bg-muted text-foreground rounded-sm p-1.5 transition-colors',
               !hasNextPage && 'pointer-events-none opacity-40',
             ])}
             href={buildPageUrl(Number(page) + 1, currentGenreId, searchParams)}
