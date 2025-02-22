@@ -40,6 +40,7 @@ export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
     },
     next: {
       revalidate: 60 * 60 * 5,
+      tags: ['discover'],
     },
   });
 
