@@ -3,6 +3,7 @@ import Movies from '@/components/movies';
 import NowPlayingMovies from './now-playing';
 import TopRatedMovies from './top-rated';
 import Trending from './trending';
+import { MovieSlider } from '@/components/ui/movie-slider';
 
 export default async function Home() {
   return (
@@ -19,17 +20,17 @@ export default async function Home() {
       </div>
 
       <h2 className="mt-5 mb-3 text-xl font-semibold">Now playing</h2>
-      <div className="scrollbar-thin flex snap-x space-x-4 overflow-x-auto pb-2">
+      <MovieSlider>
         <Suspense fallback={<Movies.Ghosts />}>
           <NowPlayingMovies />
         </Suspense>
-      </div>
+      </MovieSlider>
       <h2 className="mt-5 mb-3 text-xl font-semibold">Top Rated</h2>
-      <div className="scrollbar-thin flex snap-x space-x-4 overflow-x-auto pb-2">
+      <MovieSlider>
         <Suspense fallback={<Movies.Ghosts />}>
           <TopRatedMovies />
         </Suspense>
-      </div>
+      </MovieSlider>
     </>
   );
 }
