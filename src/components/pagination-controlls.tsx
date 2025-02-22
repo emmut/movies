@@ -27,8 +27,8 @@ function buildPageUrl(
 
   const newSearchParams = new URLSearchParams(searchParamsObj).toString();
   return currentGenreId !== 0
-    ? `/discover/${currentGenreId}?${newSearchParams}`
-    : `/discover?${newSearchParams}`;
+    ? `${currentGenreId}?${newSearchParams}`
+    : `?${newSearchParams}`;
 }
 
 export function PaginationControls({ totalPages }: PaginationControls) {
@@ -37,6 +37,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   const searchParams = useSearchParams();
 
   const page = searchParams.get('page') ?? '1';
+
   const currentPageNumber = Number(page);
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
