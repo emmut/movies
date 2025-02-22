@@ -5,13 +5,35 @@ import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
 import Link from 'next/link';
+import { useNavigationContext } from '@/contexts/NavigationProvider';
 
 type PaginationControls = {
   totalPages: number;
 };
 
+function buildPageUrl(
+  pageNumber: number,
+  currentGenreId: number,
+  searchParams: URLSearchParams
+) {
+  const searchParamsObj: Record<string, string> = {
+    page: String(pageNumber),
+  };
+
+  const q = searchParams.get('q');
+  if (q !== null) {
+    searchParamsObj.q = q;
+  }
+
+  const newSearchParams = new URLSearchParams(searchParamsObj).toString();
+  return currentGenreId !== 0
+    ? `/discover/${currentGenreId}?${newSearchParams}`
+    : `/discover?${newSearchParams}`;
+}
+
 export function PaginationControls({ totalPages }: PaginationControls) {
   const { replace } = useRouter();
+  const { scrollContainer } = useNavigationContext();
   const params = useParams();
   const searchParams = useSearchParams();
 
@@ -25,20 +47,23 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     currentGenreId = Number(params.genreId);
   }
 
-  function buildPageUrl(pageNumber: number) {
-    const searchParamsObj: Record<string, string> = {
-      page: String(pageNumber),
-    };
+  function handlePageChange() {
+    const desktopBreakpoint = window
+      .getComputedStyle(document.body)
+      .getPropertyValue('--breakpoint-desktop');
+    const desktop = window.matchMedia(`(min-width: ${desktopBreakpoint})`);
 
-    const q = searchParams.get('q');
-    if (q !== null) {
-      searchParamsObj.q = q;
+    if (desktop.matches) {
+      scrollContainer?.current?.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    } else {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
     }
-
-    const newSearchParams = new URLSearchParams(searchParamsObj).toString();
-    return currentGenreId !== 0
-      ? `/discover/${currentGenreId}?${newSearchParams}`
-      : `/discover?${newSearchParams}`;
   }
 
   return (
@@ -50,8 +75,9 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasPrevPage && 'pointer-events-none opacity-40',
             ])}
-            href={buildPageUrl(Number(page) - 1)}
+            href={buildPageUrl(Number(page) - 1, currentGenreId, searchParams)}
             aria-disabled={!hasPrevPage}
+            onClick={handlePageChange}
           >
             <div className="sr-only">Previous page</div>
             <ChevronLeft />
@@ -67,10 +93,15 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             <select
               onChange={(e) => {
                 const newPage = Number(e.target.value);
-                const newPageUrl = buildPageUrl(newPage);
+                const newPageUrl = buildPageUrl(
+                  newPage,
+                  currentGenreId,
+                  searchParams
+                );
 
                 if (newPage !== currentPageNumber) {
                   replace(newPageUrl);
+                  handlePageChange();
                 }
               }}
               className="z-10 col-start-1 col-end-1 row-start-1 row-end-1 appearance-none opacity-0"
@@ -87,8 +118,9 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasNextPage && 'pointer-events-none opacity-40',
             ])}
-            href={buildPageUrl(Number(page) + 1)}
+            href={buildPageUrl(Number(page) + 1, currentGenreId, searchParams)}
             aria-disabled={!hasNextPage}
+            onClick={handlePageChange}
           >
             <div className="sr-only">Next page</div>
             <ChevronRight />
