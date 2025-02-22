@@ -49,7 +49,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   return (
     <>
       {totalPages > 1 && (
-        <nav className="mb-3 mt-6 flex items-center justify-center gap-4">
+        <nav className="mt-6 mb-3 flex items-center justify-center gap-4">
           <a
             className={clsx([
               'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',

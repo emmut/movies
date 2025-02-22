@@ -12,13 +12,13 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-20 bg-neutral-800 py-4">
-      <div className="mb-4 flex w-full items-baseline justify-between desktop:mb-0">
+      <div className="desktop:mb-0 mb-4 flex w-full items-baseline justify-between">
         <Link className="desktop:hidden" href="/" title="Go to home">
           <Brand />
         </Link>
 
         <button
-          className="text-neutral relative grid h-8 w-8 place-items-center desktop:hidden"
+          className="text-neutral desktop:hidden relative grid h-8 w-8 place-items-center"
           onClick={handleOnClick}
           aria-label="Open menu"
         >

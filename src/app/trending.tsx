@@ -33,8 +33,8 @@ async function Trending({ index }: TrendingCardProp) {
         />
       )}
 
-      <div className="absolute bottom-0 left-0 right-0 z-10 flex flex-col justify-center bg-zinc-950/25 px-3 py-2">
-        <h3 className="text-md truncate whitespace-nowrap font-semibold md:text-lg">
+      <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col justify-center bg-zinc-950/25 px-3 py-2">
+        <h3 className="text-md truncate font-semibold whitespace-nowrap md:text-lg">
           {movie.title}
         </h3>
         {movie.release_date && (
@@ -48,7 +48,7 @@ async function Trending({ index }: TrendingCardProp) {
 Trending.Ghost = function Ghost() {
   return (
     <div className="relative h-52 animate-pulse overflow-hidden rounded-xl bg-neutral-50/10 lg:h-72 lg:flex-1">
-      <div className="absolute bottom-0 left-0 right-0 z-10 flex h-12 flex-col justify-center bg-zinc-950/10 px-3 py-2"></div>
+      <div className="absolute right-0 bottom-0 left-0 z-10 flex h-12 flex-col justify-center bg-zinc-950/10 px-3 py-2"></div>
     </div>
   );
 };

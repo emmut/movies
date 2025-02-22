@@ -38,7 +38,7 @@ function MovieCard({ movie }: MovieProp) {
         ])}
       >
         <div>
-          <h3 className="text-lg font-semibold leading-snug">{title}</h3>
+          <h3 className="text-lg leading-snug font-semibold">{title}</h3>
           {release_date && (
             <p className="text-sm">{formatDateYear(release_date)}</p>
           )}
