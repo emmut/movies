@@ -6,6 +6,7 @@ export type NavigationContext = {
   navOpen: boolean;
   handleOnClick: () => void;
   navigation: RefObject<HTMLElement | null> | null;
+  scrollContainer: RefObject<HTMLElement | null> | null;
 };
 
 type NavigationProviderProps = {
@@ -19,9 +20,12 @@ export default function NavigationProvider({
   navOpen,
   handleOnClick,
   navigation,
+  scrollContainer,
 }: NavigationProviderProps) {
   return (
-    <NavigationContext.Provider value={{ navOpen, handleOnClick, navigation }}>
+    <NavigationContext.Provider
+      value={{ navOpen, handleOnClick, navigation, scrollContainer }}
+    >
       {children}
     </NavigationContext.Provider>
   );

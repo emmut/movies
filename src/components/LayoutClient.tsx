@@ -32,12 +32,14 @@ export default function Layout({ children }: ClientLayoutProps) {
   }, [pathname]);
 
   const navigation = useRef<HTMLElement>(null);
+  const scrollContainer = useRef<HTMLDivElement>(null);
 
   return (
     <NavigationProvider
       navOpen={navOpen}
       handleOnClick={handleOnClick}
       navigation={navigation}
+      scrollContainer={scrollContainer}
     >
       <div className="desktop:grid desktop:h-screen desktop:grid-cols-12 text-neutral-50">
         <SkipToElement
@@ -50,7 +52,10 @@ export default function Layout({ children }: ClientLayoutProps) {
         <NavigationAside />
 
         <div className="desktop:max-h-screen desktop:px-8 col-span-10 col-start-3 row-span-full container mx-auto flex h-full max-w-(--breakpoint-xl) flex-col px-4">
-          <div className="scrollbar-thin desktop:overflow-y-auto desktop:pr-2 flex flex-1 flex-col pb-16">
+          <div
+            className="scrollbar-thin desktop:overflow-y-auto desktop:pr-2 flex flex-1 flex-col pb-16"
+            ref={scrollContainer}
+          >
             <Header />
 
             <main id="main-content" className="max-w-(--breakpoint-xl) flex-1">

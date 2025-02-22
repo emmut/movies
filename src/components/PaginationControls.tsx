@@ -4,13 +4,36 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
+import Link from 'next/link';
+import { useNavigationContext } from '@/contexts/NavigationProvider';
 
 type PaginationControls = {
   totalPages: number;
 };
 
+function buildPageUrl(
+  pageNumber: number,
+  currentGenreId: number,
+  searchParams: URLSearchParams
+) {
+  const searchParamsObj: Record<string, string> = {
+    page: String(pageNumber),
+  };
+
+  const q = searchParams.get('q');
+  if (q !== null) {
+    searchParamsObj.q = q;
+  }
+
+  const newSearchParams = new URLSearchParams(searchParamsObj).toString();
+  return currentGenreId !== 0
+    ? `/discover/${currentGenreId}?${newSearchParams}`
+    : `/discover?${newSearchParams}`;
+}
+
 export function PaginationControls({ totalPages }: PaginationControls) {
   const { replace } = useRouter();
+  const { scrollContainer } = useNavigationContext();
   const params = useParams();
   const searchParams = useSearchParams();
 
@@ -24,25 +47,22 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     currentGenreId = Number(params.genreId);
   }
 
-  function buildPageUrl(pageNumber: number) {
-    let newSearchParams: string;
-    const q = searchParams.get('q');
+  function handlePageChange() {
+    const desktopBreakpoint = window
+      .getComputedStyle(document.body)
+      .getPropertyValue('--breakpoint-desktop');
+    const desktop = window.matchMedia(`(min-width: ${desktopBreakpoint})`);
 
-    if (q !== null) {
-      newSearchParams = new URLSearchParams({
-        q,
-        page: String(pageNumber),
-      }).toString();
+    if (desktop.matches) {
+      scrollContainer?.current?.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
     } else {
-      newSearchParams = new URLSearchParams({
-        page: String(pageNumber),
-      }).toString();
-    }
-
-    if (currentGenreId !== 0) {
-      return `${currentGenreId}?${newSearchParams}`;
-    } else {
-      return `?${newSearchParams}`;
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
     }
   }
 
@@ -50,17 +70,18 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     <>
       {totalPages > 1 && (
         <nav className="mt-6 mb-3 flex items-center justify-center gap-4">
-          <a
+          <Link
             className={clsx([
               'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasPrevPage && 'pointer-events-none opacity-40',
             ])}
-            href={buildPageUrl(Number(page) - 1)}
+            href={buildPageUrl(Number(page) - 1, currentGenreId, searchParams)}
             aria-disabled={!hasPrevPage}
+            onClick={handlePageChange}
           >
             <div className="sr-only">Previous page</div>
             <ChevronLeft />
-          </a>
+          </Link>
 
           <div className="grid grid-cols-1 grid-rows-1 rounded-sm ring-offset-2 focus-within:ring-2">
             <span className="sr-only">Current page</span>
@@ -71,10 +92,16 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             </div>
             <select
               onChange={(e) => {
-                const newPageUrl = buildPageUrl(Number(e.target.value));
+                const newPage = Number(e.target.value);
+                const newPageUrl = buildPageUrl(
+                  newPage,
+                  currentGenreId,
+                  searchParams
+                );
 
-                if (newPageUrl !== page) {
+                if (newPage !== currentPageNumber) {
                   replace(newPageUrl);
+                  handlePageChange();
                 }
               }}
               className="z-10 col-start-1 col-end-1 row-start-1 row-end-1 appearance-none opacity-0"
@@ -86,17 +113,18 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               ))}
             </select>
           </div>
-          <a
+          <Link
             className={clsx([
               'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasNextPage && 'pointer-events-none opacity-40',
             ])}
-            href={buildPageUrl(Number(page) + 1)}
+            href={buildPageUrl(Number(page) + 1, currentGenreId, searchParams)}
             aria-disabled={!hasNextPage}
+            onClick={handlePageChange}
           >
             <div className="sr-only">Next page</div>
             <ChevronRight />
-          </a>
+          </Link>
         </nav>
       )}
     </>
