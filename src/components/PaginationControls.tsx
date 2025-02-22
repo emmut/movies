@@ -33,7 +33,6 @@ function buildPageUrl(
 
 export function PaginationControls({ totalPages }: PaginationControls) {
   const { replace } = useRouter();
-  const { scrollContainer } = useNavigationContext();
   const params = useParams();
   const searchParams = useSearchParams();
 
@@ -48,22 +47,10 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   }
 
   function handlePageChange() {
-    const desktopBreakpoint = window
-      .getComputedStyle(document.body)
-      .getPropertyValue('--breakpoint-desktop');
-    const desktop = window.matchMedia(`(min-width: ${desktopBreakpoint})`);
-
-    if (desktop.matches) {
-      scrollContainer?.current?.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      });
-    } else {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      });
-    }
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
   }
 
   return (
