@@ -37,7 +37,7 @@
     "pnpm": "9.12.3"
   },
   "devDependencies": {
-    "eslint-config-prettier": "9.1.0",
+    "eslint-config-prettier": "10.0.1",
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "0.6.11"
   },
