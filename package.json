@@ -45,6 +45,7 @@
     "pnpm": "9.12.3"
   },
   "devDependencies": {
+    "@csstools/postcss-cascade-layers": "^5.0.1",
     "eslint-config-prettier": "10.0.1",
     "prettier": "3.5.2",
     "prettier-plugin-tailwindcss": "0.6.11"
