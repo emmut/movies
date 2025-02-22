@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { useNavigationContext } from '@/contexts/NavigationProvider';
+import { useNavigationContext } from '@/providers/navigation';
 import MenuIcon from '@/icons/MenuIcon';
 import UnionIcon from '@/icons/UnionIcon';
 import SearchBar from '@/components/search-bar';

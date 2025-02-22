@@ -5,7 +5,7 @@ import NavigationLink from '@/components/navigation-link';
 import CompassIcon from '@/icons/CompassIcon';
 import HouseIcon from '@/icons/HouseIcon';
 import type { NavLink } from '@/types/NavLink';
-import { useNavigationContext } from '@/contexts/NavigationProvider';
+import { useNavigationContext } from '@/providers/navigation';
 
 export default function NavigationAside() {
   const links: NavLink[] = [
