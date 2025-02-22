@@ -4,6 +4,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
+import Link from 'next/link';
 
 type PaginationControls = {
   totalPages: number;
@@ -25,32 +26,26 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   }
 
   function buildPageUrl(pageNumber: number) {
-    let newSearchParams: string;
+    const searchParamsObj: Record<string, string> = {
+      page: String(pageNumber),
+    };
+
     const q = searchParams.get('q');
-
     if (q !== null) {
-      newSearchParams = new URLSearchParams({
-        q,
-        page: String(pageNumber),
-      }).toString();
-    } else {
-      newSearchParams = new URLSearchParams({
-        page: String(pageNumber),
-      }).toString();
+      searchParamsObj.q = q;
     }
 
-    if (currentGenreId !== 0) {
-      return `${currentGenreId}?${newSearchParams}`;
-    } else {
-      return `?${newSearchParams}`;
-    }
+    const newSearchParams = new URLSearchParams(searchParamsObj).toString();
+    return currentGenreId !== 0
+      ? `/discover/${currentGenreId}?${newSearchParams}`
+      : `/discover?${newSearchParams}`;
   }
 
   return (
     <>
       {totalPages > 1 && (
         <nav className="mt-6 mb-3 flex items-center justify-center gap-4">
-          <a
+          <Link
             className={clsx([
               'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasPrevPage && 'pointer-events-none opacity-40',
@@ -60,7 +55,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
           >
             <div className="sr-only">Previous page</div>
             <ChevronLeft />
-          </a>
+          </Link>
 
           <div className="grid grid-cols-1 grid-rows-1 rounded-sm ring-offset-2 focus-within:ring-2">
             <span className="sr-only">Current page</span>
@@ -71,9 +66,10 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             </div>
             <select
               onChange={(e) => {
-                const newPageUrl = buildPageUrl(Number(e.target.value));
+                const newPage = Number(e.target.value);
+                const newPageUrl = buildPageUrl(newPage);
 
-                if (newPageUrl !== page) {
+                if (newPage !== currentPageNumber) {
                   replace(newPageUrl);
                 }
               }}
@@ -86,7 +82,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               ))}
             </select>
           </div>
-          <a
+          <Link
             className={clsx([
               'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
               !hasNextPage && 'pointer-events-none opacity-40',
@@ -96,7 +92,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
           >
             <div className="sr-only">Next page</div>
             <ChevronRight />
-          </a>
+          </Link>
         </nav>
       )}
     </>
