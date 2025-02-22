@@ -25,7 +25,22 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const json = localStorage.theme;
+                const theme = json ? JSON.parse(json) : { state: 'system' };
+                if (theme.state === 'dark' || ((!('theme' in localStorage) || theme.state === 'system') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
       <body className={clsx([inter.className])}>
         <PHProvider>
           <SidebarProvider>
