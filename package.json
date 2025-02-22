@@ -21,7 +21,7 @@
     "clsx": "^2.1.1",
     "eslint": "9.21.0",
     "eslint-config-next": "15.1.7",
-    "next": "15.1.1-canary.23",
+    "next": "15.2.0-canary.69",
     "postcss": "8.4.49",
     "posthog-js": "^1.222.0",
     "posthog-node": "^4.7.0",
@@ -29,7 +29,7 @@
     "react-dom": "19.0.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss": "4.0.8",
-    "typescript": "5.7.2",
+    "typescript": "5.7.3",
     "zod": "^3.24.2"
   },
   "volta": {
@@ -37,8 +37,8 @@
     "pnpm": "9.12.3"
   },
   "devDependencies": {
-    "eslint-config-prettier": "9.1.0",
-    "prettier": "3.4.2",
+    "eslint-config-prettier": "10.0.1",
+    "prettier": "3.5.2",
     "prettier-plugin-tailwindcss": "0.6.11"
   },
   "pnpm": {
