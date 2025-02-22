@@ -49,11 +49,11 @@ export default function Layout({ children }: ClientLayoutProps) {
 
         <NavigationAside />
 
-        <div className="container col-span-10 col-start-3 row-span-full mx-auto flex h-full max-w-screen-xl flex-col px-4 desktop:max-h-screen desktop:px-8">
+        <div className="container col-span-10 col-start-3 row-span-full mx-auto flex h-full max-w-(--breakpoint-xl) flex-col px-4 desktop:max-h-screen desktop:px-8">
           <div className="scrollbar-thin flex flex-1 flex-col pb-16 desktop:overflow-y-auto desktop:pr-2">
             <Header />
 
-            <main id="main-content" className="max-w-screen-xl flex-1">
+            <main id="main-content" className="max-w-(--breakpoint-xl) flex-1">
               {children}
             </main>
 

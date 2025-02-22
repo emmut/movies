@@ -37,9 +37,9 @@ export default async function MoviePage(props: MoviePageProps) {
   const score = Math.ceil(movie.vote_average * 10) / 10;
 
   return (
-    <div className="grid max-w-screen-lg grid-cols-12 gap-4">
+    <div className="grid max-w-(--breakpoint-lg) grid-cols-12 gap-4">
       <Image
-        className="col-span-7 aspect-[2/3] rounded-lg md:col-span-4"
+        className="col-span-7 aspect-2/3 rounded-lg md:col-span-4"
         src={formatImageUrl(poster_path, 300)}
         alt={`Poster image of ${title}`}
         width={300}

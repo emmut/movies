@@ -14,7 +14,7 @@ function MovieCard({ movie }: MovieProp) {
   return (
     <Link
       href={`/movie/${id}`}
-      className="group relative grid aspect-[2/3] w-full flex-[150px] flex-shrink-0 snap-center overflow-hidden rounded-md"
+      className="group relative grid aspect-2/3 w-full flex-[150px] shrink-0 snap-center overflow-hidden rounded-md"
     >
       {poster_path !== null && (
         <Image
@@ -50,7 +50,7 @@ function MovieCard({ movie }: MovieProp) {
 
 MovieCard.Ghost = function Ghost() {
   return (
-    <div className="relative grid aspect-[2/3] w-full flex-[150px] flex-shrink-0 animate-pulse overflow-hidden rounded-md">
+    <div className="relative grid aspect-2/3 w-full flex-[150px] shrink-0 animate-pulse overflow-hidden rounded-md">
       <div className="rounded-md border border-white/25 bg-neutral-50/10 p-3 transition-opacity duration-200 ease-in"></div>
     </div>
   );
