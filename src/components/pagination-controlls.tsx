@@ -97,7 +97,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 }
               }}
             >
-              <SelectTrigger className="h-full w-full px-4">
+              <SelectTrigger className="h-full w-full px-3">
                 <SelectValue placeholder={`${page} / ${totalPages}`} />
               </SelectTrigger>
               <SelectContent align="center">

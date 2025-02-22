@@ -7,7 +7,7 @@ import Overlay from '@/components/overlay';
 import NavigationAside from '@/components/navigation-aside';
 import SkipToElement from '@/components/skip-to-element';
 import { useLockScroll } from '@/hooks/use-lock-scroll';
-import NavigationProvider from '@/contexts/NavigationProvider';
+import NavigationProvider from '@/providers/navigation';
 import { Footer } from './footer';
 
 type ClientLayoutProps = {

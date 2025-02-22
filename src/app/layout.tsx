@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { PHProvider } from '@/contexts/PosthogProvider';
+import { PHProvider } from '@/providers/posthog';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
