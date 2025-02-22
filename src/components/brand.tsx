@@ -1,4 +1,3 @@
-import clsx from 'clsx';
 import Link from 'next/link';
 import { Popcorn } from 'lucide-react';
 import { cn } from '@/lib/utils';
