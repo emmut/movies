@@ -10,14 +10,9 @@ export default function Pill(props: PillProps) {
   const { active, children, ...rest } = props;
   return (
     <div
-      className={clsx([
-        'cursor-pointer rounded-full border-2 border-neutral-50 px-4 py-1 text-center text-sm font-semibold hover:bg-neutral-50 hover:text-zinc-900',
-        {
-          'bg-neutral-50 text-neutral-950': active,
-          'bg-transparent text-neutral-50': !active,
-        },
-      ])}
+      className="text-muted-foreground bg-muted/60 hover:text-foreground data-[active=true]:bg-muted flex h-7 shrink-0 items-center justify-center rounded-full px-4 text-center text-sm font-medium whitespace-nowrap transition-colors data-[active=true]:text-neutral-100 data-[active=true]:ring"
       {...rest}
+      data-active={active}
     >
       {children}
     </div>
