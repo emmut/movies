@@ -14,7 +14,7 @@ function MovieCard({ movie }: MovieProp) {
   return (
     <Link
       href={`/movie/${id}`}
-      className="group relative grid aspect-2/3 w-full flex-[150px] shrink-0 snap-center overflow-hidden rounded-md"
+      className="group/movie-card relative grid aspect-2/3 w-full flex-[150px] shrink-0 snap-center overflow-hidden rounded-md"
     >
       {poster_path !== null && (
         <Image
@@ -29,9 +29,9 @@ function MovieCard({ movie }: MovieProp) {
 
       <div
         className={clsx([
-          'border-muted-foreground col-span-full row-span-full grid place-items-center rounded-md bg-zinc-950/80 p-3 text-center opacity-0 transition-opacity duration-200 ease-in group-hover:border group-focus:border',
+          'border-muted-foreground col-span-full row-span-full grid place-items-center rounded-md bg-zinc-950/80 p-3 text-center opacity-0 transition-opacity duration-200 ease-in group-hover/movie-card:border group-focus/movie-card:border',
           {
-            'group-hover:opacity-100 group-focus:opacity-100':
+            'group-hover/movie-card:opacity-100 group-focus/movie-card:opacity-100':
               poster_path !== null,
             'opacity-100': poster_path === null,
           },

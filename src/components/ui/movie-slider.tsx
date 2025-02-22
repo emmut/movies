@@ -58,7 +58,7 @@ export function MovieSlider({ children }: MovieSliderProps) {
   };
 
   return (
-    <div className="group relative">
+    <div className="relative">
       {showLeftArrow && (
         <>
           <button
