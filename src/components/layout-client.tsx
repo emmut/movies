@@ -8,6 +8,7 @@ import NavigationAside from '@/components/navigation-aside';
 import SkipToElement from '@/components/skip-to-element';
 import { useLockScroll } from '@/hooks/use-lock-scroll';
 import NavigationProvider from '@/contexts/NavigationProvider';
+import { Footer } from './footer';
 
 type ClientLayoutProps = {
   children: ReactNode;
@@ -62,12 +63,7 @@ export default function Layout({ children }: ClientLayoutProps) {
               {children}
             </main>
 
-            <footer className="mt-auto pt-5">
-              <p className="text-center text-xs text-zinc-400">
-                This product uses the TMDb API but is not endorsed or certified
-                by TMDb
-              </p>
-            </footer>
+            <Footer />
           </div>
         </div>
       </div>

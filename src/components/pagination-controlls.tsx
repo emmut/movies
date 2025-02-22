@@ -59,7 +59,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
         <nav className="mt-6 mb-3 flex items-center justify-center gap-4">
           <Link
             className={clsx([
-              'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
+              'bg-muted/60 hover:bg-muted text-foreground rounded-sm border border-solid p-2',
               !hasPrevPage && 'pointer-events-none opacity-40',
             ])}
             href={buildPageUrl(Number(page) - 1, currentGenreId, searchParams)}
@@ -102,7 +102,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
           </div>
           <Link
             className={clsx([
-              'rounded-sm border border-solid border-neutral-50 p-2 hover:bg-neutral-50 hover:text-gray-950',
+              'bg-muted/60 hover:bg-muted text-foreground rounded-sm border border-solid p-2',
               !hasNextPage && 'pointer-events-none opacity-40',
             ])}
             href={buildPageUrl(Number(page) + 1, currentGenreId, searchParams)}

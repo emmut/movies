@@ -10,6 +10,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import { Separator } from '@/components/ui/separator';
 import { Search } from './search';
 import { ReactNode, Suspense } from 'react';
+import { Footer } from '@/components/footer';
 
 const inter = Inter({ subsets: ['latin'], fallback: ['sans-serif'] });
 
@@ -40,6 +41,7 @@ export default async function RootLayout({
               <div className="mx-auto w-full max-w-screen-xl p-4">
                 {children}
               </div>
+              <Footer />
             </SidebarInset>
           </SidebarProvider>
         </PHProvider>
