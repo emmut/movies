@@ -31,7 +31,7 @@
     "next": "15.2.0-canary.69",
     "postcss": "8.4.49",
     "posthog-js": "^1.222.0",
-    "posthog-node": "^4.7.0",
+    "posthog-node": "^4.11.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "tailwind-merge": "^3.0.1",
