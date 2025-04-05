@@ -1,6 +1,4 @@
-import { createContext } from 'react';
-import { ReactNode } from 'react';
-import { RefObject, useContext } from 'react';
+import { createContext, ReactNode, RefObject, useContext } from 'react';
 
 export type NavigationContext = {
   navOpen: boolean;
@@ -33,6 +31,7 @@ export default function NavigationProvider({
 
 export function useNavigationContext() {
   const navigation = useContext(NavigationContext);
+
   if (navigation === null) {
     throw new Error('Trying to use Navigation Context outside of provider');
   }
