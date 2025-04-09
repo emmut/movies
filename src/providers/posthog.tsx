@@ -1,4 +1,5 @@
 'use client';
+import { SuspendedPostHogPageView } from '@/app/posthog-page-view';
 import { env } from '@/env';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
@@ -15,5 +16,10 @@ export function PHProvider({ children }: PHProviderProps) {
     });
   }, []);
 
-  return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
+  return (
+    <PostHogProvider client={posthog}>
+      <SuspendedPostHogPageView />
+      {children}
+    </PostHogProvider>
+  );
 }
