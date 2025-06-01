@@ -1,5 +1,5 @@
-import { SearchedMovieResponse } from '@/types/Movie';
 import { env } from '@/env';
+import { SearchedMovieResponse } from '@/types/Movie';
 
 export async function fetchMoviesBySearchQuery(query: string, page: string) {
   const searchParams = new URLSearchParams();
@@ -14,7 +14,6 @@ export async function fetchMoviesBySearchQuery(query: string, page: string) {
     {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        cache: 'no-store',
       },
     }
   );

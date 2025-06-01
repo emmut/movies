@@ -1,14 +1,15 @@
 import { env } from '@/env';
 import type { MovieResponse } from '@/types/Movie';
+import { unstable_cacheLife as cacheLife } from 'next/cache';
 
 export async function fetchTrendingMovies() {
+  'use cache';
+  cacheLife('minutes');
+
   const res = await fetch('https://api.themoviedb.org/3/trending/movie/day', {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
-    },
-    next: {
-      revalidate: 60 * 5,
     },
   });
 

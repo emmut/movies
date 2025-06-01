@@ -1,17 +1,18 @@
-import { env } from '@/env';
 import MovieCard from '@/components/movie-card';
+import { env } from '@/env';
 import { MovieResponse } from '@/types/Movie';
+import { unstable_cacheLife as cacheLife } from 'next/cache';
 
 async function fetchTopRatedMovies() {
+  'use cache';
+  cacheLife('minutes');
+
   const res = await fetch(
     'https://api.themoviedb.org/3/discover/movie?sort_by=vote_average.desc&region=SE&include_adult=false&include_video=false',
     {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
         accept: 'application/json',
-      },
-      next: {
-        revalidate: 60 * 5,
       },
     }
   );

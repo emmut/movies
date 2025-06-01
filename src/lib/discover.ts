@@ -1,14 +1,18 @@
 import { env } from '@/env';
 import type { GenreResponse } from '@/types/Genre';
 import { MovieResponse } from '@/types/Movie';
+import {
+  unstable_cacheLife as cacheLife,
+  unstable_cacheTag as cacheTag,
+} from 'next/cache';
 
 export async function fetchAvailableGenres() {
+  'use cache';
+  cacheLife('hours');
+
   const res = await fetch('https://api.themoviedb.org/3/genre/movie/list', {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-    },
-    next: {
-      revalidate: 60 * 60 * 5,
     },
   });
 
@@ -21,6 +25,10 @@ export async function fetchAvailableGenres() {
 }
 
 export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
+  'use cache';
+  cacheLife('hours');
+  cacheTag('discover-movies');
+
   const url = new URL('https://api.themoviedb.org/3/discover/movie');
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', 'popularity.desc');
@@ -35,10 +43,6 @@ export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
   const res = await fetch(url, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-    },
-    next: {
-      revalidate: 60 * 60 * 5,
-      tags: ['discover'],
     },
   });
 
