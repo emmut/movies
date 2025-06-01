@@ -1,9 +1,10 @@
-import { Suspense } from 'react';
 import Movies from '@/components/movies';
+import { MovieSlider } from '@/components/ui/movie-slider';
+import { Suspense } from 'react';
 import NowPlayingMovies from './now-playing';
 import TopRatedMovies from './top-rated';
 import Trending from './trending';
-import { MovieSlider } from '@/components/ui/movie-slider';
+import UpcomingMovies from './upcoming';
 
 export default async function Home() {
   return (
@@ -25,6 +26,14 @@ export default async function Home() {
           <NowPlayingMovies />
         </Suspense>
       </MovieSlider>
+
+      <h2 className="mt-5 mb-3 text-xl font-semibold">Upcoming</h2>
+      <MovieSlider>
+        <Suspense fallback={<Movies.Ghosts />}>
+          <UpcomingMovies />
+        </Suspense>
+      </MovieSlider>
+
       <h2 className="mt-5 mb-3 text-xl font-semibold">Top Rated</h2>
       <MovieSlider>
         <Suspense fallback={<Movies.Ghosts />}>

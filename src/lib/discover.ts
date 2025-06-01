@@ -54,3 +54,22 @@ export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
   const totalPages = movies.total_pages >= 500 ? 500 : movies.total_pages;
   return { movies: movies.results, totalPages };
 }
+
+export async function fetchUpcomingMovies() {
+  'use cache';
+  cacheLife('hours');
+  cacheTag('upcoming-movies');
+
+  const res = await fetch('https://api.themoviedb.org/3/movie/upcoming', {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Error loading upcoming movies');
+  }
+
+  const movies: MovieResponse = await res.json();
+  return movies.results;
+}
