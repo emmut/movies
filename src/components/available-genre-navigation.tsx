@@ -6,7 +6,7 @@ type AvailableGenreProps = {
   currentGenreId?: number;
 };
 
-export default async function AvailableGenresNavigation({
+async function AvailableGenresNavigation({
   currentGenreId,
 }: AvailableGenreProps) {
   const genreId = currentGenreId;
@@ -33,16 +33,19 @@ export default async function AvailableGenresNavigation({
   );
 }
 
-AvailableGenresNavigation.Skeleton = function () {
-  return (
-    <nav>
-      <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
-        {[...Array(13)].map((_, i) => (
-          <li key={i}>
-            <Pill variant="skeleton">Loading...</Pill>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  );
-};
+AvailableGenresNavigation.Skeleton =
+  function AvailableGenresNavigationSkeleton() {
+    return (
+      <nav>
+        <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
+          {[...Array(13)].map((_, i) => (
+            <li key={i}>
+              <Pill variant="skeleton">Loading...</Pill>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    );
+  };
+
+export default AvailableGenresNavigation;

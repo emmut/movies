@@ -50,7 +50,7 @@ function MovieCard({ movie }: MovieProp) {
   );
 }
 
-MovieCard.Skeleton = function () {
+MovieCard.Skeleton = function MovieCardSkeleton() {
   return (
     <div className="relative grid aspect-2/3 w-full flex-[150px] shrink-0 animate-pulse overflow-hidden rounded-md">
       <div className="border-muted-foreground/25 bg-muted-foreground/10 rounded-md border p-3 transition-opacity duration-200 ease-in"></div>
