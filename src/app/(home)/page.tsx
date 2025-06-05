@@ -1,10 +1,10 @@
 import Movies from '@/components/movies';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { Suspense } from 'react';
-import NowPlayingMovies from './now-playing';
-import TopRatedMovies from './top-rated';
-import Trending from './trending';
-import UpcomingMovies from './upcoming';
+import NowPlayingMovies from '../now-playing';
+import TopRatedMovies from '../top-rated';
+import Trending from '../trending';
+import UpcomingMovies from '../upcoming';
 
 export default async function Home() {
   return (
