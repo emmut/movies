@@ -2,6 +2,12 @@
   "mcpServers": {
     "next.js Docs": {
       "url": "https://gitmcp.io/vercel/next.js"
+    },
+    "nuqs Docs": {
+      "url": "https://gitmcp.io/47ng/nuqs"
+    },
+    "ui Docs": {
+      "url": "https://gitmcp.io/shadcn-ui/ui"
     }
   }
 }
