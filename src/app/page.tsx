@@ -1,5 +1,5 @@
 import Movies from '@/components/movies';
-import { MovieSlider } from '@/components/ui/movie-slider';
+import { ItemSlider } from '@/components/ui/item-slider';
 import { Suspense } from 'react';
 import NowPlayingMovies from './now-playing';
 import TopRatedMovies from './top-rated';
@@ -40,11 +40,11 @@ export default async function Home() {
           </p>
         </div>
 
-        <MovieSlider>
+        <ItemSlider>
           <Suspense fallback={<Movies.Ghosts />}>
             <NowPlayingMovies />
           </Suspense>
-        </MovieSlider>
+        </ItemSlider>
       </section>
 
       <section className="space-y-4">
@@ -57,11 +57,11 @@ export default async function Home() {
           </p>
         </div>
 
-        <MovieSlider>
+        <ItemSlider>
           <Suspense fallback={<Movies.Ghosts />}>
             <UpcomingMovies />
           </Suspense>
-        </MovieSlider>
+        </ItemSlider>
       </section>
 
       <section className="space-y-4">
@@ -74,11 +74,11 @@ export default async function Home() {
           </p>
         </div>
 
-        <MovieSlider>
+        <ItemSlider>
           <Suspense fallback={<Movies.Ghosts />}>
             <TopRatedMovies />
           </Suspense>
-        </MovieSlider>
+        </ItemSlider>
       </section>
     </div>
   );

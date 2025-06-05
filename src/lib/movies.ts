@@ -1,6 +1,11 @@
 import { env } from '@/env';
 import type { GenreResponse } from '@/types/Genre';
-import { MovieDetails, MovieResponse } from '@/types/Movie';
+import {
+  MovieCredits,
+  MovieDetails,
+  MovieResponse,
+  MovieWatchProviders,
+} from '@/types/Movie';
 
 export async function fetchAvailableGenres() {
   const res = await fetch('https://api.themoviedb.org/3/genre/movie/list', {
@@ -87,4 +92,50 @@ export async function getMovieDetails(movieId: number) {
   const movie: MovieDetails = await res.json();
 
   return movie;
+}
+
+export async function getMovieCredits(movieId: number): Promise<MovieCredits> {
+  const res = await fetch(
+    `https://api.themoviedb.org/3/movie/${movieId}/credits`,
+    {
+      headers: {
+        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+        accept: 'application/json',
+      },
+      next: {
+        revalidate: 60 * 60,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error('Failed loading movie credits');
+  }
+
+  const credits: MovieCredits = await res.json();
+  return credits;
+}
+
+export async function getMovieWatchProviders(
+  movieId: number
+): Promise<MovieWatchProviders> {
+  const res = await fetch(
+    `https://api.themoviedb.org/3/movie/${movieId}/watch/providers`,
+    {
+      headers: {
+        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+        accept: 'application/json',
+      },
+      next: {
+        revalidate: 60 * 30,
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error('Failed loading movie watch providers');
+  }
+
+  const watchProviders: MovieWatchProviders = await res.json();
+  return watchProviders;
 }

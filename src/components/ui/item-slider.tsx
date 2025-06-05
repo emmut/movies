@@ -1,13 +1,13 @@
 'use client';
-import { ReactNode, useRef, useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 
-type MovieSliderProps = {
+type ItemSliderProps = {
   children: ReactNode;
 };
 
-export function MovieSlider({ children }: MovieSliderProps) {
+export function ItemSlider({ children }: ItemSliderProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -95,7 +95,7 @@ export function MovieSlider({ children }: MovieSliderProps) {
             <ChevronRight className="h-6 w-6" />
           </button>
           <div
-            className={`from-background pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l to-transparent lg:w-30 ${!showRightArrow ? 'opacity-0' : ''}`}
+            className={`from-background pointer-events-none absolute inset-y-0 right-0 z-10 bg-gradient-to-l to-transparent lg:w-30 ${!showRightArrow ? 'opacity-0' : ''}`}
           />
         </>
       )}

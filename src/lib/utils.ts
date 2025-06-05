@@ -1,5 +1,4 @@
-import { IMAGE_CDN_URL } from './constants';
-
+import { IMAGE_CDN_URL } from '@/lib/constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 

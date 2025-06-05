@@ -60,6 +60,62 @@ export type MovieResponse = {
     | undefined;
 };
 
+export type CastMember = {
+  adult: boolean;
+  gender: number;
+  id: number;
+  known_for_department: string;
+  name: string;
+  original_name: string;
+  popularity: number;
+  profile_path: string | null;
+  cast_id: number;
+  character: string;
+  credit_id: string;
+  order: number;
+};
+
+export type CrewMember = {
+  adult: boolean;
+  gender: number;
+  id: number;
+  known_for_department: string;
+  name: string;
+  original_name: string;
+  popularity: number;
+  profile_path: string | null;
+  credit_id: string;
+  department: string;
+  job: string;
+};
+
+export type MovieCredits = {
+  id: number;
+  cast: CastMember[];
+  crew: CrewMember[];
+};
+
+export type WatchProvider = {
+  display_priority: number;
+  logo_path: string;
+  provider_id: number;
+  provider_name: string;
+};
+
+export type RegionWatchProviders = {
+  link: string;
+  rent?: WatchProvider[];
+  buy?: WatchProvider[];
+  flatrate?: WatchProvider[];
+};
+
+export type MovieWatchProviders = {
+  id: number;
+  results: {
+    [region: string]: RegionWatchProviders;
+  };
+};
+
 export type SearchedMovieResponse = {
   page: number;
   results: Movie[];

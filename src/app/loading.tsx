@@ -1,5 +1,5 @@
 import Movies from '@/components/movies';
-import { MovieSlider } from '@/components/ui/movie-slider';
+import { ItemSlider } from '@/components/ui/item-slider';
 import Trending from './trending';
 
 export default function Loading() {
@@ -23,9 +23,9 @@ export default function Loading() {
           <div className="hidden h-5 w-28 animate-pulse rounded-md bg-neutral-50/10 sm:block"></div>
         </div>
 
-        <MovieSlider>
+        <ItemSlider>
           <Movies.Ghosts />
-        </MovieSlider>
+        </ItemSlider>
       </section>
 
       <section className="space-y-4">
@@ -34,9 +34,9 @@ export default function Loading() {
           <div className="hidden h-5 w-32 animate-pulse rounded-md bg-neutral-50/10 sm:block"></div>
         </div>
 
-        <MovieSlider>
+        <ItemSlider>
           <Movies.Ghosts />
-        </MovieSlider>
+        </ItemSlider>
       </section>
 
       <section className="space-y-4">
@@ -45,9 +45,9 @@ export default function Loading() {
           <div className="hidden h-5 w-28 animate-pulse rounded-md bg-neutral-50/10 sm:block"></div>
         </div>
 
-        <MovieSlider>
+        <ItemSlider>
           <Movies.Ghosts />
-        </MovieSlider>
+        </ItemSlider>
       </section>
     </div>
   );
