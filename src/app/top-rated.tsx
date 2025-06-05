@@ -1,20 +1,23 @@
-import { env } from '@/env';
 import MovieCard from '@/components/movie-card';
+import { env } from '@/env';
 import { MovieResponse } from '@/types/Movie';
 
 async function fetchTopRatedMovies() {
-  const res = await fetch(
-    'https://api.themoviedb.org/3/discover/movie?sort_by=vote_average.desc&region=SE&include_adult=false&include_video=false',
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-      next: {
-        revalidate: 60 * 5,
-      },
-    }
-  );
+  const url = new URL('https://api.themoviedb.org/3/discover/movie');
+  url.searchParams.set('sort_by', 'vote_average.desc');
+  url.searchParams.set('region', 'SE');
+  url.searchParams.set('include_adult', 'false');
+  url.searchParams.set('include_video', 'false');
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+    next: {
+      revalidate: 60 * 5,
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading now top rated movies');
