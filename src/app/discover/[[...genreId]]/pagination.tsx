@@ -1,5 +1,5 @@
 import { PaginationControls } from '@/components/pagination-controlls';
-import { fetchDiscoverMovies } from '@/lib/discover';
+import { fetchDiscoverMovies } from '@/lib/movies';
 
 type PaginationProps = {
   currentPage: number;

@@ -1,59 +1,14 @@
-import { env } from '@/env';
-import { formatImageUrl } from '@/lib/utils';
-import type { MovieDetails } from '@/types/Movie';
-import {
-  Calendar,
-  ChevronLeft,
-  Clock,
-  DollarSign,
-  Globe,
-  Star,
-  Users,
-} from 'lucide-react';
+import { GoBack } from '@/components/go-back';
+import { getMovieDetails } from '@/lib/movies';
+import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
+import { Calendar, Clock, DollarSign, Globe, Star, Users } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 
 type MoviePageProps = {
   params: Promise<{
     movieId: string;
   }>;
 };
-
-async function getMovieDetails(movieId: number) {
-  const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
-    next: {
-      revalidate: 60 * 5,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed loading movie details');
-  }
-
-  const movie: MovieDetails = await res.json();
-
-  return movie;
-}
-
-function formatCurrency(amount: number, withSymbol = true) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    currencyDisplay: withSymbol ? 'symbol' : 'code',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
-function formatRuntime(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${remainingMinutes}m`;
-}
 
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
@@ -81,16 +36,9 @@ export default async function MoviePage(props: MoviePageProps) {
     <div className="min-h-screen">
       {/* Navigation */}
       <div className="mb-6">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-zinc-400 transition-colors hover:text-white"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back to home
-        </Link>
+        <GoBack />
       </div>
 
-      {/* Hero Section with Backdrop */}
       {backdrop_path && (
         <div className="relative -mx-4 mb-8 h-64 md:h-80 lg:h-96">
           <Image
@@ -115,15 +63,13 @@ export default async function MoviePage(props: MoviePageProps) {
       )}
 
       {!backdrop_path && (
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
-            {title}
-          </h1>
-          {tagline && (
-            <p className="text-lg text-zinc-400 italic md:text-xl">
-              "{tagline}"
-            </p>
-          )}
+        <div className="relative -mx-4 mb-8 bg-zinc-900 md:h-80 lg:h-96">
+          <div className="absolute inset-0 z-10 p-8">
+            <h1 className="mb-2 text-3xl font-bold text-neutral-100 md:text-4xl lg:text-5xl">
+              {title}
+            </h1>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
         </div>
       )}
 
@@ -131,14 +77,24 @@ export default async function MoviePage(props: MoviePageProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Poster */}
         <div className="lg:col-span-4">
-          <Image
-            className="mx-auto aspect-2/3 w-full max-w-md rounded-lg shadow-2xl"
-            src={formatImageUrl(poster_path, 500)}
-            alt={`Poster image of ${title}`}
-            width={500}
-            height={750}
-            priority
-          />
+          {poster_path ? (
+            <Image
+              className="mx-auto aspect-2/3 w-full max-w-md rounded-lg shadow-2xl"
+              src={formatImageUrl(poster_path, 500)}
+              alt={`Poster image of ${title}`}
+              width={500}
+              height={750}
+              priority
+            />
+          ) : (
+            <div className="mx-auto flex aspect-2/3 w-full max-w-md items-center justify-center rounded-lg bg-zinc-800 shadow-2xl">
+              <div className="text-center text-zinc-400">
+                <div className="mb-4 text-6xl">🎬</div>
+                <div className="text-lg font-semibold">No Poster</div>
+                <div className="text-sm">Available</div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Details */}
@@ -167,7 +123,7 @@ export default async function MoviePage(props: MoviePageProps) {
             <div className="rounded-lg bg-zinc-900 p-4 text-center">
               <Calendar className="mx-auto mb-2 h-6 w-6 text-green-500" />
               <div className="text-2xl font-bold">
-                {release_date?.split('-')[0]}
+                {release_date ? release_date.split('-')[0] : 'N/A'}
               </div>
               <div className="text-sm text-zinc-400">Released</div>
             </div>
@@ -201,7 +157,9 @@ export default async function MoviePage(props: MoviePageProps) {
           {/* Overview */}
           <div>
             <h2 className="mb-3 text-xl font-semibold">Overview</h2>
-            <p className="leading-relaxed text-zinc-300">{overview}</p>
+            <p className="leading-relaxed text-zinc-300">
+              {overview || 'No overview available for this movie.'}
+            </p>
           </div>
 
           {/* Additional Details */}
@@ -211,21 +169,23 @@ export default async function MoviePage(props: MoviePageProps) {
                 <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
                   Status
                 </h3>
-                <p>{status}</p>
+                <p>{status || 'Unknown'}</p>
               </div>
 
-              <div>
-                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                  Original Title
-                </h3>
-                <p>{original_title}</p>
-              </div>
+              {original_title && (
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
+                    Original Title
+                  </h3>
+                  <p>{original_title}</p>
+                </div>
+              )}
 
               <div>
                 <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
                   Release Date
                 </h3>
-                <p>{release_date}</p>
+                <p>{release_date || 'Not available'}</p>
               </div>
 
               {spoken_languages.length > 0 && (

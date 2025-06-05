@@ -8,38 +8,78 @@ import UpcomingMovies from './upcoming';
 
 export default async function Home() {
   return (
-    <>
-      <h2 className="mt-5 mb-3 text-xl font-semibold">Trending</h2>
-      <div className="flex flex-col gap-4 lg:flex-row">
-        <Suspense fallback={<Trending.Ghost />}>
-          <Trending index={0} />
-        </Suspense>
+    <div className="space-y-8">
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">
+            Trending Now
+          </h1>
+          <p className="text-muted-foreground hidden text-sm sm:block">
+            What everyone's watching
+          </p>
+        </div>
 
-        <Suspense fallback={<Trending.Ghost />}>
-          <Trending index={1} />
-        </Suspense>
-      </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Suspense fallback={<Trending.Ghost />}>
+            <Trending index={0} />
+          </Suspense>
 
-      <h2 className="mt-5 mb-3 text-xl font-semibold">Now playing</h2>
-      <MovieSlider>
-        <Suspense fallback={<Movies.Ghosts />}>
-          <NowPlayingMovies />
-        </Suspense>
-      </MovieSlider>
+          <Suspense fallback={<Trending.Ghost />}>
+            <Trending index={1} />
+          </Suspense>
+        </div>
+      </section>
 
-      <h2 className="mt-5 mb-3 text-xl font-semibold">Upcoming</h2>
-      <MovieSlider>
-        <Suspense fallback={<Movies.Ghosts />}>
-          <UpcomingMovies />
-        </Suspense>
-      </MovieSlider>
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">
+            Now Playing
+          </h2>
+          <p className="text-muted-foreground hidden text-sm sm:block">
+            In theaters now
+          </p>
+        </div>
 
-      <h2 className="mt-5 mb-3 text-xl font-semibold">Top Rated</h2>
-      <MovieSlider>
-        <Suspense fallback={<Movies.Ghosts />}>
-          <TopRatedMovies />
-        </Suspense>
-      </MovieSlider>
-    </>
+        <MovieSlider>
+          <Suspense fallback={<Movies.Ghosts />}>
+            <NowPlayingMovies />
+          </Suspense>
+        </MovieSlider>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">
+            Coming Soon
+          </h2>
+          <p className="text-muted-foreground hidden text-sm sm:block">
+            Upcoming releases
+          </p>
+        </div>
+
+        <MovieSlider>
+          <Suspense fallback={<Movies.Ghosts />}>
+            <UpcomingMovies />
+          </Suspense>
+        </MovieSlider>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">
+            Top Rated
+          </h2>
+          <p className="text-muted-foreground hidden text-sm sm:block">
+            All-time favorites
+          </p>
+        </div>
+
+        <MovieSlider>
+          <Suspense fallback={<Movies.Ghosts />}>
+            <TopRatedMovies />
+          </Suspense>
+        </MovieSlider>
+      </section>
+    </div>
   );
 }

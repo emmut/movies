@@ -1,6 +1,6 @@
 import { env } from '@/env';
 import type { GenreResponse } from '@/types/Genre';
-import { MovieResponse } from '@/types/Movie';
+import { MovieDetails, MovieResponse } from '@/types/Movie';
 
 export async function fetchAvailableGenres() {
   const res = await fetch('https://api.themoviedb.org/3/genre/movie/list', {
@@ -67,4 +67,24 @@ export async function fetchUpcomingMovies() {
 
   const movies: MovieResponse = await res.json();
   return movies.results;
+}
+
+export async function getMovieDetails(movieId: number) {
+  const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+    next: {
+      revalidate: 60 * 5,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading movie details');
+  }
+
+  const movie: MovieDetails = await res.json();
+
+  return movie;
 }

@@ -1,4 +1,4 @@
-import { fetchDiscoverMovies } from '@/lib/discover';
+import { fetchDiscoverMovies } from '@/lib/movies';
 import MovieCard from './movie-card';
 
 type MoviesProps = {

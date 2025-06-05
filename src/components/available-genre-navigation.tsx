@@ -1,6 +1,6 @@
+import { fetchAvailableGenres } from '@/lib/movies';
 import Link from 'next/link';
 import Pill from './pill';
-import { fetchAvailableGenres } from '@/lib/discover';
 
 type AvailableGenreProps = {
   currentGenreId?: number;
