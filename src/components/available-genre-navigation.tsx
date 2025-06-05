@@ -37,7 +37,7 @@ AvailableGenresNavigation.Skeleton = function () {
   return (
     <nav>
       <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
-        {[...Array(8)].map((_, i) => (
+        {[...Array(13)].map((_, i) => (
           <li key={i}>
             <Pill variant="skeleton">Loading...</Pill>
           </li>

@@ -131,7 +131,7 @@ export default async function MoviePage(props: MoviePageProps) {
             </div>
 
             {runtime > 0 && (
-              <div className="rounded-lg bg-zinc-900 p-4 text-center">
+              <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
                 <Clock className="mx-auto mb-2 h-6 w-6 text-blue-500" />
                 <div className="text-2xl font-bold">
                   {formatRuntime(runtime)}
@@ -140,7 +140,7 @@ export default async function MoviePage(props: MoviePageProps) {
               </div>
             )}
 
-            <div className="rounded-lg bg-zinc-900 p-4 text-center">
+            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
               <Calendar className="mx-auto mb-2 h-6 w-6 text-green-500" />
               <div className="text-2xl font-bold">
                 {release_date ? release_date.split('-')[0] : 'N/A'}
@@ -148,7 +148,7 @@ export default async function MoviePage(props: MoviePageProps) {
               <div className="text-sm text-zinc-400">Released</div>
             </div>
 
-            <div className="rounded-lg bg-zinc-900 p-4 text-center">
+            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
               <Users className="mx-auto mb-2 h-6 w-6 text-purple-500" />
               <div className="text-2xl font-bold">
                 {Math.round(movie.popularity)}
