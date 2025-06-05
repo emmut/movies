@@ -4,7 +4,7 @@ import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
 import Link from 'next/link';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Select,
   SelectContent,
@@ -40,19 +40,15 @@ function buildPageUrl(
 
 export function PaginationControls({ totalPages }: PaginationControls) {
   const { replace } = useRouter();
-  const params = useParams();
   const searchParams = useSearchParams();
 
   const page = searchParams.get('page') ?? '1';
+  const genreIdParam = searchParams.get('genreId');
+  const currentGenreId = genreIdParam ? Number(genreIdParam) : 0;
 
   const currentPageNumber = Number(page);
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
-
-  let currentGenreId = 0;
-  if (params.genreId && params.genreId.length > 0) {
-    currentGenreId = Number(params.genreId);
-  }
 
   function handlePageChange() {
     window.scrollTo({
