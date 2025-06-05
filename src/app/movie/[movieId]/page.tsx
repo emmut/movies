@@ -69,7 +69,7 @@ export default async function MoviePage(props: MoviePageProps) {
             </h1>
             {tagline && (
               <p className="text-lg text-zinc-200 italic md:text-xl">
-                "{tagline}"
+                &ldquo;{tagline}&rdquo;
               </p>
             )}
           </div>

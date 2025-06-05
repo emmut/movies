@@ -15,7 +15,7 @@ export default async function Home() {
             Trending Now
           </h1>
           <p className="text-muted-foreground hidden text-sm sm:block">
-            What everyone's watching
+            What everyone&#39;s watching
           </p>
         </div>
 
