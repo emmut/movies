@@ -1,4 +1,5 @@
 import { GoBack } from '@/components/go-back';
+import { RegionSelect } from '@/components/region-select';
 import { ItemSlider } from '@/components/ui/item-slider';
 import {
   getMovieCredits,
@@ -18,18 +19,27 @@ import {
   Users,
 } from 'lucide-react';
 import Image from 'next/image';
+import { parseAsStringLiteral } from 'nuqs/server';
 
 type MoviePageProps = {
   params: Promise<{
     movieId: string;
   }>;
+  searchParams: Promise<{
+    region?: string;
+  }>;
 };
+
+const regions = ['SE', 'US', 'GB', 'DE', 'FR', 'NO', 'DK', 'FI'] as const;
+const regionParser = parseAsStringLiteral(regions).withDefault('SE');
 
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
+  const searchParams = await props.searchParams;
   const movieId = parseInt(params.movieId);
 
-  // Fetch data in parallel
+  const region = regionParser.parseServerSide(searchParams.region);
+
   const [movie, credits, watchProviders] = await Promise.all([
     getMovieDetails(movieId),
     getMovieCredits(movieId),
@@ -54,10 +64,11 @@ export default async function MoviePage(props: MoviePageProps) {
   } = movie;
   const score = Math.ceil(movie.vote_average * 10) / 10;
 
-  const swedenProviders = watchProviders.results?.SE;
-  const streamingServices = swedenProviders?.flatrate || [];
-  const rentalServices = swedenProviders?.rent || [];
-  const purchaseServices = swedenProviders?.buy || [];
+  // Get watch providers for selected region
+  const regionProviders = watchProviders.results?.[region];
+  const streamingServices = regionProviders?.flatrate || [];
+  const rentalServices = regionProviders?.rent || [];
+  const purchaseServices = regionProviders?.buy || [];
 
   const mainCast = credits.cast.slice(0, 8);
 
@@ -302,7 +313,10 @@ export default async function MoviePage(props: MoviePageProps) {
             rentalServices.length > 0 ||
             purchaseServices.length > 0) && (
             <div>
-              <h2 className="mb-4 text-xl font-semibold">Var kan du titta</h2>
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-xl font-semibold">Var kan du titta</h2>
+                <RegionSelect />
+              </div>
               <div className="space-y-4">
                 {streamingServices.length > 0 && (
                   <div>
@@ -315,7 +329,7 @@ export default async function MoviePage(props: MoviePageProps) {
                         <a
                           key={provider.provider_id}
                           href={
-                            swedenProviders?.link ||
+                            regionProviders?.link ||
                             `https://www.themoviedb.org/movie/${movieId}/watch`
                           }
                           target="_blank"
@@ -349,7 +363,7 @@ export default async function MoviePage(props: MoviePageProps) {
                         <a
                           key={provider.provider_id}
                           href={
-                            swedenProviders?.link ||
+                            regionProviders?.link ||
                             `https://www.themoviedb.org/movie/${movieId}/watch`
                           }
                           target="_blank"
@@ -383,7 +397,7 @@ export default async function MoviePage(props: MoviePageProps) {
                         <a
                           key={provider.provider_id}
                           href={
-                            swedenProviders?.link ||
+                            regionProviders?.link ||
                             `https://www.themoviedb.org/movie/${movieId}/watch`
                           }
                           target="_blank"
