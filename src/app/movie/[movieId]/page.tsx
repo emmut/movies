@@ -1,5 +1,5 @@
 import { GoBack } from '@/components/go-back';
-import { RegionSelect } from '@/components/region-select';
+import { StreamingProviders } from '@/components/streaming-providers';
 import { ItemSlider } from '@/components/ui/item-slider';
 import {
   getMovieCredits,
@@ -7,39 +7,19 @@ import {
   getMovieWatchProviders,
 } from '@/lib/movies';
 import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
-import {
-  Calendar,
-  Clock,
-  DollarSign,
-  Globe,
-  Play,
-  ShoppingCart,
-  Star,
-  Tv,
-  Users,
-} from 'lucide-react';
+import { Calendar, Clock, DollarSign, Globe, Star, Users } from 'lucide-react';
 import Image from 'next/image';
-import { parseAsStringLiteral } from 'nuqs/server';
-
 type MoviePageProps = {
   params: Promise<{
     movieId: string;
   }>;
-  searchParams: Promise<{
-    region?: string;
-  }>;
 };
-
-const regions = ['SE', 'US', 'GB', 'DE', 'FR', 'NO', 'DK', 'FI'] as const;
-const regionParser = parseAsStringLiteral(regions).withDefault('SE');
 
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
-  const searchParams = await props.searchParams;
   const movieId = parseInt(params.movieId);
 
-  const region = regionParser.parseServerSide(searchParams.region);
-
+  // Fetch data in parallel
   const [movie, credits, watchProviders] = await Promise.all([
     getMovieDetails(movieId),
     getMovieCredits(movieId),
@@ -64,12 +44,7 @@ export default async function MoviePage(props: MoviePageProps) {
   } = movie;
   const score = Math.ceil(movie.vote_average * 10) / 10;
 
-  // Get watch providers for selected region
-  const regionProviders = watchProviders.results?.[region];
-  const streamingServices = regionProviders?.flatrate || [];
-  const rentalServices = regionProviders?.rent || [];
-  const purchaseServices = regionProviders?.buy || [];
-
+  // Get main cast (first 8 actors)
   const mainCast = credits.cast.slice(0, 8);
 
   return (
@@ -309,123 +284,10 @@ export default async function MoviePage(props: MoviePageProps) {
             </div>
           )}
 
-          {(streamingServices.length > 0 ||
-            rentalServices.length > 0 ||
-            purchaseServices.length > 0) && (
-            <div>
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Var kan du titta</h2>
-                <RegionSelect />
-              </div>
-              <div className="space-y-4">
-                {streamingServices.length > 0 && (
-                  <div>
-                    <h3 className="mb-2 flex items-center gap-2 text-lg font-medium">
-                      <Tv className="h-5 w-5 text-green-500" />
-                      Streaming
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {streamingServices.map((provider) => (
-                        <a
-                          key={provider.provider_id}
-                          href={
-                            regionProviders?.link ||
-                            `https://www.themoviedb.org/movie/${movieId}/watch`
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 transition-colors hover:bg-zinc-700"
-                        >
-                          <Image
-                            src={formatImageUrl(provider.logo_path, 92)}
-                            alt={provider.provider_name}
-                            width={24}
-                            height={24}
-                            className="rounded"
-                          />
-                          <span className="text-sm">
-                            {provider.provider_name}
-                          </span>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {rentalServices.length > 0 && (
-                  <div>
-                    <h3 className="mb-2 flex items-center gap-2 text-lg font-medium">
-                      <Play className="h-5 w-5 text-blue-500" />
-                      Hyra
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {rentalServices.map((provider) => (
-                        <a
-                          key={provider.provider_id}
-                          href={
-                            regionProviders?.link ||
-                            `https://www.themoviedb.org/movie/${movieId}/watch`
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 transition-colors hover:bg-zinc-700"
-                        >
-                          <Image
-                            src={formatImageUrl(provider.logo_path, 92)}
-                            alt={provider.provider_name}
-                            width={24}
-                            height={24}
-                            className="rounded"
-                          />
-                          <span className="text-sm">
-                            {provider.provider_name}
-                          </span>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {purchaseServices.length > 0 && (
-                  <div>
-                    <h3 className="mb-2 flex items-center gap-2 text-lg font-medium">
-                      <ShoppingCart className="h-5 w-5 text-orange-500" />
-                      Köpa
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {purchaseServices.map((provider) => (
-                        <a
-                          key={provider.provider_id}
-                          href={
-                            regionProviders?.link ||
-                            `https://www.themoviedb.org/movie/${movieId}/watch`
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 rounded-lg bg-zinc-800 px-3 py-2 transition-colors hover:bg-zinc-700"
-                        >
-                          <Image
-                            src={formatImageUrl(provider.logo_path, 92)}
-                            alt={provider.provider_name}
-                            width={24}
-                            height={24}
-                            className="rounded"
-                          />
-                          <span className="text-sm">
-                            {provider.provider_name}
-                          </span>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="text-xs text-zinc-500">
-                  Data tillhandahålls av JustWatch
-                </div>
-              </div>
-            </div>
-          )}
+          <StreamingProviders
+            watchProviders={watchProviders}
+            movieId={movieId}
+          />
 
           <div className="flex flex-wrap gap-4">
             {movie.imdb_id && (
