@@ -29,6 +29,7 @@
     "eslint-config-next": "15.3.3",
     "lucide-react": "^0.511.0",
     "next": "15.4.0-canary.60",
+    "nuqs": "^2.4.3",
     "postcss": "8.5.4",
     "posthog-js": "^1.248.1",
     "posthog-node": "^4.18.0",
