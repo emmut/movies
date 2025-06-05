@@ -6,14 +6,19 @@ import {
   MovieResponse,
   MovieWatchProviders,
 } from '@/types/Movie';
+import {
+  unstable_cacheLife as cacheLife,
+  unstable_cacheTag as cacheTag,
+} from 'next/cache';
 
 export async function fetchAvailableGenres() {
+  'use cache';
+  cacheTag('genres');
+  cacheLife('days');
+
   const res = await fetch('https://api.themoviedb.org/3/genre/movie/list', {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-    },
-    next: {
-      revalidate: 60 * 60 * 24,
     },
   });
 
@@ -26,6 +31,10 @@ export async function fetchAvailableGenres() {
 }
 
 export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
+  'use cache';
+  cacheTag('discover');
+  cacheLife('minutes');
+
   const url = new URL('https://api.themoviedb.org/3/discover/movie');
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', 'popularity.desc');
@@ -41,10 +50,6 @@ export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
     },
-    next: {
-      revalidate: 60 * 60 * 5,
-      tags: ['discover'],
-    },
   });
 
   if (!res.ok) {
@@ -57,12 +62,13 @@ export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
 }
 
 export async function fetchUpcomingMovies() {
+  'use cache';
+  cacheTag('upcoming');
+  cacheLife('minutes');
+
   const res = await fetch('https://api.themoviedb.org/3/movie/upcoming', {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-    },
-    next: {
-      revalidate: 60 * 5,
     },
   });
 
@@ -75,13 +81,14 @@ export async function fetchUpcomingMovies() {
 }
 
 export async function getMovieDetails(movieId: number) {
+  'use cache';
+  cacheTag('movie-details');
+  cacheLife('minutes');
+
   const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
-    },
-    next: {
-      revalidate: 60 * 5,
     },
   });
 
@@ -95,15 +102,16 @@ export async function getMovieDetails(movieId: number) {
 }
 
 export async function getMovieCredits(movieId: number): Promise<MovieCredits> {
+  'use cache';
+  cacheTag('movie-credits');
+  cacheLife('minutes');
+
   const res = await fetch(
     `https://api.themoviedb.org/3/movie/${movieId}/credits`,
     {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
         accept: 'application/json',
-      },
-      next: {
-        revalidate: 60 * 60,
       },
     }
   );
@@ -119,15 +127,16 @@ export async function getMovieCredits(movieId: number): Promise<MovieCredits> {
 export async function getMovieWatchProviders(
   movieId: number
 ): Promise<MovieWatchProviders> {
+  'use cache';
+  cacheTag('movie-watch-providers');
+  cacheLife('minutes');
+
   const res = await fetch(
     `https://api.themoviedb.org/3/movie/${movieId}/watch/providers`,
     {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
         accept: 'application/json',
-      },
-      next: {
-        revalidate: 60 * 30,
       },
     }
   );
