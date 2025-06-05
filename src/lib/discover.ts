@@ -52,13 +52,12 @@ export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
 }
 
 export async function fetchUpcomingMovies() {
-  'use cache';
-  cacheLife('hours');
-  cacheTag('upcoming-movies');
-
   const res = await fetch('https://api.themoviedb.org/3/movie/upcoming', {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+    },
+    next: {
+      revalidate: 60 * 5,
     },
   });
 

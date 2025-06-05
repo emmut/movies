@@ -21,13 +21,13 @@ export async function fetchTrendingMovies() {
 }
 
 export async function fetchNowPlayingMovies() {
-  'use cache';
-  cacheLife('minutes');
-
   const res = await fetch('https://api.themoviedb.org/3/movie/now_playing', {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
+    },
+    next: {
+      revalidate: 60 * 5,
     },
   });
 
@@ -40,14 +40,14 @@ export async function fetchNowPlayingMovies() {
 }
 
 export async function fetchUpcomingMovies() {
-  'use cache';
-  cacheLife('minutes');
-
   const [upcomingRes, nowPlayingMovies] = await Promise.all([
     fetch('https://api.themoviedb.org/3/movie/upcoming', {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
         accept: 'application/json',
+      },
+      next: {
+        revalidate: 60 * 5,
       },
     }),
     fetchNowPlayingMovies(),
