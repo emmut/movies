@@ -34,7 +34,6 @@ export default async function MoviePage(props: MoviePageProps) {
 
   return (
     <div className="min-h-screen">
-      {/* Navigation */}
       <div className="mb-6">
         <GoBack />
       </div>
@@ -73,9 +72,7 @@ export default async function MoviePage(props: MoviePageProps) {
         </div>
       )}
 
-      {/* Main Content */}
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
-        {/* Poster */}
         <div className="lg:col-span-4">
           {poster_path ? (
             <Image
@@ -97,9 +94,7 @@ export default async function MoviePage(props: MoviePageProps) {
           )}
         </div>
 
-        {/* Details */}
         <div className="space-y-6 lg:col-span-8">
-          {/* Quick Stats */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-zinc-900 p-4 text-center">
               <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
@@ -137,7 +132,6 @@ export default async function MoviePage(props: MoviePageProps) {
             </div>
           </div>
 
-          {/* Genres */}
           {genres.length > 0 && (
             <div>
               <h2 className="mb-3 text-xl font-semibold">Genres</h2>
@@ -154,7 +148,6 @@ export default async function MoviePage(props: MoviePageProps) {
             </div>
           )}
 
-          {/* Overview */}
           <div>
             <h2 className="mb-3 text-xl font-semibold">Overview</h2>
             <p className="leading-relaxed text-zinc-300">
@@ -162,7 +155,6 @@ export default async function MoviePage(props: MoviePageProps) {
             </p>
           </div>
 
-          {/* Additional Details */}
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <div>
@@ -241,7 +233,6 @@ export default async function MoviePage(props: MoviePageProps) {
             </div>
           </div>
 
-          {/* External Links */}
           <div className="flex flex-wrap gap-4">
             {movie.imdb_id && (
               <a
