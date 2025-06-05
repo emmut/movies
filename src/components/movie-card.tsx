@@ -1,8 +1,8 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import clsx from 'clsx';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import type { Movie } from '@/types/Movie';
+import clsx from 'clsx';
+import Image from 'next/image';
+import Link from 'next/link';
 
 type MovieProp = {
   movie: Movie;
@@ -50,7 +50,7 @@ function MovieCard({ movie }: MovieProp) {
   );
 }
 
-MovieCard.Ghost = function Ghost() {
+MovieCard.Skeleton = function () {
   return (
     <div className="relative grid aspect-2/3 w-full flex-[150px] shrink-0 animate-pulse overflow-hidden rounded-md">
       <div className="border-muted-foreground/25 bg-muted-foreground/10 rounded-md border p-3 transition-opacity duration-200 ease-in"></div>

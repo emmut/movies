@@ -13,7 +13,7 @@ export async function fetchAvailableGenres() {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
     },
     next: {
-      revalidate: 60 * 60 * 5,
+      revalidate: 60 * 60 * 24,
     },
   });
 

@@ -1,7 +1,7 @@
+import { fetchTrendingMovies } from '@/lib/homepage';
+import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
-import { formatDateYear, formatImageUrl } from '@/lib/utils';
-import { fetchTrendingMovies } from '@/lib/homepage';
 
 type TrendingCardProp = {
   index: number;
@@ -45,7 +45,7 @@ async function Trending({ index }: TrendingCardProp) {
   );
 }
 
-Trending.Ghost = function Ghost() {
+Trending.Skeleton = function () {
   return (
     <div className="relative h-52 animate-pulse overflow-hidden rounded-xl bg-neutral-50/10 lg:h-72 lg:flex-1">
       <div className="absolute right-0 bottom-0 left-0 z-10 flex h-12 flex-col justify-center bg-zinc-950/10 px-3 py-2"></div>

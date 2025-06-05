@@ -12,8 +12,8 @@ export default function Loading() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Trending.Ghost />
-          <Trending.Ghost />
+          <Trending.Skeleton />
+          <Trending.Skeleton />
         </div>
       </section>
 
@@ -24,7 +24,7 @@ export default function Loading() {
         </div>
 
         <ItemSlider>
-          <Movies.Ghosts />
+          <Movies.Skeletons />
         </ItemSlider>
       </section>
 
@@ -35,7 +35,7 @@ export default function Loading() {
         </div>
 
         <ItemSlider>
-          <Movies.Ghosts />
+          <Movies.Skeletons />
         </ItemSlider>
       </section>
 
@@ -46,7 +46,7 @@ export default function Loading() {
         </div>
 
         <ItemSlider>
-          <Movies.Ghosts />
+          <Movies.Skeletons />
         </ItemSlider>
       </section>
     </div>

@@ -32,3 +32,17 @@ export default async function AvailableGenresNavigation({
     </nav>
   );
 }
+
+AvailableGenresNavigation.Skeleton = function () {
+  return (
+    <nav>
+      <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
+        {[...Array(8)].map((_, i) => (
+          <li key={i}>
+            <Pill variant="skeleton">Loading...</Pill>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+};

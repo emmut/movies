@@ -21,11 +21,11 @@ export async function Movies({ currentGenreId, currentPage }: MoviesProps) {
   );
 }
 
-Movies.Ghosts = function Ghosts() {
+Movies.Skeletons = function Ghosts() {
   return (
     <>
       {[...Array(20)].map((_, i) => (
-        <MovieCard.Ghost key={i} />
+        <MovieCard.Skeleton key={i} />
       ))}
     </>
   );

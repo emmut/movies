@@ -20,11 +20,11 @@ export default async function Home() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <Suspense fallback={<Trending.Ghost />}>
+          <Suspense fallback={<Trending.Skeleton />}>
             <Trending index={0} />
           </Suspense>
 
-          <Suspense fallback={<Trending.Ghost />}>
+          <Suspense fallback={<Trending.Skeleton />}>
             <Trending index={1} />
           </Suspense>
         </div>
@@ -41,7 +41,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<Movies.Ghosts />}>
+          <Suspense fallback={<Movies.Skeletons />}>
             <NowPlayingMovies />
           </Suspense>
         </ItemSlider>
@@ -58,7 +58,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<Movies.Ghosts />}>
+          <Suspense fallback={<Movies.Skeletons />}>
             <UpcomingMovies />
           </Suspense>
         </ItemSlider>
@@ -75,7 +75,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<Movies.Ghosts />}>
+          <Suspense fallback={<Movies.Skeletons />}>
             <TopRatedMovies />
           </Suspense>
         </ItemSlider>

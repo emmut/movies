@@ -1,9 +1,9 @@
-import { Suspense } from 'react';
-import SectionTitle from '@/components/section-title';
 import Movies from '@/components/movies';
 import { PaginationControls } from '@/components/pagination-controlls';
-import SearchMovies from './search-movies';
+import SectionTitle from '@/components/section-title';
 import { fetchMoviesBySearchQuery } from '@/lib/search';
+import { Suspense } from 'react';
+import SearchMovies from './search-movies';
 
 type SearchProps = {
   searchParams: Promise<{
@@ -23,7 +23,7 @@ export default async function SearchPage(props: SearchProps) {
     <>
       <SectionTitle>Search</SectionTitle>
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-        <Suspense fallback={<Movies.Ghosts />}>
+        <Suspense fallback={<Movies.Skeletons />}>
           <SearchMovies currentQuery={query} currentPage={page} />
         </Suspense>
       </div>

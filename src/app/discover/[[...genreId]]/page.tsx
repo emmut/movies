@@ -38,11 +38,7 @@ export default async function DiscoverWithGenrePage(
       </div>
 
       <div className="relative mt-2 flex flex-wrap gap-2">
-        <Suspense
-          fallback={
-            <Spinner className="flex h-12 items-center justify-center" />
-          }
-        >
+        <Suspense fallback={<AvailableGenresNavigation.Skeleton />}>
           <AvailableGenresNavigation currentGenreId={genreId} />
         </Suspense>
       </div>
@@ -52,7 +48,7 @@ export default async function DiscoverWithGenrePage(
         tabIndex={0}
         className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <Suspense fallback={<Movies.Ghosts />}>
+        <Suspense fallback={<Movies.Skeletons />}>
           <Movies currentGenreId={genreId} currentPage={page} />
         </Suspense>
       </div>
