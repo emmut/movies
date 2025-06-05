@@ -1,8 +1,7 @@
 import { env } from '@/env';
+import Image from 'next/image';
 import { formatImageUrl } from '@/lib/utils';
 import type { MovieDetails } from '@/types/Movie';
-import { unstable_cacheLife as cacheLife } from 'next/cache';
-import Image from 'next/image';
 
 type MoviePageProps = {
   params: Promise<{
@@ -11,13 +10,13 @@ type MoviePageProps = {
 };
 
 async function getMovieDetails(movieId: number) {
-  'use cache';
-  cacheLife('minutes');
-
   const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
+    },
+    next: {
+      revalidate: 60 * 5,
     },
   });
 
