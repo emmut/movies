@@ -1,16 +1,16 @@
 'use client';
 
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import ChevronLeft from '@/icons/ChevronLeft';
 import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
 import Link from 'next/link';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from './ui/select';
 
 type PaginationControls = {
@@ -22,19 +22,20 @@ function buildPageUrl(
   currentGenreId: number,
   searchParams: URLSearchParams
 ) {
-  const searchParamsObj: Record<string, string> = {
-    page: String(pageNumber),
-  };
+  const newSearchParams = new URLSearchParams(searchParams);
+  newSearchParams.set('page', String(pageNumber));
 
   const q = searchParams.get('q');
+
   if (q !== null) {
-    searchParamsObj.q = q;
+    newSearchParams.set('q', q);
   }
 
-  const newSearchParams = new URLSearchParams(searchParamsObj).toString();
-  return currentGenreId !== 0
-    ? `${currentGenreId}?${newSearchParams}`
-    : `?${newSearchParams}`;
+  if (currentGenreId !== 0) {
+    newSearchParams.set('genreId', String(currentGenreId));
+  }
+
+  return `?${newSearchParams.toString()}`;
 }
 
 export function PaginationControls({ totalPages }: PaginationControls) {

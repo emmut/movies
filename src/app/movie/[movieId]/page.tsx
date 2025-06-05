@@ -1,4 +1,5 @@
 import { GoBack } from '@/components/go-back';
+import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { ItemSlider } from '@/components/ui/item-slider';
 import {
@@ -7,8 +8,17 @@ import {
   getMovieWatchProviders,
 } from '@/lib/movies';
 import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
-import { Calendar, Clock, DollarSign, Globe, Star, Users } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  Database,
+  DollarSign,
+  Globe,
+  Star,
+  Users,
+} from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 type MoviePageProps = {
   params: Promise<{
     movieId: string;
@@ -152,12 +162,9 @@ export default async function MoviePage(props: MoviePageProps) {
               <h2 className="mb-3 text-xl font-semibold">Genres</h2>
               <div className="flex flex-wrap gap-2">
                 {genres.map((genre) => (
-                  <span
-                    key={genre.id}
-                    className="rounded-full bg-zinc-800 px-3 py-1 text-sm"
-                  >
-                    {genre.name}
-                  </span>
+                  <Link key={genre.id} href={`/discover?genreId=${genre.id}`}>
+                    <Pill>{genre.name}</Pill>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -300,6 +307,16 @@ export default async function MoviePage(props: MoviePageProps) {
                 IMDb
               </a>
             )}
+
+            <a
+              className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
+              href={`https://www.themoviedb.org/movie/${movieId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Database className="h-4 w-4" />
+              TMDB
+            </a>
 
             {homepage && (
               <a

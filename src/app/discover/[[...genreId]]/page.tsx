@@ -1,17 +1,15 @@
-import { Suspense } from 'react';
-import SectionTitle from '@/components/section-title';
-import Spinner from '@/components/spinner';
-import SkipToElement from '@/components/skip-to-element';
 import AvailableGenresNavigation from '@/components/available-genre-navigation';
 import Movies from '@/components/movies';
+import SectionTitle from '@/components/section-title';
+import SkipToElement from '@/components/skip-to-element';
+import Spinner from '@/components/spinner';
+import { Suspense } from 'react';
 import Pagination from './pagination';
 
 type DiscoverWithGenreParams = {
-  params: Promise<{
-    genreId?: string[];
-  }>;
   searchParams: Promise<{
     page?: string;
+    genreId?: string;
   }>;
 };
 
@@ -19,11 +17,10 @@ export default async function DiscoverWithGenrePage(
   props: DiscoverWithGenreParams
 ) {
   const searchParams = await props.searchParams;
-  const params = await props.params;
   let genreId: number;
 
-  if (params.genreId && params.genreId.length > 0) {
-    genreId = Number(params.genreId[0]);
+  if (searchParams.genreId) {
+    genreId = Number(searchParams.genreId);
   } else {
     genreId = 0;
   }
