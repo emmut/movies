@@ -25,34 +25,29 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className={clsx(inter.className, 'bg-black text-neutral-100')}>
+    <html lang="en" className="dark">
+      <body className={clsx([inter.className])}>
         <NuqsAdapter>
           <PHProvider>
-            <SidebarProvider defaultOpen>
+            <SidebarProvider>
               <AppSidebar />
-
               <SidebarInset>
-                <header className="flex h-16 shrink-0 items-center justify-between gap-2 px-4">
-                  <div className="flex items-center gap-4">
-                    <SidebarTrigger />
-                    <Separator orientation="vertical" className="mr-2 h-4" />
-
-                    <Suspense>
-                      <Search />
-                    </Suspense>
-                  </div>
+                <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
+                  <SidebarTrigger className="-ml-1" />
+                  <Separator orientation="vertical" className="h-4" />
+                  <Suspense>
+                    <Search />
+                  </Suspense>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+                <div className="mx-auto w-full max-w-screen-xl p-4">
                   {children}
-                  <Footer />
                 </div>
+                <Footer />
               </SidebarInset>
             </SidebarProvider>
-
-            <Analytics />
-            <SpeedInsights />
           </PHProvider>
+          <Analytics />
+          <SpeedInsights />
         </NuqsAdapter>
       </body>
     </html>
