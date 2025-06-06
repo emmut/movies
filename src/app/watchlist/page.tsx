@@ -17,7 +17,7 @@ export default async function WatchlistPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="mb-2 text-3xl font-bold">My Watchlist</h1>
-        <p className="text-zinc-400">Movies you've saved to watch later</p>
+        <p className="text-zinc-400">Movies you&apos;ve saved to watch later</p>
       </div>
 
       {watchlistMovies.length === 0 ? (
