@@ -19,7 +19,7 @@ function MovieCard({ movie }: MovieProp) {
   return (
     <Link
       href={`/movie/${id}`}
-      className="group/movie-card relative grid aspect-2/3 w-full flex-[150px] shrink-0 snap-center overflow-hidden rounded-md"
+      className="group/movie-card relative grid aspect-2/3 w-full max-w-[150px] shrink-0 snap-center overflow-hidden rounded-md"
     >
       {poster_path !== null && (
         <Image

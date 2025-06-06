@@ -13,10 +13,17 @@ export function ItemSlider({ children }: ItemSliderProps) {
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [disableArrows, setDisableArrows] = useState(false);
 
-  // Check scroll position and update arrow visibility
   const updateArrowVisibility = () => {
     const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
+
+    if (container.clientWidth === container.scrollWidth) {
+      setShowLeftArrow(false);
+      setShowRightArrow(false);
+      return;
+    }
 
     setShowLeftArrow(container.scrollLeft > 0);
     setShowRightArrow(
@@ -34,11 +41,11 @@ export function ItemSlider({ children }: ItemSliderProps) {
     }
 
     if (container) {
+      updateArrowVisibility();
+
       container.addEventListener('scroll', updateArrowVisibility, {
         signal: controller.signal,
       });
-      // Initial check
-      updateArrowVisibility();
 
       return () => {
         controller.abort();
@@ -48,7 +55,9 @@ export function ItemSlider({ children }: ItemSliderProps) {
 
   const scroll = (direction: 'left' | 'right') => {
     const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     const scrollAmount = container.clientWidth * 0.75;
     container.scrollBy({
