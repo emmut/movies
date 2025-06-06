@@ -42,12 +42,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
       signal: controller.signal,
     });
 
-    if (container.clientWidth <= container.scrollWidth) {
-      setShowLeftArrow(false);
-      setShowRightArrow(false);
-    } else {
-      updateArrowVisibility();
-    }
+    updateArrowVisibility();
 
     return () => {
       controller.abort();
