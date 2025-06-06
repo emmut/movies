@@ -14,6 +14,7 @@ import clsx from 'clsx';
 import { Inter } from 'next/font/google';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode, Suspense } from 'react';
+import { Toaster } from 'sonner';
 import './globals.css';
 import { Search } from './search';
 
@@ -67,6 +68,7 @@ export default async function RootLayout({
           <Analytics />
           <SpeedInsights />
         </NuqsAdapter>
+        <Toaster />
       </body>
     </html>
   );

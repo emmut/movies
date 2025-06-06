@@ -1,4 +1,6 @@
 import { env } from '@/env';
+import { DEFAULT_REGION } from '@/lib/regions';
+import { getUserRegion } from '@/lib/user-actions';
 import type { GenreResponse } from '@/types/Genre';
 import {
   MovieCredits,
@@ -10,6 +12,20 @@ import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
 } from 'next/cache';
+
+async function getUserRegionWithFallback(): Promise<string> {
+  try {
+    return await getUserRegion();
+  } catch (error) {
+    // Fallback to default region if user is not logged in or error occurs
+    console.warn(
+      'Could not get user region, using fallback:',
+      DEFAULT_REGION,
+      error
+    );
+    return DEFAULT_REGION;
+  }
+}
 
 export async function fetchAvailableGenres() {
   'use cache';
@@ -35,10 +51,12 @@ export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
   cacheTag('discover');
   cacheLife('minutes');
 
+  const userRegion = await getUserRegionWithFallback();
+
   const url = new URL('https://api.themoviedb.org/3/discover/movie');
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', 'popularity.desc');
-  url.searchParams.set('region', 'SE');
+  url.searchParams.set('region', userRegion);
   url.searchParams.set('include_adult', 'false');
   url.searchParams.set('include_video', 'false');
 
@@ -66,7 +84,12 @@ export async function fetchUpcomingMovies() {
   cacheTag('upcoming');
   cacheLife('minutes');
 
-  const res = await fetch('https://api.themoviedb.org/3/movie/upcoming', {
+  const userRegion = await getUserRegionWithFallback();
+
+  const url = new URL('https://api.themoviedb.org/3/movie/upcoming');
+  url.searchParams.set('region', userRegion);
+
+  const res = await fetch(url, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
     },
@@ -129,6 +152,8 @@ export async function getMovieWatchProviders(movieId: number) {
   cacheTag('movie-watch-providers');
   cacheLife('minutes');
 
+  const userRegion = await getUserRegionWithFallback();
+
   const res = await fetch(
     `https://api.themoviedb.org/3/movie/${movieId}/watch/providers`,
     {
@@ -144,5 +169,13 @@ export async function getMovieWatchProviders(movieId: number) {
   }
 
   const watchProviders: MovieWatchProviders = await res.json();
-  return watchProviders;
+
+  // Return watch providers for user's region, fallback to all if not available
+  const regionProviders = watchProviders.results[userRegion];
+  return {
+    ...watchProviders,
+    results: regionProviders
+      ? { [userRegion]: regionProviders }
+      : watchProviders.results,
+  };
 }

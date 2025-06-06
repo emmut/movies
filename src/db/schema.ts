@@ -1,3 +1,4 @@
+import { DEFAULT_REGION } from '@/lib/regions';
 import {
   boolean,
   integer,
@@ -14,6 +15,7 @@ export const user = pgTable('user', {
     .$defaultFn(() => false)
     .notNull(),
   image: text('image'),
+  region: text('region').default(DEFAULT_REGION),
   createdAt: timestamp('created_at')
     .$defaultFn(() => /* @__PURE__ */ new Date())
     .notNull(),

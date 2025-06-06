@@ -14,8 +14,10 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { signOut } from '@/lib/auth-client';
-import { ChevronsUpDown, LogOut } from 'lucide-react';
+import { ChevronsUpDown, LogOut, Settings } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { UserAvatar } from './user-avatar';
 import { UserInfo } from './user-info';
 
@@ -66,18 +68,26 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <Settings />
+                Settings
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={async () => {
                 const { error, data } = await signOut();
 
                 if (error) {
-                  // Handle logout error - could show toast notification
                   console.error('Logout failed:', error);
+
+                  toast.error('Logout failed');
                 } else if (data?.success) {
                   router.refresh();
                 } else {
-                  // Handle unexpected response format
                   console.error('Unexpected logout response:', data);
+
+                  toast.error('Unexpected logout response');
                 }
               }}
             >

@@ -7,28 +7,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DEFAULT_REGION, regions, type RegionCode } from '@/lib/regions';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
-
-// Common regions for streaming services
-const regions = [
-  { code: 'SE', name: 'Sweden' },
-  { code: 'US', name: 'United States' },
-  { code: 'GB', name: 'United Kingdom' },
-  { code: 'DE', name: 'Germany' },
-  { code: 'FR', name: 'France' },
-  { code: 'NO', name: 'Norway' },
-  { code: 'DK', name: 'Denmark' },
-  { code: 'FI', name: 'Finland' },
-] as const;
-
-type RegionCode = (typeof regions)[number]['code'];
 
 const regionCodes = regions.map((r) => r.code);
 
 export function RegionSelect() {
   const [region, setRegion] = useQueryState(
     'region',
-    parseAsStringLiteral(regionCodes).withDefault('SE')
+    parseAsStringLiteral(regionCodes).withDefault(DEFAULT_REGION)
   );
 
   const handleValueChange = (value: string) => {

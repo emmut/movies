@@ -42,7 +42,7 @@ export function StreamingProviders({
         </div>
         <div className="rounded-lg bg-zinc-800 p-6 text-center">
           <p className="text-zinc-400">
-            Inga streaming-tjänster tillgängliga för denna region
+            No streaming services available for this region
           </p>
         </div>
       </div>
