@@ -128,6 +128,7 @@ export async function toggleWatchlist(movieId: number) {
         )
       );
 
+    let state;
     if (existing.length > 0) {
       await db
         .delete(watchlist)
@@ -137,15 +138,20 @@ export async function toggleWatchlist(movieId: number) {
             eq(watchlist.movieId, validatedMovieId)
           )
         );
-      return { success: true, action: 'removed' };
+      state = 'removed';
     } else {
       await db.insert(watchlist).values({
         id: crypto.randomUUID(),
         userId: user.id,
         movieId: validatedMovieId,
       });
-      return { success: true, action: 'added' };
+      state = 'added';
     }
+
+    revalidatePath(`/movie/${validatedMovieId}`);
+    revalidatePath('/watchlist');
+
+    return { success: true, action: state };
   } catch (error) {
     console.error('Error toggling watchlist:', error);
     throw new Error('Failed to update watchlist');
