@@ -2,6 +2,7 @@ import { watchlist } from '@/db/schema';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
+import { movieIdSchema } from '@/lib/validations';
 import { and, eq } from 'drizzle-orm';
 
 /**
@@ -31,7 +32,7 @@ export async function getUserWatchlist() {
 /**
  * Determines whether a specific movie is present in the authenticated user's watchlist.
  *
- * @param movieId - The ID of the movie to check.
+ * @param movieId - The ID of the movie to check (as string, will be converted to number).
  * @returns `true` if the movie is in the user's watchlist; otherwise, `false`.
  */
 export async function isMovieInWatchlist(movieId: number) {
@@ -41,13 +42,15 @@ export async function isMovieInWatchlist(movieId: number) {
   }
 
   try {
+    const validatedMovieId = movieIdSchema.parse(movieId);
+
     const result = await db
       .select()
       .from(watchlist)
       .where(
         and(
           eq(watchlist.userId, user.id),
-          eq(watchlist.movieId, String(movieId))
+          eq(watchlist.movieId, validatedMovieId)
         )
       );
 
@@ -70,7 +73,7 @@ export async function getWatchlistWithMovieDetails() {
 
   const moviesWithDetails = await Promise.allSettled(
     userWatchlist.map(async (item) => {
-      const movieDetails = await getMovieDetails(parseInt(item.movieId));
+      const movieDetails = await getMovieDetails(item.movieId);
       return {
         ...item,
         movie: movieDetails,

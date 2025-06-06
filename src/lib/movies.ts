@@ -101,7 +101,7 @@ export async function getMovieDetails(movieId: number) {
   return movie;
 }
 
-export async function getMovieCredits(movieId: number): Promise<MovieCredits> {
+export async function getMovieCredits(movieId: number) {
   'use cache';
   cacheTag('movie-credits');
   cacheLife('minutes');
@@ -124,9 +124,7 @@ export async function getMovieCredits(movieId: number): Promise<MovieCredits> {
   return credits;
 }
 
-export async function getMovieWatchProviders(
-  movieId: number
-): Promise<MovieWatchProviders> {
+export async function getMovieWatchProviders(movieId: number) {
   'use cache';
   cacheTag('movie-watch-providers');
   cacheLife('minutes');

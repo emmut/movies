@@ -81,7 +81,6 @@ export function NavUser({
                 }
               }}
             >
-            >
               <LogOut />
               Log out
             </DropdownMenuItem>

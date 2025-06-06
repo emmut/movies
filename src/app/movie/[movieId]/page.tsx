@@ -39,12 +39,11 @@ type MoviePageProps = {
  */
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
-  const movieId = parseInt(params.movieId);
+  const movieId = Number(params.movieId);
 
   const user = await getUser();
   const inWatchlist = user ? await isMovieInWatchlist(movieId) : false;
 
-  // Fetch data in parallel
   const [movie, credits, watchProviders] = await Promise.all([
     getMovieDetails(movieId),
     getMovieCredits(movieId),

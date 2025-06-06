@@ -3,6 +3,7 @@
 import { watchlist } from '@/db/schema';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
+import { movieIdSchema } from '@/lib/validations';
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -19,6 +20,8 @@ import { redirect } from 'next/navigation';
  * @throws {Error} If the operation fails for any other reason.
  */
 export async function addToWatchlist(movieId: number) {
+  const validatedMovieId = movieIdSchema.parse(movieId);
+
   const user = await getUser();
 
   if (!user) {
@@ -32,7 +35,7 @@ export async function addToWatchlist(movieId: number) {
       .where(
         and(
           eq(watchlist.userId, user.id),
-          eq(watchlist.movieId, String(movieId))
+          eq(watchlist.movieId, validatedMovieId)
         )
       );
 
@@ -43,11 +46,11 @@ export async function addToWatchlist(movieId: number) {
     await db.insert(watchlist).values({
       id: crypto.randomUUID(),
       userId: user.id,
-      movieId: String(movieId),
+      movieId: validatedMovieId,
     });
 
     revalidatePath('/watchlist');
-    revalidatePath(`/movie/${movieId}`);
+    revalidatePath(`/movie/${validatedMovieId}`);
 
     return { success: true };
   } catch (error) {
@@ -67,6 +70,8 @@ export async function addToWatchlist(movieId: number) {
  * @throws {Error} If the removal operation fails.
  */
 export async function removeFromWatchlist(movieId: number) {
+  const validatedMovieId = movieIdSchema.parse(movieId);
+
   const user = await getUser();
 
   if (!user) {
@@ -79,12 +84,12 @@ export async function removeFromWatchlist(movieId: number) {
       .where(
         and(
           eq(watchlist.userId, user.id),
-          eq(watchlist.movieId, String(movieId))
+          eq(watchlist.movieId, validatedMovieId)
         )
       );
 
     revalidatePath('/watchlist');
-    revalidatePath(`/movie/${movieId}`);
+    revalidatePath(`/movie/${validatedMovieId}`);
 
     return { success: true };
   } catch (error) {
@@ -104,6 +109,8 @@ export async function removeFromWatchlist(movieId: number) {
  * @throws {Error} If the user is not authenticated or if the watchlist update fails.
  */
 export async function toggleWatchlist(movieId: number) {
+  const validatedMovieId = movieIdSchema.parse(movieId);
+
   const user = await getUser();
 
   if (!user) {
@@ -117,15 +124,26 @@ export async function toggleWatchlist(movieId: number) {
       .where(
         and(
           eq(watchlist.userId, user.id),
-          eq(watchlist.movieId, String(movieId))
+          eq(watchlist.movieId, validatedMovieId)
         )
       );
 
     if (existing.length > 0) {
-      await removeFromWatchlist(movieId);
+      await db
+        .delete(watchlist)
+        .where(
+          and(
+            eq(watchlist.userId, user.id),
+            eq(watchlist.movieId, validatedMovieId)
+          )
+        );
       return { success: true, action: 'removed' };
     } else {
-      await addToWatchlist(movieId);
+      await db.insert(watchlist).values({
+        id: crypto.randomUUID(),
+        userId: user.id,
+        movieId: validatedMovieId,
+      });
       return { success: true, action: 'added' };
     }
   } catch (error) {
