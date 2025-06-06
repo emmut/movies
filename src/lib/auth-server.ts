@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import { cache } from 'react';
 import { auth } from './auth';
 
 /**
@@ -6,13 +7,13 @@ import { auth } from './auth';
  *
  * @returns The current session object, or null if no session exists.
  */
-export async function getSession() {
+export const getSession = cache(async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
   return session;
-}
+});
 
 /**
  * Retrieves the authenticated user from the current session.

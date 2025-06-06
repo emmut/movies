@@ -12,15 +12,21 @@ import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 const regionCodes = regions.map((r) => r.code);
 
-export function RegionSelect() {
+type RegionSelectProps = {
+  defaultValue?: RegionCode;
+};
+
+export function RegionSelect({ defaultValue }: RegionSelectProps) {
   const [region, setRegion] = useQueryState(
     'region',
-    parseAsStringLiteral(regionCodes).withDefault(DEFAULT_REGION)
+    parseAsStringLiteral(regionCodes).withDefault(
+      defaultValue ?? DEFAULT_REGION
+    )
   );
 
-  const handleValueChange = (value: string) => {
+  function handleValueChange(value: string) {
     setRegion(value as RegionCode);
-  };
+  }
 
   return (
     <Select value={region} onValueChange={handleValueChange}>

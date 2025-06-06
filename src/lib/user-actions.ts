@@ -29,7 +29,7 @@ export async function getUserRegion() {
     throw new Error('User not found');
   }
 
-  return (userData[0].region || DEFAULT_REGION) as RegionCode;
+  return (userData[0].region ?? DEFAULT_REGION) as RegionCode;
 }
 
 export async function updateUserRegion(region: string) {

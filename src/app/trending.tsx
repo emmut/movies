@@ -1,4 +1,4 @@
-import { fetchTrendingMovies } from '@/lib/homepage';
+import { fetchTrendingMovies } from '@/lib/movies';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
