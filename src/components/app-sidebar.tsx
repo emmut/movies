@@ -1,8 +1,9 @@
 'use client';
 
-import type * as React from 'react';
 import { Home, Sparkles } from 'lucide-react';
+import type * as React from 'react';
 
+import Brand from '@/components/brand';
 import {
   Sidebar,
   SidebarContent,
@@ -13,8 +14,8 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
+import { signIn } from '@/lib/auth-client';
 import Link from 'next/link';
-import Brand from '@/components/brand';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
@@ -51,6 +52,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+          </SidebarGroupContent>
+          <SidebarGroupContent>
+            <SidebarMenuButton onClick={() => signIn()}>
+              Sign In
+            </SidebarMenuButton>
           </SidebarGroupContent>
         </SidebarMenu>
       </SidebarContent>
