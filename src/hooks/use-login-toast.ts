@@ -24,13 +24,21 @@ export function useLoginToast() {
     // Check if user just logged in (previous session was null/undefined and now we have a user)
     const wasLoggedOut = !previousSession.current?.user;
     const isNowLoggedIn = !!session?.user;
+    const hasGreeted = window.sessionStorage.getItem('greeted') === 'true';
 
-    if (wasLoggedOut && isNowLoggedIn && !hasShownToast.current) {
+    if (
+      wasLoggedOut &&
+      isNowLoggedIn &&
+      !hasShownToast.current &&
+      !hasGreeted
+    ) {
       toast.success(`Welcome back, ${session.user.name}!`, {
         description: 'You have successfully logged in.',
         duration: 4000,
       });
       hasShownToast.current = true;
+
+      window.sessionStorage.setItem('greeted', 'true');
     }
 
     // Update previous session
