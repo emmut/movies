@@ -11,5 +11,5 @@ export default async function Pagination({
   currentGenreId,
 }: PaginationProps) {
   const { totalPages } = await fetchDiscoverMovies(currentGenreId, currentPage);
-  return <PaginationControls totalPages={totalPages} />;
+  return <PaginationControls totalPages={totalPages} pageType="discover" />;
 }

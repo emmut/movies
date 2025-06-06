@@ -28,7 +28,7 @@ export default async function SearchPage(props: SearchProps) {
         </Suspense>
       </div>
 
-      <PaginationControls totalPages={totalPages} />
+      <PaginationControls totalPages={totalPages} pageType="search" />
     </>
   );
 }

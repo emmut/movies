@@ -15,6 +15,7 @@ import {
 
 type PaginationControls = {
   totalPages: number;
+  pageType: 'discover' | 'search';
 };
 
 function buildPageUrl(
@@ -38,7 +39,10 @@ function buildPageUrl(
   return `?${newSearchParams.toString()}`;
 }
 
-export function PaginationControls({ totalPages }: PaginationControls) {
+export function PaginationControls({
+  totalPages,
+  pageType,
+}: PaginationControls) {
   const { replace } = useRouter();
   const searchParams = useSearchParams();
 
@@ -61,18 +65,47 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     <>
       {totalPages > 1 && (
         <nav className="mt-6 mb-3 flex w-full items-center justify-center gap-2">
-          <Link
-            className={clsx([
-              'bg-muted/60 hover:bg-muted text-foreground hover:ring-border rounded-sm p-1.5 transition-colors',
-              !hasPrevPage && 'pointer-events-none opacity-40',
-            ])}
-            href={buildPageUrl(Number(page) - 1, currentGenreId, searchParams)}
-            aria-disabled={!hasPrevPage}
-            onClick={handlePageChange}
-          >
-            <div className="sr-only">Previous page</div>
-            <ChevronLeft />
-          </Link>
+          {pageType === 'discover' && (
+            <Link
+              className={clsx([
+                'bg-muted/60 hover:bg-muted text-foreground hover:ring-border rounded-sm p-1.5 transition-colors',
+                !hasPrevPage && 'pointer-events-none opacity-40',
+              ])}
+              href={{
+                pathname: '/discover',
+                query: {
+                  page: Number(page) - 1,
+                  genreId: currentGenreId,
+                },
+              }}
+              aria-disabled={!hasPrevPage}
+              onClick={handlePageChange}
+            >
+              <div className="sr-only">Previous page</div>
+              <ChevronLeft />
+            </Link>
+          )}
+
+          {pageType === 'search' && (
+            <Link
+              className={clsx([
+                'bg-muted/60 hover:bg-muted text-foreground hover:ring-border rounded-sm p-1.5 transition-colors',
+                !hasPrevPage && 'pointer-events-none opacity-40',
+              ])}
+              href={{
+                pathname: '/search',
+                query: {
+                  page: Number(page) - 1,
+                  q: searchParams.get('q'),
+                },
+              }}
+              aria-disabled={!hasPrevPage}
+              onClick={handlePageChange}
+            >
+              <div className="sr-only">Previous page</div>
+              <ChevronLeft />
+            </Link>
+          )}
 
           <div className="max-w-[min(8rem,100%)] flex-1">
             <span aria-labelledby="page-select" className="sr-only">
@@ -106,18 +139,47 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               </SelectContent>
             </Select>
           </div>
-          <Link
-            className={clsx([
-              'bg-muted/60 hover:bg-muted text-foreground rounded-sm p-1.5 transition-colors',
-              !hasNextPage && 'pointer-events-none opacity-40',
-            ])}
-            href={buildPageUrl(Number(page) + 1, currentGenreId, searchParams)}
-            aria-disabled={!hasNextPage}
-            onClick={handlePageChange}
-          >
-            <div className="sr-only">Next page</div>
-            <ChevronRight />
-          </Link>
+          {pageType === 'discover' && (
+            <Link
+              className={clsx([
+                'bg-muted/60 hover:bg-muted text-foreground rounded-sm p-1.5 transition-colors',
+                !hasNextPage && 'pointer-events-none opacity-40',
+              ])}
+              href={{
+                pathname: '/discover',
+                query: {
+                  page: Number(page) + 1,
+                  genreId: currentGenreId,
+                },
+              }}
+              aria-disabled={!hasNextPage}
+              onClick={handlePageChange}
+            >
+              <div className="sr-only">Next page</div>
+              <ChevronRight />
+            </Link>
+          )}
+
+          {pageType === 'search' && (
+            <Link
+              className={clsx([
+                'bg-muted/60 hover:bg-muted text-foreground rounded-sm p-1.5 transition-colors',
+                !hasNextPage && 'pointer-events-none opacity-40',
+              ])}
+              href={{
+                pathname: '/search',
+                query: {
+                  page: Number(page) + 1,
+                  q: searchParams.get('q'),
+                },
+              }}
+              aria-disabled={!hasNextPage}
+              onClick={handlePageChange}
+            >
+              <div className="sr-only">Next page</div>
+              <ChevronRight />
+            </Link>
+          )}
         </nav>
       )}
     </>
