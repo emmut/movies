@@ -8,7 +8,6 @@ import {
   getMovieCredits,
   getMovieDetails,
   getMovieWatchProviders,
-  getUserMovieWatchProviders,
 } from '@/lib/movies';
 import { getUserRegion } from '@/lib/user-actions';
 import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
@@ -50,9 +49,7 @@ export default async function MoviePage(props: MoviePageProps) {
   const [movie, credits, watchProviders] = await Promise.all([
     getMovieDetails(movieId),
     getMovieCredits(movieId),
-    user
-      ? getUserMovieWatchProviders(movieId)
-      : getMovieWatchProviders(movieId),
+    getMovieWatchProviders(movieId),
   ]);
 
   const {

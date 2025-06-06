@@ -297,39 +297,8 @@ export async function getMovieWatchProviders(movieId: number) {
 
   const watchProviders: MovieWatchProviders = await res.json();
 
-  const regionProviders = watchProviders.results[DEFAULT_REGION];
   return {
     ...watchProviders,
-    results: regionProviders
-      ? { [DEFAULT_REGION]: regionProviders }
-      : watchProviders.results,
-  };
-}
-
-export async function getUserMovieWatchProviders(movieId: number) {
-  const userRegion = await getUserRegionWithFallback();
-
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${movieId}/watch/providers`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error('Failed loading movie watch providers');
-  }
-
-  const watchProviders: MovieWatchProviders = await res.json();
-
-  const regionProviders = watchProviders.results[userRegion];
-  return {
-    ...watchProviders,
-    results: regionProviders
-      ? { [userRegion]: regionProviders }
-      : watchProviders.results,
+    results: watchProviders.results,
   };
 }
