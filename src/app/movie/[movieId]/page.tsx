@@ -86,26 +86,11 @@ export default async function MoviePage(props: MoviePageProps) {
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-          <div className="absolute right-4 bottom-4 left-4">
-            <h1 className="mb-2 text-3xl font-bold text-white md:text-4xl lg:text-5xl">
-              {title}
-            </h1>
-            {tagline && (
-              <p className="text-lg text-zinc-200 italic md:text-xl">
-                &ldquo;{tagline}&rdquo;
-              </p>
-            )}
-          </div>
         </div>
       )}
 
       {!backdrop_path && (
         <div className="relative -mx-4 mb-8 bg-zinc-900 md:h-80 lg:h-96">
-          <div className="absolute inset-0 z-10 p-8">
-            <h1 className="mb-2 text-3xl font-bold text-neutral-100 md:text-4xl lg:text-5xl">
-              {title}
-            </h1>
-          </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
         </div>
       )}
