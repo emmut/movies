@@ -202,8 +202,9 @@
   border: 1px solid var(--normal-border);
   color: var(--normal-text);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  gap: 1rem;
 }
 
 [data-sonner-toast][data-type='error'] {

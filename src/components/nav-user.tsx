@@ -40,6 +40,34 @@ export function NavUser({
   const { isMobile } = useSidebar();
   const router = useRouter();
 
+  async function handleLogout() {
+    try {
+      const { error, data } = await signOut();
+
+      if (error) {
+        console.error('Logout failed:', error);
+        toast.error('Logout failed', {
+          description: 'Please try again later.',
+        });
+      } else if (data?.success) {
+        toast.success('You have been logged out', {
+          description: 'See you soon!',
+        });
+        router.refresh();
+      } else {
+        console.error('Unexpected logout response:', data);
+        toast.error('An error occurred', {
+          description: 'Please try again later.',
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('An error occurred during logout', {
+        description: 'Please try again later.',
+      });
+    }
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -74,23 +102,7 @@ export function NavUser({
                 Settings
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={async () => {
-                const { error, data } = await signOut();
-
-                if (error) {
-                  console.error('Logout failed:', error);
-
-                  toast.error('Logout failed');
-                } else if (data?.success) {
-                  router.refresh();
-                } else {
-                  console.error('Unexpected logout response:', data);
-
-                  toast.error('Unexpected logout response');
-                }
-              }}
-            >
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>

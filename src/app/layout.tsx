@@ -1,5 +1,6 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import { Footer } from '@/components/footer';
+import { LoginToastHandler } from '@/components/login-toast-handler';
 import { Separator } from '@/components/ui/separator';
 import {
   SidebarInset,
@@ -64,11 +65,12 @@ export default async function RootLayout({
                 <Footer />
               </SidebarInset>
             </SidebarProvider>
+            <LoginToastHandler />
           </PHProvider>
           <Analytics />
           <SpeedInsights />
         </NuqsAdapter>
-        <Toaster />
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );
