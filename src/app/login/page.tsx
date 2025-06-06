@@ -3,6 +3,11 @@ import { getSession } from '@/lib/auth-server';
 import { LogIn, Shield, Users, Zap } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
+/**
+ * Renders the login page UI or redirects authenticated users to the home page.
+ *
+ * If a user session exists, immediately redirects to the home page. Otherwise, displays a login interface with feature highlights, authentication options, and informational text.
+ */
 export default async function LoginPage() {
   const session = await getSession();
 

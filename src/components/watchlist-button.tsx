@@ -11,6 +11,17 @@ interface WatchlistButtonProps {
   userId?: string;
 }
 
+/**
+ * Renders a button that allows the user to add or remove a movie from their watchlist with optimistic UI updates.
+ *
+ * The button displays the current watchlist status and provides instant feedback by updating the UI optimistically while the backend operation is in progress.
+ *
+ * @param movieId - The ID of the movie to toggle in the watchlist.
+ * @param isInWatchlist - Indicates if the movie is currently in the user's watchlist.
+ * @param userId - The ID of the user; if not provided, the button is not rendered.
+ *
+ * @returns The watchlist toggle button, or `null` if {@link userId} is not provided.
+ */
 export function WatchlistButton({
   movieId,
   isInWatchlist,

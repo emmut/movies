@@ -28,6 +28,13 @@ export const metadata = {
   },
 };
 
+/**
+ * Server-side layout component for the application, providing global structure, theming, and context providers.
+ *
+ * Fetches the current user session and supplies it to the sidebar. Wraps all pages with analytics, sidebar state, and UI scaffolding including header, search, and footer.
+ *
+ * @param children - The page content to render within the layout.
+ */
 export default async function RootLayout({
   children,
 }: {

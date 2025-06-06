@@ -29,6 +29,14 @@ type MoviePageProps = {
   }>;
 };
 
+/**
+ * Renders a detailed page for a specific movie, displaying its information, cast, genres, statistics, streaming providers, and external links.
+ *
+ * @param props - Contains a promise resolving to route parameters, including the movie ID.
+ * @returns The server-rendered React component for the movie detail page.
+ *
+ * @remark If a user is logged in, the page displays a watchlist button reflecting the user's watchlist status for the movie.
+ */
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
   const movieId = parseInt(params.movieId);
