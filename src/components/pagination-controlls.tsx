@@ -5,13 +5,6 @@ import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
 
 type PaginationControls = {
   totalPages: number;
@@ -61,6 +54,16 @@ export function PaginationControls({
     });
   }
 
+  function handleSelectChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const newPage = Number(event.target.value);
+    const newPageUrl = buildPageUrl(newPage, currentGenreId, searchParams);
+
+    if (newPage !== currentPageNumber) {
+      replace(newPageUrl);
+      handlePageChange();
+    }
+  }
+
   return (
     <>
       {totalPages > 1 && (
@@ -108,37 +111,40 @@ export function PaginationControls({
           )}
 
           <div className="max-w-[min(8rem,100%)] flex-1">
-            <span aria-labelledby="page-select" className="sr-only">
+            <label htmlFor="page-select" className="sr-only">
               Current page
-            </span>
-            <Select
-              name="page-select"
-              onValueChange={(value) => {
-                const newPage = Number(value);
-                const newPageUrl = buildPageUrl(
-                  newPage,
-                  currentGenreId,
-                  searchParams
-                );
-
-                if (newPage !== currentPageNumber) {
-                  replace(newPageUrl);
-                  handlePageChange();
-                }
-              }}
-            >
-              <SelectTrigger className="h-full w-full px-3">
-                <SelectValue placeholder={`${page} / ${totalPages}`} />
-              </SelectTrigger>
-              <SelectContent align="center">
+            </label>
+            <div className="relative">
+              <select
+                id="page-select"
+                value={page}
+                onChange={handleSelectChange}
+                className="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full appearance-none rounded-md border px-3 pt-1.5 pr-8 pb-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              >
                 {Array.from({ length: totalPages }, (_, i) => (
-                  <SelectItem key={i + 1} value={String(i + 1)}>
-                    {i + 1}
-                  </SelectItem>
+                  <option key={i + 1} value={i + 1}>
+                    Sida {i + 1}
+                  </option>
                 ))}
-              </SelectContent>
-            </Select>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                <svg
+                  className="text-muted-foreground h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
+
           {pageType === 'discover' && (
             <Link
               className={clsx([
