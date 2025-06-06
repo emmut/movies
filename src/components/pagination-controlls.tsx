@@ -1,10 +1,17 @@
 'use client';
 
-import ChevronLeft from '@/icons/ChevronLeft';
-import ChevronRight from '@/icons/ChevronRight';
 import clsx from 'clsx';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Input } from './ui/input';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from './ui/pagination';
 
 type PaginationControls = {
   totalPages: number;
@@ -14,7 +21,8 @@ type PaginationControls = {
 function buildPageUrl(
   pageNumber: number,
   currentGenreId: number,
-  searchParams: URLSearchParams
+  searchParams: URLSearchParams,
+  pageType: 'discover' | 'search'
 ) {
   const newSearchParams = new URLSearchParams(searchParams);
   newSearchParams.set('page', String(pageNumber));
@@ -29,7 +37,54 @@ function buildPageUrl(
     newSearchParams.set('genreId', String(currentGenreId));
   }
 
-  return `?${newSearchParams.toString()}`;
+  return `${pageType}?${newSearchParams.toString()}`;
+}
+
+// Generate page numbers with ellipsis logic (mobile-first)
+function generatePageNumbers(currentPage: number, totalPages: number) {
+  const pages: (number | 'ellipsis')[] = [];
+
+  // Mobile-first: show fewer pages, enhance for desktop with CSS
+  if (totalPages <= 5) {
+    // If we have 5 or fewer pages, show all
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    // Always include first page
+    pages.push(1);
+
+    if (currentPage <= 3) {
+      // Near the beginning: [1] [2] [3] [...] [totalPages]
+      for (let i = 2; i <= Math.min(4, totalPages - 1); i++) {
+        pages.push(i);
+      }
+      if (totalPages > 4) {
+        pages.push('ellipsis');
+        pages.push(totalPages);
+      }
+    } else if (currentPage >= totalPages - 2) {
+      // Near the end: [1] [...] [totalPages-3] [totalPages-2] [totalPages-1] [totalPages]
+      if (totalPages > 4) {
+        pages.push('ellipsis');
+      }
+      for (let i = Math.max(2, totalPages - 3); i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // In the middle: [1] [...] [current-1] [current] [current+1] [...] [totalPages]
+      pages.push('ellipsis');
+      for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+        if (i > 1 && i < totalPages) {
+          pages.push(i);
+        }
+      }
+      pages.push('ellipsis');
+      pages.push(totalPages);
+    }
+  }
+
+  return pages;
 }
 
 export function PaginationControls({
@@ -54,139 +109,115 @@ export function PaginationControls({
     });
   }
 
-  function handleSelectChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const newPage = Number(event.target.value);
-    const newPageUrl = buildPageUrl(newPage, currentGenreId, searchParams);
-
-    if (newPage !== currentPageNumber) {
-      replace(newPageUrl);
-      handlePageChange();
-    }
+  function handlePageSelect(pageNumber: number) {
+    const newPageUrl = buildPageUrl(
+      pageNumber,
+      currentGenreId,
+      searchParams,
+      pageType
+    );
+    replace(newPageUrl);
+    handlePageChange();
   }
+
+  const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
 
   return (
     <>
       {totalPages > 1 && (
-        <nav className="mt-6 mb-3 flex w-full items-center justify-center gap-2">
-          {pageType === 'discover' && (
-            <Link
-              className={clsx([
-                'bg-muted/60 hover:bg-muted text-foreground hover:ring-border rounded-sm p-1.5 transition-colors',
-                !hasPrevPage && 'pointer-events-none opacity-40',
-              ])}
-              href={{
-                pathname: '/discover',
-                query: {
-                  page: Number(page) - 1,
-                  genreId: currentGenreId,
-                },
-              }}
-              aria-disabled={!hasPrevPage}
-              onClick={handlePageChange}
-            >
-              <div className="sr-only">Previous page</div>
-              <ChevronLeft />
-            </Link>
-          )}
+        <div className="mt-6 mb-3 flex w-full items-center justify-center">
+          <Pagination>
+            <PaginationContent className="gap-1 sm:gap-2">
+              <PaginationItem className="hidden sm:block">
+                <PaginationPrevious
+                  onClick={() =>
+                    hasPrevPage && handlePageSelect(currentPageNumber - 1)
+                  }
+                  className={clsx(
+                    !hasPrevPage && 'pointer-events-none opacity-40',
+                    'h-8 px-2 text-xs sm:h-10 sm:px-4 sm:text-sm'
+                  )}
+                />
+              </PaginationItem>
 
-          {pageType === 'search' && (
-            <Link
-              className={clsx([
-                'bg-muted/60 hover:bg-muted text-foreground hover:ring-border rounded-sm p-1.5 transition-colors',
-                !hasPrevPage && 'pointer-events-none opacity-40',
-              ])}
-              href={{
-                pathname: '/search',
-                query: {
-                  page: Number(page) - 1,
-                  q: searchParams.get('q'),
-                },
-              }}
-              aria-disabled={!hasPrevPage}
-              onClick={handlePageChange}
-            >
-              <div className="sr-only">Previous page</div>
-              <ChevronLeft />
-            </Link>
-          )}
+              {pageNumbers.map((pageNumber, index) =>
+                pageNumber === 'ellipsis' ? (
+                  <PaginationItem key={`ellipsis-${index}`}>
+                    <PaginationEllipsis className="h-8 w-8 sm:h-10 sm:w-10" />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      onClick={() => handlePageSelect(pageNumber)}
+                      isActive={pageNumber === currentPageNumber}
+                      className="h-8 w-8 text-xs sm:h-10 sm:w-10 sm:text-sm"
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
 
-          <div className="max-w-[min(8rem,100%)] flex-1">
-            <label htmlFor="page-select" className="sr-only">
-              Current page
-            </label>
-            <div className="relative">
-              <select
-                id="page-select"
-                value={page}
-                onChange={handleSelectChange}
-                className="border-input bg-background ring-offset-background focus-visible:ring-ring h-9 w-full appearance-none rounded-md border px-3 pt-1.5 pr-8 pb-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    Sida {i + 1}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                <svg
-                  className="text-muted-foreground h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
+              <PaginationItem className="hidden sm:block">
+                <PaginationNext
+                  onClick={() =>
+                    hasNextPage && handlePageSelect(currentPageNumber + 1)
+                  }
+                  className={clsx(
+                    !hasNextPage && 'pointer-events-none opacity-40',
+                    'h-8 px-2 text-xs sm:h-10 sm:px-4 sm:text-sm'
+                  )}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
+
+      {totalPages > 20 && (
+        <div className="mt-2 flex justify-center px-4">
+          <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center">
+            <span className="text-muted-foreground text-center text-xs sm:text-sm">
+              Jump to page:
+            </span>
+            <div className="flex items-center justify-center gap-2">
+              <Input
+                type="number"
+                min={1}
+                max={totalPages}
+                placeholder={String(currentPageNumber)}
+                className="h-8 w-16 appearance-none text-center text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    const value = Number((e.target as HTMLInputElement).value);
+                    if (
+                      value >= 1 &&
+                      value <= totalPages &&
+                      value !== currentPageNumber
+                    ) {
+                      handlePageSelect(value);
+                      (e.target as HTMLInputElement).value = '';
+                    }
+                  }
+                }}
+                onBlur={(e) => {
+                  const value = Number(e.target.value);
+                  if (
+                    value >= 1 &&
+                    value <= totalPages &&
+                    value !== currentPageNumber
+                  ) {
+                    handlePageSelect(value);
+                  }
+                  e.target.value = '';
+                }}
+              />
+              <span className="text-muted-foreground text-xs">
+                of {totalPages}
+              </span>
             </div>
           </div>
-
-          {pageType === 'discover' && (
-            <Link
-              className={clsx([
-                'bg-muted/60 hover:bg-muted text-foreground rounded-sm p-1.5 transition-colors',
-                !hasNextPage && 'pointer-events-none opacity-40',
-              ])}
-              href={{
-                pathname: '/discover',
-                query: {
-                  page: Number(page) + 1,
-                  genreId: currentGenreId,
-                },
-              }}
-              aria-disabled={!hasNextPage}
-              onClick={handlePageChange}
-            >
-              <div className="sr-only">Next page</div>
-              <ChevronRight />
-            </Link>
-          )}
-
-          {pageType === 'search' && (
-            <Link
-              className={clsx([
-                'bg-muted/60 hover:bg-muted text-foreground rounded-sm p-1.5 transition-colors',
-                !hasNextPage && 'pointer-events-none opacity-40',
-              ])}
-              href={{
-                pathname: '/search',
-                query: {
-                  page: Number(page) + 1,
-                  q: searchParams.get('q'),
-                },
-              }}
-              aria-disabled={!hasNextPage}
-              onClick={handlePageChange}
-            >
-              <div className="sr-only">Next page</div>
-              <ChevronRight />
-            </Link>
-          )}
-        </nav>
+        </div>
       )}
     </>
   );
