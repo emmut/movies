@@ -184,3 +184,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+[data-sonner-toaster] {
+  --normal-bg: var(--color-popover);
+  --normal-border: var(--color-border);
+  --normal-text: var(--color-popover-foreground);
+  --success-bg: var(--color-popover);
+  --success-border: var(--color-border);
+  --success-text: var(--color-popover-foreground);
+  --error-bg: var(--color-destructive);
+  --error-border: var(--color-destructive);
+  --error-text: var(--color-destructive-foreground);
+}
+
+[data-sonner-toast] {
+  background: var(--normal-bg);
+  border: 1px solid var(--normal-border);
+  color: var(--normal-text);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+[data-sonner-toast][data-type='error'] {
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
