@@ -70,10 +70,17 @@ export function NavUser({
               onClick={async () => {
                 const { error, data } = await signOut();
 
-                if (!error && data.success) {
+                if (error) {
+                  // Handle logout error - could show toast notification
+                  console.error('Logout failed:', error);
+                } else if (data?.success) {
                   router.refresh();
+                } else {
+                  // Handle unexpected response format
+                  console.error('Unexpected logout response:', data);
                 }
               }}
+            >
             >
               <LogOut />
               Log out
