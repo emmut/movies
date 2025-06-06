@@ -1,24 +1,13 @@
-'use client';
-
-import Spinner from '@/components/spinner';
-import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
-import { signIn, useSession } from '@/lib/auth-client';
+import { LoginForm } from '@/components/login-form';
+import { getSession } from '@/lib/auth-server';
 import { LogIn, Shield, Users, Zap } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
-export default function LoginPage() {
-  const { data: session, isPending } = useSession();
+export default async function LoginPage() {
+  const session = await getSession();
 
   if (session?.user) {
     redirect('/');
-  }
-
-  if (isPending) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Spinner className="h-8 w-8" />
-      </div>
-    );
   }
 
   return (
@@ -77,13 +66,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="flex flex-col justify-center gap-4">
-            <OAuthLoginButton
-              provider="discord"
-              onClick={() => signIn()}
-              size="lg"
-            />
-          </div>
+          <LoginForm />
 
           <div className="text-muted-foreground text-center text-sm">
             <p>More authentication options coming soon!</p>

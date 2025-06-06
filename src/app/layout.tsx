@@ -6,6 +6,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { getSession } from '@/lib/auth-server';
 import { PHProvider } from '@/providers/posthog';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -23,14 +24,20 @@ export const metadata = {
   description: 'Find movies to watch',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const session = await getSession();
+
   return (
     <html lang="en" className="dark">
       <body className={clsx([inter.className])}>
         <NuqsAdapter>
           <PHProvider>
             <SidebarProvider>
-              <AppSidebar />
+              <AppSidebar initialSession={session} />
               <SidebarInset>
                 <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
                   <SidebarTrigger className="-ml-1" />

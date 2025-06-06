@@ -1,9 +1,10 @@
 import { createAuthClient } from 'better-auth/react';
-import { useRouter } from 'next/navigation';
 
 const authClient = createAuthClient();
 
 export const { useSession } = authClient;
+
+export type Session = typeof authClient.$Infer.Session;
 
 export async function signIn() {
   const data = await authClient.signIn.social({
@@ -12,12 +13,12 @@ export async function signIn() {
     errorCallbackURL: '/',
     newUserCallbackURL: '/',
   });
+
+  return data;
 }
 
 export async function signOut() {
-  const router = useRouter();
-
   const data = await authClient.signOut();
 
-  router.push('/');
+  return data;
 }

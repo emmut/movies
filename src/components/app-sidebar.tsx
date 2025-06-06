@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { useSession } from '@/lib/auth-client';
+import { Session } from '@/lib/auth-client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavUser } from './nav-user';
@@ -33,9 +33,12 @@ const navItems = [
   },
 ];
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  initialSession: Session | null;
+};
+
+export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
   const pathname = usePathname();
-  const { data: session, isPending } = useSession();
 
   return (
     <Sidebar {...props}>
@@ -60,25 +63,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarRail />
       <SidebarFooter>
-        {session?.user && (
+        {initialSession?.user && (
           <NavUser
             user={{
-              name: session.user.name,
-              email: session.user.email,
-              avatar: session.user.image || '',
+              name: initialSession.user.name,
+              email: initialSession.user.email,
+              avatar: initialSession.user.image || '',
             }}
           />
         )}
 
-        {!session?.user && (
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild isActive={pathname === '/login'}>
-              <Link href="/login">
-                <LogIn className="h-4 w-4" />
-                <span>Login</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+        {!initialSession?.user && pathname !== '/login' && (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/login">
+                  <LogIn className="h-4 w-4" />
+                  <span>Login</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
         )}
       </SidebarFooter>
     </Sidebar>
