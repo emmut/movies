@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, Sparkles } from 'lucide-react';
+import { Home, LogIn, Sparkles } from 'lucide-react';
 import type * as React from 'react';
 
 import Brand from '@/components/brand';
@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { signIn } from '@/lib/auth-client';
+import { useSession } from '@/lib/auth-client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavUser } from './nav-user';
@@ -35,6 +35,7 @@ const navItems = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const { data: session, isPending } = useSession();
 
   return (
     <Sidebar {...props}>
@@ -55,16 +56,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuItem>
             ))}
           </SidebarGroupContent>
-          <SidebarGroupContent>
-            <SidebarMenuButton onClick={() => signIn()}>
-              Sign In
-            </SidebarMenuButton>
-          </SidebarGroupContent>
         </SidebarMenu>
       </SidebarContent>
       <SidebarRail />
       <SidebarFooter>
-        <NavUser user={user} />
+        {session?.user && (
+          <NavUser
+            user={{
+              name: session.user.name,
+              email: session.user.email,
+              avatar: session.user.image || '',
+            }}
+          />
+        )}
+
+        {!session?.user && (
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild isActive={pathname === '/login'}>
+              <Link href="/login">
+                <LogIn className="h-4 w-4" />
+                <span>Login</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
