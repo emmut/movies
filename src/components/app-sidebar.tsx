@@ -7,6 +7,7 @@ import Brand from '@/components/brand';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
@@ -17,6 +18,7 @@ import {
 import { signIn } from '@/lib/auth-client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { NavUser } from './nav-user';
 
 const navItems = [
   {
@@ -61,6 +63,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarContent>
       <SidebarRail />
+      <SidebarFooter>
+        <NavUser user={user} />
+      </SidebarFooter>
     </Sidebar>
   );
 }

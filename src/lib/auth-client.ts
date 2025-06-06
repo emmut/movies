@@ -9,3 +9,7 @@ export async function signIn() {
     newUserCallbackURL: '/',
   });
 }
+
+export async function signOut() {
+  const data = await authClient.signOut();
+}
