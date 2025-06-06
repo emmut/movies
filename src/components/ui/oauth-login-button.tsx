@@ -92,6 +92,18 @@ const providerConfigs = {
   },
 };
 
+/**
+ * Renders an OAuth login button with provider-specific styling, icon, and text.
+ *
+ * Displays a styled button for the specified OAuth provider (Discord, Google, or GitHub), using default or custom text and icon. The button adapts its appearance based on the selected provider and size.
+ *
+ * @param provider - The OAuth provider to use for styling and icon. Defaults to 'discord'.
+ * @param text - Optional custom button label. If not provided, uses the provider's default text.
+ * @param icon - Optional custom icon. If not provided, uses the provider's default icon.
+ * @param disabled - Whether the button is disabled. Defaults to false.
+ * @param size - The size variant of the button. Defaults to 'lg'.
+ * @param className - Additional class names to apply to the button.
+ */
 export function OAuthLoginButton({
   provider = 'discord',
   text,

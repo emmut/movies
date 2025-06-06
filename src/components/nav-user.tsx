@@ -19,6 +19,13 @@ import { useRouter } from 'next/navigation';
 import { UserAvatar } from './user-avatar';
 import { UserInfo } from './user-info';
 
+/**
+ * Renders a user navigation menu within a sidebar, providing access to user information and a logout option.
+ *
+ * Displays the user's avatar and details in a sidebar menu button that triggers a dropdown. The dropdown adapts its alignment based on device type and includes a logout action that signs the user out and refreshes the page upon success.
+ *
+ * @param user - The user object containing name, email, and avatar URL to display in the menu.
+ */
 export function NavUser({
   user,
 }: {

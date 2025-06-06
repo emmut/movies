@@ -1,5 +1,10 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
+/**
+ * Displays a skeleton placeholder UI for the watchlist page while content is loading.
+ *
+ * Renders a header section and a responsive grid of 12 placeholder cards to simulate the layout of the watchlist.
+ */
 export default function WatchlistLoading() {
   return (
     <div className="container mx-auto px-4 py-8">

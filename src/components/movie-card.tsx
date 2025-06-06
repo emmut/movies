@@ -8,6 +8,11 @@ type MovieProp = {
   movie: Movie | MovieDetails;
 };
 
+/**
+ * Displays a clickable card with a movie's poster, title, and release year.
+ *
+ * Navigates to the movie's detail page when clicked. If no poster image is available, the card displays the title and release year with a fully opaque overlay.
+ */
 function MovieCard({ movie }: MovieProp) {
   const { id, title, release_date, poster_path } = movie;
 

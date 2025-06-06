@@ -4,6 +4,11 @@ import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
 import { and, eq } from 'drizzle-orm';
 
+/**
+ * Retrieves the authenticated user's movie watchlist entries.
+ *
+ * Returns an empty array if the user is not authenticated or if an error occurs during retrieval.
+ */
 export async function getUserWatchlist() {
   const user = await getUser();
   if (!user) {
@@ -23,6 +28,12 @@ export async function getUserWatchlist() {
   }
 }
 
+/**
+ * Determines whether a specific movie is present in the authenticated user's watchlist.
+ *
+ * @param movieId - The ID of the movie to check.
+ * @returns `true` if the movie is in the user's watchlist; otherwise, `false`.
+ */
 export async function isMovieInWatchlist(movieId: number) {
   const user = await getUser();
   if (!user) {
@@ -47,6 +58,13 @@ export async function isMovieInWatchlist(movieId: number) {
   }
 }
 
+/**
+ * Retrieves the authenticated user's watchlist entries, each augmented with detailed movie information.
+ *
+ * For each movie in the user's watchlist, fetches additional details and returns only those entries where movie details were successfully retrieved.
+ *
+ * @returns An array of watchlist items, each including a `movie` property with detailed information.
+ */
 export async function getWatchlistWithMovieDetails() {
   const userWatchlist = await getUserWatchlist();
 

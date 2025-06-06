@@ -4,6 +4,13 @@ import { getWatchlistWithMovieDetails } from '@/lib/watchlist';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+/**
+ * Renders the user's movie watchlist page, displaying saved movies or a prompt to explore movies if the watchlist is empty.
+ *
+ * Redirects unauthenticated users to the login page.
+ *
+ * @returns The JSX for the watchlist page, showing either a grid of saved movies or an empty state message with a navigation link.
+ */
 export default async function WatchlistPage() {
   const user = await getUser();
 
