@@ -1,8 +1,12 @@
 import MovieCard from '@/components/movie-card';
-import { fetchUpcomingMovies } from '@/lib/homepage';
+import { getUser } from '@/lib/auth-server';
+import { fetchUpcomingMovies, fetchUserUpcomingMovies } from '@/lib/movies';
 
 export default async function UpcomingMovies() {
-  const movies = await fetchUpcomingMovies();
+  const user = await getUser();
+  const movies = user
+    ? await fetchUserUpcomingMovies()
+    : await fetchUpcomingMovies();
 
   return movies.map((movie) => <MovieCard key={movie.id} movie={movie} />);
 }

@@ -1,26 +1,28 @@
 'use client';
 
 import { RegionSelect } from '@/components/region-select';
+import { getRegionCodes, RegionCode } from '@/lib/regions';
 import { formatImageUrl } from '@/lib/utils';
 import type { MovieWatchProviders } from '@/types/Movie';
 import { Play, ShoppingCart, Tv } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
-const regions = ['SE', 'US', 'GB', 'DE', 'FR', 'NO', 'DK', 'FI'] as const;
-
 type StreamingProvidersProps = {
   watchProviders: MovieWatchProviders;
   movieId: number;
+  userRegion: RegionCode;
 };
 
 export function StreamingProviders({
   watchProviders,
   movieId,
+  userRegion,
 }: StreamingProvidersProps) {
+  const regions = getRegionCodes();
   const [region] = useQueryState(
     'region',
-    parseAsStringLiteral(regions).withDefault('SE')
+    parseAsStringLiteral(regions).withDefault(userRegion)
   );
 
   const regionProviders = watchProviders.results?.[region];
@@ -38,11 +40,11 @@ export function StreamingProviders({
       <div>
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-semibold">Var kan du titta</h2>
-          <RegionSelect />
+          <RegionSelect defaultValue={userRegion} />
         </div>
         <div className="rounded-lg bg-zinc-800 p-6 text-center">
           <p className="text-zinc-400">
-            Inga streaming-tjänster tillgängliga för denna region
+            No streaming services available for this region
           </p>
         </div>
       </div>
@@ -53,7 +55,7 @@ export function StreamingProviders({
     <div>
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-semibold">Var kan du titta</h2>
-        <RegionSelect />
+        <RegionSelect defaultValue={userRegion} />
       </div>
 
       <div className="space-y-6">

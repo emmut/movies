@@ -2,12 +2,16 @@ import { GoBack } from '@/components/go-back';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { ItemSlider } from '@/components/ui/item-slider';
+import { WatchlistButton } from '@/components/watchlist-button';
+import { getUser } from '@/lib/auth-server';
 import {
   getMovieCredits,
   getMovieDetails,
   getMovieWatchProviders,
 } from '@/lib/movies';
+import { getUserRegion } from '@/lib/user-actions';
 import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
+import { isMovieInWatchlist } from '@/lib/watchlist';
 import {
   Calendar,
   Clock,
@@ -19,17 +23,29 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+
 type MoviePageProps = {
   params: Promise<{
     movieId: string;
   }>;
 };
 
+/**
+ * Renders a detailed page for a specific movie, displaying its information, cast, genres, statistics, streaming providers, and external links.
+ *
+ * @param props - Contains a promise resolving to route parameters, including the movie ID.
+ * @returns The server-rendered React component for the movie detail page.
+ *
+ * @remark If a user is logged in, the page displays a watchlist button reflecting the user's watchlist status for the movie.
+ */
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
-  const movieId = parseInt(params.movieId);
+  const movieId = Number(params.movieId);
 
-  // Fetch data in parallel
+  const user = await getUser();
+  const userRegion = await getUserRegion();
+  const inWatchlist = user ? await isMovieInWatchlist(movieId) : false;
+
   const [movie, credits, watchProviders] = await Promise.all([
     getMovieDetails(movieId),
     getMovieCredits(movieId),
@@ -53,9 +69,6 @@ export default async function MoviePage(props: MoviePageProps) {
     original_title,
   } = movie;
   const score = Math.ceil(movie.vote_average * 10) / 10;
-
-  // Get main cast (first 8 actors)
-  const mainCast = credits.cast.slice(0, 8);
 
   return (
     <div className="min-h-screen">
@@ -120,6 +133,27 @@ export default async function MoviePage(props: MoviePageProps) {
         </div>
 
         <div className="space-y-6 lg:col-span-8">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
+                {title}
+              </h1>
+              {tagline && (
+                <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
+                  &ldquo;{tagline}&rdquo;
+                </p>
+              )}
+            </div>
+
+            <div className="ml-4">
+              <WatchlistButton
+                movieId={movieId}
+                isInWatchlist={inWatchlist}
+                userId={user?.id}
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-zinc-900 p-4 text-center">
               <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
@@ -255,13 +289,13 @@ export default async function MoviePage(props: MoviePageProps) {
             </div>
           </div>
 
-          {mainCast.length > 0 && (
+          {credits.cast.length > 0 && (
             <div>
-              <h2 className="mb-4 text-xl font-semibold">Skådespelare</h2>
+              <h2 className="mb-4 text-xl font-semibold">Cast</h2>
               <ItemSlider>
-                {mainCast.map((actor) => (
+                {credits.cast.map((actor) => (
                   <div
-                    key={actor.id}
+                    key={actor.credit_id}
                     className="w-32 flex-shrink-0 snap-center"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
@@ -294,6 +328,7 @@ export default async function MoviePage(props: MoviePageProps) {
           <StreamingProviders
             watchProviders={watchProviders}
             movieId={movieId}
+            userRegion={userRegion}
           />
 
           <div className="flex flex-wrap gap-4">
