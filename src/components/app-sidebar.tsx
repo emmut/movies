@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, LogIn, Sparkles } from 'lucide-react';
+import { Home, LogIn, Sparkles, Star } from 'lucide-react';
 import type * as React from 'react';
 
 import Brand from '@/components/brand';
@@ -33,6 +33,14 @@ const navItems = [
   },
 ];
 
+const userNavItems = [
+  {
+    href: '/watchlist',
+    label: 'Watchlist',
+    icon: Star,
+  },
+];
+
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   initialSession: Session | null;
 };
@@ -58,6 +66,17 @@ export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+            {initialSession?.user &&
+              userNavItems.map(({ href, label, icon: Icon }) => (
+                <SidebarMenuItem key={href}>
+                  <SidebarMenuButton asChild isActive={pathname === href}>
+                    <Link href={href}>
+                      <Icon className="h-4 w-4" />
+                      <span>{label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
           </SidebarGroupContent>
         </SidebarMenu>
       </SidebarContent>

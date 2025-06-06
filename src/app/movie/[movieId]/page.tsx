@@ -2,12 +2,15 @@ import { GoBack } from '@/components/go-back';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { ItemSlider } from '@/components/ui/item-slider';
+import { WatchlistButton } from '@/components/watchlist-button';
+import { getUser } from '@/lib/auth-server';
 import {
   getMovieCredits,
   getMovieDetails,
   getMovieWatchProviders,
 } from '@/lib/movies';
 import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
+import { isMovieInWatchlist } from '@/lib/watchlist';
 import {
   Calendar,
   Clock,
@@ -19,6 +22,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+
 type MoviePageProps = {
   params: Promise<{
     movieId: string;
@@ -28,6 +32,9 @@ type MoviePageProps = {
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
   const movieId = parseInt(params.movieId);
+
+  const user = await getUser();
+  const inWatchlist = user ? await isMovieInWatchlist(movieId) : false;
 
   // Fetch data in parallel
   const [movie, credits, watchProviders] = await Promise.all([
@@ -54,7 +61,6 @@ export default async function MoviePage(props: MoviePageProps) {
   } = movie;
   const score = Math.ceil(movie.vote_average * 10) / 10;
 
-  // Get main cast (first 8 actors)
   const mainCast = credits.cast.slice(0, 8);
 
   return (
@@ -120,6 +126,27 @@ export default async function MoviePage(props: MoviePageProps) {
         </div>
 
         <div className="space-y-6 lg:col-span-8">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
+                {title}
+              </h1>
+              {tagline && (
+                <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
+                  &ldquo;{tagline}&rdquo;
+                </p>
+              )}
+            </div>
+
+            <div className="ml-4">
+              <WatchlistButton
+                movieId={movieId}
+                isInWatchlist={inWatchlist}
+                userId={user?.id}
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-zinc-900 p-4 text-center">
               <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
@@ -257,7 +284,7 @@ export default async function MoviePage(props: MoviePageProps) {
 
           {mainCast.length > 0 && (
             <div>
-              <h2 className="mb-4 text-xl font-semibold">Skådespelare</h2>
+              <h2 className="mb-4 text-xl font-semibold">Cast</h2>
               <ItemSlider>
                 {mainCast.map((actor) => (
                   <div

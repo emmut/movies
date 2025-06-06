@@ -1,11 +1,11 @@
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
-import type { Movie } from '@/types/Movie';
+import type { Movie, MovieDetails } from '@/types/Movie';
 import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
 
 type MovieProp = {
-  movie: Movie;
+  movie: Movie | MovieDetails;
 };
 
 function MovieCard({ movie }: MovieProp) {

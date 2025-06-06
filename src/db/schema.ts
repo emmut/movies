@@ -59,3 +59,16 @@ export const verification = pgTable('verification', {
     () => /* @__PURE__ */ new Date()
   ),
 });
+
+export const watchlist = pgTable('watchlist', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  movieId: text('movie_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
