@@ -3,7 +3,12 @@
 import { user } from '@/db/schema';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { DEFAULT_REGION, isValidRegionCode, regionSchema } from '@/lib/regions';
+import {
+  DEFAULT_REGION,
+  isValidRegionCode,
+  RegionCode,
+  regionSchema,
+} from '@/lib/regions';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -24,7 +29,7 @@ export async function getUserRegion() {
     throw new Error('User not found');
   }
 
-  return userData[0].region || DEFAULT_REGION;
+  return (userData[0].region || DEFAULT_REGION) as RegionCode;
 }
 
 export async function updateUserRegion(region: string) {

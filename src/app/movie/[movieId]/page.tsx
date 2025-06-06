@@ -9,6 +9,7 @@ import {
   getMovieDetails,
   getMovieWatchProviders,
 } from '@/lib/movies';
+import { getUserRegion } from '@/lib/user-actions';
 import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
 import { isMovieInWatchlist } from '@/lib/watchlist';
 import {
@@ -42,6 +43,8 @@ export default async function MoviePage(props: MoviePageProps) {
   const movieId = Number(params.movieId);
 
   const user = await getUser();
+  const userRegion = await getUserRegion();
+
   const inWatchlist = user ? await isMovieInWatchlist(movieId) : false;
 
   const [movie, credits, watchProviders] = await Promise.all([
@@ -67,8 +70,6 @@ export default async function MoviePage(props: MoviePageProps) {
     original_title,
   } = movie;
   const score = Math.ceil(movie.vote_average * 10) / 10;
-
-  const mainCast = credits.cast.slice(0, 8);
 
   return (
     <div className="min-h-screen">
@@ -289,11 +290,11 @@ export default async function MoviePage(props: MoviePageProps) {
             </div>
           </div>
 
-          {mainCast.length > 0 && (
+          {credits.cast.length > 0 && (
             <div>
               <h2 className="mb-4 text-xl font-semibold">Cast</h2>
               <ItemSlider>
-                {mainCast.map((actor) => (
+                {credits.cast.map((actor) => (
                   <div
                     key={actor.id}
                     className="w-32 flex-shrink-0 snap-center"
@@ -328,6 +329,7 @@ export default async function MoviePage(props: MoviePageProps) {
           <StreamingProviders
             watchProviders={watchProviders}
             movieId={movieId}
+            userRegion={userRegion}
           />
 
           <div className="flex flex-wrap gap-4">

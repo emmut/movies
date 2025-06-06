@@ -1,26 +1,28 @@
 'use client';
 
 import { RegionSelect } from '@/components/region-select';
+import { getRegionCodes, RegionCode } from '@/lib/regions';
 import { formatImageUrl } from '@/lib/utils';
 import type { MovieWatchProviders } from '@/types/Movie';
 import { Play, ShoppingCart, Tv } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
-const regions = ['SE', 'US', 'GB', 'DE', 'FR', 'NO', 'DK', 'FI'] as const;
-
 type StreamingProvidersProps = {
   watchProviders: MovieWatchProviders;
   movieId: number;
+  userRegion: RegionCode;
 };
 
 export function StreamingProviders({
   watchProviders,
   movieId,
+  userRegion,
 }: StreamingProvidersProps) {
+  const regions = getRegionCodes();
   const [region] = useQueryState(
     'region',
-    parseAsStringLiteral(regions).withDefault('SE')
+    parseAsStringLiteral(regions).withDefault(userRegion)
   );
 
   const regionProviders = watchProviders.results?.[region];

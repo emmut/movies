@@ -27,3 +27,7 @@ export function getRegionByCode(code: string) {
 export function isValidRegionCode(code: string) {
   return regions.some((region) => region.code === code);
 }
+
+export function getRegionCodes() {
+  return regions.map((region) => region.code);
+}

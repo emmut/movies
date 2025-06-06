@@ -17,8 +17,6 @@ export async function signIn() {
   const data = await authClient.signIn.social({
     provider: 'discord',
     callbackURL: '/',
-    errorCallbackURL: '/',
-    newUserCallbackURL: '/',
   });
 
   return data;
