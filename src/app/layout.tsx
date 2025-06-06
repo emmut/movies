@@ -22,6 +22,10 @@ const inter = Inter({ subsets: ['latin'], fallback: ['sans-serif'] });
 export const metadata = {
   title: 'Movies',
   description: 'Find movies to watch',
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    apple: '/apple-touch-icon.png',
+  },
 };
 
 export default async function RootLayout({
