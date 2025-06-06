@@ -58,7 +58,6 @@ export default async function LoginPage() {
           </div>
         </div>
 
-        {/* Login Options */}
         <div className="space-y-4">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
