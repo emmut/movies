@@ -13,15 +13,9 @@ export function ItemSlider({ children }: ItemSliderProps) {
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [disableArrows, setDisableArrows] = useState(false);
 
-  const updateArrowVisibility = () => {
+  function updateArrowVisibility() {
     const container = scrollContainerRef.current;
     if (!container) {
-      return;
-    }
-
-    if (container.clientWidth === container.scrollWidth) {
-      setShowLeftArrow(false);
-      setShowRightArrow(false);
       return;
     }
 
@@ -29,7 +23,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
     setShowRightArrow(
       container.scrollLeft < container.scrollWidth - container.clientWidth - 1
     );
-  };
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -40,17 +34,24 @@ export function ItemSlider({ children }: ItemSliderProps) {
       setDisableArrows(true);
     }
 
-    if (container) {
-      updateArrowVisibility();
-
-      container.addEventListener('scroll', updateArrowVisibility, {
-        signal: controller.signal,
-      });
-
-      return () => {
-        controller.abort();
-      };
+    if (!container) {
+      return;
     }
+
+    container.addEventListener('scroll', updateArrowVisibility, {
+      signal: controller.signal,
+    });
+
+    if (container.clientWidth <= container.scrollWidth) {
+      setShowLeftArrow(false);
+      setShowRightArrow(false);
+    } else {
+      updateArrowVisibility();
+    }
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   const scroll = (direction: 'left' | 'right') => {

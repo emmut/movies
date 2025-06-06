@@ -8,5 +8,7 @@ export default async function UpcomingMovies() {
     ? await fetchUserUpcomingMovies()
     : await fetchUpcomingMovies();
 
-  return movies.map((movie) => <MovieCard key={movie.id} movie={movie} />);
+  return movies.map((movie) => (
+    <MovieCard className="max-w-[150px]" key={movie.id} movie={movie} />
+  ));
 }

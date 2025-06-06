@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 type MovieProp = {
   movie: Movie | MovieDetails;
+  className?: string;
 };
 
 /**
@@ -13,13 +14,16 @@ type MovieProp = {
  *
  * Navigates to the movie's detail page when clicked. If no poster image is available, the card displays the title and release year with a fully opaque overlay.
  */
-function MovieCard({ movie }: MovieProp) {
+function MovieCard({ movie, className }: MovieProp) {
   const { id, title, release_date, poster_path } = movie;
 
   return (
     <Link
       href={`/movie/${id}`}
-      className="group/movie-card relative grid aspect-2/3 w-full max-w-[150px] shrink-0 snap-center overflow-hidden rounded-md"
+      className={clsx([
+        'group/movie-card relative grid aspect-2/3 w-full flex-[150px] shrink-0 snap-center overflow-hidden rounded-md',
+        className,
+      ])}
     >
       {poster_path !== null && (
         <Image
