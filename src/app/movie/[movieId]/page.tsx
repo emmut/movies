@@ -295,7 +295,7 @@ export default async function MoviePage(props: MoviePageProps) {
               <ItemSlider>
                 {credits.cast.map((actor) => (
                   <div
-                    key={actor.id}
+                    key={actor.credit_id}
                     className="w-32 flex-shrink-0 snap-center"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
