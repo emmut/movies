@@ -98,7 +98,7 @@ export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
             user={{
               name: initialSession.user.name,
               email: initialSession.user.email,
-              avatar: initialSession.user.image || '',
+              avatar: initialSession.user.image ?? '',
             }}
           />
         )}
