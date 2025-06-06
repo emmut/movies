@@ -3,4 +3,4 @@ description:
 globs: 
 alwaysApply: false
 ---
-Use pnpm
+Use pnpm. Committed text should be in English. Prefer normal functions `function()` over arrow functions `() =>` except on inline functions.
