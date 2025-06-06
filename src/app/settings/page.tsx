@@ -7,10 +7,12 @@ import {
 } from '@/components/ui/card';
 import { regions } from '@/lib/regions';
 import { getUserRegion, updateUserRegion } from '@/lib/user-actions';
+import { unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { RegionForm } from './region-form';
 
 export default async function SettingsPage() {
+  noStore();
   let currentRegion: string;
 
   try {
