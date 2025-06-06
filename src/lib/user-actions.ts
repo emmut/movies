@@ -16,7 +16,7 @@ export async function getUserRegion() {
   const session = await getSession();
 
   if (!session?.user?.id) {
-    throw new Error('Unauthorized');
+    return DEFAULT_REGION;
   }
 
   const userData = await db
