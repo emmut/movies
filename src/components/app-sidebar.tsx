@@ -16,6 +16,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Session } from '@/lib/auth-client';
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavUser } from './nav-user';
@@ -60,7 +61,12 @@ export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
               <SidebarMenuItem key={href}>
                 <SidebarMenuButton asChild isActive={pathname === href}>
                   <Link href={href}>
-                    <Icon className="h-4 w-4" />
+                    <Icon
+                      className={cn(
+                        'h-4 w-4',
+                        pathname === href && 'fill-current'
+                      )}
+                    />
                     <span>{label}</span>
                   </Link>
                 </SidebarMenuButton>
@@ -71,7 +77,12 @@ export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
                 <SidebarMenuItem key={href}>
                   <SidebarMenuButton asChild isActive={pathname === href}>
                     <Link href={href}>
-                      <Icon className="h-4 w-4" />
+                      <Icon
+                        className={cn(
+                          'h-4 w-4',
+                          pathname === href && 'fill-current'
+                        )}
+                      />
                       <span>{label}</span>
                     </Link>
                   </SidebarMenuButton>
