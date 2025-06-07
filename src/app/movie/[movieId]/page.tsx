@@ -341,7 +341,12 @@ export default async function MoviePage(props: MoviePageProps) {
                         <Users className="h-5 w-5 text-zinc-400" />
                       </div>
                     )}
-                    <span className="font-medium">{writer.name}</span>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-medium">{writer.name}</span>
+                      <span className="text-xs text-zinc-400">
+                        {writer.job}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
