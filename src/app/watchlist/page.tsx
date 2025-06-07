@@ -1,6 +1,7 @@
 import MovieCard from '@/components/movie-card';
 import { getUser } from '@/lib/auth-server';
-import { getWatchlistWithMovieDetails } from '@/lib/watchlist';
+import { getWatchlistWithResourceDetails } from '@/lib/watchlist';
+import { MovieDetails } from '@/types/Movie';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -18,7 +19,7 @@ export default async function WatchlistPage() {
     redirect('/login');
   }
 
-  const watchlistMovies = await getWatchlistWithMovieDetails();
+  const watchlistMovies = await getWatchlistWithResourceDetails('movie');
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -45,9 +46,18 @@ export default async function WatchlistPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-          {watchlistMovies.map((item) => (
-            <MovieCard key={item.id} movie={item.movie} />
-          ))}
+          {watchlistMovies
+            .filter((item) => item !== null)
+            .map((item) => {
+              if (item.resourceType === 'movie') {
+                return (
+                  <MovieCard
+                    key={item.id}
+                    movie={item.resource as MovieDetails}
+                  />
+                );
+              }
+            })}
         </div>
       )}
     </div>

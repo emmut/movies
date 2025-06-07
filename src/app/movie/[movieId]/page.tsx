@@ -11,7 +11,7 @@ import {
 } from '@/lib/movies';
 import { getUserRegion } from '@/lib/user-actions';
 import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
-import { isMovieInWatchlist } from '@/lib/watchlist';
+import { isResourceInWatchlist } from '@/lib/watchlist';
 import {
   Calendar,
   Clock,
@@ -49,7 +49,9 @@ export default async function MoviePage(props: MoviePageProps) {
 
   const user = await getUser();
   const userRegion = await getUserRegion();
-  const inWatchlist = user ? await isMovieInWatchlist(movieId) : false;
+  const inWatchlist = user
+    ? await isResourceInWatchlist(movieId, RESOURCE_TYPE)
+    : false;
 
   const [movie, credits, watchProviders] = await Promise.all([
     getMovieDetails(movieId),

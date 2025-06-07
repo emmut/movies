@@ -232,12 +232,12 @@ export async function fetchUserUpcomingMovies() {
   return filteredUpcomingMovies;
 }
 
-export async function getMovieDetails(movieId: number) {
+export async function getMovieDetails(resourceId: number) {
   'use cache';
   cacheTag('movie-details');
   cacheLife('minutes');
 
-  const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
+  const res = await fetch(`https://api.themoviedb.org/3/movie/${resourceId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
