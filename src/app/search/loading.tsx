@@ -13,7 +13,7 @@ export default function Loading() {
         tabIndex={0}
         className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <ResourceGrid.Skeletons />
+        <ResourceGrid.Skeletons className="w-full" />
       </div>
 
       <div className="mt-8 flex justify-center">

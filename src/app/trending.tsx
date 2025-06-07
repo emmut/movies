@@ -66,7 +66,7 @@ async function Trending({ index, type }: TrendingCardProp) {
 
       <div className="absolute top-3 left-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
         <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
-          {type === 'movie' ? 'Film' : 'Serie'}
+          {type === 'movie' ? 'Movie' : 'TV Show'}
         </Badge>
       </div>
 

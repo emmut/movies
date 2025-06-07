@@ -91,7 +91,7 @@ export default function ResourceCard({
 
         <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
           <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
-            {type === 'movie' ? 'Film' : 'Serie'}
+            {type === 'movie' ? 'Movie' : 'TV Show'}
           </Badge>
         </div>
       </div>
