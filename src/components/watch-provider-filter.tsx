@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { WatchProvider } from '@/types/movie';
+import { WatchProvider } from '@/types/watch-provider';
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
