@@ -82,8 +82,13 @@ export async function isResourceInWatchlist(
 export async function getWatchlistWithResourceDetails(resourceType: string) {
   const userWatchlist = await getUserWatchlist();
 
+  // Filter watchlist items by resourceType first
+  const filteredWatchlist = userWatchlist.filter(
+    (item) => item.resourceType === resourceType
+  );
+
   const resourcesWithDetails = await Promise.allSettled(
-    userWatchlist.map(async (item) => {
+    filteredWatchlist.map(async (item) => {
       let resourceDetails: MovieDetails | TvDetails | null = null;
       if (resourceType === 'movie') {
         resourceDetails = await getMovieDetails(item.resourceId);

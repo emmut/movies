@@ -24,7 +24,7 @@ export default async function SearchPage(props: SearchProps) {
       <SectionTitle>Search</SectionTitle>
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         <Suspense fallback={<Movies.Skeletons />}>
-          <SearchMovies currentQuery={query} currentPage={page} />
+          <SearchMovies searchQuery={query} currentPage={page} />
         </Suspense>
       </div>
 
