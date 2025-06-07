@@ -1,4 +1,5 @@
-import { Genre } from './Genre';
+import { Genre } from './genre';
+import { WatchProvider } from './watch-provider';
 
 export type Movie = {
   adult: boolean;
@@ -93,13 +94,6 @@ export type MovieCredits = {
   id: number;
   cast: CastMember[];
   crew: CrewMember[];
-};
-
-export type WatchProvider = {
-  display_priority: number;
-  logo_path: string;
-  provider_id: number;
-  provider_name: string;
 };
 
 export type RegionWatchProviders = {

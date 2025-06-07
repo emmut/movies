@@ -3,8 +3,8 @@
 import { RegionSelect } from '@/components/region-select';
 import { getRegionCodes, RegionCode } from '@/lib/regions';
 import { formatImageUrl } from '@/lib/utils';
-import type { MovieWatchProviders } from '@/types/Movie';
-import type { TvWatchProviders } from '@/types/TvShow';
+import type { MovieWatchProviders } from '@/types/movie';
+import type { TvWatchProviders } from '@/types/tv-show';
 import { Play, ShoppingCart, Tv } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';

@@ -1,6 +1,6 @@
 import ResourceCard from '@/components/resource-card';
 import { env } from '@/env';
-import { MovieResponse } from '@/types/Movie';
+import { MovieResponse } from '@/types/movie';
 
 /**
  * Retrieves a list of top-rated movies from the Movie Database API for the SE region.

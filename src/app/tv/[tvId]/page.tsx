@@ -282,7 +282,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <div className="flex flex-wrap gap-4">
                 {created_by.map((creator) => (
                   <div
-                    key={creator.id}
+                    key={creator.credit_id}
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3"
                   >
                     {creator.profile_path ? (
@@ -311,7 +311,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <ItemSlider>
                 {credits.cast.map((actor) => (
                   <div
-                    key={actor.id}
+                    key={actor.credit_id}
                     className="w-32 flex-shrink-0 snap-center"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">

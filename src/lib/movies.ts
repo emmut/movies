@@ -1,17 +1,18 @@
 import { env } from '@/env';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { getUserRegion } from '@/lib/user-actions';
-import type { GenreResponse } from '@/types/Genre';
+import type { GenreResponse } from '@/types/genre';
 import {
   MovieCredits,
   MovieDetails,
   MovieResponse,
   MovieWatchProviders,
-} from '@/types/Movie';
+} from '@/types/movie';
 import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
 } from 'next/cache';
+import { MAJOR_STREAMING_PROVIDERS } from './config';
 
 export async function fetchTrendingMovies() {
   'use cache';
@@ -66,20 +67,35 @@ export async function fetchAvailableGenres() {
   return movies.genres;
 }
 
-export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
+export async function fetchDiscoverMovies(
+  genreId: number,
+  page: number = 1,
+  sortBy?: string,
+  watchProviders?: string,
+  watchRegion?: string
+) {
   'use cache';
   cacheTag('discover');
   cacheLife('minutes');
 
   const url = new URL('https://api.themoviedb.org/3/discover/movie');
   url.searchParams.set('page', String(page));
-  url.searchParams.set('sort_by', 'popularity.desc');
+  url.searchParams.set('sort_by', sortBy || 'popularity.desc');
   url.searchParams.set('region', DEFAULT_REGION);
   url.searchParams.set('include_adult', 'false');
   url.searchParams.set('include_video', 'false');
 
   if (genreId !== 0) {
     url.searchParams.set('with_genres', String(genreId));
+  }
+
+  if (watchProviders && watchRegion) {
+    url.searchParams.set('with_watch_providers', watchProviders);
+    url.searchParams.set('watch_region', watchRegion);
+  } else {
+    const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
+    url.searchParams.set('with_watch_providers', majorProviders);
+    url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
   }
 
   const res = await fetch(url, {

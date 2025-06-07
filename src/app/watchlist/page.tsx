@@ -3,8 +3,8 @@ import ResourceCard from '@/components/resource-card';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
 import { getWatchlistWithResourceDetails } from '@/lib/watchlist';
-import { MovieDetails } from '@/types/Movie';
-import { TvDetails } from '@/types/TvShow';
+import { MovieDetails } from '@/types/movie';
+import { TvDetails } from '@/types/tv-show';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 

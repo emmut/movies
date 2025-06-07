@@ -1,4 +1,4 @@
-import { Genre } from './Genre';
+import { Genre } from './genre';
 
 export type TvDetails = {
   id: number;
@@ -49,6 +49,7 @@ export type Cast = {
   name: string;
   character: string;
   profile_path: string;
+  credit_id: string;
 };
 
 export type Crew = {
