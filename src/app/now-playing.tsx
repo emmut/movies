@@ -9,6 +9,11 @@ export default async function NowPlayingMovies() {
     : await fetchNowPlayingMovies();
 
   return movies.map((movie) => (
-    <ResourceCard key={movie.id} resource={movie} type="movie" />
+    <ResourceCard
+      className="max-w-[150px]"
+      key={movie.id}
+      resource={movie}
+      type="movie"
+    />
   ));
 }

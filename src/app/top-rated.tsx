@@ -31,6 +31,11 @@ export default async function TopRated() {
   const movies = await fetchTopRatedMovies();
 
   return movies.map((movie) => (
-    <ResourceCard key={movie.id} resource={movie} type="movie" />
+    <ResourceCard
+      className="max-w-[150px]"
+      key={movie.id}
+      resource={movie}
+      type="movie"
+    />
   ));
 }

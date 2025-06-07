@@ -32,17 +32,16 @@ export default function ResourceCard({
   const href = `/${type}/${resource.id}`;
   const emoji = type === 'movie' ? '🎬' : '📺';
 
-  // Border colors matching favicon gradient
   const borderColor =
     type === 'tv'
-      ? 'border-yellow-400 hover:border-yellow-300'
-      : 'border-red-500 hover:border-red-400';
+      ? 'border-yellow-400/15 hover:border-yellow-300/50'
+      : 'border-red-500/15 hover:border-red-400/50';
 
   return (
     <Link
       href={href}
       className={cn(
-        'group aspect-2/3 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105',
+        'group aspect-2/3 flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105',
         borderColor,
         className
       )}
@@ -56,9 +55,12 @@ export default function ResourceCard({
             width={500}
             height={750}
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            priority
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-zinc-800">
+          <div className="flex h-full w-full items-center justify-center bg-zinc-800">
             <div className="text-center text-zinc-400">
               <div className="mb-2 text-4xl">{emoji}</div>
               <div className="text-sm font-semibold">No Poster</div>
@@ -83,13 +85,18 @@ export default function ResourceCard({
   );
 }
 
-function ResourceCardSkeleton() {
+function ResourceCardSkeleton({ className }: { className?: string }) {
   return (
-    <div className="group aspect-2/3 overflow-hidden rounded-lg bg-zinc-900">
+    <div
+      className={cn(
+        'group aspect-2/3 w-[150px] flex-shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900',
+        className
+      )}
+    >
       <div className="relative h-full">
         <div className="h-full w-full animate-pulse bg-neutral-50/10" />
 
-        <div className="absolute right-0 bottom-0 left-0 p-3">
+        <div className="absolute right-0 bottom-0 left-0 p-3 opacity-0">
           <div className="mb-2 h-4 w-3/4 animate-pulse rounded bg-neutral-50/10" />
           <div className="flex items-center justify-between">
             <div className="h-3 w-12 animate-pulse rounded bg-neutral-50/10" />

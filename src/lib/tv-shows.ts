@@ -156,6 +156,160 @@ export async function fetchUserDiscoverTvShows(
   return { tvShows: tvShows.results, totalPages };
 }
 
+export async function fetchTrendingTvShows() {
+  'use cache';
+  cacheTag('trending-tv');
+  cacheLife('minutes');
+
+  const res = await fetch('https://api.themoviedb.org/3/trending/tv/day', {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading trending TV shows');
+  }
+
+  const tvShows: TvResponse = await res.json();
+  return tvShows.results;
+}
+
+export async function fetchTopRatedTvShows() {
+  'use cache';
+  cacheTag('top-rated-tv');
+  cacheLife('minutes');
+
+  const url = new URL('https://api.themoviedb.org/3/tv/top_rated');
+  url.searchParams.set('region', DEFAULT_REGION);
+  url.searchParams.set('include_adult', 'false');
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading top rated TV shows');
+  }
+
+  const tvShows: TvResponse = await res.json();
+  return tvShows.results;
+}
+
+export async function fetchUserTopRatedTvShows() {
+  const userRegion = await getUserRegionWithFallback();
+
+  const url = new URL('https://api.themoviedb.org/3/tv/top_rated');
+  url.searchParams.set('region', userRegion);
+  url.searchParams.set('include_adult', 'false');
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading top rated TV shows');
+  }
+
+  const tvShows: TvResponse = await res.json();
+  return tvShows.results;
+}
+
+export async function fetchOnTheAirTvShows() {
+  'use cache';
+  cacheTag('on-the-air-tv');
+  cacheLife('minutes');
+
+  const url = new URL('https://api.themoviedb.org/3/tv/on_the_air');
+  url.searchParams.set('region', DEFAULT_REGION);
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading on the air TV shows');
+  }
+
+  const tvShows: TvResponse = await res.json();
+  return tvShows.results;
+}
+
+export async function fetchUserOnTheAirTvShows() {
+  const userRegion = await getUserRegionWithFallback();
+
+  const url = new URL('https://api.themoviedb.org/3/tv/on_the_air');
+  url.searchParams.set('region', userRegion);
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading on the air TV shows');
+  }
+
+  const tvShows: TvResponse = await res.json();
+  return tvShows.results;
+}
+
+export async function fetchPopularTvShows() {
+  'use cache';
+  cacheTag('popular-tv');
+  cacheLife('minutes');
+
+  const url = new URL('https://api.themoviedb.org/3/tv/popular');
+  url.searchParams.set('region', DEFAULT_REGION);
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading popular TV shows');
+  }
+
+  const tvShows: TvResponse = await res.json();
+  return tvShows.results;
+}
+
+export async function fetchUserPopularTvShows() {
+  const userRegion = await getUserRegionWithFallback();
+
+  const url = new URL('https://api.themoviedb.org/3/tv/popular');
+  url.searchParams.set('region', userRegion);
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading popular TV shows');
+  }
+
+  const tvShows: TvResponse = await res.json();
+  return tvShows.results;
+}
+
 export async function fetchAvailableTvGenres() {
   'use cache';
   cacheTag('tv-genres');

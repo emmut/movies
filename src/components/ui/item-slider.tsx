@@ -83,7 +83,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
 
       <div
         ref={scrollContainerRef}
-        className="scrollbar-thin relative flex snap-x space-x-4 overflow-x-auto pb-2"
+        className="scrollbar-thin relative flex snap-x space-x-4 overflow-x-auto p-2"
       >
         {children}
       </div>
