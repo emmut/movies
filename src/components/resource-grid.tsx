@@ -1,5 +1,5 @@
-import { Movie } from '@/types/Movie';
-import { TvShow } from '@/types/TvShow';
+import { Movie } from '@/types/movie';
+import { TvShow } from '@/types/tv-show';
 import ResourceCard from './resource-card';
 
 type ResourceGridProps = {

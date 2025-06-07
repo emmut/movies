@@ -1,6 +1,6 @@
 import { env } from '@/env';
-import { SearchedMovieResponse } from '@/types/Movie';
-import { SearchedTvResponse } from '@/types/TvShow';
+import { SearchedMovieResponse } from '@/types/movie';
+import { SearchedTvResponse } from '@/types/tv-show';
 
 export async function fetchMoviesBySearchQuery(
   query: string,

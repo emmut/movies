@@ -3,8 +3,8 @@ import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
 import { resourceIdSchema } from '@/lib/validations';
-import { MovieDetails } from '@/types/Movie';
-import { TvDetails } from '@/types/TvShow';
+import { MovieDetails } from '@/types/movie';
+import { TvDetails } from '@/types/tv-show';
 import { and, eq } from 'drizzle-orm';
 import { getTvShowDetails } from './tv-shows';
 

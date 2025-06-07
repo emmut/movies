@@ -1,4 +1,4 @@
-import { WatchProvider } from '@/types/WatchProvider';
+import { WatchProvider } from '@/types/watch-provider';
 import SortByFilter from './sort-by-filter';
 import WatchProviderFilter from './watch-provider-filter';
 

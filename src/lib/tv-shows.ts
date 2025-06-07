@@ -1,11 +1,11 @@
 import { env } from '@/env';
-import type { GenreResponse } from '@/types/Genre';
+import type { GenreResponse } from '@/types/genre';
 import {
   TvCredits,
   TvDetails,
   TvResponse,
   TvWatchProviders,
-} from '@/types/TvShow';
+} from '@/types/tv-show';
 import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,

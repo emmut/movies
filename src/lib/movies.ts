@@ -1,13 +1,13 @@
 import { env } from '@/env';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { getUserRegion } from '@/lib/user-actions';
-import type { GenreResponse } from '@/types/Genre';
+import type { GenreResponse } from '@/types/genre';
 import {
   MovieCredits,
   MovieDetails,
   MovieResponse,
   MovieWatchProviders,
-} from '@/types/Movie';
+} from '@/types/movie';
 import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,

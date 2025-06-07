@@ -10,7 +10,7 @@ import {
   RegionCode,
   regionSchema,
 } from '@/lib/regions';
-import { WatchProvider } from '@/types/WatchProvider';
+import { WatchProvider } from '@/types/watch-provider';
 import { eq } from 'drizzle-orm';
 import {
   unstable_cacheLife as cacheLife,

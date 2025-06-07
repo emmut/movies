@@ -1,5 +1,5 @@
-import { Genre } from './Genre';
-import { WatchProvider } from './WatchProvider';
+import { Genre } from './genre';
+import { WatchProvider } from './watch-provider';
 
 export type Movie = {
   adult: boolean;
