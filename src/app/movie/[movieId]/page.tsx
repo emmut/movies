@@ -21,6 +21,7 @@ import {
   Star,
   Users,
 } from 'lucide-react';
+import { headers } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -41,6 +42,8 @@ type MoviePageProps = {
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
   const movieId = Number(params.movieId);
+  const headersList = await headers();
+  const referer = headersList.get('referer');
 
   const user = await getUser();
   const userRegion = await getUserRegion();
@@ -73,7 +76,7 @@ export default async function MoviePage(props: MoviePageProps) {
   return (
     <div className="min-h-screen">
       <div className="mb-6">
-        <GoBack />
+        <GoBack referer={referer} />
       </div>
 
       {backdrop_path && (
