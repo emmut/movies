@@ -32,11 +32,18 @@ export default function ResourceCard({
   const href = `/${type}/${resource.id}`;
   const emoji = type === 'movie' ? '🎬' : '📺';
 
+  // Border colors matching favicon gradient
+  const borderColor =
+    type === 'tv'
+      ? 'border-yellow-400 hover:border-yellow-300'
+      : 'border-red-500 hover:border-red-400';
+
   return (
     <Link
       href={href}
       className={cn(
-        'group aspect-2/3 overflow-hidden rounded-lg bg-zinc-900 transition-transform hover:scale-105',
+        'group aspect-2/3 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105',
+        borderColor,
         className
       )}
     >
