@@ -1,30 +1,59 @@
+import Badge from '@/components/badge';
 import { fetchTrendingMovies } from '@/lib/movies';
+import { fetchTrendingTvShows } from '@/lib/tv-shows';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 
 type TrendingCardProp = {
   index: number;
+  type: 'movie' | 'tv';
 };
 
-async function Trending({ index }: TrendingCardProp) {
-  const movies = await fetchTrendingMovies();
+/**
+ * Displays a trending movie or TV show card with image, title, release year, and type badge.
+ *
+ * Fetches trending resources based on the specified {@link type} and displays the resource at the given {@link index} as a styled card. Returns `null` if the index is out of bounds.
+ *
+ * @param index - The position of the trending resource to display.
+ * @param type - The type of resource to display: `'movie'` or `'tv'`.
+ *
+ * @returns A React element representing the trending card, or `null` if the index is invalid.
+ */
+async function Trending({ index, type }: TrendingCardProp) {
+  const resources =
+    type === 'movie'
+      ? await fetchTrendingMovies()
+      : await fetchTrendingTvShows();
 
-  if (movies.length < index - 1) {
+  if (resources.length < index - 1) {
     return null;
   }
 
-  const movie = movies[index];
+  const resource = resources[index];
+
+  const title = 'title' in resource ? resource.title : resource.name;
+  const releaseDate =
+    'release_date' in resource
+      ? resource.release_date
+      : resource.first_air_date;
+  const href =
+    type === 'movie' ? `/movie/${resource.id}` : `/tv/${resource.id}`;
+
+  const borderColor =
+    type === 'movie'
+      ? 'border-yellow-400/30 hover:border-yellow-300'
+      : 'border-red-500/30 hover:border-red-500';
 
   return (
     <Link
-      href={`/movie/${movie.id}`}
-      className="relative h-52 overflow-hidden rounded-xl lg:h-72 lg:flex-1"
+      href={href}
+      className={`group relative h-52 overflow-hidden rounded-xl border ${borderColor} transition-all hover:scale-[1.02] focus:scale-[1.02] focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none lg:h-72 lg:flex-1`}
     >
-      {movie.backdrop_path && (
+      {resource.backdrop_path && (
         <Image
-          src={formatImageUrl(movie.backdrop_path, 780)}
-          alt={`Poster of ${movie.title}`}
+          src={formatImageUrl(resource.backdrop_path, 780)}
+          alt={`Poster of ${title}`}
           className="col-span-full row-span-full object-cover"
           sizes="(max-width:1024px) 100vw, 33vw"
           quality={85}
@@ -33,12 +62,22 @@ async function Trending({ index }: TrendingCardProp) {
         />
       )}
 
-      <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col justify-center bg-zinc-950/25 px-3 py-2">
-        <h3 className="text-md truncate font-semibold whitespace-nowrap md:text-lg">
-          {movie.title}
-        </h3>
-        {movie.release_date && (
-          <p className="text-sm">{formatDateYear(movie.release_date)}</p>
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+
+      <div className="absolute top-3 left-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+        <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
+          {type === 'movie' ? 'Film' : 'Serie'}
+        </Badge>
+      </div>
+
+      <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col justify-center bg-zinc-950 px-3 py-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-md truncate font-semibold whitespace-nowrap md:text-lg">
+            {title}
+          </h3>
+        </div>
+        {releaseDate && (
+          <p className="text-sm">{formatDateYear(releaseDate)}</p>
         )}
       </div>
     </Link>

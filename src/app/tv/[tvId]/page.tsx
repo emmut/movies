@@ -5,77 +5,71 @@ import { ItemSlider } from '@/components/ui/item-slider';
 import { WatchlistButton } from '@/components/watchlist-button';
 import { getUser } from '@/lib/auth-server';
 import {
-  getMovieCredits,
-  getMovieDetails,
-  getMovieWatchProviders,
-} from '@/lib/movies';
+  getTvShowCredits,
+  getTvShowDetails,
+  getTvShowWatchProviders,
+} from '@/lib/tv-shows';
 import { getUserRegion } from '@/lib/user-actions';
-import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
+import { formatImageUrl } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
-import {
-  Calendar,
-  Clock,
-  Database,
-  DollarSign,
-  Globe,
-  Star,
-  Users,
-} from 'lucide-react';
+import { Calendar, Database, Globe, Star, Tv, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
 
-type MoviePageProps = {
+type TvShowPageProps = {
   params: Promise<{
-    movieId: string;
+    tvId: string;
   }>;
 };
 
-const RESOURCE_TYPE = 'movie';
+const RESOURCE_TYPE = 'tv';
 
 /**
- * Server component that renders a detailed page for a specific movie, including its information, cast, genres, statistics, streaming providers, and external links.
+ * Renders a detailed TV show page with metadata, cast, creators, streaming providers, and interactive controls.
  *
- * @param props - Contains a promise resolving to route parameters, including the movie ID.
- * @returns The server-rendered React component for the movie detail page.
+ * Fetches and displays information about a TV show based on the provided TV show ID, including images, overview, genres, ratings, seasons, episodes, networks, creators, and cast. Shows streaming providers available in the user's region and allows authenticated users to manage their watchlist. Provides external links to TMDB and the official website if available.
  *
- * @remark If a user is logged in, the page displays a watchlist button reflecting the user's watchlist status for the movie.
+ * @param props - Contains a promise resolving to route parameters with the TV show ID.
  */
-export default async function MoviePage(props: MoviePageProps) {
+export default async function TvShowPage(props: TvShowPageProps) {
   const params = await props.params;
-  const movieId = Number(params.movieId);
+  const tvId = Number(params.tvId);
   const headersList = await headers();
   const referer = headersList.get('referer');
 
   const user = await getUser();
   const userRegion = await getUserRegion();
   const inWatchlist = user
-    ? await isResourceInWatchlist(movieId, RESOURCE_TYPE)
+    ? await isResourceInWatchlist(tvId, RESOURCE_TYPE)
     : false;
 
-  const [movie, credits, watchProviders] = await Promise.all([
-    getMovieDetails(movieId),
-    getMovieCredits(movieId),
-    getMovieWatchProviders(movieId),
+  const [tvShow, credits, watchProviders] = await Promise.all([
+    getTvShowDetails(tvId),
+    getTvShowCredits(tvId),
+    getTvShowWatchProviders(tvId),
   ]);
 
   const {
-    title,
-    release_date,
+    name,
+    original_name,
+    first_air_date,
+    last_air_date,
     overview,
     poster_path,
     backdrop_path,
     tagline,
     genres,
-    runtime,
-    budget,
-    revenue,
+    number_of_episodes,
+    number_of_seasons,
+    episode_run_time,
     spoken_languages,
     status,
     homepage,
-    original_title,
-  } = movie;
-  const score = Math.ceil(movie.vote_average * 10) / 10;
+    networks,
+    created_by,
+  } = tvShow;
+  const score = Math.ceil(tvShow.vote_average * 10) / 10;
 
   return (
     <div className="min-h-screen">
@@ -87,7 +81,7 @@ export default async function MoviePage(props: MoviePageProps) {
         <div className="relative -mx-4 mb-8 h-64 md:h-80 lg:h-96">
           <Image
             src={formatImageUrl(backdrop_path, 1280)}
-            alt={`Backdrop of ${title}`}
+            alt={`Backdrop of ${name}`}
             fill
             className="object-cover"
             priority
@@ -108,7 +102,7 @@ export default async function MoviePage(props: MoviePageProps) {
             <Image
               className="mx-auto aspect-2/3 w-full max-w-md rounded-lg shadow-2xl"
               src={formatImageUrl(poster_path, 500)}
-              alt={`Poster image of ${title}`}
+              alt={`Poster image of ${name}`}
               width={500}
               height={750}
               priority
@@ -116,7 +110,7 @@ export default async function MoviePage(props: MoviePageProps) {
           ) : (
             <div className="mx-auto flex aspect-2/3 w-full max-w-md items-center justify-center rounded-lg bg-zinc-800 shadow-2xl">
               <div className="text-center text-zinc-400">
-                <div className="mb-4 text-6xl">🎬</div>
+                <div className="mb-4 text-6xl">📺</div>
                 <div className="text-lg font-semibold">No Poster</div>
                 <div className="text-sm">Available</div>
               </div>
@@ -129,7 +123,7 @@ export default async function MoviePage(props: MoviePageProps) {
             <div className="flex flex-col items-start justify-between gap-x-4 gap-y-2 @2xl/title:flex-row">
               <div className="flex-1">
                 <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
-                  {title}
+                  {name}
                 </h1>
                 {tagline && (
                   <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
@@ -138,7 +132,7 @@ export default async function MoviePage(props: MoviePageProps) {
                 )}
               </div>
               <WatchlistButton
-                resourceId={movieId}
+                resourceId={tvId}
                 resourceType={RESOURCE_TYPE}
                 isInWatchlist={inWatchlist}
                 userId={user?.id}
@@ -152,32 +146,28 @@ export default async function MoviePage(props: MoviePageProps) {
               <div className="text-2xl font-bold">{score}</div>
               <div className="text-sm text-zinc-400">Rating</div>
               <div className="text-xs text-zinc-500">
-                ({movie.vote_count} votes)
+                ({tvShow.vote_count} votes)
               </div>
             </div>
 
-            {runtime > 0 && (
-              <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-                <Clock className="mx-auto mb-2 h-6 w-6 text-blue-500" />
-                <div className="text-2xl font-bold">
-                  {formatRuntime(runtime)}
-                </div>
-                <div className="text-sm text-zinc-400">Runtime</div>
-              </div>
-            )}
+            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
+              <Tv className="mx-auto mb-2 h-6 w-6 text-blue-500" />
+              <div className="text-2xl font-bold">{number_of_seasons}</div>
+              <div className="text-sm text-zinc-400">Seasons</div>
+            </div>
 
             <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
               <Calendar className="mx-auto mb-2 h-6 w-6 text-green-500" />
               <div className="text-2xl font-bold">
-                {release_date ? release_date.split('-')[0] : 'N/A'}
+                {first_air_date ? first_air_date.split('-')[0] : 'N/A'}
               </div>
-              <div className="text-sm text-zinc-400">Released</div>
+              <div className="text-sm text-zinc-400">First Aired</div>
             </div>
 
             <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
               <Users className="mx-auto mb-2 h-6 w-6 text-purple-500" />
               <div className="text-2xl font-bold">
-                {Math.round(movie.popularity)}
+                {Math.round(tvShow.popularity)}
               </div>
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
@@ -199,7 +189,7 @@ export default async function MoviePage(props: MoviePageProps) {
           <div>
             <h2 className="mb-3 text-xl font-semibold">Overview</h2>
             <p className="leading-relaxed text-zinc-300">
-              {overview || 'No overview available for this movie.'}
+              {overview || 'No overview available for this TV show.'}
             </p>
           </div>
 
@@ -212,21 +202,30 @@ export default async function MoviePage(props: MoviePageProps) {
                 <p>{status || 'Unknown'}</p>
               </div>
 
-              {original_title && (
+              {original_name && original_name !== name && (
                 <div>
                   <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Original Title
+                    Original Name
                   </h3>
-                  <p>{original_title}</p>
+                  <p>{original_name}</p>
                 </div>
               )}
 
               <div>
                 <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                  Release Date
+                  First Air Date
                 </h3>
-                <p>{release_date || 'Not available'}</p>
+                <p>{first_air_date || 'Not available'}</p>
               </div>
+
+              {last_air_date && (
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
+                    Last Air Date
+                  </h3>
+                  <p>{last_air_date}</p>
+                </div>
+              )}
 
               {spoken_languages.length > 0 && (
                 <div>
@@ -243,43 +242,68 @@ export default async function MoviePage(props: MoviePageProps) {
             </div>
 
             <div className="space-y-4">
-              {budget > 0 && (
+              <div>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
+                  Episodes
+                </h3>
+                <p>{number_of_episodes}</p>
+              </div>
+
+              <div>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
+                  Seasons
+                </h3>
+                <p>{number_of_seasons}</p>
+              </div>
+
+              {episode_run_time.length > 0 && (
                 <div>
                   <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Budget
+                    Episode Runtime
                   </h3>
-                  <p className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    {formatCurrency(budget, false)}
-                  </p>
+                  <p>{episode_run_time.join(', ')} min</p>
                 </div>
               )}
 
-              {revenue > 0 && (
+              {networks.length > 0 && (
                 <div>
                   <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Revenue
+                    Networks
                   </h3>
-                  <p className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    {formatCurrency(revenue, false)}
-                  </p>
-                </div>
-              )}
-
-              {revenue > 0 && budget > 0 && (
-                <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Profit
-                  </h3>
-                  <p className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    {formatCurrency(revenue - budget, false)}
-                  </p>
+                  <p>{networks.map((network) => network.name).join(', ')}</p>
                 </div>
               )}
             </div>
           </div>
+
+          {created_by.length > 0 && (
+            <div>
+              <h2 className="mb-4 text-xl font-semibold">Created By</h2>
+              <div className="flex flex-wrap gap-4">
+                {created_by.map((creator) => (
+                  <div
+                    key={creator.id}
+                    className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3"
+                  >
+                    {creator.profile_path ? (
+                      <Image
+                        src={formatImageUrl(creator.profile_path, 92)}
+                        alt={creator.name}
+                        width={40}
+                        height={40}
+                        className="rounded-full"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-700">
+                        <Users className="h-5 w-5 text-zinc-400" />
+                      </div>
+                    )}
+                    <span className="font-medium">{creator.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {credits.cast.length > 0 && (
             <div>
@@ -287,7 +311,7 @@ export default async function MoviePage(props: MoviePageProps) {
               <ItemSlider>
                 {credits.cast.map((actor) => (
                   <div
-                    key={actor.credit_id}
+                    key={actor.id}
                     className="w-32 flex-shrink-0 snap-center"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
@@ -319,26 +343,15 @@ export default async function MoviePage(props: MoviePageProps) {
 
           <StreamingProviders
             watchProviders={watchProviders}
-            resourceId={movieId}
-            resourceType="movie"
+            resourceId={tvId}
+            resourceType="tv"
             userRegion={userRegion}
           />
 
           <div className="flex flex-wrap gap-4">
-            {movie.imdb_id && (
-              <a
-                className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 font-semibold text-black transition-colors hover:bg-yellow-700"
-                href={`https://imdb.com/title/${movie.imdb_id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                IMDb
-              </a>
-            )}
-
             <a
               className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
-              href={`https://www.themoviedb.org/movie/${movieId}`}
+              href={`https://www.themoviedb.org/tv/${tvId}`}
               target="_blank"
               rel="noopener noreferrer"
             >

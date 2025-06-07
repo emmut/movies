@@ -7,6 +7,13 @@ type ItemSliderProps = {
   children: ReactNode;
 };
 
+/**
+ * Provides a horizontally scrollable container with optional left and right navigation arrows.
+ *
+ * Displays navigation arrows when the content overflows horizontally, allowing users to scroll by clicking the arrows. Arrow visibility and interactivity adapt to device capabilities and current scroll position.
+ *
+ * @param children - The elements to display inside the scrollable slider.
+ */
 export function ItemSlider({ children }: ItemSliderProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -49,7 +56,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
     };
   }, []);
 
-  const scroll = (direction: 'left' | 'right') => {
+  function scroll(direction: 'left' | 'right') {
     const container = scrollContainerRef.current;
     if (!container) {
       return;
@@ -60,7 +67,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
       left: direction === 'left' ? -scrollAmount : scrollAmount,
       behavior: 'smooth',
     });
-  };
+  }
 
   return (
     <div className="relative">
@@ -76,17 +83,10 @@ export function ItemSlider({ children }: ItemSliderProps) {
             <ChevronLeft className="h-6 w-6" />
           </button>
           <div
-            className={`from-background pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r to-transparent lg:w-30 ${!showLeftArrow ? 'opacity-0' : ''}`}
+            className={`from-background pointer-events-none absolute inset-y-0 -left-3 z-10 w-10 bg-gradient-to-r to-transparent lg:w-30 ${!showLeftArrow ? 'opacity-0' : ''}`}
           />
         </>
       )}
-
-      <div
-        ref={scrollContainerRef}
-        className="scrollbar-thin relative flex snap-x space-x-4 overflow-x-auto pb-2"
-      >
-        {children}
-      </div>
 
       {showRightArrow && (
         <>
@@ -100,10 +100,17 @@ export function ItemSlider({ children }: ItemSliderProps) {
             <ChevronRight className="h-6 w-6" />
           </button>
           <div
-            className={`from-background pointer-events-none absolute inset-y-0 right-0 z-10 bg-gradient-to-l to-transparent lg:w-30 ${!showRightArrow ? 'opacity-0' : ''}`}
+            className={`from-background pointer-events-none absolute inset-y-0 -right-3 z-10 bg-gradient-to-l to-transparent lg:w-30 ${!showRightArrow ? 'opacity-0' : ''}`}
           />
         </>
       )}
+
+      <div
+        ref={scrollContainerRef}
+        className="scrollbar-thin relative -mx-3 flex snap-x space-x-4 overflow-x-auto p-3"
+      >
+        {children}
+      </div>
     </div>
   );
 }

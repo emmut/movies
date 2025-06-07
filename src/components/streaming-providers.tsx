@@ -4,19 +4,35 @@ import { RegionSelect } from '@/components/region-select';
 import { getRegionCodes, RegionCode } from '@/lib/regions';
 import { formatImageUrl } from '@/lib/utils';
 import type { MovieWatchProviders } from '@/types/Movie';
+import type { TvWatchProviders } from '@/types/TvShow';
 import { Play, ShoppingCart, Tv } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 type StreamingProvidersProps = {
-  watchProviders: MovieWatchProviders;
-  movieId: number;
+  watchProviders: MovieWatchProviders | TvWatchProviders;
+  resourceId: number;
+  resourceType: 'movie' | 'tv';
   userRegion: RegionCode;
 };
 
+/**
+ * Displays available streaming, rental, and purchase providers for a movie or TV show by region.
+ *
+ * Renders provider options based on the selected or default region, allowing users to view where a specific movie or TV show can be streamed, rented, or purchased. If no providers are available for the chosen region, a fallback message is shown.
+ *
+ * @param watchProviders - Watch provider data for the resource, organized by region.
+ * @param resourceId - The TMDB ID of the movie or TV show.
+ * @param resourceType - The type of resource, either 'movie' or 'tv'.
+ * @param userRegion - The user's default region code.
+ *
+ * @remark
+ * Provider links open in a new tab and default to the TMDB watch page if a region-specific link is unavailable.
+ */
 export function StreamingProviders({
   watchProviders,
-  movieId,
+  resourceId,
+  resourceType,
   userRegion,
 }: StreamingProvidersProps) {
   const regions = getRegionCodes();
@@ -34,6 +50,10 @@ export function StreamingProviders({
     streamingServices.length > 0 ||
     rentalServices.length > 0 ||
     purchaseServices.length > 0;
+
+  const getDefaultWatchUrl = () => {
+    return `https://www.themoviedb.org/${resourceType}/${resourceId}/watch`;
+  };
 
   if (!hasAnyServices) {
     return (
@@ -69,10 +89,7 @@ export function StreamingProviders({
               {streamingServices.map((provider) => (
                 <a
                   key={provider.provider_id}
-                  href={
-                    regionProviders?.link ||
-                    `https://www.themoviedb.org/movie/${movieId}/watch`
-                  }
+                  href={regionProviders?.link || getDefaultWatchUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
@@ -103,10 +120,7 @@ export function StreamingProviders({
               {rentalServices.map((provider) => (
                 <a
                   key={provider.provider_id}
-                  href={
-                    regionProviders?.link ||
-                    `https://www.themoviedb.org/movie/${movieId}/watch`
-                  }
+                  href={regionProviders?.link || getDefaultWatchUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
@@ -137,10 +151,7 @@ export function StreamingProviders({
               {purchaseServices.map((provider) => (
                 <a
                   key={provider.provider_id}
-                  href={
-                    regionProviders?.link ||
-                    `https://www.themoviedb.org/movie/${movieId}/watch`
-                  }
+                  href={regionProviders?.link || getDefaultWatchUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
