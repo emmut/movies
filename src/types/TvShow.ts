@@ -49,6 +49,7 @@ export type Cast = {
   name: string;
   character: string;
   profile_path: string;
+  credit_id: string;
 };
 
 export type Crew = {
