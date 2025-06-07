@@ -10,10 +10,6 @@ export default function LoadingMovies() {
       <div className="relative -mx-4 mb-8 h-64 md:h-80 lg:h-96">
         <Skeleton className="h-full w-full" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-        <div className="absolute right-4 bottom-4 left-4">
-          <Skeleton className="mb-2 h-8 w-3/4 md:h-10 lg:h-12" />
-          <Skeleton className="h-6 w-1/2 md:h-7" />
-        </div>
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
