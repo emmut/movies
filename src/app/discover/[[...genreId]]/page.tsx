@@ -64,6 +64,7 @@ export default async function DiscoverWithGenrePage(
             <AvailableGenresNavigation
               currentGenreId={genreId}
               mediaType={mediaType}
+              searchParams={searchParams}
             />
           </Suspense>
         </div>
