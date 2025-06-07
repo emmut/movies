@@ -1,3 +1,4 @@
+import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controlls';
 import ResourceGrid from '@/components/resource-grid';
@@ -16,15 +17,16 @@ type SearchProps = {
     q?: string;
     page?: string;
     mediaType?: string;
+    sort_by?: string;
   }>;
 };
 
 /**
  * Displays the search page with results and pagination based on the provided search parameters.
  *
- * Supports searching for both movies and TV shows based on the mediaType parameter.
+ * Supports searching for both movies and TV shows based on the mediaType parameter and applying sort filters.
  *
- * @param props - Contains a promise resolving to search parameters, including optional query, page, and mediaType values.
+ * @param props - Contains a promise resolving to search parameters, including optional query, page, mediaType, and sort_by values.
  * @returns The rendered search page UI with results and pagination.
  */
 export default async function SearchPage(props: SearchProps) {
@@ -32,6 +34,7 @@ export default async function SearchPage(props: SearchProps) {
   const query = searchParams.q ?? '';
   const page = searchParams.page ?? '1';
   const mediaType = (searchParams.mediaType ?? 'movie') as MediaType;
+  const sortBy = searchParams.sort_by;
 
   let totalPages = 0;
 
@@ -39,13 +42,15 @@ export default async function SearchPage(props: SearchProps) {
     if (mediaType === 'tv') {
       const { totalPages: tvTotalPages } = await fetchTvShowsBySearchQuery(
         query,
-        page
+        page,
+        sortBy
       );
       totalPages = tvTotalPages;
     } else {
       const { totalPages: movieTotalPages } = await fetchMoviesBySearchQuery(
         query,
-        page
+        page,
+        sortBy
       );
       totalPages = movieTotalPages;
     }
@@ -58,12 +63,17 @@ export default async function SearchPage(props: SearchProps) {
         <MediaTypeSelector currentMediaType={mediaType} />
       </div>
 
+      <div className="mb-6">
+        <FiltersPanel mediaType={mediaType} />
+      </div>
+
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         <Suspense fallback={<ResourceGrid.Skeletons />}>
           <SearchResults
             searchQuery={query}
             currentPage={page}
             mediaType={mediaType}
+            sortBy={sortBy}
           />
         </Suspense>
       </div>

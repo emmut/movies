@@ -129,23 +129,37 @@ export async function getTvShowWatchProviders(tvId: number) {
  *
  * @param genreId - The genre ID to filter TV shows by. Use 0 to include all genres.
  * @param page - The page number to retrieve (default is 1).
+ * @param sortBy - The sort order for the TV shows.
+ * @param watchProviders - The watch provider to filter TV shows by.
+ * @param watchRegion - The region to filter watch providers by.
  * @returns An object containing the list of TV shows and the total number of pages (capped at 500).
  *
  * @throws {Error} If the TV show discovery data cannot be loaded from the API.
  */
-export async function fetchDiscoverTvShows(genreId: number, page: number = 1) {
+export async function fetchDiscoverTvShows(
+  genreId: number,
+  page: number = 1,
+  sortBy?: string,
+  watchProviders?: string,
+  watchRegion?: string
+) {
   'use cache';
   cacheTag('discover');
   cacheLife('minutes');
 
   const url = new URL('https://api.themoviedb.org/3/discover/tv');
   url.searchParams.set('page', String(page));
-  url.searchParams.set('sort_by', 'popularity.desc');
+  url.searchParams.set('sort_by', sortBy || 'popularity.desc');
   url.searchParams.set('region', DEFAULT_REGION);
   url.searchParams.set('include_adult', 'false');
 
   if (genreId !== 0) {
     url.searchParams.set('with_genres', String(genreId));
+  }
+
+  if (watchProviders && watchRegion) {
+    url.searchParams.set('with_watch_providers', watchProviders);
+    url.searchParams.set('watch_region', watchRegion);
   }
 
   const res = await fetch(url, {

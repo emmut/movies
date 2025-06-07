@@ -66,20 +66,31 @@ export async function fetchAvailableGenres() {
   return movies.genres;
 }
 
-export async function fetchDiscoverMovies(genreId: number, page: number = 1) {
+export async function fetchDiscoverMovies(
+  genreId: number,
+  page: number = 1,
+  sortBy?: string,
+  watchProviders?: string,
+  watchRegion?: string
+) {
   'use cache';
   cacheTag('discover');
   cacheLife('minutes');
 
   const url = new URL('https://api.themoviedb.org/3/discover/movie');
   url.searchParams.set('page', String(page));
-  url.searchParams.set('sort_by', 'popularity.desc');
+  url.searchParams.set('sort_by', sortBy || 'popularity.desc');
   url.searchParams.set('region', DEFAULT_REGION);
   url.searchParams.set('include_adult', 'false');
   url.searchParams.set('include_video', 'false');
 
   if (genreId !== 0) {
     url.searchParams.set('with_genres', String(genreId));
+  }
+
+  if (watchProviders && watchRegion) {
+    url.searchParams.set('with_watch_providers', watchProviders);
+    url.searchParams.set('watch_region', watchRegion);
   }
 
   const res = await fetch(url, {

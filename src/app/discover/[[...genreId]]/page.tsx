@@ -1,5 +1,6 @@
 import AvailableGenresNavigation from '@/components/available-genre-navigation';
 import DiscoverGrid from '@/components/discover-grid';
+import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
 import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
@@ -13,15 +14,18 @@ type DiscoverWithGenreParams = {
     page?: string;
     genreId?: string;
     mediaType?: string;
+    sort_by?: string;
+    with_watch_providers?: string;
+    watch_region?: string;
   }>;
 };
 
 /**
- * Renders a media discovery page filtered by genre, page number, and media type.
+ * Renders a media discovery page filtered by genre, page number, media type, and other filters.
  *
- * Displays navigation for genres and media types, a grid of movies or TV shows based on the selected filters, and pagination controls. Loading states are handled using React Suspense with appropriate skeleton or spinner fallbacks.
+ * Displays navigation for genres and media types, filter controls, a grid of movies or TV shows based on the selected filters, and pagination controls. Loading states are handled using React Suspense with appropriate skeleton or spinner fallbacks.
  *
- * @param props - Contains a `searchParams` promise with optional `genreId`, `page`, and `mediaType` parameters.
+ * @param props - Contains a `searchParams` promise with optional filter parameters.
  */
 export default async function DiscoverWithGenrePage(
   props: DiscoverWithGenreParams
@@ -37,6 +41,9 @@ export default async function DiscoverWithGenrePage(
 
   const page = Number(searchParams.page ?? '1');
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
+  const sortBy = searchParams.sort_by;
+  const watchProviders = searchParams.with_watch_providers;
+  const watchRegion = searchParams.watch_region;
 
   return (
     <>
@@ -61,6 +68,10 @@ export default async function DiscoverWithGenrePage(
         <MediaTypeSelector currentMediaType={mediaType} />
       </div>
 
+      <div className="mt-6">
+        <FiltersPanel mediaType={mediaType} />
+      </div>
+
       <div
         id="content-container"
         tabIndex={0}
@@ -71,6 +82,9 @@ export default async function DiscoverWithGenrePage(
             currentGenreId={genreId}
             currentPage={page}
             mediaType={mediaType}
+            sortBy={sortBy}
+            watchProviders={watchProviders}
+            watchRegion={watchRegion}
           />
         </Suspense>
       </div>
@@ -80,6 +94,9 @@ export default async function DiscoverWithGenrePage(
           currentGenreId={genreId}
           currentPage={page}
           mediaType={mediaType}
+          sortBy={sortBy}
+          watchProviders={watchProviders}
+          watchRegion={watchRegion}
         />
       </Suspense>
     </>

@@ -6,27 +6,48 @@ type DiscoverGridProps = {
   currentGenreId: number;
   currentPage: number;
   mediaType: 'movie' | 'tv';
+  sortBy?: string;
+  watchProviders?: string;
+  watchRegion?: string;
 };
 
 /**
- * Displays a grid of movies or TV shows based on the selected genre, page, and media type.
+ * Displays a grid of movies or TV shows based on the selected filters.
  *
- * Fetches data based on the media type and renders a ResourceGrid with the results.
+ * Fetches data based on the media type and applied filters, then renders a ResourceGrid with the results.
  *
  * @param currentGenreId - The ID of the genre to filter by.
  * @param currentPage - The page number of results to display.
  * @param mediaType - Whether to show movies or TV shows.
+ * @param sortBy - The sort order for the results.
+ * @param watchProviders - Comma-separated list of watch provider IDs.
+ * @param watchRegion - The region code for watch providers.
  */
 export default async function DiscoverGrid({
   currentGenreId,
   currentPage,
   mediaType,
+  sortBy,
+  watchProviders,
+  watchRegion,
 }: DiscoverGridProps) {
   if (mediaType === 'tv') {
-    const { tvShows } = await fetchDiscoverTvShows(currentGenreId, currentPage);
+    const { tvShows } = await fetchDiscoverTvShows(
+      currentGenreId,
+      currentPage,
+      sortBy,
+      watchProviders,
+      watchRegion
+    );
     return <ResourceGrid resources={tvShows} type="tv" />;
   }
 
-  const { movies } = await fetchDiscoverMovies(currentGenreId, currentPage);
+  const { movies } = await fetchDiscoverMovies(
+    currentGenreId,
+    currentPage,
+    sortBy,
+    watchProviders,
+    watchRegion
+  );
   return <ResourceGrid resources={movies} type="movie" />;
 }
