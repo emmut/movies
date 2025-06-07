@@ -1,4 +1,4 @@
-import MovieCard from '@/components/movie-card';
+import ResourceCard from '@/components/resource-card';
 import { getUser } from '@/lib/auth-server';
 import { fetchNowPlayingMovies, fetchUserNowPlayingMovies } from '@/lib/movies';
 
@@ -8,5 +8,7 @@ export default async function NowPlayingMovies() {
     ? await fetchUserNowPlayingMovies()
     : await fetchNowPlayingMovies();
 
-  return movies.map((movie) => <MovieCard key={movie.id} movie={movie} />);
+  return movies.map((movie) => (
+    <ResourceCard key={movie.id} resource={movie} type="movie" />
+  ));
 }

@@ -1,4 +1,4 @@
-import MovieCard from '@/components/movie-card';
+import ResourceCard from '@/components/resource-card';
 import { env } from '@/env';
 import { MovieResponse } from '@/types/Movie';
 
@@ -27,8 +27,10 @@ async function fetchTopRatedMovies() {
   return movies.results;
 }
 
-export default async function TopRatedMovies() {
+export default async function TopRated() {
   const movies = await fetchTopRatedMovies();
 
-  return movies.map((movie) => <MovieCard key={movie.id} movie={movie} />);
+  return movies.map((movie) => (
+    <ResourceCard key={movie.id} resource={movie} type="movie" />
+  ));
 }

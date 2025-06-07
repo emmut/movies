@@ -1,5 +1,5 @@
 import { fetchDiscoverMovies } from '@/lib/movies';
-import MovieCard from './movie-card';
+import ResourceCard from './resource-card';
 
 type MoviesProps = {
   currentGenreId: number;
@@ -12,7 +12,7 @@ export async function Movies({ currentGenreId, currentPage }: MoviesProps) {
   return (
     <>
       {movies.map((movie) => (
-        <MovieCard key={movie.id} movie={movie} />
+        <ResourceCard key={movie.id} resource={movie} type="movie" />
       ))}
       {movies.length === 0 && (
         <p className="col-span-full text-center">No movies was found</p>
@@ -21,14 +21,16 @@ export async function Movies({ currentGenreId, currentPage }: MoviesProps) {
   );
 }
 
-Movies.Skeletons = function Ghosts() {
+function MoviesSkeletons() {
   return (
     <>
-      {[...Array(20)].map((_, i) => (
-        <MovieCard.Skeleton key={i} />
+      {Array.from({ length: 20 }).map((_, index) => (
+        <ResourceCard.Skeleton key={index} />
       ))}
     </>
   );
-};
+}
+
+Movies.Skeletons = MoviesSkeletons;
 
 export default Movies;
