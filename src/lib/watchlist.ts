@@ -33,11 +33,11 @@ export async function getUserWatchlist() {
 }
 
 /**
- * Determines whether a specific movie is present in the authenticated user's watchlist.
+ * Checks if a specific resource is present in the authenticated user's watchlist.
  *
- * @param resourceId - The ID of the resource to check (as string, will be converted to number).
- * @param resourceType - The type of resource to check.
- * @returns `true` if the movie is in the user's watchlist; otherwise, `false`.
+ * @param resourceId - The unique identifier of the resource to check.
+ * @param resourceType - The type of resource (e.g., 'movie', 'tv').
+ * @returns `true` if the resource is in the user's watchlist; otherwise, `false`.
  */
 export async function isResourceInWatchlist(
   resourceId: number,
@@ -73,10 +73,11 @@ export async function isResourceInWatchlist(
 }
 
 /**
- * Retrieves the authenticated user's watchlist entries, each augmented with detailed movie information.
+ * Retrieves the authenticated user's watchlist entries of a specified resource type, each augmented with detailed information.
  *
- * For each movie in the user's watchlist, fetches additional details and returns only those entries where movie details were successfully retrieved.
+ * For each watchlist entry matching the given {@link resourceType}, fetches detailed data (movie or TV show) and returns only those entries where details were successfully retrieved.
  *
+ * @param resourceType - The type of resource to include ('movie' or 'tv').
  * @returns An array of watchlist items, each including a `resource` property with detailed information.
  */
 export async function getWatchlistWithResourceDetails(resourceType: string) {

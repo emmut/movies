@@ -7,6 +7,13 @@ type ItemSliderProps = {
   children: ReactNode;
 };
 
+/**
+ * Provides a horizontally scrollable container with optional left and right navigation arrows.
+ *
+ * Displays navigation arrows when the content overflows horizontally, allowing users to scroll by clicking the arrows. Arrow visibility and interactivity adapt to device capabilities and current scroll position.
+ *
+ * @param children - The elements to display inside the scrollable slider.
+ */
 export function ItemSlider({ children }: ItemSliderProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);

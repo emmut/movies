@@ -1,3 +1,8 @@
+/**
+ * Displays a full-page loading skeleton UI for a TV show detail page.
+ *
+ * Renders a visually rich set of animated placeholder elements that mimic the layout of a TV show detail view, including header, image, metadata, tags, descriptions, cast or crew lists, and related content sections. All elements use pulsing animations and neutral backgrounds to indicate loading state. No props, state, or logic are used.
+ */
 export default function Loading() {
   return (
     <div className="min-h-screen">

@@ -34,7 +34,7 @@ type MoviePageProps = {
 const RESOURCE_TYPE = 'movie';
 
 /**
- * Renders a detailed page for a specific movie, displaying its information, cast, genres, statistics, streaming providers, and external links.
+ * Server component that renders a detailed page for a specific movie, including its information, cast, genres, statistics, streaming providers, and external links.
  *
  * @param props - Contains a promise resolving to route parameters, including the movie ID.
  * @returns The server-rendered React component for the movie detail page.

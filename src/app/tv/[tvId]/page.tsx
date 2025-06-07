@@ -25,6 +25,13 @@ type TvShowPageProps = {
 
 const RESOURCE_TYPE = 'tv';
 
+/**
+ * Renders a detailed TV show page with metadata, cast, creators, streaming providers, and interactive controls.
+ *
+ * Fetches and displays information about a TV show based on the provided TV show ID, including images, overview, genres, ratings, seasons, episodes, networks, creators, and cast. Shows streaming providers available in the user's region and allows authenticated users to manage their watchlist. Provides external links to TMDB and the official website if available.
+ *
+ * @param props - Contains a promise resolving to route parameters with the TV show ID.
+ */
 export default async function TvShowPage(props: TvShowPageProps) {
   const params = await props.params;
   const tvId = Number(params.tvId);

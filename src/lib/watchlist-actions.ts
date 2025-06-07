@@ -24,6 +24,17 @@ type AddToWatchlistParams = {
   resourceType: string;
 };
 
+/**
+ * Adds a resource to the authenticated user's watchlist.
+ *
+ * Validates the resource ID and type, ensures the user is authenticated, and prevents duplicate entries in the watchlist. Updates the cache for both the watchlist and the specific resource page upon successful addition.
+ *
+ * @param resourceId - The unique identifier of the resource to add.
+ * @param resourceType - The type of the resource (e.g., "movie", "show").
+ * @returns An object indicating success.
+ *
+ * @throws {Error} If the resource is already in the user's watchlist or if the operation fails.
+ */
 export async function addToWatchlist({
   resourceId,
   resourceType,
@@ -89,6 +100,16 @@ type RemoveFromWatchlistParams = {
   resourceType: string;
 };
 
+/**
+ * Removes a resource from the authenticated user's watchlist.
+ *
+ * @param resourceId - The unique identifier of the resource to remove.
+ * @param resourceType - The type of the resource (e.g., movie, show).
+ * @returns An object indicating successful removal.
+ *
+ * @throws {Error} If the removal operation fails.
+ * @remark Redirects to the login page if no authenticated user is found.
+ */
 export async function removeFromWatchlist({
   resourceId,
   resourceType,
@@ -142,6 +163,18 @@ type ToggleWatchlistParams = {
   resourceType: string;
 };
 
+/**
+ * Adds or removes a resource from the authenticated user's watchlist, toggling its presence.
+ *
+ * If the resource is already in the user's watchlist, it is removed; otherwise, it is added. The function revalidates the cache for both the resource page and the watchlist page after the operation.
+ *
+ * @param resourceId - The unique identifier of the resource to toggle.
+ * @param resourceType - The type of the resource (e.g., "movie", "show").
+ * @returns An object indicating success and the action performed: either `'added'` or `'removed'`.
+ *
+ * @throws {Error} If the operation fails due to a database error or other unexpected issue.
+ * @remark Redirects to the login page if no authenticated user is found.
+ */
 export async function toggleWatchlist({
   resourceId,
   resourceType,

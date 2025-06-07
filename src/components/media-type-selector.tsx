@@ -10,6 +10,13 @@ type MediaTypeSelectorProps = {
   currentMediaType: MediaType;
 };
 
+/**
+ * Renders a toggle component for selecting between "Movies" and "TV Shows" media types.
+ *
+ * Updates the URL query parameters and navigates to reflect the selected media type. If a genre is selected that is not valid for the new media type, it is removed from the query parameters.
+ *
+ * @param currentMediaType - The currently selected media type.
+ */
 export default function MediaTypeSelector({
   currentMediaType,
 }: MediaTypeSelectorProps) {

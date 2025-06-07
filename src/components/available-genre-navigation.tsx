@@ -8,6 +8,14 @@ type AvailableGenreProps = {
   mediaType?: 'movie' | 'tv';
 };
 
+/**
+ * Displays a navigation bar of available genres for movies or TV shows, allowing users to filter content by genre.
+ *
+ * @param currentGenreId - The currently selected genre ID, if any.
+ * @param mediaType - The type of media to display genres for; either 'movie' or 'tv'. Defaults to 'movie'.
+ *
+ * @returns A navigation element with genre filter links.
+ */
 export default async function AvailableGenresNavigation({
   currentGenreId,
   mediaType = 'movie',
@@ -51,6 +59,9 @@ export default async function AvailableGenresNavigation({
   );
 }
 
+/**
+ * Displays a skeleton navigation UI with placeholder genre pills to indicate loading state.
+ */
 function AvailableGenresNavigationSkeleton() {
   return (
     <nav>
