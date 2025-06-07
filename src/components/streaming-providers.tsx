@@ -161,8 +161,25 @@ export function StreamingProviders({
           </div>
         )}
 
-        <div className="text-center text-xs text-zinc-500 sm:text-left">
-          Data tillhandahålls av JustWatch
+        <div className="flex items-center justify-center gap-2 rounded-lg bg-zinc-800/50 p-3 text-center text-sm text-zinc-400 sm:justify-start">
+          <span>Powered by</span>
+          <a
+            href="https://www.justwatch.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-zinc-300 underline transition-colors hover:text-white"
+          >
+            JustWatch
+          </a>
+          <span>via</span>
+          <a
+            href="https://www.themoviedb.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-zinc-300 underline transition-colors hover:text-white"
+          >
+            TMDB API
+          </a>
         </div>
       </div>
     </div>
