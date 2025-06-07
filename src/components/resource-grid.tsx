@@ -30,16 +30,22 @@ export function ResourceGrid({ resources, type }: ResourceGridProps) {
   );
 }
 
+type ResourceGridSkeletonsProps = {
+  className?: string;
+};
+
 /**
  * Renders a set of 20 skeleton placeholder cards for resources.
  *
  * Typically used to indicate a loading state while resource data is being fetched.
+ *
+ * @param className - Optional CSS class name to apply to the skeleton cards.
  */
-function ResourceGridSkeletons() {
+function ResourceGridSkeletons({ className }: ResourceGridSkeletonsProps) {
   return (
     <>
       {Array.from({ length: 20 }).map((_, index) => (
-        <ResourceCard.Skeleton className="w-full" key={index} />
+        <ResourceCard.Skeleton className={className} key={index} />
       ))}
     </>
   );

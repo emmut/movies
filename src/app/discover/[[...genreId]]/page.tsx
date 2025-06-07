@@ -66,7 +66,7 @@ export default async function DiscoverWithGenrePage(
         tabIndex={0}
         className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <Suspense fallback={<ResourceGrid.Skeletons />}>
+        <Suspense fallback={<ResourceGrid.Skeletons className="w-full" />}>
           <DiscoverGrid
             currentGenreId={genreId}
             currentPage={page}
