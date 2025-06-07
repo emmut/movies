@@ -6,6 +6,7 @@ import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import Spinner from '@/components/spinner';
+import { getUserRegion } from '@/lib/user-actions';
 import { Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -43,7 +44,7 @@ export default async function DiscoverWithGenrePage(
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
   const sortBy = searchParams.sort_by;
   const watchProviders = searchParams.with_watch_providers;
-  const watchRegion = searchParams.watch_region;
+  const watchRegion = await getUserRegion();
 
   return (
     <>

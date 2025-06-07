@@ -93,10 +93,8 @@ export default function WatchProviderFilter() {
 
     if (providers.length > 0) {
       newSearchParams.set('with_watch_providers', providers.join('|'));
-      newSearchParams.set('watch_region', 'SE');
     } else {
       newSearchParams.delete('with_watch_providers');
-      newSearchParams.delete('watch_region');
     }
 
     newSearchParams.set('page', '1');

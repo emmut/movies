@@ -12,6 +12,7 @@ import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
 } from 'next/cache';
+import { MAJOR_STREAMING_PROVIDERS } from './config';
 
 export async function fetchTrendingMovies() {
   'use cache';
@@ -92,22 +93,7 @@ export async function fetchDiscoverMovies(
     url.searchParams.set('with_watch_providers', watchProviders);
     url.searchParams.set('watch_region', watchRegion);
   } else {
-    // When no specific providers are selected, show content from major global streaming services only
-    const majorProviders = [
-      8, // Netflix
-      337, // Disney Plus
-      119, // Amazon Prime Video
-      350, // Apple TV+
-      1899, // Max
-      15, // Hulu
-      531, // Paramount Plus
-      283, // Crunchyroll
-      11, // MUBI
-      2, // Apple TV (rentals)
-      3, // Google Play Movies
-      10, // Amazon Video (rentals)
-    ].join('|'); // Use OR logic to show content available on ANY of these major services
-
+    const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
     url.searchParams.set('with_watch_providers', majorProviders);
     url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
   }
