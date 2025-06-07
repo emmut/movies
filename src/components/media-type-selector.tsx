@@ -1,5 +1,6 @@
 'use client';
 
+import { validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
@@ -16,10 +17,24 @@ export default function MediaTypeSelector({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  function handleMediaTypeChange(mediaType: MediaType) {
+  async function handleMediaTypeChange(mediaType: MediaType) {
     const params = new URLSearchParams(searchParams);
+    const currentGenreId = params.get('genreId');
+
     params.set('mediaType', mediaType);
-    params.delete('page'); // Reset to page 1 when changing media type
+    params.delete('page');
+
+    if (currentGenreId) {
+      const genreExists = await validateGenreForMediaType(
+        currentGenreId,
+        mediaType
+      );
+
+      if (!genreExists) {
+        params.delete('genreId');
+      }
+    }
+
     router.push(`${pathname}?${params.toString()}`);
   }
 
