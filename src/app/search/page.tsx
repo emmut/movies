@@ -1,38 +1,70 @@
-import Movies from '@/components/movies';
+import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controlls';
+import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
-import { fetchMoviesBySearchQuery } from '@/lib/search';
+import {
+  fetchMoviesBySearchQuery,
+  fetchTvShowsBySearchQuery,
+} from '@/lib/search';
 import { Suspense } from 'react';
-import SearchMovies from './search-movies';
+import SearchResults from './search-results';
+
+type MediaType = 'movie' | 'tv';
 
 type SearchProps = {
   searchParams: Promise<{
     q?: string;
     page?: string;
+    mediaType?: string;
   }>;
 };
 
 /**
- * Displays the movie search page with results and pagination based on the provided search parameters.
+ * Displays the search page with results and pagination based on the provided search parameters.
  *
- * Awaits search parameters, fetches matching movies for the specified query and page, and renders the results with pagination controls.
+ * Supports searching for both movies and TV shows based on the mediaType parameter.
  *
- * @param props - Contains a promise resolving to search parameters, including optional query and page values.
- * @returns The rendered search page UI with movie results and pagination.
+ * @param props - Contains a promise resolving to search parameters, including optional query, page, and mediaType values.
+ * @returns The rendered search page UI with results and pagination.
  */
 export default async function SearchPage(props: SearchProps) {
   const searchParams = await props.searchParams;
   const query = searchParams.q ?? '';
   const page = searchParams.page ?? '1';
+  const mediaType = (searchParams.mediaType ?? 'movie') as MediaType;
 
-  const { totalPages } = await fetchMoviesBySearchQuery(query, page);
+  let totalPages = 0;
+
+  if (query) {
+    if (mediaType === 'tv') {
+      const { totalPages: tvTotalPages } = await fetchTvShowsBySearchQuery(
+        query,
+        page
+      );
+      totalPages = tvTotalPages;
+    } else {
+      const { totalPages: movieTotalPages } = await fetchMoviesBySearchQuery(
+        query,
+        page
+      );
+      totalPages = movieTotalPages;
+    }
+  }
 
   return (
     <>
-      <SectionTitle>Search</SectionTitle>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <SectionTitle>Search</SectionTitle>
+        <MediaTypeSelector currentMediaType={mediaType} />
+      </div>
+
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-        <Suspense fallback={<Movies.Skeletons />}>
-          <SearchMovies searchQuery={query} currentPage={page} />
+        <Suspense fallback={<ResourceGrid.Skeletons />}>
+          <SearchResults
+            searchQuery={query}
+            currentPage={page}
+            mediaType={mediaType}
+          />
         </Suspense>
       </div>
 

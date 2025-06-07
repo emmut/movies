@@ -1,5 +1,5 @@
 import Trending from '@/app/trending';
-import Movies from '@/components/movies';
+import ResourceGrid from '@/components/resource-grid';
 import { ItemSlider } from '@/components/ui/item-slider';
 
 export default function Loading() {
@@ -24,7 +24,7 @@ export default function Loading() {
         </div>
 
         <ItemSlider>
-          <Movies.Skeletons />
+          <ResourceGrid.Skeletons />
         </ItemSlider>
       </section>
 
@@ -35,7 +35,7 @@ export default function Loading() {
         </div>
 
         <ItemSlider>
-          <Movies.Skeletons />
+          <ResourceGrid.Skeletons />
         </ItemSlider>
       </section>
 
@@ -46,7 +46,7 @@ export default function Loading() {
         </div>
 
         <ItemSlider>
-          <Movies.Skeletons />
+          <ResourceGrid.Skeletons />
         </ItemSlider>
       </section>
     </div>

@@ -1,4 +1,4 @@
-import Movies from '@/components/movies';
+import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
 
 export default function Loading() {
@@ -13,7 +13,7 @@ export default function Loading() {
         tabIndex={0}
         className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <Movies.Skeletons />
+        <ResourceGrid.Skeletons />
       </div>
 
       <div className="mt-8 flex justify-center">

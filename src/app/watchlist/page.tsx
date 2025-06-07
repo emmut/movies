@@ -65,7 +65,7 @@ export default async function WatchlistPage(props: WatchlistPageProps) {
             )}
           </div>
 
-          {totalItems > 0 && <MediaTypeSelector currentMediaType={mediaType} />}
+          <MediaTypeSelector currentMediaType={mediaType} />
         </div>
       </div>
 
@@ -81,7 +81,7 @@ export default async function WatchlistPage(props: WatchlistPageProps) {
           </h2>
           <p className="mb-6 text-zinc-400">
             {totalItems === 0
-              ? 'Start adding movies and TV shows by clicking the star on any detail page'
+              ? `Start adding ${mediaType === 'movie' ? 'movies' : 'TV shows'} by clicking the star on any detail page`
               : `Add some ${mediaType === 'movie' ? 'movies' : 'TV shows'} to see them here`}
           </p>
           <Link

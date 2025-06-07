@@ -110,7 +110,7 @@ function ResourceCardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'group aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900',
+        'group aspect-2/3 w-[150px] flex-shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900',
         className
       )}
     >

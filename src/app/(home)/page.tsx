@@ -1,5 +1,4 @@
-import Movies from '@/components/movies';
-import TvShows from '@/components/tv-shows';
+import ResourceGrid from '@/components/resource-grid';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { Suspense } from 'react';
 import NowPlayingMovies from '../now-playing';
@@ -52,7 +51,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<Movies.Skeletons />}>
+          <Suspense fallback={<ResourceGrid.Skeletons />}>
             <NowPlayingMovies />
           </Suspense>
         </ItemSlider>
@@ -69,7 +68,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<TvShows.Skeletons />}>
+          <Suspense fallback={<ResourceGrid.Skeletons />}>
             <OnTheAirTvShows />
           </Suspense>
         </ItemSlider>
@@ -86,7 +85,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<Movies.Skeletons />}>
+          <Suspense fallback={<ResourceGrid.Skeletons />}>
             <UpcomingMovies />
           </Suspense>
         </ItemSlider>
@@ -103,7 +102,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<TvShows.Skeletons />}>
+          <Suspense fallback={<ResourceGrid.Skeletons />}>
             <PopularTvShows />
           </Suspense>
         </ItemSlider>
@@ -120,7 +119,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<Movies.Skeletons />}>
+          <Suspense fallback={<ResourceGrid.Skeletons />}>
             <TopRatedMovies />
           </Suspense>
         </ItemSlider>
@@ -137,7 +136,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<TvShows.Skeletons />}>
+          <Suspense fallback={<ResourceGrid.Skeletons />}>
             <TopRatedTvShows />
           </Suspense>
         </ItemSlider>

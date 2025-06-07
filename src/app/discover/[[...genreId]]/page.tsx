@@ -1,10 +1,10 @@
 import AvailableGenresNavigation from '@/components/available-genre-navigation';
+import DiscoverGrid from '@/components/discover-grid';
 import MediaTypeSelector from '@/components/media-type-selector';
-import Movies from '@/components/movies';
+import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import Spinner from '@/components/spinner';
-import TvShows from '@/components/tv-shows';
 import { Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -66,16 +66,12 @@ export default async function DiscoverWithGenrePage(
         tabIndex={0}
         className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <Suspense
-          fallback={
-            mediaType === 'movie' ? <Movies.Skeletons /> : <TvShows.Skeletons />
-          }
-        >
-          {mediaType === 'movie' ? (
-            <Movies currentGenreId={genreId} currentPage={page} />
-          ) : (
-            <TvShows currentGenreId={genreId} currentPage={page} />
-          )}
+        <Suspense fallback={<ResourceGrid.Skeletons />}>
+          <DiscoverGrid
+            currentGenreId={genreId}
+            currentPage={page}
+            mediaType={mediaType}
+          />
         </Suspense>
       </div>
 
