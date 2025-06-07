@@ -1,3 +1,4 @@
+import Badge from '@/components/badge';
 import { fetchTrendingMovies } from '@/lib/movies';
 import { fetchTrendingTvShows } from '@/lib/tv-shows';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
@@ -30,14 +31,14 @@ async function Trending({ index, type }: TrendingCardProp) {
     type === 'movie' ? `/movie/${resource.id}` : `/tv/${resource.id}`;
 
   const borderColor =
-    type === 'tv'
+    type === 'movie'
       ? 'border-yellow-400/30 hover:border-yellow-300'
       : 'border-red-500/30 hover:border-red-500';
 
   return (
     <Link
       href={href}
-      className={`relative h-52 overflow-hidden rounded-xl border ${borderColor} transition-all hover:scale-[1.02] lg:h-72 lg:flex-1`}
+      className={`group relative h-52 overflow-hidden rounded-xl border ${borderColor} transition-all hover:scale-[1.02] focus:scale-[1.02] focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none lg:h-72 lg:flex-1`}
     >
       {resource.backdrop_path && (
         <Image
@@ -53,9 +54,14 @@ async function Trending({ index, type }: TrendingCardProp) {
 
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
 
+      <div className="absolute top-3 left-3 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+        <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
+          {type === 'movie' ? 'Film' : 'Serie'}
+        </Badge>
+      </div>
+
       <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col justify-center bg-zinc-950 px-3 py-2">
         <div className="flex items-center gap-2">
-          <span className="text-lg">{type === 'movie' ? '🎬' : '📺'}</span>
           <h3 className="text-md truncate font-semibold whitespace-nowrap md:text-lg">
             {title}
           </h3>

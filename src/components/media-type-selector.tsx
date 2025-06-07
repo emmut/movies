@@ -16,12 +16,12 @@ export default function MediaTypeSelector({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const handleMediaTypeChange = (mediaType: MediaType) => {
+  function handleMediaTypeChange(mediaType: MediaType) {
     const params = new URLSearchParams(searchParams);
     params.set('mediaType', mediaType);
     params.delete('page'); // Reset to page 1 when changing media type
     router.push(`${pathname}?${params.toString()}`);
-  };
+  }
 
   return (
     <div className="flex rounded-lg bg-zinc-800 p-1">

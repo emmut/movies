@@ -4,6 +4,7 @@ import { TvDetails, TvShow } from '@/types/TvShow';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Badge from './badge';
 
 type ResourceCardProps = {
   resource: Movie | MovieDetails | TvShow | TvDetails;
@@ -33,15 +34,15 @@ export default function ResourceCard({
   const emoji = type === 'movie' ? '🎬' : '📺';
 
   const borderColor =
-    type === 'tv'
-      ? 'border-yellow-400/30 hover:border-yellow-300'
-      : 'border-red-500/30 hover:border-red-500';
+    type === 'movie'
+      ? 'border-yellow-400/30 hover:border-yellow-300 focus:border-yellow-300'
+      : 'border-red-500/30 hover:border-red-500 focus:border-red-500';
 
   return (
     <Link
       href={href}
       className={cn(
-        'group aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105',
+        'group aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 focus:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
         borderColor,
         className
       )}
@@ -68,9 +69,9 @@ export default function ResourceCard({
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100" />
 
-        <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
           <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{title}</h3>
           <div className="flex items-center justify-between text-xs text-zinc-300">
             <span>{releaseYear}</span>
@@ -81,16 +82,10 @@ export default function ResourceCard({
           </div>
         </div>
 
-        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover:opacity-100">
-          <span
-            className={`rounded-full px-2 py-1 text-xs ${
-              type === 'movie'
-                ? 'bg-red-500/95 text-red-950'
-                : 'bg-yellow-500/95 text-yellow-950'
-            }`}
-          >
-            {type === 'movie' ? 'Movie' : 'TV Show'}
-          </span>
+        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+          <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
+            {type === 'movie' ? 'Film' : 'Serie'}
+          </Badge>
         </div>
       </div>
     </Link>
