@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/eslint-plugin-next": "^15.3.3",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.30",
     "@types/react": "npm:types-react@19.0.0-rc.1",
@@ -62,10 +63,11 @@
     "drizzle-kit": "^0.31.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
-    "eslint-config-prettier": "10.1.5",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "postcss-preset-env": "^10.2.1",
-    "prettier": "3.5.3",
-    "prettier-plugin-tailwindcss": "0.6.12"
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.12"
   },
   "pnpm": {
     "overrides": {
@@ -73,7 +75,13 @@
       "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1"
     },
     "onlyBuiltDependencies": [
-      "@vercel/speed-insights"
+      "@tailwindcss/oxide",
+      "@vercel/speed-insights",
+      "better-sqlite3",
+      "core-js",
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
     ]
   }
 }

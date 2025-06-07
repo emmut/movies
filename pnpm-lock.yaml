@@ -115,6 +115,9 @@ importers:
       '@eslint/eslintrc':
         specifier: ^3
         version: 3.3.1
+      '@next/eslint-plugin-next':
+        specifier: ^15.3.3
+        version: 15.3.3
       '@types/better-sqlite3':
         specifier: ^7.6.13
         version: 7.6.13
@@ -137,16 +140,19 @@ importers:
         specifier: 15.3.3
         version: 15.3.3(eslint@9.28.0(jiti@2.4.2))(typescript@5.8.3)
       eslint-config-prettier:
-        specifier: 10.1.5
+        specifier: ^10.1.5
         version: 10.1.5(eslint@9.28.0(jiti@2.4.2))
+      eslint-plugin-react-hooks:
+        specifier: ^5.2.0
+        version: 5.2.0(eslint@9.28.0(jiti@2.4.2))
       postcss-preset-env:
         specifier: ^10.2.1
         version: 10.2.1(postcss@8.5.4)
       prettier:
-        specifier: 3.5.3
+        specifier: ^3.5.3
         version: 3.5.3
       prettier-plugin-tailwindcss:
-        specifier: 0.6.12
+        specifier: ^0.6.12
         version: 0.6.12(prettier@3.5.3)
 
 packages:
