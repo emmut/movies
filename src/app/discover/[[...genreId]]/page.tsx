@@ -1,8 +1,10 @@
 import AvailableGenresNavigation from '@/components/available-genre-navigation';
+import MediaTypeSelector from '@/components/media-type-selector';
 import Movies from '@/components/movies';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import Spinner from '@/components/spinner';
+import TvShows from '@/components/tv-shows';
 import { Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -10,6 +12,7 @@ type DiscoverWithGenreParams = {
   searchParams: Promise<{
     page?: string;
     genreId?: string;
+    mediaType?: string;
   }>;
 };
 
@@ -26,35 +29,55 @@ export default async function DiscoverWithGenrePage(
   }
 
   const page = Number(searchParams.page ?? '1');
+  const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
 
   return (
     <>
       <div className="flex items-center gap-4">
         <SectionTitle>Discover</SectionTitle>
 
-        <SkipToElement elementId="movies-container">
-          Skip to movies
+        <SkipToElement elementId="content-container">
+          Skip to content
         </SkipToElement>
       </div>
 
-      <div className="relative mt-2 flex flex-wrap gap-2">
-        <Suspense fallback={<AvailableGenresNavigation.Skeleton />}>
-          <AvailableGenresNavigation currentGenreId={genreId} />
-        </Suspense>
+      <div className="relative mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 flex-wrap gap-2">
+          <Suspense fallback={<AvailableGenresNavigation.Skeleton />}>
+            <AvailableGenresNavigation
+              currentGenreId={genreId}
+              mediaType={mediaType}
+            />
+          </Suspense>
+        </div>
+
+        <MediaTypeSelector currentMediaType={mediaType} />
       </div>
 
       <div
-        id="movies-container"
+        id="content-container"
         tabIndex={0}
         className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <Suspense fallback={<Movies.Skeletons />}>
-          <Movies currentGenreId={genreId} currentPage={page} />
+        <Suspense
+          fallback={
+            mediaType === 'movie' ? <Movies.Skeletons /> : <TvShows.Skeletons />
+          }
+        >
+          {mediaType === 'movie' ? (
+            <Movies currentGenreId={genreId} currentPage={page} />
+          ) : (
+            <TvShows currentGenreId={genreId} currentPage={page} />
+          )}
         </Suspense>
       </div>
 
       <Suspense fallback={<Spinner className="mx-auto mt-8" />}>
-        <Pagination currentGenreId={genreId} currentPage={page} />
+        <Pagination
+          currentGenreId={genreId}
+          currentPage={page}
+          mediaType={mediaType}
+        />
       </Suspense>
     </>
   );

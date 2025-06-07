@@ -9,12 +9,16 @@ export default function Loading() {
         <SectionTitle>Discover</SectionTitle>
       </div>
 
-      <div className="relative mt-2 flex flex-wrap gap-2">
-        <AvailableGenresNavigation.Skeleton />
+      <div className="relative mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 flex-wrap gap-2">
+          <AvailableGenresNavigation.Skeleton />
+        </div>
+
+        <div className="h-10 w-40 animate-pulse rounded-lg bg-neutral-50/10" />
       </div>
 
       <div
-        id="movies-container"
+        id="content-container"
         tabIndex={0}
         className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >

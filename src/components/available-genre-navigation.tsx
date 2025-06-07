@@ -1,31 +1,49 @@
 import { fetchAvailableGenres } from '@/lib/movies';
+import { fetchAvailableTvGenres } from '@/lib/tv-shows';
 import Link from 'next/link';
 import Pill from './pill';
 
 type AvailableGenreProps = {
   currentGenreId?: number;
+  mediaType?: 'movie' | 'tv';
 };
 
-async function AvailableGenresNavigation({
+export default async function AvailableGenresNavigation({
   currentGenreId,
+  mediaType = 'movie',
 }: AvailableGenreProps) {
   const genreId = currentGenreId;
-  const genres = await fetchAvailableGenres();
+  const genres =
+    mediaType === 'movie'
+      ? await fetchAvailableGenres()
+      : await fetchAvailableTvGenres();
+
+  const buildDiscoverUrl = (targetGenreId?: number) => {
+    const params = new URLSearchParams();
+    if (mediaType !== 'movie') {
+      params.set('mediaType', mediaType);
+    }
+    if (targetGenreId) {
+      params.set('genreId', targetGenreId.toString());
+    }
+
+    return `/discover${params.toString() ? `?${params.toString()}` : ''}`;
+  };
 
   return (
     <nav>
       <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
         {genres.map((genre) => (
           <li key={genre.id}>
-            {genreId === genre.id ? (
-              <Link href={`/discover`}>
-                <Pill active>{genre.name}</Pill>
-              </Link>
-            ) : (
-              <Link href={`/discover?genreId=${genre.id}`}>
-                <Pill>{genre.name}</Pill>
-              </Link>
-            )}
+            <Link
+              href={
+                genreId === genre.id
+                  ? buildDiscoverUrl()
+                  : buildDiscoverUrl(genre.id)
+              }
+            >
+              <Pill active={genreId === genre.id}>{genre.name}</Pill>
+            </Link>
           </li>
         ))}
       </ul>
@@ -33,19 +51,18 @@ async function AvailableGenresNavigation({
   );
 }
 
-AvailableGenresNavigation.Skeleton =
-  function AvailableGenresNavigationSkeleton() {
-    return (
-      <nav>
-        <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
-          {[...Array(13)].map((_, i) => (
-            <li key={i}>
-              <Pill variant="skeleton">Loading...</Pill>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    );
-  };
+function AvailableGenresNavigationSkeleton() {
+  return (
+    <nav>
+      <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
+        {[...Array(13)].map((_, i) => (
+          <li key={i}>
+            <Pill variant="skeleton">Loading...</Pill>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
 
-export default AvailableGenresNavigation;
+AvailableGenresNavigation.Skeleton = AvailableGenresNavigationSkeleton;
