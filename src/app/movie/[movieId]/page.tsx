@@ -77,6 +77,15 @@ export default async function MoviePage(props: MoviePageProps) {
   } = movie;
   const score = Math.ceil(movie.vote_average * 10) / 10;
 
+  const directors = credits.crew.filter((person) => person.job === 'Director');
+  const writers = credits.crew.filter(
+    (person) =>
+      person.job === 'Writer' ||
+      person.job === 'Screenplay' ||
+      person.job === 'Story' ||
+      person.job === 'Original Story'
+  );
+
   return (
     <div className="min-h-screen">
       <div className="mb-6">
@@ -202,6 +211,64 @@ export default async function MoviePage(props: MoviePageProps) {
               {overview || 'No overview available for this movie.'}
             </p>
           </div>
+
+          {directors.length > 0 && (
+            <div>
+              <h2 className="mb-4 text-xl font-semibold">Directors</h2>
+              <div className="flex flex-wrap gap-4">
+                {directors.map((director) => (
+                  <div
+                    key={director.credit_id}
+                    className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3"
+                  >
+                    {director.profile_path ? (
+                      <Image
+                        src={formatImageUrl(director.profile_path, 185)}
+                        alt={director.name}
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-700">
+                        <Users className="h-5 w-5 text-zinc-400" />
+                      </div>
+                    )}
+                    <span className="font-medium">{director.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {writers.length > 0 && (
+            <div>
+              <h2 className="mb-4 text-xl font-semibold">Writers</h2>
+              <div className="flex flex-wrap gap-4">
+                {writers.map((writer) => (
+                  <div
+                    key={writer.credit_id}
+                    className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3"
+                  >
+                    {writer.profile_path ? (
+                      <Image
+                        src={formatImageUrl(writer.profile_path, 185)}
+                        alt={writer.name}
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-700">
+                        <Users className="h-5 w-5 text-zinc-400" />
+                      </div>
+                    )}
+                    <span className="font-medium">{writer.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">

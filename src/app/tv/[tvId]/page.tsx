@@ -291,7 +291,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                         alt={creator.name}
                         width={40}
                         height={40}
-                        className="rounded-full"
+                        className="h-10 w-10 rounded-full object-cover"
                       />
                     ) : (
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-700">
