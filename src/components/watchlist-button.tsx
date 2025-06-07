@@ -6,7 +6,8 @@ import { Star } from 'lucide-react';
 import { useOptimistic, useTransition } from 'react';
 
 interface WatchlistButtonProps {
-  movieId: number;
+  resourceId: number;
+  resourceType: string;
   isInWatchlist: boolean;
   userId?: string;
 }
@@ -23,7 +24,8 @@ interface WatchlistButtonProps {
  * @returns The watchlist toggle button, or `null` if {@link userId} is not provided.
  */
 export function WatchlistButton({
-  movieId,
+  resourceId,
+  resourceType,
   isInWatchlist,
   userId,
 }: WatchlistButtonProps) {
@@ -38,7 +40,10 @@ export function WatchlistButton({
     startTransition(async () => {
       addOptimistic((prevOptimisticInWatchlist) => !prevOptimisticInWatchlist);
       try {
-        await toggleWatchlist(movieId);
+        await toggleWatchlist({
+          resourceId,
+          resourceType,
+        });
       } catch (error) {
         console.error('Error updating watchlist:', error);
       }

@@ -31,6 +31,8 @@ type MoviePageProps = {
   }>;
 };
 
+const RESOURCE_TYPE = 'movie';
+
 /**
  * Renders a detailed page for a specific movie, displaying its information, cast, genres, statistics, streaming providers, and external links.
  *
@@ -134,7 +136,8 @@ export default async function MoviePage(props: MoviePageProps) {
                 )}
               </div>
               <WatchlistButton
-                movieId={movieId}
+                resourceId={movieId}
+                resourceType={RESOURCE_TYPE}
                 isInWatchlist={inWatchlist}
                 userId={user?.id}
               />

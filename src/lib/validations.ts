@@ -5,22 +5,26 @@ import { z } from 'zod/v4';
  * Movie IDs from TMDB are numeric but often passed as strings in URL parameters.
  * Transforms the string to a number for database storage.
  */
-export const movieIdSchema = z
-  .number()
-  .positive('Movie ID must be a positive number');
+export const resourceIdSchema = z.object({
+  resourceId: z.number().positive('Resource ID must be a positive number'),
+  resourceType: z.enum(['movie', 'tv']),
+});
 
 /**
- * Schema for validating movieId as a number directly
+ * Schema for validating resourceId as a number directly
  */
-export const movieIdNumberSchema = z
+export const resourceIdNumberSchema = z
   .number()
-  .positive('Movie ID must be a positive number');
+  .positive('Resource ID must be a positive number');
+
+export const resourceTypeSchema = z.enum(['movie', 'tv']);
 
 /**
  * Schema for movie page route parameters
  */
-export const moviePageParamsSchema = z.object({
-  movieId: movieIdSchema,
+export const resourcePageParamsSchema = z.object({
+  resourceId: resourceIdNumberSchema,
+  resourceType: resourceTypeSchema,
 });
 
-export type MoviePageParams = z.infer<typeof moviePageParamsSchema>;
+export type ResourcePageParams = z.infer<typeof resourcePageParamsSchema>;
