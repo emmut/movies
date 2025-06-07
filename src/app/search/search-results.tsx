@@ -46,7 +46,7 @@ export default async function SearchResults({
         ))}
         {tvShows.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
-            No TV shows found for "{searchQuery}"
+            No TV shows found for &ldquo;{searchQuery}&rdquo;
           </p>
         )}
       </>
@@ -62,7 +62,7 @@ export default async function SearchResults({
       ))}
       {movies.length === 0 && (
         <p className="col-span-full text-center text-zinc-400">
-          No movies found for "{searchQuery}"
+          No movies found for &ldquo;{searchQuery}&rdquo;
         </p>
       )}
     </>
