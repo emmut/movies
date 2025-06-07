@@ -47,7 +47,7 @@ export default function ResourceCard({
         className
       )}
     >
-      <div className="relative h-full">
+      <div className="relative h-full w-full">
         {resource.poster_path ? (
           <Image
             className="h-full w-full object-cover"

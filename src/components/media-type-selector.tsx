@@ -44,8 +44,8 @@ export default function MediaTypeSelector({
         onClick={() => handleMediaTypeChange('movie')}
         className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
           currentMediaType === 'movie'
-            ? 'bg-zinc-700 text-white'
-            : 'text-zinc-400 hover:text-white'
+            ? 'bg-white text-black'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
         }`}
       >
         <Film className="h-4 w-4" />
@@ -55,8 +55,8 @@ export default function MediaTypeSelector({
         onClick={() => handleMediaTypeChange('tv')}
         className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
           currentMediaType === 'tv'
-            ? 'bg-zinc-700 text-white'
-            : 'text-zinc-400 hover:text-white'
+            ? 'bg-white text-black'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
         }`}
       >
         <Tv className="h-4 w-4" />
