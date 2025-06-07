@@ -1,4 +1,3 @@
-import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controlls';
 import ResourceGrid from '@/components/resource-grid';
@@ -61,10 +60,6 @@ export default async function SearchPage(props: SearchProps) {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
         <MediaTypeSelector currentMediaType={mediaType} />
-      </div>
-
-      <div className="mb-6">
-        <FiltersPanel mediaType={mediaType} />
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">

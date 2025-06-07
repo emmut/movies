@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Check, Filter } from 'lucide-react';
+import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -15,42 +16,37 @@ const COMMON_PROVIDERS = [
   {
     provider_id: 8,
     provider_name: 'Netflix',
-    logo_path: '/9A1JSVmSxsyaBK4SUFsYVqbAYfW.jpg',
+    logo_path: '/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg',
   },
   {
     provider_id: 119,
     provider_name: 'Amazon Prime Video',
-    logo_path: '/emthp39XA2YScoYL1p0sdbAH2WA.jpg',
+    logo_path: '/pvske1MyAoymrs5bguRfVqYiM9a.jpg',
   },
   {
     provider_id: 337,
     provider_name: 'Disney Plus',
-    logo_path: '/dgPueyEdOwpQ10fjuhL2WYFQwQs.jpg',
-  },
-  {
-    provider_id: 384,
-    provider_name: 'HBO Max',
-    logo_path: '/Ajqyt5aNxNGjmF9uOfxArGrdf3X.jpg',
-  },
-  {
-    provider_id: 15,
-    provider_name: 'Hulu',
-    logo_path: '/zxrVdFjIjLqkfnwyghnfywTn3Ll.jpg',
+    logo_path: '/97yvRBw1GzX7fXprcF80er19ot.jpg',
   },
   {
     provider_id: 350,
-    provider_name: 'Apple TV Plus',
-    logo_path: '/6uhKBfmtzFqOcLousHwZuzcrScK.jpg',
+    provider_name: 'Apple TV+',
+    logo_path: '/2E03IAZsX4ZaUqM7tXlctEPMGWS.jpg',
   },
   {
     provider_id: 283,
     provider_name: 'Crunchyroll',
-    logo_path: '/sNzNd6unLvh5sKe6a1ZNcyA4Sv9.jpg',
+    logo_path: '/fzN5Jok5Ig1eJ7gyNGoMhnLSCfh.jpg',
   },
   {
     provider_id: 1899,
     provider_name: 'Max',
-    logo_path: '/cjqJZyXfxBq0aGu4H5o6vhHcW5Q.jpg',
+    logo_path: '/170ZfHTLT6ZlG38iLLpNYcBGUkG.jpg',
+  },
+  {
+    provider_id: 76,
+    provider_name: 'Viaplay',
+    logo_path: '/bnoTnLzz2MAhK3Yc6P9KXe5drIz.jpg',
   },
 ];
 
@@ -68,6 +64,7 @@ export default function WatchProviderFilter() {
 
   const [selectedProviders, setSelectedProviders] = useState<number[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [brokenImages, setBrokenImages] = useState(new Set<number>());
 
   useEffect(() => {
     const providers = searchParams.get('with_watch_providers');
@@ -102,7 +99,6 @@ export default function WatchProviderFilter() {
       newSearchParams.delete('watch_region');
     }
 
-    // Reset to first page when filters change
     newSearchParams.set('page', '1');
 
     router.push(`${pathname}?${newSearchParams.toString()}`);
@@ -113,16 +109,22 @@ export default function WatchProviderFilter() {
     updateUrl([]);
   }
 
+  function handleImageError(providerId: number) {
+    setBrokenImages((prev) => new Set([...prev, providerId]));
+  }
+
   const selectedCount = selectedProviders.length;
 
   return (
-    <div className="space-y-2">
-      <Label htmlFor="watch-providers">Watch Providers</Label>
+    <div className="flex min-w-54 flex-col gap-2">
+      <Label htmlFor="watch-providers" className="self-end">
+        Watch Providers
+      </Label>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="w-full justify-start"
+            className="w-full justify-between"
             id="watch-providers"
           >
             <Filter className="mr-2 h-4 w-4" />
@@ -131,9 +133,9 @@ export default function WatchProviderFilter() {
               : 'Select watch providers'}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-4">
+        <PopoverContent className="w-80 p-4" align="end">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex min-h-8 items-center justify-between">
               <h4 className="font-medium">Watch Providers</h4>
               {selectedCount > 0 && (
                 <Button
@@ -152,6 +154,7 @@ export default function WatchProviderFilter() {
                 const isSelected = selectedProviders.includes(
                   provider.provider_id
                 );
+                const imageError = brokenImages.has(provider.provider_id);
 
                 return (
                   <div
@@ -164,11 +167,20 @@ export default function WatchProviderFilter() {
                     }
                   >
                     <div className="flex-shrink-0">
-                      <img
-                        src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                        alt={provider.provider_name}
-                        className="h-8 w-8 rounded-md object-cover"
-                      />
+                      {imageError ? (
+                        <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold">
+                          {provider.provider_name.charAt(0).toUpperCase()}
+                        </div>
+                      ) : (
+                        <Image
+                          width={32}
+                          height={32}
+                          src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
+                          alt={provider.provider_name}
+                          className="h-8 w-8 rounded-md object-cover"
+                          onError={() => handleImageError(provider.provider_id)}
+                        />
+                      )}
                     </div>
                     <div className="flex-1 text-sm font-medium">
                       {provider.provider_name}

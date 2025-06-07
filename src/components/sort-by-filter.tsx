@@ -71,10 +71,10 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="flex min-w-54 flex-col gap-2">
       <Label className="text-sm font-medium">Sort By</Label>
       <Select value={currentSort} onValueChange={handleSortChange}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger>
           <SelectValue placeholder="Select sort option" />
         </SelectTrigger>
         <SelectContent>
