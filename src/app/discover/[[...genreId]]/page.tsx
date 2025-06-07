@@ -16,6 +16,13 @@ type DiscoverWithGenreParams = {
   }>;
 };
 
+/**
+ * Renders a media discovery page filtered by genre, page number, and media type.
+ *
+ * Displays navigation for genres and media types, a grid of movies or TV shows based on the selected filters, and pagination controls. Loading states are handled using React Suspense with appropriate skeleton or spinner fallbacks.
+ *
+ * @param props - Contains a `searchParams` promise with optional `genreId`, `page`, and `mediaType` parameters.
+ */
 export default async function DiscoverWithGenrePage(
   props: DiscoverWithGenreParams
 ) {

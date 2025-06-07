@@ -10,6 +10,13 @@ import TopRatedTvShows from '../top-rated-tv';
 import Trending from '../trending';
 import UpcomingMovies from '../upcoming';
 
+/**
+ * Renders the homepage with categorized sections for trending, popular, and top-rated movies and TV shows.
+ *
+ * Displays multiple content sections, each featuring a specific category such as trending titles, movies in theaters, currently airing TV shows, upcoming movies, popular TV shows, and top-rated movies and TV shows. Each section loads its content asynchronously and shows skeleton placeholders while loading.
+ *
+ * @returns The structured homepage layout as a React element.
+ */
 export default async function Home() {
   return (
     <div className="space-y-8">

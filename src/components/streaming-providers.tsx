@@ -16,6 +16,19 @@ type StreamingProvidersProps = {
   userRegion: RegionCode;
 };
 
+/**
+ * Displays available streaming, rental, and purchase providers for a movie or TV show by region.
+ *
+ * Renders provider options based on the selected or default region, allowing users to view where a specific movie or TV show can be streamed, rented, or purchased. If no providers are available for the chosen region, a fallback message is shown.
+ *
+ * @param watchProviders - Watch provider data for the resource, organized by region.
+ * @param resourceId - The TMDB ID of the movie or TV show.
+ * @param resourceType - The type of resource, either 'movie' or 'tv'.
+ * @param userRegion - The user's default region code.
+ *
+ * @remark
+ * Provider links open in a new tab and default to the TMDB watch page if a region-specific link is unavailable.
+ */
 export function StreamingProviders({
   watchProviders,
   resourceId,

@@ -2,6 +2,11 @@ import AvailableGenresNavigation from '@/components/available-genre-navigation';
 import Movies from '@/components/movies';
 import SectionTitle from '@/components/section-title';
 
+/**
+ * Renders a loading placeholder UI for the genre discovery page.
+ *
+ * Displays skeleton loaders for the section title, genre navigation, movies grid, and a footer indicator to visually represent loading states.
+ */
 export default function Loading() {
   return (
     <>

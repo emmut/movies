@@ -15,11 +15,12 @@ type WatchlistPageProps = {
 };
 
 /**
- * Renders the user's movie watchlist page, displaying saved movies or a prompt to explore movies if the watchlist is empty.
+ * Displays the user's watchlist page, allowing filtering between saved movies and TV shows.
  *
- * Redirects unauthenticated users to the login page.
+ * Redirects unauthenticated users to the login page. Shows a grid of saved items for the selected media type, or an empty state with a prompt to explore if no items are present.
  *
- * @returns The JSX for the watchlist page, showing either a grid of saved movies or an empty state message with a navigation link.
+ * @param props - Contains a promise resolving to search parameters, including the selected media type.
+ * @returns The JSX for the watchlist page, with dynamic content based on authentication, media type selection, and saved items.
  */
 export default async function WatchlistPage(props: WatchlistPageProps) {
   const user = await getUser();

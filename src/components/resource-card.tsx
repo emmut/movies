@@ -12,12 +12,23 @@ type ResourceCardProps = {
   className?: string;
 };
 
+/**
+ * Determines whether the given resource is a movie type.
+ *
+ * @param resource - The resource to check.
+ * @returns True if the resource is a movie or movie details; otherwise, false.
+ */
 function isMovie(
   resource: Movie | MovieDetails | TvShow | TvDetails
 ): resource is Movie | MovieDetails {
   return 'title' in resource;
 }
 
+/**
+ * Displays a card for a movie or TV show resource with poster, title, release year, and score.
+ *
+ * The card visually distinguishes between movies and TV shows, linking to the resource's detail page and showing additional information and badges on hover or focus. If no poster image is available, a fallback with an emoji and "No Poster" text is shown.
+ */
 export default function ResourceCard({
   resource,
   type,
@@ -90,6 +101,11 @@ export default function ResourceCard({
   );
 }
 
+/**
+ * Renders a skeleton placeholder for a resource card during loading states.
+ *
+ * Displays a pulsing card with placeholder blocks that mimic the layout of a movie or TV show card.
+ */
 function ResourceCardSkeleton({ className }: { className?: string }) {
   return (
     <div

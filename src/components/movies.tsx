@@ -6,6 +6,14 @@ type MoviesProps = {
   currentPage: number;
 };
 
+/**
+ * Displays a list of movies for the specified genre and page.
+ *
+ * Fetches movies based on the given genre and page, rendering a {@link ResourceCard} for each movie. If no movies are found, displays a message indicating that no movies were found.
+ *
+ * @param currentGenreId - The ID of the genre to filter movies by.
+ * @param currentPage - The page number of results to display.
+ */
 export async function Movies({ currentGenreId, currentPage }: MoviesProps) {
   const { movies } = await fetchDiscoverMovies(currentGenreId, currentPage);
 
@@ -21,6 +29,11 @@ export async function Movies({ currentGenreId, currentPage }: MoviesProps) {
   );
 }
 
+/**
+ * Renders a set of 20 skeleton placeholders for movie resource cards.
+ *
+ * Typically used to indicate loading state while movie data is being fetched.
+ */
 function MoviesSkeletons() {
   return (
     <>

@@ -202,6 +202,13 @@ export async function fetchUserNowPlayingMovies() {
   return movies.results;
 }
 
+/**
+ * Fetches upcoming movies for the user's region, excluding movies that are currently playing.
+ *
+ * @returns An array of upcoming movies not currently in theaters for the user's region.
+ *
+ * @throws {Error} If the upcoming movies request fails.
+ */
 export async function fetchUserUpcomingMovies() {
   const userRegion = await getUserRegionWithFallback();
 
@@ -232,6 +239,14 @@ export async function fetchUserUpcomingMovies() {
   return filteredUpcomingMovies;
 }
 
+/**
+ * Retrieves detailed information for a specific movie from TMDb.
+ *
+ * @param resourceId - The unique identifier of the movie to fetch details for.
+ * @returns The detailed movie data.
+ *
+ * @throws {Error} If the movie details cannot be loaded from TMDb.
+ */
 export async function getMovieDetails(resourceId: number) {
   'use cache';
   cacheTag('movie-details');

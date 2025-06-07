@@ -10,6 +10,16 @@ type TrendingCardProp = {
   type: 'movie' | 'tv';
 };
 
+/**
+ * Displays a trending movie or TV show card with image, title, release year, and type badge.
+ *
+ * Fetches trending resources based on the specified {@link type} and displays the resource at the given {@link index} as a styled card. Returns `null` if the index is out of bounds.
+ *
+ * @param index - The position of the trending resource to display.
+ * @param type - The type of resource to display: `'movie'` or `'tv'`.
+ *
+ * @returns A React element representing the trending card, or `null` if the index is invalid.
+ */
 async function Trending({ index, type }: TrendingCardProp) {
   const resources =
     type === 'movie'

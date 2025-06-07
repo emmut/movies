@@ -6,6 +6,14 @@ type TvShowsProps = {
   currentPage: number;
 };
 
+/**
+ * Displays a list of TV shows based on the selected genre and page.
+ *
+ * Fetches TV show data asynchronously and renders a `ResourceCard` for each show. If no TV shows are found, displays a message indicating this.
+ *
+ * @param currentGenreId - The genre ID to filter TV shows.
+ * @param currentPage - The page number for pagination.
+ */
 export async function TvShows({ currentGenreId, currentPage }: TvShowsProps) {
   const { tvShows } = await fetchDiscoverTvShows(currentGenreId, currentPage);
 
@@ -21,6 +29,11 @@ export async function TvShows({ currentGenreId, currentPage }: TvShowsProps) {
   );
 }
 
+/**
+ * Renders a set of 20 skeleton placeholder cards for TV shows.
+ *
+ * Typically used to indicate a loading state while TV show data is being fetched.
+ */
 function TvShowsSkeletons() {
   return (
     <>

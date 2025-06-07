@@ -22,6 +22,15 @@ type BadgeProps = {
   className?: string;
 } & VariantProps<typeof badgeVariants>;
 
+/**
+ * Renders a styled badge element with customizable color variants.
+ *
+ * @param children - The content to display inside the badge.
+ * @param variant - The color variant of the badge. Defaults to "yellow" if not specified.
+ * @param className - Additional CSS classes to apply to the badge.
+ *
+ * @returns A <span> element styled as a badge containing the provided {@link children}.
+ */
 export default function Badge({ children, variant, className }: BadgeProps) {
   return (
     <span className={cn(badgeVariants({ variant }), className)}>

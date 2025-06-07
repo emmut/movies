@@ -12,6 +12,14 @@ type SearchProps = {
   }>;
 };
 
+/**
+ * Displays the movie search page with results and pagination based on the provided search parameters.
+ *
+ * Awaits search parameters, fetches matching movies for the specified query and page, and renders the results with pagination controls.
+ *
+ * @param props - Contains a promise resolving to search parameters, including optional query and page values.
+ * @returns The rendered search page UI with movie results and pagination.
+ */
 export default async function SearchPage(props: SearchProps) {
   const searchParams = await props.searchParams;
   const query = searchParams.q ?? '';
