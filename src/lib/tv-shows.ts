@@ -38,7 +38,7 @@ async function getUserRegionWithFallback(): Promise<string> {
  */
 export async function getTvShowDetails(resourceId: number) {
   'use cache';
-  cacheTag('movie-details');
+  cacheTag('tv-details');
   cacheLife('minutes');
 
   const res = await fetch(`https://api.themoviedb.org/3/tv/${resourceId}`, {
@@ -49,7 +49,7 @@ export async function getTvShowDetails(resourceId: number) {
   });
 
   if (!res.ok) {
-    throw new Error('Failed loading movie details');
+    throw new Error('Failed loading TV show details');
   }
 
   const tvShow: TvDetails = await res.json();
