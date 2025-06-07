@@ -242,17 +242,17 @@ export async function fetchUserUpcomingMovies() {
 /**
  * Retrieves detailed information for a specific movie from TMDb.
  *
- * @param resourceId - The unique identifier of the movie to fetch details for.
+ * @param movieId - The unique identifier of the movie to fetch details for.
  * @returns The detailed movie data.
  *
  * @throws {Error} If the movie details cannot be loaded from TMDb.
  */
-export async function getMovieDetails(resourceId: number) {
+export async function getMovieDetails(movieId: number) {
   'use cache';
   cacheTag('movie-details');
   cacheLife('minutes');
 
-  const res = await fetch(`https://api.themoviedb.org/3/movie/${resourceId}`, {
+  const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',

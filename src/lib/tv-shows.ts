@@ -31,17 +31,17 @@ async function getUserRegionWithFallback(): Promise<string> {
 /**
  * Retrieves detailed information for a TV show by its TMDb ID.
  *
- * @param resourceId - The TMDb ID of the TV show.
+ * @param tvId - The TMDb ID of the TV show.
  * @returns The detailed information for the specified TV show.
  *
  * @throws {Error} If the TV show details cannot be loaded from the API.
  */
-export async function getTvShowDetails(resourceId: number) {
+export async function getTvShowDetails(tvId: number) {
   'use cache';
   cacheTag('tv-details');
   cacheLife('minutes');
 
-  const res = await fetch(`https://api.themoviedb.org/3/tv/${resourceId}`, {
+  const res = await fetch(`https://api.themoviedb.org/3/tv/${tvId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
