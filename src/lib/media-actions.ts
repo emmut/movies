@@ -16,6 +16,6 @@ export async function validateGenreForMediaType(
     return availableGenres.some((genre) => genre.id.toString() === genreId);
   } catch (error) {
     console.warn('Failed to validate genre for media type:', error);
-    return true; // Return true on error to keep existing genre
+    return true;
   }
 }
