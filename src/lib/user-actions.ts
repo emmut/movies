@@ -10,6 +10,7 @@ import {
   RegionCode,
   regionSchema,
 } from '@/lib/regions';
+import { WatchProvider } from '@/types/WatchProvider';
 import { eq } from 'drizzle-orm';
 import {
   unstable_cacheLife as cacheLife,
@@ -17,16 +18,12 @@ import {
   revalidatePath,
 } from 'next/cache';
 
-interface WatchProvider {
-  provider_id: number;
-  provider_name: string;
-  logo_path: string;
-  display_priority: number;
-}
-
-interface WatchProvidersResponse {
+type WatchProvidersResponse = {
   results: WatchProvider[];
-}
+};
+
+const MAX_DISPLAY_PRIORITY = 20;
+const MAX_PROVIDERS = 12;
 
 export async function getUserRegion() {
   const session = await getSession();
@@ -98,9 +95,9 @@ async function fetchWatchProvidersForRegion(region: string) {
   const data: WatchProvidersResponse = await res.json();
 
   const topProviders = data.results
-    .filter((provider) => provider.display_priority <= 20)
+    .filter((provider) => provider.display_priority <= MAX_DISPLAY_PRIORITY)
     .sort((a, b) => a.display_priority - b.display_priority)
-    .slice(0, 12);
+    .slice(0, MAX_PROVIDERS);
 
   return topProviders;
 }
