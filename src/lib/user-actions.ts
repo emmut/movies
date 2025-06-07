@@ -1,6 +1,7 @@
 'use server';
 
 import { user } from '@/db/schema';
+import { env } from '@/env';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import {
@@ -10,7 +11,22 @@ import {
   regionSchema,
 } from '@/lib/regions';
 import { eq } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
+import {
+  unstable_cacheLife as cacheLife,
+  unstable_cacheTag as cacheTag,
+  revalidatePath,
+} from 'next/cache';
+
+interface WatchProvider {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+  display_priority: number;
+}
+
+interface WatchProvidersResponse {
+  results: WatchProvider[];
+}
 
 export async function getUserRegion() {
   const session = await getSession();
@@ -58,4 +74,38 @@ export async function updateUserRegion(region: string) {
   revalidatePath('/');
 
   return { success: true, region: validatedRegion };
+}
+
+async function fetchWatchProvidersForRegion(region: string) {
+  'use cache';
+  cacheTag('watch-providers');
+  cacheLife('days');
+
+  const res = await fetch(
+    `https://api.themoviedb.org/3/watch/providers/movie?watch_region=${region}`,
+    {
+      headers: {
+        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+        accept: 'application/json',
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch watch providers');
+  }
+
+  const data: WatchProvidersResponse = await res.json();
+
+  const topProviders = data.results
+    .filter((provider) => provider.display_priority <= 20)
+    .sort((a, b) => a.display_priority - b.display_priority)
+    .slice(0, 12);
+
+  return topProviders;
+}
+
+export async function getWatchProviders(region?: string) {
+  const userRegion = region || (await getUserRegion());
+  return await fetchWatchProvidersForRegion(userRegion);
 }

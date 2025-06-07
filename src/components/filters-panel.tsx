@@ -1,8 +1,11 @@
+import { WatchProvider } from '@/types/Movie';
 import SortByFilter from './sort-by-filter';
 import WatchProviderFilter from './watch-provider-filter';
 
 type FiltersPanelProps = {
   mediaType: 'movie' | 'tv';
+  watchProviders: WatchProvider[];
+  userRegion: string;
 };
 
 /**
@@ -11,13 +14,22 @@ type FiltersPanelProps = {
  * Combines sorting, watch provider, and other filter options in a responsive layout.
  *
  * @param mediaType - Whether to show movie or TV filters.
+ * @param watchProviders - Available watch providers for the user's region.
+ * @param userRegion - The user's region code.
  */
-export default function FiltersPanel({ mediaType }: FiltersPanelProps) {
+export default function FiltersPanel({
+  mediaType,
+  watchProviders,
+  userRegion,
+}: FiltersPanelProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <SortByFilter mediaType={mediaType} />
-        <WatchProviderFilter />
+        <WatchProviderFilter
+          providers={watchProviders}
+          userRegion={userRegion}
+        />
       </div>
     </div>
   );

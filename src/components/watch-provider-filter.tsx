@@ -7,48 +7,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { WatchProvider } from '@/types/Movie';
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-const COMMON_PROVIDERS = [
-  {
-    provider_id: 8,
-    provider_name: 'Netflix',
-    logo_path: '/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg',
-  },
-  {
-    provider_id: 119,
-    provider_name: 'Amazon Prime Video',
-    logo_path: '/pvske1MyAoymrs5bguRfVqYiM9a.jpg',
-  },
-  {
-    provider_id: 337,
-    provider_name: 'Disney Plus',
-    logo_path: '/97yvRBw1GzX7fXprcF80er19ot.jpg',
-  },
-  {
-    provider_id: 350,
-    provider_name: 'Apple TV+',
-    logo_path: '/2E03IAZsX4ZaUqM7tXlctEPMGWS.jpg',
-  },
-  {
-    provider_id: 283,
-    provider_name: 'Crunchyroll',
-    logo_path: '/fzN5Jok5Ig1eJ7gyNGoMhnLSCfh.jpg',
-  },
-  {
-    provider_id: 1899,
-    provider_name: 'Max',
-    logo_path: '/170ZfHTLT6ZlG38iLLpNYcBGUkG.jpg',
-  },
-  {
-    provider_id: 76,
-    provider_name: 'Viaplay',
-    logo_path: '/bnoTnLzz2MAhK3Yc6P9KXe5drIz.jpg',
-  },
-];
+interface WatchProviderFilterProps {
+  providers: WatchProvider[];
+  userRegion: string;
+}
 
 /**
  * Renders a popover filter for selecting streaming service providers.
@@ -57,7 +25,10 @@ const COMMON_PROVIDERS = [
  * Uses OR logic - shows content available on ANY of the selected providers.
  * The selected providers are applied to URL query parameters for filtering results.
  */
-export default function WatchProviderFilter() {
+export default function WatchProviderFilter({
+  providers,
+  userRegion,
+}: WatchProviderFilterProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,12 +38,12 @@ export default function WatchProviderFilter() {
   const [brokenImages, setBrokenImages] = useState(new Set<number>());
 
   useEffect(() => {
-    const providers = searchParams.get('with_watch_providers');
-    if (providers) {
+    const providersParam = searchParams.get('with_watch_providers');
+    if (providersParam) {
       // Handle both comma (AND) and pipe (OR) separators
-      const separator = providers.includes('|') ? '|' : ',';
+      const separator = providersParam.includes('|') ? '|' : ',';
       setSelectedProviders(
-        providers.split(separator).map((id) => parseInt(id))
+        providersParam.split(separator).map((id) => parseInt(id))
       );
     } else {
       setSelectedProviders([]);
@@ -88,13 +59,15 @@ export default function WatchProviderFilter() {
     updateUrl(newProviders);
   }
 
-  function updateUrl(providers: number[]) {
+  function updateUrl(providerIds: number[]) {
     const newSearchParams = new URLSearchParams(searchParams.toString());
 
-    if (providers.length > 0) {
-      newSearchParams.set('with_watch_providers', providers.join('|'));
+    if (providerIds.length > 0) {
+      newSearchParams.set('with_watch_providers', providerIds.join('|'));
+      newSearchParams.set('watch_region', userRegion);
     } else {
       newSearchParams.delete('with_watch_providers');
+      newSearchParams.delete('watch_region');
     }
 
     newSearchParams.set('page', '1');
@@ -148,45 +121,53 @@ export default function WatchProviderFilter() {
             </div>
 
             <div className="grid gap-2">
-              {COMMON_PROVIDERS.map((provider) => {
-                const isSelected = selectedProviders.includes(
-                  provider.provider_id
-                );
-                const imageError = brokenImages.has(provider.provider_id);
+              {providers.length === 0 ? (
+                <div className="text-muted-foreground flex items-center justify-center p-4 text-sm">
+                  No providers available
+                </div>
+              ) : (
+                providers.map((provider) => {
+                  const isSelected = selectedProviders.includes(
+                    provider.provider_id
+                  );
+                  const imageError = brokenImages.has(provider.provider_id);
 
-                return (
-                  <div
-                    key={provider.provider_id}
-                    className={`hover:bg-accent flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors ${
-                      isSelected ? 'bg-accent' : ''
-                    }`}
-                    onClick={() =>
-                      updateSelectedProviders(provider.provider_id)
-                    }
-                  >
-                    <div className="flex-shrink-0">
-                      {imageError ? (
-                        <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold">
-                          {provider.provider_name.charAt(0).toUpperCase()}
-                        </div>
-                      ) : (
-                        <Image
-                          width={32}
-                          height={32}
-                          src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                          alt={provider.provider_name}
-                          className="h-8 w-8 rounded-md object-cover"
-                          onError={() => handleImageError(provider.provider_id)}
-                        />
-                      )}
+                  return (
+                    <div
+                      key={provider.provider_id}
+                      className={`hover:bg-accent flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors ${
+                        isSelected ? 'bg-accent' : ''
+                      }`}
+                      onClick={() =>
+                        updateSelectedProviders(provider.provider_id)
+                      }
+                    >
+                      <div className="flex-shrink-0">
+                        {imageError ? (
+                          <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold">
+                            {provider.provider_name.charAt(0).toUpperCase()}
+                          </div>
+                        ) : (
+                          <Image
+                            width={32}
+                            height={32}
+                            src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
+                            alt={provider.provider_name}
+                            className="h-8 w-8 rounded-md object-cover"
+                            onError={() =>
+                              handleImageError(provider.provider_id)
+                            }
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 text-sm font-medium">
+                        {provider.provider_name}
+                      </div>
+                      {isSelected && <Check className="text-primary h-4 w-4" />}
                     </div>
-                    <div className="flex-1 text-sm font-medium">
-                      {provider.provider_name}
-                    </div>
-                    {isSelected && <Check className="text-primary h-4 w-4" />}
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         </PopoverContent>

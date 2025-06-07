@@ -6,7 +6,7 @@ import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import Spinner from '@/components/spinner';
-import { getUserRegion } from '@/lib/user-actions';
+import { getUserRegion, getWatchProviders } from '@/lib/user-actions';
 import { Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -46,6 +46,8 @@ export default async function DiscoverWithGenrePage(
   const watchProviders = searchParams.with_watch_providers;
   const watchRegion = await getUserRegion();
 
+  const availableWatchProviders = await getWatchProviders(watchRegion);
+
   return (
     <>
       <div className="flex items-center gap-4">
@@ -70,7 +72,11 @@ export default async function DiscoverWithGenrePage(
       </div>
 
       <div className="mt-6">
-        <FiltersPanel mediaType={mediaType} />
+        <FiltersPanel
+          mediaType={mediaType}
+          watchProviders={availableWatchProviders}
+          userRegion={watchRegion}
+        />
       </div>
 
       <div
