@@ -39,7 +39,7 @@ function ResourceGridSkeletons() {
   return (
     <>
       {Array.from({ length: 20 }).map((_, index) => (
-        <ResourceCard.Skeleton key={index} />
+        <ResourceCard.Skeleton className="w-full" key={index} />
       ))}
     </>
   );
