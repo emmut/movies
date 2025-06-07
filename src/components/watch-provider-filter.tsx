@@ -117,7 +117,7 @@ export default function WatchProviderFilter() {
 
   return (
     <div className="flex min-w-54 flex-col gap-2">
-      <Label htmlFor="watch-providers" className="self-end">
+      <Label htmlFor="watch-providers" className="sm:self-end">
         Watch Providers
       </Label>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
