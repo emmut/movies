@@ -91,7 +91,7 @@ export function PaginationControls({
   totalPages,
   pageType,
 }: PaginationControls) {
-  const { replace } = useRouter();
+  const { push } = useRouter();
   const searchParams = useSearchParams();
 
   const page = searchParams.get('page') ?? '1';
@@ -116,7 +116,7 @@ export function PaginationControls({
       searchParams,
       pageType
     );
-    replace(newPageUrl);
+    push(newPageUrl);
     handlePageChange();
   }
 
