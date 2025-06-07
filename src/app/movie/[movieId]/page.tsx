@@ -118,19 +118,18 @@ export default async function MoviePage(props: MoviePageProps) {
         </div>
 
         <div className="space-y-6 lg:col-span-8">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
-                {title}
-              </h1>
-              {tagline && (
-                <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
-                  &ldquo;{tagline}&rdquo;
-                </p>
-              )}
-            </div>
-
-            <div className="ml-4">
+          <div className="@container/title">
+            <div className="flex flex-col items-start justify-between gap-x-4 gap-y-2 @2xl/title:flex-row">
+              <div className="flex-1">
+                <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
+                  {title}
+                </h1>
+                {tagline && (
+                  <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
+                    &ldquo;{tagline}&rdquo;
+                  </p>
+                )}
+              </div>
               <WatchlistButton
                 movieId={movieId}
                 isInWatchlist={inWatchlist}
