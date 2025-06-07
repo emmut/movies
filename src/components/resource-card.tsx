@@ -34,14 +34,14 @@ export default function ResourceCard({
 
   const borderColor =
     type === 'tv'
-      ? 'border-yellow-400/15 hover:border-yellow-300/50'
-      : 'border-red-500/15 hover:border-red-400/50';
+      ? 'border-yellow-400/30 hover:border-yellow-300'
+      : 'border-red-500/30 hover:border-red-500';
 
   return (
     <Link
       href={href}
       className={cn(
-        'group aspect-2/3 flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105',
+        'group aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105',
         borderColor,
         className
       )}
@@ -79,6 +79,18 @@ export default function ResourceCard({
               <span>{score}</span>
             </div>
           </div>
+        </div>
+
+        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover:opacity-100">
+          <span
+            className={`rounded-full px-2 py-1 text-xs ${
+              type === 'movie'
+                ? 'bg-red-500/95 text-red-950'
+                : 'bg-yellow-500/95 text-yellow-950'
+            }`}
+          >
+            {type === 'movie' ? 'Movie' : 'TV Show'}
+          </span>
         </div>
       </div>
     </Link>
