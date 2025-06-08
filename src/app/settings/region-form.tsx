@@ -57,7 +57,14 @@ export function RegionForm({
           <SelectTrigger id="region-select">
             <SelectValue placeholder="Select region" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            collisionPadding={10}
+            side="bottom"
+            align="start"
+            sideOffset={2}
+            avoidCollisions={true}
+            className="max-h-[15rem]"
+          >
             {regions.map((region) => (
               <SelectItem key={region.code} value={region.code}>
                 {region.name}

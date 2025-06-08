@@ -104,7 +104,14 @@ export default function WatchProviderFilter({
               : 'Select watch providers'}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-4" align="end">
+        <PopoverContent
+          className="max-h-[var(--radix-popover-content-available-height)] w-80 overflow-y-auto p-4"
+          align="end"
+          side="bottom"
+          avoidCollisions={true}
+          collisionPadding={10}
+          sideOffset={4}
+        >
           <div className="space-y-4">
             <div className="flex min-h-8 items-center justify-between">
               <h4 className="font-medium">Watch Providers</h4>

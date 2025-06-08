@@ -46,7 +46,7 @@ export default function MediaTypeSelector({
   }
 
   return (
-    <div className="flex rounded-lg bg-zinc-800 p-1">
+    <div className="bg-muted/60 flex rounded-lg p-1">
       <button
         onClick={() => handleMediaTypeChange('movie')}
         className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
