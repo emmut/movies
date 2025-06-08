@@ -4,15 +4,12 @@ import SectionTitle from '@/components/section-title';
 export default function Loading() {
   return (
     <>
-      <div className="flex items-center gap-4">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
+        <div className="h-10 w-32 animate-pulse rounded-md bg-neutral-50/10" />
       </div>
 
-      <div
-        id="movies-container"
-        tabIndex={0}
-        className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
-      >
+      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         <ResourceGrid.Skeletons className="w-full" />
       </div>
 

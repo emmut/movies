@@ -2,21 +2,12 @@ import { env } from '@/env';
 import { SearchedMovieResponse } from '@/types/movie';
 import { SearchedTvResponse } from '@/types/tv-show';
 
-export async function fetchMoviesBySearchQuery(
-  query: string,
-  page: string,
-  sortBy?: string
-) {
+export async function fetchMoviesBySearchQuery(query: string, page: string) {
   const searchParams = new URLSearchParams();
   searchParams.set('query', query);
   searchParams.set('page', page);
   searchParams.set('include_adult', 'false');
   searchParams.set('include_video', 'false');
-
-  // Note: Search endpoints don't support all sort options, mainly popularity
-  if (sortBy && sortBy.includes('popularity')) {
-    searchParams.set('sort_by', sortBy);
-  }
 
   const res = await fetch(
     `https://api.themoviedb.org/3/search/movie?${searchParams.toString()}`,
@@ -36,20 +27,11 @@ export async function fetchMoviesBySearchQuery(
   return { movies: movies.results, totalPages: movies.total_pages };
 }
 
-export async function fetchTvShowsBySearchQuery(
-  query: string,
-  page: string,
-  sortBy?: string
-) {
+export async function fetchTvShowsBySearchQuery(query: string, page: string) {
   const searchParams = new URLSearchParams();
   searchParams.set('query', query);
   searchParams.set('page', page);
   searchParams.set('include_adult', 'false');
-
-  // Note: Search endpoints don't support all sort options, mainly popularity
-  if (sortBy && sortBy.includes('popularity')) {
-    searchParams.set('sort_by', sortBy);
-  }
 
   const res = await fetch(
     `https://api.themoviedb.org/3/search/tv?${searchParams.toString()}`,
