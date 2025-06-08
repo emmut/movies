@@ -23,8 +23,8 @@ type WatchProvidersResponse = {
   results: WatchProvider[];
 };
 
-const MAX_DISPLAY_PRIORITY = 20;
-const MAX_PROVIDERS = 11;
+const MAX_DISPLAY_PRIORITY = 50;
+const MAX_PROVIDERS = 12;
 
 export async function getUserRegion() {
   const session = await getSession();
