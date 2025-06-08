@@ -9,6 +9,7 @@ export const MAJOR_STREAMING_PROVIDERS = [
   283, // Crunchyroll
   11, // MUBI
   2, // Apple TV (rentals)
-  3, // Google Play Movies
   10, // Amazon Video (rentals)
+  423, // Blockbuster
+  1773, // SkyShowtime
 ] as const;

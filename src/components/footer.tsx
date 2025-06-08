@@ -3,7 +3,7 @@ import Image from 'next/image';
 function Footer() {
   return (
     <footer className="mt-auto flex flex-col items-center gap-4 py-16">
-      <p className="text-muted-foreground/80 text-center text-xs italic">
+      <p className="text-muted-foreground/80 p-2 text-center text-xs italic">
         This product uses the TMDb API but is not endorsed or certified by TMDb
       </p>
 
