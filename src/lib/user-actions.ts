@@ -17,13 +17,14 @@ import {
   unstable_cacheTag as cacheTag,
   revalidatePath,
 } from 'next/cache';
+import { MAJOR_STREAMING_PROVIDERS } from './config';
 
 type WatchProvidersResponse = {
   results: WatchProvider[];
 };
 
 const MAX_DISPLAY_PRIORITY = 20;
-const MAX_PROVIDERS = 12;
+const MAX_PROVIDERS = 11;
 
 export async function getUserRegion() {
   const session = await getSession();
@@ -94,10 +95,23 @@ async function fetchWatchProvidersForRegion(region: string) {
 
   const data: WatchProvidersResponse = await res.json();
 
-  const topProviders = data.results
+  const availableProviders = data.results
     .filter((provider) => provider.display_priority <= MAX_DISPLAY_PRIORITY)
-    .sort((a, b) => a.display_priority - b.display_priority)
-    .slice(0, MAX_PROVIDERS);
+    .sort((a, b) => a.display_priority - b.display_priority);
+
+  const majorProviderIds = new Set<number>(MAJOR_STREAMING_PROVIDERS);
+  const majorProviders = availableProviders.filter((provider) =>
+    majorProviderIds.has(provider.provider_id)
+  );
+
+  const otherProviders = availableProviders.filter(
+    (provider) => !majorProviderIds.has(provider.provider_id)
+  );
+
+  const topProviders = [...majorProviders, ...otherProviders].slice(
+    0,
+    MAX_PROVIDERS
+  );
 
   return topProviders;
 }
