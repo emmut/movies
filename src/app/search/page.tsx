@@ -16,7 +16,6 @@ type SearchProps = {
     q?: string;
     page?: string;
     mediaType?: string;
-    sort_by?: string;
   }>;
 };
 
@@ -33,7 +32,6 @@ export default async function SearchPage(props: SearchProps) {
   const query = searchParams.q ?? '';
   const page = searchParams.page ?? '1';
   const mediaType = (searchParams.mediaType ?? 'movie') as MediaType;
-  const sortBy = searchParams.sort_by;
 
   let totalPages = 0;
 
@@ -41,15 +39,13 @@ export default async function SearchPage(props: SearchProps) {
     if (mediaType === 'tv') {
       const { totalPages: tvTotalPages } = await fetchTvShowsBySearchQuery(
         query,
-        page,
-        sortBy
+        page
       );
       totalPages = tvTotalPages;
     } else {
       const { totalPages: movieTotalPages } = await fetchMoviesBySearchQuery(
         query,
-        page,
-        sortBy
+        page
       );
       totalPages = movieTotalPages;
     }
@@ -68,7 +64,6 @@ export default async function SearchPage(props: SearchProps) {
             searchQuery={query}
             currentPage={page}
             mediaType={mediaType}
-            sortBy={sortBy}
           />
         </Suspense>
       </div>

@@ -8,7 +8,6 @@ type SearchResultsProps = {
   searchQuery: string;
   currentPage: string;
   mediaType: string;
-  sortBy?: string;
 };
 
 /**
@@ -19,14 +18,12 @@ type SearchResultsProps = {
  * @param searchQuery - The search term to filter content.
  * @param currentPage - The page number of results to retrieve.
  * @param mediaType - Whether to search for 'movie' or 'tv' content.
- * @param sortBy - The sort order for the search results.
  * @returns An array of ResourceCard components representing the search results.
  */
 export default async function SearchResults({
   searchQuery,
   currentPage,
   mediaType,
-  sortBy,
 }: SearchResultsProps) {
   if (!searchQuery) {
     return (
@@ -39,8 +36,7 @@ export default async function SearchResults({
   if (mediaType === 'tv') {
     const { tvShows } = await fetchTvShowsBySearchQuery(
       searchQuery,
-      currentPage,
-      sortBy
+      currentPage
     );
 
     return (
@@ -57,11 +53,7 @@ export default async function SearchResults({
     );
   }
 
-  const { movies } = await fetchMoviesBySearchQuery(
-    searchQuery,
-    currentPage,
-    sortBy
-  );
+  const { movies } = await fetchMoviesBySearchQuery(searchQuery, currentPage);
 
   return (
     <>
