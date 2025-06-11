@@ -1,34 +1,108 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Movies App
+
+A modern web application for exploring and managing movies, built with Next.js 15 and TypeScript.
+
+## Todo
+
+- [ ] Movie trailers
+- [ ] Actor/actress pages
+- [ ] Custom movie lists
+- [ ] Watched movies tracking
+- [ ] Personal ratings
+- [ ] Social features
+
+## Features
+
+- Browse movie library
+- Search for movies
+- View detailed information about each movie
+- User authentication
+- Dark mode support
+- Responsive design with modern UI components
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (Canary) with App Router
+- **Language**: TypeScript 5.8
+- **Database**: PostgreSQL with Drizzle ORM
+- **Styling**: Tailwind CSS 4.1 with Radix UI components
+- **Package Manager**: PNPM 10
+- **Authentication**: Better Auth
+- **Analytics**: Vercel Analytics & PostHog
+- **Development Tools**:
+  - ESLint 9
+  - Prettier
+  - Turbopack for development
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the project:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+git clone <your-repo-url>
+cd movies
+```
+
+2. Install dependencies:
+
+```bash
+pnpm install
+```
+
+3. Set up environment variables:
+
+   - Copy `.env.example` to `.env`
+   - Update the database URL and other required variables
+
+4. Set up the database:
+
+```bash
+pnpm db:generate  # Generate migrations
+pnpm db:push     # Push changes to database
+```
+
+5. Start the development server:
+
+```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```
+movies/
+├── src/
+│   ├── app/          # Next.js app router pages and layouts
+│   ├── components/   # Reusable React components
+│   ├── db/          # Database schema and configurations
+│   ├── hooks/       # Custom React hooks
+│   ├── lib/         # Utility functions and shared logic
+│   ├── providers/   # React context providers
+│   ├── types/       # TypeScript type definitions
+│   └── icons/       # SVG icons and assets
+├── public/          # Static assets
+└── drizzle/         # Database migrations and configuration
+```
 
-## Learn More
+## Available Scripts
 
-To learn more about Next.js, take a look at the following resources:
+- `pnpm dev` - Start development server with Turbopack
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint
+- `pnpm format` - Format code with Prettier
+- `pnpm db:generate` - Generate database migrations
+- `pnpm db:push` - Push database changes
+- `pnpm db:studio` - Open Drizzle Studio
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Development
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+The project uses several modern development tools and practices:
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- Turbopack for fast development builds
+- Strict TypeScript configuration
+- ESLint and Prettier for code quality
+- Tailwind CSS for styling with custom components
+- Drizzle ORM for type-safe database operations
