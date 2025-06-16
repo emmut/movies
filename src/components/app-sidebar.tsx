@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, LogIn, Sparkles, Star } from 'lucide-react';
+import { Home, LogIn, PlayCircle, Sparkles, Star } from 'lucide-react';
 import type * as React from 'react';
 
 import Brand from '@/components/brand';
@@ -31,6 +31,11 @@ const navItems = [
     href: '/discover',
     label: 'Discover',
     icon: Sparkles,
+  },
+  {
+    href: '/trailers',
+    label: 'Trailers',
+    icon: PlayCircle,
   },
 ];
 
