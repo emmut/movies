@@ -14,12 +14,14 @@ import {
 } from 'next/cache';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 
+const TMDB_API_URL = 'https://api.themoviedb.org/3';
+
 export async function fetchTrendingMovies() {
   'use cache';
   cacheTag('trending');
   cacheLife('minutes');
 
-  const res = await fetch('https://api.themoviedb.org/3/trending/movie/day', {
+  const res = await fetch(`${TMDB_API_URL}/trending/movie/day`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -53,7 +55,7 @@ export async function fetchAvailableGenres() {
   cacheTag('genres');
   cacheLife('days');
 
-  const res = await fetch('https://api.themoviedb.org/3/genre/movie/list', {
+  const res = await fetch(`${TMDB_API_URL}/genre/movie/list`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
     },
@@ -78,7 +80,7 @@ export async function fetchDiscoverMovies(
   cacheTag('discover');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/discover/movie');
+  const url = new URL(`${TMDB_API_URL}/discover/movie`);
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', sortBy || 'popularity.desc');
   url.searchParams.set('region', DEFAULT_REGION);
@@ -119,7 +121,7 @@ export async function fetchUserDiscoverMovies(
 ) {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/discover/movie');
+  const url = new URL(`${TMDB_API_URL}/discover/movie`);
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', 'popularity.desc');
   url.searchParams.set('region', userRegion);
@@ -150,7 +152,7 @@ export async function fetchNowPlayingMovies() {
   cacheTag('now-playing');
   cacheLife('minutes');
 
-  const res = await fetch('https://api.themoviedb.org/3/movie/now_playing', {
+  const res = await fetch(`${TMDB_API_URL}/movie/now_playing`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -171,7 +173,7 @@ export async function fetchUpcomingMovies() {
   cacheLife('minutes');
 
   const [upcomingRes, nowPlayingMovies] = await Promise.all([
-    fetch('https://api.themoviedb.org/3/movie/upcoming', {
+    fetch(`${TMDB_API_URL}/movie/upcoming`, {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
         accept: 'application/json',
@@ -200,7 +202,7 @@ export async function fetchUpcomingMovies() {
 export async function fetchUserNowPlayingMovies() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/movie/now_playing');
+  const url = new URL(`${TMDB_API_URL}/movie/now_playing`);
   url.searchParams.set('region', userRegion);
 
   const res = await fetch(url, {
@@ -228,7 +230,7 @@ export async function fetchUserNowPlayingMovies() {
 export async function fetchUserUpcomingMovies() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/movie/upcoming');
+  const url = new URL(`${TMDB_API_URL}/movie/upcoming`);
   url.searchParams.set('region', userRegion);
 
   const [upcomingRes, nowPlayingMovies] = await Promise.all([
@@ -268,7 +270,7 @@ export async function getMovieDetails(movieId: number) {
   cacheTag('movie-details');
   cacheLife('minutes');
 
-  const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
+  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -289,15 +291,12 @@ export async function getMovieCredits(movieId: number) {
   cacheTag('movie-credits');
   cacheLife('minutes');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${movieId}/credits`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    }
-  );
+  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/credits`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading movie credits');
@@ -312,15 +311,12 @@ export async function getMovieWatchProviders(movieId: number) {
   cacheTag('movie-watch-providers');
   cacheLife('minutes');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${movieId}/watch/providers`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    }
-  );
+  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/watch/providers`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading movie watch providers');
