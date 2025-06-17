@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, LogIn, PlayCircle, Sparkles, Star } from 'lucide-react';
+import { Home, LogIn, Sparkles, Star } from 'lucide-react';
 import type * as React from 'react';
 
 import Brand from '@/components/brand';
@@ -31,11 +31,6 @@ const navItems = [
     href: '/discover',
     label: 'Discover',
     icon: Sparkles,
-  },
-  {
-    href: '/trailers',
-    label: 'Trailers',
-    icon: PlayCircle,
   },
 ];
 
@@ -92,8 +87,7 @@ export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
                       <Icon
                         className={cn(
                           'h-4 w-4',
-                          pathname === href &&
-                            'fill-current [polygon]:fill-black'
+                          pathname === href && 'fill-current'
                         )}
                       />
                       <span>{label}</span>

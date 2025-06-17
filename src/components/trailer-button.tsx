@@ -15,8 +15,10 @@ export function TrailerButton({ movieId, movieTitle }: TrailerButtonProps) {
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const fetchTrailer = async () => {
-    if (trailerKey) return; // Already fetched
+  async function fetchTrailer() {
+    if (trailerKey) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -30,7 +32,7 @@ export function TrailerButton({ movieId, movieTitle }: TrailerButtonProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   const handleClick = () => {
     if (!trailerKey && !isLoading) {
