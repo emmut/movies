@@ -1,4 +1,4 @@
-import { PaginationControls } from '@/components/pagination-controlls';
+import { PaginationControls } from '@/components/pagination-controls';
 import { fetchDiscoverMovies } from '@/lib/movies';
 import { fetchDiscoverTvShows } from '@/lib/tv-shows';
 

@@ -92,7 +92,8 @@ export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
                       <Icon
                         className={cn(
                           'h-4 w-4',
-                          pathname === href && 'fill-current'
+                          pathname === href &&
+                            'fill-current [polygon]:fill-black'
                         )}
                       />
                       <span>{label}</span>

@@ -1,6 +1,7 @@
 import { GoBack } from '@/components/go-back';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
+import { TrailerButton } from '@/components/trailer-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { WatchlistButton } from '@/components/watchlist-button';
 import { getUser } from '@/lib/auth-server';
@@ -146,12 +147,15 @@ export default async function MoviePage(props: MoviePageProps) {
                   </p>
                 )}
               </div>
-              <WatchlistButton
-                resourceId={movieId}
-                resourceType={RESOURCE_TYPE}
-                isInWatchlist={inWatchlist}
-                userId={user?.id}
-              />
+              <div className="flex gap-2">
+                <TrailerButton movieId={movieId} movieTitle={title} />
+                <WatchlistButton
+                  resourceId={movieId}
+                  resourceType={RESOURCE_TYPE}
+                  isInWatchlist={inWatchlist}
+                  userId={user?.id}
+                />
+              </div>
             </div>
           </div>
 

@@ -1,5 +1,5 @@
 import MediaTypeSelector from '@/components/media-type-selector';
-import { PaginationControls } from '@/components/pagination-controlls';
+import { PaginationControls } from '@/components/pagination-controls';
 import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
 import {
