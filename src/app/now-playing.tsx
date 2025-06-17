@@ -1,6 +1,6 @@
 import ResourceCard from '@/components/resource-card';
 import { getUser } from '@/lib/auth-server';
-import { fetchNowPlayingMovies, fetchUserNowPlayingMovies } from '@/lib/movies';
+import { fetchNowPlayingMovies, fetchUserNowPlayingMovies } from '@/lib/tmdb';
 
 /**
  * Displays a list of now-playing movies as resource cards.

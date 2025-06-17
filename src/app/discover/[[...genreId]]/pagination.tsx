@@ -1,5 +1,5 @@
 import { PaginationControls } from '@/components/pagination-controls';
-import { fetchDiscoverMovies } from '@/lib/movies';
+import { fetchDiscoverMovies } from '@/lib/tmdb';
 import { fetchDiscoverTvShows } from '@/lib/tv-shows';
 
 type PaginationProps = {

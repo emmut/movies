@@ -9,7 +9,7 @@ import {
   getMovieCredits,
   getMovieDetails,
   getMovieWatchProviders,
-} from '@/lib/movies';
+} from '@/lib/tmdb';
 import { getUserRegion } from '@/lib/user-actions';
 import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
