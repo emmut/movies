@@ -10,7 +10,7 @@ import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
 } from 'next/cache';
-import { MAJOR_STREAMING_PROVIDERS } from './config';
+import { MAJOR_STREAMING_PROVIDERS, TMDB_API_URL } from './config';
 import { DEFAULT_REGION } from './regions';
 import { getUserRegion } from './user-actions';
 
@@ -41,7 +41,7 @@ export async function getTvShowDetails(tvId: number) {
   cacheTag('tv-details');
   cacheLife('minutes');
 
-  const res = await fetch(`https://api.themoviedb.org/3/tv/${tvId}`, {
+  const res = await fetch(`${TMDB_API_URL}/tv/${tvId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -70,15 +70,12 @@ export async function getTvShowCredits(resourceId: number) {
   cacheTag('tv-credits');
   cacheLife('minutes');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${resourceId}/credits`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    }
-  );
+  const res = await fetch(`${TMDB_API_URL}/tv/${resourceId}/credits`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading tv credits');
@@ -102,15 +99,12 @@ export async function getTvShowWatchProviders(tvId: number) {
   cacheTag('tv-watch-providers');
   cacheLife('minutes');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${tvId}/watch/providers`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    }
-  );
+  const res = await fetch(`${TMDB_API_URL}/tv/${tvId}/watch/providers`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading tv watch providers');
@@ -147,7 +141,7 @@ export async function fetchDiscoverTvShows(
   cacheTag('discover');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/discover/tv');
+  const url = new URL(`${TMDB_API_URL}/discover/tv`);
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', sortBy || 'popularity.desc');
   url.searchParams.set('region', DEFAULT_REGION);
@@ -196,7 +190,7 @@ export async function fetchUserDiscoverTvShows(
 ) {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/discover/tv');
+  const url = new URL(`${TMDB_API_URL}/discover/tv`);
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', 'popularity.desc');
   url.searchParams.set('region', userRegion);
@@ -233,7 +227,7 @@ export async function fetchTrendingTvShows() {
   cacheTag('trending-tv');
   cacheLife('minutes');
 
-  const res = await fetch('https://api.themoviedb.org/3/trending/tv/day', {
+  const res = await fetch(`${TMDB_API_URL}/trending/tv/day`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -260,7 +254,7 @@ export async function fetchTopRatedTvShows() {
   cacheTag('top-rated-tv');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/tv/top_rated');
+  const url = new URL(`${TMDB_API_URL}/tv/top_rated`);
   url.searchParams.set('region', DEFAULT_REGION);
   url.searchParams.set('include_adult', 'false');
 
@@ -289,7 +283,7 @@ export async function fetchTopRatedTvShows() {
 export async function fetchUserTopRatedTvShows() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/tv/top_rated');
+  const url = new URL(`${TMDB_API_URL}/tv/top_rated`);
   url.searchParams.set('region', userRegion);
   url.searchParams.set('include_adult', 'false');
 
@@ -320,7 +314,7 @@ export async function fetchOnTheAirTvShows() {
   cacheTag('on-the-air-tv');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/tv/on_the_air');
+  const url = new URL(`${TMDB_API_URL}/tv/on_the_air`);
   url.searchParams.set('region', DEFAULT_REGION);
 
   const res = await fetch(url, {
@@ -348,7 +342,7 @@ export async function fetchOnTheAirTvShows() {
 export async function fetchUserOnTheAirTvShows() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/tv/on_the_air');
+  const url = new URL(`${TMDB_API_URL}/tv/on_the_air`);
   url.searchParams.set('region', userRegion);
 
   const res = await fetch(url, {
@@ -378,7 +372,7 @@ export async function fetchPopularTvShows() {
   cacheTag('popular-tv');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/tv/popular');
+  const url = new URL(`${TMDB_API_URL}/tv/popular`);
   url.searchParams.set('region', DEFAULT_REGION);
 
   const res = await fetch(url, {
@@ -406,7 +400,7 @@ export async function fetchPopularTvShows() {
 export async function fetchUserPopularTvShows() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/tv/popular');
+  const url = new URL(`${TMDB_API_URL}/tv/popular`);
   url.searchParams.set('region', userRegion);
 
   const res = await fetch(url, {
@@ -436,7 +430,7 @@ export async function fetchAvailableTvGenres() {
   cacheTag('tv-genres');
   cacheLife('days');
 
-  const res = await fetch('https://api.themoviedb.org/3/genre/tv/list', {
+  const res = await fetch(`${TMDB_API_URL}/genre/tv/list`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
     },

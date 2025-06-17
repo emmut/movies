@@ -1,6 +1,6 @@
 'use server';
 
-import { fetchAvailableGenres } from './tmdb';
+import { fetchAvailableGenres } from './movies';
 import { fetchAvailableTvGenres } from './tv-shows';
 
 /**

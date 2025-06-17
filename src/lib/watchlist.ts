@@ -1,7 +1,7 @@
 import { watchlist } from '@/db/schema';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { getMovieDetails } from '@/lib/tmdb';
+import { getMovieDetails } from '@/lib/movies';
 import { resourceIdSchema } from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';

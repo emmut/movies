@@ -12,9 +12,7 @@ import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
 } from 'next/cache';
-import { MAJOR_STREAMING_PROVIDERS } from './config';
-
-const TMDB_API_URL = 'https://api.themoviedb.org/3';
+import { MAJOR_STREAMING_PROVIDERS, TMDB_API_URL } from './config';
 
 export async function fetchTrendingMovies() {
   'use cache';
@@ -328,4 +326,38 @@ export async function getMovieWatchProviders(movieId: number) {
     ...watchProviders,
     results: watchProviders.results,
   };
+}
+
+export async function getMovieTrailer(movieId: number) {
+  try {
+    const response = await fetch(
+      `${TMDB_API_URL}/movie/${movieId}/videos?language=sv-SE`,
+      {
+        headers: {
+          Authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+        },
+        next: { revalidate: 3600 },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch trailer');
+    }
+
+    const data = await response.json();
+    const trailer = data.results.find(
+      (video) =>
+        (video.type === 'Trailer' || video.type === 'Teaser') &&
+        video.site === 'YouTube'
+    );
+
+    if (!trailer) {
+      return null;
+    }
+
+    return trailer.key;
+  } catch (error) {
+    console.error('Error fetching trailer:', error);
+    return null;
+  }
 }

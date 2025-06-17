@@ -1,4 +1,4 @@
-import { fetchDiscoverMovies } from '@/lib/tmdb';
+import { fetchDiscoverMovies } from '@/lib/movies';
 import { fetchDiscoverTvShows } from '@/lib/tv-shows';
 import ResourceGrid from './resource-grid';
 

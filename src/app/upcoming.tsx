@@ -1,6 +1,6 @@
 import ResourceCard from '@/components/resource-card';
 import { getUser } from '@/lib/auth-server';
-import { fetchUpcomingMovies, fetchUserUpcomingMovies } from '@/lib/tmdb';
+import { fetchUpcomingMovies, fetchUserUpcomingMovies } from '@/lib/movies';
 
 /**
  * Displays a list of upcoming movies as resource cards.

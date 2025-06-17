@@ -1,4 +1,4 @@
-import { fetchAvailableGenres } from '@/lib/tmdb';
+import { fetchAvailableGenres } from '@/lib/movies';
 import { fetchAvailableTvGenres } from '@/lib/tv-shows';
 import Link from 'next/link';
 import Pill from './pill';
