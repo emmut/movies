@@ -35,12 +35,12 @@ type MoviePageProps = {
 const RESOURCE_TYPE = 'movie';
 
 /**
- * Server component that renders a detailed page for a specific movie, including its information, cast, genres, statistics, streaming providers, and external links.
+ * Renders a server-side React page displaying comprehensive details for a specific movie, including its information, cast, crew, genres, statistics, streaming providers, and external links.
  *
- * @param props - Contains a promise resolving to route parameters, including the movie ID.
+ * @param props - Contains a promise resolving to route parameters with the movie ID.
  * @returns The server-rendered React component for the movie detail page.
  *
- * @remark If a user is logged in, the page displays a watchlist button reflecting the user's watchlist status for the movie.
+ * @remarks If a user is logged in, the page displays a watchlist button reflecting the user's watchlist status for the movie.
  */
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
