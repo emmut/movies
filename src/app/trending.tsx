@@ -41,9 +41,7 @@ async function Trending({ index, type }: TrendingCardProp) {
     type === 'movie' ? `/movie/${resource.id}` : `/tv/${resource.id}`;
 
   const borderColor =
-    type === 'movie'
-      ? 'border-yellow-400/30 hover:border-yellow-300'
-      : 'border-red-500/30 hover:border-red-500';
+    type === 'movie' ? 'hover:border-yellow-300' : 'hover:border-red-500';
 
   return (
     <Link

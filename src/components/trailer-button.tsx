@@ -41,7 +41,7 @@ export function TrailerButton({
         )}
         size="sm"
       >
-        <PlayCircle className="mr-2 h-2 w-2" />
+        <PlayCircle className="h-2 w-2" />
         Play Trailer
       </Button>
 
