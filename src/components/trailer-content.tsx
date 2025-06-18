@@ -6,7 +6,7 @@ import { TrailerButton } from './trailer-button';
 type TrailerContentProps = {
   mediaType: 'movie' | 'tv';
   mediaId: number;
-  movieTitle: string;
+  title: string;
 };
 
 /**
@@ -22,7 +22,7 @@ type TrailerContentProps = {
 export async function TrailerContent({
   mediaType,
   mediaId,
-  movieTitle,
+  title,
 }: TrailerContentProps) {
   const trailerData =
     mediaType === 'movie'
@@ -35,7 +35,11 @@ export async function TrailerContent({
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <TrailerButton trailerKey={trailerData} movieTitle={movieTitle} />
+      <TrailerButton
+        trailerKey={trailerData}
+        title={title}
+        mediaType={mediaType}
+      />
     </Suspense>
   );
 }

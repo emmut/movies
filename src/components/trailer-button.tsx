@@ -2,22 +2,29 @@
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import { PlayCircle } from 'lucide-react';
 import { useState } from 'react';
 
 interface TrailerButtonProps {
-  movieTitle: string;
+  title: string;
   trailerKey: string;
+  mediaType: 'movie' | 'tv';
 }
 
 /**
  * Renders a button that opens a dialog to play a movie trailer in an embedded YouTube player.
  *
- * @param movieTitle - The title of the movie, used for dialog accessibility and iframe title
+ * @param title - The title of the movie, used for dialog accessibility and iframe title
  * @param trailerKey - The YouTube video key for the trailer to embed
+ * @param mediaType - The type of media (movie or tv)
  * @returns A React element containing the play button and trailer dialog
  */
-export function TrailerButton({ movieTitle, trailerKey }: TrailerButtonProps) {
+export function TrailerButton({
+  title,
+  trailerKey,
+  mediaType,
+}: TrailerButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = () => {
@@ -28,7 +35,10 @@ export function TrailerButton({ movieTitle, trailerKey }: TrailerButtonProps) {
     <>
       <Button
         onClick={handleClick}
-        className="bg-red-600 p-0 text-neutral-50 hover:bg-red-700"
+        className={cn(
+          mediaType === 'movie' && 'bg-yellow-600 hover:bg-yellow-700',
+          mediaType === 'tv' && 'bg-red-600 text-neutral-50 hover:bg-red-700'
+        )}
         size="sm"
       >
         <PlayCircle className="mr-2 h-2 w-2" />
@@ -37,13 +47,13 @@ export function TrailerButton({ movieTitle, trailerKey }: TrailerButtonProps) {
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[720px]">
-          <DialogTitle className="sr-only">{movieTitle} - Trailer</DialogTitle>
+          <DialogTitle className="sr-only">{title} - Trailer</DialogTitle>
           <div className="aspect-video">
             <iframe
               width="100%"
               height="100%"
               src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
-              title={`${movieTitle} - Trailer`}
+              title={`${title} - Trailer`}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
