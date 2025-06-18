@@ -7,8 +7,8 @@ import {
   MovieDetails,
   MovieResponse,
   MovieWatchProviders,
-  TmdbVideoResponse,
 } from '@/types/movie';
+import { TmdbVideoResponse } from '@/types/tmdb-video';
 import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,

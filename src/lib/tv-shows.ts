@@ -1,7 +1,7 @@
 import { env } from '@/env';
 import type { GenreResponse } from '@/types/genre';
+import { TmdbVideoResponse } from '@/types/tmdb-video';
 import {
-  TmdbVideoResponse,
   TvCredits,
   TvDetails,
   TvResponse,
