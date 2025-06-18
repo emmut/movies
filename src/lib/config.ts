@@ -13,3 +13,5 @@ export const MAJOR_STREAMING_PROVIDERS = [
   423, // Blockbuster
   1773, // SkyShowtime
 ] as const;
+
+export const TMDB_API_URL = 'https://api.themoviedb.org/3';

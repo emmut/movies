@@ -17,6 +17,7 @@ export type Movie = {
   video: boolean;
   vote_average: number;
   vote_count: number;
+  trailer_key?: string;
 };
 
 export type MovieDetails = {

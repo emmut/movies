@@ -1,6 +1,8 @@
+import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
+import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { WatchlistButton } from '@/components/watchlist-button';
 import { getUser } from '@/lib/auth-server';
@@ -34,12 +36,12 @@ type MoviePageProps = {
 const RESOURCE_TYPE = 'movie';
 
 /**
- * Server component that renders a detailed page for a specific movie, including its information, cast, genres, statistics, streaming providers, and external links.
+ * Renders a server-side React page displaying comprehensive details for a specific movie, including its information, cast, crew, genres, statistics, streaming providers, and external links.
  *
- * @param props - Contains a promise resolving to route parameters, including the movie ID.
+ * @param props - Contains a promise resolving to route parameters with the movie ID.
  * @returns The server-rendered React component for the movie detail page.
  *
- * @remark If a user is logged in, the page displays a watchlist button reflecting the user's watchlist status for the movie.
+ * @remarks If a user is logged in, the page displays a watchlist button reflecting the user's watchlist status for the movie.
  */
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
@@ -115,7 +117,7 @@ export default async function MoviePage(props: MoviePageProps) {
         <div className="lg:col-span-4">
           {poster_path ? (
             <Image
-              className="mx-auto aspect-2/3 w-full max-w-md rounded-lg shadow-2xl"
+              className="mx-auto aspect-2/3 w-full max-w-md rounded-lg border shadow-2xl"
               src={formatImageUrl(poster_path, 500)}
               alt={`Poster image of ${title}`}
               width={500}
@@ -134,25 +136,30 @@ export default async function MoviePage(props: MoviePageProps) {
         </div>
 
         <div className="space-y-6 lg:col-span-8">
-          <div className="@container/title">
-            <div className="flex flex-col items-start justify-between gap-x-4 gap-y-2 @2xl/title:flex-row">
-              <div className="flex-1">
-                <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
-                  {title}
-                </h1>
-                {tagline && (
-                  <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
-                    &ldquo;{tagline}&rdquo;
-                  </p>
-                )}
+          <div className="flex flex-col items-start gap-3">
+            <div className="@container/title w-full">
+              <div className="flex flex-col items-start justify-between gap-x-4 gap-y-2 @2xl/title:flex-row">
+                <div className="w-full flex-1">
+                  <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
+                    {title}
+                  </h1>
+                  {tagline && (
+                    <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
+                      &ldquo;{tagline}&rdquo;
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <WatchlistButton
+                    resourceId={movieId}
+                    resourceType={RESOURCE_TYPE}
+                    isInWatchlist={inWatchlist}
+                    userId={user?.id}
+                  />
+                </div>
               </div>
-              <WatchlistButton
-                resourceId={movieId}
-                resourceType={RESOURCE_TYPE}
-                isInWatchlist={inWatchlist}
-                userId={user?.id}
-              />
             </div>
+            <Badge variant="yellow">Movie</Badge>
           </div>
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -191,6 +198,8 @@ export default async function MoviePage(props: MoviePageProps) {
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
           </div>
+
+          <TrailerContent mediaType="movie" mediaId={movieId} title={title} />
 
           {genres.length > 0 && (
             <div>

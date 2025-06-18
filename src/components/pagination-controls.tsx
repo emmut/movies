@@ -15,19 +15,31 @@ import {
 
 type PaginationControls = {
   totalPages: number;
-  pageType: 'discover' | 'search';
+  pageType: 'discover' | 'search' | 'trailers';
 };
 
+/**
+ * Constructs a URL string for the specified page, genre, and page type, preserving relevant query parameters.
+ *
+ * For 'search' pages, preserves the search query (`q`). For 'trailers' pages, also preserves the `mediaType` parameter if present. The `genreId` parameter is included if `currentGenreId` is not zero.
+ *
+ * @param pageNumber - The target page number
+ * @param currentGenreId - The currently selected genre ID
+ * @param searchParams - The current URL search parameters
+ * @param pageType - The type of page ('discover', 'search', or 'trailers')
+ * @returns A URL string with updated query parameters for the specified page and context
+ */
 function buildPageUrl(
   pageNumber: number,
   currentGenreId: number,
   searchParams: URLSearchParams,
-  pageType: 'discover' | 'search'
+  pageType: 'discover' | 'search' | 'trailers'
 ) {
   const newSearchParams = new URLSearchParams(searchParams);
   newSearchParams.set('page', String(pageNumber));
 
   const q = searchParams.get('q');
+  const mediaType = searchParams.get('mediaType');
 
   if (q !== null) {
     newSearchParams.set('q', q);
@@ -35,6 +47,11 @@ function buildPageUrl(
 
   if (currentGenreId !== 0) {
     newSearchParams.set('genreId', String(currentGenreId));
+  }
+
+  // For trailers, preserve mediaType
+  if (pageType === 'trailers' && mediaType) {
+    newSearchParams.set('mediaType', mediaType);
   }
 
   return `${pageType}?${newSearchParams.toString()}`;

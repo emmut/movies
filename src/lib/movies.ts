@@ -8,18 +8,25 @@ import {
   MovieResponse,
   MovieWatchProviders,
 } from '@/types/movie';
+import { TmdbVideoResponse } from '@/types/tmdb-video';
 import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
 } from 'next/cache';
-import { MAJOR_STREAMING_PROVIDERS } from './config';
+import { MAJOR_STREAMING_PROVIDERS, TMDB_API_URL } from './config';
 
+/**
+ * Fetches the list of trending movies for the current day from TMDb.
+ *
+ * @returns An array of trending movie results.
+ * @throws If the request to TMDb fails.
+ */
 export async function fetchTrendingMovies() {
   'use cache';
   cacheTag('trending');
   cacheLife('minutes');
 
-  const res = await fetch('https://api.themoviedb.org/3/trending/movie/day', {
+  const res = await fetch(`${TMDB_API_URL}/trending/movie/day`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -48,12 +55,17 @@ async function getUserRegionWithFallback(): Promise<string> {
   }
 }
 
+/**
+ * Retrieves the list of available movie genres from the TMDb API.
+ *
+ * @returns An array of genre objects.
+ */
 export async function fetchAvailableGenres() {
   'use cache';
   cacheTag('genres');
   cacheLife('days');
 
-  const res = await fetch('https://api.themoviedb.org/3/genre/movie/list', {
+  const res = await fetch(`${TMDB_API_URL}/genre/movie/list`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
     },
@@ -67,6 +79,17 @@ export async function fetchAvailableGenres() {
   return movies.genres;
 }
 
+/**
+ * Fetches movies from TMDb based on discovery criteria such as genre, page, sorting, watch providers, and region.
+ *
+ * @param genreId - The genre ID to filter movies by; use 0 for no genre filter
+ * @param page - The page number of results to fetch (default is 1)
+ * @param sortBy - Optional sorting criteria (e.g., 'popularity.desc')
+ * @param watchProviders - Optional pipe-separated list of watch provider IDs
+ * @param watchRegion - Optional region code for watch providers
+ * @returns An object containing the array of discovered movies and the total number of result pages (capped at 500)
+ * @throws Error if the fetch request fails
+ */
 export async function fetchDiscoverMovies(
   genreId: number,
   page: number = 1,
@@ -78,7 +101,7 @@ export async function fetchDiscoverMovies(
   cacheTag('discover');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/discover/movie');
+  const url = new URL(`${TMDB_API_URL}/discover/movie`);
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', sortBy || 'popularity.desc');
   url.searchParams.set('region', DEFAULT_REGION);
@@ -113,13 +136,22 @@ export async function fetchDiscoverMovies(
   return { movies: movies.results, totalPages };
 }
 
+/**
+ * Fetches discovered movies for the user's region, filtered by genre and paginated by page number.
+ *
+ * Uses the user's region (with fallback) and sorts results by popularity. Returns a list of movies and the total number of pages, capped at 500.
+ *
+ * @param genreId - The genre ID to filter movies by; use 0 for no genre filter
+ * @param page - The page number for pagination (default is 1)
+ * @returns An object containing the array of discovered movies and the total number of pages (maximum 500)
+ */
 export async function fetchUserDiscoverMovies(
   genreId: number,
   page: number = 1
 ) {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/discover/movie');
+  const url = new URL(`${TMDB_API_URL}/discover/movie`);
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', 'popularity.desc');
   url.searchParams.set('region', userRegion);
@@ -145,12 +177,17 @@ export async function fetchUserDiscoverMovies(
   return { movies: movies.results, totalPages };
 }
 
+/**
+ * Retrieves a list of movies currently playing in theaters.
+ *
+ * @returns An array of now playing movie results
+ */
 export async function fetchNowPlayingMovies() {
   'use cache';
   cacheTag('now-playing');
   cacheLife('minutes');
 
-  const res = await fetch('https://api.themoviedb.org/3/movie/now_playing', {
+  const res = await fetch(`${TMDB_API_URL}/movie/now_playing`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -165,13 +202,18 @@ export async function fetchNowPlayingMovies() {
   return movies.results;
 }
 
+/**
+ * Fetches upcoming movies from TMDb, excluding those that are currently playing.
+ *
+ * @returns An array of upcoming movies not currently in theaters.
+ */
 export async function fetchUpcomingMovies() {
   'use cache';
   cacheTag('upcoming');
   cacheLife('minutes');
 
   const [upcomingRes, nowPlayingMovies] = await Promise.all([
-    fetch('https://api.themoviedb.org/3/movie/upcoming', {
+    fetch(`${TMDB_API_URL}/movie/upcoming`, {
       headers: {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
         accept: 'application/json',
@@ -197,10 +239,15 @@ export async function fetchUpcomingMovies() {
   return filteredUpcomingMovies;
 }
 
+/**
+ * Fetches movies currently playing in theaters for the user's region, using a fallback if the region cannot be determined.
+ *
+ * @returns An array of movies now playing in the user's region
+ */
 export async function fetchUserNowPlayingMovies() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/movie/now_playing');
+  const url = new URL(`${TMDB_API_URL}/movie/now_playing`);
   url.searchParams.set('region', userRegion);
 
   const res = await fetch(url, {
@@ -219,16 +266,16 @@ export async function fetchUserNowPlayingMovies() {
 }
 
 /**
- * Fetches upcoming movies for the user's region, excluding movies that are currently playing.
+ * Retrieves upcoming movies for the user's region, excluding those currently playing in theaters.
  *
  * @returns An array of upcoming movies not currently in theaters for the user's region.
  *
- * @throws {Error} If the upcoming movies request fails.
+ * @throws {Error} If the request for upcoming movies fails.
  */
 export async function fetchUserUpcomingMovies() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/movie/upcoming');
+  const url = new URL(`${TMDB_API_URL}/movie/upcoming`);
   url.searchParams.set('region', userRegion);
 
   const [upcomingRes, nowPlayingMovies] = await Promise.all([
@@ -256,19 +303,19 @@ export async function fetchUserUpcomingMovies() {
 }
 
 /**
- * Retrieves detailed information for a specific movie from TMDb.
+ * Fetches detailed information for a specific movie from TMDb by its ID.
  *
- * @param movieId - The unique identifier of the movie to fetch details for.
- * @returns The detailed movie data.
+ * @param movieId - The TMDb movie identifier
+ * @returns The detailed movie data
  *
- * @throws {Error} If the movie details cannot be loaded from TMDb.
+ * @throws Error if the movie details cannot be loaded from TMDb
  */
 export async function getMovieDetails(movieId: number) {
   'use cache';
   cacheTag('movie-details');
   cacheLife('minutes');
 
-  const res = await fetch(`https://api.themoviedb.org/3/movie/${movieId}`, {
+  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -284,20 +331,23 @@ export async function getMovieDetails(movieId: number) {
   return movie;
 }
 
+/**
+ * Retrieves the cast and crew credits for a specific movie by its ID.
+ *
+ * @param movieId - The unique identifier of the movie
+ * @returns The credits data including cast and crew information
+ */
 export async function getMovieCredits(movieId: number) {
   'use cache';
   cacheTag('movie-credits');
   cacheLife('minutes');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${movieId}/credits`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    }
-  );
+  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/credits`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading movie credits');
@@ -307,20 +357,23 @@ export async function getMovieCredits(movieId: number) {
   return credits;
 }
 
+/**
+ * Retrieves watch provider information for a specific movie from TMDb.
+ *
+ * @param movieId - The TMDb ID of the movie
+ * @returns An object containing watch provider data, including the `results` field with provider details
+ */
 export async function getMovieWatchProviders(movieId: number) {
   'use cache';
   cacheTag('movie-watch-providers');
   cacheLife('minutes');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${movieId}/watch/providers`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    }
-  );
+  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/watch/providers`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading movie watch providers');
@@ -332,4 +385,46 @@ export async function getMovieWatchProviders(movieId: number) {
     ...watchProviders,
     results: watchProviders.results,
   };
+}
+
+/**
+ * Retrieves the YouTube trailer or teaser key for a specific movie by its ID.
+ *
+ * Searches for a video of type "Trailer" or "Teaser" hosted on YouTube. Returns the video key if found, or null if no suitable trailer is available or if the fetch fails.
+ *
+ * @param movieId - The TMDb ID of the movie to fetch the trailer for
+ * @returns The YouTube video key for the trailer or teaser, or null if not found
+ */
+export async function getMovieTrailer(movieId: number) {
+  'use cache';
+  cacheTag(`movie-trailer-${movieId}`);
+  cacheLife('hours');
+
+  try {
+    const response = await fetch(`${TMDB_API_URL}/movie/${movieId}/videos`, {
+      headers: {
+        Authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch trailer');
+    }
+
+    const data: TmdbVideoResponse = await response.json();
+    const trailer = data.results.find(
+      (video) =>
+        (video.type === 'Trailer' || video.type === 'Teaser') &&
+        video.site === 'YouTube'
+    );
+
+    if (!trailer) {
+      return null;
+    }
+
+    return trailer.key;
+  } catch (error) {
+    console.error('Error fetching trailer:', error);
+    return null;
+  }
 }

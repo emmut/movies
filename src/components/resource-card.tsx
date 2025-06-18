@@ -46,8 +46,8 @@ export default function ResourceCard({
 
   const borderColor =
     type === 'movie'
-      ? 'border-yellow-400/30 hover:border-yellow-300 focus:border-yellow-300'
-      : 'border-red-500/30 hover:border-red-500 focus:border-red-500';
+      ? 'hover:border-yellow-300 focus:border-yellow-300'
+      : 'hover:border-red-500 focus:border-red-500';
 
   return (
     <Link

@@ -1,6 +1,8 @@
+import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
+import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { WatchlistButton } from '@/components/watchlist-button';
 import { getUser } from '@/lib/auth-server';
@@ -26,9 +28,9 @@ type TvShowPageProps = {
 const RESOURCE_TYPE = 'tv';
 
 /**
- * Renders a detailed TV show page with metadata, cast, creators, streaming providers, and interactive controls.
+ * Displays a comprehensive TV show page with details, cast, creators, streaming providers, and interactive controls.
  *
- * Fetches and displays information about a TV show based on the provided TV show ID, including images, overview, genres, ratings, seasons, episodes, networks, creators, and cast. Shows streaming providers available in the user's region and allows authenticated users to manage their watchlist. Provides external links to TMDB and the official website if available.
+ * Fetches and presents information about a TV show based on the provided TV show ID, including images, overview, genres, ratings, seasons, episodes, networks, creators, and cast. Shows streaming providers available in the user's region and allows authenticated users to manage their watchlist. Provides external links to TMDB and the official website if available.
  *
  * @param props - Contains a promise resolving to route parameters with the TV show ID.
  */
@@ -100,7 +102,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
         <div className="lg:col-span-4">
           {poster_path ? (
             <Image
-              className="mx-auto aspect-2/3 w-full max-w-md rounded-lg shadow-2xl"
+              className="mx-auto aspect-2/3 w-full max-w-md rounded-lg border shadow-2xl"
               src={formatImageUrl(poster_path, 500)}
               alt={`Poster image of ${name}`}
               width={500}
@@ -119,25 +121,29 @@ export default async function TvShowPage(props: TvShowPageProps) {
         </div>
 
         <div className="space-y-6 lg:col-span-8">
-          <div className="@container/title">
-            <div className="flex flex-col items-start justify-between gap-x-4 gap-y-2 @2xl/title:flex-row">
-              <div className="flex-1">
-                <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
-                  {name}
-                </h1>
-                {tagline && (
-                  <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
-                    &ldquo;{tagline}&rdquo;
-                  </p>
-                )}
+          <div className="flex flex-col items-start gap-3">
+            <div className="@container/title w-full">
+              <div className="flex flex-col items-start justify-between gap-x-4 gap-y-2 @2xl/title:flex-row">
+                <div className="flex-1">
+                  <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
+                    {name}
+                  </h1>
+                  {tagline && (
+                    <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
+                      &ldquo;{tagline}&rdquo;
+                    </p>
+                  )}
+                </div>
+                <WatchlistButton
+                  resourceId={tvId}
+                  resourceType={RESOURCE_TYPE}
+                  isInWatchlist={inWatchlist}
+                  userId={user?.id}
+                />
               </div>
-              <WatchlistButton
-                resourceId={tvId}
-                resourceType={RESOURCE_TYPE}
-                isInWatchlist={inWatchlist}
-                userId={user?.id}
-              />
             </div>
+
+            <Badge variant="red">TV Show</Badge>
           </div>
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -172,6 +178,8 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
           </div>
+
+          <TrailerContent mediaType="tv" mediaId={tvId} title={name} />
 
           {genres.length > 0 && (
             <div>

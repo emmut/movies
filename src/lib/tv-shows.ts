@@ -1,5 +1,6 @@
 import { env } from '@/env';
 import type { GenreResponse } from '@/types/genre';
+import { TmdbVideoResponse } from '@/types/tmdb-video';
 import {
   TvCredits,
   TvDetails,
@@ -10,7 +11,7 @@ import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
 } from 'next/cache';
-import { MAJOR_STREAMING_PROVIDERS } from './config';
+import { MAJOR_STREAMING_PROVIDERS, TMDB_API_URL } from './config';
 import { DEFAULT_REGION } from './regions';
 import { getUserRegion } from './user-actions';
 
@@ -29,19 +30,19 @@ async function getUserRegionWithFallback(): Promise<string> {
 }
 
 /**
- * Retrieves detailed information for a TV show by its TMDb ID.
+ * Fetches detailed information for a TV show from TMDb by its ID.
  *
  * @param tvId - The TMDb ID of the TV show.
- * @returns The detailed information for the specified TV show.
+ * @returns The TV show's detailed information.
  *
- * @throws {Error} If the TV show details cannot be loaded from the API.
+ * @throws If the TV show details cannot be loaded from the API.
  */
 export async function getTvShowDetails(tvId: number) {
   'use cache';
   cacheTag('tv-details');
   cacheLife('minutes');
 
-  const res = await fetch(`https://api.themoviedb.org/3/tv/${tvId}`, {
+  const res = await fetch(`${TMDB_API_URL}/tv/${tvId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -58,27 +59,24 @@ export async function getTvShowDetails(tvId: number) {
 }
 
 /**
- * Retrieves the cast and crew credits for a TV show by its ID from TMDb.
+ * Fetches cast and crew credits for a TV show by its TMDb ID.
  *
- * @param resourceId - The unique identifier of the TV show.
- * @returns The credits information, including cast and crew, for the specified TV show.
+ * @param resourceId - The TMDb ID of the TV show.
+ * @returns The cast and crew credits for the specified TV show.
  *
- * @throws {Error} If the TV show credits cannot be loaded from TMDb.
+ * @throws {Error} If the credits cannot be loaded from TMDb.
  */
 export async function getTvShowCredits(resourceId: number) {
   'use cache';
   cacheTag('tv-credits');
   cacheLife('minutes');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${resourceId}/credits`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    }
-  );
+  const res = await fetch(`${TMDB_API_URL}/tv/${resourceId}/credits`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading tv credits');
@@ -90,27 +88,24 @@ export async function getTvShowCredits(resourceId: number) {
 }
 
 /**
- * Retrieves watch provider information for a TV show by its ID.
+ * Fetches watch provider information for a TV show by its TMDb ID.
  *
  * @param tvId - The TMDb ID of the TV show.
- * @returns An object containing watch provider data and its results for the specified TV show.
+ * @returns An object containing watch provider data and the associated results for the specified TV show.
  *
- * @throws {Error} If the watch provider data cannot be loaded from the API.
+ * @throws If the watch provider data cannot be loaded from the API.
  */
 export async function getTvShowWatchProviders(tvId: number) {
   'use cache';
   cacheTag('tv-watch-providers');
   cacheLife('minutes');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/tv/${tvId}/watch/providers`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    }
-  );
+  const res = await fetch(`${TMDB_API_URL}/tv/${tvId}/watch/providers`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed loading tv watch providers');
@@ -125,14 +120,16 @@ export async function getTvShowWatchProviders(tvId: number) {
 }
 
 /**
- * Fetches a paginated list of TV shows by genre, sorted by popularity, for the default region.
+ * Retrieves a paginated list of TV shows filtered by genre, sort order, watch providers, and region for the default region.
  *
- * @param genreId - The genre ID to filter TV shows by. Use 0 to include all genres.
+ * Returns an object containing the list of TV shows and the total number of pages (capped at 500).
+ *
+ * @param genreId - The genre ID to filter TV shows by; use 0 to include all genres.
  * @param page - The page number to retrieve (default is 1).
- * @param sortBy - The sort order for the TV shows.
- * @param watchProviders - The watch provider to filter TV shows by.
- * @param watchRegion - The region to filter watch providers by.
- * @returns An object containing the list of TV shows and the total number of pages (capped at 500).
+ * @param sortBy - Optional sort order for the TV shows.
+ * @param watchProviders - Optional watch provider filter.
+ * @param watchRegion - Optional region filter for watch providers.
+ * @returns An object with the filtered TV shows and the total number of pages (maximum 500).
  *
  * @throws {Error} If the TV show discovery data cannot be loaded from the API.
  */
@@ -147,7 +144,7 @@ export async function fetchDiscoverTvShows(
   cacheTag('discover');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/discover/tv');
+  const url = new URL(`${TMDB_API_URL}/discover/tv`);
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', sortBy || 'popularity.desc');
   url.searchParams.set('region', DEFAULT_REGION);
@@ -182,11 +179,11 @@ export async function fetchDiscoverTvShows(
 }
 
 /**
- * Retrieves a paginated list of TV shows discovered by genre and sorted by popularity for the user's region.
+ * Retrieves a paginated list of TV shows filtered by genre and sorted by popularity for the user's region.
  *
  * @param genreId - The genre ID to filter TV shows by. If 0, no genre filter is applied.
  * @param page - The page number to retrieve (default is 1).
- * @returns An object containing the list of discovered TV shows and the total number of pages (capped at 500).
+ * @returns An object containing the list of discovered TV shows and the total number of pages, capped at 500.
  *
  * @throws {Error} If the TV show discovery request fails.
  */
@@ -196,7 +193,7 @@ export async function fetchUserDiscoverTvShows(
 ) {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/discover/tv');
+  const url = new URL(`${TMDB_API_URL}/discover/tv`);
   url.searchParams.set('page', String(page));
   url.searchParams.set('sort_by', 'popularity.desc');
   url.searchParams.set('region', userRegion);
@@ -222,18 +219,18 @@ export async function fetchUserDiscoverTvShows(
 }
 
 /**
- * Retrieves the list of trending TV shows for the current day from TMDb.
+ * Fetches the list of trending TV shows for the current day from TMDb.
  *
- * @returns An array of trending TV shows.
+ * @returns An array of trending TV shows for today.
  *
- * @throws {Error} If the trending TV shows cannot be loaded from the API.
+ * @throws If the trending TV shows cannot be loaded from the API.
  */
 export async function fetchTrendingTvShows() {
   'use cache';
   cacheTag('trending-tv');
   cacheLife('minutes');
 
-  const res = await fetch('https://api.themoviedb.org/3/trending/tv/day', {
+  const res = await fetch(`${TMDB_API_URL}/trending/tv/day`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -249,18 +246,18 @@ export async function fetchTrendingTvShows() {
 }
 
 /**
- * Retrieves a list of top-rated TV shows for the default region.
+ * Fetches the list of top-rated TV shows for the default region.
  *
- * @returns An array of top-rated TV shows.
+ * @returns An array of top-rated TV show objects.
  *
- * @throws {Error} If the request to fetch top-rated TV shows fails.
+ * @throws If the request to the TMDb API fails.
  */
 export async function fetchTopRatedTvShows() {
   'use cache';
   cacheTag('top-rated-tv');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/tv/top_rated');
+  const url = new URL(`${TMDB_API_URL}/tv/top_rated`);
   url.searchParams.set('region', DEFAULT_REGION);
   url.searchParams.set('include_adult', 'false');
 
@@ -280,16 +277,16 @@ export async function fetchTopRatedTvShows() {
 }
 
 /**
- * Retrieves the top-rated TV shows for the user's region.
+ * Fetches the top-rated TV shows for the user's region, using a fallback region if necessary.
  *
- * @returns An array of top-rated TV shows for the resolved user region.
+ * @returns An array of top-rated TV shows for the determined user region.
  *
  * @throws {Error} If the request to fetch top-rated TV shows fails.
  */
 export async function fetchUserTopRatedTvShows() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/tv/top_rated');
+  const url = new URL(`${TMDB_API_URL}/tv/top_rated`);
   url.searchParams.set('region', userRegion);
   url.searchParams.set('include_adult', 'false');
 
@@ -309,18 +306,18 @@ export async function fetchUserTopRatedTvShows() {
 }
 
 /**
- * Retrieves a list of TV shows that are currently on the air in the default region.
+ * Fetches TV shows that are currently airing in the default region.
  *
- * @returns An array of TV show objects currently airing in the default region.
+ * @returns An array of TV show objects currently on the air in the default region.
  *
- * @throws {Error} If the request to fetch on-the-air TV shows fails.
+ * @throws If the request to the TMDb API fails.
  */
 export async function fetchOnTheAirTvShows() {
   'use cache';
   cacheTag('on-the-air-tv');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/tv/on_the_air');
+  const url = new URL(`${TMDB_API_URL}/tv/on_the_air`);
   url.searchParams.set('region', DEFAULT_REGION);
 
   const res = await fetch(url, {
@@ -339,7 +336,9 @@ export async function fetchOnTheAirTvShows() {
 }
 
 /**
- * Retrieves a list of TV shows currently on the air for the user's region.
+ * Fetches TV shows currently airing in the user's region.
+ *
+ * Determines the user's region with fallback and retrieves a list of TV shows that are currently on the air for that region.
  *
  * @returns An array of TV shows currently airing in the user's region.
  *
@@ -348,7 +347,7 @@ export async function fetchOnTheAirTvShows() {
 export async function fetchUserOnTheAirTvShows() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/tv/on_the_air');
+  const url = new URL(`${TMDB_API_URL}/tv/on_the_air`);
   url.searchParams.set('region', userRegion);
 
   const res = await fetch(url, {
@@ -367,18 +366,18 @@ export async function fetchUserOnTheAirTvShows() {
 }
 
 /**
- * Retrieves a list of popular TV shows for the default region.
+ * Fetches a list of popular TV shows for the default region.
  *
  * @returns An array of popular TV shows.
  *
- * @throws {Error} If the request to fetch popular TV shows fails.
+ * @throws If the request to the TMDb API fails.
  */
 export async function fetchPopularTvShows() {
   'use cache';
   cacheTag('popular-tv');
   cacheLife('minutes');
 
-  const url = new URL('https://api.themoviedb.org/3/tv/popular');
+  const url = new URL(`${TMDB_API_URL}/tv/popular`);
   url.searchParams.set('region', DEFAULT_REGION);
 
   const res = await fetch(url, {
@@ -397,16 +396,16 @@ export async function fetchPopularTvShows() {
 }
 
 /**
- * Retrieves a list of popular TV shows for the user's region.
+ * Fetches popular TV shows for the user's region, using a fallback if the region cannot be determined.
  *
- * @returns An array of popular TV shows for the determined user region.
+ * @returns An array of popular TV shows available in the user's region.
  *
- * @throws {Error} If the request to fetch popular TV shows fails.
+ * @throws If the request to fetch popular TV shows fails.
  */
 export async function fetchUserPopularTvShows() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL('https://api.themoviedb.org/3/tv/popular');
+  const url = new URL(`${TMDB_API_URL}/tv/popular`);
   url.searchParams.set('region', userRegion);
 
   const res = await fetch(url, {
@@ -425,18 +424,18 @@ export async function fetchUserPopularTvShows() {
 }
 
 /**
- * Retrieves the list of available TV genres from The Movie Database (TMDb).
+ * Fetches the list of available TV genres from TMDb.
  *
  * @returns An array of TV genre objects.
  *
- * @throws {Error} If the TV genres cannot be loaded from TMDb.
+ * @throws If the TV genres cannot be loaded from TMDb.
  */
 export async function fetchAvailableTvGenres() {
   'use cache';
   cacheTag('tv-genres');
   cacheLife('days');
 
-  const res = await fetch('https://api.themoviedb.org/3/genre/tv/list', {
+  const res = await fetch(`${TMDB_API_URL}/genre/tv/list`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
     },
@@ -448,4 +447,46 @@ export async function fetchAvailableTvGenres() {
 
   const tvGenres: GenreResponse = await res.json();
   return tvGenres.genres;
+}
+
+/**
+ * Retrieves the YouTube video key for a trailer or teaser of a TV show by its TMDb ID.
+ *
+ * Searches for a video of type "Trailer" or "Teaser" hosted on YouTube. Returns the video key if found, or null if no suitable video exists or an error occurs.
+ *
+ * @param tvId - The TMDb ID of the TV show
+ * @returns The YouTube video key for the trailer or teaser, or null if not found
+ */
+export async function getTvShowTrailer(tvId: number) {
+  'use cache';
+  cacheTag(`tv-trailer-${tvId}`);
+  cacheLife('hours');
+
+  try {
+    const response = await fetch(`${TMDB_API_URL}/tv/${tvId}/videos`, {
+      headers: {
+        Authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch trailer');
+    }
+
+    const data: TmdbVideoResponse = await response.json();
+    const trailer = data.results.find(
+      (video) =>
+        (video.type === 'Trailer' || video.type === 'Teaser') &&
+        video.site === 'YouTube'
+    );
+
+    if (!trailer) {
+      return null;
+    }
+
+    return trailer.key;
+  } catch (error) {
+    console.error('Error fetching trailer:', error);
+    return null;
+  }
 }
