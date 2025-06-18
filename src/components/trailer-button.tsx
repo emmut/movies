@@ -46,7 +46,7 @@ export function TrailerButton({
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[720px]">
+        <DialogContent className="sm:max-w-[min(98vw,1440px)]">
           <DialogTitle className="sr-only">{title} - Trailer</DialogTitle>
           <div className="aspect-video">
             <iframe
