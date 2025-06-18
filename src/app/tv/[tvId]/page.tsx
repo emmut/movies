@@ -1,6 +1,7 @@
 import { GoBack } from '@/components/go-back';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
+import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { WatchlistButton } from '@/components/watchlist-button';
 import { getUser } from '@/lib/auth-server';
@@ -172,6 +173,8 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
           </div>
+
+          <TrailerContent mediaType="tv" mediaId={tvId} movieTitle={name} />
 
           {genres.length > 0 && (
             <div>

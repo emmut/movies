@@ -1,7 +1,7 @@
 import { GoBack } from '@/components/go-back';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
-import { TrailerButton } from '@/components/trailer-button';
+import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { WatchlistButton } from '@/components/watchlist-button';
 import { getUser } from '@/lib/auth-server';
@@ -137,7 +137,7 @@ export default async function MoviePage(props: MoviePageProps) {
         <div className="space-y-6 lg:col-span-8">
           <div className="@container/title">
             <div className="flex flex-col items-start justify-between gap-x-4 gap-y-2 @2xl/title:flex-row">
-              <div className="flex-1">
+              <div className="w-full flex-1">
                 <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
                   {title}
                 </h1>
@@ -148,7 +148,6 @@ export default async function MoviePage(props: MoviePageProps) {
                 )}
               </div>
               <div className="flex gap-2">
-                <TrailerButton movieId={movieId} movieTitle={title} />
                 <WatchlistButton
                   resourceId={movieId}
                   resourceType={RESOURCE_TYPE}
@@ -195,6 +194,12 @@ export default async function MoviePage(props: MoviePageProps) {
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
           </div>
+
+          <TrailerContent
+            mediaType="movie"
+            mediaId={movieId}
+            movieTitle={title}
+          />
 
           {genres.length > 0 && (
             <div>

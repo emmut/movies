@@ -1,6 +1,7 @@
 import { env } from '@/env';
 import type { GenreResponse } from '@/types/genre';
 import {
+  TmdbVideoResponse,
   TvCredits,
   TvDetails,
   TvResponse,
@@ -442,4 +443,38 @@ export async function fetchAvailableTvGenres() {
 
   const tvGenres: GenreResponse = await res.json();
   return tvGenres.genres;
+}
+
+export async function getTvShowTrailer(tvId: number) {
+  'use cache';
+  cacheTag(`movie-trailer-${tvId}`);
+  cacheLife('hours');
+
+  try {
+    const response = await fetch(`${TMDB_API_URL}/tv/${tvId}/videos`, {
+      headers: {
+        Authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch trailer');
+    }
+
+    const data: TmdbVideoResponse = await response.json();
+    const trailer = data.results.find(
+      (video) =>
+        (video.type === 'Trailer' || video.type === 'Teaser') &&
+        video.site === 'YouTube'
+    );
+
+    if (!trailer) {
+      return null;
+    }
+
+    return trailer.key;
+  } catch (error) {
+    console.error('Error fetching trailer:', error);
+    return null;
+  }
 }

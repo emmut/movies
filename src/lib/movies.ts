@@ -7,6 +7,7 @@ import {
   MovieDetails,
   MovieResponse,
   MovieWatchProviders,
+  TmdbVideoResponse,
 } from '@/types/movie';
 import {
   unstable_cacheLife as cacheLife,
@@ -329,22 +330,22 @@ export async function getMovieWatchProviders(movieId: number) {
 }
 
 export async function getMovieTrailer(movieId: number) {
+  'use cache';
+  cacheTag(`movie-trailer-${movieId}`);
+  cacheLife('hours');
+
   try {
-    const response = await fetch(
-      `${TMDB_API_URL}/movie/${movieId}/videos?language=sv-SE`,
-      {
-        headers: {
-          Authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        },
-        next: { revalidate: 3600 },
-      }
-    );
+    const response = await fetch(`${TMDB_API_URL}/movie/${movieId}/videos`, {
+      headers: {
+        Authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      },
+    });
 
     if (!response.ok) {
       throw new Error('Failed to fetch trailer');
     }
 
-    const data = await response.json();
+    const data: TmdbVideoResponse = await response.json();
     const trailer = data.results.find(
       (video) =>
         (video.type === 'Trailer' || video.type === 'Teaser') &&
