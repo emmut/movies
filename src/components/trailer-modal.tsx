@@ -6,6 +6,13 @@ interface TrailerModalProps {
   trailerKey: string;
 }
 
+/**
+ * Displays a modal dialog containing an embedded YouTube video player.
+ *
+ * @param isOpen - Whether the modal is visible
+ * @param onClose - Callback invoked when the modal is requested to close
+ * @param trailerKey - YouTube video identifier to embed
+ */
 export function TrailerModal({
   isOpen,
   onClose,

@@ -18,6 +18,17 @@ type PaginationControls = {
   pageType: 'discover' | 'search' | 'trailers';
 };
 
+/**
+ * Constructs a URL string for the specified page, genre, and page type, preserving relevant query parameters.
+ *
+ * For 'search' pages, preserves the search query (`q`). For 'trailers' pages, also preserves the `mediaType` parameter if present. The `genreId` parameter is included if `currentGenreId` is not zero.
+ *
+ * @param pageNumber - The target page number
+ * @param currentGenreId - The currently selected genre ID
+ * @param searchParams - The current URL search parameters
+ * @param pageType - The type of page ('discover', 'search', or 'trailers')
+ * @returns A URL string with updated query parameters for the specified page and context
+ */
 function buildPageUrl(
   pageNumber: number,
   currentGenreId: number,

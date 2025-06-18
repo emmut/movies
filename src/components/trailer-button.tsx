@@ -10,6 +10,13 @@ interface TrailerButtonProps {
   trailerKey: string;
 }
 
+/**
+ * Renders a button that opens a dialog to play a movie trailer in an embedded YouTube player.
+ *
+ * @param movieTitle - The title of the movie, used for dialog accessibility and iframe title
+ * @param trailerKey - The YouTube video key for the trailer to embed
+ * @returns A React element containing the play button and trailer dialog
+ */
 export function TrailerButton({ movieTitle, trailerKey }: TrailerButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
