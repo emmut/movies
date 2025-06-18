@@ -459,7 +459,7 @@ export async function fetchAvailableTvGenres() {
  */
 export async function getTvShowTrailer(tvId: number) {
   'use cache';
-  cacheTag(`movie-trailer-${tvId}`);
+  cacheTag(`tv-trailer-${tvId}`);
   cacheLife('hours');
 
   try {
