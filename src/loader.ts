@@ -12,7 +12,6 @@ export default function imageKitLoader({
   width,
   quality,
 }: ImageKitLoaderProps) {
-  console.log(env.NEXT_PUBLIC_IMAGEKIT_ID);
   const params = [`w-${width}`, `q-${quality || 80}`];
   return `https://ik.imagekit.io/${env.NEXT_PUBLIC_IMAGEKIT_ID}/${src}?tr=${params.join(',')}`;
 }
