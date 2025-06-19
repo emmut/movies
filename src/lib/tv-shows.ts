@@ -15,12 +15,14 @@ import { MAJOR_STREAMING_PROVIDERS, TMDB_API_URL } from './config';
 import { DEFAULT_REGION } from './regions';
 import { getUserRegion } from './user-actions';
 
+const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
+
 /**
  * Retrieves the user's region, returning a default region if retrieval fails.
  *
  * @returns The user's region code, or the default region code if an error occurs.
  */
-async function getUserRegionWithFallback(): Promise<string> {
+async function getUserRegionWithFallback() {
   try {
     return await getUserRegion();
   } catch (error) {
@@ -158,7 +160,6 @@ export async function fetchDiscoverTvShows(
     url.searchParams.set('with_watch_providers', watchProviders);
     url.searchParams.set('watch_region', watchRegion);
   } else {
-    const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
     url.searchParams.set('with_watch_providers', majorProviders);
     url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
   }

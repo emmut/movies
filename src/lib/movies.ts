@@ -15,6 +15,8 @@ import {
 } from 'next/cache';
 import { MAJOR_STREAMING_PROVIDERS, TMDB_API_URL } from './config';
 
+const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
+
 /**
  * Fetches the list of trending movies for the current day from TMDb.
  *
@@ -41,7 +43,7 @@ export async function fetchTrendingMovies() {
   return movies.results;
 }
 
-async function getUserRegionWithFallback(): Promise<string> {
+async function getUserRegionWithFallback() {
   try {
     return await getUserRegion();
   } catch (error) {
@@ -116,7 +118,6 @@ export async function fetchDiscoverMovies(
     url.searchParams.set('with_watch_providers', watchProviders);
     url.searchParams.set('watch_region', watchRegion);
   } else {
-    const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
     url.searchParams.set('with_watch_providers', majorProviders);
     url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
   }
