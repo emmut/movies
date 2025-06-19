@@ -80,6 +80,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
               { 'opacity-0': disableArrows }
             )}
           >
+            <span className="sr-only">Previous slide</span>
             <ChevronLeft className="h-6 w-6" />
           </button>
           <div
@@ -97,6 +98,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
               { 'opacity-0': disableArrows }
             )}
           >
+            <span className="sr-only">Next slide</span>
             <ChevronRight className="h-6 w-6" />
           </button>
           <div
