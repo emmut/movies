@@ -57,6 +57,7 @@ async function Trending({ index, type }: TrendingCardProp) {
           quality={85}
           fill
           priority
+          fetchPriority="high"
         />
       )}
 
