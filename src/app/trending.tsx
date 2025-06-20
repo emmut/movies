@@ -70,9 +70,9 @@ async function Trending({ index, type }: TrendingCardProp) {
 
       <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col justify-center bg-zinc-950 px-3 py-2">
         <div className="flex items-center gap-2">
-          <h3 className="text-md truncate font-semibold whitespace-nowrap md:text-lg">
+          <h2 className="text-md truncate font-semibold whitespace-nowrap md:text-lg">
             {title}
-          </h3>
+          </h2>
         </div>
         {releaseDate && (
           <p className="text-sm">{formatDateYear(releaseDate)}</p>
