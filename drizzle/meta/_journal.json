@@ -15,6 +15,13 @@
       "when": 1749297807921,
       "tag": "0001_lazy_white_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1750527646473,
+      "tag": "0002_fair_nextwave",
+      "breakpoints": true
     }
   ]
 }
