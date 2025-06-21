@@ -1,7 +1,7 @@
 'use client';
 
 import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
-import { signIn } from '@/lib/auth-client';
+import { signIn, signInAnonymous } from '@/lib/auth-client';
 
 /**
  * Renders a login form with a Discord OAuth login button.
@@ -12,6 +12,11 @@ export function LoginForm() {
   return (
     <div className="flex flex-col justify-center gap-4">
       <OAuthLoginButton provider="discord" onClick={() => signIn()} size="lg" />
+      <OAuthLoginButton
+        provider="anonymous"
+        onClick={() => signInAnonymous()}
+        size="lg"
+      />
     </div>
   );
 }
