@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 export function Search() {
   const searchParams = useSearchParams();
   const q = searchParams.get('q') ?? '';
+  const mediaType = searchParams.get('mediaType') ?? 'movie';
 
   return (
     <form action="/search" className="relative max-w-md flex-1">
@@ -20,6 +21,7 @@ export function Search() {
         autoComplete="off"
         defaultValue={q}
       />
+      <input type="hidden" name="mediaType" value={mediaType} />
     </form>
   );
 }
