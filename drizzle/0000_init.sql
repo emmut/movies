@@ -50,7 +50,8 @@ CREATE TABLE "verification" (
 CREATE TABLE "watchlist" (
 	"id" text PRIMARY KEY NOT NULL,
 	"user_id" text NOT NULL,
-	"movie_id" integer NOT NULL,
+	"resource_id" integer NOT NULL,
+	"resource_type" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );

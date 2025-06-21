@@ -1,5 +1,5 @@
 {
-  "id": "a1d1b3e7-5cd2-4db1-b7d0-8a658cf86836",
+  "id": "05d323ba-af1e-45ad-b063-74560176fe2e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -327,9 +327,15 @@
           "primaryKey": false,
           "notNull": true
         },
-        "movie_id": {
-          "name": "movie_id",
+        "resource_id": {
+          "name": "resource_id",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resource_type": {
+          "name": "resource_type",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
