@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { getUser } from '@/lib/auth-server';
 import { regions } from '@/lib/regions';
 import { getUserRegion, updateUserRegion } from '@/lib/user-actions';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -13,6 +14,12 @@ import { RegionForm } from './region-form';
 
 export default async function SettingsPage() {
   noStore();
+  const user = await getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
   let currentRegion: string;
 
   try {
