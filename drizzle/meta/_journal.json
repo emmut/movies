@@ -10,10 +10,10 @@
       "breakpoints": true
     },
     {
-      "idx": 2,
+      "idx": 1,
       "version": "7",
-      "when": 1750527646473,
-      "tag": "0002_fair_nextwave",
+      "when": 1750531134351,
+      "tag": "0001_anonymus_user",
       "breakpoints": true
     }
   ]
