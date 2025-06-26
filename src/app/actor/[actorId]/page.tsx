@@ -1,6 +1,7 @@
 import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
-import ResourceGrid from '@/components/resource-grid';
+import ResourceCard from '@/components/resource-card';
+import { ItemSlider } from '@/components/ui/item-slider';
 import {
   getActorDetails,
   getActorMovieCredits,
@@ -80,7 +81,7 @@ export default async function ActorPage(props: ActorPageProps) {
       );
     });
 
-  // Convert to format expected by ResourceGrid
+  // Convert to format expected by ResourceCard
   const moviesForGrid = uniqueMovies.map((movie) => ({
     id: movie.id,
     title: movie.title,
@@ -99,7 +100,7 @@ export default async function ActorPage(props: ActorPageProps) {
     vote_count: 0,
   }));
 
-  // Convert TV shows to format expected by ResourceGrid
+  // Convert TV shows to format expected by ResourceCard
   const tvShowsForGrid = uniqueTvShows.map((show) => ({
     id: show.id,
     name: show.name,
@@ -260,9 +261,16 @@ export default async function ActorPage(props: ActorPageProps) {
               <h2 className="mb-4 text-xl font-semibold">
                 Movies ({uniqueMovies.length})
               </h2>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                <ResourceGrid resources={moviesForGrid} type="movie" />
-              </div>
+              <ItemSlider>
+                {moviesForGrid.map((movie) => (
+                  <ResourceCard
+                    key={movie.id}
+                    resource={movie}
+                    className="w-48"
+                    type="movie"
+                  />
+                ))}
+              </ItemSlider>
             </div>
           )}
 
@@ -271,9 +279,16 @@ export default async function ActorPage(props: ActorPageProps) {
               <h2 className="mb-4 text-xl font-semibold">
                 TV Shows ({uniqueTvShows.length})
               </h2>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                <ResourceGrid resources={tvShowsForGrid} type="tv" />
-              </div>
+              <ItemSlider>
+                {tvShowsForGrid.map((show) => (
+                  <ResourceCard
+                    key={show.id}
+                    resource={show}
+                    className="w-48"
+                    type="tv"
+                  />
+                ))}
+              </ItemSlider>
             </div>
           )}
 
