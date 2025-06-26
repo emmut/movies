@@ -289,9 +289,10 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <h2 className="mb-4 text-xl font-semibold">Created By</h2>
               <div className="flex flex-wrap gap-4">
                 {created_by.map((creator) => (
-                  <div
+                  <Link
                     key={creator.credit_id}
-                    className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3"
+                    href={`/actor/${creator.id}`}
+                    className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                   >
                     {creator.profile_path ? (
                       <Image
@@ -306,8 +307,10 @@ export default async function TvShowPage(props: TvShowPageProps) {
                         <Users className="h-5 w-5 text-zinc-400" />
                       </div>
                     )}
-                    <span className="font-medium">{creator.name}</span>
-                  </div>
+                    <span className="font-medium hover:text-white">
+                      {creator.name}
+                    </span>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -318,9 +321,10 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <h2 className="mb-4 text-xl font-semibold">Cast</h2>
               <ItemSlider>
                 {credits.cast.map((actor) => (
-                  <div
+                  <Link
                     key={actor.credit_id}
-                    className="w-32 flex-shrink-0 snap-center"
+                    href={`/actor/${actor.id}`}
+                    className="w-32 flex-shrink-0 snap-center transition-transform hover:scale-105"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
                       {actor.profile_path ? (
@@ -337,13 +341,13 @@ export default async function TvShowPage(props: TvShowPageProps) {
                         </div>
                       )}
                     </div>
-                    <h3 className="line-clamp-2 text-sm font-medium">
+                    <h3 className="line-clamp-2 text-sm font-medium hover:text-white">
                       {actor.name}
                     </h3>
                     <p className="line-clamp-2 text-xs text-zinc-400">
                       {actor.character}
                     </p>
-                  </div>
+                  </Link>
                 ))}
               </ItemSlider>
             </div>
