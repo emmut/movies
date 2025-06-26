@@ -7,7 +7,7 @@ import {
   getActorMovieCredits,
   getActorTvCredits,
 } from '@/lib/actors';
-import { formatImageUrl } from '@/lib/utils';
+import { deduplicateAndSortByPopularity, formatImageUrl } from '@/lib/utils';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
@@ -49,37 +49,17 @@ export default async function ActorPage(props: ActorPageProps) {
     imdb_id,
   } = actor;
 
-  // Sort movies by popularity and release date, remove duplicates
-  const uniqueMovies = movieCredits.cast
-    .filter(
-      (movie, index, self) => index === self.findIndex((m) => m.id === movie.id)
-    )
-    .sort((a, b) => {
-      // Sort by popularity first, then by release date
-      if (b.popularity !== a.popularity) {
-        return b.popularity - a.popularity;
-      }
-      return (
-        new Date(b.release_date || '1900-01-01').getTime() -
-        new Date(a.release_date || '1900-01-01').getTime()
-      );
-    });
+  // Deduplicate and sort movies by popularity and release date
+  const uniqueMovies = deduplicateAndSortByPopularity(
+    movieCredits.cast,
+    (movie) => movie.release_date
+  );
 
-  // Sort TV shows by popularity and first air date, remove duplicates
-  const uniqueTvShows = tvCredits.cast
-    .filter(
-      (show, index, self) => index === self.findIndex((s) => s.id === show.id)
-    )
-    .sort((a, b) => {
-      // Sort by popularity first, then by first air date
-      if (b.popularity !== a.popularity) {
-        return b.popularity - a.popularity;
-      }
-      return (
-        new Date(b.first_air_date || '1900-01-01').getTime() -
-        new Date(a.first_air_date || '1900-01-01').getTime()
-      );
-    });
+  // Deduplicate and sort TV shows by popularity and first air date
+  const uniqueTvShows = deduplicateAndSortByPopularity(
+    tvCredits.cast,
+    (show) => show.first_air_date
+  );
 
   // Convert movies to format expected by ResourceCard
   const moviesForGrid = uniqueMovies.map((movie) => ({
