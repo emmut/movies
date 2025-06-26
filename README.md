@@ -5,7 +5,7 @@ A modern web application for exploring and managing movies, built with Next.js 1
 ## Road map
 
 - [x] Movie trailers
-- [ ] Actor/actress pages
+- [x] Actor/actress pages
 - [ ] Custom movie lists
 - [ ] Watched movies tracking
 - [ ] Personal ratings
