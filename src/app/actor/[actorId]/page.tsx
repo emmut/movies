@@ -1,5 +1,7 @@
 import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
+import ResourceCard from '@/components/resource-card';
+import { ItemSlider } from '@/components/ui/item-slider';
 import {
   getActorDetails,
   getActorMovieCredits,
@@ -9,10 +11,6 @@ import { formatImageUrl } from '@/lib/utils';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
-import { Suspense } from 'react';
-import ActorMovieSlider from './actor-movie-slider';
-import ActorTvSlider from './actor-tv-slider';
-import SliderSkeleton from './slider-skeleton';
 
 type ActorPageProps = {
   params: Promise<{
@@ -82,6 +80,43 @@ export default async function ActorPage(props: ActorPageProps) {
         new Date(a.first_air_date || '1900-01-01').getTime()
       );
     });
+
+  // Convert movies to format expected by ResourceCard
+  const moviesForGrid = uniqueMovies.map((movie) => ({
+    id: movie.id,
+    title: movie.title,
+    poster_path: movie.poster_path,
+    release_date: movie.release_date,
+    vote_average: movie.vote_average,
+    adult: false,
+    backdrop_path: '',
+    original_language: '',
+    original_title: movie.original_title,
+    overview: '',
+    media_type: 'movie',
+    genre_ids: [],
+    popularity: movie.popularity,
+    video: false,
+    vote_count: 0,
+  }));
+
+  // Convert TV shows to format expected by ResourceCard
+  const tvShowsForGrid = uniqueTvShows.map((show) => ({
+    id: show.id,
+    name: show.name,
+    original_name: show.original_name,
+    poster_path: show.poster_path,
+    first_air_date: show.first_air_date,
+    vote_average: show.vote_average,
+    backdrop_path: '',
+    overview: '',
+    vote_count: 0,
+    genre_ids: [],
+    popularity: show.popularity,
+    media_type: 'tv',
+    origin_country: [],
+    original_language: '',
+  }));
 
   const birthYear = birthday ? new Date(birthday).getFullYear() : null;
   const deathYear = deathday ? new Date(deathday).getFullYear() : null;
@@ -226,9 +261,16 @@ export default async function ActorPage(props: ActorPageProps) {
               <h2 className="mb-4 text-xl font-semibold">
                 Movies ({uniqueMovies.length})
               </h2>
-              <Suspense fallback={<SliderSkeleton />}>
-                <ActorMovieSlider movies={uniqueMovies} />
-              </Suspense>
+              <ItemSlider>
+                {moviesForGrid.map((movie) => (
+                  <ResourceCard
+                    key={movie.id}
+                    resource={movie}
+                    className="w-48"
+                    type="movie"
+                  />
+                ))}
+              </ItemSlider>
             </div>
           )}
 
@@ -237,9 +279,16 @@ export default async function ActorPage(props: ActorPageProps) {
               <h2 className="mb-4 text-xl font-semibold">
                 TV Shows ({uniqueTvShows.length})
               </h2>
-              <Suspense fallback={<SliderSkeleton />}>
-                <ActorTvSlider tvShows={uniqueTvShows} />
-              </Suspense>
+              <ItemSlider>
+                {tvShowsForGrid.map((show) => (
+                  <ResourceCard
+                    key={show.id}
+                    resource={show}
+                    className="w-48"
+                    type="tv"
+                  />
+                ))}
+              </ItemSlider>
             </div>
           )}
 

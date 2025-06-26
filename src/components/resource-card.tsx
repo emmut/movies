@@ -18,7 +18,7 @@ type ResourceCardProps = {
  * @param resource - The resource to check.
  * @returns True if the resource is a movie or movie details; otherwise, false.
  */
-function isMovie(
+function isResource(
   resource: Movie | MovieDetails | TvShow | TvDetails
 ): resource is Movie | MovieDetails {
   return 'title' in resource;
@@ -36,8 +36,8 @@ export default function ResourceCard({
 }: ResourceCardProps) {
   const score = Math.ceil(resource.vote_average * 10) / 10;
 
-  const title = isMovie(resource) ? resource.title : resource.name;
-  const releaseDate = isMovie(resource)
+  const title = isResource(resource) ? resource.title : resource.name;
+  const releaseDate = isResource(resource)
     ? resource.release_date
     : resource.first_air_date;
   const releaseYear = releaseDate ? releaseDate.split('-')[0] : 'N/A';
