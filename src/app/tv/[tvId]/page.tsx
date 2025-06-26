@@ -102,7 +102,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
         <div className="lg:col-span-4">
           {poster_path ? (
             <Image
-              className="mx-auto aspect-2/3 w-full max-w-md rounded-lg border shadow-2xl"
+              className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg border shadow-2xl sm:mx-0"
               src={formatImageUrl(poster_path, 500)}
               alt={`Poster image of ${name}`}
               width={500}

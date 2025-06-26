@@ -17,7 +17,7 @@ export default function Loading() {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
-          <div className="mx-auto aspect-2/3 w-full max-w-md animate-pulse rounded-lg bg-neutral-50/10 shadow-2xl" />
+          <div className="mx-auto aspect-2/3 w-full max-w-xs animate-pulse rounded-lg bg-neutral-50/10 shadow-2xl sm:mx-0" />
         </div>
 
         <div className="space-y-6 lg:col-span-8">

@@ -14,7 +14,7 @@ export default function ActorLoading() {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
-          <Skeleton className="mx-auto aspect-2/3 w-full max-w-md rounded-lg" />
+          <Skeleton className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg sm:mx-0" />
         </div>
 
         <div className="space-y-6 lg:col-span-8">

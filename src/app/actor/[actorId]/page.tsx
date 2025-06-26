@@ -100,7 +100,7 @@ export default async function ActorPage(props: ActorPageProps) {
         <div className="lg:col-span-4">
           {profile_path ? (
             <Image
-              className="mx-auto aspect-2/3 w-full max-w-md rounded-lg border shadow-2xl"
+              className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg border shadow-2xl sm:mx-0"
               src={formatImageUrl(profile_path, 500)}
               alt={`Profile image of ${name}`}
               width={500}
