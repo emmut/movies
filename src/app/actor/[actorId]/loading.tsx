@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import SliderSkeleton from './slider-skeleton';
 
 /**
  * Loading state component for the actor page.
@@ -61,16 +62,13 @@ export default function ActorLoading() {
           </div>
 
           <div>
-            <Skeleton className="mb-4 h-6 w-16" />
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div key={i} className="space-y-2">
-                  <Skeleton className="aspect-2/3 w-full rounded-lg" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-3 w-3/4" />
-                </div>
-              ))}
-            </div>
+            <Skeleton className="mb-4 h-6 w-32" />
+            <SliderSkeleton />
+          </div>
+
+          <div>
+            <Skeleton className="mb-4 h-6 w-36" />
+            <SliderSkeleton />
           </div>
 
           <div className="flex flex-wrap gap-4">
