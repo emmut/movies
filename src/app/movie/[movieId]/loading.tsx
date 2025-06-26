@@ -14,7 +14,7 @@ export default function LoadingMovies() {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
-          <Skeleton className="mx-auto aspect-2/3 w-full max-w-md rounded-lg shadow-2xl" />
+          <Skeleton className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg shadow-2xl sm:mx-0" />
         </div>
 
         <div className="space-y-6 lg:col-span-8">
