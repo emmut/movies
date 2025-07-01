@@ -31,7 +31,7 @@
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "babel-plugin-react-compiler": "19.1.0-rc.2",
-    "better-auth": "^1.2.9",
+    "better-auth": "^1.2.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.44.2",
