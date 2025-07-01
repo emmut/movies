@@ -64,7 +64,7 @@
     "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1",
     "drizzle-kit": "^0.31.1",
     "eslint": "^9.29.0",
-    "eslint-config-next": "15.3.3",
+    "eslint-config-next": "15.3.4",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "postcss-preset-env": "^10.2.3",
