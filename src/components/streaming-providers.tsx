@@ -59,7 +59,7 @@ export function StreamingProviders({
     return (
       <div>
         <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-semibold">Var kan du titta</h2>
+          <h2 className="text-xl font-semibold">Where to watch</h2>
           <RegionSelect defaultValue={userRegion} />
         </div>
         <div className="rounded-lg bg-zinc-800 p-6 text-center">
@@ -114,7 +114,7 @@ export function StreamingProviders({
           <div>
             <h3 className="mb-3 flex items-center gap-2 text-lg font-medium">
               <Play className="h-5 w-5 text-blue-500" />
-              Hyra
+              Rent
             </h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {rentalServices.map((provider) => (
@@ -145,7 +145,7 @@ export function StreamingProviders({
           <div>
             <h3 className="mb-3 flex items-center gap-2 text-lg font-medium">
               <ShoppingCart className="h-5 w-5 text-orange-500" />
-              Köpa
+              Buy
             </h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {purchaseServices.map((provider) => (
