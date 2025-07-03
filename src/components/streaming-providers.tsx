@@ -64,7 +64,7 @@ export function StreamingProviders({
         </div>
         <div className="rounded-lg bg-zinc-800 p-6 text-center">
           <p className="text-zinc-400">
-            No streaming services available for this region
+            No services available for this region
           </p>
         </div>
       </div>
@@ -74,7 +74,7 @@ export function StreamingProviders({
   return (
     <div>
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-semibold">Var kan du titta</h2>
+        <h2 className="text-xl font-semibold">Where to watch</h2>
         <RegionSelect defaultValue={userRegion} />
       </div>
 
