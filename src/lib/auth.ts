@@ -7,7 +7,7 @@ import { nextCookies } from 'better-auth/next-js';
 import { anonymous } from 'better-auth/plugins';
 
 export const auth = betterAuth({
-  trustedOrigins: [env.VERCEL_BRANCH_URL, env.VERCEL_URL],
+  trustedOrigins: [env.VERCEL_BRANCH_URL, env.VERCEL_PROJECT_PRODUCTION_URL],
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema,

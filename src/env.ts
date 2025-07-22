@@ -13,7 +13,7 @@ export const env = createEnv({
       .min(1)
       .optional()
       .transform((val) => `https://${val}`),
-    VERCEL_URL: z
+    VERCEL_PROJECT_PRODUCTION_URL: z
       .string()
       .min(1)
       .optional()
@@ -36,6 +36,6 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_IMAGEKIT_ID: process.env.NEXT_PUBLIC_IMAGEKIT_ID,
     VERCEL_BRANCH_URL: process.env.VERCEL_BRANCH_URL,
-    VERCEL_URL: process.env.VERCEL_URL,
+    VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
   },
 });
