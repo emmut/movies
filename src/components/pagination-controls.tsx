@@ -145,7 +145,7 @@ export function PaginationControls({
         <div className="mt-6 mb-3 flex w-full items-center justify-center">
           <Pagination>
             <PaginationContent className="gap-1 sm:gap-2">
-              <PaginationItem className="hidden sm:block">
+              <PaginationItem>
                 <PaginationPrevious
                   onClick={() =>
                     hasPrevPage && handlePageSelect(currentPageNumber - 1)
@@ -175,7 +175,7 @@ export function PaginationControls({
                 )
               )}
 
-              <PaginationItem className="hidden sm:block">
+              <PaginationItem>
                 <PaginationNext
                   onClick={() =>
                     hasNextPage && handlePageSelect(currentPageNumber + 1)
