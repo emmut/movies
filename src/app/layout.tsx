@@ -7,19 +7,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+// import { inter } from '@/fonts';
+import { inter } from '@/fonts';
 import { getSession } from '@/lib/auth-server';
 import { PHProvider } from '@/providers/posthog';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import clsx from 'clsx';
-import { Inter } from 'next/font/google';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode, Suspense } from 'react';
 import { Toaster } from 'sonner';
 import './globals.css';
 import { Search } from './search';
-
-const inter = Inter({ subsets: ['latin'], fallback: ['sans-serif'] });
 
 export const metadata = {
   title: 'Movies',

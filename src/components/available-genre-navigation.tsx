@@ -81,6 +81,25 @@ export default async function AvailableGenresNavigation({
   );
 }
 
+const availableGenresSkeleton = [
+  { id: 1, className: 'w-18' },
+  { id: 2, className: 'w-24' },
+  { id: 3, className: 'w-32' },
+  { id: 4, className: 'w-24' },
+  { id: 5, className: 'w-24' },
+  { id: 6, className: 'w-18' },
+  { id: 7, className: 'w-24' },
+  { id: 8, className: 'w-16' },
+  { id: 9, className: 'w-24' },
+  { id: 10, className: 'w-32' },
+  { id: 11, className: 'w-24' },
+  { id: 12, className: 'w-36' },
+  { id: 13, className: 'w-19' },
+  { id: 14, className: 'w-28' },
+  { id: 15, className: 'w-19' },
+  { id: 16, className: 'w-36' },
+] as const;
+
 /**
  * Displays a skeleton navigation UI with placeholder genre pills to indicate loading state.
  */
@@ -88,9 +107,11 @@ function AvailableGenresNavigationSkeleton() {
   return (
     <nav>
       <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
-        {[...Array(13)].map((_, i) => (
-          <li key={i}>
-            <Pill variant="skeleton">Loading...</Pill>
+        {availableGenresSkeleton.map(({ id, className }) => (
+          <li key={id}>
+            <Pill variant="skeleton" className={className}>
+              Loading...
+            </Pill>
           </li>
         ))}
       </ul>

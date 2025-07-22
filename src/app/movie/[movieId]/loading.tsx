@@ -14,10 +14,25 @@ export default function LoadingMovies() {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
-          <Skeleton className="mx-auto aspect-2/3 w-full max-w-md rounded-lg shadow-2xl" />
+          <Skeleton className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg shadow-2xl sm:mx-0" />
         </div>
 
         <div className="space-y-6 lg:col-span-8">
+          <div className="@container/title">
+            <div className="flex flex-col justify-between gap-4 @2xl/title:flex-row">
+              <div className="flex flex-col gap-x-4 gap-y-2">
+                <Skeleton className="h-12 w-64" />
+                <Skeleton className="h-6 w-18" />
+
+                <Skeleton className="mt-4 h-7 w-18 rounded-full" />
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <Skeleton className="h-6 w-38" />
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="rounded-lg bg-zinc-900 p-4 text-center">

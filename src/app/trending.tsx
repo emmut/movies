@@ -69,7 +69,7 @@ async function Trending({ index, type }: TrendingCardProp) {
         </Badge>
       </div>
 
-      <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col justify-center bg-zinc-950 px-3 py-2">
+      <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col justify-center bg-gradient-to-t from-zinc-950/50 to-transparent px-3 py-2">
         <div className="flex items-center gap-2">
           <h2 className="text-md truncate font-semibold whitespace-nowrap md:text-lg">
             {title}

@@ -2,10 +2,10 @@
 
 A modern web application for exploring and managing movies, built with Next.js 15 and TypeScript.
 
-## Todo
+## Road map
 
-- [ ] Movie trailers
-- [ ] Actor/actress pages
+- [x] Movie trailers
+- [x] Actor/actress pages
 - [ ] Custom movie lists
 - [ ] Watched movies tracking
 - [ ] Personal ratings

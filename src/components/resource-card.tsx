@@ -18,7 +18,7 @@ type ResourceCardProps = {
  * @param resource - The resource to check.
  * @returns True if the resource is a movie or movie details; otherwise, false.
  */
-function isMovie(
+function isResource(
   resource: Movie | MovieDetails | TvShow | TvDetails
 ): resource is Movie | MovieDetails {
   return 'title' in resource;
@@ -36,8 +36,8 @@ export default function ResourceCard({
 }: ResourceCardProps) {
   const score = Math.ceil(resource.vote_average * 10) / 10;
 
-  const title = isMovie(resource) ? resource.title : resource.name;
-  const releaseDate = isMovie(resource)
+  const title = isResource(resource) ? resource.title : resource.name;
+  const releaseDate = isResource(resource)
     ? resource.release_date
     : resource.first_air_date;
   const releaseYear = releaseDate ? releaseDate.split('-')[0] : 'N/A';
@@ -79,7 +79,7 @@ export default function ResourceCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100" />
 
         <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
-          <div className="inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100" />
+          <div className="inset-0 bg-gradient-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100" />
 
           <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{title}</h3>
           <div className="flex items-center justify-between text-xs text-zinc-300">

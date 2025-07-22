@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     loader: 'custom',
     loaderFile: './src/loader.ts',
     formats: ['image/avif', 'image/webp'],
+    qualities: [25, 50, 75, 85],
     remotePatterns: [
       {
         protocol: 'https',
@@ -15,6 +16,7 @@ const nextConfig: NextConfig = {
   experimental: {
     reactCompiler: true,
     useCache: true,
+    clientSegmentCache: true,
   },
 };
 
