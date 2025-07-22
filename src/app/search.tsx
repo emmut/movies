@@ -19,6 +19,7 @@ export function Search() {
         name="q"
         spellCheck={false}
         autoComplete="off"
+        autoCorrect="off"
         defaultValue={q}
       />
       <input type="hidden" name="mediaType" value={mediaType} />
