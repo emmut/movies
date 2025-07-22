@@ -1,7 +1,9 @@
+'use client';
+
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { UserIcon } from 'lucide-react';
-import { ReactNode } from 'react';
+import { Loader2, UserIcon } from 'lucide-react';
+import { ReactNode, useState } from 'react';
 import { Button } from './button';
 
 type OAuthLoginButtonProps = VariantProps<typeof oauthButtonVariants> &
@@ -9,6 +11,7 @@ type OAuthLoginButtonProps = VariantProps<typeof oauthButtonVariants> &
     provider?: 'discord' | 'google' | 'github' | 'anonymous';
     text?: string;
     icon?: ReactNode;
+    onClick?: () => void;
   };
 
 const oauthButtonVariants = cva(
@@ -117,8 +120,10 @@ export function OAuthLoginButton({
   disabled = false,
   size = 'lg',
   className,
+  onClick,
   ...props
 }: OAuthLoginButtonProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const config = providerConfigs[provider];
   const displayText = text || config.defaultText;
   const displayIcon = icon !== undefined ? icon : config.icon;
@@ -128,10 +133,20 @@ export function OAuthLoginButton({
       className={cn(oauthButtonVariants({ provider, size }), className)}
       disabled={disabled}
       type="button"
+      onClick={() => {
+        setIsLoading(true);
+        onClick?.();
+      }}
       {...props}
     >
-      {displayIcon}
-      {displayText}
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <>
+          {displayIcon}
+          {displayText}
+        </>
+      )}
     </Button>
   );
 }
