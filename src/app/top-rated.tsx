@@ -1,6 +1,12 @@
 import ResourceCard from '@/components/resource-card';
 import { env } from '@/env';
+import { TMDB_API_URL } from '@/lib/config';
+import { DEFAULT_REGION } from '@/lib/regions';
 import { MovieResponse } from '@/types/movie';
+import {
+  unstable_cacheLife as cacheLife,
+  unstable_cacheTag as cacheTag,
+} from 'next/cache';
 
 /**
  * Retrieves a list of top-rated movies from the Movie Database API for the SE region.
@@ -12,19 +18,17 @@ import { MovieResponse } from '@/types/movie';
  * @throws {Error} If the API request fails or returns a non-successful response.
  */
 async function fetchTopRatedMovies() {
-  const url = new URL('https://api.themoviedb.org/3/discover/movie');
-  url.searchParams.set('sort_by', 'vote_average.desc');
-  url.searchParams.set('region', 'SE');
-  url.searchParams.set('include_adult', 'false');
-  url.searchParams.set('include_video', 'false');
+  'use cache';
+  cacheTag('top-rated');
+  cacheLife('minutes');
+
+  const url = new URL(`${TMDB_API_URL}/movie/top_rated`);
+  url.searchParams.set('region', DEFAULT_REGION);
 
   const res = await fetch(url, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
-    },
-    next: {
-      revalidate: 60 * 5,
     },
   });
 

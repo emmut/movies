@@ -260,7 +260,6 @@ export async function fetchTopRatedTvShows() {
 
   const url = new URL(`${TMDB_API_URL}/tv/top_rated`);
   url.searchParams.set('region', DEFAULT_REGION);
-  url.searchParams.set('include_adult', 'false');
 
   const res = await fetch(url, {
     headers: {
