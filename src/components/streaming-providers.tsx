@@ -42,6 +42,7 @@ export function StreamingProviders({
   );
 
   const regionProviders = watchProviders.results?.[region];
+  const allRegionProviders = watchProviders.results;
   const streamingServices = regionProviders?.flatrate || [];
   const rentalServices = regionProviders?.rent || [];
   const purchaseServices = regionProviders?.buy || [];
@@ -55,30 +56,25 @@ export function StreamingProviders({
     return `https://www.themoviedb.org/${resourceType}/${resourceId}/watch`;
   };
 
-  if (!hasAnyServices) {
-    return (
-      <div>
-        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-semibold">Where to watch</h2>
-          <RegionSelect defaultValue={userRegion} />
-        </div>
-        <div className="rounded-lg bg-zinc-800 p-6 text-center">
-          <p className="text-zinc-400">
-            No services available for this region
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-semibold">Where to watch</h2>
-        <RegionSelect defaultValue={userRegion} />
+        <RegionSelect
+          defaultValue={userRegion}
+          allRegionProviders={allRegionProviders}
+        />
       </div>
 
       <div className="space-y-6">
+        {!hasAnyServices && (
+          <div className="rounded-lg bg-zinc-800 p-6 text-center">
+            <p className="text-zinc-400">
+              No services available for this region
+            </p>
+          </div>
+        )}
+
         {streamingServices.length > 0 && (
           <div>
             <h3 className="mb-3 flex items-center gap-2 text-lg font-medium">

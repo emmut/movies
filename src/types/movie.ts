@@ -1,3 +1,4 @@
+import { RegionCode } from '@/lib/regions';
 import { Genre } from './genre';
 import { WatchProvider } from './watch-provider';
 
@@ -107,7 +108,7 @@ export type RegionWatchProviders = {
 export type MovieWatchProviders = {
   id: number;
   results: {
-    [region: string]: RegionWatchProviders;
+    [region in RegionCode]: RegionWatchProviders;
   };
 };
 

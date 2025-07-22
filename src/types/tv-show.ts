@@ -1,3 +1,4 @@
+import { RegionCode } from '@/lib/regions';
 import { Genre } from './genre';
 
 export type TvDetails = {
@@ -60,7 +61,7 @@ export type Crew = {
 export type TvWatchProviders = {
   id: number;
   results: {
-    [region: string]: {
+    [region in RegionCode]: {
       link: string;
       rent?: {
         display_priority: number;
