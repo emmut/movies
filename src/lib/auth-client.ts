@@ -17,7 +17,7 @@ export type Session = typeof authClient.$Infer.Session;
  * @returns The result of the sign-in operation.
  */
 export async function signIn({
-  errorCallbackURL = '/login?error=failed-to-login',
+  errorCallbackURL = '/login?error=failed_to_login',
 }: {
   errorCallbackURL?: string;
 }) {

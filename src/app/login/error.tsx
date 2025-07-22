@@ -9,34 +9,34 @@ function LoginError() {
   const searchParams = useSearchParams();
   const errorType = searchParams.get('error');
 
-  const getErrorMessage = () => {
+  function getErrorMessage() {
     switch (errorType) {
-      case 'failed-to-login':
+      case 'failed_to_login':
         return {
-          title: 'Inloggning misslyckades',
+          title: 'Login Failed',
           description:
-            'Vi kunde inte logga in dig med Discord. Detta kan bero på att du avbröt inloggningen eller att det uppstod ett tekniskt problem.',
+            'We could not log you in with Discord. This might be because you cancelled the login or a technical problem occurred.',
         };
       case 'access_denied':
         return {
-          title: 'Åtkomst nekad',
+          title: 'Access Denied',
           description:
-            'Du nekade applikationen åtkomst till ditt Discord-konto. För att använda tjänsten behöver vi din tillåtelse.',
+            'You denied the application access to your Discord account. To use this service, we need your permission.',
         };
       case 'server_error':
         return {
-          title: 'Serverfel',
+          title: 'Server Error',
           description:
-            'Ett oväntat fel uppstod på våra servrar. Försök igen om ett ögonblick.',
+            'An unexpected error occurred on our servers. Please try again in a moment.',
         };
       default:
         return {
-          title: 'Inloggningsfel',
+          title: 'Login Error',
           description:
-            'Ett oväntat fel uppstod under inloggningsprocessen. Försök igen eller kontakta support om problemet kvarstår.',
+            'An unexpected error occurred during the login process. Please try again or contact support if the problem persists.',
         };
     }
-  };
+  }
 
   const error = getErrorMessage();
 
@@ -55,13 +55,13 @@ function LoginError() {
 
         <div className="space-y-4">
           <div className="bg-muted/50 rounded-lg p-4">
-            <h3 className="mb-2 text-sm font-medium">Vad du kan göra:</h3>
-            <ul className="text-muted-foreground space-y-1 text-xs">
-              <li>• Försök logga in igen</li>
-              <li>• Kontrollera att du tillåter applikationen åtkomst</li>
-              <li>• Säkerställ att du har en stabil internetanslutning</li>
-              {errorType === 'failed-to-login' && (
-                <li>• Prova att logga in anonymt istället</li>
+            <h3 className="mb-2 text-sm font-medium">What you can do</h3>
+            <ul className="text-muted-foreground list-inside list-disc space-y-1 text-xs">
+              <li>Try logging in again</li>
+              <li>Check that you allow the application access</li>
+              <li>Make sure you have a stable internet connection</li>
+              {errorType === 'failed_to_login' && (
+                <li>Try logging in anonymously instead</li>
               )}
             </ul>
           </div>
@@ -70,14 +70,14 @@ function LoginError() {
             <Button asChild className="w-full">
               <Link href="/login">
                 <RefreshCw className="mr-2 h-4 w-4" />
-                Försök igen
+                Try Again
               </Link>
             </Button>
 
             <Button variant="outline" asChild className="w-full">
               <Link href="/">
                 <Home className="mr-2 h-4 w-4" />
-                Tillbaka till startsidan
+                Back to Home
               </Link>
             </Button>
           </div>
@@ -85,7 +85,7 @@ function LoginError() {
 
         <div className="text-center">
           <p className="text-muted-foreground text-xs">
-            Om problemet kvarstår, kontakta gärna support för hjälp.
+            If the problem persists, please contact support for help.
           </p>
         </div>
       </div>
