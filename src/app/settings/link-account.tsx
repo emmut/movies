@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
-import { signIn } from '@/lib/auth-client';
+import { signInSettings } from '@/lib/auth-client';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -37,9 +37,7 @@ function LinkAccount({ error }: LinkAccountProps) {
           provider="discord"
           text="Link using Discord"
           onClick={() => {
-            signIn({
-              errorCallbackURL: '/settings?error=failed-to-link-account',
-            });
+            signInSettings();
           }}
         />
       </CardContent>

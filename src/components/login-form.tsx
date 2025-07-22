@@ -1,7 +1,7 @@
 'use client';
 
 import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
-import { signIn, signInAnonymous } from '@/lib/auth-client';
+import { signInAnonymous, signInDiscord } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -15,7 +15,11 @@ export function LoginForm() {
 
   return (
     <div className="flex flex-col justify-center gap-4">
-      <OAuthLoginButton provider="discord" onClick={() => signIn()} size="lg" />
+      <OAuthLoginButton
+        provider="discord"
+        onClick={() => signInDiscord()}
+        size="lg"
+      />
       <OAuthLoginButton
         provider="anonymous"
         onClick={async () => {
