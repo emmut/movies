@@ -1,6 +1,6 @@
 'use server';
 
-import { user } from '@/db/schema';
+import { user } from '@/db/schema/auth';
 import { env } from '@/env';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';

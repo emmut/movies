@@ -1,4 +1,4 @@
-import { watchlist } from '@/db/schema';
+import { watchlist } from '@/db/schema/auth';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
