@@ -26,6 +26,12 @@ export async function signInDiscord() {
   return data;
 }
 
+/**
+ * Initiates a Discord social sign-in flow for account linking in settings.
+ *
+ * Redirects the user to Discord for authentication. On success, the user is redirected to the home page; on failure, to the settings page with an error message.
+ * @returns The result of the sign-in operation.
+ */
 export async function signInSettings() {
   const data = await authClient.signIn.social({
     provider: 'discord',

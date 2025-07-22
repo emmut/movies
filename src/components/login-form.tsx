@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 /**
- * Renders a login form with a Discord OAuth login button.
+ * Renders a login form with Discord OAuth and anonymous login options.
  *
- * Displays a vertically arranged container containing a large Discord login button that initiates the OAuth sign-in process when clicked.
+ * Provides two large buttons for users to sign in via Discord OAuth or anonymously. Displays an error notification if anonymous sign-in fails and navigates to the home page on success.
  */
 export function LoginForm() {
   const router = useRouter();

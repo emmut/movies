@@ -19,6 +19,14 @@ type SettingsPageProps = {
   }>;
 };
 
+/**
+ * Renders the user settings page, enforcing authentication and region selection.
+ *
+ * Redirects to the login page if the user is not authenticated or if the user's region cannot be determined. Displays account linking options for anonymous users and provides a form to select or update the user's region.
+ *
+ * @param props - Contains a promise resolving to search parameters, which may include an error message for account linking.
+ * @returns The settings page UI as a React element.
+ */
 export default async function SettingsPage(props: SettingsPageProps) {
   noStore();
   const { error } = await props.searchParams;

@@ -5,6 +5,11 @@ import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
+/**
+ * Displays a contextual login error message and troubleshooting steps based on the URL error parameter.
+ *
+ * Renders a user-friendly error page with a relevant title, description, and suggested actions depending on the type of login error encountered. Provides options to retry login or return to the home page.
+ */
 function LoginError() {
   const searchParams = useSearchParams();
   const errorType = searchParams.get('error');
