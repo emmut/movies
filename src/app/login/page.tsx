@@ -8,7 +8,17 @@ import { redirect } from 'next/navigation';
  *
  * If a user session exists, immediately redirects to the home page. Otherwise, displays a login interface with feature highlights, authentication options, and informational text.
  */
-export default async function LoginPage() {
+export default async function LoginPage(props: {
+  searchParams: Promise<{
+    error?: string;
+  }>;
+}) {
+  const { error } = await props.searchParams;
+
+  if (error === 'failed-to-login') {
+    throw new Error(error);
+  }
+
   const session = await getSession();
 
   if (session?.user) {

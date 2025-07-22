@@ -16,10 +16,15 @@ export type Session = typeof authClient.$Infer.Session;
  *
  * @returns The result of the sign-in operation.
  */
-export async function signIn() {
+export async function signIn({
+  errorCallbackURL = '/login?error=failed-to-login',
+}: {
+  errorCallbackURL?: string;
+}) {
   const data = await authClient.signIn.social({
     provider: 'discord',
     callbackURL: '/',
+    errorCallbackURL,
   });
 
   return data;
