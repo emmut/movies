@@ -46,6 +46,7 @@ function LinkAccount({ error }: LinkAccountProps) {
           onClick={() => {
             signInSettings();
           }}
+          className="w-full max-w-sm"
         />
       </CardContent>
     </Card>
