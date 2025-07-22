@@ -1,4 +1,5 @@
-import * as schema from '@/db/schema';
+import * as schema from '@/db/schema/auth';
+import { watchlist } from '@/db/schema/watchlist';
 import { env } from '@/env';
 import { db } from '@/lib/db';
 import { betterAuth } from 'better-auth';
@@ -27,14 +28,14 @@ export const auth = betterAuth({
         try {
           const anonymousUserWatchlist = await db
             .select()
-            .from(schema.watchlist)
-            .where(eq(schema.watchlist.userId, anonymousUser.user.id));
+            .from(watchlist)
+            .where(eq(watchlist.userId, anonymousUser.user.id));
 
           if (anonymousUserWatchlist.length === 0) {
             return;
           }
 
-          await db.insert(schema.watchlist).values(
+          await db.insert(watchlist).values(
             anonymousUserWatchlist.map(({ resourceId, resourceType }) => ({
               id: crypto.randomUUID(),
               resourceId,
