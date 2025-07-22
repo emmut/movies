@@ -1,8 +1,8 @@
-import { anonymousClient } from 'better-auth/client/plugins';
+import { anonymousClient, passkeyClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 const authClient = createAuthClient({
-  plugins: [anonymousClient()],
+  plugins: [anonymousClient(), passkeyClient()],
 });
 
 export const { useSession } = authClient;
@@ -38,6 +38,29 @@ export async function signInSettings() {
     callbackURL: '/',
     errorCallbackURL: '/settings?error=failed_to_link_account',
   });
+
+  return data;
+}
+
+export async function addPasskey() {
+  const data = await authClient.passkey.addPasskey();
+
+  if (data?.error) {
+    throw new Error(data.error.message);
+  }
+
+  return data;
+}
+
+export async function signInPasskey(email: string) {
+  const data = await authClient.signIn.passkey({
+    email,
+    autoFill: true,
+  });
+
+  if (data?.error) {
+    throw new Error(data.error.message);
+  }
 
   return data;
 }

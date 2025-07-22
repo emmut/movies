@@ -15,6 +15,13 @@
       "when": 1750531134351,
       "tag": "0001_anonymus_user",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1753210490338,
+      "tag": "0002_passkeys",
+      "breakpoints": true
     }
   ]
 }
