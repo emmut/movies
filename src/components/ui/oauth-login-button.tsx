@@ -1,7 +1,9 @@
+'use client';
+
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { UserIcon } from 'lucide-react';
-import { ReactNode } from 'react';
+import { Loader2, UserIcon } from 'lucide-react';
+import { ReactNode, useState } from 'react';
 import { Button } from './button';
 
 type OAuthLoginButtonProps = VariantProps<typeof oauthButtonVariants> &
@@ -9,6 +11,7 @@ type OAuthLoginButtonProps = VariantProps<typeof oauthButtonVariants> &
     provider?: 'discord' | 'google' | 'github' | 'anonymous';
     text?: string;
     icon?: ReactNode;
+    onClick?: () => void;
   };
 
 const oauthButtonVariants = cva(
@@ -99,16 +102,9 @@ const providerConfigs = {
 };
 
 /**
- * Renders an OAuth login button with provider-specific styling, icon, and text.
+ * Renders an OAuth login button with provider-specific styling, icon, and text, including a loading indicator on click.
  *
- * Displays a styled button for the specified OAuth provider (Discord, Google, or GitHub), using default or custom text and icon. The button adapts its appearance based on the selected provider and size.
- *
- * @param provider - The OAuth provider to use for styling and icon. Defaults to 'discord'.
- * @param text - Optional custom button label. If not provided, uses the provider's default text.
- * @param icon - Optional custom icon. If not provided, uses the provider's default icon.
- * @param disabled - Whether the button is disabled. Defaults to false.
- * @param size - The size variant of the button. Defaults to 'lg'.
- * @param className - Additional class names to apply to the button.
+ * The button adapts its appearance and content based on the selected OAuth provider and size. Displays a spinning loader icon while the button is in a loading state after being clicked. Custom text and icon can be provided; otherwise, provider defaults are used. The button is disabled if the `disabled` prop is set.
  */
 export function OAuthLoginButton({
   provider = 'discord',
@@ -117,8 +113,10 @@ export function OAuthLoginButton({
   disabled = false,
   size = 'lg',
   className,
+  onClick,
   ...props
 }: OAuthLoginButtonProps) {
+  const [isLoading, setIsLoading] = useState(false);
   const config = providerConfigs[provider];
   const displayText = text || config.defaultText;
   const displayIcon = icon !== undefined ? icon : config.icon;
@@ -128,10 +126,20 @@ export function OAuthLoginButton({
       className={cn(oauthButtonVariants({ provider, size }), className)}
       disabled={disabled}
       type="button"
+      onClick={() => {
+        setIsLoading(true);
+        onClick?.();
+      }}
       {...props}
     >
-      {displayIcon}
-      {displayText}
+      {isLoading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <>
+          {displayIcon}
+          {displayText}
+        </>
+      )}
     </Button>
   );
 }

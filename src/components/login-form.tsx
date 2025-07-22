@@ -1,21 +1,25 @@
 'use client';
 
 import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
-import { signIn, signInAnonymous } from '@/lib/auth-client';
+import { signInAnonymous, signInDiscord } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 /**
- * Renders a login form with a Discord OAuth login button.
+ * Renders a login form with Discord OAuth and anonymous login options.
  *
- * Displays a vertically arranged container containing a large Discord login button that initiates the OAuth sign-in process when clicked.
+ * Provides two large buttons for users to sign in via Discord OAuth or anonymously. Displays an error notification if anonymous sign-in fails and navigates to the home page on success.
  */
 export function LoginForm() {
   const router = useRouter();
 
   return (
     <div className="flex flex-col justify-center gap-4">
-      <OAuthLoginButton provider="discord" onClick={() => signIn()} size="lg" />
+      <OAuthLoginButton
+        provider="discord"
+        onClick={() => signInDiscord()}
+        size="lg"
+      />
       <OAuthLoginButton
         provider="anonymous"
         onClick={async () => {

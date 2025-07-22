@@ -16,10 +16,27 @@ export type Session = typeof authClient.$Infer.Session;
  *
  * @returns The result of the sign-in operation.
  */
-export async function signIn() {
+export async function signInDiscord() {
   const data = await authClient.signIn.social({
     provider: 'discord',
     callbackURL: '/',
+    errorCallbackURL: '/login?error=failed_to_login',
+  });
+
+  return data;
+}
+
+/**
+ * Initiates a Discord social sign-in flow for account linking in settings.
+ *
+ * Redirects the user to Discord for authentication. On success, the user is redirected to the home page; on failure, to the settings page with an error message.
+ * @returns The result of the sign-in operation.
+ */
+export async function signInSettings() {
+  const data = await authClient.signIn.social({
+    provider: 'discord',
+    callbackURL: '/',
+    errorCallbackURL: '/settings?error=failed_to_link_account',
   });
 
   return data;

@@ -5,6 +5,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
 import { anonymous } from 'better-auth/plugins';
+import { eq } from 'drizzle-orm';
 
 export const auth = betterAuth({
   trustedOrigins: [env.VERCEL_BRANCH_URL, env.VERCEL_PROJECT_PRODUCTION_URL],
@@ -19,5 +20,32 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [nextCookies(), anonymous()],
+  plugins: [
+    nextCookies(),
+    anonymous({
+      onLinkAccount: async ({ anonymousUser, newUser }) => {
+        try {
+          const anonymousUserWatchlist = await db
+            .select()
+            .from(schema.watchlist)
+            .where(eq(schema.watchlist.userId, anonymousUser.user.id));
+
+          if (anonymousUserWatchlist.length === 0) {
+            return;
+          }
+
+          await db.insert(schema.watchlist).values(
+            anonymousUserWatchlist.map(({ resourceId, resourceType }) => ({
+              id: crypto.randomUUID(),
+              resourceId,
+              resourceType,
+              userId: newUser.user.id,
+            }))
+          );
+        } catch (error) {
+          console.error('Failed to link your account:', error);
+        }
+      },
+    }),
+  ],
 });
