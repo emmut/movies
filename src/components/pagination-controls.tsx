@@ -89,7 +89,7 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
         pages.push(i);
       }
     } else {
-      // In the middle: [1] [...] [current-1] [current] [current+1] [...] [totalPages]
+      // In the middle: [1] [...] [current-2] [current-1] [current] [current+1] [current+2] [...] [totalPages]
       pages.push('ellipsis');
       for (let i = currentPage - 2; i <= currentPage + 2; i++) {
         if (i > 1 && i < totalPages) {
@@ -152,7 +152,7 @@ export function PaginationControls({
                   }
                   className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
-                    'h-8 px-2 text-xs sm:h-10 sm:px-4 sm:text-sm'
+                    'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm'
                   )}
                 />
               </PaginationItem>
@@ -160,14 +160,14 @@ export function PaginationControls({
               {pageNumbers.map((pageNumber, index) =>
                 pageNumber === 'ellipsis' ? (
                   <PaginationItem key={`ellipsis-${index}`}>
-                    <PaginationEllipsis className="h-8 w-8 sm:h-10 sm:w-10" />
+                    <PaginationEllipsis className="h-6 w-6 sm:h-10 sm:w-10" />
                   </PaginationItem>
                 ) : (
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
                       onClick={() => handlePageSelect(pageNumber)}
                       isActive={pageNumber === currentPageNumber}
-                      className="h-8 w-8 text-xs sm:h-10 sm:w-10 sm:text-sm"
+                      className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
                     >
                       {pageNumber}
                     </PaginationLink>
@@ -182,7 +182,7 @@ export function PaginationControls({
                   }
                   className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
-                    'h-8 px-2 text-xs sm:h-10 sm:px-4 sm:text-sm'
+                    'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm'
                   )}
                 />
               </PaginationItem>
