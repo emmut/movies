@@ -4,9 +4,9 @@ import { LogIn, Shield, Users, Zap } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
 /**
- * Renders the login page UI or redirects authenticated users to the home page.
+ * Displays the login page UI for unauthenticated users or redirects authenticated users to the home page.
  *
- * If a user session exists, immediately redirects to the home page. Otherwise, displays a login interface with feature highlights, authentication options, and informational text.
+ * Awaits a `searchParams` promise to check for a login error and throws if authentication failed. If a user session exists, redirects to the home page; otherwise, renders the login interface with feature highlights and authentication options.
  */
 export default async function LoginPage(props: {
   searchParams: Promise<{
