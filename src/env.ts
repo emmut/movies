@@ -8,6 +8,16 @@ export const env = createEnv({
     DATABASE_URL: z.url(),
     DISCORD_CLIENT_ID: z.string().min(1),
     DISCORD_CLIENT_SECRET: z.string().min(1),
+    VERCEL_BRANCH_URL: z
+      .string()
+      .min(1)
+      .optional()
+      .transform((val) => `https://${val}`),
+    VERCEL_URL: z
+      .string()
+      .min(1)
+      .optional()
+      .transform((val) => `https://${val}`),
   },
 
   client: {
@@ -25,5 +35,7 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     NEXT_PUBLIC_IMAGEKIT_ID: process.env.NEXT_PUBLIC_IMAGEKIT_ID,
+    VERCEL_BRANCH_URL: process.env.VERCEL_BRANCH_URL,
+    VERCEL_URL: process.env.VERCEL_URL,
   },
 });

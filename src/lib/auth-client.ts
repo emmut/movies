@@ -1,6 +1,9 @@
+import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
-const authClient = createAuthClient();
+const authClient = createAuthClient({
+  plugins: [anonymousClient()],
+});
 
 export const { useSession } = authClient;
 
@@ -18,6 +21,12 @@ export async function signIn() {
     provider: 'discord',
     callbackURL: '/',
   });
+
+  return data;
+}
+
+export async function signInAnonymous() {
+  const data = await authClient.signIn.anonymous();
 
   return data;
 }
