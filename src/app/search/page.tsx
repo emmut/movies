@@ -3,13 +3,14 @@ import { PaginationControls } from '@/components/pagination-controls';
 import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
 import {
+  fetchActorsBySearchQuery,
   fetchMoviesBySearchQuery,
   fetchTvShowsBySearchQuery,
 } from '@/lib/search';
 import { Suspense } from 'react';
 import SearchResults from './search-results';
 
-type MediaType = 'movie' | 'tv';
+type MediaType = 'movie' | 'tv' | 'actor';
 
 type SearchProps = {
   searchParams: Promise<{
@@ -42,6 +43,12 @@ export default async function SearchPage(props: SearchProps) {
         page
       );
       totalPages = tvTotalPages;
+    } else if (mediaType === 'actor') {
+      const { totalPages: actorTotalPages } = await fetchActorsBySearchQuery(
+        query,
+        page
+      );
+      totalPages = actorTotalPages;
     } else {
       const { totalPages: movieTotalPages } = await fetchMoviesBySearchQuery(
         query,

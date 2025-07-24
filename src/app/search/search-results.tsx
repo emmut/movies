@@ -1,5 +1,7 @@
+import ActorCard from '@/components/actor-card';
 import ResourceCard from '@/components/resource-card';
 import {
+  fetchActorsBySearchQuery,
   fetchMoviesBySearchQuery,
   fetchTvShowsBySearchQuery,
 } from '@/lib/search';
@@ -28,7 +30,7 @@ export default async function SearchResults({
   if (!searchQuery) {
     return (
       <p className="col-span-full text-center text-zinc-400">
-        Enter a search term to find movies and TV shows
+        Enter a search term to find movies, TV shows, and actors
       </p>
     );
   }
@@ -47,6 +49,23 @@ export default async function SearchResults({
         {tvShows.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
             No TV shows found for &ldquo;{searchQuery}&rdquo;
+          </p>
+        )}
+      </>
+    );
+  }
+
+  if (mediaType === 'actor') {
+    const { actors } = await fetchActorsBySearchQuery(searchQuery, currentPage);
+
+    return (
+      <>
+        {actors.map((actor) => (
+          <ActorCard key={actor.id} actor={actor} />
+        ))}
+        {actors.length === 0 && (
+          <p className="col-span-full text-center text-zinc-400">
+            No actors found for &ldquo;{searchQuery}&rdquo;
           </p>
         )}
       </>
