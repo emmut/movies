@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: volta-cli/action@v4
+      - run: volta install node pnpm
       - run: pnpm install
       - run: pnpm db:migrate
         env:
