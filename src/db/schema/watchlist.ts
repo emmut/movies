@@ -1,5 +1,5 @@
 import { user } from '@/db/schema/auth';
-import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { integer, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 export const watchlist = pgTable('watchlist', {
   id: text('id').primaryKey(),
@@ -13,4 +13,6 @@ export const watchlist = pgTable('watchlist', {
     .defaultNow()
     .notNull()
     .$onUpdate(() => new Date()),
-});
+}, (table) => [
+  unique().on(table.userId, table.resourceId, table.resourceType),
+]);
