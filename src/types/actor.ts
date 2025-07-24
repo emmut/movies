@@ -62,3 +62,24 @@ export type ActorMovieCredits = {
   crew: ActorCrewCredit[];
   id: number;
 };
+
+export type SearchedActor = {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  popularity: number;
+  known_for_department: string;
+  known_for: Array<{
+    id: number;
+    title?: string;
+    name?: string;
+    media_type: 'movie' | 'tv';
+  }>;
+};
+
+export type SearchedActorResponse = {
+  page: number;
+  results: SearchedActor[];
+  total_pages: number;
+  total_results: number;
+};

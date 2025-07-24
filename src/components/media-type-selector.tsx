@@ -1,24 +1,27 @@
 'use client';
 
 import { validateGenreForMediaType } from '@/lib/media-actions';
-import { Film, Tv } from 'lucide-react';
+import { Film, Tv, User } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-type MediaType = 'movie' | 'tv';
+type MediaType = 'movie' | 'tv' | 'actor';
 
 type MediaTypeSelectorProps = {
   currentMediaType: MediaType;
+  includeActors?: boolean;
 };
 
 /**
- * Renders a toggle component for selecting between "Movies" and "TV Shows" media types.
+ * Renders a toggle component for selecting between media types.
  *
  * Updates the URL query parameters and navigates to reflect the selected media type. If a genre is selected that is not valid for the new media type, it is removed from the query parameters.
  *
  * @param currentMediaType - The currently selected media type.
+ * @param includeActors - Whether to show the actors option. Defaults to false.
  */
 export default function MediaTypeSelector({
   currentMediaType,
+  includeActors = false,
 }: MediaTypeSelectorProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -31,15 +34,18 @@ export default function MediaTypeSelector({
     params.set('mediaType', mediaType);
     params.delete('page');
 
-    if (currentGenreId) {
+    if (currentGenreId && mediaType !== 'actor') {
       const genreExists = await validateGenreForMediaType(
         currentGenreId,
-        mediaType
+        mediaType as 'movie' | 'tv'
       );
 
       if (!genreExists) {
         params.delete('genreId');
       }
+    } else if (mediaType === 'actor') {
+      // Actors don't have genres, so remove genreId
+      params.delete('genreId');
     }
 
     router.push(`${pathname}?${params.toString()}`);
@@ -69,6 +75,19 @@ export default function MediaTypeSelector({
         <Tv className="h-4 w-4" />
         TV Shows
       </button>
+      {includeActors && (
+        <button
+          onClick={() => handleMediaTypeChange('actor')}
+          className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            currentMediaType === 'actor'
+              ? 'bg-white text-black'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+          }`}
+        >
+          <User className="h-4 w-4" />
+          Actors
+        </button>
+      )}
     </div>
   );
 }

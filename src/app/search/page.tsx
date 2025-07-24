@@ -3,13 +3,14 @@ import { PaginationControls } from '@/components/pagination-controls';
 import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
 import {
+  fetchActorsBySearchQuery,
   fetchMoviesBySearchQuery,
   fetchTvShowsBySearchQuery,
 } from '@/lib/search';
 import { Suspense } from 'react';
 import SearchResults from './search-results';
 
-type MediaType = 'movie' | 'tv';
+type MediaType = 'movie' | 'tv' | 'actor';
 
 type SearchProps = {
   searchParams: Promise<{
@@ -42,6 +43,12 @@ export default async function SearchPage(props: SearchProps) {
         page
       );
       totalPages = tvTotalPages;
+    } else if (mediaType === 'actor') {
+      const { totalPages: actorTotalPages } = await fetchActorsBySearchQuery(
+        query,
+        page
+      );
+      totalPages = actorTotalPages;
     } else {
       const { totalPages: movieTotalPages } = await fetchMoviesBySearchQuery(
         query,
@@ -55,7 +62,7 @@ export default async function SearchPage(props: SearchProps) {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
-        <MediaTypeSelector currentMediaType={mediaType} />
+        <MediaTypeSelector currentMediaType={mediaType} includeActors />
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
