@@ -1,7 +1,11 @@
 'use client';
 
 import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
-import { signInAnonymous, signInDiscord } from '@/lib/auth-client';
+import {
+  signInAnonymous,
+  signInDiscord,
+  signInGitHub,
+} from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -18,6 +22,11 @@ export function LoginForm() {
       <OAuthLoginButton
         provider="discord"
         onClick={() => signInDiscord()}
+        size="lg"
+      />
+      <OAuthLoginButton
+        provider="github"
+        onClick={() => signInGitHub()}
         size="lg"
       />
       <OAuthLoginButton
