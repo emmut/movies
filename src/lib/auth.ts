@@ -35,6 +35,8 @@ export const auth = betterAuth({
             return;
           }
 
+          // Transfer watchlist items from anonymous user to linked account
+          // Duplicates are handled by unique constraint on (userId, resourceId, resourceType)
           await db.insert(watchlist).values(
             anonymousUserWatchlist.map(({ resourceId, resourceType }) => ({
               id: crypto.randomUUID(),
@@ -42,7 +44,7 @@ export const auth = betterAuth({
               resourceType,
               userId: newUser.user.id,
             }))
-          );
+          ).onConflictDoNothing();
         } catch (error) {
           console.error('Failed to link your account:', error);
         }
