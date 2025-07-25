@@ -9,6 +9,7 @@ type DiscoverGridProps = {
   sortBy?: string;
   watchProviders?: string;
   watchRegion?: string;
+  userId?: string;
 };
 
 /**
@@ -22,6 +23,7 @@ type DiscoverGridProps = {
  * @param sortBy - The sort order for the results.
  * @param watchProviders - Comma-separated list of watch provider IDs.
  * @param watchRegion - The region code for watch providers.
+ * @param userId - Optional user ID to enable list functionality.
  */
 export default async function DiscoverGrid({
   currentGenreId,
@@ -30,6 +32,7 @@ export default async function DiscoverGrid({
   sortBy,
   watchProviders,
   watchRegion,
+  userId,
 }: DiscoverGridProps) {
   if (mediaType === 'tv') {
     const { tvShows } = await fetchDiscoverTvShows(
@@ -39,7 +42,7 @@ export default async function DiscoverGrid({
       watchProviders,
       watchRegion
     );
-    return <ResourceGrid resources={tvShows} type="tv" />;
+    return <ResourceGrid resources={tvShows} type="tv" userId={userId} />;
   }
 
   const { movies } = await fetchDiscoverMovies(
@@ -49,5 +52,5 @@ export default async function DiscoverGrid({
     watchProviders,
     watchRegion
   );
-  return <ResourceGrid resources={movies} type="movie" />;
+  return <ResourceGrid resources={movies} type="movie" userId={userId} />;
 }

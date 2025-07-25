@@ -1,5 +1,6 @@
 import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
+import { ListButton } from '@/components/list-button';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
@@ -134,12 +135,19 @@ export default async function TvShowPage(props: TvShowPageProps) {
                     </p>
                   )}
                 </div>
-                <WatchlistButton
-                  resourceId={tvId}
-                  resourceType={RESOURCE_TYPE}
-                  isInWatchlist={inWatchlist}
-                  userId={user?.id}
-                />
+                <div className="flex gap-2">
+                  <WatchlistButton
+                    resourceId={tvId}
+                    resourceType={RESOURCE_TYPE}
+                    isInWatchlist={inWatchlist}
+                    userId={user?.id}
+                  />
+                  <ListButton
+                    mediaId={tvId}
+                    mediaType={RESOURCE_TYPE}
+                    userId={user?.id}
+                  />
+                </div>
               </div>
             </div>
 

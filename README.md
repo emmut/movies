@@ -6,7 +6,7 @@ A modern web application for exploring and managing movies, built with Next.js 1
 
 - [x] Movie trailers
 - [x] Person pages
-- [ ] Custom movie lists
+- [x] Custom movie lists
 - [ ] Watched movies tracking
 - [ ] Personal ratings
 - [ ] Social features

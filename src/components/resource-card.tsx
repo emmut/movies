@@ -5,11 +5,13 @@ import { Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Badge from './badge';
+import { ListButton } from './list-button';
 
 type ResourceCardProps = {
   resource: Movie | MovieDetails | TvShow | TvDetails;
   type: 'movie' | 'tv';
   className?: string;
+  userId?: string;
 };
 
 /**
@@ -33,6 +35,7 @@ export default function ResourceCard({
   resource,
   type,
   className,
+  userId,
 }: ResourceCardProps) {
   const score = Math.ceil(resource.vote_average * 10) / 10;
 
@@ -95,6 +98,10 @@ export default function ResourceCard({
           <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
             {type === 'movie' ? 'Movie' : 'TV Show'}
           </Badge>
+        </div>
+
+        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+          <ListButton mediaId={resource.id} mediaType={type} userId={userId} />
         </div>
       </div>
     </Link>

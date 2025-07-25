@@ -6,6 +6,7 @@ import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import Spinner from '@/components/spinner';
+import { getUser } from '@/lib/auth-server';
 import { getUserRegion, getWatchProviders } from '@/lib/user-actions';
 import { Suspense } from 'react';
 import Pagination from './pagination';
@@ -46,6 +47,7 @@ export default async function DiscoverWithGenrePage(
   const watchProviders = searchParams.with_watch_providers;
   const watchRegion = await getUserRegion();
 
+  const user = await getUser();
   const availableWatchProviders = await getWatchProviders(watchRegion);
 
   return (
@@ -93,6 +95,7 @@ export default async function DiscoverWithGenrePage(
             sortBy={sortBy}
             watchProviders={watchProviders}
             watchRegion={watchRegion}
+            userId={user?.id}
           />
         </Suspense>
       </div>

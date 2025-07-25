@@ -5,6 +5,7 @@ import ResourceCard from './resource-card';
 type ResourceGridProps = {
   resources: Movie[] | TvShow[];
   type: 'movie' | 'tv';
+  userId?: string;
 };
 
 /**
@@ -14,14 +15,20 @@ type ResourceGridProps = {
  *
  * @param resources - Array of movies or TV shows to display.
  * @param type - The type of resource ('movie' or 'tv').
+ * @param userId - Optional user ID to enable list functionality.
  */
-export function ResourceGrid({ resources, type }: ResourceGridProps) {
+export function ResourceGrid({ resources, type, userId }: ResourceGridProps) {
   const resourceName = type === 'movie' ? 'movies' : 'TV shows';
 
   return (
     <>
       {resources.map((resource) => (
-        <ResourceCard key={resource.id} resource={resource} type={type} />
+        <ResourceCard
+          key={resource.id}
+          resource={resource}
+          type={type}
+          userId={userId}
+        />
       ))}
       {resources.length === 0 && (
         <p className="col-span-full text-center">No {resourceName} was found</p>
