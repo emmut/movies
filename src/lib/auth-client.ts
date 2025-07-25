@@ -52,18 +52,20 @@ export async function signInSettings() {
   }
 }
 
-export async function addPasskey() {
+export async function addPasskey(name: string = 'My Passkey') {
   try {
-    const data = await authClient.passkey.addPasskey();
+    const data = await authClient.passkey.addPasskey({
+      name,
+    });
 
     if (data?.error) {
-      throw new Error(data.error.message);
+      return { error: true, data: null };
     }
 
-    return data;
+    return { error: false, data };
   } catch (error) {
     console.error('Failed to add passkey:', error);
-    return { error: 'Failed to add passkey', data: null };
+    return { error: true, data: null };
   }
 }
 
