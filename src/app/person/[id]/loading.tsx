@@ -2,9 +2,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import SliderSkeleton from './slider-skeleton';
 
 /**
- * Displays a full-page loading skeleton UI for an actor detail page.
+ * Displays a full-page loading skeleton UI for an person detail page.
  *
- * Renders animated placeholder elements that mimic the layout of an actor detail view,
+ * Renders animated placeholder elements that mimic the layout of an person detail view,
  * including profile image, name, stats, biography, filmography sliders, and external links.
  */
 export default function Loading() {

@@ -306,7 +306,7 @@ export default async function MoviePage(props: MoviePageProps) {
                 {directors.map((director) => (
                   <Link
                     key={director.credit_id}
-                    href={`/actor/${director.id}`}
+                    href={`/person/${director.id}`}
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                   >
                     {director.profile_path ? (
@@ -369,17 +369,17 @@ export default async function MoviePage(props: MoviePageProps) {
             <div>
               <h2 className="mb-4 text-xl font-semibold">Cast</h2>
               <ItemSlider>
-                {credits.cast.map((actor) => (
+                {credits.cast.map((person) => (
                   <Link
-                    key={actor.credit_id}
-                    href={`/actor/${actor.id}`}
+                    key={person.credit_id}
+                    href={`/person/${person.id}`}
                     className="w-32 flex-shrink-0 snap-center transition-transform hover:scale-105"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
-                      {actor.profile_path ? (
+                      {person.profile_path ? (
                         <Image
-                          src={formatImageUrl(actor.profile_path, 185)}
-                          alt={actor.name}
+                          src={formatImageUrl(person.profile_path, 185)}
+                          alt={person.name}
                           width={185}
                           height={278}
                           className="h-full w-full object-cover"
@@ -391,10 +391,10 @@ export default async function MoviePage(props: MoviePageProps) {
                       )}
                     </div>
                     <h3 className="line-clamp-2 text-sm font-medium hover:text-white">
-                      {actor.name}
+                      {person.name}
                     </h3>
                     <p className="line-clamp-2 text-xs text-zinc-400">
-                      {actor.character}
+                      {person.character}
                     </p>
                   </Link>
                 ))}

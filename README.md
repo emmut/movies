@@ -5,7 +5,7 @@ A modern web application for exploring and managing movies, built with Next.js 1
 ## Road map
 
 - [x] Movie trailers
-- [x] Actor/actress pages
+- [x] Person pages
 - [ ] Custom movie lists
 - [ ] Watched movies tracking
 - [ ] Personal ratings
@@ -50,7 +50,6 @@ pnpm install
 ```
 
 3. Set up environment variables:
-
    - Copy `.env.example` to `.env`
    - Update the database URL and other required variables
 

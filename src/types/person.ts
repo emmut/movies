@@ -1,4 +1,4 @@
-export type ActorDetails = {
+export type PersonDetails = {
   id: number;
   name: string;
   biography: string;
@@ -13,7 +13,7 @@ export type ActorDetails = {
   imdb_id: string | null;
 };
 
-export type ActorMovieCredit = {
+export type PersonMovieCredit = {
   id: number;
   title: string;
   original_title: string;
@@ -25,7 +25,7 @@ export type ActorMovieCredit = {
   popularity: number;
 };
 
-export type ActorCrewCredit = {
+export type PersonCrewCredit = {
   id: number;
   title: string;
   original_title: string;
@@ -38,7 +38,7 @@ export type ActorCrewCredit = {
   popularity: number;
 };
 
-export type ActorTvCredit = {
+export type PersonTvCredit = {
   id: number;
   name: string;
   original_name: string;
@@ -51,19 +51,19 @@ export type ActorTvCredit = {
   episode_count: number;
 };
 
-export type ActorTvCredits = {
-  cast: ActorTvCredit[];
-  crew: ActorCrewCredit[];
+export type PersonTvCredits = {
+  cast: PersonTvCredit[];
+  crew: PersonCrewCredit[];
   id: number;
 };
 
-export type ActorMovieCredits = {
-  cast: ActorMovieCredit[];
-  crew: ActorCrewCredit[];
+export type PersonMovieCredits = {
+  cast: PersonMovieCredit[];
+  crew: PersonCrewCredit[];
   id: number;
 };
 
-export type SearchedActor = {
+export type SearchedPerson = {
   id: number;
   name: string;
   profile_path: string | null;
@@ -77,9 +77,9 @@ export type SearchedActor = {
   }>;
 };
 
-export type SearchedActorResponse = {
+export type SearchedPersonResponse = {
   page: number;
-  results: SearchedActor[];
+  results: SearchedPerson[];
   total_pages: number;
   total_results: number;
 };

@@ -3,37 +3,37 @@ import { GoBack } from '@/components/go-back';
 import ResourceCard from '@/components/resource-card';
 import { ItemSlider } from '@/components/ui/item-slider';
 import {
-  getActorDetails,
-  getActorMovieCredits,
-  getActorTvCredits,
-} from '@/lib/actors';
+  getPersonDetails,
+  getPersonMovieCredits,
+  getPersonTvCredits,
+} from '@/lib/persons';
 import { deduplicateAndSortByPopularity, formatImageUrl } from '@/lib/utils';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 
-type ActorPageProps = {
+type PersonPageProps = {
   params: Promise<{
-    actorId: string;
+    id: string;
   }>;
 };
 
 /**
- * Renders a server-side React page displaying comprehensive details for a specific actor, including their biography, filmography, and personal information.
+ * Renders a server-side React page displaying comprehensive details for a specific person, including their biography, filmography, and personal information.
  *
- * @param props - Contains a promise resolving to route parameters with the actor ID.
- * @returns The server-rendered React component for the actor detail page.
+ * @param props - Contains a promise resolving to route parameters with the person ID.
+ * @returns The server-rendered React component for the person detail page.
  */
-export default async function ActorPage(props: ActorPageProps) {
+export default async function PersonPage(props: PersonPageProps) {
   const params = await props.params;
-  const actorId = Number(params.actorId);
+  const personId = Number(params.id);
   const headersList = await headers();
   const referer = headersList.get('referer');
 
-  const [actor, movieCredits, tvCredits] = await Promise.all([
-    getActorDetails(actorId),
-    getActorMovieCredits(actorId),
-    getActorTvCredits(actorId),
+  const [person, movieCredits, tvCredits] = await Promise.all([
+    getPersonDetails(personId),
+    getPersonMovieCredits(personId),
+    getPersonTvCredits(personId),
   ]);
 
   const {
@@ -47,7 +47,7 @@ export default async function ActorPage(props: ActorPageProps) {
     also_known_as,
     homepage,
     imdb_id,
-  } = actor;
+  } = person;
 
   // Deduplicate and sort movies by popularity and release date
   const uniqueMovies = deduplicateAndSortByPopularity(
@@ -138,14 +138,14 @@ export default async function ActorPage(props: ActorPageProps) {
             <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">
               {name}
             </h1>
-            <Badge variant="blue">Actor</Badge>
+            <Badge variant="blue">Person</Badge>
           </div>
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-zinc-900 p-4 text-center">
               <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
               <div className="text-2xl font-bold">
-                {Math.round(actor.popularity)}
+                {Math.round(person.popularity)}
               </div>
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
@@ -286,7 +286,7 @@ export default async function ActorPage(props: ActorPageProps) {
 
             <a
               className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
-              href={`https://www.themoviedb.org/person/${actorId}`}
+              href={`https://www.themoviedb.org/person/${personId}`}
               target="_blank"
               rel="noopener noreferrer"
             >

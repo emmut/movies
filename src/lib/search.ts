@@ -1,6 +1,6 @@
 import { env } from '@/env';
-import { SearchedActorResponse } from '@/types/actor';
 import { SearchedMovieResponse } from '@/types/movie';
+import { SearchedPersonResponse } from '@/types/person';
 import { SearchedTvResponse } from '@/types/tv-show';
 
 export async function fetchMoviesBySearchQuery(query: string, page: string) {
@@ -52,7 +52,7 @@ export async function fetchTvShowsBySearchQuery(query: string, page: string) {
   return { tvShows: tvShows.results, totalPages: tvShows.total_pages };
 }
 
-export async function fetchActorsBySearchQuery(query: string, page: string) {
+export async function fetchPersonsBySearchQuery(query: string, page: string) {
   const searchParams = new URLSearchParams();
   searchParams.set('query', query);
   searchParams.set('page', page);
@@ -69,11 +69,11 @@ export async function fetchActorsBySearchQuery(query: string, page: string) {
   );
 
   if (!res.ok) {
-    throw new Error('Failed fetching searched actors');
+    throw new Error('Failed fetching searched persons');
   }
 
-  const actors: SearchedActorResponse = await res.json();
-  return { actors: actors.results, totalPages: actors.total_pages };
+  const persons: SearchedPersonResponse = await res.json();
+  return { persons: persons.results, totalPages: persons.total_pages };
 }
 
 export async function fetchMultiSearchQuery(query: string, page: string) {

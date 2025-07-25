@@ -1,24 +1,24 @@
 import { cn, formatImageUrl } from '@/lib/utils';
-import { SearchedActor } from '@/types/actor';
+import { SearchedPerson } from '@/types/person';
 import { User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Badge from './badge';
 
-type ActorCardProps = {
-  actor: SearchedActor;
+type PersonCardProps = {
+  person: SearchedPerson;
   className?: string;
 };
 
 /**
- * Displays a card for an actor with profile image, name, and known for department.
+ * Displays a card for an person with profile image, name, and known for department.
  *
- * The card links to the actor's detail page and shows additional information on hover or focus.
+ * The card links to the person's detail page and shows additional information on hover or focus.
  * If no profile image is available, a fallback with a user icon and "No Photo" text is shown.
  */
-export default function ActorCard({ actor, className }: ActorCardProps) {
-  const href = `/actor/${actor.id}`;
-  const knownFor = actor.known_for
+export default function PersonCard({ person, className }: PersonCardProps) {
+  const href = `/person/${person.id}`;
+  const knownFor = person.known_for
     .slice(0, 2)
     .map((item) => item.title || item.name)
     .join(', ');
@@ -27,16 +27,16 @@ export default function ActorCard({ actor, className }: ActorCardProps) {
     <Link
       href={href}
       className={cn(
-        'group aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 focus:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none hover:border-blue-400 focus:border-blue-400',
+        'group aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 hover:border-blue-400 focus:scale-105 focus:border-blue-400 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
         className
       )}
     >
       <div className="relative h-full w-full">
-        {actor.profile_path ? (
+        {person.profile_path ? (
           <Image
             className="object-cover"
-            src={formatImageUrl(actor.profile_path, 500)}
-            alt={`Profile image of ${actor.name}`}
+            src={formatImageUrl(person.profile_path, 500)}
+            alt={`Profile image of ${person.name}`}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
           />
@@ -57,10 +57,10 @@ export default function ActorCard({ actor, className }: ActorCardProps) {
           <div className="inset-0 bg-gradient-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100" />
 
           <h3 className="mb-1 line-clamp-2 text-sm font-semibold">
-            {actor.name}
+            {person.name}
           </h3>
           <div className="text-xs text-zinc-300">
-            <div className="mb-1">{actor.known_for_department}</div>
+            <div className="mb-1">{person.known_for_department}</div>
             {knownFor && (
               <div className="line-clamp-1 text-zinc-400">
                 Known for: {knownFor}
@@ -70,7 +70,7 @@ export default function ActorCard({ actor, className }: ActorCardProps) {
         </div>
 
         <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
-          <Badge variant="blue">Actor</Badge>
+          <Badge variant="blue">Person</Badge>
         </div>
       </div>
     </Link>
@@ -78,11 +78,11 @@ export default function ActorCard({ actor, className }: ActorCardProps) {
 }
 
 /**
- * Renders a skeleton placeholder for an actor card during loading states.
+ * Renders a skeleton placeholder for an person card during loading states.
  *
- * Displays a pulsing card with placeholder blocks that mimic the layout of an actor card.
+ * Displays a pulsing card with placeholder blocks that mimic the layout of an person card.
  */
-function ActorCardSkeleton({ className }: { className?: string }) {
+function PersonCardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
@@ -103,4 +103,4 @@ function ActorCardSkeleton({ className }: { className?: string }) {
   );
 }
 
-ActorCard.Skeleton = ActorCardSkeleton;
+PersonCard.Skeleton = PersonCardSkeleton;

@@ -5,11 +5,11 @@ import { Film, Search, Tv, User } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useOptimistic, useTransition } from 'react';
 
-type MediaType = 'movie' | 'tv' | 'actor' | 'all';
+type MediaType = 'movie' | 'tv' | 'person' | 'all';
 
 type MediaTypeSelectorProps = {
   currentMediaType: MediaType;
-  includeActors?: boolean;
+  includePersons?: boolean;
   includeAll?: boolean;
 };
 
@@ -19,11 +19,11 @@ type MediaTypeSelectorProps = {
  * Updates the URL query parameters and navigates to reflect the selected media type. If a genre is selected that is not valid for the new media type, it is removed from the query parameters.
  *
  * @param currentMediaType - The currently selected media type.
- * @param includeActors - Whether to show the actors option. Defaults to false.
+ * @param includePersons - Whether to show the persons option. Defaults to false.
  */
 export default function MediaTypeSelector({
   currentMediaType,
-  includeActors = false,
+  includePersons = false,
   includeAll = false,
 }: MediaTypeSelectorProps) {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function MediaTypeSelector({
     }
     params.delete('page');
 
-    if (currentGenreId && mediaType !== 'actor' && mediaType !== 'all') {
+    if (currentGenreId && mediaType !== 'person' && mediaType !== 'all') {
       const genreExists = await validateGenreForMediaType(
         currentGenreId,
         mediaType as 'movie' | 'tv'
@@ -57,8 +57,8 @@ export default function MediaTypeSelector({
       if (!genreExists) {
         params.delete('genreId');
       }
-    } else if (mediaType === 'actor' || mediaType === 'all') {
-      // Actors and mixed results don't have genres, so remove genreId
+    } else if (mediaType === 'person' || mediaType === 'all') {
+      // Persons and mixed results don't have genres, so remove genreId
       params.delete('genreId');
     }
 
@@ -102,17 +102,17 @@ export default function MediaTypeSelector({
         <Tv className="h-4 w-4" />
         TV Shows
       </button>
-      {includeActors && (
+      {includePersons && (
         <button
-          onClick={() => handleMediaTypeChange('actor')}
+          onClick={() => handleMediaTypeChange('person')}
           className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-            optimisticMediaType === 'actor'
+            optimisticMediaType === 'person'
               ? 'bg-white text-black'
               : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
           }`}
         >
           <User className="h-4 w-4" />
-          Actors
+          Persons
         </button>
       )}
     </div>
