@@ -1,5 +1,6 @@
 import ResourceCard from '@/components/resource-card';
 import { env } from '@/env';
+import { getUser } from '@/lib/auth-server';
 import { TMDB_API_URL } from '@/lib/config';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { MovieResponse } from '@/types/movie';
@@ -48,6 +49,7 @@ async function fetchTopRatedMovies() {
  * @returns An array of {@link ResourceCard} elements representing top-rated movies.
  */
 export default async function TopRated() {
+  const user = await getUser();
   const movies = await fetchTopRatedMovies();
 
   return movies.map((movie) => (
@@ -56,6 +58,7 @@ export default async function TopRated() {
       key={movie.id}
       resource={movie}
       type="movie"
+      userId={user?.id}
     />
   ));
 }

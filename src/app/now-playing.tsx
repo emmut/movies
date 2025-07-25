@@ -21,6 +21,7 @@ export default async function NowPlayingMovies() {
       key={movie.id}
       resource={movie}
       type="movie"
+      userId={user?.id}
     />
   ));
 }
