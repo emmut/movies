@@ -20,8 +20,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { addToList, createList, getUserLists } from '@/lib/lists';
-import { List, ListPlus } from 'lucide-react';
+import {
+  addToList,
+  createList,
+  getUserListsWithStatus,
+  removeFromList,
+} from '@/lib/lists';
+import { Check, List, ListPlus } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -32,9 +37,9 @@ interface ListButtonProps {
 }
 
 export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
-  const [lists, setLists] = useState<Awaited<ReturnType<typeof getUserLists>>>(
-    []
-  );
+  const [lists, setLists] = useState<
+    Awaited<ReturnType<typeof getUserListsWithStatus>>
+  >([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,22 +53,34 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
 
   const refreshLists = async () => {
     try {
-      const userLists = await getUserLists();
+      const userLists = await getUserListsWithStatus(mediaId, mediaType);
       setLists(userLists);
     } catch (error) {
       console.error('Failed to fetch lists:', error);
     }
   };
 
-  const handleAddToList = async (listId: string) => {
+  const handleToggleList = async (listId: string, hasItem: boolean) => {
+    const list = lists.find((l) => l.id === listId);
+    const listName = list?.name || 'list';
+
     startTransition(async () => {
       try {
-        await addToList(listId, mediaId, mediaType);
-        toast.success('Added to list');
-        setIsOpen(false);
+        if (hasItem) {
+          await removeFromList(listId, mediaId, mediaType);
+          toast.success(`Removed from "${listName}"`);
+        } else {
+          await addToList(listId, mediaId, mediaType);
+          toast.success(`Added to "${listName}"`);
+        }
+        await refreshLists(); // Refresh to update checkboxes
       } catch (error) {
         toast.error(
-          error instanceof Error ? error.message : 'Failed to add to list'
+          error instanceof Error
+            ? error.message
+            : hasItem
+              ? `Failed to remove from "${listName}"`
+              : `Failed to add to "${listName}"`
         );
       }
     });
@@ -79,7 +96,7 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
         newListDescription.trim()
       );
       if (result.success) {
-        await handleAddToList(result.listId);
+        await addToList(result.listId, mediaId, mediaType);
         setNewListName('');
         setNewListDescription('');
         setIsCreateOpen(false);
@@ -119,10 +136,19 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
               lists.map((list) => (
                 <DropdownMenuItem
                   key={list.id}
-                  onSelect={() => handleAddToList(list.id)}
+                  onSelect={() => handleToggleList(list.id, list.hasItem)}
                   disabled={isPending}
+                  className="flex items-center justify-between"
+                  title={
+                    list.hasItem
+                      ? `Remove from "${list.name}"`
+                      : `Add to "${list.name}"`
+                  }
                 >
-                  {list.name}
+                  <span className="flex-1">{list.name}</span>
+                  {list.hasItem && (
+                    <Check className="ml-2 h-4 w-4 flex-shrink-0 text-green-500" />
+                  )}
                 </DropdownMenuItem>
               ))
             )}

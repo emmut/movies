@@ -28,25 +28,27 @@ export function ListsGrid({ lists }: ListsGridProps) {
         <div key={list.id} className="group relative">
           <Link
             href={`/lists/${list.id}`}
-            className="relative block overflow-hidden rounded-lg border border-blue-700/50 bg-blue-900/30 p-6 transition-all hover:border-blue-400 hover:ring-2 hover:ring-blue-400"
+            className="bg-muted/60 border-muted hover:bg-muted hover:text-foreground relative block min-h-[200px] overflow-hidden rounded-lg border p-6 transition-all"
           >
             <div className="flex h-full flex-col">
               <div className="flex-1">
-                <div className="mb-4 text-4xl transition-transform group-hover:scale-110">
-                  📝
-                </div>
-                <h3 className="mb-2 text-lg font-semibold text-white">
+                <div className="mb-4 text-4xl">📝</div>
+                <h3 className="text-foreground mb-2 text-lg font-semibold">
                   {list.name}
                 </h3>
-                {list.description && (
-                  <p className="mb-4 line-clamp-2 text-sm text-blue-200">
-                    {list.description}
-                  </p>
-                )}
+                <div className="min-h-[40px]">
+                  {list.description && (
+                    <p className="text-muted-foreground line-clamp-2 text-sm">
+                      {list.description}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="border-t border-blue-700/50 pt-4">
-                <p className="text-sm text-blue-300">{list.itemCount} items</p>
-                <p className="text-xs text-blue-400">
+              <div className="border-muted mt-4 border-t pt-4">
+                <p className="text-muted-foreground text-sm">
+                  {list.itemCount} items
+                </p>
+                <p className="text-muted-foreground text-xs">
                   Updated {list.updatedAt.toLocaleDateString()}
                 </p>
               </div>

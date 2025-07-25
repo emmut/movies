@@ -22,6 +22,10 @@ export interface LocalList {
   }>;
 }
 
+export interface LocalListWithStatus extends LocalList {
+  hasItem: boolean;
+}
+
 export async function getUserLists() {
   const user = await getUser();
 
@@ -242,4 +246,59 @@ export async function updateList(
 
   revalidatePath(`/lists/${listId}`);
   revalidatePath('/lists');
+}
+
+export async function getUserListsWithStatus(
+  mediaId: number,
+  mediaType: 'movie' | 'tv'
+) {
+  const user = await getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  const userLists = await db
+    .select({
+      id: lists.id,
+      name: lists.name,
+      description: lists.description,
+      createdAt: lists.createdAt,
+      updatedAt: lists.updatedAt,
+    })
+    .from(lists)
+    .where(eq(lists.userId, user.id))
+    .orderBy(desc(lists.updatedAt));
+
+  // Get item counts and check if item exists in each list
+  const listsWithStatusAndCounts = await Promise.all(
+    userLists.map(async (list) => {
+      const [itemCount, hasItem] = await Promise.all([
+        db
+          .select({ count: listItems.id })
+          .from(listItems)
+          .where(eq(listItems.listId, list.id))
+          .then((rows) => rows.length),
+        db
+          .select({ id: listItems.id })
+          .from(listItems)
+          .where(
+            and(
+              eq(listItems.listId, list.id),
+              eq(listItems.resourceId, mediaId),
+              eq(listItems.resourceType, mediaType)
+            )
+          )
+          .then((rows) => rows.length > 0),
+      ]);
+
+      return {
+        ...list,
+        itemCount,
+        hasItem,
+      };
+    })
+  );
+
+  return listsWithStatusAndCounts;
 }

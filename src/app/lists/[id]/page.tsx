@@ -1,5 +1,4 @@
 import { DeleteListButton } from '@/components/delete-list-button';
-import { RemoveFromListButton } from '@/components/remove-from-list-button';
 import ResourceCard from '@/components/resource-card';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
@@ -85,24 +84,12 @@ export default async function ListDetailsPage({
       ) : (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {allItems.map((item) => (
-            <div
+            <ResourceCard
               key={`${item.resourceType}-${item.id}`}
-              className="group relative"
-            >
-              <ResourceCard
-                resource={item}
-                type={item.resourceType}
-                userId={user?.id}
-              />
-              <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover:opacity-100">
-                <RemoveFromListButton
-                  listId={list.id}
-                  mediaId={item.id}
-                  mediaType={item.resourceType}
-                  className="h-8 w-8"
-                />
-              </div>
-            </div>
+              resource={item}
+              type={item.resourceType}
+              userId={user?.id}
+            />
           ))}
         </div>
       )}
