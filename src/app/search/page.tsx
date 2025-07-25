@@ -1,4 +1,4 @@
-import MediaTypeSelector from '@/components/media-type-selector';
+import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown';
 import { PaginationControls } from '@/components/pagination-controls';
 import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
@@ -70,11 +70,7 @@ export default async function SearchPage(props: SearchProps) {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
-        <MediaTypeSelector
-          currentMediaType={mediaType}
-          includePersons
-          includeAll
-        />
+        <MediaTypeSelectorDropdown currentMediaType={mediaType} />
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
