@@ -6,12 +6,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Badge from './badge';
 import { ListButton } from './list-button';
+import { RemoveFromListButton } from './remove-from-list-button';
 
 type ResourceCardProps = {
   resource: Movie | MovieDetails | TvShow | TvDetails;
   type: 'movie' | 'tv';
   className?: string;
   userId?: string;
+  showListButton?: boolean;
+  listId?: string;
 };
 
 /**
@@ -36,6 +39,8 @@ export default function ResourceCard({
   type,
   className,
   userId,
+  showListButton = true,
+  listId,
 }: ResourceCardProps) {
   const score = Math.ceil(resource.vote_average * 10) / 10;
 
@@ -56,7 +61,7 @@ export default function ResourceCard({
     <Link
       href={href}
       className={cn(
-        'group aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 focus:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
+        'group/resource aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 focus:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
         borderColor,
         className
       )}
@@ -94,15 +99,31 @@ export default function ResourceCard({
           </div>
         </div>
 
-        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
           <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
             {type === 'movie' ? 'Movie' : 'TV Show'}
           </Badge>
         </div>
 
-        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
-          <ListButton mediaId={resource.id} mediaType={type} userId={userId} />
-        </div>
+        {showListButton && (
+          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
+            <ListButton
+              mediaId={resource.id}
+              mediaType={type}
+              userId={userId}
+            />
+          </div>
+        )}
+
+        {listId !== undefined && (
+          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
+            <RemoveFromListButton
+              listId={listId}
+              mediaId={resource.id}
+              mediaType={type}
+            />
+          </div>
+        )}
       </div>
     </Link>
   );

@@ -25,10 +25,13 @@ export function ListsGrid({ lists }: ListsGridProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {lists.map((list) => (
-        <div key={list.id} className="group relative">
+        <div
+          key={list.id}
+          className="group/list relative rounded-lg focus-within:ring-2 focus-within:ring-blue-400 focus-within:ring-offset-2 focus-within:ring-offset-black"
+        >
           <Link
             href={`/lists/${list.id}`}
-            className="bg-muted/60 border-muted hover:bg-muted hover:text-foreground relative block min-h-[200px] overflow-hidden rounded-lg border p-6 transition-all"
+            className="bg-muted/60 border-muted hover:bg-muted hover:text-foreground relative block min-h-[200px] overflow-hidden rounded-lg border p-6 transition-all focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
           >
             <div className="flex h-full flex-col">
               <div className="flex-1">
@@ -54,7 +57,7 @@ export function ListsGrid({ lists }: ListsGridProps) {
               </div>
             </div>
           </Link>
-          <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity duration-200 group-focus-within/list:opacity-100 group-hover/list:opacity-100">
             <EditListDialog
               listId={list.id}
               listName={list.name}

@@ -84,16 +84,16 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
     return null;
   }
 
-  const refreshLists = async () => {
+  async function refreshLists() {
     try {
       const userLists = await getUserListsWithStatus(mediaId, mediaType);
       setLists(userLists);
     } catch (error) {
       console.error('Failed to fetch lists:', error);
     }
-  };
+  }
 
-  const handleToggleList = async (listId: string, hasItem: boolean) => {
+  async function handleToggleList(listId: string, hasItem: boolean) {
     const list = lists.find((l) => l.id === listId);
     const listName = list?.name || 'list';
 
@@ -117,10 +117,12 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
         );
       }
     });
-  };
+  }
 
-  const handleCreateList = async () => {
-    if (!newListName.trim()) return;
+  async function handleCreateList() {
+    if (!newListName.trim()) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -145,7 +147,7 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <>

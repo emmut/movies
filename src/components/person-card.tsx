@@ -33,7 +33,7 @@ export default function PersonCard({
     <Link
       href={href}
       className={cn(
-        'group aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 hover:border-blue-400 focus:scale-105 focus:border-blue-400 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
+        'group/person aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 hover:border-blue-400 focus:scale-105 focus:border-blue-400 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
         className
       )}
     >
@@ -75,12 +75,12 @@ export default function PersonCard({
           </div>
         </div>
 
-        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
           <Badge variant="blue">Person</Badge>
         </div>
 
         {userId && (
-          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
             <ListButton
               mediaId={person.id}
               mediaType="person"

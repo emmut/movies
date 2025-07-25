@@ -29,7 +29,7 @@ export function GoBack({ referer }: GoBackProps) {
         }
       }}
       className="inline-flex items-center gap-2 p-0 text-zinc-400 transition-colors hover:text-white"
-      variant="link-white"
+      variant="link"
     >
       <ChevronLeft className="h-4 w-4" />
       Go back to previous page
