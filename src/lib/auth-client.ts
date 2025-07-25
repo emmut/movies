@@ -11,11 +11,12 @@ export const { useSession } = authClient;
 export type Session = typeof authClient.$Infer.Session;
 
 /**
- * Initiates a Discord social sign-in flow and returns the authentication result.
+ * Initiates a Discord social sign-in flow, redirecting the user to Discord for authentication.
  *
- * The user is redirected to Discord for authentication. Upon completion, the user is redirected to the specified callback URLs based on the outcome.
+ * The user is redirected to Discord and, upon completion, returned to the provided redirect URL if successful, or to a fixed error URL on failure.
  *
- * @returns The result of the sign-in operation.
+ * @param redirectUrl - The URL to redirect to after successful authentication
+ * @returns The result of the sign-in operation, or an error object if the process fails
  */
 export async function signInDiscord(redirectUrl: string) {
   try {
@@ -36,10 +37,12 @@ export async function signInDiscord(redirectUrl: string) {
 }
 
 /**
- * Initiates a Discord social sign-in flow for account linking in settings.
+ * Initiates a Discord sign-in flow for linking an account in user settings.
  *
- * Redirects the user to Discord for authentication. On success, the user is redirected to the home page; on failure, to the settings page with an error message.
- * @returns The result of the sign-in operation.
+ * Redirects the user to Discord for authentication. On success, the user is redirected to the provided safe URL; on failure, to the settings page with an error message.
+ *
+ * @param redirectUrl - The URL to redirect to after successful authentication
+ * @returns The result of the sign-in operation, or an error object if the process fails
  */
 export async function signInSettings(redirectUrl: string) {
   try {
@@ -97,11 +100,10 @@ export async function signInPasskey(email: string, autoFill = false) {
 }
 
 /**
- * Initiates a GitHub social sign-in flow and returns the authentication result.
+ * Initiates a GitHub social sign-in flow, redirecting the user to GitHub for authentication.
  *
- * The user is redirected to GitHub for authentication. Upon completion, the user is redirected to the specified callback URLs based on the outcome.
- *
- * @returns The result of the sign-in operation.
+ * @param redirectUrl - The URL to redirect to after successful authentication
+ * @returns The result of the sign-in operation, or an error object if the process fails
  */
 export async function signInGitHub(redirectUrl: string) {
   try {
@@ -126,10 +128,12 @@ export async function signInGitHub(redirectUrl: string) {
 }
 
 /**
- * Initiates a GitHub social sign-in flow for account linking in settings.
+ * Initiates a GitHub sign-in flow for linking an account in user settings.
  *
- * Redirects the user to GitHub for authentication. On success, the user is redirected to the home page; on failure, to the settings page with an error message.
- * @returns The result of the sign-in operation.
+ * Redirects the user to GitHub for authentication. On success, the user is redirected to the provided safe URL; on failure, to the settings page with an error message.
+ *
+ * @param redirectUrl - The URL to redirect to after successful authentication
+ * @returns The result of the sign-in operation, or an error object if the process fails
  */
 export async function signInGitHubSettings(redirectUrl: string) {
   try {

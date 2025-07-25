@@ -17,11 +17,11 @@ type LinkAccountProps = {
 };
 
 /**
- * React component that displays a UI for linking a user account to a Discord account.
+ * React component that renders a UI for linking a user account to Discord or GitHub.
  *
- * If the `error` prop is set to `'failed-to-link-account'`, an error notification is shown.
+ * Displays an error notification if the linking attempt fails.
  *
- * @param error - Optional error code indicating a failed linking attempt
+ * @param error - Optional error code indicating a failed account linking attempt
  */
 function LinkAccount({ error }: LinkAccountProps) {
   useEffect(() => {

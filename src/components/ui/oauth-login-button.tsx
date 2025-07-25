@@ -123,9 +123,16 @@ function initCurrentProvider(provider: AvailableOAuthProviders) {
 }
 
 /**
- * Renders an OAuth login button with provider-specific styling, icon, and text, including a loading indicator on click.
+ * Displays an OAuth login button with provider-specific styling, icon, and text, supporting loading and error states.
  *
- * The button adapts its appearance and content based on the selected OAuth provider and size. Displays a spinning loader icon while the button is in a loading state after being clicked. Custom text and icon can be provided; otherwise, provider defaults are used. The button is disabled if the `disabled` prop is set.
+ * The button adapts its appearance and content based on the selected OAuth provider. When clicked, it initiates the provider's sign-in flow and redirects to a sanitized URL upon success. Custom text and icon can be provided; otherwise, provider defaults are used. Shows a loading indicator while authenticating and disables interaction if the `disabled` prop is set.
+ *
+ * @param provider - The OAuth provider to use for authentication ('discord', 'google', 'github', or 'anonymous').
+ * @param text - Optional custom button text to display instead of the provider default.
+ * @param icon - Optional custom icon to display instead of the provider default.
+ * @param size - Button size variant.
+ * @param className - Additional CSS classes for the button.
+ * @param redirectUrl - Optional URL to redirect to after successful authentication; sanitized before use.
  */
 export function OAuthLoginButton({
   provider = 'discord',
@@ -144,6 +151,11 @@ export function OAuthLoginButton({
   const router = useRouter();
   const safeRedirectUrl = getSafeRedirectUrl(redirectUrl);
 
+  /**
+   * Initiates the OAuth sign-in process for the selected provider and handles post-authentication navigation.
+   *
+   * Sets the loading state, calls the appropriate provider's sign-in function with a sanitized redirect URL, displays an error toast on failure, and navigates to the redirect URL on success.
+   */
   async function handleLogin() {
     setIsLoading(true);
     try {
