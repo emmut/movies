@@ -1,8 +1,8 @@
-import { anonymousClient } from 'better-auth/client/plugins';
+import { anonymousClient, passkeyClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 const authClient = createAuthClient({
-  plugins: [anonymousClient()],
+  plugins: [anonymousClient(), passkeyClient()],
 });
 
 export const { useSession } = authClient;
@@ -17,13 +17,18 @@ export type Session = typeof authClient.$Infer.Session;
  * @returns The result of the sign-in operation.
  */
 export async function signInDiscord() {
-  const data = await authClient.signIn.social({
-    provider: 'discord',
-    callbackURL: '/',
-    errorCallbackURL: '/login?error=failed_to_login',
-  });
+  try {
+    const data = await authClient.signIn.social({
+      provider: 'discord',
+      callbackURL: '/',
+      errorCallbackURL: '/login?error=failed_to_login',
+    });
 
-  return data;
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in with Discord:', error);
+    return { error: 'Failed to sign in with Discord', data: null };
+  }
 }
 
 /**
@@ -33,13 +38,57 @@ export async function signInDiscord() {
  * @returns The result of the sign-in operation.
  */
 export async function signInSettings() {
-  const data = await authClient.signIn.social({
-    provider: 'discord',
-    callbackURL: '/',
-    errorCallbackURL: '/settings?error=failed_to_link_account',
-  });
+  try {
+    const data = await authClient.signIn.social({
+      provider: 'discord',
+      callbackURL: '/',
+      errorCallbackURL: '/settings?error=failed_to_link_account',
+    });
 
-  return data;
+    if (data?.error) {
+      throw data.error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in with Discord:', error);
+    return { error: 'Failed to sign in with Discord', data: null };
+  }
+}
+
+export async function addPasskey(name: string = 'My Passkey') {
+  try {
+    const data = await authClient.passkey.addPasskey({
+      name,
+    });
+
+    if (data?.error) {
+      throw data.error;
+    }
+
+    return { error: false, data };
+  } catch (error) {
+    console.error('Failed to add passkey:', error);
+    return { error: true, data: null };
+  }
+}
+
+export async function signInPasskey(email: string, autoFill = false) {
+  try {
+    const data = await authClient.signIn.passkey({
+      email,
+      autoFill,
+    });
+
+    if (data?.error) {
+      throw data.error;
+    }
+
+    return data;
+  } catch (error) {
+    console.warn('Failed to sign in with passkey:', error);
+    return { error, data: null };
+  }
 }
 
 /**
@@ -50,13 +99,22 @@ export async function signInSettings() {
  * @returns The result of the sign-in operation.
  */
 export async function signInGitHub() {
-  const data = await authClient.signIn.social({
-    provider: 'github',
-    callbackURL: '/',
-    errorCallbackURL: '/login?error=failed_to_login',
-  });
+  try {
+    const data = await authClient.signIn.social({
+      provider: 'github',
+      callbackURL: '/',
+      errorCallbackURL: '/login?error=failed_to_login',
+    });
 
-  return data;
+    if (data?.error) {
+      throw data.error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in with GitHub:', error);
+    return { error: 'Failed to sign in with GitHub', data: null };
+  }
 }
 
 /**
@@ -66,19 +124,37 @@ export async function signInGitHub() {
  * @returns The result of the sign-in operation.
  */
 export async function signInGitHubSettings() {
-  const data = await authClient.signIn.social({
-    provider: 'github',
-    callbackURL: '/',
-    errorCallbackURL: '/settings?error=failed_to_link_account',
-  });
+  try {
+    const data = await authClient.signIn.social({
+      provider: 'github',
+      callbackURL: '/',
+      errorCallbackURL: '/settings?error=failed_to_link_account',
+    });
 
-  return data;
+    if (data?.error) {
+      throw data.error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in with GitHub:', error);
+    return { error: 'Failed to sign in with GitHub', data: null };
+  }
 }
 
 export async function signInAnonymous() {
-  const data = await authClient.signIn.anonymous();
+  try {
+    const data = await authClient.signIn.anonymous();
 
-  return data;
+    if (data?.error) {
+      throw data.error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in anonymously:', error);
+    return { error: 'Failed to sign in anonymously', data: null };
+  }
 }
 
 /**
@@ -87,7 +163,16 @@ export async function signInAnonymous() {
  * @returns The result of the sign-out operation.
  */
 export async function signOut() {
-  const data = await authClient.signOut();
+  try {
+    const data = await authClient.signOut();
 
-  return data;
+    if (data?.error) {
+      throw data.error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to sign out:', error);
+    return { error: 'Failed to sign out', data: null };
+  }
 }

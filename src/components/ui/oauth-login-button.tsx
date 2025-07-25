@@ -1,14 +1,22 @@
 'use client';
 
+import {
+  signInAnonymous,
+  signInDiscord,
+  signInGitHub,
+} from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2, UserIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from './button';
 
+type AvailableOAuthProviders = 'discord' | 'google' | 'github' | 'anonymous';
 type OAuthLoginButtonProps = VariantProps<typeof oauthButtonVariants> &
   React.ComponentProps<'button'> & {
-    provider?: 'discord' | 'google' | 'github' | 'anonymous';
+    provider: AvailableOAuthProviders;
     text?: string;
     icon?: ReactNode;
     onClick?: () => void;
@@ -101,6 +109,18 @@ const providerConfigs = {
   },
 };
 
+function initCurrentProvider(provider: AvailableOAuthProviders) {
+  switch (provider) {
+    case 'discord':
+      return signInDiscord;
+    case 'github':
+      return signInGitHub;
+    case 'anonymous':
+    default:
+      return signInAnonymous;
+  }
+}
+
 /**
  * Renders an OAuth login button with provider-specific styling, icon, and text, including a loading indicator on click.
  *
@@ -113,23 +133,43 @@ export function OAuthLoginButton({
   disabled = false,
   size = 'lg',
   className,
-  onClick,
   ...props
 }: OAuthLoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const config = providerConfigs[provider];
   const displayText = text || config.defaultText;
   const displayIcon = icon !== undefined ? icon : config.icon;
+  const router = useRouter();
+
+  async function handleLogin() {
+    setIsLoading(true);
+    try {
+      const currentProvider = initCurrentProvider(provider);
+      const { error } = await currentProvider();
+      if (error) {
+        const providerName =
+          provider === 'anonymous'
+            ? 'anonymously'
+            : `with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
+        toast.error(`Failed to sign in ${providerName}`);
+        console.error(error);
+      } else {
+        router.push('/');
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Failed to sign in:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   return (
     <Button
       className={cn(oauthButtonVariants({ provider, size }), className)}
       disabled={disabled}
       type="button"
-      onClick={() => {
-        setIsLoading(true);
-        onClick?.();
-      }}
+      onClick={handleLogin}
       {...props}
     >
       {isLoading ? (

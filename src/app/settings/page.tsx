@@ -10,7 +10,10 @@ import { regions } from '@/lib/regions';
 import { getUserRegion, updateUserRegion } from '@/lib/user-actions';
 import { unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { AddPasskey } from './add-passkey';
 import { LinkAccount } from './link-account';
+import { getUserPasskeys } from './passkey-actions';
+import { PasskeyList } from './passkey-list';
 import { RegionForm } from './region-form';
 
 type SettingsPageProps = {
@@ -46,6 +49,8 @@ export default async function SettingsPage(props: SettingsPageProps) {
     redirect('/login');
   }
 
+  const passkeys = user.isAnonymous ? [] : await getUserPasskeys();
+
   return (
     <div className="space-y-6">
       <div>
@@ -54,6 +59,21 @@ export default async function SettingsPage(props: SettingsPageProps) {
       </div>
 
       {user.isAnonymous && <LinkAccount error={error} />}
+
+      {!user.isAnonymous && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Passkeys</CardTitle>
+            <CardDescription>
+              Manage your passkeys for secure, passwordless authentication
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <AddPasskey />
+            <PasskeyList passkeys={passkeys} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

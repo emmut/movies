@@ -83,7 +83,7 @@ export default async function LoginPage(props: {
           <LoginForm />
 
           <div className="text-muted-foreground text-center text-sm">
-            <p>More authentication options coming soon!</p>
+            <p>Choose between secure passkey authentication or social login</p>
           </div>
         </div>
 

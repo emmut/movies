@@ -6,6 +6,7 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
 import { anonymous } from 'better-auth/plugins';
+import { passkey } from 'better-auth/plugins/passkey';
 import { eq } from 'drizzle-orm';
 
 export const auth = betterAuth({
@@ -57,5 +58,6 @@ export const auth = betterAuth({
         }
       },
     }),
+    passkey(),
   ],
 });
