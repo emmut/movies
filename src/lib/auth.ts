@@ -20,6 +20,10 @@ export const auth = betterAuth({
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
     },
+    github: {
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
+    },
   },
 
   plugins: [
@@ -36,14 +40,19 @@ export const auth = betterAuth({
             return;
           }
 
-          await db.insert(watchlist).values(
-            anonymousUserWatchlist.map(({ resourceId, resourceType }) => ({
-              id: crypto.randomUUID(),
-              resourceId,
-              resourceType,
-              userId: newUser.user.id,
-            }))
-          );
+          // Transfer watchlist items from anonymous user to linked account
+          // Duplicates are handled by unique constraint on (userId, resourceId, resourceType)
+          await db
+            .insert(watchlist)
+            .values(
+              anonymousUserWatchlist.map(({ resourceId, resourceType }) => ({
+                id: crypto.randomUUID(),
+                resourceId,
+                resourceType,
+                userId: newUser.user.id,
+              }))
+            )
+            .onConflictDoNothing();
         } catch (error) {
           console.error('Failed to link your account:', error);
         }

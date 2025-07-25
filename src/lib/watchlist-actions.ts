@@ -1,6 +1,6 @@
 'use server';
 
-import { watchlist } from '@/db/schema/auth';
+import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { resourceIdSchema } from '@/lib/validations';

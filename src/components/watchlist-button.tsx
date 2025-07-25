@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { toggleWatchlist } from '@/lib/watchlist-actions';
+import clsx from 'clsx';
 import { Star } from 'lucide-react';
 import { useOptimistic, useTransition } from 'react';
 
@@ -63,11 +64,32 @@ export function WatchlistButton({
       variant={optimisticInWatchlist ? 'default' : 'outline'}
       size="sm"
       className="gap-2"
+      aria-label={
+        optimisticInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'
+      }
     >
       <Star
         className={`h-4 w-4 ${optimisticInWatchlist ? 'fill-current' : ''}`}
       />
-      {optimisticInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+
+      <div className="grid grid-cols-1 grid-rows-1 place-items-center">
+        <span
+          className={clsx(
+            optimisticInWatchlist ? 'visible' : 'invisible',
+            'col-start-1 row-start-1'
+          )}
+        >
+          In Watchlist
+        </span>
+        <span
+          className={clsx(
+            optimisticInWatchlist ? 'invisible' : 'visible',
+            'col-start-1 row-start-1'
+          )}
+        >
+          Add to Watchlist
+        </span>
+      </div>
     </Button>
   );
 }

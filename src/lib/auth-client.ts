@@ -49,9 +49,6 @@ export async function addPasskey() {
     throw new Error(data.error.message);
   }
 
-  return data;
-}
-
 export async function signInPasskey(email: string) {
   const data = await authClient.signIn.passkey({
     email,
@@ -61,6 +58,36 @@ export async function signInPasskey(email: string) {
   if (data?.error) {
     throw new Error(data.error.message);
   }
+
+/**
+ * Initiates a GitHub social sign-in flow and returns the authentication result.
+ *
+ * The user is redirected to GitHub for authentication. Upon completion, the user is redirected to the specified callback URLs based on the outcome.
+ *
+ * @returns The result of the sign-in operation.
+ */
+export async function signInGitHub() {
+  const data = await authClient.signIn.social({
+    provider: 'github',
+    callbackURL: '/',
+    errorCallbackURL: '/login?error=failed_to_login',
+  });
+
+  return data;
+}
+
+/**
+ * Initiates a GitHub social sign-in flow for account linking in settings.
+ *
+ * Redirects the user to GitHub for authentication. On success, the user is redirected to the home page; on failure, to the settings page with an error message.
+ * @returns The result of the sign-in operation.
+ */
+export async function signInGitHubSettings() {
+  const data = await authClient.signIn.social({
+    provider: 'github',
+    callbackURL: '/',
+    errorCallbackURL: '/settings?error=failed_to_link_account',
+  });
 
   return data;
 }
