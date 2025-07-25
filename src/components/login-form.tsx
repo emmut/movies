@@ -9,11 +9,11 @@ import { PasskeyLoginForm } from './passkey-login-form';
  *
  * Provides passkey authentication alongside social login options. Displays an error notification if anonymous sign-in fails and navigates to the home page on success.
  */
-export function LoginForm() {
+export function LoginForm({ redirectUrl }: { redirectUrl?: string }) {
   return (
     <div className="flex flex-col justify-center gap-4">
-      <OAuthLoginButton provider="discord" size="lg" />
-      <OAuthLoginButton provider="github" size="lg" />
+      <OAuthLoginButton provider="discord" size="lg" redirectUrl={redirectUrl} />
+      <OAuthLoginButton provider="github" size="lg" redirectUrl={redirectUrl} />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -26,7 +26,7 @@ export function LoginForm() {
         </div>
       </div>
 
-      <PasskeyLoginForm />
+      <PasskeyLoginForm redirectUrl={redirectUrl} />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -39,7 +39,7 @@ export function LoginForm() {
         </div>
       </div>
 
-      <OAuthLoginButton provider="anonymous" size="lg" />
+      <OAuthLoginButton provider="anonymous" size="lg" redirectUrl={redirectUrl} />
     </div>
   );
 }

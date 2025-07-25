@@ -2,12 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { signInPasskey } from '@/lib/auth-client';
+import { getSafeRedirectUrl } from '@/lib/utils';
 import { PasskeyFillIcon } from '@primer/octicons-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-export function PasskeyLoginForm() {
+export function PasskeyLoginForm({ redirectUrl }: { redirectUrl?: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -26,11 +27,12 @@ export function PasskeyLoginForm() {
 
     if (data?.error) {
       toast.error('Failed to sign in with passkey. Please try again.');
+      setIsLoading(false);
     } else {
-      router.push('/');
+      const safeRedirectUrl = getSafeRedirectUrl(redirectUrl);
+      router.push(safeRedirectUrl);
       router.refresh();
     }
-    setIsLoading(false);
   }
 
   async function handleEmailSubmit(e: React.FormEvent) {

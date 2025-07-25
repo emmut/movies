@@ -16,7 +16,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Session } from '@/lib/auth-client';
-import { cn } from '@/lib/utils';
+import { cn, createLoginUrl } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavUser } from './nav-user';
@@ -55,6 +55,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
  */
 export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
   const pathname = usePathname();
+  const loginUrl = createLoginUrl(pathname);
 
   return (
     <Sidebar {...props}>
@@ -114,7 +115,7 @@ export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/login">
+                <Link href={loginUrl}>
                   <LogIn className="h-4 w-4" />
                   <span>Login</span>
                 </Link>

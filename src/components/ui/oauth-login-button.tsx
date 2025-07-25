@@ -5,7 +5,7 @@ import {
   signInDiscord,
   signInGitHub,
 } from '@/lib/auth-client';
-import { cn } from '@/lib/utils';
+import { cn, getSafeRedirectUrl } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2, UserIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,7 @@ type OAuthLoginButtonProps = VariantProps<typeof oauthButtonVariants> &
     text?: string;
     icon?: ReactNode;
     onClick?: () => void;
+    redirectUrl?: string;
   };
 
 const oauthButtonVariants = cva(
@@ -133,6 +134,7 @@ export function OAuthLoginButton({
   disabled = false,
   size = 'lg',
   className,
+  redirectUrl,
   ...props
 }: OAuthLoginButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -140,12 +142,13 @@ export function OAuthLoginButton({
   const displayText = text || config.defaultText;
   const displayIcon = icon !== undefined ? icon : config.icon;
   const router = useRouter();
+  const safeRedirectUrl = getSafeRedirectUrl(redirectUrl);
 
   async function handleLogin() {
     setIsLoading(true);
     try {
       const currentProvider = initCurrentProvider(provider);
-      const { error } = await currentProvider();
+      const { error } = await currentProvider(safeRedirectUrl);
       if (error) {
         const providerName =
           provider === 'anonymous'
@@ -154,7 +157,7 @@ export function OAuthLoginButton({
         toast.error(`Failed to sign in ${providerName}`);
         console.error(error);
       } else {
-        router.push('/');
+        router.push(safeRedirectUrl);
         router.refresh();
       }
     } catch (error) {

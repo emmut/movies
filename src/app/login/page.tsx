@@ -1,5 +1,6 @@
 import { LoginForm } from '@/components/login-form';
 import { getSession } from '@/lib/auth-server';
+import { getSafeRedirectUrl } from '@/lib/utils';
 import { LogIn, Shield, Users, Zap } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
@@ -11,9 +12,10 @@ import { redirect } from 'next/navigation';
 export default async function LoginPage(props: {
   searchParams: Promise<{
     error?: string;
+    redirect_url?: string;
   }>;
 }) {
-  const { error } = await props.searchParams;
+  const { error, redirect_url } = await props.searchParams;
 
   if (error === 'failed-to-login') {
     throw new Error(error);
@@ -22,8 +24,13 @@ export default async function LoginPage(props: {
   const session = await getSession();
 
   if (session?.user) {
-    redirect('/');
+    // Only redirect if URL is valid, otherwise go to home
+    const redirectTo = getSafeRedirectUrl(redirect_url);
+    redirect(redirectTo);
   }
+
+  // Pass redirect URL to LoginForm (validation happens on successful login)
+  const redirectUrl = redirect_url;
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
@@ -80,7 +87,7 @@ export default async function LoginPage(props: {
             </div>
           </div>
 
-          <LoginForm />
+          <LoginForm redirectUrl={redirectUrl} />
 
           <div className="text-muted-foreground text-center text-sm">
             <p>Choose between secure passkey authentication or social login</p>

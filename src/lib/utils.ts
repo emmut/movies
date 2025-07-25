@@ -58,3 +58,34 @@ export function deduplicateAndSortByPopularity<
       );
     });
 }
+
+/**
+ * Validates that a redirect URL is safe to use (relative path only).
+ * Prevents CSRF attacks by only allowing relative URLs starting with '/'.
+ */
+export function isValidRedirectUrl(url?: string): boolean {
+  if (!url || typeof url !== 'string') {
+    return false;
+  }
+
+  // Must start with '/' and not contain protocol or domain
+  return url.startsWith('/') && !url.includes('://') && !url.startsWith('//');
+}
+
+/**
+ * Gets a safe redirect URL, falling back to '/' if invalid.
+ */
+export function getSafeRedirectUrl(url?: string): string {
+  return url && isValidRedirectUrl(url) ? url : '/';
+}
+
+/**
+ * Creates a login URL with optional redirect parameter.
+ * Only accepts relative URLs starting with '/' to prevent CSRF attacks.
+ */
+export function createLoginUrl(redirectUrl?: string): string {
+  if (redirectUrl === undefined || !isValidRedirectUrl(redirectUrl)) {
+    return '/';
+  }
+  return `/login?redirect_url=${encodeURIComponent(redirectUrl)}`;
+}

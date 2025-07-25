@@ -45,7 +45,7 @@ function LinkAccount({ error }: LinkAccountProps) {
             provider="discord"
             text="Link using Discord"
             onClick={() => {
-              signInSettings();
+              signInSettings('/');
             }}
             className="w-full max-w-sm"
           />
@@ -53,7 +53,7 @@ function LinkAccount({ error }: LinkAccountProps) {
             provider="github"
             text="Link using GitHub"
             onClick={() => {
-              signInGitHubSettings();
+              signInGitHubSettings('/');
             }}
             className="w-full max-w-sm"
           />
