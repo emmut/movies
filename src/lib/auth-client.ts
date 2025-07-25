@@ -1,5 +1,6 @@
 import { anonymousClient, passkeyClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
+import { getSafeRedirectUrl } from './utils';
 
 const authClient = createAuthClient({
   plugins: [anonymousClient(), passkeyClient()],
@@ -10,18 +11,22 @@ export const { useSession } = authClient;
 export type Session = typeof authClient.$Infer.Session;
 
 /**
- * Initiates a Discord social sign-in flow and returns the authentication result.
+ * Initiates a Discord social sign-in flow, redirecting the user to Discord for authentication.
  *
- * The user is redirected to Discord for authentication. Upon completion, the user is redirected to the specified callback URLs based on the outcome.
+ * The user is redirected to Discord and, upon completion, returned to the provided redirect URL if successful, or to a fixed error URL on failure.
  *
- * @returns The result of the sign-in operation.
+ * @param redirectUrl - The URL to redirect to after successful authentication
+ * @returns The result of the sign-in operation, or an error object if the process fails
  */
-export async function signInDiscord() {
+export async function signInDiscord(redirectUrl: string) {
   try {
+    const callbackURL = getSafeRedirectUrl(redirectUrl);
+    const errorCallbackURL = '/login?error=failed_to_login';
+
     const data = await authClient.signIn.social({
       provider: 'discord',
-      callbackURL: '/',
-      errorCallbackURL: '/login?error=failed_to_login',
+      callbackURL,
+      errorCallbackURL,
     });
 
     return data;
@@ -32,16 +37,19 @@ export async function signInDiscord() {
 }
 
 /**
- * Initiates a Discord social sign-in flow for account linking in settings.
+ * Initiates a Discord sign-in flow for linking an account in user settings.
  *
- * Redirects the user to Discord for authentication. On success, the user is redirected to the home page; on failure, to the settings page with an error message.
- * @returns The result of the sign-in operation.
+ * Redirects the user to Discord for authentication. On success, the user is redirected to the provided safe URL; on failure, to the settings page with an error message.
+ *
+ * @param redirectUrl - The URL to redirect to after successful authentication
+ * @returns The result of the sign-in operation, or an error object if the process fails
  */
-export async function signInSettings() {
+export async function signInSettings(redirectUrl: string) {
   try {
+    const safeRedirectUrl = getSafeRedirectUrl(redirectUrl);
     const data = await authClient.signIn.social({
       provider: 'discord',
-      callbackURL: '/',
+      callbackURL: safeRedirectUrl,
       errorCallbackURL: '/settings?error=failed_to_link_account',
     });
 
@@ -92,18 +100,20 @@ export async function signInPasskey(email: string, autoFill = false) {
 }
 
 /**
- * Initiates a GitHub social sign-in flow and returns the authentication result.
+ * Initiates a GitHub social sign-in flow, redirecting the user to GitHub for authentication.
  *
- * The user is redirected to GitHub for authentication. Upon completion, the user is redirected to the specified callback URLs based on the outcome.
- *
- * @returns The result of the sign-in operation.
+ * @param redirectUrl - The URL to redirect to after successful authentication
+ * @returns The result of the sign-in operation, or an error object if the process fails
  */
-export async function signInGitHub() {
+export async function signInGitHub(redirectUrl: string) {
   try {
+    const callbackURL = getSafeRedirectUrl(redirectUrl);
+    const errorCallbackURL = '/login?error=failed_to_login';
+
     const data = await authClient.signIn.social({
       provider: 'github',
-      callbackURL: '/',
-      errorCallbackURL: '/login?error=failed_to_login',
+      callbackURL,
+      errorCallbackURL,
     });
 
     if (data?.error) {
@@ -118,16 +128,19 @@ export async function signInGitHub() {
 }
 
 /**
- * Initiates a GitHub social sign-in flow for account linking in settings.
+ * Initiates a GitHub sign-in flow for linking an account in user settings.
  *
- * Redirects the user to GitHub for authentication. On success, the user is redirected to the home page; on failure, to the settings page with an error message.
- * @returns The result of the sign-in operation.
+ * Redirects the user to GitHub for authentication. On success, the user is redirected to the provided safe URL; on failure, to the settings page with an error message.
+ *
+ * @param redirectUrl - The URL to redirect to after successful authentication
+ * @returns The result of the sign-in operation, or an error object if the process fails
  */
-export async function signInGitHubSettings() {
+export async function signInGitHubSettings(redirectUrl: string) {
   try {
+    const safeRedirectUrl = getSafeRedirectUrl(redirectUrl);
     const data = await authClient.signIn.social({
       provider: 'github',
-      callbackURL: '/',
+      callbackURL: safeRedirectUrl,
       errorCallbackURL: '/settings?error=failed_to_link_account',
     });
 

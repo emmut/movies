@@ -34,11 +34,13 @@ export function formatRuntime(minutes: number) {
 }
 
 /**
- * Deduplicates an array of items by ID and sorts them by popularity (descending) then by date (descending).
+ * Removes duplicate items by ID from an array and sorts the result by descending popularity and date.
  *
- * @param items - Array of items to deduplicate and sort
- * @param getDateString - Function to extract the date string from each item
- * @returns Deduplicated and sorted array
+ * Items with the same ID are deduplicated, keeping the first occurrence. Sorting is performed first by the `popularity` property in descending order, then by date (as extracted by `getDateString`) in descending order. If a date is missing or invalid, it defaults to "1900-01-01".
+ *
+ * @param items - The array of items to process
+ * @param getDateString - Function that returns a date string for each item
+ * @returns An array of unique items sorted by popularity and date
  */
 export function deduplicateAndSortByPopularity<
   T extends { id: number; popularity: number },
@@ -57,4 +59,42 @@ export function deduplicateAndSortByPopularity<
         new Date(getDateString(a) || '1900-01-01').getTime()
       );
     });
+}
+
+/**
+ * Checks if a URL is a safe relative redirect path.
+ *
+ * Returns true only if the input is a string that starts with a single slash ('/'), does not contain '://', and does not start with '//'.
+ */
+export function isValidRedirectUrl(url?: string): boolean {
+  if (!url || typeof url !== 'string') {
+    return false;
+  }
+
+  // Must start with '/' and not contain protocol or domain
+  return url.startsWith('/') && !url.includes('://') && !url.startsWith('//');
+}
+
+/**
+ * Returns the given URL if it is a safe relative redirect path; otherwise, returns '/'.
+ *
+ * A URL is considered safe if it starts with a single '/' and does not contain protocol or domain indicators.
+ *
+ * @returns The validated redirect URL or '/' if the input is invalid or unsafe.
+ */
+export function getSafeRedirectUrl(url?: string): string {
+  return url && isValidRedirectUrl(url) ? url : '/';
+}
+
+/**
+ * Generates a login URL, optionally including a redirect parameter if the provided URL is a safe relative path.
+ *
+ * @param redirectUrl - The URL to redirect to after login, included only if it is a valid relative path
+ * @returns The login URL with an optional redirect parameter, or '/' if the redirect URL is invalid
+ */
+export function createLoginUrl(redirectUrl?: string): string {
+  if (redirectUrl === undefined || !isValidRedirectUrl(redirectUrl)) {
+    return '/';
+  }
+  return `/login?redirect_url=${encodeURIComponent(redirectUrl)}`;
 }

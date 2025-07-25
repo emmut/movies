@@ -16,7 +16,7 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar';
 import { Session } from '@/lib/auth-client';
-import { cn } from '@/lib/utils';
+import { cn, createLoginUrl } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NavUser } from './nav-user';
@@ -47,14 +47,15 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 };
 
 /**
- * Renders a sidebar navigation component with dynamic menu and footer content based on user authentication state.
+ * Displays a sidebar navigation UI with menu items and footer content that adapt to the user's authentication status.
  *
- * Displays main navigation items for all users, additional user-specific items when a session is present, and a footer that shows either user information or a login prompt depending on authentication status.
+ * Shows main navigation links for all users, adds user-specific links when a session is present, and renders either user info or a login prompt in the footer based on authentication state.
  *
- * @param initialSession - The current user session, or null if no user is authenticated. Determines which navigation and footer elements are shown.
+ * @param initialSession - The current user session, or null if no user is authenticated. Controls which navigation and footer elements are displayed.
  */
 export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
   const pathname = usePathname();
+  const loginUrl = createLoginUrl(pathname);
 
   return (
     <Sidebar {...props}>
@@ -114,7 +115,7 @@ export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/login">
+                <Link href={loginUrl}>
                   <LogIn className="h-4 w-4" />
                   <span>Login</span>
                 </Link>

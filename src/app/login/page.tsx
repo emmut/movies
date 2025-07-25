@@ -1,19 +1,21 @@
 import { LoginForm } from '@/components/login-form';
 import { getSession } from '@/lib/auth-server';
+import { getSafeRedirectUrl } from '@/lib/utils';
 import { LogIn, Shield, Users, Zap } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
 /**
- * Displays the login page UI for unauthenticated users or redirects authenticated users to the home page.
+ * Renders the login page for unauthenticated users or redirects authenticated users to a validated destination.
  *
- * Awaits a `searchParams` promise to check for a login error and throws if authentication failed. If a user session exists, redirects to the home page; otherwise, renders the login interface with feature highlights and authentication options.
+ * If a login error is detected in the search parameters, throws an error. Authenticated users are redirected to a safe URL specified by `redirect_url` or to the home page. Unauthenticated users are presented with the login interface, feature highlights, and authentication options.
  */
 export default async function LoginPage(props: {
   searchParams: Promise<{
     error?: string;
+    redirect_url?: string;
   }>;
 }) {
-  const { error } = await props.searchParams;
+  const { error, redirect_url } = await props.searchParams;
 
   if (error === 'failed-to-login') {
     throw new Error(error);
@@ -22,8 +24,13 @@ export default async function LoginPage(props: {
   const session = await getSession();
 
   if (session?.user) {
-    redirect('/');
+    // Only redirect if URL is valid, otherwise go to home
+    const redirectTo = getSafeRedirectUrl(redirect_url);
+    redirect(redirectTo);
   }
+
+  // Pass redirect URL to LoginForm (validation happens on successful login)
+  const redirectUrl = redirect_url;
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
@@ -80,7 +87,7 @@ export default async function LoginPage(props: {
             </div>
           </div>
 
-          <LoginForm />
+          <LoginForm redirectUrl={redirectUrl} />
 
           <div className="text-muted-foreground text-center text-sm">
             <p>Choose between secure passkey authentication or social login</p>
