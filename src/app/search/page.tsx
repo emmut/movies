@@ -78,7 +78,7 @@ export default async function SearchPage(props: SearchProps) {
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
-        <Suspense fallback={<ResourceGrid.Skeletons />}>
+        <Suspense fallback={<ResourceGrid.Skeletons className="w-full" />}>
           <SearchResults
             searchQuery={query}
             currentPage={page}
