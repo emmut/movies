@@ -5,12 +5,13 @@ import SectionTitle from '@/components/section-title';
 import {
   fetchActorsBySearchQuery,
   fetchMoviesBySearchQuery,
+  fetchMultiSearchQuery,
   fetchTvShowsBySearchQuery,
 } from '@/lib/search';
 import { Suspense } from 'react';
 import SearchResults from './search-results';
 
-type MediaType = 'movie' | 'tv' | 'actor';
+type MediaType = 'movie' | 'tv' | 'actor' | 'all';
 
 type SearchProps = {
   searchParams: Promise<{
@@ -32,7 +33,7 @@ export default async function SearchPage(props: SearchProps) {
   const searchParams = await props.searchParams;
   const query = searchParams.q ?? '';
   const page = searchParams.page ?? '1';
-  const mediaType = (searchParams.mediaType ?? 'movie') as MediaType;
+  const mediaType = (searchParams.mediaType ?? 'all') as MediaType;
 
   let totalPages = 0;
 
@@ -49,12 +50,19 @@ export default async function SearchPage(props: SearchProps) {
         page
       );
       totalPages = actorTotalPages;
-    } else {
+    } else if (mediaType === 'movie') {
       const { totalPages: movieTotalPages } = await fetchMoviesBySearchQuery(
         query,
         page
       );
       totalPages = movieTotalPages;
+    } else {
+      // 'all' - use multi search
+      const { totalPages: multiTotalPages } = await fetchMultiSearchQuery(
+        query,
+        page
+      );
+      totalPages = multiTotalPages;
     }
   }
 
@@ -62,7 +70,11 @@ export default async function SearchPage(props: SearchProps) {
     <>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
-        <MediaTypeSelector currentMediaType={mediaType} includeActors />
+        <MediaTypeSelector
+          currentMediaType={mediaType}
+          includeActors
+          includeAll
+        />
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">

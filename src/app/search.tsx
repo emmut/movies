@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 export function Search() {
   const searchParams = useSearchParams();
   const q = searchParams.get('q') ?? '';
-  const mediaType = searchParams.get('mediaType') ?? 'movie';
+  const mediaType = searchParams.get('mediaType') ?? 'all';
 
   return (
     <form action="/search" className="relative max-w-md flex-1">
