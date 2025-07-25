@@ -1,5 +1,6 @@
 import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
+import { ListButton } from '@/components/list-button';
 import ResourceCard from '@/components/resource-card';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
@@ -140,7 +141,16 @@ export default async function PersonPage(props: PersonPageProps) {
             <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">
               {name}
             </h1>
-            <Badge variant="blue">Person</Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="blue">Person</Badge>
+              {user && (
+                <ListButton
+                  mediaId={personId}
+                  mediaType="person"
+                  userId={user.id}
+                />
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">

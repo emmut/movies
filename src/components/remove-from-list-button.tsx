@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 interface RemoveFromListButtonProps {
   listId: string;
   mediaId: number;
-  mediaType: 'movie' | 'tv';
+  mediaType: 'movie' | 'tv' | 'person';
   className?: string;
 }
 

@@ -11,6 +11,7 @@ export interface LocalList {
   id: string;
   name: string;
   description: string | null;
+  emoji: string;
   createdAt: Date;
   updatedAt: Date;
   itemCount: number;
@@ -38,6 +39,7 @@ export async function getUserLists() {
       id: lists.id,
       name: lists.name,
       description: lists.description,
+      emoji: lists.emoji,
       createdAt: lists.createdAt,
       updatedAt: lists.updatedAt,
     })
@@ -94,7 +96,11 @@ export async function getListDetails(listId: string) {
   };
 }
 
-export async function createList(name: string, description: string = '') {
+export async function createList(
+  name: string,
+  description: string = '',
+  emoji: string = '📝'
+) {
   const user = await getUser();
 
   if (!user) {
@@ -108,6 +114,7 @@ export async function createList(name: string, description: string = '') {
     userId: user.id,
     name,
     description: description || null,
+    emoji,
   });
 
   revalidatePath('/lists');
@@ -118,7 +125,7 @@ export async function createList(name: string, description: string = '') {
 export async function addToList(
   listId: string,
   mediaId: number,
-  mediaType: 'movie' | 'tv'
+  mediaType: 'movie' | 'tv' | 'person'
 ) {
   const user = await getUser();
 
@@ -156,7 +163,7 @@ export async function addToList(
 export async function removeFromList(
   listId: string,
   mediaId: number,
-  mediaType: 'movie' | 'tv'
+  mediaType: 'movie' | 'tv' | 'person'
 ) {
   const user = await getUser();
 
@@ -216,7 +223,8 @@ export async function deleteList(listId: string) {
 export async function updateList(
   listId: string,
   name: string,
-  description: string = ''
+  description: string = '',
+  emoji: string = '📝'
 ) {
   const user = await getUser();
 
@@ -240,6 +248,7 @@ export async function updateList(
     .set({
       name,
       description: description || null,
+      emoji,
       updatedAt: new Date(),
     })
     .where(eq(lists.id, listId));
@@ -250,7 +259,7 @@ export async function updateList(
 
 export async function getUserListsWithStatus(
   mediaId: number,
-  mediaType: 'movie' | 'tv'
+  mediaType: 'movie' | 'tv' | 'person'
 ) {
   const user = await getUser();
 
@@ -263,6 +272,7 @@ export async function getUserListsWithStatus(
       id: lists.id,
       name: lists.name,
       description: lists.description,
+      emoji: lists.emoji,
       createdAt: lists.createdAt,
       updatedAt: lists.updatedAt,
     })
@@ -302,3 +312,7 @@ export async function getUserListsWithStatus(
 
   return listsWithStatusAndCounts;
 }
+
+export type UserListsWithStatus = Awaited<
+  ReturnType<typeof getUserListsWithStatus>
+>;

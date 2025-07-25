@@ -12,6 +12,7 @@ CREATE TABLE "lists" (
 	"user_id" text NOT NULL,
 	"name" text NOT NULL,
 	"description" text,
+	"emoji" text DEFAULT '📝' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );

@@ -1,5 +1,5 @@
 {
-  "id": "6a3cbae8-ece7-4622-9aab-d3697f82fa50",
+  "id": "77797e42-a139-41c8-b5f1-8ddb02331871",
   "prevId": "6a3781fe-c370-4f40-b50c-9146f84731b2",
   "version": "7",
   "dialect": "postgresql",
@@ -505,6 +505,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "emoji": {
+          "name": "emoji",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'📝'"
         },
         "created_at": {
           "name": "created_at",

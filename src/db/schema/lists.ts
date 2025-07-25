@@ -8,6 +8,7 @@ export const lists = pgTable('lists', {
     .references(() => user.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   description: text('description'),
+  emoji: text('emoji').notNull().default('📝'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .defaultNow()

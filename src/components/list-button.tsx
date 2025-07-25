@@ -25,6 +25,7 @@ import {
   createList,
   getUserListsWithStatus,
   removeFromList,
+  UserListsWithStatus,
 } from '@/lib/lists';
 import { Check, List, ListPlus } from 'lucide-react';
 import { useState, useTransition } from 'react';
@@ -32,19 +33,51 @@ import { toast } from 'sonner';
 
 interface ListButtonProps {
   mediaId: number;
-  mediaType: 'movie' | 'tv';
+  mediaType: 'movie' | 'tv' | 'person';
   userId?: string;
 }
 
+const EMOJI_OPTIONS = [
+  '📝',
+  '🎬',
+  '📺',
+  '⭐',
+  '❤️',
+  '🔥',
+  '👍',
+  '🎭',
+  '🎪',
+  '🎨',
+  '🏆',
+  '🎯',
+  '💎',
+  '🚀',
+  '⚡',
+  '🌟',
+  '🎉',
+  '💯',
+  '🎰',
+  '🎲',
+  '📚',
+  '🎵',
+  '🎮',
+  '🏅',
+  '🌈',
+  '🎊',
+  '🔮',
+  '💫',
+  '🎸',
+  '🎤',
+];
+
 export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
-  const [lists, setLists] = useState<
-    Awaited<ReturnType<typeof getUserListsWithStatus>>
-  >([]);
+  const [lists, setLists] = useState<UserListsWithStatus>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
+  const [selectedEmoji, setSelectedEmoji] = useState('📝');
   const [isPending, startTransition] = useTransition();
 
   if (!userId) {
@@ -93,12 +126,14 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
     try {
       const result = await createList(
         newListName.trim(),
-        newListDescription.trim()
+        newListDescription.trim(),
+        selectedEmoji
       );
       if (result.success) {
         await addToList(result.listId, mediaId, mediaType);
         setNewListName('');
         setNewListDescription('');
+        setSelectedEmoji('📝');
         setIsCreateOpen(false);
         await refreshLists();
         toast.success('List created and item added');
@@ -145,7 +180,10 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
                       : `Add to "${list.name}"`
                   }
                 >
-                  <span className="flex-1">{list.name}</span>
+                  <span className="flex flex-1 items-center gap-2">
+                    <span className="text-lg">{list.emoji}</span>
+                    <span>{list.name}</span>
+                  </span>
                   {list.hasItem && (
                     <Check className="ml-2 h-4 w-4 flex-shrink-0 text-green-500" />
                   )}
@@ -173,6 +211,33 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="emoji" className="text-right">
+                Emoji
+              </Label>
+              <div className="col-span-3">
+                <div className="grid max-h-32 grid-cols-6 gap-2 overflow-y-auto rounded-md border p-2">
+                  {EMOJI_OPTIONS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setSelectedEmoji(emoji)}
+                      className={`hover:bg-muted rounded p-2 text-xl transition-colors ${
+                        selectedEmoji === emoji
+                          ? 'bg-primary text-primary-foreground'
+                          : ''
+                      }`}
+                      disabled={isLoading}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Selected: {selectedEmoji}
+                </p>
+              </div>
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
                 Name

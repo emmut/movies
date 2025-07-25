@@ -1,7 +1,8 @@
 import { DeleteListButton } from '@/components/delete-list-button';
+import { EditListDialog } from '@/components/edit-list-dialog';
 import { Button } from '@/components/ui/button';
-import type { LocalList } from '@/lib/lists';
-import { Trash2 } from 'lucide-react';
+import { LocalList } from '@/lib/lists';
+import { Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface ListsGridProps {
@@ -11,12 +12,11 @@ interface ListsGridProps {
 export function ListsGrid({ lists }: ListsGridProps) {
   if (lists.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="mb-4 text-6xl">📝</div>
-        <h3 className="mb-2 text-lg font-semibold">No lists yet</h3>
-        <p className="text-gray-400">
-          Create your first list by clicking the list button on any movie or TV
-          show
+      <div className="py-12 text-center">
+        <div className="mb-4 text-6xl opacity-50">📝</div>
+        <h2 className="mb-2 text-xl font-semibold">No lists yet</h2>
+        <p className="text-zinc-400">
+          Create your first list to organize your movies, TV shows, and people
         </p>
       </div>
     );
@@ -32,7 +32,7 @@ export function ListsGrid({ lists }: ListsGridProps) {
           >
             <div className="flex h-full flex-col">
               <div className="flex-1">
-                <div className="mb-4 text-4xl">📝</div>
+                <div className="mb-4 text-4xl">{list.emoji}</div>
                 <h3 className="text-foreground mb-2 text-lg font-semibold">
                   {list.name}
                 </h3>
@@ -54,8 +54,17 @@ export function ListsGrid({ lists }: ListsGridProps) {
               </div>
             </div>
           </Link>
-
-          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <EditListDialog
+              listId={list.id}
+              listName={list.name}
+              listDescription={list.description}
+              listEmoji={list.emoji}
+            >
+              <Button variant="secondary" size="icon" className="h-8 w-8">
+                <Edit className="h-4 w-4" />
+              </Button>
+            </EditListDialog>
             <DeleteListButton
               listId={list.id}
               listName={list.name}

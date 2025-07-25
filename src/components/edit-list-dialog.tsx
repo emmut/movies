@@ -13,13 +13,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { createList } from '@/lib/lists';
-import { ListPlus } from 'lucide-react';
+import { updateList } from '@/lib/lists';
+import { Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-interface CreateListDialogProps {
+interface EditListDialogProps {
+  listId: string;
+  listName: string;
+  listDescription: string | null;
+  listEmoji: string;
   children?: React.ReactNode;
 }
 
@@ -56,35 +60,32 @@ const EMOJI_OPTIONS = [
   '🎤',
 ];
 
-export function CreateListDialog({ children }: CreateListDialogProps) {
+export function EditListDialog({
+  listId,
+  listName,
+  listDescription,
+  listEmoji,
+  children,
+}: EditListDialogProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [newListName, setNewListName] = useState('');
-  const [newListDescription, setNewListDescription] = useState('');
-  const [selectedEmoji, setSelectedEmoji] = useState('📝');
+  const [name, setName] = useState(listName);
+  const [description, setDescription] = useState(listDescription || '');
+  const [selectedEmoji, setSelectedEmoji] = useState(listEmoji);
 
-  const handleCreateList = async () => {
-    if (!newListName.trim()) return;
+  const handleUpdateList = async () => {
+    if (!name.trim()) return;
 
     setIsLoading(true);
     try {
-      const result = await createList(
-        newListName.trim(),
-        newListDescription.trim(),
-        selectedEmoji
-      );
-      if (result.success) {
-        setNewListName('');
-        setNewListDescription('');
-        setSelectedEmoji('📝');
-        setIsOpen(false);
-        toast.success('List created successfully');
-        router.refresh(); // Refresh the page to show the new list
-      }
+      await updateList(listId, name.trim(), description.trim(), selectedEmoji);
+      setIsOpen(false);
+      toast.success('List updated successfully');
+      router.refresh();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'Failed to create list'
+        error instanceof Error ? error.message : 'Failed to update list'
       );
     } finally {
       setIsLoading(false);
@@ -94,9 +95,10 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (!open) {
-      setNewListName('');
-      setNewListDescription('');
-      setSelectedEmoji('📝');
+      // Reset to original values when closing
+      setName(listName);
+      setDescription(listDescription || '');
+      setSelectedEmoji(listEmoji);
     }
   };
 
@@ -104,17 +106,17 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children || (
-          <Button>
-            <ListPlus className="mr-2 h-4 w-4" />
-            Create New List
+          <Button variant="outline" size="sm">
+            <Edit className="mr-2 h-4 w-4" />
+            Edit List
           </Button>
         )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New List</DialogTitle>
+          <DialogTitle>Edit List</DialogTitle>
           <DialogDescription>
-            Create a new list to organize your favorite movies and TV shows.
+            Update your list details, emoji, and description.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -151,9 +153,9 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
             </Label>
             <Input
               id="name"
-              value={newListName}
+              value={name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setNewListName(e.target.value)
+                setName(e.target.value)
               }
               className="col-span-3"
               disabled={isLoading}
@@ -166,9 +168,9 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
             </Label>
             <Textarea
               id="description"
-              value={newListDescription}
+              value={description}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                setNewListDescription(e.target.value)
+                setDescription(e.target.value)
               }
               className="col-span-3"
               disabled={isLoading}
@@ -178,10 +180,17 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
         </div>
         <DialogFooter>
           <Button
-            onClick={handleCreateList}
-            disabled={isLoading || !newListName.trim()}
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+            disabled={isLoading}
           >
-            {isLoading ? 'Creating...' : 'Create List'}
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpdateList}
+            disabled={isLoading || !name.trim()}
+          >
+            {isLoading ? 'Updating...' : 'Update List'}
           </Button>
         </DialogFooter>
       </DialogContent>
