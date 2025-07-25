@@ -25,9 +25,16 @@ export function AddPasskey() {
 
   async function handleAddPasskey() {
     setIsLoading(true);
-    
+
+    // Validate that the passkey name is not empty
+    if (name.trim() === '') {
+      toast.error('Please enter a name for your passkey.');
+      setIsLoading(false);
+      return;
+    }
+
     const { error } = await addPasskey(name.trim());
-    
+
     if (error) {
       toast.error('Failed to add passkey. Please try again.');
     } else {
@@ -36,7 +43,7 @@ export function AddPasskey() {
       setName('My Passkey');
       router.refresh();
     }
-    
+
     setIsLoading(false);
   }
 
@@ -49,7 +56,8 @@ export function AddPasskey() {
         <DialogHeader>
           <DialogTitle>Add New Passkey</DialogTitle>
           <DialogDescription>
-            Give your passkey a name to help you identify it later. This could be the device name or location.
+            Give your passkey a name to help you identify it later. This could
+            be the device name or location.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

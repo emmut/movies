@@ -21,16 +21,16 @@ export function PasskeyLoginForm() {
     }
 
     setIsLoading(true);
-    try {
-      await signInPasskey(currentEmail);
+
+    const data = await signInPasskey(currentEmail);
+
+    if (data?.error) {
+      toast.error('Failed to sign in with passkey. Please try again.');
+    } else {
       router.push('/');
       router.refresh();
-    } catch (error) {
-      console.error('Passkey sign-in failed:', error);
-      toast.error('Failed to sign in with passkey. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }
 
   async function handleEmailSubmit(e: React.FormEvent) {

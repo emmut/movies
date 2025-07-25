@@ -45,6 +45,10 @@ export async function signInSettings() {
       errorCallbackURL: '/settings?error=failed_to_link_account',
     });
 
+    if (data?.error) {
+      throw data.error;
+    }
+
     return data;
   } catch (error) {
     console.error('Failed to sign in with Discord:', error);
@@ -59,7 +63,7 @@ export async function addPasskey(name: string = 'My Passkey') {
     });
 
     if (data?.error) {
-      return { error: true, data: null };
+      throw data.error;
     }
 
     return { error: false, data };
@@ -77,13 +81,13 @@ export async function signInPasskey(email: string, autoFill = false) {
     });
 
     if (data?.error) {
-      throw new Error(data.error.message);
+      throw data.error;
     }
 
     return data;
   } catch (error) {
     console.error('Failed to sign in with passkey:', error);
-    return { error: 'Failed to sign in with passkey', data: null };
+    return { error, data: null };
   }
 }
 
@@ -101,6 +105,10 @@ export async function signInGitHub() {
       callbackURL: '/',
       errorCallbackURL: '/login?error=failed_to_login',
     });
+
+    if (data?.error) {
+      throw data.error;
+    }
 
     return data;
   } catch (error) {
@@ -123,6 +131,10 @@ export async function signInGitHubSettings() {
       errorCallbackURL: '/settings?error=failed_to_link_account',
     });
 
+    if (data?.error) {
+      throw data.error;
+    }
+
     return data;
   } catch (error) {
     console.error('Failed to sign in with GitHub:', error);
@@ -133,6 +145,10 @@ export async function signInGitHubSettings() {
 export async function signInAnonymous() {
   try {
     const data = await authClient.signIn.anonymous();
+
+    if (data?.error) {
+      throw data.error;
+    }
 
     return data;
   } catch (error) {
@@ -149,6 +165,10 @@ export async function signInAnonymous() {
 export async function signOut() {
   try {
     const data = await authClient.signOut();
+
+    if (data?.error) {
+      throw data.error;
+    }
 
     return data;
   } catch (error) {

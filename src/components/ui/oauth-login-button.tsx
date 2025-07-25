@@ -142,14 +142,25 @@ export function OAuthLoginButton({
   const router = useRouter();
 
   async function handleLogin() {
-    const currentProvider = initCurrentProvider(provider);
-    const { error } = await currentProvider();
-    if (error) {
-      toast.error('Failed to sign in anonymously');
-      console.error(error);
-    } else {
-      router.push('/');
-      router.refresh();
+    setIsLoading(true);
+    try {
+      const currentProvider = initCurrentProvider(provider);
+      const { error } = await currentProvider();
+      if (error) {
+        const providerName =
+          provider === 'anonymous'
+            ? 'anonymously'
+            : `with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
+        toast.error(`Failed to sign in ${providerName}`);
+        console.error(error);
+      } else {
+        router.push('/');
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Failed to sign in:', error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -158,10 +169,7 @@ export function OAuthLoginButton({
       className={cn(oauthButtonVariants({ provider, size }), className)}
       disabled={disabled}
       type="button"
-      onClick={() => {
-        setIsLoading(true);
-        handleLogin();
-      }}
+      onClick={handleLogin}
       {...props}
     >
       {isLoading ? (
