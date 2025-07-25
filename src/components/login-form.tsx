@@ -9,9 +9,11 @@ type LoginFormProps = {
 };
 
 /**
- * Renders a login form with multiple authentication options including passkeys, OAuth, and anonymous login.
+ * Displays a login form offering authentication via OAuth providers, passkey, or anonymous login.
  *
- * Provides passkey authentication alongside social login options. Displays an error notification if anonymous sign-in fails and navigates to the home page on success.
+ * Arranges multiple login options vertically, passing an optional redirect URL to each authentication method.
+ *
+ * @param redirectUrl - Optional URL to redirect to after successful authentication
  */
 export function LoginForm({ redirectUrl }: LoginFormProps) {
   return (

@@ -47,11 +47,11 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 };
 
 /**
- * Renders a sidebar navigation component with dynamic menu and footer content based on user authentication state.
+ * Displays a sidebar navigation UI with menu items and footer content that adapt to the user's authentication status.
  *
- * Displays main navigation items for all users, additional user-specific items when a session is present, and a footer that shows either user information or a login prompt depending on authentication status.
+ * Shows main navigation links for all users, adds user-specific links when a session is present, and renders either user info or a login prompt in the footer based on authentication state.
  *
- * @param initialSession - The current user session, or null if no user is authenticated. Determines which navigation and footer elements are shown.
+ * @param initialSession - The current user session, or null if no user is authenticated. Controls which navigation and footer elements are displayed.
  */
 export function AppSidebar({ initialSession, ...props }: AppSidebarProps) {
   const pathname = usePathname();

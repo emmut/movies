@@ -8,6 +8,13 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+/**
+ * Renders a form for authenticating users via passkey-based login.
+ *
+ * Displays a button that initiates passkey authentication using the user's email. On successful authentication, redirects the user to a safe URL determined by the optional `redirectUrl` prop.
+ *
+ * @param redirectUrl - Optional URL to redirect to after successful authentication
+ */
 export function PasskeyLoginForm({ redirectUrl }: { redirectUrl?: string }) {
   const [isLoading, setIsLoading] = useState(false);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
