@@ -2,12 +2,21 @@
 
 import { Input } from '@/components/ui/input';
 import { Search as SearchIcon } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+
+function getMediaType(pathname: string, searchParams: URLSearchParams) {
+  if (!pathname.includes('search')) {
+    return 'all';
+  }
+
+  return searchParams.get('mediaType') ?? 'all';
+}
 
 export function Search() {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const mediaType = getMediaType(pathname, searchParams);
   const q = searchParams.get('q') ?? '';
-  const mediaType = searchParams.get('mediaType') ?? 'all';
 
   return (
     <form action="/search" className="relative max-w-md flex-1">
