@@ -1,6 +1,6 @@
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
-import PersonDetailCard from '@/components/person-detail-card';
+import PersonCard from '@/components/person-card';
 import ResourceCard from '@/components/resource-card';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
@@ -105,7 +105,7 @@ export default async function ListDetailsPage({
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {allItems.map((item) =>
             item.resourceType === 'person' ? (
-              <PersonDetailCard
+              <PersonCard
                 person={item}
                 userId={user?.id}
                 showListButton={false}

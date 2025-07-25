@@ -11,6 +11,12 @@ export type PersonDetails = {
   also_known_as: string[];
   homepage: string | null;
   imdb_id: string | null;
+  known_for: Array<{
+    id: number;
+    title?: string;
+    name?: string;
+    media_type: 'movie' | 'tv';
+  }>;
 };
 
 export type PersonMovieCredit = {
