@@ -17,13 +17,18 @@ export type Session = typeof authClient.$Infer.Session;
  * @returns The result of the sign-in operation.
  */
 export async function signInDiscord() {
-  const data = await authClient.signIn.social({
-    provider: 'discord',
-    callbackURL: '/',
-    errorCallbackURL: '/login?error=failed_to_login',
-  });
+  try {
+    const data = await authClient.signIn.social({
+      provider: 'discord',
+      callbackURL: '/',
+      errorCallbackURL: '/login?error=failed_to_login',
+    });
 
-  return data;
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in with Discord:', error);
+    return { error: 'Failed to sign in with Discord', data: null };
+  }
 }
 
 /**
@@ -33,36 +38,51 @@ export async function signInDiscord() {
  * @returns The result of the sign-in operation.
  */
 export async function signInSettings() {
-  const data = await authClient.signIn.social({
-    provider: 'discord',
-    callbackURL: '/',
-    errorCallbackURL: '/settings?error=failed_to_link_account',
-  });
+  try {
+    const data = await authClient.signIn.social({
+      provider: 'discord',
+      callbackURL: '/',
+      errorCallbackURL: '/settings?error=failed_to_link_account',
+    });
 
-  return data;
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in with Discord:', error);
+    return { error: 'Failed to sign in with Discord', data: null };
+  }
 }
 
 export async function addPasskey() {
-  const data = await authClient.passkey.addPasskey();
+  try {
+    const data = await authClient.passkey.addPasskey();
 
-  if (data?.error) {
-    throw new Error(data.error.message);
+    if (data?.error) {
+      throw new Error(data.error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to add passkey:', error);
+    return { error: 'Failed to add passkey', data: null };
   }
-
-  return data;
 }
 
-export async function signInPasskey(email: string) {
-  const data = await authClient.signIn.passkey({
-    email,
-    autoFill: true,
-  });
+export async function signInPasskey(email: string, autoFill = false) {
+  try {
+    const data = await authClient.signIn.passkey({
+      email,
+      autoFill,
+    });
 
-  if (data?.error) {
-    throw new Error(data.error.message);
+    if (data?.error) {
+      throw new Error(data.error.message);
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in with passkey:', error);
+    return { error: 'Failed to sign in with passkey', data: null };
   }
-
-  return data;
 }
 
 /**
@@ -73,13 +93,18 @@ export async function signInPasskey(email: string) {
  * @returns The result of the sign-in operation.
  */
 export async function signInGitHub() {
-  const data = await authClient.signIn.social({
-    provider: 'github',
-    callbackURL: '/',
-    errorCallbackURL: '/login?error=failed_to_login',
-  });
+  try {
+    const data = await authClient.signIn.social({
+      provider: 'github',
+      callbackURL: '/',
+      errorCallbackURL: '/login?error=failed_to_login',
+    });
 
-  return data;
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in with GitHub:', error);
+    return { error: 'Failed to sign in with GitHub', data: null };
+  }
 }
 
 /**
@@ -89,19 +114,29 @@ export async function signInGitHub() {
  * @returns The result of the sign-in operation.
  */
 export async function signInGitHubSettings() {
-  const data = await authClient.signIn.social({
-    provider: 'github',
-    callbackURL: '/',
-    errorCallbackURL: '/settings?error=failed_to_link_account',
-  });
+  try {
+    const data = await authClient.signIn.social({
+      provider: 'github',
+      callbackURL: '/',
+      errorCallbackURL: '/settings?error=failed_to_link_account',
+    });
 
-  return data;
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in with GitHub:', error);
+    return { error: 'Failed to sign in with GitHub', data: null };
+  }
 }
 
 export async function signInAnonymous() {
-  const data = await authClient.signIn.anonymous();
+  try {
+    const data = await authClient.signIn.anonymous();
 
-  return data;
+    return data;
+  } catch (error) {
+    console.error('Failed to sign in anonymously:', error);
+    return { error: 'Failed to sign in anonymously', data: null };
+  }
 }
 
 /**
@@ -110,7 +145,12 @@ export async function signInAnonymous() {
  * @returns The result of the sign-out operation.
  */
 export async function signOut() {
-  const data = await authClient.signOut();
+  try {
+    const data = await authClient.signOut();
 
-  return data;
+    return data;
+  } catch (error) {
+    console.error('Failed to sign out:', error);
+    return { error: 'Failed to sign out', data: null };
+  }
 }
