@@ -7,11 +7,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-// import { inter } from '@/fonts';
 import { inter } from '@/fonts';
 import { getSession } from '@/lib/auth-server';
 import { PHProvider } from '@/providers/posthog';
-import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
@@ -66,7 +64,6 @@ export default async function RootLayout({
             </SidebarProvider>
             <LoginToastHandler />
           </PHProvider>
-          <Analytics />
           <SpeedInsights />
         </NuqsAdapter>
         <Toaster position="top-center" richColors />
