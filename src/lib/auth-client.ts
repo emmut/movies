@@ -49,6 +49,9 @@ export async function addPasskey() {
     throw new Error(data.error.message);
   }
 
+  return data;
+}
+
 export async function signInPasskey(email: string) {
   const data = await authClient.signIn.passkey({
     email,
@@ -58,6 +61,9 @@ export async function signInPasskey(email: string) {
   if (data?.error) {
     throw new Error(data.error.message);
   }
+
+  return data;
+}
 
 /**
  * Initiates a GitHub social sign-in flow and returns the authentication result.
