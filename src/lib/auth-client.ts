@@ -86,7 +86,7 @@ export async function signInPasskey(email: string, autoFill = false) {
 
     return data;
   } catch (error) {
-    console.error('Failed to sign in with passkey:', error);
+    console.warn('Failed to sign in with passkey:', error);
     return { error, data: null };
   }
 }
