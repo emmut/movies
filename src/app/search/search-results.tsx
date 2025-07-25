@@ -3,8 +3,17 @@ import ResourceCard from '@/components/resource-card';
 import {
   fetchActorsBySearchQuery,
   fetchMoviesBySearchQuery,
+  fetchMultiSearchQuery,
   fetchTvShowsBySearchQuery,
 } from '@/lib/search';
+import { SearchedActor } from '@/types/actor';
+import { Movie } from '@/types/movie';
+import { TvShow } from '@/types/tv-show';
+
+type MultiSearchResult =
+  | (Movie & { media_type: 'movie' })
+  | (TvShow & { media_type: 'tv' })
+  | (SearchedActor & { media_type: 'person' });
 
 type SearchResultsProps = {
   searchQuery: string;
@@ -13,14 +22,14 @@ type SearchResultsProps = {
 };
 
 /**
- * Asynchronously fetches and displays search results for movies or TV shows based on the media type.
+ * Asynchronously fetches and displays search results for movies, TV shows, actors, or mixed results based on the media type.
  *
- * Renders ResourceCard components for each result in the search results.
+ * Renders ResourceCard components for movies/TV shows and ActorCard components for actors in the search results.
  *
  * @param searchQuery - The search term to filter content.
  * @param currentPage - The page number of results to retrieve.
- * @param mediaType - Whether to search for 'movie' or 'tv' content.
- * @returns An array of ResourceCard components representing the search results.
+ * @param mediaType - Whether to search for 'movie', 'tv', 'actor', or 'all' content.
+ * @returns An array of components representing the search results.
  */
 export default async function SearchResults({
   searchQuery,
@@ -72,16 +81,50 @@ export default async function SearchResults({
     );
   }
 
-  const { movies } = await fetchMoviesBySearchQuery(searchQuery, currentPage);
+  if (mediaType === 'movie') {
+    const { movies } = await fetchMoviesBySearchQuery(searchQuery, currentPage);
+
+    return (
+      <>
+        {movies.map((movie) => (
+          <ResourceCard key={movie.id} resource={movie} type="movie" />
+        ))}
+        {movies.length === 0 && (
+          <p className="col-span-full text-center text-zinc-400">
+            No movies found for &ldquo;{searchQuery}&rdquo;
+          </p>
+        )}
+      </>
+    );
+  }
+
+  // 'all' - mixed results from multi search
+  const { results } = await fetchMultiSearchQuery(searchQuery, currentPage);
 
   return (
     <>
-      {movies.map((movie) => (
-        <ResourceCard key={movie.id} resource={movie} type="movie" />
-      ))}
-      {movies.length === 0 && (
+      {results.map((result: MultiSearchResult) => {
+        // Each result has a media_type property: 'movie', 'tv', or 'person'
+        if (result.media_type === 'person') {
+          return <ActorCard key={`person-${result.id}`} actor={result} />;
+        } else if (result.media_type === 'tv') {
+          return (
+            <ResourceCard key={`tv-${result.id}`} resource={result} type="tv" />
+          );
+        } else if (result.media_type === 'movie') {
+          return (
+            <ResourceCard
+              key={`movie-${result.id}`}
+              resource={result}
+              type="movie"
+            />
+          );
+        }
+        return null;
+      })}
+      {results.length === 0 && (
         <p className="col-span-full text-center text-zinc-400">
-          No movies found for &ldquo;{searchQuery}&rdquo;
+          No results found for &ldquo;{searchQuery}&rdquo;
         </p>
       )}
     </>

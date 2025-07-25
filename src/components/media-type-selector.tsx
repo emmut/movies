@@ -1,15 +1,16 @@
 'use client';
 
 import { validateGenreForMediaType } from '@/lib/media-actions';
-import { Film, Tv, User } from 'lucide-react';
+import { Film, Search, Tv, User } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useOptimistic, useTransition } from 'react';
 
-type MediaType = 'movie' | 'tv' | 'actor';
+type MediaType = 'movie' | 'tv' | 'actor' | 'all';
 
 type MediaTypeSelectorProps = {
   currentMediaType: MediaType;
   includeActors?: boolean;
+  includeAll?: boolean;
 };
 
 /**
@@ -23,6 +24,7 @@ type MediaTypeSelectorProps = {
 export default function MediaTypeSelector({
   currentMediaType,
   includeActors = false,
+  includeAll = false,
 }: MediaTypeSelectorProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -39,10 +41,14 @@ export default function MediaTypeSelector({
       setOptimisticMediaType(mediaType);
     });
 
-    params.set('mediaType', mediaType);
+    if (mediaType === 'all') {
+      params.delete('mediaType');
+    } else {
+      params.set('mediaType', mediaType);
+    }
     params.delete('page');
 
-    if (currentGenreId && mediaType !== 'actor') {
+    if (currentGenreId && mediaType !== 'actor' && mediaType !== 'all') {
       const genreExists = await validateGenreForMediaType(
         currentGenreId,
         mediaType as 'movie' | 'tv'
@@ -51,8 +57,8 @@ export default function MediaTypeSelector({
       if (!genreExists) {
         params.delete('genreId');
       }
-    } else if (mediaType === 'actor') {
-      // Actors don't have genres, so remove genreId
+    } else if (mediaType === 'actor' || mediaType === 'all') {
+      // Actors and mixed results don't have genres, so remove genreId
       params.delete('genreId');
     }
 
@@ -61,6 +67,19 @@ export default function MediaTypeSelector({
 
   return (
     <div className="bg-muted/60 flex rounded-lg p-1">
+      {includeAll && (
+        <button
+          onClick={() => handleMediaTypeChange('all')}
+          className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            optimisticMediaType === 'all'
+              ? 'bg-white text-black'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+          }`}
+        >
+          <Search className="h-4 w-4" />
+          All
+        </button>
+      )}
       <button
         onClick={() => handleMediaTypeChange('movie')}
         className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
