@@ -3,6 +3,7 @@
 import { validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Tv, User } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useOptimistic, useTransition } from 'react';
 
 type MediaType = 'movie' | 'tv' | 'actor';
 
@@ -26,10 +27,17 @@ export default function MediaTypeSelector({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [optimisticMediaType, setOptimisticMediaType] =
+    useOptimistic(currentMediaType);
+  const [, startTransition] = useTransition();
 
   async function handleMediaTypeChange(mediaType: MediaType) {
     const params = new URLSearchParams(searchParams);
     const currentGenreId = params.get('genreId');
+
+    startTransition(() => {
+      setOptimisticMediaType(mediaType);
+    });
 
     params.set('mediaType', mediaType);
     params.delete('page');
@@ -56,7 +64,7 @@ export default function MediaTypeSelector({
       <button
         onClick={() => handleMediaTypeChange('movie')}
         className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-          currentMediaType === 'movie'
+          optimisticMediaType === 'movie'
             ? 'bg-white text-black'
             : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
         }`}
@@ -67,7 +75,7 @@ export default function MediaTypeSelector({
       <button
         onClick={() => handleMediaTypeChange('tv')}
         className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-          currentMediaType === 'tv'
+          optimisticMediaType === 'tv'
             ? 'bg-white text-black'
             : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
         }`}
@@ -79,7 +87,7 @@ export default function MediaTypeSelector({
         <button
           onClick={() => handleMediaTypeChange('actor')}
           className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-            currentMediaType === 'actor'
+            optimisticMediaType === 'actor'
               ? 'bg-white text-black'
               : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
           }`}
