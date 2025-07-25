@@ -74,8 +74,10 @@ export function EditListDialog({
   const [description, setDescription] = useState(listDescription || '');
   const [selectedEmoji, setSelectedEmoji] = useState(listEmoji);
 
-  const handleUpdateList = async () => {
-    if (!name.trim()) return;
+  async function handleUpdateList() {
+    if (!name.trim()) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -90,9 +92,9 @@ export function EditListDialog({
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleOpenChange = (open: boolean) => {
+  function handleOpenChange(open: boolean) {
     setIsOpen(open);
     if (!open) {
       // Reset to original values when closing
@@ -100,7 +102,7 @@ export function EditListDialog({
       setDescription(listDescription || '');
       setSelectedEmoji(listEmoji);
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>

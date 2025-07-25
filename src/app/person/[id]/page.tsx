@@ -141,7 +141,7 @@ export default async function PersonPage(props: PersonPageProps) {
             <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">
               {name}
             </h1>
-            <div className="flex items-center gap-2">
+            <div className="flex w-full items-center justify-between gap-2">
               <Badge variant="blue">Person</Badge>
               {user && (
                 <ListButton

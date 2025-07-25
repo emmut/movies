@@ -81,7 +81,7 @@ export default async function SearchResults({
     return (
       <>
         {persons.map((person) => (
-          <PersonCard key={person.id} person={person} />
+          <PersonCard key={person.id} person={person} userId={userId} />
         ))}
         {persons.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
@@ -122,7 +122,13 @@ export default async function SearchResults({
       {results.map((result: MultiSearchResult) => {
         // Each result has a media_type property: 'movie', 'tv', or 'person'
         if (result.media_type === 'person') {
-          return <PersonCard key={`person-${result.id}`} person={result} />;
+          return (
+            <PersonCard
+              key={`person-${result.id}`}
+              person={result}
+              userId={userId}
+            />
+          );
         } else if (result.media_type === 'tv') {
           return (
             <ResourceCard

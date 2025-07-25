@@ -4,10 +4,12 @@ import { User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Badge from './badge';
+import { ListButton } from './list-button';
 
 type PersonCardProps = {
   person: SearchedPerson;
   className?: string;
+  userId?: string;
 };
 
 /**
@@ -16,7 +18,11 @@ type PersonCardProps = {
  * The card links to the person's detail page and shows additional information on hover or focus.
  * If no profile image is available, a fallback with a user icon and "No Photo" text is shown.
  */
-export default function PersonCard({ person, className }: PersonCardProps) {
+export default function PersonCard({
+  person,
+  className,
+  userId,
+}: PersonCardProps) {
   const href = `/person/${person.id}`;
   const knownFor = person.known_for
     .slice(0, 2)
@@ -72,6 +78,16 @@ export default function PersonCard({ person, className }: PersonCardProps) {
         <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
           <Badge variant="blue">Person</Badge>
         </div>
+
+        {userId && (
+          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+            <ListButton
+              mediaId={person.id}
+              mediaType="person"
+              userId={userId}
+            />
+          </div>
+        )}
       </div>
     </Link>
   );
