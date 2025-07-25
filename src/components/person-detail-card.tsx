@@ -57,10 +57,10 @@ export default function PersonDetailCard({
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100" />
 
-        <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100">
-          <div className="inset-0 bg-gradient-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100" />
+        <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
+          <div className="inset-0 bg-gradient-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100" />
 
           <h3 className="mb-1 line-clamp-2 text-sm font-semibold">
             {person.name}
@@ -75,12 +75,12 @@ export default function PersonDetailCard({
           </div>
         </div>
 
-        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-hover/person:opacity-100 group-focus/person:opacity-100">
+        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
           <Badge variant="blue">Person</Badge>
         </div>
 
         {showListButton && userId && (
-          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover/person:opacity-100 group-focus/person:opacity-100">
+          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
             <ListButton
               mediaId={person.id}
               mediaType="person"
@@ -90,7 +90,7 @@ export default function PersonDetailCard({
         )}
 
         {listId && (
-          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover/person:opacity-100 group-focus/person:opacity-100">
+          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
             <RemoveFromListButton
               listId={listId}
               mediaId={person.id}
