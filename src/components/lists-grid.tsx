@@ -1,4 +1,7 @@
+import { DeleteListButton } from '@/components/delete-list-button';
+import { Button } from '@/components/ui/button';
 import type { LocalList } from '@/lib/lists';
+import { Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface ListsGridProps {
@@ -22,31 +25,47 @@ export function ListsGrid({ lists }: ListsGridProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {lists.map((list) => (
-        <Link
-          key={list.id}
-          href={`/lists/${list.id}`}
-          className="hover:ring-primary relative block overflow-hidden rounded-lg bg-gray-800 p-6 transition-all hover:ring-2"
-        >
-          <div className="flex h-full flex-col">
-            <div className="flex-1">
-              <div className="mb-4 text-4xl">📝</div>
-              <h3 className="mb-2 text-lg font-semibold text-white">
-                {list.name}
-              </h3>
-              {list.description && (
-                <p className="mb-4 line-clamp-2 text-sm text-gray-300">
-                  {list.description}
+        <div key={list.id} className="group relative">
+          <Link
+            href={`/lists/${list.id}`}
+            className="relative block overflow-hidden rounded-lg border border-blue-700/50 bg-blue-900/30 p-6 transition-all hover:border-blue-400 hover:ring-2 hover:ring-blue-400"
+          >
+            <div className="flex h-full flex-col">
+              <div className="flex-1">
+                <div className="mb-4 text-4xl transition-transform group-hover:scale-110">
+                  📝
+                </div>
+                <h3 className="mb-2 text-lg font-semibold text-white">
+                  {list.name}
+                </h3>
+                {list.description && (
+                  <p className="mb-4 line-clamp-2 text-sm text-blue-200">
+                    {list.description}
+                  </p>
+                )}
+              </div>
+              <div className="border-t border-blue-700/50 pt-4">
+                <p className="text-sm text-blue-300">{list.itemCount} items</p>
+                <p className="text-xs text-blue-400">
+                  Updated {list.updatedAt.toLocaleDateString()}
                 </p>
-              )}
+              </div>
             </div>
-            <div className="border-t border-gray-700 pt-4">
-              <p className="text-sm text-gray-400">{list.itemCount} items</p>
-              <p className="text-xs text-gray-500">
-                Updated {list.updatedAt.toLocaleDateString()}
-              </p>
-            </div>
+          </Link>
+
+          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-hover:opacity-100">
+            <DeleteListButton
+              listId={list.id}
+              listName={list.name}
+              itemCount={list.itemCount}
+              redirectAfterDelete={false}
+            >
+              <Button variant="destructive" size="icon" className="h-8 w-8">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </DeleteListButton>
           </div>
-        </Link>
+        </div>
       ))}
     </div>
   );

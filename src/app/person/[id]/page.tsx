@@ -2,6 +2,7 @@ import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
 import ResourceCard from '@/components/resource-card';
 import { ItemSlider } from '@/components/ui/item-slider';
+import { getUser } from '@/lib/auth-server';
 import {
   getPersonDetails,
   getPersonMovieCredits,
@@ -30,6 +31,7 @@ export default async function PersonPage(props: PersonPageProps) {
   const headersList = await headers();
   const referer = headersList.get('referer');
 
+  const user = await getUser();
   const [person, movieCredits, tvCredits] = await Promise.all([
     getPersonDetails(personId),
     getPersonMovieCredits(personId),
@@ -248,6 +250,7 @@ export default async function PersonPage(props: PersonPageProps) {
                     resource={movie}
                     className="w-48"
                     type="movie"
+                    userId={user?.id}
                   />
                 ))}
               </ItemSlider>
@@ -266,6 +269,7 @@ export default async function PersonPage(props: PersonPageProps) {
                     resource={show}
                     className="w-48"
                     type="tv"
+                    userId={user?.id}
                   />
                 ))}
               </ItemSlider>

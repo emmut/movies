@@ -102,6 +102,7 @@ export default async function WatchlistPage(props: WatchlistPageProps) {
                   key={`${resourceType}-${item.id}`}
                   resource={item.resource as MovieDetails | TvDetails}
                   type={resourceType}
+                  userId={user?.id}
                 />
               );
             })}
