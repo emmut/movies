@@ -4,15 +4,23 @@ import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
 import { Separator } from '@/components/ui/separator';
 import { PasskeyLoginForm } from './passkey-login-form';
 
+type LoginFormProps = {
+  redirectUrl?: string;
+};
+
 /**
  * Renders a login form with multiple authentication options including passkeys, OAuth, and anonymous login.
  *
  * Provides passkey authentication alongside social login options. Displays an error notification if anonymous sign-in fails and navigates to the home page on success.
  */
-export function LoginForm({ redirectUrl }: { redirectUrl?: string }) {
+export function LoginForm({ redirectUrl }: LoginFormProps) {
   return (
     <div className="flex flex-col justify-center gap-4">
-      <OAuthLoginButton provider="discord" size="lg" redirectUrl={redirectUrl} />
+      <OAuthLoginButton
+        provider="discord"
+        size="lg"
+        redirectUrl={redirectUrl}
+      />
       <OAuthLoginButton provider="github" size="lg" redirectUrl={redirectUrl} />
 
       <div className="relative">
@@ -39,7 +47,11 @@ export function LoginForm({ redirectUrl }: { redirectUrl?: string }) {
         </div>
       </div>
 
-      <OAuthLoginButton provider="anonymous" size="lg" redirectUrl={redirectUrl} />
+      <OAuthLoginButton
+        provider="anonymous"
+        size="lg"
+        redirectUrl={redirectUrl}
+      />
     </div>
   );
 }
