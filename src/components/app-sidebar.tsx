@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, LogIn, Sparkles, Star } from 'lucide-react';
+import { Home, List, LogIn, Sparkles, Star } from 'lucide-react';
 import type * as React from 'react';
 
 import Brand from '@/components/brand';
@@ -39,6 +39,11 @@ const userNavItems = [
     href: '/watchlist',
     label: 'Watchlist',
     icon: Star,
+  },
+  {
+    href: '/lists',
+    label: 'Lists',
+    icon: List,
   },
 ];
 

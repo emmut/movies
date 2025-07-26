@@ -62,8 +62,7 @@ export function WatchlistButton({
       onClick={handleToggleWatchlist}
       disabled={isPending}
       variant={optimisticInWatchlist ? 'default' : 'outline'}
-      size="sm"
-      className="gap-2"
+      className="gap-2 px-3 py-1"
       aria-label={
         optimisticInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'
       }

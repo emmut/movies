@@ -1,5 +1,6 @@
 import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
+import { ListButton } from '@/components/list-button';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
@@ -154,6 +155,11 @@ export default async function MoviePage(props: MoviePageProps) {
                     resourceId={movieId}
                     resourceType={RESOURCE_TYPE}
                     isInWatchlist={inWatchlist}
+                    userId={user?.id}
+                  />
+                  <ListButton
+                    mediaId={movieId}
+                    mediaType={RESOURCE_TYPE}
                     userId={user?.id}
                   />
                 </div>

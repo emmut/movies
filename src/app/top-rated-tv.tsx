@@ -5,7 +5,7 @@ import { fetchTopRatedTvShows, fetchUserTopRatedTvShows } from '@/lib/tv-shows';
 /**
  * Asynchronously renders a list of top-rated TV shows as `ResourceCard` components.
  *
- * If a user is logged in, displays the user's personalized top-rated TV shows; otherwise, shows general top-rated TV shows.
+ * Fetches top-rated TV shows and renders each as a {@link ResourceCard} with type "tv".
  *
  * @returns An array of `ResourceCard` React elements representing top-rated TV shows.
  */
@@ -21,6 +21,7 @@ export default async function TopRatedTvShows() {
       key={tvShow.id}
       resource={tvShow}
       type="tv"
+      userId={user?.id}
     />
   ));
 }

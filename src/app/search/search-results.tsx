@@ -19,6 +19,7 @@ type SearchResultsProps = {
   searchQuery: string;
   currentPage: string;
   mediaType: string;
+  userId?: string;
 };
 
 /**
@@ -29,12 +30,14 @@ type SearchResultsProps = {
  * @param searchQuery - The search term to filter content.
  * @param currentPage - The page number of results to retrieve.
  * @param mediaType - Whether to search for 'movie', 'tv', 'person', or 'all' content.
+ * @param userId - Optional user ID to enable list functionality.
  * @returns An array of components representing the search results.
  */
 export default async function SearchResults({
   searchQuery,
   currentPage,
   mediaType,
+  userId,
 }: SearchResultsProps) {
   if (!searchQuery) {
     return (
@@ -53,7 +56,12 @@ export default async function SearchResults({
     return (
       <>
         {tvShows.map((tvShow) => (
-          <ResourceCard key={tvShow.id} resource={tvShow} type="tv" />
+          <ResourceCard
+            key={tvShow.id}
+            resource={tvShow}
+            type="tv"
+            userId={userId}
+          />
         ))}
         {tvShows.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
@@ -73,7 +81,7 @@ export default async function SearchResults({
     return (
       <>
         {persons.map((person) => (
-          <PersonCard key={person.id} person={person} />
+          <PersonCard key={person.id} person={person} userId={userId} />
         ))}
         {persons.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
@@ -90,7 +98,12 @@ export default async function SearchResults({
     return (
       <>
         {movies.map((movie) => (
-          <ResourceCard key={movie.id} resource={movie} type="movie" />
+          <ResourceCard
+            key={movie.id}
+            resource={movie}
+            type="movie"
+            userId={userId}
+          />
         ))}
         {movies.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
@@ -109,10 +122,21 @@ export default async function SearchResults({
       {results.map((result: MultiSearchResult) => {
         // Each result has a media_type property: 'movie', 'tv', or 'person'
         if (result.media_type === 'person') {
-          return <PersonCard key={`person-${result.id}`} person={result} />;
+          return (
+            <PersonCard
+              key={`person-${result.id}`}
+              person={result}
+              userId={userId}
+            />
+          );
         } else if (result.media_type === 'tv') {
           return (
-            <ResourceCard key={`tv-${result.id}`} resource={result} type="tv" />
+            <ResourceCard
+              key={`tv-${result.id}`}
+              resource={result}
+              type="tv"
+              userId={userId}
+            />
           );
         } else if (result.media_type === 'movie') {
           return (
@@ -120,6 +144,7 @@ export default async function SearchResults({
               key={`movie-${result.id}`}
               resource={result}
               type="movie"
+              userId={userId}
             />
           );
         }

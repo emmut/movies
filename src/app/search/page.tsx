@@ -2,6 +2,7 @@ import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown
 import { PaginationControls } from '@/components/pagination-controls';
 import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
+import { getUser } from '@/lib/auth-server';
 import {
   fetchMoviesBySearchQuery,
   fetchMultiSearchQuery,
@@ -34,6 +35,8 @@ export default async function SearchPage(props: SearchProps) {
   const query = searchParams.q ?? '';
   const page = searchParams.page ?? '1';
   const mediaType = (searchParams.mediaType ?? 'all') as MediaType;
+
+  const user = await getUser();
 
   let totalPages = 0;
 
@@ -79,6 +82,7 @@ export default async function SearchPage(props: SearchProps) {
             searchQuery={query}
             currentPage={page}
             mediaType={mediaType}
+            userId={user?.id}
           />
         </Suspense>
       </div>
