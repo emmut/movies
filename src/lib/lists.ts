@@ -3,7 +3,7 @@
 import { listItems, lists } from '@/db/schema/lists';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -50,11 +50,12 @@ export async function getUserLists() {
   // Get item counts for each list
   const listsWithCounts = await Promise.all(
     userLists.map(async (list) => {
-      const itemCount = await db
-        .select({ count: listItems.id })
+      const result = await db
+        .select({ count: sql`count(*)`.mapWith(Number) })
         .from(listItems)
-        .where(eq(listItems.listId, list.id))
-        .then((rows) => rows.length);
+        .where(eq(listItems.listId, list.id));
+
+      const itemCount = result[0].count;
 
       return {
         ...list,
@@ -135,12 +136,12 @@ export async function addToList(
   }
 
   // Verify list belongs to user
-  const list = await db
-    .select({ id: lists.id })
+  const [{ count }] = await db
+    .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
     .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
 
-  if (list.length === 0) {
+  if (count === 0) {
     throw new Error('List not found');
   }
 
@@ -175,12 +176,12 @@ export async function removeFromList(
   }
 
   // Verify list belongs to user
-  const list = await db
-    .select({ id: lists.id })
+  const [{ count }] = await db
+    .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
     .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
 
-  if (list.length === 0) {
+  if (count === 0) {
     throw new Error('List not found');
   }
 
@@ -206,12 +207,12 @@ export async function deleteList(listId: string) {
   }
 
   // Verify list belongs to user
-  const list = await db
-    .select({ id: lists.id })
+  const [{ count }] = await db
+    .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
     .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
 
-  if (list.length === 0) {
+  if (count === 0) {
     throw new Error('List not found');
   }
 
@@ -234,12 +235,12 @@ export async function updateList(
   }
 
   // Verify list belongs to user
-  const list = await db
-    .select({ id: lists.id })
+  const [{ count }] = await db
+    .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
     .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
 
-  if (list.length === 0) {
+  if (count === 0) {
     throw new Error('List not found');
   }
 
