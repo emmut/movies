@@ -161,6 +161,7 @@ export default async function MoviePage(props: MoviePageProps) {
                     mediaId={movieId}
                     mediaType={RESOURCE_TYPE}
                     userId={user?.id}
+                    showWatchlist={false}
                   />
                 </div>
               </div>

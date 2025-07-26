@@ -1,3 +1,5 @@
+'use server';
+
 import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';

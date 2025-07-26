@@ -146,6 +146,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                     mediaId={tvId}
                     mediaType={RESOURCE_TYPE}
                     userId={user?.id}
+                    showWatchlist={false}
                   />
                 </div>
               </div>

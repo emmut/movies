@@ -38,9 +38,15 @@ interface ListButtonProps {
   mediaId: number;
   mediaType: 'movie' | 'tv' | 'person';
   userId?: string;
+  showWatchlist?: boolean;
 }
 
-export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
+export function ListButton({
+  mediaId,
+  mediaType,
+  userId,
+  showWatchlist = true,
+}: ListButtonProps) {
   const [lists, setLists] = useState<UserListsWithStatus>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -59,7 +65,9 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
     try {
       const userLists = await getUserListsWithStatus(mediaId, mediaType);
       setLists(userLists);
-      const watchlistStatus = await isResourceInWatchlist(mediaId, mediaType);
+      const watchlistStatus = showWatchlist
+        ? await isResourceInWatchlist(mediaId, mediaType)
+        : false;
       setIsInWatchlist(watchlistStatus);
     } catch (error) {
       console.error('Failed to fetch lists:', error);
@@ -174,6 +182,31 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {showWatchlist && (
+            <>
+              <DropdownMenuItem
+                onSelect={handleToggleWatchlist}
+                disabled={isPending}
+                className="flex items-center justify-between"
+                title={
+                  isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'
+                }
+              >
+                <span className="flex flex-1 items-center gap-2">
+                  <Star
+                    className={`h-4 w-4 ${isInWatchlist ? 'fill-current' : ''}`}
+                  />
+                  <span>
+                    {isInWatchlist
+                      ? 'Remove from watchlist'
+                      : 'Add to watchlist'}
+                  </span>
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+
           <DropdownMenuGroup>
             {lists.length === 0 ? (
               <DropdownMenuItem disabled>No lists yet</DropdownMenuItem>
@@ -201,25 +234,6 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
               ))
             )}
           </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onSelect={handleToggleWatchlist}
-            disabled={isPending}
-            className="flex items-center justify-between"
-            title={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
-          >
-            <span className="flex flex-1 items-center gap-2">
-              <Star
-                className={`h-4 w-4 ${isInWatchlist ? 'fill-current' : ''}`}
-              />
-              <span>
-                {isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
-              </span>
-            </span>
-            {isInWatchlist && (
-              <Check className="ml-2 h-4 w-4 flex-shrink-0 text-green-500" />
-            )}
-          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={() => setIsCreateOpen(true)}
