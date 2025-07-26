@@ -34,14 +34,29 @@ export default async function ListDetailsPage({
     list.items?.filter((item) => item.resourceType === 'person') || [];
 
   const [movies, tvShows, persons] = await Promise.all([
-    Promise.allSettled(movieItems.map((item) => getMovieDetails(item.resourceId))),
-    Promise.allSettled(tvItems.map((item) => getTvShowDetails(item.resourceId))),
-    Promise.allSettled(personItems.map((item) => getPersonDetails(item.resourceId))),
-  ]).then(([movieResults, tvResults, personResults]) => [
-    movieResults.filter(result => result.status === 'fulfilled').map(result => result.value),
-    tvResults.filter(result => result.status === 'fulfilled').map(result => result.value),
-    personResults.filter(result => result.status === 'fulfilled').map(result => result.value),
-  ]);
+    Promise.allSettled(
+      movieItems.map((item) => getMovieDetails(item.resourceId))
+    ),
+    Promise.allSettled(
+      tvItems.map((item) => getTvShowDetails(item.resourceId))
+    ),
+    Promise.allSettled(
+      personItems.map((item) => getPersonDetails(item.resourceId))
+    ),
+  ]).then(
+    ([movieResults, tvResults, personResults]) =>
+      [
+        movieResults
+          .filter((result) => result.status === 'fulfilled')
+          .map((result) => result.value),
+        tvResults
+          .filter((result) => result.status === 'fulfilled')
+          .map((result) => result.value),
+        personResults
+          .filter((result) => result.status === 'fulfilled')
+          .map((result) => result.value),
+      ] as const
+  );
 
   const allItems = [
     ...movies.map((movie) => ({ ...movie, resourceType: 'movie' as const })),
