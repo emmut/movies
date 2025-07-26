@@ -152,8 +152,11 @@ export async function addToList(
       resourceType: mediaType,
     });
   } catch (error) {
-    // Item already exists in list (unique constraint)
-    throw new Error('Item already in list');
+    // Check if it's a unique constraint violation
+    if (error instanceof Error && error.message.includes('unique')) {
+      throw new Error('Item already in list');
+    }
+    throw error;
   }
 
   revalidatePath(`/lists/${listId}`);
