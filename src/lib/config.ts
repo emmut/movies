@@ -15,3 +15,36 @@ export const MAJOR_STREAMING_PROVIDERS = [
 ] as const;
 
 export const TMDB_API_URL = 'https://api.themoviedb.org/3';
+
+export const EMOJI_OPTIONS = [
+  '📝',
+  '🎬',
+  '📺',
+  '⭐',
+  '❤️',
+  '🔥',
+  '👍',
+  '🎭',
+  '🎪',
+  '🎨',
+  '🏆',
+  '🎯',
+  '💎',
+  '🚀',
+  '⚡',
+  '🌟',
+  '🎉',
+  '💯',
+  '🎰',
+  '🎲',
+  '📚',
+  '🎵',
+  '🎮',
+  '🏅',
+  '🌈',
+  '🎊',
+  '🔮',
+  '💫',
+  '🎸',
+  '🎤',
+];

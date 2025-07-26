@@ -20,6 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { EMOJI_OPTIONS } from '@/lib/config';
 import {
   addToList,
   createList,
@@ -28,7 +29,7 @@ import {
   UserListsWithStatus,
 } from '@/lib/lists';
 import { Check, List, ListPlus } from 'lucide-react';
-import { useState, useTransition } from 'react';
+import { ChangeEvent, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
 interface ListButtonProps {
@@ -36,39 +37,6 @@ interface ListButtonProps {
   mediaType: 'movie' | 'tv' | 'person';
   userId?: string;
 }
-
-const EMOJI_OPTIONS = [
-  '📝',
-  '🎬',
-  '📺',
-  '⭐',
-  '❤️',
-  '🔥',
-  '👍',
-  '🎭',
-  '🎪',
-  '🎨',
-  '🏆',
-  '🎯',
-  '💎',
-  '🚀',
-  '⚡',
-  '🌟',
-  '🎉',
-  '💯',
-  '🎰',
-  '🎲',
-  '📚',
-  '🎵',
-  '🎮',
-  '🏅',
-  '🌈',
-  '🎊',
-  '🔮',
-  '💫',
-  '🎸',
-  '🎤',
-];
 
 export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
   const [lists, setLists] = useState<UserListsWithStatus>([]);
@@ -247,7 +215,7 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
               <Input
                 id="name"
                 value={newListName}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setNewListName(e.target.value)
                 }
                 className="col-span-3"
@@ -261,7 +229,7 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
               <Textarea
                 id="description"
                 value={newListDescription}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                   setNewListDescription(e.target.value)
                 }
                 className="col-span-3"
