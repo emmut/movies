@@ -28,7 +28,9 @@ import {
   removeFromList,
   UserListsWithStatus,
 } from '@/lib/lists';
-import { Check, List, ListPlus } from 'lucide-react';
+import { isResourceInWatchlist } from '@/lib/watchlist';
+import { toggleWatchlist } from '@/lib/watchlist-actions';
+import { Check, List, ListPlus, Star } from 'lucide-react';
 import { ChangeEvent, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -47,6 +49,7 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
   const [newListDescription, setNewListDescription] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('📝');
   const [isPending, startTransition] = useTransition();
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
 
   if (!userId) {
     return null;
@@ -56,6 +59,8 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
     try {
       const userLists = await getUserListsWithStatus(mediaId, mediaType);
       setLists(userLists);
+      const watchlistStatus = await isResourceInWatchlist(mediaId, mediaType);
+      setIsInWatchlist(watchlistStatus);
     } catch (error) {
       console.error('Failed to fetch lists:', error);
     }
@@ -117,6 +122,27 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
     }
   }
 
+  async function handleToggleWatchlist() {
+    startTransition(async () => {
+      try {
+        const result = await toggleWatchlist({
+          resourceId: mediaId,
+          resourceType: mediaType,
+        });
+        setIsInWatchlist(result.action === 'added');
+        toast.success(
+          result.action === 'added'
+            ? 'Added to watchlist'
+            : 'Removed from watchlist'
+        );
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : 'Failed to update watchlist'
+        );
+      }
+    });
+  }
+
   return (
     <>
       <DropdownMenu
@@ -161,6 +187,25 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
               ))
             )}
           </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={handleToggleWatchlist}
+            disabled={isPending}
+            className="flex items-center justify-between"
+            title={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
+          >
+            <span className="flex flex-1 items-center gap-2">
+              <Star
+                className={`h-4 w-4 ${isInWatchlist ? 'fill-current' : ''}`}
+              />
+              <span>
+                {isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
+              </span>
+            </span>
+            {isInWatchlist && (
+              <Check className="ml-2 h-4 w-4 flex-shrink-0 text-green-500" />
+            )}
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={() => setIsCreateOpen(true)}
