@@ -71,7 +71,7 @@ export default async function SearchPage(props: SearchProps) {
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-4 mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
         <MediaTypeSelectorDropdown currentMediaType={mediaType} />
       </div>

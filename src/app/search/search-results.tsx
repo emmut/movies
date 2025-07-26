@@ -1,11 +1,13 @@
 import PersonCard from '@/components/person-card';
 import ResourceCard from '@/components/resource-card';
+import SearchBox from '@/components/search-box';
 import {
   fetchMoviesBySearchQuery,
   fetchMultiSearchQuery,
   fetchPersonsBySearchQuery,
   fetchTvShowsBySearchQuery,
 } from '@/lib/search';
+import { MediaType } from '@/types/media-type';
 import { Movie } from '@/types/movie';
 import { SearchedPerson } from '@/types/person';
 import { TvShow } from '@/types/tv-show';
@@ -18,7 +20,7 @@ type MultiSearchResult =
 type SearchResultsProps = {
   searchQuery: string;
   currentPage: string;
-  mediaType: string;
+  mediaType: MediaType;
   userId?: string;
 };
 
@@ -40,11 +42,7 @@ export default async function SearchResults({
   userId,
 }: SearchResultsProps) {
   if (!searchQuery) {
-    return (
-      <p className="col-span-full text-center text-zinc-400">
-        Enter a search term to find movies, TV shows, and persons
-      </p>
-    );
+    return <SearchBox mediaType={mediaType} autoFocus />;
   }
 
   if (mediaType === 'tv') {
