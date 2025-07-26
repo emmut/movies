@@ -34,9 +34,13 @@ export default async function ListDetailsPage({
     list.items?.filter((item) => item.resourceType === 'person') || [];
 
   const [movies, tvShows, persons] = await Promise.all([
-    Promise.all(movieItems.map((item) => getMovieDetails(item.resourceId))),
-    Promise.all(tvItems.map((item) => getTvShowDetails(item.resourceId))),
-    Promise.all(personItems.map((item) => getPersonDetails(item.resourceId))),
+    Promise.allSettled(movieItems.map((item) => getMovieDetails(item.resourceId))),
+    Promise.allSettled(tvItems.map((item) => getTvShowDetails(item.resourceId))),
+    Promise.allSettled(personItems.map((item) => getPersonDetails(item.resourceId))),
+  ]).then(([movieResults, tvResults, personResults]) => [
+    movieResults.filter(result => result.status === 'fulfilled').map(result => result.value),
+    tvResults.filter(result => result.status === 'fulfilled').map(result => result.value),
+    personResults.filter(result => result.status === 'fulfilled').map(result => result.value),
   ]);
 
   const allItems = [
