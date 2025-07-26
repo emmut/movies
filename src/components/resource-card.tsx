@@ -58,74 +58,71 @@ export default function ResourceCard({
       : 'hover:border-red-500 focus:border-red-500';
 
   return (
-    <Link
-      href={href}
+    <div
       className={cn(
-        'group/resource aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 focus:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
+        'group/resource relative aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 focus:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
         borderColor,
         className
       )}
     >
-      <div className="relative h-full w-full">
-        {resource.poster_path ? (
-          <Image
-            className="object-cover"
-            src={formatImageUrl(resource.poster_path, 500)}
-            alt={`Poster image of ${title}`}
-            fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+      <Link href={href}>
+        <div className="relative h-full w-full">
+          {resource.poster_path ? (
+            <Image
+              className="object-cover"
+              src={formatImageUrl(resource.poster_path, 500)}
+              alt={`Poster image of ${title}`}
+              fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-zinc-800">
+              <div className="text-center text-zinc-400">
+                <div className="mb-2 text-4xl">{emoji}</div>
+                <div className="text-sm font-semibold">No Poster</div>
+              </div>
+            </div>
+          )}
+
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100" />
+
+          <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
+            <div className="inset-0 bg-gradient-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100" />
+
+            <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{title}</h3>
+            <div className="flex items-center justify-between text-xs text-zinc-300">
+              <span>{releaseYear}</span>
+              <div className="flex items-center gap-1">
+                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+                <span>{score}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
+            <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
+              {type === 'movie' ? 'Movie' : 'TV Show'}
+            </Badge>
+          </div>
+        </div>
+      </Link>
+
+      {showListButton && (
+        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
+          <ListButton mediaId={resource.id} mediaType={type} userId={userId} />
+        </div>
+      )}
+
+      {listId !== undefined && (
+        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
+          <RemoveFromListButton
+            listId={listId}
+            mediaId={resource.id}
+            mediaType={type}
           />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-zinc-800">
-            <div className="text-center text-zinc-400">
-              <div className="mb-2 text-4xl">{emoji}</div>
-              <div className="text-sm font-semibold">No Poster</div>
-            </div>
-          </div>
-        )}
-
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100" />
-
-        <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
-          <div className="inset-0 bg-gradient-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100" />
-
-          <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{title}</h3>
-          <div className="flex items-center justify-between text-xs text-zinc-300">
-            <span>{releaseYear}</span>
-            <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-              <span>{score}</span>
-            </div>
-          </div>
         </div>
-
-        <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
-          <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
-            {type === 'movie' ? 'Movie' : 'TV Show'}
-          </Badge>
-        </div>
-
-        {showListButton && (
-          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
-            <ListButton
-              mediaId={resource.id}
-              mediaType={type}
-              userId={userId}
-            />
-          </div>
-        )}
-
-        {listId !== undefined && (
-          <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
-            <RemoveFromListButton
-              listId={listId}
-              mediaId={resource.id}
-              mediaType={type}
-            />
-          </div>
-        )}
-      </div>
-    </Link>
+      )}
+    </div>
   );
 }
 
