@@ -1,6 +1,6 @@
 import ResourceCard from '@/components/resource-card';
 import { getUser } from '@/lib/auth-server';
-import { fetchOnTheAirTvShows } from '@/lib/tv-shows';
+import { fetchOnTheAirTvShows, fetchUserOnTheAirTvShows } from '@/lib/tv-shows';
 
 /**
  * Asynchronously renders a list of currently airing TV shows as `ResourceCard` components.
@@ -11,7 +11,9 @@ import { fetchOnTheAirTvShows } from '@/lib/tv-shows';
  */
 export default async function OnTheAirTvShows() {
   const user = await getUser();
-  const tvShows = await fetchOnTheAirTvShows();
+  const tvShows = user
+    ? await fetchUserOnTheAirTvShows()
+    : await fetchOnTheAirTvShows();
 
   return tvShows.map((tvShow) => (
     <ResourceCard

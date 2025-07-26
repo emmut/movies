@@ -36,7 +36,7 @@ export function DeleteListButton({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleDelete = async () => {
+  async function handleDelete() {
     setIsLoading(true);
     try {
       await deleteList(listId);
@@ -54,7 +54,7 @@ export function DeleteListButton({
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <AlertDialog>

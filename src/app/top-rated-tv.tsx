@@ -1,6 +1,6 @@
 import ResourceCard from '@/components/resource-card';
 import { getUser } from '@/lib/auth-server';
-import { fetchTopRatedTvShows } from '@/lib/tv-shows';
+import { fetchTopRatedTvShows, fetchUserTopRatedTvShows } from '@/lib/tv-shows';
 
 /**
  * Asynchronously renders a list of top-rated TV shows as `ResourceCard` components.
@@ -11,7 +11,9 @@ import { fetchTopRatedTvShows } from '@/lib/tv-shows';
  */
 export default async function TopRatedTvShows() {
   const user = await getUser();
-  const tvShows = await fetchTopRatedTvShows();
+  const tvShows = user
+    ? await fetchUserTopRatedTvShows()
+    : await fetchTopRatedTvShows();
 
   return tvShows.map((tvShow) => (
     <ResourceCard

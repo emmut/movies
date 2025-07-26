@@ -1,6 +1,6 @@
 import ResourceCard from '@/components/resource-card';
 import { getUser } from '@/lib/auth-server';
-import { fetchUpcomingMovies } from '@/lib/movies';
+import { fetchUpcomingMovies, fetchUserUpcomingMovies } from '@/lib/movies';
 
 /**
  * Displays a list of upcoming movies as resource cards.
@@ -11,7 +11,9 @@ import { fetchUpcomingMovies } from '@/lib/movies';
  */
 export default async function UpcomingMovies() {
   const user = await getUser();
-  const movies = await fetchUpcomingMovies();
+  const movies = user
+    ? await fetchUserUpcomingMovies()
+    : await fetchUpcomingMovies();
 
   return movies.map((movie) => (
     <ResourceCard

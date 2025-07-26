@@ -64,8 +64,10 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
   const [newListDescription, setNewListDescription] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('📝');
 
-  const handleCreateList = async () => {
-    if (!newListName.trim()) return;
+  async function handleCreateList() {
+    if (!newListName.trim()) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -89,16 +91,16 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleOpenChange = (open: boolean) => {
+  function handleOpenChange(open: boolean) {
     setIsOpen(open);
     if (!open) {
       setNewListName('');
       setNewListDescription('');
       setSelectedEmoji('📝');
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>

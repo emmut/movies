@@ -73,15 +73,16 @@ export async function getListDetails(listId: string) {
     redirect('/login');
   }
 
-  const list = await db
+  const listResult = await db
     .select()
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)))
-    .then((rows) => rows[0]);
+    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
 
-  if (!list) {
+  if (listResult.length === 0) {
     throw new Error('List not found');
   }
+
+  const list = listResult[0];
 
   const items = await db
     .select()
@@ -113,7 +114,7 @@ export async function createList(
     id: listId,
     userId: user.id,
     name,
-    description: description || null,
+    description,
     emoji,
   });
 
@@ -137,10 +138,9 @@ export async function addToList(
   const list = await db
     .select({ id: lists.id })
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)))
-    .then((rows) => rows[0]);
+    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
 
-  if (!list) {
+  if (list.length === 0) {
     throw new Error('List not found');
   }
 
@@ -178,10 +178,9 @@ export async function removeFromList(
   const list = await db
     .select({ id: lists.id })
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)))
-    .then((rows) => rows[0]);
+    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
 
-  if (!list) {
+  if (list.length === 0) {
     throw new Error('List not found');
   }
 
@@ -210,10 +209,9 @@ export async function deleteList(listId: string) {
   const list = await db
     .select({ id: lists.id })
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)))
-    .then((rows) => rows[0]);
+    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
 
-  if (!list) {
+  if (list.length === 0) {
     throw new Error('List not found');
   }
 
@@ -239,10 +237,9 @@ export async function updateList(
   const list = await db
     .select({ id: lists.id })
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)))
-    .then((rows) => rows[0]);
+    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
 
-  if (!list) {
+  if (list.length === 0) {
     throw new Error('List not found');
   }
 
@@ -250,7 +247,7 @@ export async function updateList(
     .update(lists)
     .set({
       name,
-      description: description || null,
+      description,
       emoji,
       updatedAt: new Date(),
     })

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { removeFromList } from '@/lib/lists';
 import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { MouseEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 interface RemoveFromListButtonProps {
@@ -23,7 +23,7 @@ export function RemoveFromListButton({
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRemove = async (e: React.MouseEvent) => {
+  async function handleRemove(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault(); // Prevent link navigation when clicking the button
     e.stopPropagation();
 
@@ -39,7 +39,7 @@ export function RemoveFromListButton({
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <Button
