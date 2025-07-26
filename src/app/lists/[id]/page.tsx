@@ -59,8 +59,14 @@ export default async function ListDetailsPage({
   );
 
   const allItems = [
-    ...movies.map((movie) => ({ ...movie, resourceType: 'movie' as const })),
-    ...tvShows.map((show) => ({ ...show, resourceType: 'tv' as const })),
+    ...movies.map((movie) => ({
+      ...movie,
+      resourceType: 'movie' as const,
+    })),
+    ...tvShows.map((show) => ({
+      ...show,
+      resourceType: 'tv' as const,
+    })),
     ...persons.map((person) => ({
       ...person,
       resourceType: 'person' as const,
