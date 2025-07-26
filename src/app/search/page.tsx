@@ -76,7 +76,10 @@ export default async function SearchPage(props: SearchProps) {
         <MediaTypeSelectorDropdown currentMediaType={mediaType} />
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <div
+        className="mt-8 grid scroll-m-2.5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
+        id="content-container"
+      >
         <Suspense fallback={<ResourceGrid.Skeletons className="w-full" />}>
           <SearchResults
             searchQuery={query}

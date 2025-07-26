@@ -108,7 +108,7 @@ export function PaginationControls({
   totalPages,
   pageType,
 }: PaginationControls) {
-  const { push } = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const page = searchParams.get('page') ?? '1';
@@ -119,22 +119,27 @@ export function PaginationControls({
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
 
-  function handlePageChange() {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
-  }
-
   function handlePageSelect(pageNumber: number) {
+    const container = document.querySelector('#content-container');
     const newPageUrl = buildPageUrl(
       pageNumber,
       currentGenreId,
       searchParams,
       pageType
     );
-    push(newPageUrl);
-    handlePageChange();
+    router.push(newPageUrl, { scroll: false });
+
+    if (container) {
+      container.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    } else {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    }
   }
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
