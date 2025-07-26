@@ -194,7 +194,10 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <h2 className="mb-3 text-xl font-semibold">Genres</h2>
               <div className="flex flex-wrap gap-2">
                 {genres.map((genre) => (
-                  <Link key={genre.id} href={`/discover?genreId=${genre.id}`}>
+                  <Link
+                    key={genre.id}
+                    href={`/discover?genreId=${genre.id}&mediaType=tv`}
+                  >
                     <Pill>{genre.name}</Pill>
                   </Link>
                 ))}
