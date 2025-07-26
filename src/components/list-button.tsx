@@ -56,6 +56,7 @@ export function ListButton({
   const [selectedEmoji, setSelectedEmoji] = useState('📝');
   const [isPending, startTransition] = useTransition();
   const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(false);
 
   if (!userId) {
     return null;
@@ -63,6 +64,7 @@ export function ListButton({
 
   async function refreshLists() {
     try {
+      setIsLoadingWatchlist(true);
       const userLists = await getUserListsWithStatus(mediaId, mediaType);
       setLists(userLists);
       const watchlistStatus = showWatchlist
@@ -71,6 +73,8 @@ export function ListButton({
       setIsInWatchlist(watchlistStatus);
     } catch (error) {
       console.error('Failed to fetch lists:', error);
+    } finally {
+      setIsLoadingWatchlist(false);
     }
   }
 
@@ -208,7 +212,9 @@ export function ListButton({
           )}
 
           <DropdownMenuGroup>
-            {lists.length === 0 ? (
+            {isLoadingWatchlist ? (
+              <DropdownMenuItem disabled>Loading lists...</DropdownMenuItem>
+            ) : lists.length === 0 ? (
               <DropdownMenuItem disabled>No lists yet</DropdownMenuItem>
             ) : (
               lists.map((list) => (
