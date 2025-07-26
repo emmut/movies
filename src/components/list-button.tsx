@@ -94,6 +94,7 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
 
   async function handleCreateList() {
     if (!newListName.trim()) {
+      toast.error('List name is required');
       return;
     }
 
@@ -114,9 +115,22 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
         toast.success('List created and item added');
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to create list'
-      );
+      let errorMessage = 'Failed to create list';
+
+      if (error instanceof Error) {
+        // Handle validation errors from Zod
+        if (error.message.includes('List name')) {
+          errorMessage = error.message;
+        } else if (error.message.includes('Description')) {
+          errorMessage = error.message;
+        } else if (error.message.includes('emoji')) {
+          errorMessage = 'Invalid emoji selection';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -265,6 +279,8 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
                 }
                 className="col-span-3"
                 disabled={isLoading}
+                maxLength={100}
+                placeholder="Enter list name..."
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -279,6 +295,9 @@ export function ListButton({ mediaId, mediaType, userId }: ListButtonProps) {
                 }
                 className="col-span-3"
                 disabled={isLoading}
+                maxLength={500}
+                placeholder="Optional description..."
+                rows={3}
               />
             </div>
           </div>

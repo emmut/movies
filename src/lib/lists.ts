@@ -3,6 +3,12 @@
 import { listItems, lists } from '@/db/schema/lists';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
+import {
+  createListSchema,
+  listItemSchema,
+  removeListItemSchema,
+  updateListSchema,
+} from '@/lib/validations';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -109,14 +115,21 @@ export async function createList(
     redirect('/login');
   }
 
+  // Validate input data
+  const validatedData = createListSchema.parse({
+    name,
+    description,
+    emoji,
+  });
+
   const listId = crypto.randomUUID();
 
   await db.insert(lists).values({
     id: listId,
     userId: user.id,
-    name,
-    description,
-    emoji,
+    name: validatedData.name,
+    description: validatedData.description,
+    emoji: validatedData.emoji,
   });
 
   revalidatePath('/lists');
@@ -135,11 +148,18 @@ export async function addToList(
     redirect('/login');
   }
 
+  // Validate input data
+  const validatedData = listItemSchema.parse({
+    listId,
+    resourceId: mediaId,
+    resourceType: mediaType,
+  });
+
   // Verify list belongs to user
   const [{ count }] = await db
     .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
+    .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
 
   if (count === 0) {
     throw new Error('List not found');
@@ -148,9 +168,9 @@ export async function addToList(
   try {
     await db.insert(listItems).values({
       id: crypto.randomUUID(),
-      listId,
-      resourceId: mediaId,
-      resourceType: mediaType,
+      listId: validatedData.listId,
+      resourceId: validatedData.resourceId,
+      resourceType: validatedData.resourceType,
     });
   } catch (error) {
     // Check if it's a unique constraint violation
@@ -160,7 +180,7 @@ export async function addToList(
     throw error;
   }
 
-  revalidatePath(`/lists/${listId}`);
+  revalidatePath(`/lists/${validatedData.listId}`);
   revalidatePath('/lists');
 }
 
@@ -175,11 +195,18 @@ export async function removeFromList(
     redirect('/login');
   }
 
+  // Validate input data
+  const validatedData = removeListItemSchema.parse({
+    listId,
+    resourceId: mediaId,
+    resourceType: mediaType,
+  });
+
   // Verify list belongs to user
   const [{ count }] = await db
     .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
+    .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
 
   if (count === 0) {
     throw new Error('List not found');
@@ -189,13 +216,13 @@ export async function removeFromList(
     .delete(listItems)
     .where(
       and(
-        eq(listItems.listId, listId),
-        eq(listItems.resourceId, mediaId),
-        eq(listItems.resourceType, mediaType)
+        eq(listItems.listId, validatedData.listId),
+        eq(listItems.resourceId, validatedData.resourceId),
+        eq(listItems.resourceType, validatedData.resourceType)
       )
     );
 
-  revalidatePath(`/lists/${listId}`);
+  revalidatePath(`/lists/${validatedData.listId}`);
   revalidatePath('/lists');
 }
 
@@ -234,11 +261,19 @@ export async function updateList(
     redirect('/login');
   }
 
+  // Validate input data
+  const validatedData = updateListSchema.parse({
+    listId,
+    name,
+    description,
+    emoji,
+  });
+
   // Verify list belongs to user
   const [{ count }] = await db
     .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
+    .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
 
   if (count === 0) {
     throw new Error('List not found');
@@ -247,14 +282,14 @@ export async function updateList(
   await db
     .update(lists)
     .set({
-      name,
-      description,
-      emoji,
+      name: validatedData.name,
+      description: validatedData.description,
+      emoji: validatedData.emoji,
       updatedAt: new Date(),
     })
-    .where(eq(lists.id, listId));
+    .where(eq(lists.id, validatedData.listId));
 
-  revalidatePath(`/lists/${listId}`);
+  revalidatePath(`/lists/${validatedData.listId}`);
   revalidatePath('/lists');
 }
 
