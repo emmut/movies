@@ -85,7 +85,7 @@ export default async function WatchlistPage(props: WatchlistPageProps) {
               : `Add some ${mediaType === 'movie' ? 'movies' : 'TV shows'} to see them here`}
           </p>
           <Link
-            href="/discover"
+            href={`/discover?mediaType=${mediaType}`}
             className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium shadow transition-colors"
           >
             Explore {mediaType === 'movie' ? 'Movies' : 'TV Shows'}
