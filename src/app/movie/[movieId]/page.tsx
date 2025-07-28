@@ -27,6 +27,7 @@ import {
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
+import { OtherMovies } from './other-movies';
 
 type MoviePageProps = {
   params: Promise<{
@@ -415,6 +416,8 @@ export default async function MoviePage(props: MoviePageProps) {
             resourceType="movie"
             userRegion={userRegion}
           />
+
+          <OtherMovies movieId={movieId} />
 
           <div className="flex flex-wrap gap-4">
             {movie.imdb_id && (
