@@ -115,3 +115,17 @@ export type SearchedTvResponse = {
   total_pages: number;
   total_results: number;
 };
+
+export type TvRecommendations = {
+  page: number;
+  results: TvShow[];
+  total_pages: number;
+  total_results: number;
+};
+
+export type TvSimilar = {
+  page: number;
+  results: TvShow[];
+  total_pages: number;
+  total_results: number;
+};

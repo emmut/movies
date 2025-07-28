@@ -118,3 +118,17 @@ export type SearchedMovieResponse = {
   total_pages: number;
   total_results: number;
 };
+
+export type MovieRecommendations = {
+  page: number;
+  results: Movie[];
+  total_pages: number;
+  total_results: number;
+};
+
+export type MovieSimilar = {
+  page: number;
+  results: Movie[];
+  total_pages: number;
+  total_results: number;
+};
