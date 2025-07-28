@@ -5,7 +5,9 @@ import type { GenreResponse } from '@/types/genre';
 import {
   MovieCredits,
   MovieDetails,
+  MovieRecommendations,
   MovieResponse,
+  MovieSimilar,
   MovieWatchProviders,
 } from '@/types/movie';
 import { TmdbVideoResponse } from '@/types/tmdb-video';
@@ -428,4 +430,44 @@ export async function getMovieTrailer(movieId: number) {
     console.error('Error fetching trailer:', error);
     return null;
   }
+}
+
+export async function getMovieRecommendations(movieId: number) {
+  'use cache';
+  cacheTag(`movie-recommendations-${movieId}`);
+  cacheLife('hours');
+
+  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/recommendations`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading movie recommendations');
+  }
+
+  const recommendations: MovieRecommendations = await res.json();
+  return recommendations;
+}
+
+export async function getMovieSimilar(movieId: number) {
+  'use cache';
+  cacheTag(`movie-similar-${movieId}`);
+  cacheLife('hours');
+
+  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/similar`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading movie similar');
+  }
+
+  const similar: MovieSimilar = await res.json();
+  return similar;
 }
