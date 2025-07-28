@@ -19,6 +19,7 @@ import { Calendar, Database, Globe, Star, Tv, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
+import { OtherTvShows } from './other-tv-shows';
 
 type TvShowPageProps = {
   params: Promise<{
@@ -371,6 +372,8 @@ export default async function TvShowPage(props: TvShowPageProps) {
             resourceType="tv"
             userRegion={userRegion}
           />
+
+          <OtherTvShows tvId={tvId} />
 
           <div className="flex flex-wrap gap-4">
             <a

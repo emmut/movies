@@ -449,7 +449,7 @@ export async function getMovieRecommendations(movieId: number) {
   }
 
   const recommendations: MovieRecommendations = await res.json();
-  return recommendations;
+  return recommendations.results;
 }
 
 export async function getMovieSimilar(movieId: number) {
@@ -469,5 +469,5 @@ export async function getMovieSimilar(movieId: number) {
   }
 
   const similar: MovieSimilar = await res.json();
-  return similar;
+  return similar.results;
 }

@@ -4,7 +4,9 @@ import { TmdbVideoResponse } from '@/types/tmdb-video';
 import {
   TvCredits,
   TvDetails,
+  TvRecommendations,
   TvResponse,
+  TvSimilar,
   TvWatchProviders,
 } from '@/types/tv-show';
 import {
@@ -489,4 +491,54 @@ export async function getTvShowTrailer(tvId: number) {
     console.error('Error fetching trailer:', error);
     return null;
   }
+}
+
+export async function getTvShowSimilar(tvId: number) {
+  'use cache';
+  cacheTag(`similar-tv-shows-${tvId}`);
+  cacheLife('hours');
+
+  const userRegion = await getUserRegionWithFallback();
+
+  const url = new URL(`${TMDB_API_URL}/tv/${tvId}/similar`);
+  url.searchParams.set('region', userRegion);
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading similar TV shows');
+  }
+
+  const tvShows: TvSimilar = await res.json();
+  return tvShows.results;
+}
+
+export async function getTvShowRecommendations(tvId: number) {
+  'use cache';
+  cacheTag(`tv-recommendations-${tvId}`);
+  cacheLife('hours');
+
+  const userRegion = await getUserRegionWithFallback();
+
+  const url = new URL(`${TMDB_API_URL}/tv/${tvId}/recommendations`);
+  url.searchParams.set('region', userRegion);
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading TV show recommendations');
+  }
+
+  const tvShows: TvRecommendations = await res.json();
+  return tvShows.results;
 }
