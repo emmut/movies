@@ -1,6 +1,7 @@
 import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
 import { ListButton } from '@/components/list-button';
+import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
@@ -10,6 +11,8 @@ import { getUser } from '@/lib/auth-server';
 import {
   getMovieCredits,
   getMovieDetails,
+  getMovieRecommendations,
+  getMovieSimilar,
   getMovieWatchProviders,
 } from '@/lib/movies';
 import { getUserRegion } from '@/lib/user-actions';
@@ -27,7 +30,6 @@ import {
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
-import { OtherMovies } from './other-movies';
 
 type MoviePageProps = {
   params: Promise<{
@@ -417,7 +419,12 @@ export default async function MoviePage(props: MoviePageProps) {
             userRegion={userRegion}
           />
 
-          <OtherMovies movieId={movieId} />
+          <OtherContent
+            id={movieId}
+            type="movie"
+            getSimilar={getMovieSimilar}
+            getRecommendations={getMovieRecommendations}
+          />
 
           <div className="flex flex-wrap gap-4">
             {movie.imdb_id && (

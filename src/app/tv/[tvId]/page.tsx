@@ -1,6 +1,7 @@
 import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
 import { ListButton } from '@/components/list-button';
+import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
@@ -10,6 +11,8 @@ import { getUser } from '@/lib/auth-server';
 import {
   getTvShowCredits,
   getTvShowDetails,
+  getTvShowRecommendations,
+  getTvShowSimilar,
   getTvShowWatchProviders,
 } from '@/lib/tv-shows';
 import { getUserRegion } from '@/lib/user-actions';
@@ -19,7 +22,6 @@ import { Calendar, Database, Globe, Star, Tv, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
-import { OtherTvShows } from './other-tv-shows';
 
 type TvShowPageProps = {
   params: Promise<{
@@ -373,7 +375,12 @@ export default async function TvShowPage(props: TvShowPageProps) {
             userRegion={userRegion}
           />
 
-          <OtherTvShows tvId={tvId} />
+          <OtherContent
+            id={tvId}
+            type="tv"
+            getSimilar={getTvShowSimilar}
+            getRecommendations={getTvShowRecommendations}
+          />
 
           <div className="flex flex-wrap gap-4">
             <a
