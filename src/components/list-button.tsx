@@ -181,7 +181,7 @@ export function ListButton({
         }}
       >
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" disabled={isPending}>
+          <Button variant="glass" size="icon" disabled={isPending}>
             <List className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>

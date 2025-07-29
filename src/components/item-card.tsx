@@ -54,13 +54,13 @@ export default function ItemCard({
 
   const borderColor =
     type === 'movie'
-      ? 'hover:border-yellow-300 focus:border-yellow-300'
-      : 'hover:border-red-500 focus:border-red-500';
+      ? 'hover:border-yellow-300 focus-within:border-yellow-300'
+      : 'hover:border-red-500 focus-within:border-red-500';
 
   return (
     <div
       className={cn(
-        'group/item relative aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 focus:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
+        'group/item relative aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 focus-within:scale-105 focus-within:ring-2 focus-within:ring-white/50 focus-within:ring-offset-2 focus-within:ring-offset-black focus-within:outline-none hover:scale-105',
         borderColor,
         className
       )}
