@@ -108,7 +108,7 @@ export default function ItemCard({
       </Link>
 
       {showListButton && (
-        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
+        <div className="absolute top-2 right-2 transition-opacity">
           <ListButton mediaId={item.id} mediaType={type} userId={userId} />
         </div>
       )}
