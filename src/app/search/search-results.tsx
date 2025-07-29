@@ -1,4 +1,4 @@
-import ResourceCard from '@/components/item-card';
+import ItemCard from '@/components/item-card';
 import PersonCard from '@/components/person-card';
 import SearchBox from '@/components/search-box';
 import {
@@ -54,7 +54,7 @@ export default async function SearchResults({
     return (
       <>
         {tvShows.map((tvShow) => (
-          <ResourceCard
+          <ItemCard
             key={tvShow.id}
             resource={tvShow}
             type="tv"
@@ -96,7 +96,7 @@ export default async function SearchResults({
     return (
       <>
         {movies.map((movie) => (
-          <ResourceCard
+          <ItemCard
             key={movie.id}
             resource={movie}
             type="movie"
@@ -129,7 +129,7 @@ export default async function SearchResults({
           );
         } else if (result.media_type === 'tv') {
           return (
-            <ResourceCard
+            <ItemCard
               key={`tv-${result.id}`}
               resource={result}
               type="tv"
@@ -138,7 +138,7 @@ export default async function SearchResults({
           );
         } else if (result.media_type === 'movie') {
           return (
-            <ResourceCard
+            <ItemCard
               key={`movie-${result.id}`}
               resource={result}
               type="movie"

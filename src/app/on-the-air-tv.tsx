@@ -1,11 +1,11 @@
-import ResourceCard from '@/components/item-card';
+import ItemCard from '@/components/item-card';
 import { getUser } from '@/lib/auth-server';
 import { fetchOnTheAirTvShows, fetchUserOnTheAirTvShows } from '@/lib/tv-shows';
 
 /**
  * Asynchronously renders a list of currently airing TV shows as `ResourceCard` components.
  *
- * Fetches currently airing TV shows and renders each as a {@link ResourceCard} with type "tv".
+ * Fetches currently airing TV shows and renders each as a {@link ItemCard} with type "tv".
  *
  * @returns An array of `ResourceCard` React elements representing currently airing TV shows.
  */
@@ -16,7 +16,7 @@ export default async function OnTheAirTvShows() {
     : await fetchOnTheAirTvShows();
 
   return tvShows.map((tvShow) => (
-    <ResourceCard
+    <ItemCard
       className="max-w-[150px]"
       key={tvShow.id}
       resource={tvShow}

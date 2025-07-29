@@ -1,6 +1,6 @@
 import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
-import ResourceCard from '@/components/item-card';
+import ItemCard from '@/components/item-card';
 import { ListButton } from '@/components/list-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
@@ -255,7 +255,7 @@ export default async function PersonPage(props: PersonPageProps) {
               </h2>
               <ItemSlider>
                 {moviesForGrid.map((movie) => (
-                  <ResourceCard
+                  <ItemCard
                     key={movie.id}
                     resource={movie}
                     className="w-48"
@@ -274,7 +274,7 @@ export default async function PersonPage(props: PersonPageProps) {
               </h2>
               <ItemSlider>
                 {tvShowsForGrid.map((show) => (
-                  <ResourceCard
+                  <ItemCard
                     key={show.id}
                     resource={show}
                     className="w-48"

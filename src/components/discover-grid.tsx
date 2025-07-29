@@ -1,6 +1,6 @@
 import { fetchDiscoverMovies } from '@/lib/movies';
 import { fetchDiscoverTvShows } from '@/lib/tv-shows';
-import ResourceGrid from './item-grid';
+import ItemGrid from './item-grid';
 
 type DiscoverGridProps = {
   currentGenreId: number;
@@ -42,7 +42,7 @@ export default async function DiscoverGrid({
       watchProviders,
       watchRegion
     );
-    return <ResourceGrid resources={tvShows} type="tv" userId={userId} />;
+    return <ItemGrid resources={tvShows} type="tv" userId={userId} />;
   }
 
   const { movies } = await fetchDiscoverMovies(
@@ -52,5 +52,5 @@ export default async function DiscoverGrid({
     watchProviders,
     watchRegion
   );
-  return <ResourceGrid resources={movies} type="movie" userId={userId} />;
+  return <ItemGrid resources={movies} type="movie" userId={userId} />;
 }

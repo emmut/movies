@@ -1,4 +1,4 @@
-import ResourceGrid from '@/components/item-grid';
+import ItemGrid from '@/components/item-grid';
 import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown';
 import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
@@ -80,7 +80,7 @@ export default async function SearchPage(props: SearchProps) {
         className="mt-8 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
         id="content-container"
       >
-        <Suspense fallback={<ResourceGrid.Skeletons className="w-full" />}>
+        <Suspense fallback={<ItemGrid.Skeletons className="w-full" />}>
           <SearchResults
             searchQuery={query}
             currentPage={page}

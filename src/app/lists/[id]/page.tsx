@@ -1,6 +1,6 @@
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
-import ResourceCard from '@/components/item-card';
+import ItemCard from '@/components/item-card';
 import PersonCard from '@/components/person-card';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
@@ -138,7 +138,7 @@ export default async function ListDetailsPage({
                 key={`${item.resourceType}-${item.id}`}
               />
             ) : (
-              <ResourceCard
+              <ItemCard
                 resource={item}
                 type={item.resourceType}
                 userId={user?.id}

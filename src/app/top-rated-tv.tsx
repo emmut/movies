@@ -1,11 +1,11 @@
-import ResourceCard from '@/components/item-card';
+import ItemCard from '@/components/item-card';
 import { getUser } from '@/lib/auth-server';
 import { fetchTopRatedTvShows, fetchUserTopRatedTvShows } from '@/lib/tv-shows';
 
 /**
  * Asynchronously renders a list of top-rated TV shows as `ResourceCard` components.
  *
- * Fetches top-rated TV shows and renders each as a {@link ResourceCard} with type "tv".
+ * Fetches top-rated TV shows and renders each as a {@link ItemCard} with type "tv".
  *
  * @returns An array of `ResourceCard` React elements representing top-rated TV shows.
  */
@@ -16,7 +16,7 @@ export default async function TopRatedTvShows() {
     : await fetchTopRatedTvShows();
 
   return tvShows.map((tvShow) => (
-    <ResourceCard
+    <ItemCard
       className="max-w-[150px]"
       key={tvShow.id}
       resource={tvShow}

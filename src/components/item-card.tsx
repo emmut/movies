@@ -8,7 +8,7 @@ import Badge from './badge';
 import { ListButton } from './list-button';
 import { RemoveFromListButton } from './remove-from-list-button';
 
-type ResourceCardProps = {
+type ItemCardProps = {
   resource: Movie | MovieDetails | TvShow | TvDetails;
   type: 'movie' | 'tv';
   className?: string;
@@ -18,7 +18,7 @@ type ResourceCardProps = {
 };
 
 /**
- * Determines whether the given resource is a movie type.
+ * Determines whether the given resource is a movie or tv show.
  *
  * @param resource - The resource to check.
  * @returns True if the resource is a movie or movie details; otherwise, false.
@@ -34,22 +34,22 @@ function isResource(
  *
  * The card visually distinguishes between movies and TV shows, linking to the resource's detail page and showing additional information and badges on hover or focus. If no poster image is available, a fallback with an emoji and "No Poster" text is shown.
  */
-export default function ResourceCard({
-  resource,
+export default function ItemCard({
+  resource: item,
   type,
   className,
   userId,
   showListButton = true,
   listId,
-}: ResourceCardProps) {
-  const score = Math.ceil(resource.vote_average * 10) / 10;
+}: ItemCardProps) {
+  const score = Math.ceil(item.vote_average * 10) / 10;
 
-  const title = isResource(resource) ? resource.title : resource.name;
-  const releaseDate = isResource(resource)
-    ? resource.release_date
-    : resource.first_air_date;
+  const title = isResource(item) ? item.title : item.name;
+  const releaseDate = isResource(item)
+    ? item.release_date
+    : item.first_air_date;
   const releaseYear = releaseDate ? releaseDate.split('-')[0] : 'N/A';
-  const href = `/${type}/${resource.id}`;
+  const href = `/${type}/${item.id}`;
   const emoji = type === 'movie' ? '🎬' : '📺';
 
   const borderColor =
@@ -67,10 +67,10 @@ export default function ResourceCard({
     >
       <Link href={href}>
         <div className="relative h-full w-full">
-          {resource.poster_path ? (
+          {item.poster_path ? (
             <Image
               className="object-cover"
-              src={formatImageUrl(resource.poster_path, 500)}
+              src={formatImageUrl(item.poster_path, 500)}
               alt={`Poster image of ${title}`}
               fill
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
@@ -109,7 +109,7 @@ export default function ResourceCard({
 
       {showListButton && (
         <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
-          <ListButton mediaId={resource.id} mediaType={type} userId={userId} />
+          <ListButton mediaId={item.id} mediaType={type} userId={userId} />
         </div>
       )}
 
@@ -117,7 +117,7 @@ export default function ResourceCard({
         <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
           <RemoveFromListButton
             listId={listId}
-            mediaId={resource.id}
+            mediaId={item.id}
             mediaType={type}
           />
         </div>
@@ -126,12 +126,16 @@ export default function ResourceCard({
   );
 }
 
+type ItemCardSkeletonProps = {
+  className?: string;
+};
+
 /**
  * Renders a skeleton placeholder for a resource card during loading states.
  *
  * Displays a pulsing card with placeholder blocks that mimic the layout of a movie or TV show card.
  */
-function ResourceCardSkeleton({ className }: { className?: string }) {
+function ItemCardSkeleton({ className }: ItemCardSkeletonProps) {
   return (
     <div
       className={cn(
@@ -157,4 +161,4 @@ function ResourceCardSkeleton({ className }: { className?: string }) {
   );
 }
 
-ResourceCard.Skeleton = ResourceCardSkeleton;
+ItemCard.Skeleton = ItemCardSkeleton;

@@ -1,7 +1,7 @@
 import AvailableGenresNavigation from '@/components/available-genre-navigation';
 import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
-import ResourceGrid from '@/components/item-grid';
+import ItemGrid from '@/components/item-grid';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
@@ -87,7 +87,7 @@ export default async function DiscoverWithGenrePage(
         tabIndex={0}
         className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <Suspense fallback={<ResourceGrid.Skeletons className="w-full" />}>
+        <Suspense fallback={<ItemGrid.Skeletons className="w-full" />}>
           <DiscoverGrid
             currentGenreId={genreId}
             currentPage={page}

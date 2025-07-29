@@ -1,4 +1,4 @@
-import ResourceCard from '@/components/item-card';
+import ItemCard from '@/components/item-card';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Movie } from '@/types/movie';
@@ -38,7 +38,7 @@ async function SimilarContent({
 
       <ItemSlider>
         {similar.map((item) => (
-          <ResourceCard
+          <ItemCard
             key={item.id}
             resource={item}
             type={type}
@@ -74,7 +74,7 @@ async function RecommendationsContent({
 
       <ItemSlider>
         {recommendations.map((item) => (
-          <ResourceCard
+          <ItemCard
             key={item.id}
             resource={item}
             type={type}
@@ -95,7 +95,7 @@ function OtherContentSkeleton() {
       </div>
       <div className="grid grid-cols-4 gap-2">
         {Array.from({ length: 4 }).map((_, index) => (
-          <ResourceCard.Skeleton key={index} className="w-48" />
+          <ItemCard.Skeleton key={index} className="w-48" />
         ))}
       </div>
     </>

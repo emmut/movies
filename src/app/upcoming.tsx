@@ -1,13 +1,13 @@
-import ResourceCard from '@/components/item-card';
+import ItemCard from '@/components/item-card';
 import { getUser } from '@/lib/auth-server';
 import { fetchUpcomingMovies, fetchUserUpcomingMovies } from '@/lib/movies';
 
 /**
  * Displays a list of upcoming movies as resource cards.
  *
- * Fetches upcoming movies and renders each as a {@link ResourceCard} component with movie-specific props.
+ * Fetches upcoming movies and renders each as a {@link ItemCard} component with movie-specific props.
  *
- * @returns An array of {@link ResourceCard} components representing upcoming movies.
+ * @returns An array of {@link ItemCard} components representing upcoming movies.
  */
 export default async function UpcomingMovies() {
   const user = await getUser();
@@ -16,7 +16,7 @@ export default async function UpcomingMovies() {
     : await fetchUpcomingMovies();
 
   return movies.map((movie) => (
-    <ResourceCard
+    <ItemCard
       className="max-w-[150px]"
       key={movie.id}
       resource={movie}

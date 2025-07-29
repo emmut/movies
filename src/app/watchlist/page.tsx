@@ -1,4 +1,4 @@
-import ResourceCard from '@/components/item-card';
+import ItemCard from '@/components/item-card';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
@@ -98,7 +98,7 @@ export default async function WatchlistPage(props: WatchlistPageProps) {
             .map((item) => {
               const resourceType = item.resourceType as 'movie' | 'tv';
               return (
-                <ResourceCard
+                <ItemCard
                   key={`${resourceType}-${item.id}`}
                   resource={item.resource as MovieDetails | TvDetails}
                   type={resourceType}

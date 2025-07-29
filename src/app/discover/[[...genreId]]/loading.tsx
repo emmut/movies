@@ -1,5 +1,5 @@
 import AvailableGenresNavigation from '@/components/available-genre-navigation';
-import ResourceGrid from '@/components/item-grid';
+import ItemGrid from '@/components/item-grid';
 import SectionTitle from '@/components/section-title';
 
 /**
@@ -43,7 +43,7 @@ export default function Loading() {
         tabIndex={0}
         className="mt-7 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <ResourceGrid.Skeletons className="w-full" />
+        <ItemGrid.Skeletons className="w-full" />
       </div>
 
       <div className="mt-8 flex justify-center">

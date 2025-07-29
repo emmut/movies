@@ -1,8 +1,8 @@
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
-import ResourceCard from './item-card';
+import ItemCard from './item-card';
 
-type ResourceGridProps = {
+type ItemGridProps = {
   resources: Movie[] | TvShow[];
   type: 'movie' | 'tv';
   userId?: string;
@@ -17,13 +17,13 @@ type ResourceGridProps = {
  * @param type - The type of resource ('movie' or 'tv').
  * @param userId - Optional user ID to enable list functionality.
  */
-export function ResourceGrid({ resources, type, userId }: ResourceGridProps) {
+export function ItemGrid({ resources, type, userId }: ItemGridProps) {
   const resourceName = type === 'movie' ? 'movies' : 'TV shows';
 
   return (
     <>
       {resources.map((resource) => (
-        <ResourceCard
+        <ItemCard
           key={resource.id}
           resource={resource}
           type={type}
@@ -37,7 +37,7 @@ export function ResourceGrid({ resources, type, userId }: ResourceGridProps) {
   );
 }
 
-type ResourceGridSkeletonsProps = {
+type ItemGridSkeletonsProps = {
   className?: string;
 };
 
@@ -48,16 +48,16 @@ type ResourceGridSkeletonsProps = {
  *
  * @param className - Optional CSS class name to apply to the skeleton cards.
  */
-function ResourceGridSkeletons({ className }: ResourceGridSkeletonsProps) {
+function ItemGridSkeletons({ className }: ItemGridSkeletonsProps) {
   return (
     <>
       {Array.from({ length: 20 }).map((_, index) => (
-        <ResourceCard.Skeleton className={className} key={index} />
+        <ItemCard.Skeleton className={className} key={index} />
       ))}
     </>
   );
 }
 
-ResourceGrid.Skeletons = ResourceGridSkeletons;
+ItemGrid.Skeletons = ItemGridSkeletons;
 
-export default ResourceGrid;
+export default ItemGrid;

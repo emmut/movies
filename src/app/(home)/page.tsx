@@ -1,4 +1,4 @@
-import ResourceGrid from '@/components/item-grid';
+import ItemGrid from '@/components/item-grid';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { Suspense } from 'react';
 import NowPlayingMovies from '../now-playing';
@@ -51,7 +51,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<ResourceGrid.Skeletons />}>
+          <Suspense fallback={<ItemGrid.Skeletons />}>
             <NowPlayingMovies />
           </Suspense>
         </ItemSlider>
@@ -68,7 +68,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<ResourceGrid.Skeletons />}>
+          <Suspense fallback={<ItemGrid.Skeletons />}>
             <OnTheAirTvShows />
           </Suspense>
         </ItemSlider>
@@ -85,7 +85,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<ResourceGrid.Skeletons />}>
+          <Suspense fallback={<ItemGrid.Skeletons />}>
             <UpcomingMovies />
           </Suspense>
         </ItemSlider>
@@ -102,7 +102,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<ResourceGrid.Skeletons />}>
+          <Suspense fallback={<ItemGrid.Skeletons />}>
             <PopularTvShows />
           </Suspense>
         </ItemSlider>
@@ -119,7 +119,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<ResourceGrid.Skeletons />}>
+          <Suspense fallback={<ItemGrid.Skeletons />}>
             <TopRatedMovies />
           </Suspense>
         </ItemSlider>
@@ -136,7 +136,7 @@ export default async function Home() {
         </div>
 
         <ItemSlider>
-          <Suspense fallback={<ResourceGrid.Skeletons />}>
+          <Suspense fallback={<ItemGrid.Skeletons />}>
             <TopRatedTvShows />
           </Suspense>
         </ItemSlider>
