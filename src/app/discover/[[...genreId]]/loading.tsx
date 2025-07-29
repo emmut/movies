@@ -1,5 +1,5 @@
 import AvailableGenresNavigation from '@/components/available-genre-navigation';
-import ResourceGrid from '@/components/resource-grid';
+import ResourceGrid from '@/components/item-grid';
 import SectionTitle from '@/components/section-title';
 
 /**

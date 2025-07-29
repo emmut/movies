@@ -1,4 +1,4 @@
-import ResourceCard from '@/components/resource-card';
+import ResourceCard from '@/components/item-card';
 import { ItemSlider } from '@/components/ui/item-slider';
 
 export default function SliderSkeleton() {

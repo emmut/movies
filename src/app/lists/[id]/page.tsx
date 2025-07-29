@@ -1,7 +1,7 @@
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
+import ResourceCard from '@/components/item-card';
 import PersonCard from '@/components/person-card';
-import ResourceCard from '@/components/resource-card';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
 import { getListDetails } from '@/lib/lists';

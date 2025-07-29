@@ -1,5 +1,5 @@
+import ResourceCard from '@/components/item-card';
 import PersonCard from '@/components/person-card';
-import ResourceCard from '@/components/resource-card';
 import SearchBox from '@/components/search-box';
 import {
   fetchMoviesBySearchQuery,

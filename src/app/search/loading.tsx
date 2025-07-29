@@ -1,4 +1,4 @@
-import ResourceGrid from '@/components/resource-grid';
+import ResourceGrid from '@/components/item-grid';
 import SectionTitle from '@/components/section-title';
 
 export default function Loading() {

@@ -1,5 +1,5 @@
 import Trending from '@/app/trending';
-import ResourceGrid from '@/components/resource-grid';
+import ResourceGrid from '@/components/item-grid';
 import { ItemSlider } from '@/components/ui/item-slider';
 
 export default function Loading() {

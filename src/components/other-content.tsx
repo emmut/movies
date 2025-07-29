@@ -1,4 +1,4 @@
-import ResourceCard from '@/components/resource-card';
+import ResourceCard from '@/components/item-card';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Movie } from '@/types/movie';

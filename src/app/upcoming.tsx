@@ -1,4 +1,4 @@
-import ResourceCard from '@/components/resource-card';
+import ResourceCard from '@/components/item-card';
 import { getUser } from '@/lib/auth-server';
 import { fetchUpcomingMovies, fetchUserUpcomingMovies } from '@/lib/movies';
 

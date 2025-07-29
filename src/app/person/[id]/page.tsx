@@ -1,7 +1,7 @@
 import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
+import ResourceCard from '@/components/item-card';
 import { ListButton } from '@/components/list-button';
-import ResourceCard from '@/components/resource-card';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
 import {

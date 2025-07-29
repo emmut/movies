@@ -1,5 +1,5 @@
+import ResourceCard from '@/components/item-card';
 import MediaTypeSelector from '@/components/media-type-selector';
-import ResourceCard from '@/components/resource-card';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
 import { getWatchlistWithResourceDetails } from '@/lib/watchlist';

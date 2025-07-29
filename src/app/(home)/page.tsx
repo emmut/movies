@@ -1,4 +1,4 @@
-import ResourceGrid from '@/components/resource-grid';
+import ResourceGrid from '@/components/item-grid';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { Suspense } from 'react';
 import NowPlayingMovies from '../now-playing';

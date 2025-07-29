@@ -1,6 +1,6 @@
+import ResourceGrid from '@/components/item-grid';
 import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown';
 import { PaginationControls } from '@/components/pagination-controls';
-import ResourceGrid from '@/components/resource-grid';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
 import {

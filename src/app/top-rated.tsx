@@ -1,4 +1,4 @@
-import ResourceCard from '@/components/resource-card';
+import ResourceCard from '@/components/item-card';
 import { env } from '@/env';
 import { getUser } from '@/lib/auth-server';
 import { TMDB_API_URL } from '@/lib/config';

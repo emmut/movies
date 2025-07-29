@@ -1,6 +1,6 @@
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
-import ResourceCard from './resource-card';
+import ResourceCard from './item-card';
 
 type ResourceGridProps = {
   resources: Movie[] | TvShow[];
