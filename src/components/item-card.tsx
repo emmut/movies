@@ -60,7 +60,7 @@ export default function ItemCard({
   return (
     <div
       className={cn(
-        'group/resource relative aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 focus:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
+        'group/item relative aspect-2/3 w-full flex-shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 focus:scale-105 focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
         borderColor,
         className
       )}
@@ -84,10 +84,10 @@ export default function ItemCard({
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100" />
 
-          <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
-            <div className="inset-0 bg-gradient-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100" />
+          <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
+            <div className="inset-0 bg-gradient-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100" />
 
             <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{title}</h3>
             <div className="flex items-center justify-between text-xs text-zinc-300">
@@ -99,7 +99,7 @@ export default function ItemCard({
             </div>
           </div>
 
-          <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
+          <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
             <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
               {type === 'movie' ? 'Movie' : 'TV Show'}
             </Badge>
@@ -108,13 +108,13 @@ export default function ItemCard({
       </Link>
 
       {showListButton && (
-        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
+        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
           <ListButton mediaId={item.id} mediaType={type} userId={userId} />
         </div>
       )}
 
       {listId !== undefined && (
-        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/resource:opacity-100 group-hover/resource:opacity-100 group-focus/resource:opacity-100">
+        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
           <RemoveFromListButton
             listId={listId}
             mediaId={item.id}
