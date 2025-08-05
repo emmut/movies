@@ -132,7 +132,7 @@ export function ListButton({
         setNewListDescription('');
         setSelectedEmoji('📝');
         setIsCreateOpen(false);
-        listsCache.delete(mediaId.toString());
+        listsCache.delete(mediaId);
         await refreshLists();
         toast.success('List created and item added');
       }
@@ -195,7 +195,7 @@ export function ListButton({
             <List className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-48">
+        <DropdownMenuContent align="end" className="min-w-52">
           {showWatchlist && (
             <>
               <DropdownMenuItem
@@ -223,9 +223,13 @@ export function ListButton({
 
           <DropdownMenuGroup>
             {isLoadingWatchlist ? (
-              <DropdownMenuItem disabled>Loading lists...</DropdownMenuItem>
+              <DropdownMenuItem disabled className="py-2.5">
+                Loading lists...
+              </DropdownMenuItem>
             ) : lists.length === 0 ? (
-              <DropdownMenuItem disabled>No lists yet</DropdownMenuItem>
+              <DropdownMenuItem disabled className="py-2.5">
+                No lists yet
+              </DropdownMenuItem>
             ) : (
               lists.map((list) => (
                 <DropdownMenuItem
