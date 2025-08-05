@@ -41,11 +41,9 @@ export function DeleteListButton({
     try {
       await deleteList(listId);
       toast.success('List deleted successfully');
-
+      router.refresh();
       if (redirectAfterDelete) {
         router.push('/lists');
-      } else {
-        router.refresh();
       }
     } catch (error) {
       toast.error(
