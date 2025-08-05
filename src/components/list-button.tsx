@@ -195,7 +195,7 @@ export function ListButton({
             <List className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="min-w-48">
           {showWatchlist && (
             <>
               <DropdownMenuItem
