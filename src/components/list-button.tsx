@@ -41,8 +41,6 @@ interface ListButtonProps {
   showWatchlist?: boolean;
 }
 
-const listsCache = new Map<number, UserListsWithStatus>();
-
 export function ListButton({
   mediaId,
   mediaType,
@@ -65,15 +63,9 @@ export function ListButton({
   }
 
   async function refreshLists() {
-    if (listsCache.has(mediaId)) {
-      setLists(listsCache.get(mediaId)!);
-      return;
-    }
-
     try {
       setIsLoadingWatchlist(true);
       const userLists = await getUserListsWithStatus(mediaId, mediaType);
-      listsCache.set(mediaId, userLists);
       setLists(userLists);
       const watchlistStatus = showWatchlist
         ? await isResourceInWatchlist(mediaId, mediaType)
@@ -99,8 +91,7 @@ export function ListButton({
           await addToList(listId, mediaId, mediaType);
           toast.success(`Added to "${listName}"`);
         }
-        listsCache.delete(mediaId);
-        await refreshLists();
+        await refreshLists(); // Refresh to update checkboxes
       } catch (error) {
         toast.error(
           error instanceof Error
@@ -132,7 +123,6 @@ export function ListButton({
         setNewListDescription('');
         setSelectedEmoji('📝');
         setIsCreateOpen(false);
-        listsCache.delete(mediaId);
         await refreshLists();
         toast.success('List created and item added');
       }
