@@ -10,6 +10,7 @@ import {
 import { inter } from '@/fonts';
 import { getSession } from '@/lib/auth-server';
 import { PHProvider } from '@/providers/posthog';
+import { QueryProvider } from '@/providers/query-provider';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
@@ -44,29 +45,31 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={clsx([inter.className])}>
-        <NuqsAdapter>
-          <PHProvider>
-            <SidebarProvider>
-              <AppSidebar initialSession={session} />
-              <SidebarInset>
-                <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="h-4" />
-                  <Suspense>
-                    <Search />
-                  </Suspense>
-                </header>
-                <div className="mx-auto w-full max-w-screen-xl p-4">
-                  {children}
-                </div>
-                <Footer />
-              </SidebarInset>
-            </SidebarProvider>
-            <LoginToastHandler />
-          </PHProvider>
-          <SpeedInsights />
-        </NuqsAdapter>
-        <Toaster position="top-center" richColors />
+        <QueryProvider>
+          <NuqsAdapter>
+            <PHProvider>
+              <SidebarProvider>
+                <AppSidebar initialSession={session} />
+                <SidebarInset>
+                  <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
+                    <SidebarTrigger className="-ml-1" />
+                    <Separator orientation="vertical" className="h-4" />
+                    <Suspense>
+                      <Search />
+                    </Suspense>
+                  </header>
+                  <div className="mx-auto w-full max-w-screen-xl p-4">
+                    {children}
+                  </div>
+                  <Footer />
+                </SidebarInset>
+              </SidebarProvider>
+              <LoginToastHandler />
+            </PHProvider>
+            <SpeedInsights />
+          </NuqsAdapter>
+          <Toaster position="top-center" richColors />
+        </QueryProvider>
       </body>
     </html>
   );

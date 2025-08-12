@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { cache } from 'react';
 import { auth } from './auth';
+import { getUserWatchlist as getWatchlistData } from './watchlist';
 
 /**
  * Retrieves the current authentication session using the request headers.
@@ -24,3 +25,9 @@ export async function getUser() {
   const session = await getSession();
   return session?.user ?? null;
 }
+
+/**
+ * Retrieves the authenticated user's watchlist data.
+ * Re-exported from watchlist module for convenience in auth context.
+ */
+export const getUserWatchlist = getWatchlistData;
