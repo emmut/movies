@@ -25,7 +25,7 @@ type LinkAccountProps = {
  */
 function LinkAccount({ error }: LinkAccountProps) {
   useEffect(() => {
-    if (error === 'failed-to-link-account') {
+    if (error === 'failed_to_link_account') {
       toast.error('Failed to link your account');
     }
   }, [error]);

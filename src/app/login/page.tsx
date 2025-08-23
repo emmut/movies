@@ -17,7 +17,7 @@ export default async function LoginPage(props: {
 }) {
   const { error, redirect_url } = await props.searchParams;
 
-  if (error === 'failed-to-login') {
+  if (error === 'failed_to_login') {
     throw new Error(error);
   }
 
