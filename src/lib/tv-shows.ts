@@ -498,12 +498,7 @@ export async function getTvShowSimilar(tvId: number) {
   cacheTag(`similar-tv-shows-${tvId}`);
   cacheLife('hours');
 
-  const userRegion = await getUserRegionWithFallback();
-
-  const url = new URL(`${TMDB_API_URL}/tv/${tvId}/similar`);
-  url.searchParams.set('region', userRegion);
-
-  const res = await fetch(url, {
+  const res = await fetch(`${TMDB_API_URL}/tv/${tvId}/similar`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -523,12 +518,7 @@ export async function getTvShowRecommendations(tvId: number) {
   cacheTag(`tv-recommendations-${tvId}`);
   cacheLife('hours');
 
-  const userRegion = await getUserRegionWithFallback();
-
-  const url = new URL(`${TMDB_API_URL}/tv/${tvId}/recommendations`);
-  url.searchParams.set('region', userRegion);
-
-  const res = await fetch(url, {
+  const res = await fetch(`${TMDB_API_URL}/tv/${tvId}/recommendations`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
