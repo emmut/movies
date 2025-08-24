@@ -14,12 +14,12 @@ export const env = createEnv({
       .string()
       .min(1)
       .optional()
-      .transform((val) => `https://${val}`),
+      .transform((val) => (val ? `https://${val}` : undefined)),
     VERCEL_PROJECT_PRODUCTION_URL: z
       .string()
       .min(1)
       .optional()
-      .transform((val) => `https://${val}`),
+      .transform((val) => (val ? `https://${val}` : undefined)),
   },
 
   client: {
