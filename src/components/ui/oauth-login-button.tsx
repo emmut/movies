@@ -8,7 +8,6 @@ import {
 import { cn, getSafeRedirectUrl } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2, UserIcon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from './button';
@@ -148,7 +147,6 @@ export function OAuthLoginButton({
   const config = providerConfigs[provider];
   const displayText = text || config.defaultText;
   const displayIcon = icon !== undefined ? icon : config.icon;
-  const router = useRouter();
   const safeRedirectUrl = getSafeRedirectUrl(redirectUrl);
 
   /**
@@ -168,9 +166,6 @@ export function OAuthLoginButton({
             : `with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
         toast.error(`Failed to sign in ${providerName}`);
         console.error(error);
-      } else {
-        router.push(safeRedirectUrl);
-        router.refresh();
       }
     } catch (error) {
       console.error('Failed to sign in:', error);
