@@ -1,12 +1,11 @@
-import Badge from '@/components/badge';
 import { GoBack } from '@/components/go-back';
-import { ListButton } from '@/components/list-button';
+import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
+import Poster from '@/components/poster';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
-import { WatchlistButton } from '@/components/watchlist-button';
 import { getUser } from '@/lib/auth-server';
 import {
   getMovieCredits,
@@ -118,59 +117,17 @@ export default async function MoviePage(props: MoviePageProps) {
       )}
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-4">
-          {poster_path ? (
-            <Image
-              className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg border shadow-2xl sm:mx-0"
-              src={formatImageUrl(poster_path, 500)}
-              alt={`Poster image of ${title}`}
-              width={500}
-              height={750}
-              priority
-            />
-          ) : (
-            <div className="mx-auto flex aspect-2/3 w-full max-w-md items-center justify-center rounded-lg bg-zinc-800 shadow-2xl">
-              <div className="text-center text-zinc-400">
-                <div className="mb-4 text-6xl">🎬</div>
-                <div className="text-lg font-semibold">No Poster</div>
-                <div className="text-sm">Available</div>
-              </div>
-            </div>
-          )}
-        </div>
+        <Poster poster_path={poster_path} title={title} />
 
         <div className="space-y-6 lg:col-span-8">
-          <div className="flex flex-col items-start gap-3">
-            <div className="@container/title w-full">
-              <div className="flex flex-col items-start justify-between gap-x-4 gap-y-2 @2xl/title:flex-row">
-                <div className="w-full flex-1">
-                  <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">
-                    {title}
-                  </h1>
-                  {tagline && (
-                    <p className="mb-4 text-lg text-zinc-400 italic md:text-xl">
-                      &ldquo;{tagline}&rdquo;
-                    </p>
-                  )}
-                </div>
-                <div className="flex gap-2">
-                  <WatchlistButton
-                    resourceId={movieId}
-                    resourceType={RESOURCE_TYPE}
-                    isInWatchlist={inWatchlist}
-                    userId={user?.id}
-                  />
-                  <ListButton
-                    mediaId={movieId}
-                    mediaType={RESOURCE_TYPE}
-                    userId={user?.id}
-                    showWatchlist={false}
-                  />
-                </div>
-              </div>
-            </div>
-            <Badge variant="yellow">Movie</Badge>
-          </div>
+          <ItemHeader
+            title={title}
+            tagline={tagline}
+            itemId={movieId}
+            inWatchlist={inWatchlist}
+            userId={user?.id}
+            resourceType={RESOURCE_TYPE}
+          />
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-zinc-900 p-4 text-center">
