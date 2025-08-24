@@ -369,7 +369,7 @@ export async function getMovieCredits(movieId: number) {
 export async function getMovieWatchProviders(movieId: number) {
   'use cache';
   cacheTag('movie-watch-providers');
-  cacheLife('minutes');
+  cacheLife('days');
 
   const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/watch/providers`, {
     headers: {

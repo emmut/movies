@@ -52,9 +52,9 @@ export function StreamingProviders({
     rentalServices.length > 0 ||
     purchaseServices.length > 0;
 
-  const getDefaultWatchUrl = () => {
+  function getDefaultWatchUrl() {
     return `https://www.themoviedb.org/${resourceType}/${resourceId}/watch`;
-  };
+  }
 
   return (
     <div>
@@ -85,7 +85,7 @@ export function StreamingProviders({
               {streamingServices.map((provider) => (
                 <a
                   key={provider.provider_id}
-                  href={regionProviders?.link || getDefaultWatchUrl()}
+                  href={regionProviders?.link ?? getDefaultWatchUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
@@ -116,7 +116,7 @@ export function StreamingProviders({
               {rentalServices.map((provider) => (
                 <a
                   key={provider.provider_id}
-                  href={regionProviders?.link || getDefaultWatchUrl()}
+                  href={regionProviders?.link ?? getDefaultWatchUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
