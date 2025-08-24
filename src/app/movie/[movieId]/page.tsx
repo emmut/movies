@@ -422,8 +422,8 @@ export default async function MoviePage(props: MoviePageProps) {
           <OtherContent
             id={movieId}
             type="movie"
-            getSimilar={getMovieSimilar}
-            getRecommendations={getMovieRecommendations}
+            getSimilar={(id) => getMovieSimilar(id, userRegion)}
+            getRecommendations={(id) => getMovieRecommendations(id, userRegion)}
           />
 
           <div className="flex flex-wrap gap-4">

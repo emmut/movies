@@ -432,12 +432,21 @@ export async function getMovieTrailer(movieId: number) {
   }
 }
 
-export async function getMovieRecommendations(movieId: number) {
+export async function getMovieRecommendations(
+  movieId: number,
+  userRegion?: string
+) {
   'use cache';
   cacheTag(`movie-recommendations-${movieId}`);
   cacheLife('hours');
 
-  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/recommendations`, {
+  const url = new URL(`${TMDB_API_URL}/movie/${movieId}/recommendations`);
+
+  if (userRegion !== undefined) {
+    url.searchParams.set('region', userRegion);
+  }
+
+  const res = await fetch(url, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
@@ -452,12 +461,18 @@ export async function getMovieRecommendations(movieId: number) {
   return recommendations.results;
 }
 
-export async function getMovieSimilar(movieId: number) {
+export async function getMovieSimilar(movieId: number, userRegion?: string) {
   'use cache';
   cacheTag(`movie-similar-${movieId}`);
   cacheLife('hours');
 
-  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/similar`, {
+  const url = new URL(`${TMDB_API_URL}/movie/${movieId}/similar`);
+
+  if (userRegion !== undefined) {
+    url.searchParams.set('region', userRegion);
+  }
+
+  const res = await fetch(url, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',

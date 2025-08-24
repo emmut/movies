@@ -378,8 +378,10 @@ export default async function TvShowPage(props: TvShowPageProps) {
           <OtherContent
             id={tvId}
             type="tv"
-            getSimilar={getTvShowSimilar}
-            getRecommendations={getTvShowRecommendations}
+            getSimilar={(id) => getTvShowSimilar(id, userRegion)}
+            getRecommendations={(id) =>
+              getTvShowRecommendations(id, userRegion)
+            }
           />
 
           <div className="flex flex-wrap gap-4">
