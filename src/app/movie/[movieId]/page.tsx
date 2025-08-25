@@ -388,8 +388,6 @@ export default async function MoviePage(props: MoviePageProps) {
               <a
                 className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 font-semibold text-black transition-colors hover:bg-yellow-700"
                 href={`https://imdb.com/title/${movie.imdb_id}`}
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 IMDb
               </a>
@@ -398,8 +396,6 @@ export default async function MoviePage(props: MoviePageProps) {
             <a
               className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
               href={`https://www.themoviedb.org/movie/${movieId}`}
-              target="_blank"
-              rel="noopener noreferrer"
             >
               <Database className="h-4 w-4" />
               TMDB
@@ -409,8 +405,6 @@ export default async function MoviePage(props: MoviePageProps) {
               <a
                 className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
                 href={homepage}
-                target="_blank"
-                rel="noopener noreferrer"
               >
                 <Globe className="h-4 w-4" />
                 Official Website
