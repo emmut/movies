@@ -1,3 +1,4 @@
+import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
@@ -17,7 +18,7 @@ import {
 import { getUserRegion } from '@/lib/user-actions';
 import { formatImageUrl } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
-import { Calendar, Database, Globe, Star, Tv, Users } from 'lucide-react';
+import { Calendar, Star, Tv, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -340,29 +341,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
             }
           />
 
-          <div className="flex flex-wrap gap-4">
-            <a
-              className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
-              href={`https://www.themoviedb.org/tv/${tvId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Database className="h-4 w-4" />
-              TMDB
-            </a>
-
-            {homepage && (
-              <a
-                className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
-                href={homepage}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Globe className="h-4 w-4" />
-                Official Website
-              </a>
-            )}
-          </div>
+          <ExternalLinks tmdbId={tvId} homepage={homepage} mediaType="tv" />
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
@@ -17,15 +18,7 @@ import {
 import { getUserRegion } from '@/lib/user-actions';
 import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
-import {
-  Calendar,
-  Clock,
-  Database,
-  DollarSign,
-  Globe,
-  Star,
-  Users,
-} from 'lucide-react';
+import { Calendar, Clock, DollarSign, Star, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -383,34 +376,12 @@ export default async function MoviePage(props: MoviePageProps) {
             getRecommendations={(id) => getMovieRecommendations(id, userRegion)}
           />
 
-          <div className="flex flex-wrap gap-4">
-            {movie.imdb_id && (
-              <a
-                className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 font-semibold text-black transition-colors hover:bg-yellow-700"
-                href={`https://imdb.com/title/${movie.imdb_id}`}
-              >
-                IMDb
-              </a>
-            )}
-
-            <a
-              className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
-              href={`https://www.themoviedb.org/movie/${movieId}`}
-            >
-              <Database className="h-4 w-4" />
-              TMDB
-            </a>
-
-            {homepage && (
-              <a
-                className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
-                href={homepage}
-              >
-                <Globe className="h-4 w-4" />
-                Official Website
-              </a>
-            )}
-          </div>
+          <ExternalLinks
+            imdbId={movie.imdb_id}
+            tmdbId={movieId}
+            homepage={homepage}
+            mediaType="movie"
+          />
         </div>
       </div>
     </div>
