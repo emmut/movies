@@ -493,15 +493,16 @@ export async function getTvShowTrailer(tvId: number) {
   }
 }
 
-export async function getTvShowSimilar(tvId: number) {
+export async function getTvShowSimilar(tvId: number, userRegion?: string) {
   'use cache';
   cacheTag(`similar-tv-shows-${tvId}`);
   cacheLife('hours');
 
-  const userRegion = await getUserRegionWithFallback();
-
   const url = new URL(`${TMDB_API_URL}/tv/${tvId}/similar`);
-  url.searchParams.set('region', userRegion);
+
+  if (userRegion !== undefined) {
+    url.searchParams.set('region', userRegion);
+  }
 
   const res = await fetch(url, {
     headers: {
@@ -518,15 +519,19 @@ export async function getTvShowSimilar(tvId: number) {
   return tvShows.results;
 }
 
-export async function getTvShowRecommendations(tvId: number) {
+export async function getTvShowRecommendations(
+  tvId: number,
+  userRegion?: string
+) {
   'use cache';
   cacheTag(`tv-recommendations-${tvId}`);
   cacheLife('hours');
 
-  const userRegion = await getUserRegionWithFallback();
-
   const url = new URL(`${TMDB_API_URL}/tv/${tvId}/recommendations`);
-  url.searchParams.set('region', userRegion);
+
+  if (userRegion !== undefined) {
+    url.searchParams.set('region', userRegion);
+  }
 
   const res = await fetch(url, {
     headers: {

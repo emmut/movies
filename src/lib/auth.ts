@@ -10,7 +10,10 @@ import { passkey } from 'better-auth/plugins/passkey';
 import { eq } from 'drizzle-orm';
 
 export const auth = betterAuth({
-  trustedOrigins: [env.VERCEL_BRANCH_URL, env.VERCEL_PROJECT_PRODUCTION_URL],
+  trustedOrigins: [
+    env.VERCEL_BRANCH_URL,
+    env.VERCEL_PROJECT_PRODUCTION_URL,
+  ].filter((domain) => domain != null),
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema,

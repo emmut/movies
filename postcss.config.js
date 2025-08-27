@@ -4,6 +4,7 @@ module.exports = {
     'postcss-preset-env': {
       features: {
         'is-pseudo-class': false,
+        'custom-properties': false,
       },
     },
   },

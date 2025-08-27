@@ -148,6 +148,7 @@ export default async function PersonPage(props: PersonPageProps) {
                   mediaId={personId}
                   mediaType="person"
                   userId={user.id}
+                  showWatchlist={false}
                 />
               )}
             </div>
