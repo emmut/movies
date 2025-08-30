@@ -4,3 +4,11 @@ export type WatchProvider = {
   logo_path: string;
   display_priority: number;
 };
+
+export type RegionWatchProviders = {
+  link: string;
+  rent?: WatchProvider[];
+  buy?: WatchProvider[];
+  flatrate?: WatchProvider[];
+  free?: WatchProvider[];
+};

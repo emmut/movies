@@ -1,6 +1,6 @@
 import { RegionCode } from '@/lib/regions';
 import { Genre } from './genre';
-import { WatchProvider } from './watch-provider';
+import { RegionWatchProviders } from './watch-provider';
 
 export type Movie = {
   adult: boolean;
@@ -98,15 +98,7 @@ export type MovieCredits = {
   crew: CrewMember[];
 };
 
-export type RegionWatchProviders = {
-  link: string;
-  rent?: WatchProvider[];
-  buy?: WatchProvider[];
-  flatrate?: WatchProvider[];
-};
-
 export type MovieWatchProviders = {
-  id: number;
   results: {
     [region in RegionCode]: RegionWatchProviders;
   };
