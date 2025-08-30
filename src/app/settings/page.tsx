@@ -8,9 +8,9 @@ import {
 import { getUser } from '@/lib/auth-server';
 import { regions } from '@/lib/regions';
 import {
+  getAllWatchProviders,
   getUserRegion,
   getUserWatchProviders,
-  getWatchProviders,
   updateUserRegion,
 } from '@/lib/user-actions';
 import { unstable_noStore as noStore } from 'next/cache';
@@ -56,11 +56,10 @@ export default async function SettingsPage(props: SettingsPageProps) {
   }
 
   const passkeys = user.isAnonymous ? [] : await getUserPasskeys();
-  const [availableWatchProviders, allWatchProviders] = await Promise.all([
-    getWatchProviders(currentRegion),
-    getWatchProviders(),
+  const [allWatchProviders, userWatchProviders] = await Promise.all([
+    getAllWatchProviders(currentRegion),
+    getUserWatchProviders(),
   ]);
-  const userWatchProviders = await getUserWatchProviders();
 
   return (
     <div className="space-y-6">
@@ -104,9 +103,8 @@ export default async function SettingsPage(props: SettingsPageProps) {
 
       {!user.isAnonymous && (
         <WatchProviderForm
-          availableProviders={availableWatchProviders}
+          availableProviders={allWatchProviders}
           userProviders={userWatchProviders}
-          allWatchProviders={allWatchProviders}
         />
       )}
     </div>

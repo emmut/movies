@@ -8,11 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { setUserWatchProviders } from '@/lib/user-actions';
 import { WatchProvider } from '@/types/watch-provider';
 import { Check } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { setUserWatchProviders } from '@/lib/user-actions';
 
 interface WatchProviderFormProps {
   availableProviders: WatchProvider[];

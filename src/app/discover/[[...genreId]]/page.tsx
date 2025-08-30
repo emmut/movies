@@ -51,22 +51,17 @@ export default async function DiscoverWithGenrePage(
   const watchRegion = await getUserRegion();
 
   const user = await getUser();
-  const [availableWatchProviders, userWatchProviders] = await Promise.all([
-    getWatchProviders(watchRegion),
-    getUserWatchProviders(),
-  ]);
+
+  const userWatchProviders = await getUserWatchProviders();
+  const filteredWatchProviders = await getWatchProviders(
+    watchRegion,
+    userWatchProviders
+  );
 
   // Use user's preferred watch providers if none are specified in the URL
   const watchProviders =
     searchParams.with_watch_providers ||
     (userWatchProviders.length > 0 ? userWatchProviders.join('|') : undefined);
-
-  const filteredWatchProviders =
-    userWatchProviders.length > 0
-      ? availableWatchProviders.filter((provider) =>
-          userWatchProviders.includes(provider.provider_id)
-        )
-      : availableWatchProviders;
 
   return (
     <>

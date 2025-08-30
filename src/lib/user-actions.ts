@@ -75,7 +75,10 @@ export async function updateUserRegion(region: string) {
   return { success: true, region: validatedRegion };
 }
 
-async function fetchWatchProvidersForRegion(region: string) {
+async function fetchWatchProvidersForRegion(
+  region: string,
+  userWatchProviders?: number[]
+) {
   'use cache';
   cacheTag('watch-providers');
   cacheLife('days');
@@ -100,6 +103,14 @@ async function fetchWatchProvidersForRegion(region: string) {
     .filter((provider) => provider.display_priority <= MAX_DISPLAY_PRIORITY)
     .sort((a, b) => a.display_priority - b.display_priority);
 
+  if (userWatchProviders && userWatchProviders.length > 0) {
+    const filteredUserWatchProviders = availableProviders.filter((provider) =>
+      userWatchProviders.includes(provider.provider_id)
+    );
+
+    return filteredUserWatchProviders;
+  }
+
   const majorProviderIds = new Set<number>(MAJOR_STREAMING_PROVIDERS);
   const majorProviders = availableProviders.filter((provider) =>
     majorProviderIds.has(provider.provider_id)
@@ -117,9 +128,41 @@ async function fetchWatchProvidersForRegion(region: string) {
   return topProviders;
 }
 
-export async function getWatchProviders(region?: string) {
+export async function getWatchProviders(
+  region?: string,
+  userWatchProviders?: number[]
+) {
   const userRegion = region || (await getUserRegion());
-  return await fetchWatchProvidersForRegion(userRegion);
+  return await fetchWatchProvidersForRegion(userRegion, userWatchProviders);
+}
+
+async function fetchAllWatchProvidersForRegion(region: string) {
+  'use cache';
+  cacheTag('watch-providers');
+  cacheLife('days');
+
+  const res = await fetch(
+    `https://api.themoviedb.org/3/watch/providers/movie?watch_region=${region}`,
+    {
+      headers: {
+        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+        accept: 'application/json',
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch watch providers');
+  }
+
+  const data: WatchProvidersResponse = await res.json();
+
+  return data.results;
+}
+
+export async function getAllWatchProviders(region?: string) {
+  const userRegion = region || (await getUserRegion());
+  return await fetchAllWatchProvidersForRegion(userRegion);
 }
 
 /**
