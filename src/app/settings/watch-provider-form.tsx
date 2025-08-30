@@ -12,7 +12,8 @@ import { setUserWatchProviders } from '@/lib/user-actions';
 import { WatchProvider } from '@/types/watch-provider';
 import { Check } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
 
 interface WatchProviderFormProps {
   availableProviders: WatchProvider[];
@@ -26,12 +27,7 @@ export function WatchProviderForm({
   const [selectedProviders, setSelectedProviders] =
     useState<number[]>(userProviders);
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
-  const [isSaving, setIsSaving] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
-
-  useEffect(() => {
-    setSelectedProviders(userProviders);
-  }, [userProviders]);
+  const [isPending, startTransition] = useTransition();
 
   function handleProviderToggle(providerId: number) {
     setSelectedProviders((prev) =>
@@ -46,16 +42,15 @@ export function WatchProviderForm({
   }
 
   async function handleSave() {
-    setIsSaving(true);
-    try {
-      await setUserWatchProviders(selectedProviders);
-      setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 2000);
-    } catch (error) {
-      console.error('Error saving watch providers:', error);
-    } finally {
-      setIsSaving(false);
-    }
+    startTransition(async () => {
+      try {
+        await setUserWatchProviders(selectedProviders);
+      } catch (error) {
+        console.error('Error saving watch providers:', error);
+      } finally {
+        toast.success('Preferences saved!');
+      }
+    });
   }
 
   function handleClearAll() {
@@ -82,14 +77,9 @@ export function WatchProviderForm({
           >
             Clear All
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Preferences'}
+          <Button onClick={handleSave} disabled={isPending}>
+            {isPending ? 'Saving...' : 'Save Preferences'}
           </Button>
-          {isSaved && (
-            <span className="ml-2 self-center text-sm text-green-600">
-              Preferences saved!
-            </span>
-          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
