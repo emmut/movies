@@ -1,6 +1,7 @@
 'use server';
 
 import { user } from '@/db/schema/auth';
+import { userWatchProviders } from '@/db/schema/user-watch-providers';
 import { env } from '@/env';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
@@ -119,4 +120,53 @@ async function fetchWatchProvidersForRegion(region: string) {
 export async function getWatchProviders(region?: string) {
   const userRegion = region || (await getUserRegion());
   return await fetchWatchProvidersForRegion(userRegion);
+}
+
+/**
+ * Gets the watch providers preferred by the user
+ */
+export async function getUserWatchProviders() {
+  const session = await getSession();
+
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  const result = await db
+    .select({ providerId: userWatchProviders.providerId })
+    .from(userWatchProviders)
+    .where(eq(userWatchProviders.userId, session.user.id));
+
+  return result.map((row) => row.providerId);
+}
+
+/**
+ * Sets the watch providers preferred by the user
+ */
+export async function setUserWatchProviders(providerIds: number[]) {
+  const session = await getSession();
+
+  if (!session?.user?.id) {
+    throw new Error('Unauthorized');
+  }
+
+  // First, delete all existing user watch providers
+  await db
+    .delete(userWatchProviders)
+    .where(eq(userWatchProviders.userId, session.user.id));
+
+  // Then, insert the new ones
+  if (providerIds.length > 0) {
+    const values = providerIds.map((providerId) => ({
+      id: crypto.randomUUID(),
+      userId: session.user.id,
+      providerId,
+      createdAt: new Date(),
+    }));
+
+    await db.insert(userWatchProviders).values(values);
+  }
+
+  revalidatePath('/settings');
+  revalidatePath('/discover');
 }
