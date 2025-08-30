@@ -291,6 +291,7 @@ export default async function PersonPage(props: PersonPageProps) {
           <ExternalLinks
             tmdbId={personId}
             homepage={homepage}
+            imdbId={imdb_id}
             mediaType="person"
           />
         </div>
