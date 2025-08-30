@@ -71,7 +71,6 @@ export function WatchProviderForm({
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
-            size="sm"
             onClick={handleClearAll}
             disabled={selectedCount === 0}
           >
@@ -82,7 +81,7 @@ export function WatchProviderForm({
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {availableProviders.length === 0 ? (
             <div className="text-muted-foreground col-span-full py-4 text-center">
               No streaming services available for your region
