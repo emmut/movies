@@ -1,8 +1,8 @@
 import { Database, Globe } from 'lucide-react';
 
 type ExternalLinksProps = {
-  imdbId?: string;
   tmdbId: number;
+  imdbId?: string | null;
   homepage?: string | null;
   mediaType?: 'movie' | 'tv' | 'person';
 };
