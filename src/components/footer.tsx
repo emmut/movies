@@ -19,6 +19,7 @@ function Footer() {
           height={13}
           className="mx-auto"
           loading="eager"
+          unoptimized
         />
       </a>
     </footer>
