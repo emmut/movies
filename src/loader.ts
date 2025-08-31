@@ -13,5 +13,5 @@ export default function cloudflareLoader({
   quality = 75,
 }: LoaderProps) {
   const params = [`width=${width}`, `quality=${quality}`, 'format=auto'];
-  return `${env.NEXT_PUBLIC_BASE_URL}/cdn-cgi/image/${params.join(',')}/${src}`;
+  return `${env.NEXT_PUBLIC_CLOUDFLARE_PROXY_BASE_URL}/cdn-cgi/image/${params.join(',')}/${src}`;
 }
