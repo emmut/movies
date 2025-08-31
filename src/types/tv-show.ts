@@ -1,5 +1,6 @@
 import { RegionCode } from '@/lib/regions';
 import { Genre } from './genre';
+import { RegionWatchProviders } from './watch-provider';
 
 export type TvDetails = {
   id: number;
@@ -59,29 +60,8 @@ export type Crew = {
 };
 
 export type TvWatchProviders = {
-  id: number;
   results: {
-    [region in RegionCode]: {
-      link: string;
-      rent?: {
-        display_priority: number;
-        logo_path: string;
-        provider_id: number;
-        provider_name: string;
-      }[];
-      buy?: {
-        display_priority: number;
-        logo_path: string;
-        provider_id: number;
-        provider_name: string;
-      }[];
-      flatrate?: {
-        display_priority: number;
-        logo_path: string;
-        provider_id: number;
-        provider_name: string;
-      }[];
-    };
+    [region in RegionCode]: RegionWatchProviders;
   };
 };
 

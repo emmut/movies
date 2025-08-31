@@ -5,7 +5,7 @@ import { getRegionCodes, RegionCode } from '@/lib/regions';
 import { formatImageUrl } from '@/lib/utils';
 import type { MovieWatchProviders } from '@/types/movie';
 import type { TvWatchProviders } from '@/types/tv-show';
-import { Play, ShoppingCart, Tv } from 'lucide-react';
+import { Play, ShoppingCart, TicketCheck, Tv } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
@@ -46,6 +46,7 @@ export function StreamingProviders({
   const streamingServices = regionProviders?.flatrate || [];
   const rentalServices = regionProviders?.rent || [];
   const purchaseServices = regionProviders?.buy || [];
+  const freeServices = regionProviders?.free || [];
 
   const hasAnyServices =
     streamingServices.length > 0 ||
@@ -72,6 +73,37 @@ export function StreamingProviders({
             <p className="text-zinc-400">
               No services available for this region
             </p>
+          </div>
+        )}
+
+        {freeServices.length > 0 && (
+          <div>
+            <h3 className="mb-3 flex items-center gap-2 text-lg font-medium">
+              <TicketCheck className="h-5 w-5 text-blue-500" />
+              Free
+            </h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {freeServices.map((provider) => (
+                <a
+                  key={provider.provider_id}
+                  href={regionProviders?.link ?? getDefaultWatchUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
+                >
+                  <Image
+                    src={formatImageUrl(provider.logo_path, 92)}
+                    alt={provider.provider_name}
+                    width={32}
+                    height={32}
+                    className="flex-shrink-0 rounded"
+                  />
+                  <span className="truncate text-sm font-medium">
+                    {provider.provider_name}
+                  </span>
+                </a>
+              ))}
+            </div>
           </div>
         )}
 

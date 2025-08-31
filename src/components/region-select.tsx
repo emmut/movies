@@ -13,7 +13,7 @@ import {
   regions,
   type RegionCode,
 } from '@/lib/regions';
-import { RegionWatchProviders } from '@/types/movie';
+import { RegionWatchProviders } from '@/types/watch-provider';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 import { Dot } from './ui/dot';
 

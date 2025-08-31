@@ -1,4 +1,5 @@
 import Badge from '@/components/badge';
+import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import ItemCard from '@/components/item-card';
 import { ListButton } from '@/components/list-button';
@@ -287,39 +288,12 @@ export default async function PersonPage(props: PersonPageProps) {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-4">
-            {imdb_id && (
-              <a
-                className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 font-semibold text-black transition-colors hover:bg-yellow-700"
-                href={`https://imdb.com/name/${imdb_id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                IMDb
-              </a>
-            )}
-
-            <a
-              className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
-              href={`https://www.themoviedb.org/person/${personId}`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Users className="h-4 w-4" />
-              TMDB
-            </a>
-
-            {homepage && (
-              <a
-                className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
-                href={homepage}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Official Website
-              </a>
-            )}
-          </div>
+          <ExternalLinks
+            tmdbId={personId}
+            homepage={homepage}
+            imdbId={imdb_id}
+            mediaType="person"
+          />
         </div>
       </div>
     </div>

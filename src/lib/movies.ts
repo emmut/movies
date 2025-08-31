@@ -371,23 +371,30 @@ export async function getMovieWatchProviders(movieId: number) {
   cacheTag('movie-watch-providers');
   cacheLife('days');
 
-  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/watch/providers`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
-  });
+  try {
+    const res = await fetch(
+      `${TMDB_API_URL}/movie/${movieId}/watch/providers`,
+      {
+        headers: {
+          authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+          accept: 'application/json',
+        },
+      }
+    );
 
-  if (!res.ok) {
-    throw new Error('Failed loading movie watch providers');
+    if (!res.ok) {
+      throw new Error('Failed loading movie watch providers');
+    }
+
+    const watchProviders: MovieWatchProviders = await res.json();
+
+    return {
+      results: watchProviders.results,
+    };
+  } catch (error) {
+    console.error('Error fetching movie watch providers:', error);
+    throw error;
   }
-
-  const watchProviders: MovieWatchProviders = await res.json();
-
-  return {
-    ...watchProviders,
-    results: watchProviders.results,
-  };
 }
 
 /**
