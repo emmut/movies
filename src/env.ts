@@ -25,7 +25,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
     NEXT_PUBLIC_POSTHOG_HOST: z.string().min(1),
-    NEXT_PUBLIC_BASE_URL: z.string().min(1),
+    NEXT_PUBLIC_BASE_URL: z.url(),
   },
 
   runtimeEnv: {
