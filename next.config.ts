@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
   experimental: {
     reactCompiler: true,
     useCache: true,
-    clientSegmentCache: true,
+    // clientSegmentCache: true,
   },
 };
 
