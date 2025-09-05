@@ -8,6 +8,7 @@ import {
 import { cn, getSafeRedirectUrl } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2, UserIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from './button';
@@ -148,6 +149,7 @@ export function OAuthLoginButton({
   const displayText = text || config.defaultText;
   const displayIcon = icon !== undefined ? icon : config.icon;
   const safeRedirectUrl = getSafeRedirectUrl(redirectUrl);
+  const router = useRouter();
 
   /**
    * Initiates the OAuth sign-in process for the selected provider and handles post-authentication navigation.
@@ -166,6 +168,11 @@ export function OAuthLoginButton({
             : `with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
         toast.error(`Failed to sign in ${providerName}`);
         console.error(error);
+      }
+
+      if (provider === 'anonymous') {
+        router.push(safeRedirectUrl);
+        router.refresh();
       }
     } catch (error) {
       console.error('Failed to sign in:', error);

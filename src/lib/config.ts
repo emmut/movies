@@ -11,7 +11,8 @@ export const MAJOR_STREAMING_PROVIDERS = [
   2, // Apple TV (rentals)
   10, // Amazon Video (rentals)
   423, // Blockbuster
-  1773, // SkyShowtime
+  1773, // SkyShowtime,
+  496, // Cineasterna
 ] as const;
 
 export const TMDB_API_URL = 'https://api.themoviedb.org/3';

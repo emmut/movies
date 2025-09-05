@@ -104,23 +104,27 @@ export async function getTvShowWatchProviders(tvId: number) {
   cacheTag('tv-watch-providers');
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/tv/${tvId}/watch/providers`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
-  });
+  try {
+    const res = await fetch(`${TMDB_API_URL}/tv/${tvId}/watch/providers`, {
+      headers: {
+        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+        accept: 'application/json',
+      },
+    });
 
-  if (!res.ok) {
-    throw new Error('Failed loading tv watch providers');
+    if (!res.ok) {
+      throw new Error('Failed loading tv watch providers');
+    }
+
+    const watchProviders: TvWatchProviders = await res.json();
+
+    return {
+      results: watchProviders.results,
+    };
+  } catch (error) {
+    console.error('Error fetching tv show watch providers:', error);
+    throw error;
   }
-
-  const watchProviders: TvWatchProviders = await res.json();
-
-  return {
-    ...watchProviders,
-    results: watchProviders.results,
-  };
 }
 
 /**

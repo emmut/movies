@@ -16,9 +16,10 @@ function Footer() {
           src="/tmdb-logo.svg"
           alt="TMDb Logo"
           width={150}
-          height={150}
+          height={13}
           className="mx-auto"
           loading="eager"
+          unoptimized
         />
       </a>
     </footer>
