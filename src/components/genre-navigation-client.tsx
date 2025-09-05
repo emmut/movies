@@ -11,7 +11,6 @@ type Genre = {
 
 type GenrePillProps = {
   currentGenreId?: number | null;
-  optimisticGenreId?: number | null;
   genreId: number;
   genreName: string;
   href: string;
@@ -20,7 +19,6 @@ type GenrePillProps = {
 
 function GenrePill({
   currentGenreId,
-  optimisticGenreId,
   genreId,
   genreName,
   href,
@@ -28,7 +26,7 @@ function GenrePill({
 }: GenrePillProps) {
   const [isPending, startTransition] = useTransition();
 
-  const active = (optimisticGenreId ?? currentGenreId) === genreId || isPending;
+  const active = currentGenreId === genreId || isPending;
 
   return (
     <Link
@@ -97,8 +95,7 @@ export function GenreNavigationClient({
         {genres.map((genre) => (
           <li key={genre.id}>
             <GenrePill
-              currentGenreId={currentGenreId}
-              optimisticGenreId={optimisticGenreId}
+              currentGenreId={optimisticGenreId}
               genreId={genre.id}
               genreName={genre.name}
               href={
