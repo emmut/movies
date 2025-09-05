@@ -27,4 +27,13 @@
       "bucket_name": "movies-app-next-inc-cache",
     },
   ],
+  "observability": {
+    "enabled": true,
+  },
+  "routes": [
+    {
+      "pattern": "movies.emmut.space",
+      "custom_domain": true,
+    },
+  ],
 }
