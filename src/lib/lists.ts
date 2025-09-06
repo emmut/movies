@@ -6,6 +6,8 @@ import { db } from '@/lib/db';
 import {
   createListSchema,
   listItemSchema,
+  mediaIdSchema,
+  mediaTypeSchema,
   removeListItemSchema,
   updateListSchema,
 } from '@/lib/validations';
@@ -447,49 +449,46 @@ export async function getUserListsWithStatus(
     redirect('/login');
   }
 
-  const userLists = await db
-    .select({
-      id: lists.id,
-      name: lists.name,
-      description: lists.description,
-      emoji: lists.emoji,
-      createdAt: lists.createdAt,
-      updatedAt: lists.updatedAt,
-    })
-    .from(lists)
-    .where(eq(lists.userId, user.id))
-    .orderBy(desc(lists.updatedAt));
+  if (!mediaIdSchema.safeParse(mediaId).success) {
+    throw new Error('Invalid media ID');
+  }
+  if (!mediaTypeSchema.safeParse(mediaType).success) {
+    throw new Error('Invalid media type');
+  }
 
-  const listsWithStatusAndCounts = await Promise.all(
-    userLists.map(async (list) => {
-      const [itemCount, hasItem] = await Promise.all([
-        db
-          .select({ count: listItems.id })
-          .from(listItems)
-          .where(eq(listItems.listId, list.id))
-          .then((rows) => rows.length),
-        db
-          .select({ id: listItems.id })
-          .from(listItems)
-          .where(
-            and(
-              eq(listItems.listId, list.id),
-              eq(listItems.resourceId, mediaId),
-              eq(listItems.resourceType, mediaType)
-            )
-          )
-          .then((rows) => rows.length > 0),
-      ]);
+  try {
+    const listsWithStatusAndCounts = await db
+      .select({
+        id: lists.id,
+        name: lists.name,
+        description: lists.description,
+        emoji: lists.emoji,
+        createdAt: lists.createdAt,
+        updatedAt: lists.updatedAt,
+        itemCount: sql<number>`count(${listItems.id})`.mapWith(Number),
+        hasItem: sql<boolean>`bool_or(
+          ${listItems.resourceId} = ${mediaId} AND
+          ${listItems.resourceType} = ${mediaType}
+        )`.mapWith(Boolean),
+      })
+      .from(lists)
+      .leftJoin(listItems, eq(lists.id, listItems.listId))
+      .where(eq(lists.userId, user.id))
+      .groupBy(
+        lists.id,
+        lists.name,
+        lists.description,
+        lists.emoji,
+        lists.createdAt,
+        lists.updatedAt
+      )
+      .orderBy(desc(lists.updatedAt));
 
-      return {
-        ...list,
-        itemCount,
-        hasItem,
-      };
-    })
-  );
-
-  return listsWithStatusAndCounts;
+    return listsWithStatusAndCounts;
+  } catch (error) {
+    console.error('Error fetching user lists with status:', error);
+    throw new Error('Failed to fetch user lists');
+  }
 }
 
 export type UserListsWithStatus = Awaited<

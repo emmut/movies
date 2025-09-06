@@ -2,6 +2,7 @@ import { env } from '@/env';
 import type { GenreResponse } from '@/types/genre';
 import { TmdbVideoResponse } from '@/types/tmdb-video';
 import {
+  TmdbExternalIdsResponse,
   TvCredits,
   TvDetails,
   TvRecommendations,
@@ -551,4 +552,26 @@ export async function getTvShowRecommendations(
 
   const tvShows: TvRecommendations = await res.json();
   return tvShows.results;
+}
+
+export async function getTvShowImdbId(tvId: number) {
+  'use cache';
+  cacheTag(`tv-imdb-id-${tvId}`);
+  cacheLife('hours');
+
+  const url = new URL(`${TMDB_API_URL}/tv/${tvId}/external_ids`);
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading TV show IMDB ID');
+  }
+
+  const data: TmdbExternalIdsResponse = await res.json();
+  return data.imdb_id;
 }
