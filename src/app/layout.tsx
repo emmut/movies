@@ -10,7 +10,6 @@ import {
 import { inter } from '@/fonts';
 import { getSession } from '@/lib/auth-server';
 import { PHProvider } from '@/providers/posthog';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode, Suspense } from 'react';
@@ -64,7 +63,6 @@ export default async function RootLayout({
             </SidebarProvider>
             <LoginToastHandler />
           </PHProvider>
-          <SpeedInsights />
         </NuqsAdapter>
         <Toaster position="top-center" richColors />
       </body>
