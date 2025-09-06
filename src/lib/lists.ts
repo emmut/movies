@@ -74,6 +74,90 @@ export async function getUserLists() {
   return listsWithCounts;
 }
 
+/**
+ * Retrieves a paginated list of the authenticated user's lists with item counts.
+ *
+ * @param page - The page number (1-based).
+ * @param itemsPerPage - The number of lists per page.
+ * @returns An object containing the paginated lists and pagination metadata.
+ */
+export async function getUserListsPaginated(page: number = 1) {
+  const user = await getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  try {
+    const totalCountResult = await db
+      .select({ count: count() })
+      .from(lists)
+      .where(eq(lists.userId, user.id));
+
+    const totalItems = totalCountResult[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+    if (totalItems === 0) {
+      return {
+        lists: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: page,
+        itemsPerPage: ITEMS_PER_PAGE,
+      };
+    }
+
+    const offset = (page - 1) * ITEMS_PER_PAGE;
+    const paginatedLists = await db
+      .select({
+        id: lists.id,
+        name: lists.name,
+        description: lists.description,
+        emoji: lists.emoji,
+        createdAt: lists.createdAt,
+        updatedAt: lists.updatedAt,
+      })
+      .from(lists)
+      .where(eq(lists.userId, user.id))
+      .orderBy(desc(lists.updatedAt))
+      .limit(ITEMS_PER_PAGE)
+      .offset(offset);
+
+    const listsWithCounts = await Promise.all(
+      paginatedLists.map(async (list) => {
+        const result = await db
+          .select({ count: sql`count(*)`.mapWith(Number) })
+          .from(listItems)
+          .where(eq(listItems.listId, list.id));
+
+        const itemCount = result[0].count;
+
+        return {
+          ...list,
+          itemCount,
+        };
+      })
+    );
+
+    return {
+      lists: listsWithCounts,
+      totalItems,
+      totalPages,
+      currentPage: page,
+      itemsPerPage: ITEMS_PER_PAGE,
+    };
+  } catch (error) {
+    console.error('Error fetching paginated user lists:', error);
+    return {
+      lists: [],
+      totalItems: 0,
+      totalPages: 0,
+      currentPage: page,
+      itemsPerPage: ITEMS_PER_PAGE,
+    };
+  }
+}
+
 export async function getListDetails(listId: string) {
   const user = await getUser();
 
@@ -223,7 +307,6 @@ export async function addToList(
     resourceType: mediaType,
   });
 
-  // Verify list belongs to user
   const [{ count }] = await db
     .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
@@ -241,7 +324,6 @@ export async function addToList(
       resourceType: validatedData.resourceType,
     });
   } catch (error) {
-    // Check if it's a unique constraint violation
     if (error instanceof Error && error.message.includes('unique')) {
       throw new Error('Item already in list');
     }
