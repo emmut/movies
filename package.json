@@ -20,8 +20,8 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
-    "@opennextjs/cloudflare": "^1.6.5",
-    "@primer/octicons-react": "^19.16.0",
+    "@opennextjs/cloudflare": "^1.8.0",
+    "@primer/octicons-react": "^19.17.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -75,7 +75,7 @@
     "postcss-preset-env": "^10.3.1",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
-    "wrangler": "^4.33.0"
+    "wrangler": "^4.34.0"
   },
   "pnpm": {
     "overrides": {
