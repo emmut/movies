@@ -12,6 +12,7 @@ import {
   regionSchema,
 } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
+import { randomUUID } from 'crypto';
 import { and, eq, inArray, not } from 'drizzle-orm';
 import {
   unstable_cacheLife as cacheLife,
@@ -201,7 +202,7 @@ export async function setUserWatchProviders(providerIds: number[]) {
       .where(eq(userWatchProviders.userId, session.user.id));
   } else {
     const values = uniqueIds.map((providerId) => ({
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       userId: session.user.id,
       providerId,
       createdAt: new Date(),
