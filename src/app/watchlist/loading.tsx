@@ -17,8 +17,6 @@ export default function WatchlistLoading() {
         {Array.from({ length: 12 }).map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="aspect-2/3 w-full rounded-lg" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-3 w-3/4" />
           </div>
         ))}
       </div>
