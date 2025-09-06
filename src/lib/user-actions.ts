@@ -193,22 +193,24 @@ export async function setUserWatchProviders(providerIds: number[]) {
     throw new Error('Unauthorized');
   }
 
-  // First, delete all existing user watch providers
-  await db
-    .delete(userWatchProviders)
-    .where(eq(userWatchProviders.userId, session.user.id));
+  const uniqueIds = [...new Set(providerIds)];
 
-  // Then, insert the new ones
-  if (providerIds.length > 0) {
-    const values = providerIds.map((providerId) => ({
-      id: crypto.randomUUID(),
-      userId: session.user.id,
-      providerId,
-      createdAt: new Date(),
-    }));
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(userWatchProviders)
+      .where(eq(userWatchProviders.userId, session.user.id));
 
-    await db.insert(userWatchProviders).values(values);
-  }
+    if (uniqueIds.length > 0) {
+      const values = uniqueIds.map((providerId) => ({
+        id: crypto.randomUUID(),
+        userId: session.user.id,
+        providerId,
+        createdAt: new Date(),
+      }));
+
+      await tx.insert(userWatchProviders).values(values).onConflictDoNothing();
+    }
+  });
 
   revalidatePath('/settings');
   revalidatePath('/discover');
