@@ -1,8 +1,12 @@
 import ItemCard from '@/components/item-card';
 import MediaTypeSelector from '@/components/media-type-selector';
+import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
-import { getWatchlistWithResourceDetails } from '@/lib/watchlist';
+import {
+  getWatchlistCount,
+  getWatchlistWithResourceDetailsPaginated,
+} from '@/lib/watchlist';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
 import Link from 'next/link';
@@ -11,6 +15,7 @@ import { redirect } from 'next/navigation';
 type WatchlistPageProps = {
   searchParams: Promise<{
     mediaType?: string;
+    page?: string;
   }>;
 };
 
@@ -31,17 +36,17 @@ export default async function WatchlistPage(props: WatchlistPageProps) {
 
   const searchParams = await props.searchParams;
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
+  const page = Number(searchParams.page ?? '1');
+  const itemsPerPage = 20;
 
-  const [watchlistMovies, watchlistTvShows] = await Promise.all([
-    getWatchlistWithResourceDetails('movie'),
-    getWatchlistWithResourceDetails('tv'),
+  // Get paginated data for the current media type and total counts for both types
+  const [paginatedData, totalMovies, totalTvShows] = await Promise.all([
+    getWatchlistWithResourceDetailsPaginated(mediaType, page, itemsPerPage),
+    getWatchlistCount('movie'),
+    getWatchlistCount('tv'),
   ]);
 
-  // Filter based on selected media type
-  const filteredItems =
-    mediaType === 'movie' ? watchlistMovies : watchlistTvShows;
-  const totalMovies = watchlistMovies.length;
-  const totalTvShows = watchlistTvShows.length;
+  const { items: filteredItems, totalPages } = paginatedData;
   const totalItems = totalMovies + totalTvShows;
 
   return (
@@ -107,6 +112,10 @@ export default async function WatchlistPage(props: WatchlistPageProps) {
               );
             })}
         </div>
+      )}
+
+      {filteredItems.length > 0 && totalPages > 1 && (
+        <PaginationControls totalPages={totalPages} pageType="watchlist" />
       )}
     </div>
   );

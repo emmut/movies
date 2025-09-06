@@ -15,7 +15,7 @@ import {
 
 type PaginationControls = {
   totalPages: number;
-  pageType: 'discover' | 'search' | 'trailers';
+  pageType: 'discover' | 'search' | 'trailers' | 'watchlist';
 };
 
 /**
@@ -33,7 +33,7 @@ function buildPageUrl(
   pageNumber: number,
   currentGenreId: number,
   searchParams: URLSearchParams,
-  pageType: 'discover' | 'search' | 'trailers'
+  pageType: 'discover' | 'search' | 'trailers' | 'watchlist'
 ) {
   const newSearchParams = new URLSearchParams(searchParams);
   newSearchParams.set('page', String(pageNumber));
@@ -49,8 +49,8 @@ function buildPageUrl(
     newSearchParams.set('genreId', String(currentGenreId));
   }
 
-  // For trailers, preserve mediaType
-  if (pageType === 'trailers' && mediaType) {
+  // For trailers and watchlist, preserve mediaType
+  if ((pageType === 'trailers' || pageType === 'watchlist') && mediaType) {
     newSearchParams.set('mediaType', mediaType);
   }
 
