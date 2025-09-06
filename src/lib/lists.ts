@@ -5,9 +5,11 @@ import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import {
   createListSchema,
+  listIdSchema,
   listItemSchema,
   mediaIdSchema,
   mediaTypeSchema,
+  pageSchema,
   removeListItemSchema,
   updateListSchema,
 } from '@/lib/validations';
@@ -88,6 +90,10 @@ export async function getUserListsPaginated(page: number = 1) {
 
   if (!user) {
     redirect('/login');
+  }
+
+  if (!pageSchema.safeParse(page).success) {
+    redirect('/lists');
   }
 
   try {
@@ -209,6 +215,14 @@ export async function getListDetailsPaginated(
     redirect('/login');
   }
 
+  if (!listIdSchema.safeParse(listId).success) {
+    redirect('/lists');
+  }
+
+  if (!pageSchema.safeParse(page).success) {
+    redirect(`/lists/${listId}`);
+  }
+
   const listResult = await db
     .select()
     .from(lists)
@@ -303,6 +317,18 @@ export async function addToList(
     redirect('/login');
   }
 
+  if (!listIdSchema.safeParse(listId).success) {
+    throw new Error('Invalid list ID');
+  }
+
+  if (!mediaIdSchema.safeParse(mediaId).success) {
+    throw new Error('Invalid media ID');
+  }
+
+  if (!mediaTypeSchema.safeParse(mediaType).success) {
+    throw new Error('Invalid media type');
+  }
+
   const validatedData = listItemSchema.parse({
     listId,
     resourceId: mediaId,
@@ -347,6 +373,18 @@ export async function removeFromList(
     redirect('/login');
   }
 
+  if (!listIdSchema.safeParse(listId).success) {
+    throw new Error('Invalid list ID');
+  }
+
+  if (!mediaIdSchema.safeParse(mediaId).success) {
+    throw new Error('Invalid media ID');
+  }
+
+  if (!mediaTypeSchema.safeParse(mediaType).success) {
+    throw new Error('Invalid media type');
+  }
+
   const validatedData = removeListItemSchema.parse({
     listId,
     resourceId: mediaId,
@@ -383,6 +421,10 @@ export async function deleteList(listId: string) {
     redirect('/login');
   }
 
+  if (!listIdSchema.safeParse(listId).success) {
+    throw new Error('Invalid list ID');
+  }
+
   const [{ count }] = await db
     .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
@@ -407,6 +449,10 @@ export async function updateList(
 
   if (!user) {
     redirect('/login');
+  }
+
+  if (!listIdSchema.safeParse(listId).success) {
+    throw new Error('Invalid list ID');
   }
 
   const validatedData = updateListSchema.parse({

@@ -109,3 +109,6 @@ export type RemoveListItemData = z.infer<typeof removeListItemSchema>;
 
 export const mediaIdSchema = z.number().min(1);
 export const mediaTypeSchema = z.enum(['movie', 'tv', 'person']);
+
+export const listIdSchema = z.string();
+export const pageSchema = z.number().min(1);
