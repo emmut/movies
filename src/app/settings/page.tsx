@@ -7,7 +7,12 @@ import {
 } from '@/components/ui/card';
 import { getUser } from '@/lib/auth-server';
 import { regions } from '@/lib/regions';
-import { getUserRegion, updateUserRegion } from '@/lib/user-actions';
+import {
+  getAllWatchProviders,
+  getUserRegion,
+  getUserWatchProviders,
+  updateUserRegion,
+} from '@/lib/user-actions';
 import { unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { AddPasskey } from './add-passkey';
@@ -15,6 +20,7 @@ import { LinkAccount } from './link-account';
 import { getUserPasskeys } from './passkey-actions';
 import { PasskeyList } from './passkey-list';
 import { RegionForm } from './region-form';
+import { WatchProviderForm } from './watch-provider-form';
 
 type SettingsPageProps = {
   searchParams: Promise<{
@@ -50,6 +56,10 @@ export default async function SettingsPage(props: SettingsPageProps) {
   }
 
   const passkeys = user.isAnonymous ? [] : await getUserPasskeys();
+  const [allWatchProviders, userWatchProviders] = await Promise.all([
+    getAllWatchProviders(currentRegion),
+    getUserWatchProviders(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -90,6 +100,11 @@ export default async function SettingsPage(props: SettingsPageProps) {
           />
         </CardContent>
       </Card>
+
+      <WatchProviderForm
+        availableProviders={allWatchProviders}
+        userProviders={userWatchProviders}
+      />
     </div>
   );
 }
