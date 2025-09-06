@@ -52,7 +52,6 @@ export function WatchProviderForm({
       }
     });
   }
-  }
 
   function handleClearAll() {
     setSelectedProviders([]);
