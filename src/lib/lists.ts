@@ -122,20 +122,21 @@ export async function getUserListsPaginated(page: number = 1) {
       .from(lists)
       .where(eq(lists.userId, user.id));
 
-    const totalItems = totalCountResult[0]?.count || 0;
+    const totalItems = totalCountResult[0]?.count ?? 0;
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    const currentPage = Math.max(1, Math.min(page, totalPages));
 
     if (totalItems === 0) {
       return {
         lists: [],
         totalItems: 0,
         totalPages: 0,
-        currentPage: page,
+        currentPage,
         itemsPerPage: ITEMS_PER_PAGE,
       };
     }
 
-    const offset = (page - 1) * ITEMS_PER_PAGE;
+    const offset = Math.max(0, (currentPage - 1) * ITEMS_PER_PAGE);
     const paginatedLists = await db
       .select({
         id: lists.id,
@@ -171,16 +172,19 @@ export async function getUserListsPaginated(page: number = 1) {
       lists: listsWithCounts,
       totalItems,
       totalPages,
-      currentPage: page,
+      currentPage,
       itemsPerPage: ITEMS_PER_PAGE,
     };
   } catch (error) {
     console.error('Error fetching paginated user lists:', error);
+    // Parse and clamp page even in error case
+    const parsedPage = parseInt(String(page), 10) || 1;
+    const currentPage = Math.max(1, parsedPage);
     return {
       lists: [],
       totalItems: 0,
       totalPages: 0,
-      currentPage: page,
+      currentPage,
       itemsPerPage: ITEMS_PER_PAGE,
     };
   }
@@ -259,8 +263,13 @@ export async function getListDetailsPaginated(
     .from(listItems)
     .where(eq(listItems.listId, listId));
 
-  const totalItems = totalCountResult[0]?.count || 0;
+  // Safely coerce count to number, handling BigInt/string/null cases
+  const totalItems = Number(totalCountResult[0]?.count) || 0;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  // Parse and clamp page to valid range
+  const parsedPage = parseInt(String(page), 10) || 1;
+  const currentPage = Math.max(1, Math.min(parsedPage, totalPages || 1));
 
   if (totalItems === 0) {
     return {
@@ -269,12 +278,13 @@ export async function getListDetailsPaginated(
       itemCount: 0,
       totalItems: 0,
       totalPages: 0,
-      currentPage: page,
+      currentPage,
       itemsPerPage: ITEMS_PER_PAGE,
     };
   }
 
-  const offset = (page - 1) * ITEMS_PER_PAGE;
+  // Ensure offset is always >= 0
+  const offset = Math.max(0, (currentPage - 1) * ITEMS_PER_PAGE);
   const items = await db
     .select()
     .from(listItems)
@@ -289,7 +299,7 @@ export async function getListDetailsPaginated(
     itemCount: totalItems,
     totalItems,
     totalPages,
-    currentPage: page,
+    currentPage,
     itemsPerPage: ITEMS_PER_PAGE,
   };
 }
