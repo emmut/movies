@@ -8,14 +8,6 @@ import {
   fetchTvShowsBySearchQuery,
 } from '@/lib/search';
 import { MediaType } from '@/types/media-type';
-import { Movie } from '@/types/movie';
-import { SearchedPerson } from '@/types/person';
-import { TvShow } from '@/types/tv-show';
-
-type MultiSearchResult =
-  | (Movie & { media_type: 'movie' })
-  | (TvShow & { media_type: 'tv' })
-  | (SearchedPerson & { media_type: 'person' });
 
 type SearchResultsProps = {
   searchQuery: string;
@@ -117,7 +109,7 @@ export default async function SearchResults({
 
   return (
     <>
-      {results.map((result: MultiSearchResult) => {
+      {results.map((result) => {
         // Each result has a media_type property: 'movie', 'tv', or 'person'
         if (result.media_type === 'person') {
           return (

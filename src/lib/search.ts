@@ -1,5 +1,5 @@
 import { env } from '@/env';
-import { SearchedMovieResponse } from '@/types/movie';
+import { MultiSearchResponse, SearchedMovieResponse } from '@/types/movie';
 import { SearchedPersonResponse } from '@/types/person';
 import { SearchedTvResponse } from '@/types/tv-show';
 
@@ -96,6 +96,6 @@ export async function fetchMultiSearchQuery(query: string, page: string) {
     throw new Error('Failed fetching multi search results');
   }
 
-  const results = await res.json();
+  const results: MultiSearchResponse = await res.json();
   return { results: results.results, totalPages: results.total_pages };
 }
