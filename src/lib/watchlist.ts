@@ -4,7 +4,7 @@ import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
-import { resourceIdSchema } from '@/lib/validations';
+import { pageSchema, resourceIdSchema } from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
 import { and, count, eq } from 'drizzle-orm';
@@ -125,18 +125,19 @@ export async function getWatchlistWithResourceDetails(resourceType: string) {
  * @returns An object containing the paginated watchlist items and pagination metadata.
  */
 export async function getWatchlistWithResourceDetailsPaginated(
-  resourceType: string,
+  resourceType: 'movie' | 'tv',
   page: number = 1
 ) {
+  if (
+    !resourceIdSchema.safeParse(resourceType).success ||
+    !pageSchema.safeParse(page).success
+  ) {
+    throw new Error('Invalid resource type or page number');
+  }
+
   const user = await getUser();
   if (!user) {
-    return {
-      items: [],
-      totalItems: 0,
-      totalPages: 0,
-      currentPage: page,
-      itemsPerPage: ITEMS_PER_PAGE,
-    };
+    throw new Error('User not authenticated');
   }
 
   try {

@@ -177,9 +177,7 @@ export async function getUserListsPaginated(page: number = 1) {
     };
   } catch (error) {
     console.error('Error fetching paginated user lists:', error);
-    // Parse and clamp page even in error case
-    const parsedPage = parseInt(String(page), 10) || 1;
-    const currentPage = Math.max(1, parsedPage);
+    const currentPage = Math.max(1, page);
     return {
       lists: [],
       totalItems: 0,
