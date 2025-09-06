@@ -45,12 +45,13 @@ export function WatchProviderForm({
     startTransition(async () => {
       try {
         await setUserWatchProviders(selectedProviders);
+        toast.success('Preferences saved!');
       } catch (error) {
         console.error('Error saving watch providers:', error);
-      } finally {
-        toast.success('Preferences saved!');
+        toast.error('Failed to save preferences. Please try again.');
       }
     });
+  }
   }
 
   function handleClearAll() {
