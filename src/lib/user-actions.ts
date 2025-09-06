@@ -195,22 +195,20 @@ export async function setUserWatchProviders(providerIds: number[]) {
 
   const uniqueIds = [...new Set(providerIds)];
 
-  await db.transaction(async (tx) => {
-    await tx
-      .delete(userWatchProviders)
-      .where(eq(userWatchProviders.userId, session.user.id));
+  await db
+    .delete(userWatchProviders)
+    .where(eq(userWatchProviders.userId, session.user.id));
 
-    if (uniqueIds.length > 0) {
-      const values = uniqueIds.map((providerId) => ({
-        id: crypto.randomUUID(),
-        userId: session.user.id,
-        providerId,
-        createdAt: new Date(),
-      }));
+  if (uniqueIds.length > 0) {
+    const values = uniqueIds.map((providerId) => ({
+      id: crypto.randomUUID(),
+      userId: session.user.id,
+      providerId,
+      createdAt: new Date(),
+    }));
 
-      await tx.insert(userWatchProviders).values(values).onConflictDoNothing();
-    }
-  });
+    await db.insert(userWatchProviders).values(values).onConflictDoNothing();
+  }
 
   revalidatePath('/settings');
   revalidatePath('/discover');
