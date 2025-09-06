@@ -51,6 +51,10 @@ async function main() {
   console.log('');
 
   try {
+    if (!process.env.MOVIE_DB_ACCESS_TOKEN) {
+      console.error('❌ Missing MOVIE_DB_ACCESS_TOKEN in environment.');
+      process.exit(1);
+    }
     // Fetch movie and TV providers
     const movieEndpoint = region
       ? `/watch/providers/movie?watch_region=${region}`
