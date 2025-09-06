@@ -7,7 +7,11 @@ import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import Spinner from '@/components/spinner';
 import { getUser } from '@/lib/auth-server';
-import { getUserRegion, getWatchProviders } from '@/lib/user-actions';
+import {
+  getUserRegion,
+  getUserWatchProviders,
+  getWatchProviders,
+} from '@/lib/user-actions';
 import { Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -44,11 +48,20 @@ export default async function DiscoverWithGenrePage(
   const page = Number(searchParams.page ?? '1');
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
   const sortBy = searchParams.sort_by;
-  const watchProviders = searchParams.with_watch_providers;
   const watchRegion = await getUserRegion();
 
   const user = await getUser();
-  const availableWatchProviders = await getWatchProviders(watchRegion);
+
+  const userWatchProviders = await getUserWatchProviders();
+  const filteredWatchProviders = await getWatchProviders(
+    watchRegion,
+    userWatchProviders
+  );
+
+  // Use user's preferred watch providers if none are specified in the URL
+  const watchProviders =
+    searchParams.with_watch_providers ||
+    (userWatchProviders.length > 0 ? userWatchProviders.join('|') : undefined);
 
   return (
     <>
@@ -77,7 +90,7 @@ export default async function DiscoverWithGenrePage(
       <div className="mt-6">
         <FiltersPanel
           mediaType={mediaType}
-          watchProviders={availableWatchProviders}
+          watchProviders={filteredWatchProviders}
           userRegion={watchRegion}
         />
       </div>
