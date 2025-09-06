@@ -32,6 +32,11 @@ export default async function ListsPage(props: ListsPageProps) {
   const totalLists = allLists.length;
   const totalItems = allLists.reduce((sum, list) => sum + list.itemCount, 0);
 
+  // If requested page is beyond the last, canonicalize the URL
+  if (paginatedData.totalPages > 0 && page > paginatedData.totalPages) {
+    redirect(`/lists?page=${paginatedData.totalPages}`);
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">

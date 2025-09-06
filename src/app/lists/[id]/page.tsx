@@ -32,6 +32,11 @@ export default async function ListDetailsPage({
   const paginatedList = await getListDetailsPaginated(id, page);
   const { items: paginatedItems, totalPages } = paginatedList;
 
+  // If requested page is beyond the last, canonicalize the URL
+  if (paginatedList.totalPages > 0 && page > paginatedList.totalPages) {
+    redirect(`/lists/${id}?page=${paginatedList.totalPages}`);
+  }
+
   // Fetch details for paginated items only
   const movieItems =
     paginatedItems?.filter((item) => item.resourceType === 'movie') || [];
