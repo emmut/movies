@@ -1,21 +1,39 @@
 import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
+import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
-import { getUserLists } from '@/lib/lists';
+import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-export default async function ListsPage() {
+type ListsPageProps = {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+};
+
+export default async function ListsPage(props: ListsPageProps) {
   const user = await getUser();
 
   if (!user) {
     redirect('/login');
   }
 
-  const lists = await getUserLists();
-  const totalLists = lists.length;
-  const totalItems = lists.reduce((sum, list) => sum + list.itemCount, 0);
+  const searchParams = await props.searchParams;
+  const page = Number(searchParams.page ?? '1');
+
+  const [paginatedData, totalListsCount] = await Promise.all([
+    getUserListsPaginated(page),
+    getUserListCount(),
+  ]);
+
+  const { lists, totalPages } = paginatedData;
+
+  // If requested page is beyond the last, canonicalize the URL
+  if (paginatedData.totalPages > 0 && page > paginatedData.totalPages) {
+    redirect(`/lists?page=${paginatedData.totalPages}`);
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -28,11 +46,12 @@ export default async function ListsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <p className="text-zinc-400">
-              {totalLists} list{totalLists !== 1 ? 's' : ''} created
+              {totalListsCount} list{totalListsCount !== 1 ? 's' : ''} created
             </p>
-            {totalItems > 0 && (
+            {totalListsCount > 0 && (
               <span className="text-zinc-500">
-                • Total: {totalItems} item{totalItems !== 1 ? 's' : ''}
+                • Total: {totalListsCount} item
+                {totalListsCount !== 1 ? 's' : ''}
               </span>
             )}
           </div>
@@ -57,7 +76,12 @@ export default async function ListsPage() {
           </Link>
         </div>
       ) : (
-        <ListsGrid lists={lists} />
+        <>
+          <ListsGrid lists={lists} />
+          {totalPages > 1 && (
+            <PaginationControls totalPages={totalPages} pageType="lists" />
+          )}
+        </>
       )}
     </div>
   );

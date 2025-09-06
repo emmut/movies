@@ -15,7 +15,7 @@ import {
 
 type PaginationControls = {
   totalPages: number;
-  pageType: 'discover' | 'search' | 'trailers';
+  pageType: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists';
 };
 
 /**
@@ -33,7 +33,7 @@ function buildPageUrl(
   pageNumber: number,
   currentGenreId: number,
   searchParams: URLSearchParams,
-  pageType: 'discover' | 'search' | 'trailers'
+  pageType: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists'
 ) {
   const newSearchParams = new URLSearchParams(searchParams);
   newSearchParams.set('page', String(pageNumber));
@@ -49,12 +49,12 @@ function buildPageUrl(
     newSearchParams.set('genreId', String(currentGenreId));
   }
 
-  // For trailers, preserve mediaType
-  if (pageType === 'trailers' && mediaType) {
+  // For trailers and watchlist, preserve mediaType
+  if ((pageType === 'trailers' || pageType === 'watchlist') && mediaType) {
     newSearchParams.set('mediaType', mediaType);
   }
 
-  return `${pageType}?${newSearchParams.toString()}`;
+  return `?${newSearchParams.toString()}`;
 }
 
 // Generate page numbers with ellipsis logic (mobile-first)
@@ -127,6 +127,7 @@ export function PaginationControls({
       searchParams,
       pageType
     );
+
     router.push(newPageUrl, { scroll: false });
 
     if (container) {

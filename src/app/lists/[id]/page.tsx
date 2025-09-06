@@ -1,10 +1,11 @@
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
 import ItemCard from '@/components/item-card';
+import { PaginationControls } from '@/components/pagination-controls';
 import PersonCard from '@/components/person-card';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
-import { getListDetails } from '@/lib/lists';
+import { getListDetailsPaginated } from '@/lib/lists';
 import { getMovieDetails } from '@/lib/movies';
 import { getPersonDetails } from '@/lib/persons';
 import { getTvShowDetails } from '@/lib/tv-shows';
@@ -13,8 +14,10 @@ import { redirect } from 'next/navigation';
 
 export default async function ListDetailsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const user = await getUser();
 
@@ -23,15 +26,24 @@ export default async function ListDetailsPage({
   }
 
   const { id } = await params;
-  const list = await getListDetails(id);
+  const { page: pageParam } = await searchParams;
+  const page = Number(pageParam ?? '1');
 
-  // Fetch details for all items in the list
+  const paginatedList = await getListDetailsPaginated(id, page);
+  const { items: paginatedItems, totalPages } = paginatedList;
+
+  // If requested page is beyond the last, canonicalize the URL
+  if (paginatedList.totalPages > 0 && page > paginatedList.totalPages) {
+    redirect(`/lists/${id}?page=${paginatedList.totalPages}`);
+  }
+
+  // Fetch details for paginated items only
   const movieItems =
-    list.items?.filter((item) => item.resourceType === 'movie') || [];
+    paginatedItems?.filter((item) => item.resourceType === 'movie') || [];
   const tvItems =
-    list.items?.filter((item) => item.resourceType === 'tv') || [];
+    paginatedItems?.filter((item) => item.resourceType === 'tv') || [];
   const personItems =
-    list.items?.filter((item) => item.resourceType === 'person') || [];
+    paginatedItems?.filter((item) => item.resourceType === 'person') || [];
 
   const [movies, tvShows, persons] = await Promise.all([
     Promise.allSettled(
@@ -77,18 +89,18 @@ export default async function ListDetailsPage({
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="mb-4 flex items-center justify-between">
-          <SectionTitle>{list.name}</SectionTitle>
+          <SectionTitle>{paginatedList.name}</SectionTitle>
           <div className="flex items-center gap-2">
             <EditListDialog
-              listId={list.id}
-              listName={list.name}
-              listDescription={list.description}
-              listEmoji={list.emoji}
+              listId={paginatedList.id}
+              listName={paginatedList.name}
+              listDescription={paginatedList.description}
+              listEmoji={paginatedList.emoji}
             />
             <DeleteListButton
-              listId={list.id}
-              listName={list.name}
-              itemCount={list.itemCount}
+              listId={paginatedList.id}
+              listName={paginatedList.name}
+              itemCount={paginatedList.itemCount}
               redirectAfterDelete={true}
             />
           </div>
@@ -97,23 +109,23 @@ export default async function ListDetailsPage({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <p className="text-zinc-400">
-              {list.itemCount} item{list.itemCount !== 1 ? 's' : ''} in this
-              list
+              {paginatedList.itemCount} item
+              {paginatedList.itemCount !== 1 ? 's' : ''} in this list
             </p>
             <span className="text-zinc-500">
-              • Created {list.createdAt.toLocaleDateString()}
+              • Created {paginatedList.createdAt.toLocaleDateString()}
             </span>
           </div>
         </div>
 
-        {list.description && (
-          <p className="mt-4 text-zinc-300">{list.description}</p>
+        {paginatedList.description && (
+          <p className="mt-4 text-zinc-300">{paginatedList.description}</p>
         )}
       </div>
 
-      {list.itemCount === 0 ? (
+      {paginatedList.itemCount === 0 ? (
         <div className="py-12 text-center">
-          <div className="mb-4 text-6xl opacity-50">{list.emoji}</div>
+          <div className="mb-4 text-6xl opacity-50">{paginatedList.emoji}</div>
           <h2 className="mb-2 text-xl font-semibold">This list is empty</h2>
           <p className="mb-6 text-zinc-400">
             Add movies, TV shows, or people by clicking the list button on any
@@ -134,7 +146,7 @@ export default async function ListDetailsPage({
                 person={item}
                 userId={user?.id}
                 showListButton={false}
-                listId={list.id}
+                listId={paginatedList.id}
                 key={`${item.resourceType}-${item.id}`}
               />
             ) : (
@@ -143,12 +155,16 @@ export default async function ListDetailsPage({
                 type={item.resourceType}
                 userId={user?.id}
                 showListButton={false}
-                listId={list.id}
+                listId={paginatedList.id}
                 key={`${item.resourceType}-${item.id}`}
               />
             )
           )}
         </div>
+      )}
+
+      {paginatedList.itemCount > 0 && totalPages > 1 && (
+        <PaginationControls totalPages={totalPages} pageType="lists" />
       )}
     </div>
   );
