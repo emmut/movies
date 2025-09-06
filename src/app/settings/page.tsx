@@ -101,12 +101,10 @@ export default async function SettingsPage(props: SettingsPageProps) {
         </CardContent>
       </Card>
 
-      {!user.isAnonymous && (
-        <WatchProviderForm
-          availableProviders={allWatchProviders}
-          userProviders={userWatchProviders}
-        />
-      )}
+      <WatchProviderForm
+        availableProviders={allWatchProviders}
+        userProviders={userWatchProviders}
+      />
     </div>
   );
 }
