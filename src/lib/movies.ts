@@ -15,7 +15,8 @@ import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
 } from 'next/cache';
-import { MAJOR_STREAMING_PROVIDERS, TMDB_API_URL } from './config';
+import { MAJOR_STREAMING_PROVIDERS } from './config';
+import { TMDB_API_URL } from './constants';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
