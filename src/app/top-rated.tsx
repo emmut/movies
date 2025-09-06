@@ -1,7 +1,7 @@
 import ItemCard from '@/components/item-card';
 import { env } from '@/env';
 import { getUser } from '@/lib/auth-server';
-import { TMDB_API_URL } from '@/lib/config';
+import { TMDB_API_URL } from '@/lib/constants';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { MovieResponse } from '@/types/movie';
 import {

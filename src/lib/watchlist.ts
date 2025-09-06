@@ -7,7 +7,8 @@ import { getMovieDetails } from '@/lib/movies';
 import { resourceIdSchema } from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
+import { ITEMS_PER_PAGE } from './config';
 import { getTvShowDetails } from './tv-shows';
 
 /**
@@ -113,4 +114,138 @@ export async function getWatchlistWithResourceDetails(resourceType: string) {
   return resourcesWithDetails
     .filter((result) => result.status === 'fulfilled')
     .map((result) => result.value);
+}
+
+/**
+ * Retrieves a paginated list of the authenticated user's watchlist entries of a specified resource type, each augmented with detailed information.
+ *
+ * @param resourceType - The type of resource to include ('movie' or 'tv').
+ * @param page - The page number (1-based).
+ * @param itemsPerPage - The number of items per page.
+ * @returns An object containing the paginated watchlist items and pagination metadata.
+ */
+export async function getWatchlistWithResourceDetailsPaginated(
+  resourceType: string,
+  page: number = 1
+) {
+  const user = await getUser();
+  if (!user) {
+    return {
+      items: [],
+      totalItems: 0,
+      totalPages: 0,
+      currentPage: page,
+      itemsPerPage: ITEMS_PER_PAGE,
+    };
+  }
+
+  try {
+    const totalCountResult = await db
+      .select({ count: count() })
+      .from(watchlist)
+      .where(
+        and(
+          eq(watchlist.userId, user.id),
+          eq(watchlist.resourceType, resourceType)
+        )
+      );
+
+    const totalItems = totalCountResult[0]?.count || 0;
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+    if (totalItems === 0) {
+      return {
+        items: [],
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: page,
+        itemsPerPage: ITEMS_PER_PAGE,
+      };
+    }
+
+    const offset = (page - 1) * ITEMS_PER_PAGE;
+    const paginatedWatchlist = await db
+      .select()
+      .from(watchlist)
+      .where(
+        and(
+          eq(watchlist.userId, user.id),
+          eq(watchlist.resourceType, resourceType)
+        )
+      )
+      .limit(ITEMS_PER_PAGE)
+      .offset(offset);
+
+    const resourcesWithDetails = await Promise.allSettled(
+      paginatedWatchlist.map(async (item) => {
+        let resourceDetails: MovieDetails | TvDetails | null = null;
+        if (resourceType === 'movie') {
+          resourceDetails = await getMovieDetails(item.resourceId);
+        } else if (resourceType === 'tv') {
+          resourceDetails = await getTvShowDetails(item.resourceId);
+        }
+
+        if (!resourceDetails) {
+          return null;
+        }
+
+        return {
+          ...item,
+          resource: resourceDetails,
+        };
+      })
+    );
+
+    const items = resourcesWithDetails
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => result.value)
+      .filter((item) => item !== null);
+
+    return {
+      items,
+      totalItems,
+      totalPages,
+      currentPage: page,
+      itemsPerPage: ITEMS_PER_PAGE,
+    };
+  } catch (error) {
+    console.error('Error fetching paginated watchlist:', error);
+    return {
+      items: [],
+      totalItems: 0,
+      totalPages: 0,
+      currentPage: page,
+      itemsPerPage: ITEMS_PER_PAGE,
+    };
+  }
+}
+
+/**
+ * Gets the total count of watchlist items for a specific resource type.
+ *
+ * @param resourceType - The type of resource to count ('movie' or 'tv').
+ * @returns The total number of items in the watchlist for the specified resource type.
+ */
+export async function getWatchlistCount(resourceType: string) {
+  const user = await getUser();
+  if (!user) {
+    return 0;
+  }
+
+  try {
+    const result = await db
+      .select({ count: count() })
+      .from(watchlist)
+      .where(
+        and(
+          eq(watchlist.userId, user.id),
+          eq(watchlist.resourceType, resourceType)
+        )
+      );
+
+    return result[0]?.count || 0;
+  } catch (error) {
+    console.error('Error counting watchlist items:', error);
+    return 0;
+  }
 }

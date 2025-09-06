@@ -8,7 +8,7 @@ import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
 } from 'next/cache';
-import { TMDB_API_URL } from './config';
+import { TMDB_API_URL } from './constants';
 
 /**
  * Fetches detailed information for an person from TMDb by their ID.

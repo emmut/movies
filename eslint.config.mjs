@@ -9,12 +9,25 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [{
-  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"]
-}, ...compat.extends('next/core-web-vitals', 'next/typescript'), {
-  rules: {
-    '@typescript-eslint/no-unused-vars': 'warn',
+const eslintConfig = [
+  {
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      '.open-next/**',
+      '.wrangler/**',
+      'cloudflare-env.d.ts',
+      'out/**',
+      'build/**',
+      'next-env.d.ts',
+    ],
   },
-}];
+  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  {
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'warn',
+    },
+  },
+];
 
 export default eslintConfig;

@@ -1,21 +1,36 @@
 import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
+import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
-import { getUserLists } from '@/lib/lists';
+import { getUserLists, getUserListsPaginated } from '@/lib/lists';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-export default async function ListsPage() {
+type ListsPageProps = {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+};
+
+export default async function ListsPage(props: ListsPageProps) {
   const user = await getUser();
 
   if (!user) {
     redirect('/login');
   }
 
-  const lists = await getUserLists();
-  const totalLists = lists.length;
-  const totalItems = lists.reduce((sum, list) => sum + list.itemCount, 0);
+  const searchParams = await props.searchParams;
+  const page = Number(searchParams.page ?? '1');
+
+  const [paginatedData, allLists] = await Promise.all([
+    getUserListsPaginated(page),
+    getUserLists(),
+  ]);
+
+  const { lists, totalPages } = paginatedData;
+  const totalLists = allLists.length;
+  const totalItems = allLists.reduce((sum, list) => sum + list.itemCount, 0);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -57,7 +72,12 @@ export default async function ListsPage() {
           </Link>
         </div>
       ) : (
-        <ListsGrid lists={lists} />
+        <>
+          <ListsGrid lists={lists} />
+          {totalPages > 1 && (
+            <PaginationControls totalPages={totalPages} pageType="lists" />
+          )}
+        </>
       )}
     </div>
   );
