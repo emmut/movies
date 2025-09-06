@@ -22,11 +22,9 @@ export default async function ListsPage(props: ListsPageProps) {
 
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page ?? '1');
-  const itemsPerPage = 1;
 
-  // Get paginated lists and total counts
   const [paginatedData, allLists] = await Promise.all([
-    getUserListsPaginated(page, itemsPerPage),
+    getUserListsPaginated(page),
     getUserLists(),
   ]);
 
