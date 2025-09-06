@@ -38,13 +38,19 @@ async function fetchFromTMDB(
 }
 
 async function main() {
-  const region = process.argv[2];
+  // Normalize and validate region input
+  const rawRegion = process.argv[2];
+  const region = rawRegion ? rawRegion.toUpperCase() : undefined;
+  if (region && !/^[A-Z]{2}$/.test(region)) {
+    console.error('❌ Invalid region. Use a two-letter ISO 3166-1 code, e.g., US, SE, GB.');
+    process.exit(1);
+  }
 
   console.log('🎬 TMDB Watch Providers');
   console.log('='.repeat(50));
 
   if (region) {
-    console.log(`📍 Region: ${region.toUpperCase()}`);
+    console.log(`📍 Region: ${region}`);
   } else {
     console.log('🌍 All regions');
   }
