@@ -1,5 +1,7 @@
 import { RegionCode } from '@/lib/regions';
 import { Genre } from './genre';
+import { SearchedPerson } from './person';
+import { TvShow } from './tv-show';
 import { RegionWatchProviders } from './watch-provider';
 
 export type Movie = {
@@ -107,6 +109,18 @@ export type MovieWatchProviders = {
 export type SearchedMovieResponse = {
   page: number;
   results: Movie[];
+  total_pages: number;
+  total_results: number;
+};
+
+type MultiSearchResult =
+  | (Movie & { media_type: 'movie' })
+  | (TvShow & { media_type: 'tv' })
+  | (SearchedPerson & { media_type: 'person' });
+
+export type MultiSearchResponse = {
+  page: number;
+  results: MultiSearchResult[];
   total_pages: number;
   total_results: number;
 };
