@@ -88,7 +88,7 @@ export default async function ListDetailsPage({
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <SectionTitle>{paginatedList.name}</SectionTitle>
           <div className="flex items-center gap-2">
             <EditListDialog
