@@ -94,7 +94,7 @@ export function WatchProviderForm({
               const imageError = brokenImages.has(provider.provider_id);
 
               return (
-                <div
+                <button
                   key={provider.provider_id}
                   className={`hover:bg-accent cursor-pointer rounded-lg border p-3 transition-all ${
                     isSelected ? 'border-primary bg-accent' : 'border-border'
@@ -127,7 +127,7 @@ export function WatchProviderForm({
                       <Check className="text-primary h-4 w-4 flex-shrink-0" />
                     )}
                   </div>
-                </div>
+                </button>
               );
             })
           )}
