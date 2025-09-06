@@ -39,4 +39,6 @@
   "placement": {
     "mode": "smart",
   },
+  "preview_urls": true,
+  "workers_dev": false,
 }
