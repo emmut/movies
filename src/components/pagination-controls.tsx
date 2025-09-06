@@ -54,11 +54,7 @@ function buildPageUrl(
     newSearchParams.set('mediaType', mediaType);
   }
 
-  if (pageType === 'lists') {
-    return `?${newSearchParams.toString()}`;
-  }
-
-  return `${pageType}?${newSearchParams.toString()}`;
+  return `?${newSearchParams.toString()}`;
 }
 
 // Generate page numbers with ellipsis logic (mobile-first)
