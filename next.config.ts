@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
     reactCompiler: true,
     useCache: true,
     clientSegmentCache: true,
+    ppr: true,
   },
 };
 
