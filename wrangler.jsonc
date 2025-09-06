@@ -36,4 +36,7 @@
       "custom_domain": true,
     },
   ],
+  "placement": {
+    "mode": "smart",
+  },
 }
