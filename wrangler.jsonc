@@ -33,19 +33,26 @@
         "name": "NEXT_CACHE_DO_QUEUE",
         "class_name": "DOQueueHandler",
       },
+      // This is only required if you use On-demand revalidation
+      {
+        "name": "NEXT_TAG_CACHE_DO_SHARDED",
+        "class_name": "DOShardedTagCache",
+      },
+      {
+        "name": "NEXT_CACHE_DO_PURGE",
+        "class_name": "BucketCachePurge",
+      },
     ],
   },
   "migrations": [
     {
       "tag": "v1",
-      "new_sqlite_classes": ["DOQueueHandler"],
-    },
-  ],
-  "d1_databases": [
-    {
-      "binding": "NEXT_TAG_CACHE_D1",
-      "database_id": "354ac89f-91ab-40ae-bc8f-8fe9fe3a0325",
-      "database_name": "movies-app-next-tag-cache",
+      "new_sqlite_classes": [
+        "DOQueueHandler",
+        // This is only required if you use On-demand revalidation
+        "DOShardedTagCache",
+        "BucketCachePurge",
+      ],
     },
   ],
   "observability": {
