@@ -3,7 +3,7 @@ import { ListsGrid } from '@/components/lists-grid';
 import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
-import { getUserLists, getUserListsPaginated } from '@/lib/lists';
+import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -23,14 +23,12 @@ export default async function ListsPage(props: ListsPageProps) {
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page ?? '1');
 
-  const [paginatedData, allLists] = await Promise.all([
+  const [paginatedData, totalListsCount] = await Promise.all([
     getUserListsPaginated(page),
-    getUserLists(),
+    getUserListCount(),
   ]);
 
   const { lists, totalPages } = paginatedData;
-  const totalLists = allLists.length;
-  const totalItems = allLists.reduce((sum, list) => sum + list.itemCount, 0);
 
   // If requested page is beyond the last, canonicalize the URL
   if (paginatedData.totalPages > 0 && page > paginatedData.totalPages) {
@@ -48,11 +46,12 @@ export default async function ListsPage(props: ListsPageProps) {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <p className="text-zinc-400">
-              {totalLists} list{totalLists !== 1 ? 's' : ''} created
+              {totalListsCount} list{totalListsCount !== 1 ? 's' : ''} created
             </p>
-            {totalItems > 0 && (
+            {totalListsCount > 0 && (
               <span className="text-zinc-500">
-                • Total: {totalItems} item{totalItems !== 1 ? 's' : ''}
+                • Total: {totalListsCount} item
+                {totalListsCount !== 1 ? 's' : ''}
               </span>
             )}
           </div>

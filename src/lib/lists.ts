@@ -78,6 +78,26 @@ export async function getUserLists() {
   return listsWithCounts;
 }
 
+export async function getUserListCount() {
+  const user = await getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  try {
+    const count = await db
+      .select({ count: sql`count(*)`.mapWith(Number) })
+      .from(lists)
+      .where(eq(lists.userId, user.id));
+
+    return count[0].count;
+  } catch (error) {
+    console.error('Error fetching user list count:', error);
+    return 0;
+  }
+}
+
 /**
  * Retrieves a paginated list of the authenticated user's lists with item counts.
  *
