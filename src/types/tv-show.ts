@@ -109,3 +109,7 @@ export type TvSimilar = {
   total_pages: number;
   total_results: number;
 };
+
+export type TmdbExternalIdsResponse = {
+  imdb_id: string;
+};
