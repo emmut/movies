@@ -12,7 +12,7 @@ import {
   regionSchema,
 } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray, not } from 'drizzle-orm';
 import {
   unstable_cacheLife as cacheLife,
   unstable_cacheTag as cacheTag,
@@ -195,11 +195,11 @@ export async function setUserWatchProviders(providerIds: number[]) {
 
   const uniqueIds = [...new Set(providerIds)];
 
-  await db
-    .delete(userWatchProviders)
-    .where(eq(userWatchProviders.userId, session.user.id));
-
-  if (uniqueIds.length > 0) {
+  if (uniqueIds.length === 0) {
+    await db
+      .delete(userWatchProviders)
+      .where(eq(userWatchProviders.userId, session.user.id));
+  } else {
     const values = uniqueIds.map((providerId) => ({
       id: crypto.randomUUID(),
       userId: session.user.id,
@@ -208,6 +208,14 @@ export async function setUserWatchProviders(providerIds: number[]) {
     }));
 
     await db.insert(userWatchProviders).values(values).onConflictDoNothing();
+    await db
+      .delete(userWatchProviders)
+      .where(
+        and(
+          eq(userWatchProviders.userId, session.user.id),
+          not(inArray(userWatchProviders.providerId, uniqueIds))
+        )
+      );
   }
 
   revalidatePath('/settings');
