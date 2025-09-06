@@ -11,6 +11,7 @@ import { getUser } from '@/lib/auth-server';
 import {
   getTvShowCredits,
   getTvShowDetails,
+  getTvShowImdbId,
   getTvShowRecommendations,
   getTvShowSimilar,
   getTvShowWatchProviders,
@@ -50,10 +51,11 @@ export default async function TvShowPage(props: TvShowPageProps) {
     ? await isResourceInWatchlist(tvId, RESOURCE_TYPE)
     : false;
 
-  const [tvShow, credits, watchProviders] = await Promise.all([
+  const [tvShow, credits, watchProviders, imdbId] = await Promise.all([
     getTvShowDetails(tvId),
     getTvShowCredits(tvId),
     getTvShowWatchProviders(tvId),
+    getTvShowImdbId(tvId),
   ]);
 
   const {
@@ -341,7 +343,12 @@ export default async function TvShowPage(props: TvShowPageProps) {
             }
           />
 
-          <ExternalLinks tmdbId={tvId} homepage={homepage} mediaType="tv" />
+          <ExternalLinks
+            tmdbId={tvId}
+            homepage={homepage}
+            mediaType="tv"
+            imdbId={imdbId}
+          />
         </div>
       </div>
     </div>
