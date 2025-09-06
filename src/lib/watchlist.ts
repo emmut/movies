@@ -4,7 +4,11 @@ import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
-import { pageSchema, resourceIdSchema } from '@/lib/validations';
+import {
+  pageSchema,
+  resourceIdSchema,
+  resourceTypeSchema,
+} from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
 import { and, count, eq } from 'drizzle-orm';
@@ -129,7 +133,7 @@ export async function getWatchlistWithResourceDetailsPaginated(
   page: number = 1
 ) {
   if (
-    !resourceIdSchema.safeParse(resourceType).success ||
+    !resourceTypeSchema.safeParse(resourceType).success ||
     !pageSchema.safeParse(page).success
   ) {
     throw new Error('Invalid resource type or page number');

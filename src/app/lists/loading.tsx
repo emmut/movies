@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import { ITEMS_PER_PAGE } from '@/lib/config';
 
 /**
  * Loading skeleton for the lists page.
@@ -29,7 +30,7 @@ export default function ListsLoading() {
 
       {/* Lists grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
           <div
             key={i}
             className="bg-muted/60 border-muted relative block min-h-[200px] overflow-hidden rounded-lg border p-6"
