@@ -37,11 +37,10 @@ export default async function WatchlistPage(props: WatchlistPageProps) {
   const searchParams = await props.searchParams;
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
   const page = Number(searchParams.page ?? '1');
-  const itemsPerPage = 20;
 
   // Get paginated data for the current media type and total counts for both types
   const [paginatedData, totalMovies, totalTvShows] = await Promise.all([
-    getWatchlistWithResourceDetailsPaginated(mediaType, page, itemsPerPage),
+    getWatchlistWithResourceDetailsPaginated(mediaType, page),
     getWatchlistCount('movie'),
     getWatchlistCount('tv'),
   ]);

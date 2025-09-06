@@ -15,7 +15,7 @@ import {
 
 type PaginationControls = {
   totalPages: number;
-  pageType: 'discover' | 'search' | 'trailers' | 'watchlist';
+  pageType: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists';
 };
 
 /**
@@ -33,7 +33,7 @@ function buildPageUrl(
   pageNumber: number,
   currentGenreId: number,
   searchParams: URLSearchParams,
-  pageType: 'discover' | 'search' | 'trailers' | 'watchlist'
+  pageType: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists'
 ) {
   const newSearchParams = new URLSearchParams(searchParams);
   newSearchParams.set('page', String(pageNumber));
@@ -52,6 +52,10 @@ function buildPageUrl(
   // For trailers and watchlist, preserve mediaType
   if ((pageType === 'trailers' || pageType === 'watchlist') && mediaType) {
     newSearchParams.set('mediaType', mediaType);
+  }
+
+  if (pageType === 'lists') {
+    return `?${newSearchParams.toString()}`;
   }
 
   return `${pageType}?${newSearchParams.toString()}`;
@@ -127,6 +131,7 @@ export function PaginationControls({
       searchParams,
       pageType
     );
+
     router.push(newPageUrl, { scroll: false });
 
     if (container) {

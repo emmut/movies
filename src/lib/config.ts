@@ -15,8 +15,6 @@ export const MAJOR_STREAMING_PROVIDERS = [
   496, // Cineasterna
 ] as const;
 
-export const TMDB_API_URL = 'https://api.themoviedb.org/3';
-
 export const EMOJI_OPTIONS = [
   '📝',
   '🎬',
@@ -49,3 +47,5 @@ export const EMOJI_OPTIONS = [
   '🎸',
   '🎤',
 ];
+
+export const ITEMS_PER_PAGE = 24;

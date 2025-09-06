@@ -8,6 +8,7 @@ import { resourceIdSchema } from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
 import { and, count, eq } from 'drizzle-orm';
+import { ITEMS_PER_PAGE } from './config';
 import { getTvShowDetails } from './tv-shows';
 
 /**
@@ -125,8 +126,7 @@ export async function getWatchlistWithResourceDetails(resourceType: string) {
  */
 export async function getWatchlistWithResourceDetailsPaginated(
   resourceType: string,
-  page: number = 1,
-  itemsPerPage: number = 20
+  page: number = 1
 ) {
   const user = await getUser();
   if (!user) {
@@ -135,12 +135,11 @@ export async function getWatchlistWithResourceDetailsPaginated(
       totalItems: 0,
       totalPages: 0,
       currentPage: page,
-      itemsPerPage,
+      itemsPerPage: ITEMS_PER_PAGE,
     };
   }
 
   try {
-    // Get total count for this resource type
     const totalCountResult = await db
       .select({ count: count() })
       .from(watchlist)
@@ -152,7 +151,7 @@ export async function getWatchlistWithResourceDetailsPaginated(
       );
 
     const totalItems = totalCountResult[0]?.count || 0;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
     if (totalItems === 0) {
       return {
@@ -160,12 +159,11 @@ export async function getWatchlistWithResourceDetailsPaginated(
         totalItems: 0,
         totalPages: 0,
         currentPage: page,
-        itemsPerPage,
+        itemsPerPage: ITEMS_PER_PAGE,
       };
     }
 
-    // Get paginated watchlist items
-    const offset = (page - 1) * itemsPerPage;
+    const offset = (page - 1) * ITEMS_PER_PAGE;
     const paginatedWatchlist = await db
       .select()
       .from(watchlist)
@@ -175,10 +173,9 @@ export async function getWatchlistWithResourceDetailsPaginated(
           eq(watchlist.resourceType, resourceType)
         )
       )
-      .limit(itemsPerPage)
+      .limit(ITEMS_PER_PAGE)
       .offset(offset);
 
-    // Fetch resource details for paginated items
     const resourcesWithDetails = await Promise.allSettled(
       paginatedWatchlist.map(async (item) => {
         let resourceDetails: MovieDetails | TvDetails | null = null;
@@ -209,7 +206,7 @@ export async function getWatchlistWithResourceDetailsPaginated(
       totalItems,
       totalPages,
       currentPage: page,
-      itemsPerPage,
+      itemsPerPage: ITEMS_PER_PAGE,
     };
   } catch (error) {
     console.error('Error fetching paginated watchlist:', error);
@@ -218,7 +215,7 @@ export async function getWatchlistWithResourceDetailsPaginated(
       totalItems: 0,
       totalPages: 0,
       currentPage: page,
-      itemsPerPage,
+      itemsPerPage: ITEMS_PER_PAGE,
     };
   }
 }
