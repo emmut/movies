@@ -1,5 +1,7 @@
-import { NextConfig } from 'next';
-import 'src/env';
+import { type NextConfig } from 'next';
+import { env } from './src/env.ts';
+
+env;
 
 const nextConfig: NextConfig = {
   images: {
@@ -14,8 +16,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  reactCompiler: true,
   experimental: {
-    reactCompiler: true,
     useCache: true,
     clientSegmentCache: true,
     ppr: true,

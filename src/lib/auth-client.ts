@@ -84,7 +84,6 @@ export async function addPasskey(name: string = 'My Passkey') {
 export async function signInPasskey(email: string, autoFill = false) {
   try {
     const data = await authClient.signIn.passkey({
-      email,
       autoFill,
     });
 
