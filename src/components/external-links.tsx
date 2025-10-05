@@ -31,7 +31,6 @@ export function ExternalLinks({
         <a
           className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 font-semibold text-black transition-colors hover:bg-yellow-700"
           href={`https://imdb.com/${mediaType === 'person' ? 'name' : 'title'}/${imdbId}`}
-          target="_blank"
           rel="noopener noreferrer"
         >
           IMDb
@@ -41,7 +40,6 @@ export function ExternalLinks({
       <a
         className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
         href={tmdbUrl}
-        target="_blank"
         rel="noopener noreferrer"
       >
         <Database className="h-4 w-4" />
@@ -52,7 +50,6 @@ export function ExternalLinks({
         <a
           className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
           href={homepage}
-          target="_blank"
           rel="noopener noreferrer"
         >
           <Globe className="h-4 w-4" />
