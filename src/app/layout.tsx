@@ -26,6 +26,12 @@ export const metadata = {
   },
 };
 
+async function AppSidebarSuspense() {
+  const session = await getSession();
+
+  return <AppSidebar initialSession={session} />;
+}
+
 /**
  * Server-side layout component for the application, providing global structure, theming, and context providers.
  *
@@ -38,15 +44,15 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  const session = await getSession();
-
   return (
     <html lang="en" className="dark">
       <body className={clsx([inter.className])}>
         <NuqsAdapter>
           <PHProvider>
             <SidebarProvider>
-              <AppSidebar initialSession={session} />
+              <Suspense>
+                <AppSidebarSuspense />
+              </Suspense>
               <SidebarInset>
                 <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
                   <SidebarTrigger className="-ml-1" />
