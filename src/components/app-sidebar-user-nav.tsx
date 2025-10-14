@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { List, Star } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
+import { Skeleton } from './ui/skeleton';
 
 const userNavItems = [
   {
@@ -49,10 +50,10 @@ export async function UserNav() {
 
 function UserNavGhost() {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="h-8 animate-pulse rounded-md bg-gray-200/10" />
-      <div className="h-8 animate-pulse rounded-md bg-gray-200/10" />
-    </div>
+    <SidebarMenuItem>
+      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-full" />
+    </SidebarMenuItem>
   );
 }
 

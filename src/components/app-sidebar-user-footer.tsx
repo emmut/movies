@@ -9,6 +9,7 @@ import { LogIn } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 import { NavUser } from './nav-user';
+import { Skeleton } from './ui/skeleton';
 
 export async function UserFooter() {
   const session = await getSession();
@@ -48,7 +49,7 @@ export async function UserFooter() {
 }
 
 function UserFooterGhost() {
-  return <div className="h-12 animate-pulse rounded-md bg-gray-200/10" />;
+  return <Skeleton className="h-12 w-full" />;
 }
 
 UserFooter.Ghost = UserFooterGhost;

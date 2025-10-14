@@ -2,7 +2,6 @@
 
 import { ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { Button } from './ui/button';
 
 type GoBackProps = {
@@ -11,13 +10,8 @@ type GoBackProps = {
 
 export function GoBack({ referer }: GoBackProps) {
   const router = useRouter();
-  const [useDynamicBackButton, setUseDynamicBackButton] = useState(false);
-
-  useEffect(() => {
-    if (referer?.includes(window.location.origin)) {
-      setUseDynamicBackButton(true);
-    }
-  }, [referer]);
+  const useDynamicBackButton =
+    referer?.includes(window?.location?.origin) ?? false;
 
   return (
     <Button
