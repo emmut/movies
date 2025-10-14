@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { AppSidebar } from './app-sidebar';
-import { UserNav } from './app-sidebar-user-nav';
 import { UserFooter } from './app-sidebar-user-footer';
+import { UserNav } from './app-sidebar-user-nav';
 
 export async function AppSidebarWrapper() {
   return (

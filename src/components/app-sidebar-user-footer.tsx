@@ -48,7 +48,7 @@ export async function UserFooter() {
 }
 
 function UserFooterGhost() {
-  return <div className="h-12 animate-pulse rounded-md bg-gray-200" />;
+  return <div className="h-12 animate-pulse rounded-md bg-gray-200/10" />;
 }
 
 UserFooter.Ghost = UserFooterGhost;

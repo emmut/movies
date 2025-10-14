@@ -50,8 +50,8 @@ export async function UserNav() {
 function UserNavGhost() {
   return (
     <div className="flex flex-col gap-2">
-      <div className="h-8 animate-pulse rounded-md bg-gray-200" />
-      <div className="h-8 animate-pulse rounded-md bg-gray-200" />
+      <div className="h-8 animate-pulse rounded-md bg-gray-200/10" />
+      <div className="h-8 animate-pulse rounded-md bg-gray-200/10" />
     </div>
   );
 }
