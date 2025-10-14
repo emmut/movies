@@ -1,5 +1,4 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import SliderSkeleton from './slider-skeleton';
 
 /**
  * Displays a full-page loading skeleton UI for an person detail page.
@@ -9,7 +8,7 @@ import SliderSkeleton from './slider-skeleton';
  */
 export default function Loading() {
   return (
-    <div className="min-h-screen">
+    <div>
       <div className="mb-6">
         <Skeleton className="h-10 w-24" />
       </div>
@@ -64,16 +63,6 @@ export default function Loading() {
                 </div>
               ))}
             </div>
-          </div>
-
-          <div>
-            <Skeleton className="mb-4 h-6 w-32" />
-            <SliderSkeleton />
-          </div>
-
-          <div>
-            <Skeleton className="mb-4 h-6 w-36" />
-            <SliderSkeleton />
           </div>
 
           <div className="flex flex-wrap gap-4">
