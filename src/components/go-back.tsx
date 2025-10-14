@@ -1,5 +1,6 @@
 'use client';
 
+import { useIsClient } from '@/hooks/use-is-client';
 import { ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
@@ -10,10 +11,10 @@ type GoBackProps = {
 
 export function GoBack({ referer }: GoBackProps) {
   const router = useRouter();
+  const isClient = useIsClient();
+
   const useDynamicBackButton =
-    typeof window !== 'undefined'
-      ? referer?.includes(window.location.origin)
-      : false;
+    isClient && referer ? referer.includes(window.location.origin) : false;
 
   return (
     <Button
