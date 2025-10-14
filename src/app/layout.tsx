@@ -43,7 +43,9 @@ export default async function RootLayout({
         <NuqsAdapter>
           <PHProvider>
             <SidebarProvider>
-              <AppSidebarWrapper />
+              <Suspense>
+                <AppSidebarWrapper />
+              </Suspense>
               <SidebarInset>
                 <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
                   <SidebarTrigger className="-ml-1" />
