@@ -1,16 +1,20 @@
-import { LogIn } from 'lucide-react';
 import {
   SidebarMenu,
-  SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { getSession } from '@/lib/auth-server';
 import { createLoginUrl } from '@/lib/utils';
+import { LogIn } from 'lucide-react';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { NavUser } from './nav-user';
-import { getSession } from '@/lib/auth-server';
 
-export async function UserFooter({ pathname }: { pathname: string }) {
+export async function UserFooter() {
   const session = await getSession();
+  const headersList = await headers();
+  const pathname =
+    headersList.get('x-invoke-path') || headersList.get('x-pathname') || '/';
   const loginUrl = createLoginUrl(pathname);
 
   if (session?.user) {

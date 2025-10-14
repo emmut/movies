@@ -1,8 +1,9 @@
-import { List, Star } from 'lucide-react';
-import { SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
-import Link from 'next/link';
+import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { getSession } from '@/lib/auth-server';
+import { cn } from '@/lib/utils';
+import { List, Star } from 'lucide-react';
+import { headers } from 'next/headers';
+import Link from 'next/link';
 
 const userNavItems = [
   {
@@ -17,12 +18,16 @@ const userNavItems = [
   },
 ];
 
-export async function UserNav({ pathname }: { pathname: string }) {
+export async function UserNav() {
   const session = await getSession();
 
   if (!session?.user) {
     return null;
   }
+
+  const headersList = await headers();
+  const pathname =
+    headersList.get('x-invoke-path') || headersList.get('x-pathname') || '/';
 
   return (
     <>

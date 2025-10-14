@@ -1,8 +1,7 @@
 import { Suspense } from 'react';
 import { AppSidebar } from './app-sidebar';
-import { UserNav } from './app-sidebar-user-nav';
 import { UserFooter } from './app-sidebar-user-footer';
-import { headers } from 'next/headers';
+import { UserNav } from './app-sidebar-user-nav';
 
 function UserNavGhost() {
   return (
@@ -18,20 +17,16 @@ function UserFooterGhost() {
 }
 
 export async function AppSidebarWrapper() {
-  const headersList = await headers();
-  const pathname =
-    headersList.get('x-invoke-path') || headersList.get('x-pathname') || '/';
-
   return (
     <AppSidebar
       userNav={
         <Suspense fallback={<UserNavGhost />}>
-          <UserNav pathname={pathname} />
+          <UserNav />
         </Suspense>
       }
       userFooter={
         <Suspense fallback={<UserFooterGhost />}>
-          <UserFooter pathname={pathname} />
+          <UserFooter />
         </Suspense>
       }
     />
