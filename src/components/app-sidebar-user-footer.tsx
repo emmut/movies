@@ -1,22 +1,10 @@
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
 import { getSession } from '@/lib/auth-server';
-import { createLoginUrl } from '@/lib/utils';
-import { LogIn } from 'lucide-react';
-import { headers } from 'next/headers';
-import Link from 'next/link';
+import { UserLogin } from './app-sidebar-user-login';
 import { NavUser } from './nav-user';
 import { Skeleton } from './ui/skeleton';
 
 export async function UserFooter() {
   const session = await getSession();
-  const headersList = await headers();
-  const pathname =
-    headersList.get('x-invoke-path') || headersList.get('x-pathname') || '/';
-  const loginUrl = createLoginUrl(pathname);
 
   if (session?.user) {
     return (
@@ -30,22 +18,7 @@ export async function UserFooter() {
     );
   }
 
-  if (pathname !== '/login') {
-    return (
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <Link href={loginUrl}>
-              <LogIn className="h-4 w-4" />
-              <span>Login</span>
-            </Link>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    );
-  }
-
-  return null;
+  return <UserLogin />;
 }
 
 function UserFooterGhost() {
