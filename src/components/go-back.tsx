@@ -11,7 +11,9 @@ type GoBackProps = {
 export function GoBack({ referer }: GoBackProps) {
   const router = useRouter();
   const useDynamicBackButton =
-    referer?.includes(window?.location?.origin) ?? false;
+    typeof window !== 'undefined'
+      ? referer?.includes(window.location.origin)
+      : false;
 
   return (
     <Button
