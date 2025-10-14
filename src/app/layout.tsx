@@ -1,4 +1,4 @@
-import { AppSidebar } from '@/components/app-sidebar';
+import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
 import { Separator } from '@/components/ui/separator';
@@ -8,7 +8,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { inter } from '@/fonts';
-import { getSession } from '@/lib/auth-server';
 import { PHProvider } from '@/providers/posthog';
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
@@ -38,15 +37,13 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  const session = await getSession();
-
   return (
     <html lang="en" className="dark">
       <body className={clsx([inter.className])}>
         <NuqsAdapter>
           <PHProvider>
             <SidebarProvider>
-              <AppSidebar initialSession={session} />
+              <AppSidebarWrapper />
               <SidebarInset>
                 <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
                   <SidebarTrigger className="-ml-1" />
