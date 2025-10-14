@@ -4,6 +4,19 @@ import { UserNav } from './app-sidebar-user-nav';
 import { UserFooter } from './app-sidebar-user-footer';
 import { headers } from 'next/headers';
 
+function UserNavGhost() {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="h-8 animate-pulse rounded-md bg-gray-200" />
+      <div className="h-8 animate-pulse rounded-md bg-gray-200" />
+    </div>
+  );
+}
+
+function UserFooterGhost() {
+  return <div className="h-12 animate-pulse rounded-md bg-gray-200" />;
+}
+
 export async function AppSidebarWrapper() {
   const headersList = await headers();
   const pathname =
@@ -12,12 +25,12 @@ export async function AppSidebarWrapper() {
   return (
     <AppSidebar
       userNav={
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<UserNavGhost />}>
           <UserNav pathname={pathname} />
         </Suspense>
       }
       userFooter={
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<UserFooterGhost />}>
           <UserFooter pathname={pathname} />
         </Suspense>
       }
