@@ -1,4 +1,5 @@
 'use client';
+import { useIsClient } from '@/hooks/use-is-client';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
@@ -18,7 +19,11 @@ export function ItemSlider({ children }: ItemSliderProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
-  const [disableArrows, setDisableArrows] = useState(false);
+  const isClient = useIsClient();
+
+  const disableArrows = isClient
+    ? !window.matchMedia('(hover: hover)').matches
+    : false;
 
   function updateArrowVisibility() {
     const container = scrollContainerRef.current;
@@ -35,11 +40,6 @@ export function ItemSlider({ children }: ItemSliderProps) {
   useEffect(() => {
     const controller = new AbortController();
     const container = scrollContainerRef.current;
-    const supportsHover = window.matchMedia('(hover: hover)').matches;
-
-    if (!supportsHover) {
-      setDisableArrows(true);
-    }
 
     if (!container) {
       return;

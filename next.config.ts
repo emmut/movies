@@ -1,6 +1,7 @@
 import { type NextConfig } from 'next';
 import { env } from './src/env.ts';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 env;
 
 const nextConfig: NextConfig = {
@@ -20,7 +21,7 @@ const nextConfig: NextConfig = {
   experimental: {
     useCache: true,
     clientSegmentCache: true,
-    ppr: true,
+    cacheComponents: true,
   },
 };
 
