@@ -45,9 +45,9 @@ export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
       <SidebarHeader>
         <Brand />
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="p-1">
         <SidebarMenu>
-          <SidebarGroupContent>
+          <SidebarGroupContent className="flex flex-col gap-1">
             {navItems.map(({ href, label, icon: Icon }) => (
               <SidebarMenuItem key={href}>
                 <SidebarMenuButton asChild isActive={pathname === href}>

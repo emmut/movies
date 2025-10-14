@@ -50,10 +50,10 @@ export async function UserNav() {
 
 function UserNavGhost() {
   return (
-    <SidebarMenuItem>
+    <>
       <Skeleton className="h-8 w-full" />
       <Skeleton className="h-8 w-full" />
-    </SidebarMenuItem>
+    </>
   );
 }
 
