@@ -1,4 +1,4 @@
-import { AppSidebar } from '@/components/app-sidebar';
+import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
 import { Separator } from '@/components/ui/separator';
@@ -8,7 +8,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { inter } from '@/fonts';
-import { getSession } from '@/lib/auth-server';
 import { PHProvider } from '@/providers/posthog';
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
@@ -25,12 +24,6 @@ export const metadata = {
     apple: '/apple-touch-icon.png',
   },
 };
-
-async function AppSidebarSuspense() {
-  const session = await getSession();
-
-  return <AppSidebar initialSession={session} />;
-}
 
 /**
  * Server-side layout component for the application, providing global structure, theming, and context providers.
@@ -51,7 +44,7 @@ export default async function RootLayout({
           <PHProvider>
             <SidebarProvider>
               <Suspense>
-                <AppSidebarSuspense />
+                <AppSidebarWrapper />
               </Suspense>
               <SidebarInset>
                 <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
