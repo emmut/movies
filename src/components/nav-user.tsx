@@ -39,6 +39,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const router = useRouter();
+  const { setOpenMobile } = useSidebar();
 
   async function handleLogout() {
     try {
@@ -97,7 +98,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/settings">
+              <Link href="/settings" onClick={() => setOpenMobile(false)}>
                 <Settings />
                 Settings
               </Link>
