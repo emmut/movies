@@ -2,6 +2,7 @@
 
 import clsx from 'clsx';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { startTransition } from 'react';
 import { Input } from './ui/input';
 import {
   Pagination,
@@ -120,27 +121,29 @@ export function PaginationControls({
   const hasNextPage = currentPageNumber < totalPages;
 
   function handlePageSelect(pageNumber: number) {
-    const container = document.querySelector('#content-container');
-    const newPageUrl = buildPageUrl(
-      pageNumber,
-      currentGenreId,
-      searchParams,
-      pageType
-    );
+    startTransition(() => {
+      const container = document.querySelector('#content-container');
+      const newPageUrl = buildPageUrl(
+        pageNumber,
+        currentGenreId,
+        searchParams,
+        pageType
+      );
 
-    router.push(newPageUrl, { scroll: false });
+      router.push(newPageUrl, { scroll: false });
 
-    if (container) {
-      container.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    } else {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      });
-    }
+      if (container) {
+        container.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      } else {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth',
+        });
+      }
+    });
   }
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);

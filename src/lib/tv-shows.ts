@@ -11,8 +11,8 @@ import {
   TvWatchProviders,
 } from '@/types/tv-show';
 import {
-  unstable_cacheLife as cacheLife,
-  unstable_cacheTag as cacheTag,
+  cacheLife,
+  cacheTag,
 } from 'next/cache';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { TMDB_API_URL } from './constants';

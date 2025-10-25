@@ -5,11 +5,13 @@ import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { useEffect } from 'react';
 
-export type PHProviderProps = {
+export type PostHogClientProviderProps = {
   children: React.ReactNode;
 };
 
-export function PHProvider({ children }: PHProviderProps) {
+export function PostHogClientProvider({
+  children,
+}: PostHogClientProviderProps) {
   useEffect(() => {
     posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY, {
       api_host: env.NEXT_PUBLIC_POSTHOG_HOST,
