@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { List, Star } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from './ui/sidebar';
@@ -8,12 +9,19 @@ import { SidebarMenuButton, SidebarMenuItem, useSidebar } from './ui/sidebar';
 type NavLinkProps = {
   href: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: 'star' | 'list';
 };
 
-function NavLink({ href, label, icon: Icon }: NavLinkProps) {
+const iconMap = {
+  star: Star,
+  list: List,
+};
+
+function NavLink({ href, label, icon }: NavLinkProps) {
   const { setOpenMobile } = useSidebar();
   const pathname = usePathname();
+  const Icon = iconMap[icon];
+
   return (
     <>
       <SidebarMenuItem>

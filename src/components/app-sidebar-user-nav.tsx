@@ -1,5 +1,4 @@
 import { getSession } from '@/lib/auth-server';
-import { List, Star } from 'lucide-react';
 import { NavLink } from './nav-link';
 import { Skeleton } from './ui/skeleton';
 
@@ -7,12 +6,12 @@ const userNavItems = [
   {
     href: '/watchlist',
     label: 'Watchlist',
-    icon: Star,
+    icon: 'star' as const,
   },
   {
     href: '/lists',
     label: 'Lists',
-    icon: List,
+    icon: 'list' as const,
   },
 ];
 
@@ -25,8 +24,8 @@ export async function UserNav() {
 
   return (
     <>
-      {userNavItems.map(({ href, label, icon: Icon }) => (
-        <NavLink key={href} href={href} label={label} icon={Icon} />
+      {userNavItems.map(({ href, label, icon }) => (
+        <NavLink key={href} href={href} label={label} icon={icon} />
       ))}
     </>
   );
