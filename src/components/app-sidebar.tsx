@@ -14,6 +14,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
@@ -39,7 +40,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 
 export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
   const pathname = usePathname();
-
+  const { setOpenMobile } = useSidebar();
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -51,7 +52,7 @@ export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
             {navItems.map(({ href, label, icon: Icon }) => (
               <SidebarMenuItem key={href}>
                 <SidebarMenuButton asChild isActive={pathname === href}>
-                  <Link href={href}>
+                  <Link href={href} onClick={() => setOpenMobile(false)}>
                     <Icon
                       className={cn(
                         'h-4 w-4',

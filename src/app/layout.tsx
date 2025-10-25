@@ -8,7 +8,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { inter } from '@/fonts';
-import { PHProvider } from '@/providers/posthog';
+import { PostHogClientProvider } from '@/providers/posthog';
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode, Suspense } from 'react';
@@ -41,7 +41,7 @@ export default async function RootLayout({
     <html lang="en" className="dark">
       <body className={clsx([inter.className])}>
         <NuqsAdapter>
-          <PHProvider>
+          <PostHogClientProvider>
             <SidebarProvider>
               <AppSidebarWrapper />
               <SidebarInset>
@@ -59,7 +59,7 @@ export default async function RootLayout({
               </SidebarInset>
             </SidebarProvider>
             <LoginToastHandler />
-          </PHProvider>
+          </PostHogClientProvider>
         </NuqsAdapter>
         <Toaster position="top-center" richColors />
       </body>

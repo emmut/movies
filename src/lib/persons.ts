@@ -5,8 +5,8 @@ import {
   PersonTvCredits,
 } from '@/types/person';
 import {
-  unstable_cacheLife as cacheLife,
-  unstable_cacheTag as cacheTag,
+  cacheLife,
+  cacheTag,
 } from 'next/cache';
 import { TMDB_API_URL } from './constants';
 
