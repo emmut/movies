@@ -18,10 +18,10 @@ const nextConfig: NextConfig = {
     ],
   },
   reactCompiler: true,
+  cacheComponents: true,
   experimental: {
     useCache: true,
     clientSegmentCache: true,
-    cacheComponents: true,
   },
 };
 
