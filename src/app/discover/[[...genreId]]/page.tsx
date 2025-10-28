@@ -1,4 +1,4 @@
-import AvailableGenresNavigation from '@/components/available-genre-navigation';
+import { AvailableGenresNavigation } from '@/components/available-genre-navigation';
 import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
 import ItemGrid from '@/components/item-grid';

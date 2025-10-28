@@ -26,11 +26,13 @@ type AvailableGenreProps = {
  *
  * @returns A navigation element with genre filter links.
  */
-export default async function AvailableGenresNavigation({
+async function AvailableGenresNavigation({
   currentGenreId,
   mediaType = 'movie',
   searchParams,
 }: AvailableGenreProps) {
+  'use cache';
+
   const genres =
     mediaType === 'movie'
       ? await fetchAvailableGenres()
@@ -85,3 +87,4 @@ function AvailableGenresNavigationSkeleton() {
 }
 
 AvailableGenresNavigation.Skeleton = AvailableGenresNavigationSkeleton;
+export { AvailableGenresNavigation };
