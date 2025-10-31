@@ -36,6 +36,7 @@ export default function SearchResults({
   mediaType,
   userId,
 }: SearchResultsProps) {
+  // Call all hooks consistently (Rules of Hooks) but only enable the one we need
   const moviesQuery = useSearchMovies({
     query: searchQuery,
     page: currentPage,
@@ -58,7 +59,7 @@ export default function SearchResults({
   });
 
   // Select the appropriate query based on mediaType
-  const { data, isLoading, error } =
+  const activeQuery =
     mediaType === 'movie'
       ? moviesQuery
       : mediaType === 'tv'
@@ -66,6 +67,8 @@ export default function SearchResults({
         : mediaType === 'person'
           ? personsQuery
           : multiQuery;
+
+  const { data, isLoading, error } = activeQuery;
 
   if (!searchQuery) {
     return <SearchBox mediaType={mediaType} autoFocus />;
@@ -87,8 +90,8 @@ export default function SearchResults({
     return null;
   }
 
-  if (mediaType === 'tv') {
-    const { tvShows } = tvShowsQuery.data!;
+  if (mediaType === 'tv' && tvShowsQuery.data) {
+    const { tvShows } = tvShowsQuery.data;
 
     return (
       <>
@@ -109,8 +112,8 @@ export default function SearchResults({
     );
   }
 
-  if (mediaType === 'person') {
-    const { persons } = personsQuery.data!;
+  if (mediaType === 'person' && personsQuery.data) {
+    const { persons } = personsQuery.data;
 
     return (
       <>
@@ -126,8 +129,8 @@ export default function SearchResults({
     );
   }
 
-  if (mediaType === 'movie') {
-    const { movies } = moviesQuery.data!;
+  if (mediaType === 'movie' && moviesQuery.data) {
+    const { movies } = moviesQuery.data;
 
     return (
       <>
@@ -149,7 +152,11 @@ export default function SearchResults({
   }
 
   // 'all' - mixed results from multi search
-  const { results } = multiQuery.data!;
+  if (!multiQuery.data) {
+    return null;
+  }
+
+  const { results } = multiQuery.data;
 
   return (
     <>
