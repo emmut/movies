@@ -13,15 +13,10 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
-    "@opennextjs/cloudflare": "^1.11.0",
     "@primer/octicons-react": "^19.19.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
@@ -74,8 +69,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.1",
-    "typescript": "5.9.3",
-    "wrangler": "^4.45.3"
+    "typescript": "5.9.3"
   },
   "pnpm": {
     "overrides": {
@@ -83,14 +77,11 @@
       "@types/react-dom": "19.2.2"
     },
     "onlyBuiltDependencies": [
-      "@tailwindcss/oxide",
       "better-sqlite3",
       "core-js",
       "esbuild",
       "sharp",
-      "unrs-resolver",
-      "workerd",
-      "rclone.js"
+      "unrs-resolver"
     ]
   }
 }
