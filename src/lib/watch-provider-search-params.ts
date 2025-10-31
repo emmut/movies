@@ -1,5 +1,6 @@
 import {
   createLoader,
+  createParser,
   parseAsArrayOf,
   parseAsInteger,
   parseAsString,
@@ -23,3 +24,15 @@ export function getWatchProvidersString(
   }
   return undefined;
 }
+
+export const parseAsPipeSeparatedArrayOfIntegers = createParser({
+  parse(value) {
+    if (!value) {
+      return [];
+    }
+    return value.split(',').map(Number);
+  },
+  serialize(value) {
+    return value.join(',');
+  },
+});
