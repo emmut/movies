@@ -6,15 +6,7 @@ import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import Spinner from '@/components/spinner';
-import {
-  getUserRegion,
-  getUserWatchProviders,
-  getWatchProviders,
-} from '@/lib/user-actions';
-import {
-  getWatchProvidersString,
-  loadWatchProviderSearchParams,
-} from '@/lib/watch-provider-search-params';
+import { loadWatchProviderSearchParams } from '@/lib/watch-provider-search-params';
 import { Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -52,21 +44,8 @@ export default async function DiscoverWithGenrePage(
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
   const sortBy = searchParams.sort_by;
 
-  const userWatchProviders = await getUserWatchProviders();
-
   const { with_watch_providers, watch_region } =
     loadWatchProviderSearchParams(searchParams);
-  const watchRegion = watch_region ?? (await getUserRegion());
-
-  const filteredWatchProviders = await getWatchProviders(
-    watchRegion,
-    userWatchProviders
-  );
-
-  const watchProviders = getWatchProvidersString(
-    with_watch_providers,
-    userWatchProviders
-  );
 
   return (
     <>
@@ -93,11 +72,7 @@ export default async function DiscoverWithGenrePage(
       </div>
 
       <div className="mt-6">
-        <FiltersPanel
-          mediaType={mediaType}
-          watchProviders={filteredWatchProviders}
-          userRegion={watchRegion}
-        />
+        <FiltersPanel mediaType={mediaType} watchRegion={watch_region} />
       </div>
 
       <div
@@ -111,8 +86,8 @@ export default async function DiscoverWithGenrePage(
             currentPage={page}
             mediaType={mediaType}
             sortBy={sortBy}
-            watchProviders={watchProviders}
-            watchRegion={watchRegion}
+            watchRegion={watch_region}
+            withWatchProviders={with_watch_providers}
           />
         </Suspense>
       </div>
@@ -123,8 +98,8 @@ export default async function DiscoverWithGenrePage(
           currentPage={page}
           mediaType={mediaType}
           sortBy={sortBy}
-          watchProviders={watchProviders}
-          watchRegion={watchRegion}
+          watchRegion={watch_region}
+          withWatchProviders={with_watch_providers}
         />
       </Suspense>
     </>

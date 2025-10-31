@@ -1,11 +1,14 @@
-import { WatchProvider } from '@/types/watch-provider';
+import {
+  getUserRegion,
+  getUserWatchProviders,
+  getWatchProviders,
+} from '@/lib/user-actions';
 import SortByFilter from './sort-by-filter';
 import WatchProviderFilter from './watch-provider-filter';
 
 type FiltersPanelProps = {
   mediaType: 'movie' | 'tv';
-  watchProviders: WatchProvider[];
-  userRegion: string;
+  watchRegion: string;
 };
 
 /**
@@ -17,17 +20,23 @@ type FiltersPanelProps = {
  * @param watchProviders - Available watch providers for the user's region.
  * @param userRegion - The user's region code.
  */
-export default function FiltersPanel({
+export default async function FiltersPanel({
   mediaType,
-  watchProviders,
-  userRegion,
+  watchRegion,
 }: FiltersPanelProps) {
+  const userWatchProviders = await getUserWatchProviders();
+  const userRegion = watchRegion ?? (await getUserRegion());
+
+  const filteredWatchProviders = await getWatchProviders(
+    watchRegion,
+    userWatchProviders
+  );
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <SortByFilter mediaType={mediaType} />
         <WatchProviderFilter
-          providers={watchProviders}
+          providers={filteredWatchProviders}
           userRegion={userRegion}
         />
       </div>
