@@ -13,6 +13,27 @@ type DiscoverParams = {
 };
 
 export const queryKeys = {
+  user: {
+    all: ['user'] as const,
+    region: () => [...queryKeys.user.all, 'region'] as const,
+    watchProviders: (region: string, userProviders?: number[]) =>
+      [...queryKeys.user.all, 'watchProviders', region, userProviders] as const,
+  },
+  watchlist: {
+    all: ['watchlist'] as const,
+    lists: () => [...queryKeys.watchlist.all, 'list'] as const,
+    list: (mediaType: 'movie' | 'tv', page: number) =>
+      [...queryKeys.watchlist.lists(), mediaType, page] as const,
+    counts: () => [...queryKeys.watchlist.all, 'counts'] as const,
+    count: (mediaType: 'movie' | 'tv') =>
+      [...queryKeys.watchlist.counts(), mediaType] as const,
+  },
+  lists: {
+    all: ['lists'] as const,
+    details: () => [...queryKeys.lists.all, 'detail'] as const,
+    detail: (listId: string, page: number) =>
+      [...queryKeys.lists.details(), listId, page] as const,
+  },
   discover: {
     all: ['discover'] as const,
     lists: () => [...queryKeys.discover.all, 'list'] as const,
