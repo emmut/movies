@@ -32,7 +32,7 @@
   },
   "routes": [
     {
-      "pattern": "movies.emmut.space",
+      "pattern": "movies2.emmut.space",
       "custom_domain": true,
     },
   ],
