@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/sidebar';
 import { inter } from '@/fonts';
 import { PostHogClientProvider } from '@/providers/posthog';
+import { QueryProvider } from '@/providers/query-provider';
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode, Suspense } from 'react';
@@ -40,25 +41,27 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={clsx([inter.className])}>
-        <NuqsAdapter>
-          <PostHogClientProvider>
-            <SidebarProvider>
-              <AppSidebarWrapper />
-              <SidebarInset>
-                <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
-                  <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="h-4" />
-                  <Suspense>
-                    <Search />
-                  </Suspense>
-                </header>
-                <div className="mx-auto w-full max-w-7xl p-4">{children}</div>
-                <Footer />
-              </SidebarInset>
-            </SidebarProvider>
-            <LoginToastHandler />
-          </PostHogClientProvider>
-        </NuqsAdapter>
+        <QueryProvider>
+          <NuqsAdapter>
+            <PostHogClientProvider>
+              <SidebarProvider>
+                <AppSidebarWrapper />
+                <SidebarInset>
+                  <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
+                    <SidebarTrigger className="-ml-1" />
+                    <Separator orientation="vertical" className="h-4" />
+                    <Suspense>
+                      <Search />
+                    </Suspense>
+                  </header>
+                  <div className="mx-auto w-full max-w-7xl p-4">{children}</div>
+                  <Footer />
+                </SidebarInset>
+              </SidebarProvider>
+              <LoginToastHandler />
+            </PostHogClientProvider>
+          </NuqsAdapter>
+        </QueryProvider>
         <Toaster position="top-center" richColors />
       </body>
     </html>

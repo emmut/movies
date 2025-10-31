@@ -1,11 +1,12 @@
 import { AvailableGenresNavigation } from '@/components/available-genre-navigation';
 import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
-import ItemGrid from '@/components/item-grid';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
-import Spinner from '@/components/spinner';
+import { getDiscoverMedia } from '@/lib/discover-client';
+import { getQueryClient } from '@/lib/query-client';
+import { queryKeys } from '@/lib/query-keys';
 import {
   getUserRegion,
   getUserWatchProviders,
@@ -15,6 +16,7 @@ import {
   getWatchProvidersString,
   loadWatchProviderSearchParams,
 } from '@/lib/watch-provider-search-params';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -68,8 +70,39 @@ export default async function DiscoverWithGenrePage(
     userWatchProviders
   );
 
+  // Prefetch data on the server for React Query
+  const queryClient = getQueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey:
+      mediaType === 'movie'
+        ? queryKeys.discover.movies({
+            genreId,
+            page,
+            sortBy,
+            watchProviders,
+            watchRegion,
+          })
+        : queryKeys.discover.tvShows({
+            genreId,
+            page,
+            sortBy,
+            watchProviders,
+            watchRegion,
+          }),
+    queryFn: () =>
+      getDiscoverMedia(
+        mediaType,
+        genreId,
+        page,
+        sortBy,
+        watchProviders,
+        watchRegion
+      ),
+  });
+
   return (
-    <>
+    <HydrationBoundary state={dehydrate(queryClient)}>
       <div className="flex items-center gap-4">
         <SectionTitle>Discover</SectionTitle>
 
@@ -105,20 +138,7 @@ export default async function DiscoverWithGenrePage(
         tabIndex={0}
         className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <Suspense fallback={<ItemGrid.Skeletons className="w-full" />}>
-          <DiscoverGrid
-            currentGenreId={genreId}
-            currentPage={page}
-            mediaType={mediaType}
-            sortBy={sortBy}
-            watchProviders={watchProviders}
-            watchRegion={watchRegion}
-          />
-        </Suspense>
-      </div>
-
-      <Suspense fallback={<Spinner className="mx-auto mt-8" />}>
-        <Pagination
+        <DiscoverGrid
           currentGenreId={genreId}
           currentPage={page}
           mediaType={mediaType}
@@ -126,7 +146,16 @@ export default async function DiscoverWithGenrePage(
           watchProviders={watchProviders}
           watchRegion={watchRegion}
         />
-      </Suspense>
-    </>
+      </div>
+
+      <Pagination
+        currentGenreId={genreId}
+        currentPage={page}
+        mediaType={mediaType}
+        sortBy={sortBy}
+        watchProviders={watchProviders}
+        watchRegion={watchRegion}
+      />
+    </HydrationBoundary>
   );
 }

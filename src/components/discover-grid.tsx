@@ -1,5 +1,6 @@
-import { fetchDiscoverMovies } from '@/lib/movies';
-import { fetchDiscoverTvShows } from '@/lib/tv-shows';
+'use client';
+
+import { useDiscoverMedia } from '@/hooks/use-discover-query';
 import ItemGrid from './item-grid';
 
 type DiscoverGridProps = {
@@ -25,7 +26,7 @@ type DiscoverGridProps = {
  * @param watchRegion - The region code for watch providers.
  * @param userId - Optional user ID to enable list functionality.
  */
-export default async function DiscoverGrid({
+export default function DiscoverGrid({
   currentGenreId,
   currentPage,
   mediaType,
@@ -34,23 +35,34 @@ export default async function DiscoverGrid({
   watchRegion,
   userId,
 }: DiscoverGridProps) {
-  if (mediaType === 'tv') {
-    const { tvShows } = await fetchDiscoverTvShows(
-      currentGenreId,
-      currentPage,
-      sortBy,
-      watchProviders,
-      watchRegion
-    );
-    return <ItemGrid resources={tvShows} type="tv" userId={userId} />;
-  }
-
-  const { movies } = await fetchDiscoverMovies(
-    currentGenreId,
-    currentPage,
+  const { data, isLoading, error } = useDiscoverMedia({
+    mediaType,
+    genreId: currentGenreId,
+    page: currentPage,
     sortBy,
     watchProviders,
-    watchRegion
-  );
-  return <ItemGrid resources={movies} type="movie" userId={userId} />;
+    watchRegion,
+  });
+
+  if (isLoading) {
+    return <ItemGrid.Skeletons className="w-full" />;
+  }
+
+  if (error) {
+    return (
+      <div className="col-span-full text-center text-red-500">
+        Error loading content. Please try again.
+      </div>
+    );
+  }
+
+  if (!data || data.results.length === 0) {
+    return (
+      <div className="text-muted-foreground col-span-full text-center">
+        No results found.
+      </div>
+    );
+  }
+
+  return <ItemGrid resources={data.results} type={mediaType} userId={userId} />;
 }
