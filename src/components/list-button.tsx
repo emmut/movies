@@ -28,8 +28,10 @@ import {
   removeFromList,
   UserListsWithStatus,
 } from '@/lib/lists';
+import { queryKeys } from '@/lib/query-keys';
 import { isResourceInWatchlist } from '@/lib/watchlist';
 import { toggleWatchlist } from '@/lib/watchlist-actions';
+import { useQueryClient } from '@tanstack/react-query';
 import { Check, List, ListPlus, Star } from 'lucide-react';
 import { ChangeEvent, useState, useTransition } from 'react';
 import { toast } from 'sonner';
@@ -57,6 +59,7 @@ export function ListButton({
   const [isPending, startTransition] = useTransition();
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(false);
+  const queryClient = useQueryClient();
 
   if (!userId) {
     return null;
@@ -91,6 +94,16 @@ export function ListButton({
           await addToList(listId, mediaId, mediaType);
           toast.success(`Added to "${listName}"`);
         }
+
+        // Invalidate React Query cache after successful mutation
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.lists.details(),
+          predicate: (query) => {
+            const [, , queryListId] = query.queryKey;
+            return queryListId === listId;
+          },
+        });
+
         await refreshLists(); // Refresh to update checkboxes
       } catch (error) {
         toast.error(
@@ -161,6 +174,9 @@ export function ListButton({
             ? 'Added to watchlist'
             : 'Removed from watchlist'
         );
+
+        // Invalidate React Query cache after successful mutation
+        queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
       } catch (error) {
         toast.error(
           error instanceof Error ? error.message : 'Failed to update watchlist'
@@ -238,7 +254,7 @@ export function ListButton({
                     <span>{list.name}</span>
                   </span>
                   {list.hasItem && (
-                    <Check className="ml-2 h-4 w-4 flex-shrink-0 text-green-500" />
+                    <Check className="ml-2 h-4 w-4 shrink-0 text-green-500" />
                   )}
                 </DropdownMenuItem>
               ))

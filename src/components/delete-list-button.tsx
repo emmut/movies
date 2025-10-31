@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { deleteList } from '@/lib/lists';
+import { queryKeys } from '@/lib/query-keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -34,6 +36,7 @@ export function DeleteListButton({
   children,
 }: DeleteListButtonProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleDelete() {
@@ -41,6 +44,12 @@ export function DeleteListButton({
     try {
       await deleteList(listId);
       toast.success('List deleted successfully');
+
+      // Invalidate all list queries to ensure fresh data
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.lists.all,
+      });
+
       router.refresh();
       if (redirectAfterDelete) {
         router.push('/lists');
