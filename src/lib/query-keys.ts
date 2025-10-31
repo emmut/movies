@@ -60,4 +60,16 @@ export const queryKeys = {
         params.watchRegion,
       ] as const,
   },
+  search: {
+    all: ['search'] as const,
+    lists: () => [...queryKeys.search.all, 'list'] as const,
+    movies: (query: string, page: number) =>
+      [...queryKeys.search.lists(), 'movies', query, page] as const,
+    tvShows: (query: string, page: number) =>
+      [...queryKeys.search.lists(), 'tv', query, page] as const,
+    persons: (query: string, page: number) =>
+      [...queryKeys.search.lists(), 'persons', query, page] as const,
+    multi: (query: string, page: number) =>
+      [...queryKeys.search.lists(), 'multi', query, page] as const,
+  },
 } as const;

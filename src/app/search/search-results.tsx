@@ -1,23 +1,27 @@
+'use client';
+
 import ItemCard from '@/components/item-card';
+import ItemGrid from '@/components/item-grid';
 import PersonCard from '@/components/person-card';
 import SearchBox from '@/components/search-box';
+import { useSearchQuery } from '@/hooks/use-search-query';
 import {
-  fetchMoviesBySearchQuery,
-  fetchMultiSearchQuery,
-  fetchPersonsBySearchQuery,
-  fetchTvShowsBySearchQuery,
+  isSearchMoviesResult,
+  isSearchMultiResult,
+  isSearchPersonsResult,
+  isSearchTvShowsResult,
 } from '@/lib/search';
 import { MediaType } from '@/types/media-type';
 
 type SearchResultsProps = {
   searchQuery: string;
-  currentPage: string;
+  currentPage: number;
   mediaType: MediaType;
   userId?: string;
 };
 
 /**
- * Asynchronously fetches and displays search results for movies, TV shows, persons, or mixed results based on the media type.
+ * Fetches and displays search results for movies, TV shows, persons, or mixed results based on the media type.
  *
  * Renders ResourceCard components for movies/TV shows and PersonCard components for persons in the search results.
  *
@@ -27,21 +31,40 @@ type SearchResultsProps = {
  * @param userId - Optional user ID to enable list functionality.
  * @returns An array of components representing the search results.
  */
-export default async function SearchResults({
+export default function SearchResults({
   searchQuery,
   currentPage,
   mediaType,
   userId,
 }: SearchResultsProps) {
+  const { data, isLoading, error } = useSearchQuery({
+    query: searchQuery,
+    page: currentPage,
+    mediaType,
+  });
+
   if (!searchQuery) {
     return <SearchBox mediaType={mediaType} autoFocus />;
   }
 
-  if (mediaType === 'tv') {
-    const { tvShows } = await fetchTvShowsBySearchQuery(
-      searchQuery,
-      currentPage
+  if (isLoading) {
+    return <ItemGrid.Skeletons className="w-full" />;
+  }
+
+  if (error) {
+    return (
+      <div className="col-span-full text-center text-red-500">
+        Error loading search results. Please try again.
+      </div>
     );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  if (mediaType === 'tv' && isSearchTvShowsResult(data)) {
+    const { tvShows } = data;
 
     return (
       <>
@@ -62,11 +85,8 @@ export default async function SearchResults({
     );
   }
 
-  if (mediaType === 'person') {
-    const { persons } = await fetchPersonsBySearchQuery(
-      searchQuery,
-      currentPage
-    );
+  if (mediaType === 'person' && isSearchPersonsResult(data)) {
+    const { persons } = data;
 
     return (
       <>
@@ -82,8 +102,8 @@ export default async function SearchResults({
     );
   }
 
-  if (mediaType === 'movie') {
-    const { movies } = await fetchMoviesBySearchQuery(searchQuery, currentPage);
+  if (mediaType === 'movie' && isSearchMoviesResult(data)) {
+    const { movies } = data;
 
     return (
       <>
@@ -105,46 +125,50 @@ export default async function SearchResults({
   }
 
   // 'all' - mixed results from multi search
-  const { results } = await fetchMultiSearchQuery(searchQuery, currentPage);
+  if (isSearchMultiResult(data)) {
+    const { results } = data;
 
-  return (
-    <>
-      {results.map((result) => {
-        // Each result has a media_type property: 'movie', 'tv', or 'person'
-        if (result.media_type === 'person') {
-          return (
-            <PersonCard
-              key={`person-${result.id}`}
-              person={result}
-              userId={userId}
-            />
-          );
-        } else if (result.media_type === 'tv') {
-          return (
-            <ItemCard
-              key={`tv-${result.id}`}
-              resource={result}
-              type="tv"
-              userId={userId}
-            />
-          );
-        } else if (result.media_type === 'movie') {
-          return (
-            <ItemCard
-              key={`movie-${result.id}`}
-              resource={result}
-              type="movie"
-              userId={userId}
-            />
-          );
-        }
-        return null;
-      })}
-      {results.length === 0 && (
-        <p className="col-span-full text-center text-zinc-400">
-          No results found for &ldquo;{searchQuery}&rdquo;
-        </p>
-      )}
-    </>
-  );
+    return (
+      <>
+        {results.map((result) => {
+          // Each result has a media_type property: 'movie', 'tv', or 'person'
+          if (result.media_type === 'person') {
+            return (
+              <PersonCard
+                key={`person-${result.id}`}
+                person={result}
+                userId={userId}
+              />
+            );
+          } else if (result.media_type === 'tv') {
+            return (
+              <ItemCard
+                key={`tv-${result.id}`}
+                resource={result}
+                type="tv"
+                userId={userId}
+              />
+            );
+          } else if (result.media_type === 'movie') {
+            return (
+              <ItemCard
+                key={`movie-${result.id}`}
+                resource={result}
+                type="movie"
+                userId={userId}
+              />
+            );
+          }
+          return null;
+        })}
+        {results.length === 0 && (
+          <p className="col-span-full text-center text-zinc-400">
+            No results found for &ldquo;{searchQuery}&rdquo;
+          </p>
+        )}
+      </>
+    );
+  }
+
+  return null;
 }
