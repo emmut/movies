@@ -39,6 +39,7 @@ export default function WatchProviderFilter({
     ? providersParam
         .split(providersParam.includes('|') ? '|' : ',')
         .map((id) => parseInt(id))
+        .filter((id) => !isNaN(id))
     : [];
 
   const [isOpen, setIsOpen] = useState(false);
