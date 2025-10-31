@@ -69,8 +69,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.1",
-    "typescript": "5.9.3",
-    "wrangler": "^4.45.1"
+    "typescript": "5.9.3"
   },
   "pnpm": {
     "overrides": {
@@ -78,13 +77,11 @@
       "@types/react-dom": "19.2.2"
     },
     "onlyBuiltDependencies": [
-      "@tailwindcss/oxide",
       "better-sqlite3",
       "core-js",
       "esbuild",
       "sharp",
-      "unrs-resolver",
-      "workerd"
+      "unrs-resolver"
     ]
   }
 }
