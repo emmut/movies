@@ -1,13 +1,24 @@
+import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
+import MediaList from '@/components/media-list';
 import { ItemSlider } from '@/components/ui/item-slider';
+import {
+  fetchNowPlayingMovies,
+  fetchTopRatedMovies,
+  fetchUpcomingMovies,
+  fetchUserNowPlayingMovies,
+  fetchUserTopRatedMovies,
+  fetchUserUpcomingMovies,
+} from '@/lib/movies';
+import {
+  fetchOnTheAirTvShows,
+  fetchPopularTvShows,
+  fetchTopRatedTvShows,
+  fetchUserOnTheAirTvShows,
+  fetchUserPopularTvShows,
+  fetchUserTopRatedTvShows,
+} from '@/lib/tv-shows';
 import { Suspense } from 'react';
-import NowPlayingMovies from '../now-playing';
-import OnTheAirTvShows from '../on-the-air-tv';
-import PopularTvShows from '../popular-tv';
-import TopRatedMovies from '../top-rated';
-import TopRatedTvShows from '../top-rated-tv';
-import Trending from '../trending';
-import UpcomingMovies from '../upcoming';
 
 /**
  * Renders the homepage with categorized sections for trending, popular, and top-rated movies and TV shows.
@@ -52,7 +63,11 @@ export default async function Home() {
 
         <ItemSlider>
           <Suspense fallback={<ItemGrid.Skeletons />}>
-            <NowPlayingMovies />
+            <MediaList
+              fetchUserItems={fetchUserNowPlayingMovies}
+              fetchItems={fetchNowPlayingMovies}
+              type="movie"
+            />
           </Suspense>
         </ItemSlider>
       </section>
@@ -69,7 +84,11 @@ export default async function Home() {
 
         <ItemSlider>
           <Suspense fallback={<ItemGrid.Skeletons />}>
-            <OnTheAirTvShows />
+            <MediaList
+              fetchUserItems={fetchUserOnTheAirTvShows}
+              fetchItems={fetchOnTheAirTvShows}
+              type="tv"
+            />
           </Suspense>
         </ItemSlider>
       </section>
@@ -86,7 +105,11 @@ export default async function Home() {
 
         <ItemSlider>
           <Suspense fallback={<ItemGrid.Skeletons />}>
-            <UpcomingMovies />
+            <MediaList
+              fetchUserItems={fetchUserUpcomingMovies}
+              fetchItems={fetchUpcomingMovies}
+              type="movie"
+            />
           </Suspense>
         </ItemSlider>
       </section>
@@ -103,7 +126,11 @@ export default async function Home() {
 
         <ItemSlider>
           <Suspense fallback={<ItemGrid.Skeletons />}>
-            <PopularTvShows />
+            <MediaList
+              fetchUserItems={fetchUserPopularTvShows}
+              fetchItems={fetchPopularTvShows}
+              type="tv"
+            />
           </Suspense>
         </ItemSlider>
       </section>
@@ -120,7 +147,11 @@ export default async function Home() {
 
         <ItemSlider>
           <Suspense fallback={<ItemGrid.Skeletons />}>
-            <TopRatedMovies />
+            <MediaList
+              fetchUserItems={fetchUserTopRatedMovies}
+              fetchItems={fetchTopRatedMovies}
+              type="movie"
+            />
           </Suspense>
         </ItemSlider>
       </section>
@@ -137,7 +168,11 @@ export default async function Home() {
 
         <ItemSlider>
           <Suspense fallback={<ItemGrid.Skeletons />}>
-            <TopRatedTvShows />
+            <MediaList
+              fetchUserItems={fetchUserTopRatedTvShows}
+              fetchItems={fetchTopRatedTvShows}
+              type="tv"
+            />
           </Suspense>
         </ItemSlider>
       </section>

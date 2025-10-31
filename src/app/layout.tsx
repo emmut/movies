@@ -52,9 +52,7 @@ export default async function RootLayout({
                     <Search />
                   </Suspense>
                 </header>
-                <div className="mx-auto w-full max-w-screen-xl p-4">
-                  {children}
-                </div>
+                <div className="mx-auto w-full max-w-7xl p-4">{children}</div>
                 <Footer />
               </SidebarInset>
             </SidebarProvider>

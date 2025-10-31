@@ -7,11 +7,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { DEFAULT_REGION } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import {
+  parseAsArrayOf,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from 'nuqs';
+import { useState } from 'react';
 
 interface WatchProviderFilterProps {
   providers: WatchProvider[];
@@ -29,54 +35,39 @@ export default function WatchProviderFilter({
   providers,
   userRegion,
 }: WatchProviderFilterProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [{ with_watch_providers }, setParams] = useQueryStates({
+    with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
+    watch_region: parseAsString.withDefault(DEFAULT_REGION),
+    page: parseAsString.withDefault('1'),
+  });
 
-  const [selectedProviders, setSelectedProviders] = useState<number[]>([]);
+  const selectedProviders = with_watch_providers || [];
+
   const [isOpen, setIsOpen] = useState(false);
   const [brokenImages, setBrokenImages] = useState(new Set<number>());
-
-  useEffect(() => {
-    const providersParam = searchParams.get('with_watch_providers');
-    if (providersParam) {
-      // Handle both comma (AND) and pipe (OR) separators
-      const separator = providersParam.includes('|') ? '|' : ',';
-      setSelectedProviders(
-        providersParam.split(separator).map((id) => parseInt(id))
-      );
-    } else {
-      setSelectedProviders([]);
-    }
-  }, [searchParams]);
 
   function updateSelectedProviders(providerId: number) {
     const newProviders = selectedProviders.includes(providerId)
       ? selectedProviders.filter((id) => id !== providerId)
       : [...selectedProviders, providerId];
 
-    setSelectedProviders(newProviders);
     updateUrl(newProviders);
   }
 
   function updateUrl(providerIds: number[]) {
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-
-    if (providerIds.length > 0) {
-      newSearchParams.set('with_watch_providers', providerIds.join('|'));
-      newSearchParams.set('watch_region', userRegion);
-    } else {
-      newSearchParams.delete('with_watch_providers');
-      newSearchParams.delete('watch_region');
-    }
-
-    newSearchParams.set('page', '1');
-
-    router.push(`${pathname}?${newSearchParams.toString()}`);
+    setParams(
+      {
+        with_watch_providers: providerIds.length > 0 ? providerIds : null,
+        watch_region: providerIds.length > 0 ? userRegion : null,
+        page: '1',
+      },
+      {
+        shallow: false,
+      }
+    );
   }
 
   function clearAllProviders() {
-    setSelectedProviders([]);
     updateUrl([]);
   }
 
@@ -105,7 +96,7 @@ export default function WatchProviderFilter({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="max-h-[var(--radix-popover-content-available-height)] w-80 overflow-y-auto p-4"
+          className="max-h-(--radix-popover-content-available-height) w-80 overflow-y-auto p-4"
           align="end"
           side="bottom"
           avoidCollisions={true}
@@ -149,7 +140,7 @@ export default function WatchProviderFilter({
                         updateSelectedProviders(provider.provider_id)
                       }
                     >
-                      <div className="flex-shrink-0">
+                      <div className="shrink-0">
                         {imageError ? (
                           <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold">
                             {provider.provider_name.charAt(0).toUpperCase()}
