@@ -48,8 +48,6 @@ export function DiscoverContent({
   const mediaType = urlState.mediaType as 'movie' | 'tv';
   const sortBy = urlState.sort_by || undefined;
   const watchProviders = urlState.with_watch_providers?.join('|') || undefined;
-
-  console.log(watchProviders);
   const watchRegion = urlState.watch_region || userRegion;
 
   return (
