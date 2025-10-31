@@ -302,6 +302,74 @@ export async function getListDetailsPaginated(
   };
 }
 
+/**
+ * Fetches list details with all resource details populated.
+ * Helper function to avoid code duplication.
+ */
+export async function getListDetailsWithResources(
+  listId: string,
+  page: number = 1
+) {
+  const { getMovieDetails } = await import('@/lib/movies');
+  const { getTvShowDetails } = await import('@/lib/tv-shows');
+  const { getPersonDetails } = await import('@/lib/persons');
+
+  const paginatedList = await getListDetailsPaginated(listId, page);
+
+  // Fetch details for paginated items only
+  const movieItems =
+    paginatedList.items?.filter((item) => item.resourceType === 'movie') || [];
+  const tvItems =
+    paginatedList.items?.filter((item) => item.resourceType === 'tv') || [];
+  const personItems =
+    paginatedList.items?.filter((item) => item.resourceType === 'person') || [];
+
+  const [movies, tvShows, persons] = await Promise.all([
+    Promise.allSettled(
+      movieItems.map((item) => getMovieDetails(item.resourceId))
+    ),
+    Promise.allSettled(
+      tvItems.map((item) => getTvShowDetails(item.resourceId))
+    ),
+    Promise.allSettled(
+      personItems.map((item) => getPersonDetails(item.resourceId))
+    ),
+  ]).then(
+    ([movieResults, tvResults, personResults]) =>
+      [
+        movieResults
+          .filter((result) => result.status === 'fulfilled')
+          .map((result) => result.value),
+        tvResults
+          .filter((result) => result.status === 'fulfilled')
+          .map((result) => result.value),
+        personResults
+          .filter((result) => result.status === 'fulfilled')
+          .map((result) => result.value),
+      ] as const
+  );
+
+  const allItems = [
+    ...movies.map((movie) => ({
+      ...movie,
+      resourceType: 'movie' as const,
+    })),
+    ...tvShows.map((show) => ({
+      ...show,
+      resourceType: 'tv' as const,
+    })),
+    ...persons.map((person) => ({
+      ...person,
+      resourceType: 'person' as const,
+    })),
+  ];
+
+  return {
+    ...paginatedList,
+    allItems,
+  };
+}
+
 export async function createList(
   name: string,
   description: string = '',
