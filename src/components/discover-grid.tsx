@@ -1,7 +1,5 @@
 import { fetchDiscoverMovies } from '@/lib/movies';
 import { fetchDiscoverTvShows } from '@/lib/tv-shows';
-import { getUserWatchProviders } from '@/lib/user-actions';
-import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
 import ItemGrid from './item-grid';
 
 type DiscoverGridProps = {
@@ -9,7 +7,7 @@ type DiscoverGridProps = {
   currentPage: number;
   mediaType: 'movie' | 'tv';
   sortBy?: string;
-  withWatchProviders?: number[];
+  watchProviders?: string;
   watchRegion?: string;
   userId?: string;
 };
@@ -32,14 +30,10 @@ export default async function DiscoverGrid({
   currentPage,
   mediaType,
   sortBy,
-  withWatchProviders,
+  watchProviders,
   watchRegion,
+  userId,
 }: DiscoverGridProps) {
-  const userWatchProviders = await getUserWatchProviders();
-  const watchProviders = getWatchProvidersString(
-    withWatchProviders ?? [],
-    userWatchProviders
-  );
   if (mediaType === 'tv') {
     const { tvShows } = await fetchDiscoverTvShows(
       currentGenreId,
@@ -48,7 +42,7 @@ export default async function DiscoverGrid({
       watchProviders,
       watchRegion
     );
-    return <ItemGrid resources={tvShows} type="tv" />;
+    return <ItemGrid resources={tvShows} type="tv" userId={userId} />;
   }
 
   const { movies } = await fetchDiscoverMovies(
@@ -58,5 +52,5 @@ export default async function DiscoverGrid({
     watchProviders,
     watchRegion
   );
-  return <ItemGrid resources={movies} type="movie" />;
+  return <ItemGrid resources={movies} type="movie" userId={userId} />;
 }

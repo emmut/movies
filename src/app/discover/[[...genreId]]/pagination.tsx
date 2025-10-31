@@ -1,15 +1,13 @@
 import { PaginationControls } from '@/components/pagination-controls';
 import { fetchDiscoverMovies } from '@/lib/movies';
 import { fetchDiscoverTvShows } from '@/lib/tv-shows';
-import { getUserWatchProviders } from '@/lib/user-actions';
-import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
 
 type PaginationProps = {
   currentPage: number;
   currentGenreId: number;
   mediaType: 'movie' | 'tv';
   sortBy?: string;
-  withWatchProviders?: number[];
+  watchProviders?: string;
   watchRegion?: string;
 };
 
@@ -31,15 +29,10 @@ export default async function Pagination({
   currentGenreId,
   mediaType,
   sortBy,
-  withWatchProviders,
+  watchProviders,
   watchRegion,
 }: PaginationProps) {
   let totalPages: number;
-  const userWatchProviders = await getUserWatchProviders();
-  const watchProviders = getWatchProvidersString(
-    withWatchProviders ?? [],
-    userWatchProviders
-  );
 
   if (mediaType === 'movie') {
     const { totalPages: movieTotalPages } = await fetchDiscoverMovies(
