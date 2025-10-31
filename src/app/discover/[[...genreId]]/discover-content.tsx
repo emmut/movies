@@ -5,6 +5,7 @@ import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
+import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import { WatchProvider } from '@/types/watch-provider';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { ReactNode } from 'react';
@@ -34,7 +35,7 @@ export function DiscoverContent({
       genreId: parseAsInteger.withDefault(0),
       mediaType: parseAsString.withDefault('movie'),
       sort_by: parseAsString,
-      with_watch_providers: parseAsString,
+      with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
       watch_region: parseAsString,
     },
     {
@@ -46,7 +47,9 @@ export function DiscoverContent({
   const page = urlState.page;
   const mediaType = urlState.mediaType as 'movie' | 'tv';
   const sortBy = urlState.sort_by || undefined;
-  const watchProviders = urlState.with_watch_providers || undefined;
+  const watchProviders = urlState.with_watch_providers?.join('|') || undefined;
+
+  console.log(watchProviders);
   const watchRegion = urlState.watch_region || userRegion;
 
   return (
