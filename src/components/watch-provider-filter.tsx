@@ -11,7 +11,7 @@ import { WatchProvider } from '@/types/watch-provider';
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface WatchProviderFilterProps {
   providers: WatchProvider[];
@@ -33,29 +33,22 @@ export default function WatchProviderFilter({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [selectedProviders, setSelectedProviders] = useState<number[]>([]);
+  // Derive selected providers directly from URL params
+  const providersParam = searchParams.get('with_watch_providers');
+  const selectedProviders = providersParam
+    ? providersParam
+        .split(providersParam.includes('|') ? '|' : ',')
+        .map((id) => parseInt(id))
+    : [];
+
   const [isOpen, setIsOpen] = useState(false);
   const [brokenImages, setBrokenImages] = useState(new Set<number>());
-
-  useEffect(() => {
-    const providersParam = searchParams.get('with_watch_providers');
-    if (providersParam) {
-      // Handle both comma (AND) and pipe (OR) separators
-      const separator = providersParam.includes('|') ? '|' : ',';
-      setSelectedProviders(
-        providersParam.split(separator).map((id) => parseInt(id))
-      );
-    } else {
-      setSelectedProviders([]);
-    }
-  }, [searchParams]);
 
   function updateSelectedProviders(providerId: number) {
     const newProviders = selectedProviders.includes(providerId)
       ? selectedProviders.filter((id) => id !== providerId)
       : [...selectedProviders, providerId];
 
-    setSelectedProviders(newProviders);
     updateUrl(newProviders);
   }
 
@@ -76,7 +69,6 @@ export default function WatchProviderFilter({
   }
 
   function clearAllProviders() {
-    setSelectedProviders([]);
     updateUrl([]);
   }
 
@@ -105,7 +97,7 @@ export default function WatchProviderFilter({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="max-h-[var(--radix-popover-content-available-height)] w-80 overflow-y-auto p-4"
+          className="max-h-(--radix-popover-content-available-height) w-80 overflow-y-auto p-4"
           align="end"
           side="bottom"
           avoidCollisions={true}
@@ -149,7 +141,7 @@ export default function WatchProviderFilter({
                         updateSelectedProviders(provider.provider_id)
                       }
                     >
-                      <div className="flex-shrink-0">
+                      <div className="shrink-0">
                         {imageError ? (
                           <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold">
                             {provider.provider_name.charAt(0).toUpperCase()}
