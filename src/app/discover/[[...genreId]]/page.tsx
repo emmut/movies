@@ -1,9 +1,4 @@
 import { AvailableGenresNavigation } from '@/components/available-genre-navigation';
-import DiscoverGrid from '@/components/discover-grid';
-import FiltersPanel from '@/components/filters-panel';
-import MediaTypeSelector from '@/components/media-type-selector';
-import SectionTitle from '@/components/section-title';
-import SkipToElement from '@/components/skip-to-element';
 import { getDiscoverMedia } from '@/lib/discover-client';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
@@ -18,7 +13,7 @@ import {
 } from '@/lib/watch-provider-search-params';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { Suspense } from 'react';
-import Pagination from './pagination';
+import { DiscoverContent } from './discover-content';
 
 type DiscoverWithGenreParams = {
   searchParams: Promise<{
@@ -103,58 +98,14 @@ export default async function DiscoverWithGenrePage(
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <div className="flex items-center gap-4">
-        <SectionTitle>Discover</SectionTitle>
-
-        <SkipToElement elementId="content-container">
-          Skip to content
-        </SkipToElement>
-      </div>
-
-      <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 flex-wrap gap-2">
+      <DiscoverContent
+        filteredWatchProviders={filteredWatchProviders}
+        userRegion={watchRegion}
+        genreNavigation={
           <Suspense fallback={<AvailableGenresNavigation.Skeleton />}>
-            <AvailableGenresNavigation
-              currentGenreId={genreId}
-              mediaType={mediaType}
-              searchParams={searchParams}
-            />
+            <AvailableGenresNavigation mediaType={mediaType} />
           </Suspense>
-        </div>
-
-        <MediaTypeSelector currentMediaType={mediaType} />
-      </div>
-
-      <div className="mt-6">
-        <FiltersPanel
-          mediaType={mediaType}
-          watchProviders={filteredWatchProviders}
-          userRegion={watchRegion}
-        />
-      </div>
-
-      <div
-        id="content-container"
-        tabIndex={0}
-        className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
-      >
-        <DiscoverGrid
-          currentGenreId={genreId}
-          currentPage={page}
-          mediaType={mediaType}
-          sortBy={sortBy}
-          watchProviders={watchProviders}
-          watchRegion={watchRegion}
-        />
-      </div>
-
-      <Pagination
-        currentGenreId={genreId}
-        currentPage={page}
-        mediaType={mediaType}
-        sortBy={sortBy}
-        watchProviders={watchProviders}
-        watchRegion={watchRegion}
+        }
       />
     </HydrationBoundary>
   );

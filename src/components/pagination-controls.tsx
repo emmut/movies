@@ -1,8 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { startTransition } from 'react';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { Input } from './ui/input';
 import {
   Pagination,
@@ -109,29 +108,24 @@ export function PaginationControls({
   totalPages,
   pageType,
 }: PaginationControls) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const [urlState, setUrlState] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+    genreId: parseAsInteger.withDefault(0),
+    q: parseAsString,
+    mediaType: parseAsString,
+  });
 
-  const page = searchParams.get('page') ?? '1';
-  const genreIdParam = searchParams.get('genreId');
-  const currentGenreId = genreIdParam ? Number(genreIdParam) : 0;
-
-  const currentPageNumber = Number(page);
+  const currentPageNumber = urlState.page;
+  const currentGenreId = urlState.genreId;
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
 
   function handlePageSelect(pageNumber: number) {
-    startTransition(() => {
+    setUrlState({ page: pageNumber });
+
+    // Scroll to content after state update
+    setTimeout(() => {
       const container = document.querySelector('#content-container');
-      const newPageUrl = buildPageUrl(
-        pageNumber,
-        currentGenreId,
-        searchParams,
-        pageType
-      );
-
-      router.push(newPageUrl, { scroll: false });
-
       if (container) {
         container.scrollIntoView({
           behavior: 'smooth',
@@ -143,7 +137,7 @@ export function PaginationControls({
           behavior: 'smooth',
         });
       }
-    });
+    }, 0);
   }
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);

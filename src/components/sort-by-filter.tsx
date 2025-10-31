@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { parseAsString, useQueryStates } from 'nuqs';
 
 type SortByFilterProps = {
   mediaType: 'movie' | 'tv';
@@ -47,27 +47,21 @@ const TV_SORT_OPTIONS = [
  * @param mediaType - Whether to show movie or TV sort options.
  */
 export default function SortByFilter({ mediaType }: SortByFilterProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [urlState, setUrlState] = useQueryStates({
+    sort_by: parseAsString,
+    page: parseAsString.withDefault('1'),
+  });
 
   const sortOptions =
     mediaType === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
-  const defaultSort =
-    mediaType === 'movie' ? 'popularity.desc' : 'popularity.desc';
-  const currentSort = searchParams.get('sort_by') || defaultSort;
+  const defaultSort = 'popularity.desc';
+  const currentSort = urlState.sort_by || defaultSort;
 
   const handleSortChange = (value: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.delete('page'); // Reset pagination
-
-    if (value === defaultSort) {
-      params.delete('sort_by');
-    } else {
-      params.set('sort_by', value);
-    }
-
-    router.push(`${pathname}?${params.toString()}`);
+    setUrlState({
+      sort_by: value === defaultSort ? null : value,
+      page: '1', // Reset pagination
+    });
   };
 
   return (
