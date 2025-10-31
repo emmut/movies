@@ -7,10 +7,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { DEFAULT_REGION } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import {
+  parseAsArrayOf,
+  parseAsInteger,
+  parseAsString,
+  useQueryStates,
+} from 'nuqs';
 import { useState } from 'react';
 
 interface WatchProviderFilterProps {
@@ -29,18 +35,13 @@ export default function WatchProviderFilter({
   providers,
   userRegion,
 }: WatchProviderFilterProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [{ with_watch_providers }, setParams] = useQueryStates({
+    with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
+    watch_region: parseAsString.withDefault(DEFAULT_REGION),
+    page: parseAsString.withDefault('1'),
+  });
 
-  // Derive selected providers directly from URL params
-  const providersParam = searchParams.get('with_watch_providers');
-  const selectedProviders = providersParam
-    ? providersParam
-        .split(providersParam.includes('|') ? '|' : ',')
-        .map((id) => parseInt(id))
-        .filter((id) => !isNaN(id))
-    : [];
+  const selectedProviders = with_watch_providers || [];
 
   const [isOpen, setIsOpen] = useState(false);
   const [brokenImages, setBrokenImages] = useState(new Set<number>());
@@ -54,19 +55,16 @@ export default function WatchProviderFilter({
   }
 
   function updateUrl(providerIds: number[]) {
-    const newSearchParams = new URLSearchParams(searchParams.toString());
-
-    if (providerIds.length > 0) {
-      newSearchParams.set('with_watch_providers', providerIds.join('|'));
-      newSearchParams.set('watch_region', userRegion);
-    } else {
-      newSearchParams.delete('with_watch_providers');
-      newSearchParams.delete('watch_region');
-    }
-
-    newSearchParams.set('page', '1');
-
-    router.push(`${pathname}?${newSearchParams.toString()}`);
+    setParams(
+      {
+        with_watch_providers: providerIds.length > 0 ? providerIds : null,
+        watch_region: providerIds.length > 0 ? userRegion : null,
+        page: '1',
+      },
+      {
+        shallow: false,
+      }
+    );
   }
 
   function clearAllProviders() {

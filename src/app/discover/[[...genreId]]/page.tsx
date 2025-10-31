@@ -12,6 +12,7 @@ import {
   getUserWatchProviders,
   getWatchProviders,
 } from '@/lib/user-actions';
+import { loadWatchProviderSearchParams } from '@/lib/watch-provider-search-params';
 import { Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -58,10 +59,16 @@ export default async function DiscoverWithGenrePage(
     userWatchProviders
   );
 
+  const { with_watch_providers } =
+    await loadWatchProviderSearchParams(searchParams);
+
   // Use user's preferred watch providers if none are specified in the URL
   const watchProviders =
-    searchParams.with_watch_providers ||
-    (userWatchProviders.length > 0 ? userWatchProviders.join('|') : undefined);
+    with_watch_providers.length > 0
+      ? with_watch_providers.join('|')
+      : userWatchProviders.length > 0
+        ? userWatchProviders.join('|')
+        : undefined;
 
   return (
     <>
