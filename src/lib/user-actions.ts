@@ -14,11 +14,7 @@ import {
 import { WatchProvider } from '@/types/watch-provider';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray, not } from 'drizzle-orm';
-import {
-  cacheLife,
-  cacheTag,
-  revalidatePath,
-} from 'next/cache';
+import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 
 type WatchProvidersResponse = {

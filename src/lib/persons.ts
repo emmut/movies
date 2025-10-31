@@ -4,10 +4,7 @@ import {
   PersonMovieCredits,
   PersonTvCredits,
 } from '@/types/person';
-import {
-  cacheLife,
-  cacheTag,
-} from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import { TMDB_API_URL } from './constants';
 
 /**

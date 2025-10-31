@@ -4,10 +4,7 @@ import { getUser } from '@/lib/auth-server';
 import { TMDB_API_URL } from '@/lib/constants';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { MovieResponse } from '@/types/movie';
-import {
-  cacheLife,
-  cacheTag,
-} from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 
 /**
  * Retrieves a list of top-rated movies from the Movie Database API for the SE region.
