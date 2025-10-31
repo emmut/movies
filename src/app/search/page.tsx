@@ -6,7 +6,10 @@ import {
   getSearchMulti,
   getSearchPersons,
   getSearchTvShows,
-  SearchResult,
+  SearchMoviesResult,
+  SearchMultiResult,
+  SearchPersonsResult,
+  SearchTvShowsResult,
 } from '@/lib/search';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { SearchContent } from './search-content';
@@ -41,27 +44,27 @@ export default async function SearchPage(props: SearchProps) {
   const queryClient = getQueryClient();
 
   if (query) {
-    await queryClient.prefetchQuery<SearchResult>({
-      queryKey:
-        mediaType === 'movie'
-          ? queryKeys.search.movies(query, page)
-          : mediaType === 'tv'
-            ? queryKeys.search.tvShows(query, page)
-            : mediaType === 'person'
-              ? queryKeys.search.persons(query, page)
-              : queryKeys.search.multi(query, page),
-      queryFn: () => {
-        if (mediaType === 'movie') {
-          return getSearchMovies(query, page);
-        } else if (mediaType === 'tv') {
-          return getSearchTvShows(query, page);
-        } else if (mediaType === 'person') {
-          return getSearchPersons(query, page);
-        } else {
-          return getSearchMulti(query, page);
-        }
-      },
-    });
+    if (mediaType === 'movie') {
+      await queryClient.prefetchQuery<SearchMoviesResult>({
+        queryKey: queryKeys.search.movies(query, page),
+        queryFn: () => getSearchMovies(query, page),
+      });
+    } else if (mediaType === 'tv') {
+      await queryClient.prefetchQuery<SearchTvShowsResult>({
+        queryKey: queryKeys.search.tvShows(query, page),
+        queryFn: () => getSearchTvShows(query, page),
+      });
+    } else if (mediaType === 'person') {
+      await queryClient.prefetchQuery<SearchPersonsResult>({
+        queryKey: queryKeys.search.persons(query, page),
+        queryFn: () => getSearchPersons(query, page),
+      });
+    } else {
+      await queryClient.prefetchQuery<SearchMultiResult>({
+        queryKey: queryKeys.search.multi(query, page),
+        queryFn: () => getSearchMulti(query, page),
+      });
+    }
   }
 
   return (

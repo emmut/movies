@@ -6,50 +6,95 @@ import {
   getSearchMulti,
   getSearchPersons,
   getSearchTvShows,
-  SearchResult,
+  SearchMoviesResult,
+  SearchMultiResult,
+  SearchPersonsResult,
+  SearchTvShowsResult,
 } from '@/lib/search';
-import { MediaType } from '@/types/media-type';
 import { useQuery } from '@tanstack/react-query';
 
-type UseSearchQueryParams = {
+type UseSearchParams = {
   query: string;
   page: number;
-  mediaType: MediaType;
+  enabled?: boolean;
 };
 
 /**
- * React Query hook for fetching search results (movies, TV shows, persons, or mixed).
+ * React Query hook for fetching movie search results.
  * Automatically handles caching, loading states, and refetching.
  *
  * @param params - Parameters for the search query
  * @returns Query result with data, loading state, and error state
  */
-export function useSearchQuery({
+export function useSearchMovies({
   query,
   page,
-  mediaType,
-}: UseSearchQueryParams) {
-  return useQuery<SearchResult>({
-    queryKey:
-      mediaType === 'movie'
-        ? queryKeys.search.movies(query, page)
-        : mediaType === 'tv'
-          ? queryKeys.search.tvShows(query, page)
-          : mediaType === 'person'
-            ? queryKeys.search.persons(query, page)
-            : queryKeys.search.multi(query, page),
-    queryFn: () => {
-      if (mediaType === 'movie') {
-        return getSearchMovies(query, page);
-      } else if (mediaType === 'tv') {
-        return getSearchTvShows(query, page);
-      } else if (mediaType === 'person') {
-        return getSearchPersons(query, page);
-      } else {
-        return getSearchMulti(query, page);
-      }
-    },
-    enabled: query.length > 0,
+  enabled = true,
+}: UseSearchParams) {
+  return useQuery<SearchMoviesResult>({
+    queryKey: queryKeys.search.movies(query, page),
+    queryFn: () => getSearchMovies(query, page),
+    enabled: query.length > 0 && enabled,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * React Query hook for fetching TV show search results.
+ * Automatically handles caching, loading states, and refetching.
+ *
+ * @param params - Parameters for the search query
+ * @returns Query result with data, loading state, and error state
+ */
+export function useSearchTvShows({
+  query,
+  page,
+  enabled = true,
+}: UseSearchParams) {
+  return useQuery<SearchTvShowsResult>({
+    queryKey: queryKeys.search.tvShows(query, page),
+    queryFn: () => getSearchTvShows(query, page),
+    enabled: query.length > 0 && enabled,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * React Query hook for fetching person search results.
+ * Automatically handles caching, loading states, and refetching.
+ *
+ * @param params - Parameters for the search query
+ * @returns Query result with data, loading state, and error state
+ */
+export function useSearchPersons({
+  query,
+  page,
+  enabled = true,
+}: UseSearchParams) {
+  return useQuery<SearchPersonsResult>({
+    queryKey: queryKeys.search.persons(query, page),
+    queryFn: () => getSearchPersons(query, page),
+    enabled: query.length > 0 && enabled,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * React Query hook for fetching multi search results (movies, TV shows, and persons).
+ * Automatically handles caching, loading states, and refetching.
+ *
+ * @param params - Parameters for the search query
+ * @returns Query result with data, loading state, and error state
+ */
+export function useSearchMulti({
+  query,
+  page,
+  enabled = true,
+}: UseSearchParams) {
+  return useQuery<SearchMultiResult>({
+    queryKey: queryKeys.search.multi(query, page),
+    queryFn: () => getSearchMulti(query, page),
+    enabled: query.length > 0 && enabled,
     staleTime: 60 * 1000, // 1 minute
   });
 }
