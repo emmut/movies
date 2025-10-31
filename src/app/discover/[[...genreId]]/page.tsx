@@ -33,6 +33,47 @@ type DiscoverWithGenreParams = {
  *
  * @param props - Contains a `searchParams` promise with optional filter parameters.
  */
+async function FiltersPanelWrapper({
+  mediaType,
+}: {
+  mediaType: 'movie' | 'tv';
+}) {
+  const watchRegion = await getUserRegion();
+  const userWatchProviders = await getUserWatchProviders();
+  const filteredWatchProviders = await getWatchProviders(
+    watchRegion,
+    userWatchProviders
+  );
+
+  return (
+    <FiltersPanel
+      mediaType={mediaType}
+      watchProviders={filteredWatchProviders}
+      userRegion={watchRegion}
+    />
+  );
+}
+
+function FiltersPanelSkeleton() {
+  return (
+    <div className="mt-6">
+      <div className="space-y-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex min-w-54 flex-col gap-2">
+            <div className="h-4 w-16 animate-pulse rounded bg-neutral-50/10" />
+            <div className="h-10 w-full animate-pulse rounded-lg bg-neutral-50/10" />
+          </div>
+
+          <div className="flex min-w-64 flex-col gap-2">
+            <div className="h-4 w-24 animate-pulse rounded bg-neutral-50/10" />
+            <div className="h-10 w-full animate-pulse rounded-lg bg-neutral-50/10" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default async function DiscoverWithGenrePage(
   props: DiscoverWithGenreParams
 ) {
@@ -48,15 +89,10 @@ export default async function DiscoverWithGenrePage(
   const page = Number(searchParams.page ?? '1');
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
   const sortBy = searchParams.sort_by;
-  const watchRegion = await getUserRegion();
 
   const user = await getUser();
-
+  const watchRegion = await getUserRegion();
   const userWatchProviders = await getUserWatchProviders();
-  const filteredWatchProviders = await getWatchProviders(
-    watchRegion,
-    userWatchProviders
-  );
 
   // Use user's preferred watch providers if none are specified in the URL
   const watchProviders =
@@ -87,13 +123,9 @@ export default async function DiscoverWithGenrePage(
         <MediaTypeSelector currentMediaType={mediaType} />
       </div>
 
-      <div className="mt-6">
-        <FiltersPanel
-          mediaType={mediaType}
-          watchProviders={filteredWatchProviders}
-          userRegion={watchRegion}
-        />
-      </div>
+      <Suspense fallback={<FiltersPanelSkeleton />}>
+        <FiltersPanelWrapper mediaType={mediaType} />
+      </Suspense>
 
       <div
         id="content-container"

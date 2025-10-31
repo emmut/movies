@@ -149,9 +149,9 @@ export async function fetchDiscoverTvShows(
   watchProviders?: string,
   watchRegion?: string
 ) {
-  'use cache';
+  'use cache: remote';
   cacheTag('discover');
-  cacheLife('minutes');
+  cacheLife({ expire: 300 }); // 5 minutes
 
   const url = new URL(`${TMDB_API_URL}/discover/tv`);
   url.searchParams.set('page', String(page));

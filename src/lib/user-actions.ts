@@ -29,6 +29,10 @@ const MAX_DISPLAY_PRIORITY = 50;
 const MAX_PROVIDERS = 12;
 
 export async function getUserRegion() {
+  'use cache: remote';
+  cacheTag('user-region');
+  cacheLife({ expire: 300 }); // 5 minutes
+
   const session = await getSession();
 
   if (!session?.user?.id) {
@@ -170,6 +174,10 @@ export async function getAllWatchProviders(region?: string) {
  * Gets the watch providers preferred by the user
  */
 export async function getUserWatchProviders() {
+  'use cache: remote';
+  cacheTag('user-watch-providers');
+  cacheLife({ expire: 300 }); // 5 minutes
+
   const session = await getSession();
 
   if (!session?.user?.id) {
