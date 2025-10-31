@@ -15,7 +15,6 @@ type ItemGridProps = {
  *
  * @param resources - Array of movies or TV shows to display.
  * @param type - The type of resource ('movie' or 'tv').
- * @param userId - Optional user ID to enable list functionality.
  */
 export function ItemGrid({ resources, type, userId }: ItemGridProps) {
   const resourceName = type === 'movie' ? 'movies' : 'TV shows';
@@ -23,7 +22,12 @@ export function ItemGrid({ resources, type, userId }: ItemGridProps) {
   return (
     <>
       {resources.map((resource) => (
-        <ItemCard key={resource.id} resource={resource} type={type} />
+        <ItemCard
+          key={resource.id}
+          resource={resource}
+          type={type}
+          userId={userId}
+        />
       ))}
       {resources.length === 0 && (
         <p className="col-span-full text-center">No {resourceName} was found</p>

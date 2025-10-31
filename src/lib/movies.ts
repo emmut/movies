@@ -306,6 +306,66 @@ export async function fetchUserUpcomingMovies() {
 }
 
 /**
+ * Retrieves a list of top-rated movies from the Movie Database API for the SE region.
+ *
+ * Filters out adult content and videos, sorts results by highest vote average, and returns the resulting movie array.
+ *
+ * @returns An array of top-rated movie objects.
+ *
+ * @throws {Error} If the API request fails or returns a non-successful response.
+ */
+export async function fetchTopRatedMovies() {
+  'use cache';
+  cacheTag('top-rated');
+  cacheLife('minutes');
+
+  const url = new URL(`${TMDB_API_URL}/movie/top_rated`);
+  url.searchParams.set('region', DEFAULT_REGION);
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading top rated movies');
+  }
+
+  const movies: MovieResponse = await res.json();
+  return movies.results;
+}
+
+/**
+ * Fetches top-rated movies for the user's region, using a fallback if the region cannot be determined.
+ *
+ * @returns An array of top-rated movies for the user's region.
+ *
+ * @throws {Error} If the request to fetch top-rated movies fails.
+ */
+export async function fetchUserTopRatedMovies() {
+  const userRegion = await getUserRegionWithFallback();
+
+  const url = new URL(`${TMDB_API_URL}/movie/top_rated`);
+  url.searchParams.set('region', userRegion);
+
+  const res = await fetch(url, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed loading top rated movies');
+  }
+
+  const movies: MovieResponse = await res.json();
+  return movies.results;
+}
+
+/**
  * Fetches detailed information for a specific movie from TMDb by its ID.
  *
  * @param movieId - The TMDb movie identifier
