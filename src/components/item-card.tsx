@@ -1,4 +1,3 @@
-import { getUser } from '@/lib/auth-server';
 import { cn, formatImageUrl } from '@/lib/utils';
 import { Movie, MovieDetails } from '@/types/movie';
 import { TvDetails, TvShow } from '@/types/tv-show';
@@ -13,6 +12,7 @@ type ItemCardProps = {
   resource: Movie | MovieDetails | TvShow | TvDetails;
   type: 'movie' | 'tv';
   className?: string;
+  userId?: string;
   showListButton?: boolean;
   listId?: string;
 };
@@ -34,16 +34,14 @@ function isResource(
  *
  * The card visually distinguishes between movies and TV shows, linking to the resource's detail page and showing additional information and badges on hover or focus. If no poster image is available, a fallback with an emoji and "No Poster" text is shown.
  */
-export default async function ItemCard({
+export default function ItemCard({
   resource: item,
   type,
   className,
+  userId,
   showListButton = true,
   listId,
 }: ItemCardProps) {
-  const user = await getUser();
-  const userId = user?.id;
-
   const score = Math.ceil(item.vote_average * 10) / 10;
 
   const title = isResource(item) ? item.title : item.name;
