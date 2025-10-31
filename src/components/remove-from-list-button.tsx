@@ -2,6 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { removeFromList } from '@/lib/lists';
+import { queryKeys } from '@/lib/query-keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { MouseEvent, useState } from 'react';
@@ -21,6 +23,7 @@ export function RemoveFromListButton({
   className,
 }: RemoveFromListButtonProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleRemove(e: MouseEvent<HTMLButtonElement>) {
@@ -31,6 +34,12 @@ export function RemoveFromListButton({
     try {
       await removeFromList(listId, mediaId, mediaType);
       toast.success('Removed from list');
+
+      // Invalidate all list queries to ensure fresh data on next navigation
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.lists.all,
+      });
+
       router.refresh();
     } catch (error) {
       toast.error(

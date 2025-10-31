@@ -1,7 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { queryKeys } from '@/lib/query-keys';
 import { toggleWatchlist } from '@/lib/watchlist-actions';
+import { useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { Star } from 'lucide-react';
 import { useOptimistic, useTransition } from 'react';
@@ -33,6 +35,7 @@ export function WatchlistButton({
 }: WatchlistButtonProps) {
   const [isPending, startTransition] = useTransition();
   const [optimisticInWatchlist, addOptimistic] = useOptimistic(isInWatchlist);
+  const queryClient = useQueryClient();
 
   if (!userId) {
     return null;
@@ -51,6 +54,9 @@ export function WatchlistButton({
           resourceId,
           resourceType,
         });
+
+        // Invalidate React Query cache after successful mutation
+        queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
       } catch (error) {
         console.error('Error updating watchlist:', error);
       }
