@@ -1,8 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { startTransition } from 'react';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { Input } from './ui/input';
 import {
   Pagination,
@@ -16,47 +15,8 @@ import {
 
 type PaginationControls = {
   totalPages: number;
-  pageType: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists';
+  pageType?: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists';
 };
-
-/**
- * Constructs a URL string for the specified page, genre, and page type, preserving relevant query parameters.
- *
- * For 'search' pages, preserves the search query (`q`). For 'trailers' pages, also preserves the `mediaType` parameter if present. The `genreId` parameter is included if `currentGenreId` is not zero.
- *
- * @param pageNumber - The target page number
- * @param currentGenreId - The currently selected genre ID
- * @param searchParams - The current URL search parameters
- * @param pageType - The type of page ('discover', 'search', or 'trailers')
- * @returns A URL string with updated query parameters for the specified page and context
- */
-function buildPageUrl(
-  pageNumber: number,
-  currentGenreId: number,
-  searchParams: URLSearchParams,
-  pageType: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists'
-) {
-  const newSearchParams = new URLSearchParams(searchParams);
-  newSearchParams.set('page', String(pageNumber));
-
-  const q = searchParams.get('q');
-  const mediaType = searchParams.get('mediaType');
-
-  if (q !== null) {
-    newSearchParams.set('q', q);
-  }
-
-  if (currentGenreId !== 0) {
-    newSearchParams.set('genreId', String(currentGenreId));
-  }
-
-  // For trailers and watchlist, preserve mediaType
-  if ((pageType === 'trailers' || pageType === 'watchlist') && mediaType) {
-    newSearchParams.set('mediaType', mediaType);
-  }
-
-  return `?${newSearchParams.toString()}`;
-}
 
 // Generate page numbers with ellipsis logic (mobile-first)
 function generatePageNumbers(currentPage: number, totalPages: number) {
@@ -105,33 +65,23 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
   return pages;
 }
 
-export function PaginationControls({
-  totalPages,
-  pageType,
-}: PaginationControls) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+export function PaginationControls({ totalPages }: PaginationControls) {
+  const [urlState, setUrlState] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+    q: parseAsString,
+    mediaType: parseAsString,
+  });
 
-  const page = searchParams.get('page') ?? '1';
-  const genreIdParam = searchParams.get('genreId');
-  const currentGenreId = genreIdParam ? Number(genreIdParam) : 0;
-
-  const currentPageNumber = Number(page);
+  const currentPageNumber = urlState.page;
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
 
   function handlePageSelect(pageNumber: number) {
-    startTransition(() => {
+    setUrlState({ page: pageNumber });
+
+    // Scroll to content after state update
+    setTimeout(() => {
       const container = document.querySelector('#content-container');
-      const newPageUrl = buildPageUrl(
-        pageNumber,
-        currentGenreId,
-        searchParams,
-        pageType
-      );
-
-      router.push(newPageUrl, { scroll: false });
-
       if (container) {
         container.scrollIntoView({
           behavior: 'smooth',
@@ -143,7 +93,7 @@ export function PaginationControls({
           behavior: 'smooth',
         });
       }
-    });
+    }, 0);
   }
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);

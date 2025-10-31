@@ -1,6 +1,8 @@
+'use client';
+
 import { PaginationControls } from '@/components/pagination-controls';
-import { fetchDiscoverMovies } from '@/lib/movies';
-import { fetchDiscoverTvShows } from '@/lib/tv-shows';
+import Spinner from '@/components/spinner';
+import { useDiscoverMedia } from '@/hooks/use-discover-query';
 
 type PaginationProps = {
   currentPage: number;
@@ -24,7 +26,7 @@ type PaginationProps = {
  * @param watchRegion - The region code for watch providers.
  * @returns A React element displaying pagination controls for the selected media type.
  */
-export default async function Pagination({
+export default function Pagination({
   currentPage,
   currentGenreId,
   mediaType,
@@ -32,27 +34,24 @@ export default async function Pagination({
   watchProviders,
   watchRegion,
 }: PaginationProps) {
-  let totalPages: number;
+  const { data, isLoading } = useDiscoverMedia({
+    mediaType,
+    genreId: currentGenreId,
+    page: currentPage,
+    sortBy,
+    watchProviders,
+    watchRegion,
+  });
 
-  if (mediaType === 'movie') {
-    const { totalPages: movieTotalPages } = await fetchDiscoverMovies(
-      currentGenreId,
-      currentPage,
-      sortBy,
-      watchProviders,
-      watchRegion
-    );
-    totalPages = movieTotalPages;
-  } else {
-    const { totalPages: tvTotalPages } = await fetchDiscoverTvShows(
-      currentGenreId,
-      currentPage,
-      sortBy,
-      watchProviders,
-      watchRegion
-    );
-    totalPages = tvTotalPages;
+  if (isLoading) {
+    return <Spinner className="mx-auto mt-8" />;
   }
 
-  return <PaginationControls totalPages={totalPages} pageType="discover" />;
+  if (!data) {
+    return null;
+  }
+
+  return (
+    <PaginationControls totalPages={data.totalPages} pageType="discover" />
+  );
 }

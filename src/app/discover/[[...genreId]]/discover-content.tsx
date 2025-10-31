@@ -1,0 +1,99 @@
+'use client';
+
+import DiscoverGrid from '@/components/discover-grid';
+import FiltersPanel from '@/components/filters-panel';
+import MediaTypeSelector from '@/components/media-type-selector';
+import SectionTitle from '@/components/section-title';
+import SkipToElement from '@/components/skip-to-element';
+import { WatchProvider } from '@/types/watch-provider';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { ReactNode } from 'react';
+import Pagination from './pagination';
+
+type DiscoverContentProps = {
+  filteredWatchProviders: WatchProvider[];
+  userRegion: string;
+  genreNavigation: ReactNode;
+};
+
+/**
+ * Client component that handles the discover page content with React Query.
+ * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
+ */
+export function DiscoverContent({
+  filteredWatchProviders,
+  userRegion,
+  genreNavigation,
+}: DiscoverContentProps) {
+  // Use nuqs to manage URL state - changes automatically trigger React Query refetches
+  const [urlState] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      genreId: parseAsInteger.withDefault(0),
+      mediaType: parseAsString.withDefault('movie'),
+      sort_by: parseAsString,
+      with_watch_providers: parseAsString,
+      watch_region: parseAsString,
+    },
+    {
+      history: 'push',
+    }
+  );
+
+  const genreId = urlState.genreId;
+  const page = urlState.page;
+  const mediaType = urlState.mediaType as 'movie' | 'tv';
+  const sortBy = urlState.sort_by || undefined;
+  const watchProviders = urlState.with_watch_providers || undefined;
+  const watchRegion = urlState.watch_region || userRegion;
+
+  return (
+    <>
+      <div className="flex items-center gap-4">
+        <SectionTitle>Discover</SectionTitle>
+
+        <SkipToElement elementId="content-container">
+          Skip to content
+        </SkipToElement>
+      </div>
+
+      <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-1 flex-wrap gap-2">{genreNavigation}</div>
+
+        <MediaTypeSelector currentMediaType={mediaType} />
+      </div>
+
+      <div className="mt-6">
+        <FiltersPanel
+          mediaType={mediaType}
+          watchProviders={filteredWatchProviders}
+          userRegion={watchRegion}
+        />
+      </div>
+
+      <div
+        id="content-container"
+        tabIndex={0}
+        className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
+      >
+        <DiscoverGrid
+          currentGenreId={genreId}
+          currentPage={page}
+          mediaType={mediaType}
+          sortBy={sortBy}
+          watchProviders={watchProviders}
+          watchRegion={watchRegion}
+        />
+      </div>
+
+      <Pagination
+        currentGenreId={genreId}
+        currentPage={page}
+        mediaType={mediaType}
+        sortBy={sortBy}
+        watchProviders={watchProviders}
+        watchRegion={watchRegion}
+      />
+    </>
+  );
+}

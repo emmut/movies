@@ -2,7 +2,7 @@
 
 import { validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
 
 type MediaType = 'movie' | 'tv';
@@ -21,36 +21,45 @@ type MediaTypeSelectorProps = {
 export default function MediaTypeSelector({
   currentMediaType,
 }: MediaTypeSelectorProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [urlState, setUrlState] = useQueryStates({
+    mediaType: parseAsString.withDefault('movie'),
+    genreId: parseAsInteger.withDefault(0),
+    page: parseAsString.withDefault('1'),
+  });
+
   const [optimisticMediaType, setOptimisticMediaType] =
     useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
 
   async function handleMediaTypeChange(mediaType: MediaType) {
-    const params = new URLSearchParams(searchParams);
-    const currentGenreId = params.get('genreId');
-
     startTransition(() => {
       setOptimisticMediaType(mediaType);
     });
 
-    params.set('mediaType', mediaType);
-    params.delete('page');
+    const currentGenreId = urlState.genreId;
 
-    if (currentGenreId) {
+    // Check if current genre is valid for new media type
+    if (currentGenreId && currentGenreId !== 0) {
       const genreExists = await validateGenreForMediaType(
-        currentGenreId,
+        String(currentGenreId),
         mediaType as 'movie' | 'tv'
       );
 
       if (!genreExists) {
-        params.delete('genreId');
+        // Clear genre if it doesn't exist for new media type
+        setUrlState({
+          mediaType,
+          genreId: 0,
+          page: '1',
+        });
+        return;
       }
     }
 
-    router.push(`${pathname}?${params.toString()}`);
+    setUrlState({
+      mediaType,
+      page: '1',
+    });
   }
 
   return (

@@ -5,31 +5,18 @@ import { GenreNavigationClient } from './genre-navigation-client';
 import Pill from './pill';
 
 type AvailableGenreProps = {
-  currentGenreId?: number;
   mediaType?: 'movie' | 'tv';
-  searchParams?: {
-    page?: string;
-    genreId?: string;
-    mediaType?: string;
-    sort_by?: string;
-    with_watch_providers?: string;
-    watch_region?: string;
-  };
 };
 
 /**
  * Displays a navigation bar of available genres for movies or TV shows, allowing users to filter content by genre.
  *
- * @param currentGenreId - The currently selected genre ID, if any.
  * @param mediaType - The type of media to display genres for; either 'movie' or 'tv'. Defaults to 'movie'.
- * @param searchParams - Current search parameters to preserve when building URLs.
  *
  * @returns A navigation element with genre filter links.
  */
 async function AvailableGenresNavigation({
-  currentGenreId,
   mediaType = 'movie',
-  searchParams,
 }: AvailableGenreProps) {
   'use cache';
 
@@ -38,14 +25,7 @@ async function AvailableGenresNavigation({
       ? await fetchAvailableGenres()
       : await fetchAvailableTvGenres();
 
-  return (
-    <GenreNavigationClient
-      genres={genres}
-      currentGenreId={currentGenreId}
-      mediaType={mediaType}
-      searchParams={searchParams}
-    />
-  );
+  return <GenreNavigationClient genres={genres} mediaType={mediaType} />;
 }
 
 const availableGenresSkeleton = [

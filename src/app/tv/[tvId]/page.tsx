@@ -94,13 +94,13 @@ export default async function TvShowPage(props: TvShowPageProps) {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
         </div>
       )}
 
       {!backdrop_path && (
         <div className="relative -mx-4 mb-8 bg-zinc-900 md:h-80 lg:h-96">
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
         </div>
       )}
 

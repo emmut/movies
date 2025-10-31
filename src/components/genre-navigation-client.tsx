@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
 import Pill from './pill';
 
@@ -13,80 +13,58 @@ type GenrePillProps = {
   currentGenreId?: number | null;
   genreId: number;
   genreName: string;
-  href: string;
   onOptimisticUpdate: (genreId: number) => void;
+  onClick: () => void;
 };
 
 function GenrePill({
   currentGenreId,
   genreId,
   genreName,
-  href,
   onOptimisticUpdate,
+  onClick,
 }: GenrePillProps) {
   const [isPending, startTransition] = useTransition();
 
   const active = currentGenreId === genreId || isPending;
 
   return (
-    <Link
-      href={href}
+    <button
       onClick={() => {
         startTransition(() => {
           onOptimisticUpdate(genreId);
+          onClick();
         });
       }}
     >
       <Pill active={active}>{genreName}</Pill>
-    </Link>
+    </button>
   );
 }
 
 type GenreNavigationClientProps = {
   genres: Genre[];
-  currentGenreId?: number;
   mediaType: 'movie' | 'tv';
-  searchParams?: {
-    page?: string;
-    genreId?: string;
-    mediaType?: string;
-    sort_by?: string;
-    with_watch_providers?: string;
-    watch_region?: string;
-  };
 };
 
-export function GenreNavigationClient({
-  genres,
-  currentGenreId,
-  mediaType,
-  searchParams,
-}: GenreNavigationClientProps) {
+export function GenreNavigationClient({ genres }: GenreNavigationClientProps) {
+  // Read current genre from URL state
+  const [urlState, setUrlState] = useQueryStates({
+    genreId: parseAsInteger.withDefault(0),
+    page: parseAsString.withDefault('1'),
+  });
+
+  const currentGenreId = urlState.genreId;
   const [optimisticGenreId, setOptimisticGenreId] =
     useOptimistic(currentGenreId);
 
-  function buildDiscoverUrl(targetGenreId?: number) {
-    const params = new URLSearchParams();
-
-    if (mediaType !== 'movie') {
-      params.set('mediaType', mediaType);
-    }
-
-    if (searchParams?.sort_by) {
-      params.set('sort_by', searchParams.sort_by);
-    }
-    if (searchParams?.with_watch_providers) {
-      params.set('with_watch_providers', searchParams.with_watch_providers);
-    }
-    if (searchParams?.watch_region) {
-      params.set('watch_region', searchParams.watch_region);
-    }
-
-    if (targetGenreId) {
-      params.set('genreId', targetGenreId.toString());
-    }
-
-    return `/discover${params.toString() ? `?${params.toString()}` : ''}`;
+  function handleGenreClick(targetGenreId: number) {
+    // If clicking the same genre, clear it (set to 0)
+    // Otherwise, set the new genre and reset to page 1
+    setUrlState({
+      genreId: currentGenreId === targetGenreId ? 0 : targetGenreId,
+      page: '1',
+    });
   }
 
   return (
@@ -98,12 +76,8 @@ export function GenreNavigationClient({
               currentGenreId={optimisticGenreId}
               genreId={genre.id}
               genreName={genre.name}
-              href={
-                currentGenreId === genre.id
-                  ? buildDiscoverUrl()
-                  : buildDiscoverUrl(genre.id)
-              }
               onOptimisticUpdate={setOptimisticGenreId}
+              onClick={() => handleGenreClick(genre.id)}
             />
           </li>
         ))}
