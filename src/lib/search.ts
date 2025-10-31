@@ -1,3 +1,5 @@
+'use server';
+
 import { env } from '@/env';
 import {
   Movie,
@@ -129,42 +131,6 @@ export type SearchResult =
   | SearchTvShowsResult
   | SearchPersonsResult
   | SearchMultiResult;
-
-/**
- * Type guard to check if a SearchResult is a SearchMoviesResult.
- */
-export function isSearchMoviesResult(
-  result: SearchResult
-): result is SearchMoviesResult {
-  return 'movies' in result;
-}
-
-/**
- * Type guard to check if a SearchResult is a SearchTvShowsResult.
- */
-export function isSearchTvShowsResult(
-  result: SearchResult
-): result is SearchTvShowsResult {
-  return 'tvShows' in result;
-}
-
-/**
- * Type guard to check if a SearchResult is a SearchPersonsResult.
- */
-export function isSearchPersonsResult(
-  result: SearchResult
-): result is SearchPersonsResult {
-  return 'persons' in result;
-}
-
-/**
- * Type guard to check if a SearchResult is a SearchMultiResult.
- */
-export function isSearchMultiResult(
-  result: SearchResult
-): result is SearchMultiResult {
-  return 'results' in result;
-}
 
 /**
  * Fetches search movies data for use with React Query.
