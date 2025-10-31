@@ -44,8 +44,10 @@ export default async function DiscoverWithGenrePage(
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
   const sortBy = searchParams.sort_by;
 
-  const { with_watch_providers, watch_region } =
-    loadWatchProviderSearchParams(searchParams);
+  const {
+    with_watch_providers: withWatchProviders,
+    watch_region: watchRegion,
+  } = loadWatchProviderSearchParams(searchParams);
 
   return (
     <>
@@ -72,7 +74,7 @@ export default async function DiscoverWithGenrePage(
       </div>
 
       <div className="mt-6">
-        <FiltersPanel mediaType={mediaType} watchRegion={watch_region} />
+        <FiltersPanel mediaType={mediaType} watchRegion={watchRegion} />
       </div>
 
       <div
@@ -86,8 +88,8 @@ export default async function DiscoverWithGenrePage(
             currentPage={page}
             mediaType={mediaType}
             sortBy={sortBy}
-            watchRegion={watch_region}
-            withWatchProviders={with_watch_providers}
+            watchRegion={watchRegion}
+            withWatchProviders={withWatchProviders}
           />
         </Suspense>
       </div>
@@ -98,8 +100,8 @@ export default async function DiscoverWithGenrePage(
           currentPage={page}
           mediaType={mediaType}
           sortBy={sortBy}
-          watchRegion={watch_region}
-          withWatchProviders={with_watch_providers}
+          watchRegion={watchRegion}
+          withWatchProviders={withWatchProviders}
         />
       </Suspense>
     </>
