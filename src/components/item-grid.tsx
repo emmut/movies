@@ -5,7 +5,6 @@ import ItemCard from './item-card';
 type ItemGridProps = {
   resources: Movie[] | TvShow[];
   type: 'movie' | 'tv';
-  userId?: string;
 };
 
 /**
@@ -17,18 +16,13 @@ type ItemGridProps = {
  * @param type - The type of resource ('movie' or 'tv').
  * @param userId - Optional user ID to enable list functionality.
  */
-export function ItemGrid({ resources, type, userId }: ItemGridProps) {
+export function ItemGrid({ resources, type }: ItemGridProps) {
   const resourceName = type === 'movie' ? 'movies' : 'TV shows';
 
   return (
     <>
       {resources.map((resource) => (
-        <ItemCard
-          key={resource.id}
-          resource={resource}
-          type={type}
-          userId={userId}
-        />
+        <ItemCard key={resource.id} resource={resource} type={type} />
       ))}
       {resources.length === 0 && (
         <p className="col-span-full text-center">No {resourceName} was found</p>

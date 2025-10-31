@@ -6,13 +6,15 @@ import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import Spinner from '@/components/spinner';
-import { getUser } from '@/lib/auth-server';
 import {
   getUserRegion,
   getUserWatchProviders,
   getWatchProviders,
 } from '@/lib/user-actions';
-import { loadWatchProviderSearchParams } from '@/lib/watch-provider-search-params';
+import {
+  getWatchProvidersString,
+  loadWatchProviderSearchParams,
+} from '@/lib/watch-provider-search-params';
 import { Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -49,26 +51,22 @@ export default async function DiscoverWithGenrePage(
   const page = Number(searchParams.page ?? '1');
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
   const sortBy = searchParams.sort_by;
-  const watchRegion = await getUserRegion();
-
-  const user = await getUser();
 
   const userWatchProviders = await getUserWatchProviders();
+
+  const { with_watch_providers, watch_region } =
+    loadWatchProviderSearchParams(searchParams);
+  const watchRegion = watch_region ?? (await getUserRegion());
+
   const filteredWatchProviders = await getWatchProviders(
     watchRegion,
     userWatchProviders
   );
 
-  const { with_watch_providers } =
-    await loadWatchProviderSearchParams(searchParams);
-
-  // Use user's preferred watch providers if none are specified in the URL
-  const watchProviders =
-    with_watch_providers.length > 0
-      ? with_watch_providers.join('|')
-      : userWatchProviders.length > 0
-        ? userWatchProviders.join('|')
-        : undefined;
+  const watchProviders = getWatchProvidersString(
+    with_watch_providers,
+    userWatchProviders
+  );
 
   return (
     <>
@@ -115,7 +113,6 @@ export default async function DiscoverWithGenrePage(
             sortBy={sortBy}
             watchProviders={watchProviders}
             watchRegion={watchRegion}
-            userId={user?.id}
           />
         </Suspense>
       </div>
