@@ -22,6 +22,7 @@ const nextConfig: NextConfig = {
   experimental: {
     clientSegmentCache: true,
   },
+  output: 'standalone',
 };
 
 export default nextConfig;
