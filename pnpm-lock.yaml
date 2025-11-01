@@ -94,8 +94,8 @@ importers:
         specifier: ^1.281.0
         version: 1.281.0
       posthog-node:
-        specifier: ^5.10.4
-        version: 5.10.4
+        specifier: ^5.11.0
+        version: 5.11.0
       react:
         specifier: 19.2.0
         version: 19.2.0
@@ -933,8 +933,8 @@ packages:
   '@libsql/client@0.15.8':
     resolution: {integrity: sha512-TskygwF+ToZeWhPPT0WennyGrP3tmkKraaKopT2YwUjqD6DWDRm6SG5iy0VqnaO+HC9FNBCDX0oQPODU3gqqPQ==}
 
-  '@libsql/core@0.15.14':
-    resolution: {integrity: sha512-b2eVQma78Ss+edIIFi7LnhhyUy5hAJjYvrSAD5RFdO/YKP2rEvNAT1pIn2Li7NrqcsMmoEQWlpUWH4fWMdXtpQ==}
+  '@libsql/core@0.15.15':
+    resolution: {integrity: sha512-C88Z6UKl+OyuKKPwz224riz02ih/zHYI3Ho/LAcVOgjsunIRZoBw7fjRfaH9oPMmSNeQfhGklSG2il1URoOIsA==}
 
   '@libsql/darwin-arm64@0.5.22':
     resolution: {integrity: sha512-4B8ZlX3nIDPndfct7GNe0nI3Yw6ibocEicWdC4fvQbSs/jdq/RC2oCsoJxJ4NzXkvktX70C1J4FcmmoBy069UA==}
@@ -1125,6 +1125,9 @@ packages:
 
   '@posthog/core@1.4.0':
     resolution: {integrity: sha512-jmW8/I//YOHAfjzokqas+Qtc2T57Ux8d2uIJu7FLcMGxywckHsl6od59CD18jtUzKToQdjQhV6Y3429qj+KeNw==}
+
+  '@posthog/core@1.5.0':
+    resolution: {integrity: sha512-oxfV20QMNwH30jKybUyqi3yGuMghULQz1zkJgQG3rjpHDxhD2vDN6E7UpmaqgphMIvGG3Q+DgfU10zfSPA7w7w==}
 
   '@primer/octicons-react@19.19.0':
     resolution: {integrity: sha512-dTO3khy50yS7XC0FB5L7Wwg+aEjI7mrdiZ+FeZGKiNSpkpcRDn7HTidLdtKgo0cJp6QKpqtUHGHRRpa+wrc6Bg==}
@@ -3639,8 +3642,8 @@ packages:
   posthog-js@1.281.0:
     resolution: {integrity: sha512-t3sAlgVozpU1W1ppiF5zLG6eBRPUs0hmtxN8R1V7P0qZFmnECshAAk2cBxCsxEanadT3iUpS8Z7crBytATqWQQ==}
 
-  posthog-node@5.10.4:
-    resolution: {integrity: sha512-sy020/Q4mt18eCkVo/cGEJD+wgdxeg5DTgNUaA85awBCbuEP43BOdCTOOw/K2Tvgw2oZfag3PFyhkVuQ6nJfBg==}
+  posthog-node@5.11.0:
+    resolution: {integrity: sha512-9+gmWp/7AEryJMi0+/ywJjKQhpkmcjxf+eT030fTIIPvFTF84zeeagdZBGNC/Nh2Jc0grIAW6O1n5lxXiX3daA==}
     engines: {node: '>=20'}
 
   preact@10.27.1:
@@ -4110,8 +4113,8 @@ packages:
     resolution: {integrity: sha512-ZL6DDuAlRlLGghwcfmSn9sK3Hr6ArtyudlSAiCqQ6IfE+b+HHbydbYDIG15IfS5do+7XQQBdBiubF/cV2dnDzg==}
     engines: {node: '>=6'}
 
-  tar-fs@2.1.3:
-    resolution: {integrity: sha512-090nwYJDmlhwFwEW3QQl+vaNnxsO2yVsd45eTKRBzSzu+hlb1w2K9inVq5b0ngXuLVqQ4ApvsUHHnu/zQNkWAg==}
+  tar-fs@2.1.4:
+    resolution: {integrity: sha512-mDAjwmZdh7LTT6pNleZ05Yt65HC3E+NiQzl672vQG38jIrehtJk/J3mNwIg+vShQPcLF/LV7CMnDW6vjj6sfYQ==}
 
   tar-stream@2.2.0:
     resolution: {integrity: sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==}
@@ -5051,7 +5054,7 @@ snapshots:
 
   '@libsql/client@0.15.8':
     dependencies:
-      '@libsql/core': 0.15.14
+      '@libsql/core': 0.15.15
       '@libsql/hrana-client': 0.7.0
       js-base64: 3.7.8
       libsql: 0.5.22
@@ -5061,7 +5064,7 @@ snapshots:
       - utf-8-validate
     optional: true
 
-  '@libsql/core@0.15.14':
+  '@libsql/core@0.15.15':
     dependencies:
       js-base64: 3.7.8
     optional: true
@@ -5256,6 +5259,8 @@ snapshots:
       tslib: 2.8.1
 
   '@posthog/core@1.4.0': {}
+
+  '@posthog/core@1.5.0': {}
 
   '@primer/octicons-react@19.19.0(react@19.2.0)':
     dependencies:
@@ -7819,9 +7824,9 @@ snapshots:
       preact: 10.27.1
       web-vitals: 4.2.4
 
-  posthog-node@5.10.4:
+  posthog-node@5.11.0:
     dependencies:
-      '@posthog/core': 1.4.0
+      '@posthog/core': 1.5.0
 
   preact@10.27.1: {}
 
@@ -7837,7 +7842,7 @@ snapshots:
       pump: 3.0.3
       rc: 1.2.8
       simple-get: 4.0.1
-      tar-fs: 2.1.3
+      tar-fs: 2.1.4
       tunnel-agent: 0.6.0
     optional: true
 
@@ -8365,7 +8370,7 @@ snapshots:
 
   tapable@2.2.3: {}
 
-  tar-fs@2.1.3:
+  tar-fs@2.1.4:
     dependencies:
       chownr: 1.1.4
       mkdirp-classic: 0.5.3
