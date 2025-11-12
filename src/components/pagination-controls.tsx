@@ -66,11 +66,16 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
 }
 
 export function PaginationControls({ totalPages }: PaginationControls) {
-  const [urlState, setUrlState] = useQueryStates({
-    page: parseAsInteger.withDefault(1),
-    q: parseAsString,
-    mediaType: parseAsString,
-  });
+  const [urlState, setUrlState] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      q: parseAsString,
+      mediaType: parseAsString,
+    },
+    {
+      history: 'push',
+    }
+  );
 
   const currentPageNumber = urlState.page;
   const hasPrevPage = currentPageNumber > 1;
