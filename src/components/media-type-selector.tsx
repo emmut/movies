@@ -1,7 +1,11 @@
 'use client';
 
-import { validateGenreForMediaType } from '@/lib/media-actions';
+import {
+  revalidateGenresCache,
+  validateGenreForMediaType,
+} from '@/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
 
@@ -21,15 +25,21 @@ type MediaTypeSelectorProps = {
 export default function MediaTypeSelector({
   currentMediaType,
 }: MediaTypeSelectorProps) {
-  const [urlState, setUrlState] = useQueryStates({
-    mediaType: parseAsString.withDefault('movie'),
-    genreId: parseAsInteger.withDefault(0),
-    page: parseAsString.withDefault('1'),
-  });
+  const [urlState, setUrlState] = useQueryStates(
+    {
+      mediaType: parseAsString.withDefault('movie'),
+      genreId: parseAsInteger.withDefault(0),
+      page: parseAsString.withDefault('1'),
+    },
+    {
+      history: 'push',
+    }
+  );
 
   const [optimisticMediaType, setOptimisticMediaType] =
     useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
+  const router = useRouter();
 
   async function handleMediaTypeChange(mediaType: MediaType) {
     startTransition(() => {
@@ -52,6 +62,8 @@ export default function MediaTypeSelector({
           genreId: 0,
           page: '1',
         });
+        await revalidateGenresCache(mediaType);
+        router.refresh();
         return;
       }
     }
@@ -60,6 +72,8 @@ export default function MediaTypeSelector({
       mediaType,
       page: '1',
     });
+    await revalidateGenresCache(mediaType);
+    router.refresh();
   }
 
   return (

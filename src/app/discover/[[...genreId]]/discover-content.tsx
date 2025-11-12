@@ -8,7 +8,7 @@ import SkipToElement from '@/components/skip-to-element';
 import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import { WatchProvider } from '@/types/watch-provider';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import Pagination from './pagination';
 
 type DiscoverContentProps = {
@@ -62,16 +62,19 @@ export function DiscoverContent({
 
       <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 flex-wrap gap-2">{genreNavigation}</div>
-
-        <MediaTypeSelector currentMediaType={mediaType} />
+        <Suspense>
+          <MediaTypeSelector currentMediaType={mediaType} />
+        </Suspense>
       </div>
 
       <div className="mt-6">
-        <FiltersPanel
-          mediaType={mediaType}
-          watchProviders={filteredWatchProviders}
-          userRegion={watchRegion}
-        />
+        <Suspense>
+          <FiltersPanel
+            mediaType={mediaType}
+            watchProviders={filteredWatchProviders}
+            userRegion={watchRegion}
+          />
+        </Suspense>
       </div>
 
       <div
@@ -79,15 +82,17 @@ export function DiscoverContent({
         tabIndex={0}
         className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <DiscoverGrid
-          currentGenreId={genreId}
-          currentPage={page}
-          mediaType={mediaType}
-          sortBy={sortBy}
-          watchProviders={watchProviders}
-          watchRegion={watchRegion}
-          userId={userId}
-        />
+        <Suspense>
+          <DiscoverGrid
+            currentGenreId={genreId}
+            currentPage={page}
+            mediaType={mediaType}
+            sortBy={sortBy}
+            watchProviders={watchProviders}
+            watchRegion={watchRegion}
+            userId={userId}
+          />
+        </Suspense>
       </div>
 
       <Pagination

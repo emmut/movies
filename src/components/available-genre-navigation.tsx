@@ -1,6 +1,7 @@
 import { fetchAvailableGenres } from '@/lib/movies';
 import { fetchAvailableTvGenres } from '@/lib/tv-shows';
 
+import { cacheLife, cacheTag } from 'next/cache';
 import { GenreNavigationClient } from './genre-navigation-client';
 import Pill from './pill';
 
@@ -19,6 +20,8 @@ async function AvailableGenresNavigation({
   mediaType = 'movie',
 }: AvailableGenreProps) {
   'use cache';
+  cacheTag(`available-genres-${mediaType}`);
+  cacheLife('days');
 
   const genres =
     mediaType === 'movie'
