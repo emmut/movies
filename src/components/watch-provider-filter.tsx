@@ -7,7 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useIsMounted } from '@/hooks/use-is-mounted';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
 import { Check, Filter } from 'lucide-react';
@@ -36,7 +35,6 @@ export default function WatchProviderFilter({
   providers,
   userRegion,
 }: WatchProviderFilterProps) {
-  const isMounted = useIsMounted();
   const [{ with_watch_providers }, setParams] = useQueryStates({
     with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
     watch_region: parseAsString.withDefault(DEFAULT_REGION),
@@ -57,6 +55,7 @@ export default function WatchProviderFilter({
   }
 
   function updateUrl(providerIds: number[]) {
+    setIsOpen(false);
     setParams(
       {
         with_watch_providers: providerIds.length > 0 ? providerIds : null,
@@ -79,16 +78,16 @@ export default function WatchProviderFilter({
 
   const selectedCount = selectedProviders.length;
 
-  if (!isMounted) {
-    return null;
-  }
-
   return (
     <div className="flex min-w-54 flex-col gap-2">
       <Label htmlFor="watch-providers" className="sm:self-end">
         Watch Providers
       </Label>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <Popover
+        key={JSON.stringify(with_watch_providers)}
+        open={isOpen}
+        onOpenChange={setIsOpen}
+      >
         <PopoverTrigger asChild>
           <Button
             variant="outline"
