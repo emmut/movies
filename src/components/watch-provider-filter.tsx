@@ -55,7 +55,6 @@ export default function WatchProviderFilter({
   }
 
   function updateUrl(providerIds: number[]) {
-    setIsOpen(false);
     setParams(
       {
         with_watch_providers: providerIds.length > 0 ? providerIds : null,
