@@ -7,7 +7,12 @@ import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import { WatchProvider } from '@/types/watch-provider';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import {
+  parseAsInteger,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryStates,
+} from 'nuqs';
 import { ReactNode, Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -33,8 +38,10 @@ export function DiscoverContent({
     {
       page: parseAsInteger.withDefault(1),
       genreId: parseAsInteger.withDefault(0),
-      mediaType: parseAsString.withDefault('movie'),
-      sort_by: parseAsString,
+      mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault(
+        'movie'
+      ),
+      sort_by: parseAsString.withDefault('popularity.desc'),
       with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
       watch_region: parseAsString,
       runtimeLte: parseAsInteger,
@@ -46,14 +53,10 @@ export function DiscoverContent({
       history: 'push',
     }
   );
-
-  const genreId = urlState.genreId;
-  const page = urlState.page;
-  const mediaType = urlState.mediaType as 'movie' | 'tv';
-  const sortBy = urlState.sort_by || undefined;
-  const watchProviders = urlState.with_watch_providers?.join('|') || undefined;
-  const watchRegion = urlState.watch_region || userRegion;
-  const runtimeLte = urlState.runtimeLte || undefined;
+  const { page, genreId, mediaType, sort_by: sortBy } = urlState;
+  const watchProviders = urlState.with_watch_providers?.join('|');
+  const watchRegion = urlState.watch_region ?? userRegion;
+  const runtimeLte = urlState.runtimeLte ?? undefined;
 
   return (
     <>
