@@ -37,8 +37,12 @@ export function DiscoverContent({
       sort_by: parseAsString,
       with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
       watch_region: parseAsString,
+      runtimeLte: parseAsInteger,
     },
     {
+      urlKeys: {
+        runtimeLte: 'runtime',
+      },
       history: 'push',
     }
   );
@@ -49,6 +53,7 @@ export function DiscoverContent({
   const sortBy = urlState.sort_by || undefined;
   const watchProviders = urlState.with_watch_providers?.join('|') || undefined;
   const watchRegion = urlState.watch_region || userRegion;
+  const runtimeLte = urlState.runtimeLte || undefined;
 
   return (
     <>
@@ -90,6 +95,7 @@ export function DiscoverContent({
             sortBy={sortBy}
             watchProviders={watchProviders}
             watchRegion={watchRegion}
+            runtimeLte={runtimeLte}
             userId={userId}
           />
         </Suspense>
@@ -102,6 +108,7 @@ export function DiscoverContent({
         sortBy={sortBy}
         watchProviders={watchProviders}
         watchRegion={watchRegion}
+        runtimeLte={runtimeLte}
       />
     </>
   );

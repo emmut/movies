@@ -47,7 +47,7 @@ export default async function LoginPage(props: {
 
         <div className="grid grid-cols-1 gap-4">
           <div className="bg-muted/50 flex items-center space-x-3 rounded-lg p-3">
-            <Shield className="h-5 w-5 flex-shrink-0 text-blue-500" />
+            <Shield className="h-5 w-5 shrink-0 text-blue-500" />
             <div>
               <h3 className="text-sm font-medium">Secure Login</h3>
               <p className="text-muted-foreground text-xs">
@@ -56,7 +56,7 @@ export default async function LoginPage(props: {
             </div>
           </div>
           <div className="bg-muted/50 flex items-center space-x-3 rounded-lg p-3">
-            <Users className="h-5 w-5 flex-shrink-0 text-green-500" />
+            <Users className="h-5 w-5 shrink-0 text-green-500" />
             <div>
               <h3 className="text-sm font-medium">Personalized Experience</h3>
               <p className="text-muted-foreground text-xs">
@@ -65,7 +65,7 @@ export default async function LoginPage(props: {
             </div>
           </div>
           <div className="bg-muted/50 flex items-center space-x-3 rounded-lg p-3">
-            <Zap className="h-5 w-5 flex-shrink-0 text-yellow-500" />
+            <Zap className="h-5 w-5 shrink-0 text-yellow-500" />
             <div>
               <h3 className="text-sm font-medium">Quick Access</h3>
               <p className="text-muted-foreground text-xs">

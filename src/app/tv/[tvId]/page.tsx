@@ -298,7 +298,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                   <Link
                     key={person.credit_id}
                     href={`/person/${person.id}`}
-                    className="w-32 flex-shrink-0 snap-center transition-transform hover:scale-105"
+                    className="w-32 shrink-0 snap-center transition-transform hover:scale-105"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
                       {person.profile_path ? (

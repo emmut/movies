@@ -27,6 +27,7 @@ export type DiscoverTvShowsResult = {
  * @param sortBy - Optional sort parameter
  * @param watchProviders - Optional watch provider filter
  * @param watchRegion - Optional region filter
+ * @param withRuntimeLte - Optional maximum runtime filter
  * @returns Object containing movies array and total pages
  */
 export async function getDiscoverMovies(
@@ -34,14 +35,16 @@ export async function getDiscoverMovies(
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
-  watchRegion?: string
+  watchRegion?: string,
+  withRuntimeLte?: number
 ): Promise<DiscoverMoviesResult> {
   return await fetchDiscoverMovies(
     genreId,
     page,
     sortBy,
     watchProviders,
-    watchRegion
+    watchRegion,
+    withRuntimeLte
   );
 }
 
@@ -54,6 +57,7 @@ export async function getDiscoverMovies(
  * @param sortBy - Optional sort parameter
  * @param watchProviders - Optional watch provider filter
  * @param watchRegion - Optional region filter
+ * @param withRuntimeLte - Optional maximum runtime filter
  * @returns Object containing TV shows array and total pages
  */
 export async function getDiscoverTvShows(
@@ -61,14 +65,16 @@ export async function getDiscoverTvShows(
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
-  watchRegion?: string
+  watchRegion?: string,
+  withRuntimeLte?: number
 ): Promise<DiscoverTvShowsResult> {
   return await fetchDiscoverTvShows(
     genreId,
     page,
     sortBy,
     watchProviders,
-    watchRegion
+    watchRegion,
+    withRuntimeLte
   );
 }
 
@@ -82,6 +88,7 @@ export async function getDiscoverTvShows(
  * @param sortBy - Optional sort parameter
  * @param watchProviders - Optional watch provider filter
  * @param watchRegion - Optional region filter
+ * @param withRuntimeLte - Optional maximum runtime filter
  * @returns Object containing results array and total pages
  */
 export async function getDiscoverMedia(
@@ -90,7 +97,8 @@ export async function getDiscoverMedia(
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
-  watchRegion?: string
+  watchRegion?: string,
+  withRuntimeLte?: number
 ): Promise<DiscoverResult> {
   if (mediaType === 'tv') {
     const { tvShows, totalPages } = await getDiscoverTvShows(
@@ -98,7 +106,8 @@ export async function getDiscoverMedia(
       page,
       sortBy,
       watchProviders,
-      watchRegion
+      watchRegion,
+      withRuntimeLte
     );
     return { results: tvShows, totalPages };
   }
@@ -108,7 +117,8 @@ export async function getDiscoverMedia(
     page,
     sortBy,
     watchProviders,
-    watchRegion
+    watchRegion,
+    withRuntimeLte
   );
   return { results: movies, totalPages };
 }

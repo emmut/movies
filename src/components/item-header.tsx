@@ -51,7 +51,7 @@ export default function ItemHeader({
         </div>
       </div>
       {resourceType === 'movie' && <Badge variant="yellow">Movie</Badge>}
-      {resourceType === 'tv' && <Badge variant="yellow">TV</Badge>}
+      {resourceType === 'tv' && <Badge variant="red">TV</Badge>}
     </div>
   );
 }

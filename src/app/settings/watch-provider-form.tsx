@@ -102,7 +102,7 @@ export function WatchProviderForm({
                   onClick={() => handleProviderToggle(provider.provider_id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       {imageError ? (
                         <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-md text-sm font-semibold">
                           {provider.provider_name.charAt(0).toUpperCase()}
@@ -124,7 +124,7 @@ export function WatchProviderForm({
                       </p>
                     </div>
                     {isSelected && (
-                      <Check className="text-primary h-4 w-4 flex-shrink-0" />
+                      <Check className="text-primary h-4 w-4 shrink-0" />
                     )}
                   </div>
                 </button>
