@@ -15,7 +15,7 @@ export default function Loading() {
 
       <div className="relative -mx-4 mb-8 h-64 md:h-80 lg:h-96">
         <Skeleton className="h-full w-full rounded-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
@@ -106,7 +106,7 @@ export default function Loading() {
             <Skeleton className="mb-4 h-6 w-16" />
             <div className="flex gap-4 overflow-hidden">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="w-32 flex-shrink-0">
+                <div key={i} className="w-32 shrink-0">
                   <Skeleton className="mb-2 aspect-2/3 rounded-lg" />
                   <Skeleton className="mb-1 h-4 w-full" />
                   <Skeleton className="h-3 w-3/4" />

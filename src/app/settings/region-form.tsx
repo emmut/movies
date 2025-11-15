@@ -63,7 +63,7 @@ export function RegionForm({
             align="start"
             sideOffset={2}
             avoidCollisions={true}
-            className="max-h-[15rem]"
+            className="max-h-60"
           >
             {regions.map((region) => (
               <SelectItem key={region.code} value={region.code}>
