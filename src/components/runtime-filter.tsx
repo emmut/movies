@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useRuntimeFilter } from '@/hooks/use-runtime-filter';
+import { cn } from '@/lib/utils';
 
 const RUNTIME_OPTIONS = [
   { value: '0', label: 'Any' },
@@ -18,17 +19,21 @@ const RUNTIME_OPTIONS = [
   { value: '120', label: 'Up to 120 min' },
 ];
 
+type RuntimeFilterProps = {
+  className?: string;
+};
+
 /**
  * Runtime filter component for discover page.
  *
  * Allows users to filter movies and TV shows by maximum runtime (less than or equal to).
  * Uses nuqs to manage URL state with a clean 'runtime' URL parameter.
  */
-export default function RuntimeFilter() {
+export default function RuntimeFilter({ className }: RuntimeFilterProps) {
   const [{ runtimeLte }, setRuntimeFilter] = useRuntimeFilter();
 
   return (
-    <div className="flex min-w-32 flex-col gap-2">
+    <div className={cn('flex min-w-32 flex-col gap-2', className)}>
       <Label htmlFor="runtime-filter">Runtime</Label>
       <Select
         value={runtimeLte?.toString() ?? '0'}

@@ -27,7 +27,7 @@ export default function FiltersPanel({
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <SortByFilter mediaType={mediaType} />
-        <RuntimeFilter />
+        <RuntimeFilter className="mr-auto" />
         <WatchProviderFilter
           providers={watchProviders}
           userRegion={userRegion}
