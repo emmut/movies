@@ -37,7 +37,7 @@ export function DiscoverContent({
       sort_by: parseAsString,
       with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
       watch_region: parseAsString,
-      with_runtime_gte: parseAsInteger,
+      with_runtime_lte: parseAsInteger,
     },
     {
       history: 'push',
@@ -50,7 +50,7 @@ export function DiscoverContent({
   const sortBy = urlState.sort_by || undefined;
   const watchProviders = urlState.with_watch_providers?.join('|') || undefined;
   const watchRegion = urlState.watch_region || userRegion;
-  const runtimeGte = urlState.with_runtime_gte || undefined;
+  const runtimeLte = urlState.with_runtime_lte || undefined;
 
   return (
     <>
@@ -92,7 +92,7 @@ export function DiscoverContent({
             sortBy={sortBy}
             watchProviders={watchProviders}
             watchRegion={watchRegion}
-            runtimeGte={runtimeGte}
+            runtimeLte={runtimeLte}
             userId={userId}
           />
         </Suspense>
@@ -105,7 +105,7 @@ export function DiscoverContent({
         sortBy={sortBy}
         watchProviders={watchProviders}
         watchRegion={watchRegion}
-        runtimeGte={runtimeGte}
+        runtimeLte={runtimeLte}
       />
     </>
   );

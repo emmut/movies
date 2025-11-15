@@ -138,6 +138,7 @@ export async function getTvShowWatchProviders(tvId: number) {
  * @param sortBy - Optional sort order for the TV shows.
  * @param watchProviders - Optional watch provider filter.
  * @param watchRegion - Optional region filter for watch providers.
+ * @param withRuntimeLte - Optional maximum runtime filter (less than or equal to).
  * @returns An object with the filtered TV shows and the total number of pages (maximum 500).
  *
  * @throws {Error} If the TV show discovery data cannot be loaded from the API.
@@ -148,7 +149,7 @@ export async function fetchDiscoverTvShows(
   sortBy?: string,
   watchProviders?: string,
   watchRegion?: string,
-  withRuntimeGte?: number
+  withRuntimeLte?: number
 ) {
   'use cache';
   cacheTag('discover');
@@ -172,8 +173,8 @@ export async function fetchDiscoverTvShows(
     url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
   }
 
-  if (withRuntimeGte !== undefined) {
-    url.searchParams.set('with_runtime.gte', String(withRuntimeGte));
+  if (withRuntimeLte !== undefined) {
+    url.searchParams.set('with_runtime.lte', String(withRuntimeLte));
   }
 
   const res = await fetch(url, {

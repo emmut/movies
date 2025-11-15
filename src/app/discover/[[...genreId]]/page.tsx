@@ -24,7 +24,7 @@ type DiscoverWithGenreParams = {
     sort_by?: string;
     with_watch_providers?: string;
     watch_region?: string;
-    with_runtime_gte?: string;
+    with_runtime_lte?: string;
   }>;
 };
 
@@ -72,8 +72,8 @@ export default async function DiscoverWithGenrePage(
   const queryClient = getQueryClient();
 
   // Derive runtime filter from URL
-  const runtimeGte = searchParams.with_runtime_gte
-    ? Number(searchParams.with_runtime_gte)
+  const runtimeLte = searchParams.with_runtime_lte
+    ? Number(searchParams.with_runtime_lte)
     : undefined;
 
   await queryClient.prefetchQuery({
@@ -85,7 +85,7 @@ export default async function DiscoverWithGenrePage(
             sortBy,
             watchProviders,
             watchRegion,
-            withRuntimeGte: runtimeGte,
+            withRuntimeLte: runtimeLte,
           })
         : queryKeys.discover.tvShows({
             genreId,
@@ -93,7 +93,7 @@ export default async function DiscoverWithGenrePage(
             sortBy,
             watchProviders,
             watchRegion,
-            withRuntimeGte: runtimeGte,
+            withRuntimeLte: runtimeLte,
           }),
     queryFn: () =>
       getDiscoverMedia(
@@ -103,7 +103,7 @@ export default async function DiscoverWithGenrePage(
         sortBy,
         watchProviders,
         watchRegion,
-        runtimeGte
+        runtimeLte
       ),
   });
 

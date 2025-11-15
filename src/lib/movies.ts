@@ -91,6 +91,7 @@ export async function fetchAvailableGenres() {
  * @param sortBy - Optional sorting criteria (e.g., 'popularity.desc')
  * @param watchProviders - Optional pipe-separated list of watch provider IDs
  * @param watchRegion - Optional region code for watch providers
+ * @param withRuntimeLte - Optional maximum runtime filter (less than or equal to)
  * @returns An object containing the array of discovered movies and the total number of result pages (capped at 500)
  * @throws Error if the fetch request fails
  */
@@ -100,7 +101,7 @@ export async function fetchDiscoverMovies(
   sortBy?: string,
   watchProviders?: string,
   watchRegion?: string,
-  withRuntimeGte?: number
+  withRuntimeLte?: number
 ) {
   'use cache';
   cacheTag('discover');
@@ -125,8 +126,8 @@ export async function fetchDiscoverMovies(
     url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
   }
 
-  if (withRuntimeGte !== undefined) {
-    url.searchParams.set('with_runtime.gte', String(withRuntimeGte));
+  if (withRuntimeLte !== undefined) {
+    url.searchParams.set('with_runtime.lte', String(withRuntimeLte));
   }
 
   const res = await fetch(url, {

@@ -8,34 +8,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { parseAsInteger, useQueryStates } from 'nuqs';
+import { useRuntimeFilter } from '@/hooks/use-runtime-filter';
 
 const RUNTIME_OPTIONS = [
   { value: '0', label: 'Any' },
-  { value: '25', label: '25+ min' },
-  { value: '40', label: '40+ min' },
-  { value: '60', label: '60+ min' },
+  { value: '30', label: 'Up to 30 min' },
+  { value: '60', label: 'Up to 60 min' },
+  { value: '90', label: 'Up to 90 min' },
+  { value: '120', label: 'Up to 120 min' },
 ];
 
 /**
  * Runtime filter component for discover page.
  *
- * Allows users to filter movies and TV shows by minimum runtime.
- * Uses nuqs to manage URL state for the with_runtime_gte parameter.
+ * Allows users to filter movies and TV shows by maximum runtime (less than or equal to).
+ * Uses nuqs to manage URL state for the with_runtime_lte parameter.
  */
 export default function RuntimeFilter() {
-  const [runtimeGte, setRuntimeGte] = useQueryStates({
-    with_runtime_gte: parseAsInteger,
-    with_runtime_lte: parseAsInteger,
-  });
+  const [{ with_runtime_lte }, setRuntimeFilter] = useRuntimeFilter();
 
   return (
     <div className="flex min-w-32 flex-col gap-2">
       <Label htmlFor="runtime-filter">Runtime</Label>
       <Select
-        value={runtimeGte?.toString() ?? '0'}
+        value={with_runtime_lte?.toString() ?? '0'}
         onValueChange={(value) =>
-          setRuntimeGte(value && value !== '0' ? Number(value) : null)
+          setRuntimeFilter({
+            with_runtime_lte: value && value !== '0' ? Number(value) : null,
+          })
         }
       >
         <SelectTrigger id="runtime-filter">
