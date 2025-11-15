@@ -24,7 +24,7 @@ type DiscoverWithGenreParams = {
     sort_by?: string;
     with_watch_providers?: string;
     watch_region?: string;
-    with_runtime_lte?: string;
+    runtime?: string;
   }>;
 };
 
@@ -72,8 +72,8 @@ export default async function DiscoverWithGenrePage(
   const queryClient = getQueryClient();
 
   // Derive runtime filter from URL
-  const runtimeLte = searchParams.with_runtime_lte
-    ? Number(searchParams.with_runtime_lte)
+  const runtimeLte = searchParams.runtime
+    ? Number(searchParams.runtime)
     : undefined;
 
   await queryClient.prefetchQuery({

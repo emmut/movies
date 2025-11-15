@@ -22,19 +22,19 @@ const RUNTIME_OPTIONS = [
  * Runtime filter component for discover page.
  *
  * Allows users to filter movies and TV shows by maximum runtime (less than or equal to).
- * Uses nuqs to manage URL state for the with_runtime_lte parameter.
+ * Uses nuqs to manage URL state with a clean 'runtime' URL parameter.
  */
 export default function RuntimeFilter() {
-  const [{ with_runtime_lte }, setRuntimeFilter] = useRuntimeFilter();
+  const [{ runtimeLte }, setRuntimeFilter] = useRuntimeFilter();
 
   return (
     <div className="flex min-w-32 flex-col gap-2">
       <Label htmlFor="runtime-filter">Runtime</Label>
       <Select
-        value={with_runtime_lte?.toString() ?? '0'}
+        value={runtimeLte?.toString() ?? '0'}
         onValueChange={(value) =>
           setRuntimeFilter({
-            with_runtime_lte: value && value !== '0' ? Number(value) : null,
+            runtimeLte: value && value !== '0' ? Number(value) : null,
           })
         }
       >
