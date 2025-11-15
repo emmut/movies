@@ -24,6 +24,7 @@ type DiscoverWithGenreParams = {
     sort_by?: string;
     with_watch_providers?: string;
     watch_region?: string;
+    with_runtime_gte?: string;
   }>;
 };
 
@@ -70,6 +71,11 @@ export default async function DiscoverWithGenrePage(
   // Prefetch data on the server for React Query
   const queryClient = getQueryClient();
 
+  // Derive runtime filter from URL
+  const runtimeGte = searchParams.with_runtime_gte
+    ? Number(searchParams.with_runtime_gte)
+    : undefined;
+
   await queryClient.prefetchQuery({
     queryKey:
       mediaType === 'movie'
@@ -79,6 +85,7 @@ export default async function DiscoverWithGenrePage(
             sortBy,
             watchProviders,
             watchRegion,
+            withRuntimeGte: runtimeGte,
           })
         : queryKeys.discover.tvShows({
             genreId,
@@ -86,6 +93,7 @@ export default async function DiscoverWithGenrePage(
             sortBy,
             watchProviders,
             watchRegion,
+            withRuntimeGte: runtimeGte,
           }),
     queryFn: () =>
       getDiscoverMedia(
@@ -94,7 +102,8 @@ export default async function DiscoverWithGenrePage(
         page,
         sortBy,
         watchProviders,
-        watchRegion
+        watchRegion,
+        runtimeGte
       ),
   });
 

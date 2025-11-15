@@ -99,7 +99,8 @@ export async function fetchDiscoverMovies(
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
-  watchRegion?: string
+  watchRegion?: string,
+  withRuntimeGte?: number
 ) {
   'use cache';
   cacheTag('discover');
@@ -122,6 +123,10 @@ export async function fetchDiscoverMovies(
   } else {
     url.searchParams.set('with_watch_providers', majorProviders);
     url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
+  }
+
+  if (withRuntimeGte !== undefined) {
+    url.searchParams.set('with_runtime.gte', String(withRuntimeGte));
   }
 
   const res = await fetch(url, {

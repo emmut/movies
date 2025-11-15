@@ -10,6 +10,7 @@ type DiscoverParams = {
   sortBy?: string;
   watchProviders?: string;
   watchRegion?: string;
+  withRuntimeGte?: number;
 };
 
 export const queryKeys = {
@@ -48,6 +49,7 @@ export const queryKeys = {
         params.sortBy,
         params.watchProviders,
         params.watchRegion,
+        params.withRuntimeGte,
       ] as const,
     tvShows: (params: Omit<DiscoverParams, 'mediaType'>) =>
       [
@@ -58,6 +60,7 @@ export const queryKeys = {
         params.sortBy,
         params.watchProviders,
         params.watchRegion,
+        params.withRuntimeGte,
       ] as const,
   },
   search: {

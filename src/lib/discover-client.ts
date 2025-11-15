@@ -34,14 +34,16 @@ export async function getDiscoverMovies(
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
-  watchRegion?: string
+  watchRegion?: string,
+  withRuntimeGte?: number
 ): Promise<DiscoverMoviesResult> {
   return await fetchDiscoverMovies(
     genreId,
     page,
     sortBy,
     watchProviders,
-    watchRegion
+    watchRegion,
+    withRuntimeGte
   );
 }
 
@@ -61,14 +63,16 @@ export async function getDiscoverTvShows(
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
-  watchRegion?: string
+  watchRegion?: string,
+  withRuntimeGte?: number
 ): Promise<DiscoverTvShowsResult> {
   return await fetchDiscoverTvShows(
     genreId,
     page,
     sortBy,
     watchProviders,
-    watchRegion
+    watchRegion,
+    withRuntimeGte
   );
 }
 
@@ -90,7 +94,8 @@ export async function getDiscoverMedia(
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
-  watchRegion?: string
+  watchRegion?: string,
+  withRuntimeGte?: number
 ): Promise<DiscoverResult> {
   if (mediaType === 'tv') {
     const { tvShows, totalPages } = await getDiscoverTvShows(
@@ -98,7 +103,8 @@ export async function getDiscoverMedia(
       page,
       sortBy,
       watchProviders,
-      watchRegion
+      watchRegion,
+      withRuntimeGte
     );
     return { results: tvShows, totalPages };
   }
@@ -108,7 +114,8 @@ export async function getDiscoverMedia(
     page,
     sortBy,
     watchProviders,
-    watchRegion
+    watchRegion,
+    withRuntimeGte
   );
   return { results: movies, totalPages };
 }

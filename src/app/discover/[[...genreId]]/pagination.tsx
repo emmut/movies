@@ -11,6 +11,7 @@ type PaginationProps = {
   sortBy?: string;
   watchProviders?: string;
   watchRegion?: string;
+  runtimeGte?: number;
 };
 
 /**
@@ -33,6 +34,7 @@ export default function Pagination({
   sortBy,
   watchProviders,
   watchRegion,
+  runtimeGte,
 }: PaginationProps) {
   const { data, isLoading } = useDiscoverMedia({
     mediaType,
@@ -41,6 +43,7 @@ export default function Pagination({
     sortBy,
     watchProviders,
     watchRegion,
+    runtimeGte,
   });
 
   if (isLoading) {

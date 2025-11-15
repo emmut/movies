@@ -11,6 +11,7 @@ type UseDiscoverMediaParams = {
   sortBy?: string;
   watchProviders?: string;
   watchRegion?: string;
+  runtimeGte?: number;
 };
 
 /**
@@ -27,6 +28,7 @@ export function useDiscoverMedia({
   sortBy,
   watchProviders,
   watchRegion,
+  runtimeGte,
 }: UseDiscoverMediaParams) {
   return useQuery({
     queryKey:
@@ -37,6 +39,7 @@ export function useDiscoverMedia({
             sortBy,
             watchProviders,
             watchRegion,
+            withRuntimeGte: runtimeGte,
           })
         : queryKeys.discover.tvShows({
             genreId,
@@ -44,6 +47,7 @@ export function useDiscoverMedia({
             sortBy,
             watchProviders,
             watchRegion,
+            withRuntimeGte: runtimeGte,
           }),
     queryFn: () =>
       getDiscoverMedia(
@@ -52,7 +56,8 @@ export function useDiscoverMedia({
         page,
         sortBy,
         watchProviders,
-        watchRegion
+        watchRegion,
+        runtimeGte
       ),
     staleTime: 60 * 1000, // 1 minute
   });

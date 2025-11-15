@@ -10,6 +10,7 @@ type DiscoverGridProps = {
   sortBy?: string;
   watchProviders?: string;
   watchRegion?: string;
+  runtimeGte?: number;
   userId?: string;
 };
 
@@ -33,6 +34,7 @@ export default function DiscoverGrid({
   sortBy,
   watchProviders,
   watchRegion,
+  runtimeGte,
   userId,
 }: DiscoverGridProps) {
   const { data, isLoading, error } = useDiscoverMedia({
@@ -42,6 +44,7 @@ export default function DiscoverGrid({
     sortBy,
     watchProviders,
     watchRegion,
+    runtimeGte,
   });
 
   if (isLoading) {

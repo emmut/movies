@@ -1,4 +1,5 @@
 import { WatchProvider } from '@/types/watch-provider';
+import RuntimeFilter from './runtime-filter';
 import SortByFilter from './sort-by-filter';
 import WatchProviderFilter from './watch-provider-filter';
 
@@ -26,6 +27,7 @@ export default function FiltersPanel({
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <SortByFilter mediaType={mediaType} />
+        <RuntimeFilter />
         <WatchProviderFilter
           providers={watchProviders}
           userRegion={userRegion}
