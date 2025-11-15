@@ -118,7 +118,7 @@ export async function fetchDiscoverMovies(
     url.searchParams.set('with_genres', String(genreId));
   }
 
-  if (watchProviders && watchRegion) {
+  if (watchProviders !== undefined && watchRegion !== undefined) {
     url.searchParams.set('with_watch_providers', watchProviders);
     url.searchParams.set('watch_region', watchRegion);
   } else {
@@ -126,7 +126,7 @@ export async function fetchDiscoverMovies(
     url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
   }
 
-  if (withRuntimeLte !== undefined) {
+  if (withRuntimeLte !== undefined && withRuntimeLte > 0) {
     url.searchParams.set('with_runtime.lte', String(withRuntimeLte));
   }
 
