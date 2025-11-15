@@ -94,7 +94,7 @@ export function getSafeRedirectUrl(url?: string) {
  */
 export function createLoginUrl(redirectUrl?: string) {
   if (redirectUrl === undefined || !isValidRedirectUrl(redirectUrl)) {
-    return '/' as const;
+    return '/';
   }
-  return `/login?redirect_url=${encodeURIComponent(redirectUrl)}` as const;
+  return `/login?redirect_url=${encodeURIComponent(redirectUrl)}`;
 }
