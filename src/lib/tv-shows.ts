@@ -14,7 +14,7 @@ import {
 } from '@/types/tv-show';
 import { cacheLife, cacheTag } from 'next/cache';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
-import { TMDB_API_URL } from './constants';
+import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';
 import { DEFAULT_REGION } from './regions';
 import { getUserRegion } from './user-actions';
 
@@ -173,8 +173,12 @@ export async function fetchDiscoverTvShows(
     url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
   }
 
-  if (withRuntimeLte !== undefined) {
+  if (typeof withRuntimeLte === 'number' && withRuntimeLte > 0) {
     url.searchParams.set('with_runtime.lte', String(withRuntimeLte));
+    url.searchParams.set(
+      'with_runtime.gte',
+      String(MIN_RUNTIME_FILTER_MINUTES)
+    );
   }
 
   const res = await fetch(url, {
