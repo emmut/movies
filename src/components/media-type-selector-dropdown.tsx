@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useIsMounted } from '@/hooks/use-is-mounted';
 import { validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Search, Tv, User } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -30,6 +31,7 @@ type MediaTypeSelectorDropdownProps = {
 export default function MediaTypeSelectorDropdown({
   currentMediaType,
 }: MediaTypeSelectorDropdownProps) {
+  const isMounted = useIsMounted();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -97,6 +99,19 @@ export default function MediaTypeSelectorDropdown({
       default:
         return <Search className="h-4 w-4" />;
     }
+  }
+
+  // Only render the dropdown after mounting to avoid hydration mismatch
+  // from Radix UI's dynamic aria-controls IDs
+  if (!isMounted) {
+    return (
+      <div className="border-input flex h-9 w-[180px] items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs">
+        <div className="flex items-center gap-2">
+          {getIcon(currentMediaType)}
+          {getDisplayName(currentMediaType)}
+        </div>
+      </div>
+    );
   }
 
   return (

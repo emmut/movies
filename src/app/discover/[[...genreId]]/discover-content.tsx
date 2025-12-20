@@ -5,9 +5,15 @@ import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
+import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import { WatchProvider } from '@/types/watch-provider';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { ReactNode } from 'react';
+import {
+  parseAsInteger,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryStates,
+} from 'nuqs';
+import { ReactNode, Suspense } from 'react';
 import Pagination from './pagination';
 
 type DiscoverContentProps = {
@@ -32,22 +38,25 @@ export function DiscoverContent({
     {
       page: parseAsInteger.withDefault(1),
       genreId: parseAsInteger.withDefault(0),
-      mediaType: parseAsString.withDefault('movie'),
-      sort_by: parseAsString,
-      with_watch_providers: parseAsString,
+      mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault(
+        'movie'
+      ),
+      sort_by: parseAsString.withDefault('popularity.desc'),
+      with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
       watch_region: parseAsString,
+      runtimeLte: parseAsInteger,
     },
     {
+      urlKeys: {
+        runtimeLte: 'runtime',
+      },
       history: 'push',
     }
   );
-
-  const genreId = urlState.genreId;
-  const page = urlState.page;
-  const mediaType = urlState.mediaType as 'movie' | 'tv';
-  const sortBy = urlState.sort_by || undefined;
-  const watchProviders = urlState.with_watch_providers || undefined;
-  const watchRegion = urlState.watch_region || userRegion;
+  const { page, genreId, mediaType, sort_by: sortBy } = urlState;
+  const watchProviders = urlState.with_watch_providers?.join('|');
+  const watchRegion = urlState.watch_region ?? userRegion;
+  const runtimeLte = urlState.runtimeLte ?? undefined;
 
   return (
     <>
@@ -61,16 +70,19 @@ export function DiscoverContent({
 
       <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 flex-wrap gap-2">{genreNavigation}</div>
-
-        <MediaTypeSelector currentMediaType={mediaType} />
+        <Suspense>
+          <MediaTypeSelector currentMediaType={mediaType} />
+        </Suspense>
       </div>
 
       <div className="mt-6">
-        <FiltersPanel
-          mediaType={mediaType}
-          watchProviders={filteredWatchProviders}
-          userRegion={watchRegion}
-        />
+        <Suspense>
+          <FiltersPanel
+            mediaType={mediaType}
+            watchProviders={filteredWatchProviders}
+            userRegion={watchRegion}
+          />
+        </Suspense>
       </div>
 
       <div
@@ -78,15 +90,18 @@ export function DiscoverContent({
         tabIndex={0}
         className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <DiscoverGrid
-          currentGenreId={genreId}
-          currentPage={page}
-          mediaType={mediaType}
-          sortBy={sortBy}
-          watchProviders={watchProviders}
-          watchRegion={watchRegion}
-          userId={userId}
-        />
+        <Suspense>
+          <DiscoverGrid
+            currentGenreId={genreId}
+            currentPage={page}
+            mediaType={mediaType}
+            sortBy={sortBy}
+            watchProviders={watchProviders}
+            watchRegion={watchRegion}
+            runtimeLte={runtimeLte}
+            userId={userId}
+          />
+        </Suspense>
       </div>
 
       <Pagination
@@ -96,6 +111,7 @@ export function DiscoverContent({
         sortBy={sortBy}
         watchProviders={watchProviders}
         watchRegion={watchRegion}
+        runtimeLte={runtimeLte}
       />
     </>
   );

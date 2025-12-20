@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidateTag } from 'next/cache';
 import { fetchAvailableGenres } from './movies';
 import { fetchAvailableTvGenres } from './tv-shows';
 
@@ -27,4 +28,13 @@ export async function validateGenreForMediaType(
     console.warn('Failed to validate genre for media type:', error);
     return true;
   }
+}
+
+/**
+ * Revalidates the cache for available genres navigation when media type changes.
+ *
+ * @param mediaType - The media type to revalidate genres for, either 'movie' or 'tv'.
+ */
+export async function revalidateGenresCache(mediaType: 'movie' | 'tv') {
+  revalidateTag(`available-genres-${mediaType}`, 'max');
 }

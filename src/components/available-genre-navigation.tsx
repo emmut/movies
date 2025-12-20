@@ -18,8 +18,6 @@ type AvailableGenreProps = {
 async function AvailableGenresNavigation({
   mediaType = 'movie',
 }: AvailableGenreProps) {
-  'use cache';
-
   const genres =
     mediaType === 'movie'
       ? await fetchAvailableGenres()

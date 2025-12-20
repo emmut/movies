@@ -15,7 +15,7 @@ import {
 import { TmdbVideoResponse } from '@/types/tmdb-video';
 import { cacheLife, cacheTag } from 'next/cache';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
-import { TMDB_API_URL } from './constants';
+import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
@@ -91,6 +91,7 @@ export async function fetchAvailableGenres() {
  * @param sortBy - Optional sorting criteria (e.g., 'popularity.desc')
  * @param watchProviders - Optional pipe-separated list of watch provider IDs
  * @param watchRegion - Optional region code for watch providers
+ * @param withRuntimeLte - Optional maximum runtime filter (less than or equal to)
  * @returns An object containing the array of discovered movies and the total number of result pages (capped at 500)
  * @throws Error if the fetch request fails
  */
@@ -99,7 +100,8 @@ export async function fetchDiscoverMovies(
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
-  watchRegion?: string
+  watchRegion?: string,
+  withRuntimeLte?: number
 ) {
   'use cache';
   cacheTag('discover');
@@ -116,12 +118,20 @@ export async function fetchDiscoverMovies(
     url.searchParams.set('with_genres', String(genreId));
   }
 
-  if (watchProviders && watchRegion) {
+  if (watchProviders !== undefined && watchRegion !== undefined) {
     url.searchParams.set('with_watch_providers', watchProviders);
     url.searchParams.set('watch_region', watchRegion);
   } else {
     url.searchParams.set('with_watch_providers', majorProviders);
     url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
+  }
+
+  if (typeof withRuntimeLte === 'number' && withRuntimeLte > 0) {
+    url.searchParams.set('with_runtime.lte', String(withRuntimeLte));
+    url.searchParams.set(
+      'with_runtime.gte',
+      String(MIN_RUNTIME_FILTER_MINUTES)
+    );
   }
 
   const res = await fetch(url, {

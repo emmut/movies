@@ -19,9 +19,6 @@ const nextConfig: NextConfig = {
   },
   reactCompiler: true,
   cacheComponents: true,
-  experimental: {
-    clientSegmentCache: true,
-  },
   output: 'standalone',
 };
 

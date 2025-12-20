@@ -1,4 +1,7 @@
+'use client';
+
 import { Database, Globe } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ExternalLinksProps = {
   tmdbId: number;
@@ -23,6 +26,7 @@ export function ExternalLinks({
   homepage,
   mediaType = 'movie',
 }: ExternalLinksProps) {
+  const isMobile = useIsMobile();
   const tmdbUrl = `https://www.themoviedb.org/${mediaType}/${tmdbId}`;
 
   return (
@@ -32,6 +36,7 @@ export function ExternalLinks({
           className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 font-semibold text-black transition-colors hover:bg-yellow-700"
           href={`https://imdb.com/${mediaType === 'person' ? 'name' : 'title'}/${imdbId}`}
           rel="noopener noreferrer"
+          target={isMobile ? undefined : '_blank'}
         >
           IMDb
         </a>
@@ -41,6 +46,7 @@ export function ExternalLinks({
         className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
         href={tmdbUrl}
         rel="noopener noreferrer"
+        target="_blank"
       >
         <Database className="h-4 w-4" />
         TMDB
@@ -51,6 +57,7 @@ export function ExternalLinks({
           className="inline-flex items-center gap-2 rounded-lg bg-zinc-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-zinc-600"
           href={homepage}
           rel="noopener noreferrer"
+          target="_blank"
         >
           <Globe className="h-4 w-4" />
           Official Website

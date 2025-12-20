@@ -1,6 +1,7 @@
 import { AvailableGenresNavigation } from '@/components/available-genre-navigation';
 import { getUser } from '@/lib/auth-server';
 import { getDiscoverMedia } from '@/lib/discover-client';
+import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
 import {
@@ -8,10 +9,7 @@ import {
   getUserWatchProviders,
   getWatchProviders,
 } from '@/lib/user-actions';
-import {
-  getWatchProvidersString,
-  loadWatchProviderSearchParams,
-} from '@/lib/watch-provider-search-params';
+import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { Suspense } from 'react';
 import { DiscoverContent } from './discover-content';
@@ -24,6 +22,7 @@ type DiscoverWithGenreParams = {
     sort_by?: string;
     with_watch_providers?: string;
     watch_region?: string;
+    runtime?: string;
   }>;
 };
 
@@ -38,24 +37,20 @@ export default async function DiscoverWithGenrePage(
   props: DiscoverWithGenreParams
 ) {
   const searchParams = await props.searchParams;
-  let genreId: number;
-
-  if (searchParams.genreId) {
-    genreId = Number(searchParams.genreId);
-  } else {
-    genreId = 0;
-  }
-
-  const page = Number(searchParams.page ?? '1');
-  const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
-  const sortBy = searchParams.sort_by;
+  const {
+    page,
+    genreId,
+    mediaType,
+    sort_by: sortBy,
+    with_watch_providers,
+    watch_region,
+    runtime,
+  } = loadDiscoverSearchParams(searchParams);
 
   const user = await getUser();
   const userWatchProviders = await getUserWatchProviders();
-
-  const { with_watch_providers, watch_region } =
-    loadWatchProviderSearchParams(searchParams);
   const watchRegion = watch_region ?? (await getUserRegion());
+  const withRuntimeLte = runtime ?? undefined;
 
   const filteredWatchProviders = await getWatchProviders(
     watchRegion,
@@ -79,6 +74,7 @@ export default async function DiscoverWithGenrePage(
             sortBy,
             watchProviders,
             watchRegion,
+            withRuntimeLte,
           })
         : queryKeys.discover.tvShows({
             genreId,
@@ -86,6 +82,7 @@ export default async function DiscoverWithGenrePage(
             sortBy,
             watchProviders,
             watchRegion,
+            withRuntimeLte,
           }),
     queryFn: () =>
       getDiscoverMedia(
@@ -94,7 +91,8 @@ export default async function DiscoverWithGenrePage(
         page,
         sortBy,
         watchProviders,
-        watchRegion
+        watchRegion,
+        withRuntimeLte
       ),
   });
 

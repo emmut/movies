@@ -82,7 +82,7 @@ export function isValidRedirectUrl(url?: string): boolean {
  *
  * @returns The validated redirect URL or '/' if the input is invalid or unsafe.
  */
-export function getSafeRedirectUrl(url?: string): string {
+export function getSafeRedirectUrl(url?: string) {
   return url && isValidRedirectUrl(url) ? url : '/';
 }
 
@@ -92,7 +92,7 @@ export function getSafeRedirectUrl(url?: string): string {
  * @param redirectUrl - The URL to redirect to after login, included only if it is a valid relative path
  * @returns The login URL with an optional redirect parameter, or '/' if the redirect URL is invalid
  */
-export function createLoginUrl(redirectUrl?: string): string {
+export function createLoginUrl(redirectUrl?: string) {
   if (redirectUrl === undefined || !isValidRedirectUrl(redirectUrl)) {
     return '/';
   }

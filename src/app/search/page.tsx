@@ -1,16 +1,18 @@
-import ItemGrid from '@/components/item-grid';
-import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown';
-import { PaginationControls } from '@/components/pagination-controls';
-import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
+import { getQueryClient } from '@/lib/query-client';
+import { queryKeys } from '@/lib/query-keys';
 import {
-  fetchMoviesBySearchQuery,
-  fetchMultiSearchQuery,
-  fetchPersonsBySearchQuery,
-  fetchTvShowsBySearchQuery,
+  getSearchMovies,
+  getSearchMulti,
+  getSearchPersons,
+  getSearchTvShows,
+  SearchMoviesResult,
+  SearchMultiResult,
+  SearchPersonsResult,
+  SearchTvShowsResult,
 } from '@/lib/search';
-import { Suspense } from 'react';
-import SearchResults from './search-results';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { SearchContent } from './search-content';
 
 type MediaType = 'movie' | 'tv' | 'person' | 'all';
 
@@ -33,64 +35,41 @@ type SearchProps = {
 export default async function SearchPage(props: SearchProps) {
   const searchParams = await props.searchParams;
   const query = searchParams.q ?? '';
-  const page = searchParams.page ?? '1';
+  const page = Number(searchParams.page ?? '1');
   const mediaType = (searchParams.mediaType ?? 'all') as MediaType;
 
   const user = await getUser();
 
-  let totalPages = 0;
+  // Prefetch data on the server for React Query
+  const queryClient = getQueryClient();
 
   if (query) {
-    if (mediaType === 'tv') {
-      const { totalPages: tvTotalPages } = await fetchTvShowsBySearchQuery(
-        query,
-        page
-      );
-      totalPages = tvTotalPages;
+    if (mediaType === 'movie') {
+      await queryClient.prefetchQuery<SearchMoviesResult>({
+        queryKey: queryKeys.search.movies(query, page),
+        queryFn: () => getSearchMovies(query, page),
+      });
+    } else if (mediaType === 'tv') {
+      await queryClient.prefetchQuery<SearchTvShowsResult>({
+        queryKey: queryKeys.search.tvShows(query, page),
+        queryFn: () => getSearchTvShows(query, page),
+      });
     } else if (mediaType === 'person') {
-      const { totalPages: personTotalPages } = await fetchPersonsBySearchQuery(
-        query,
-        page
-      );
-      totalPages = personTotalPages;
-    } else if (mediaType === 'movie') {
-      const { totalPages: movieTotalPages } = await fetchMoviesBySearchQuery(
-        query,
-        page
-      );
-      totalPages = movieTotalPages;
+      await queryClient.prefetchQuery<SearchPersonsResult>({
+        queryKey: queryKeys.search.persons(query, page),
+        queryFn: () => getSearchPersons(query, page),
+      });
     } else {
-      // 'all' - use multi search
-      const { totalPages: multiTotalPages } = await fetchMultiSearchQuery(
-        query,
-        page
-      );
-      totalPages = multiTotalPages;
+      await queryClient.prefetchQuery<SearchMultiResult>({
+        queryKey: queryKeys.search.multi(query, page),
+        queryFn: () => getSearchMulti(query, page),
+      });
     }
   }
 
   return (
-    <>
-      <div className="mt-4 mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <SectionTitle>Search</SectionTitle>
-        <MediaTypeSelectorDropdown currentMediaType={mediaType} />
-      </div>
-
-      <div
-        className="mt-8 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
-        id="content-container"
-      >
-        <Suspense fallback={<ItemGrid.Skeletons className="w-full" />}>
-          <SearchResults
-            searchQuery={query}
-            currentPage={page}
-            mediaType={mediaType}
-            userId={user?.id}
-          />
-        </Suspense>
-      </div>
-
-      <PaginationControls totalPages={totalPages} pageType="search" />
-    </>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <SearchContent userId={user?.id} />
+    </HydrationBoundary>
   );
 }

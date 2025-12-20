@@ -10,6 +10,7 @@ type DiscoverGridProps = {
   sortBy?: string;
   watchProviders?: string;
   watchRegion?: string;
+  runtimeLte?: number;
   userId?: string;
 };
 
@@ -24,6 +25,7 @@ type DiscoverGridProps = {
  * @param sortBy - The sort order for the results.
  * @param watchProviders - Comma-separated list of watch provider IDs.
  * @param watchRegion - The region code for watch providers.
+ * @param runtimeLte - Maximum runtime filter.
  * @param userId - Optional user ID to enable list functionality.
  */
 export default function DiscoverGrid({
@@ -33,6 +35,7 @@ export default function DiscoverGrid({
   sortBy,
   watchProviders,
   watchRegion,
+  runtimeLte,
   userId,
 }: DiscoverGridProps) {
   const { data, isLoading, error } = useDiscoverMedia({
@@ -42,6 +45,7 @@ export default function DiscoverGrid({
     sortBy,
     watchProviders,
     watchRegion,
+    runtimeLte,
   });
 
   if (isLoading) {

@@ -82,7 +82,11 @@ export default function WatchProviderFilter({
       <Label htmlFor="watch-providers" className="sm:self-end">
         Watch Providers
       </Label>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <Popover
+        key={JSON.stringify(with_watch_providers)}
+        open={isOpen}
+        onOpenChange={setIsOpen}
+      >
         <PopoverTrigger asChild>
           <Button
             variant="outline"
