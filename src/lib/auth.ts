@@ -11,6 +11,7 @@ import { eq } from 'drizzle-orm';
 
 export const auth = betterAuth({
   trustedOrigins: [
+    env.BETTER_AUTH_TRUSTED_ORIGIN,
     env.VERCEL_BRANCH_URL,
     env.VERCEL_PROJECT_PRODUCTION_URL,
   ].filter((domain) => domain != null),
