@@ -43,6 +43,13 @@
       "when": 1756594068453,
       "tag": "0005_add_user_watch_providers",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1767029179409,
+      "tag": "0006_stale_stingray",
+      "breakpoints": true
     }
   ]
 }
