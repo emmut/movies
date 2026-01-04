@@ -34,12 +34,9 @@ export function ItemSlider({ children }: ItemSliderProps) {
     preventClickRef.current = false;
     startXRef.current = e.pageX;
     scrollLeftRef.current = container.scrollLeft;
-
-    document.addEventListener('mousemove', handleMouseMove, { passive: false });
-    document.addEventListener('mouseup', handleMouseUp);
   }
 
-  function handleMouseMove(e: MouseEvent) {
+  function handleMouseMove(e: React.MouseEvent) {
     if (!isDraggingRef.current) return;
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -56,8 +53,10 @@ export function ItemSlider({ children }: ItemSliderProps) {
 
   function handleMouseUp() {
     isDraggingRef.current = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
+  }
+
+  function handleMouseLeave() {
+    isDraggingRef.current = false;
   }
 
   function handleClick(e: MouseEvent) {
@@ -66,11 +65,11 @@ export function ItemSlider({ children }: ItemSliderProps) {
       e.stopPropagation();
       preventClickRef.current = false;
     }
-  };
+  }
 
-  const handleDragStart = (e: DragEvent) => {
+  function handleDragStart(e: DragEvent) {
     e.preventDefault();
-  };
+  }
 
   const disableArrows = isClient
     ? !window.matchMedia('(hover: hover)').matches
@@ -170,7 +169,10 @@ export function ItemSlider({ children }: ItemSliderProps) {
       <div
         ref={scrollContainerRef}
         onMouseDown={handleMouseDown}
-        className="scrollbar-hide relative -mx-3 flex w-[calc(100%+0.75rem)] cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing"
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        className="scrollbar-hide relative -mx-3 flex w-[calc(100%+0.75rem)] cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing"
       >
         {children}
       </div>
