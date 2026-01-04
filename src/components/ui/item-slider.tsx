@@ -25,7 +25,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
   const scrollLeftRef = useRef(0);
   const preventClickRef = useRef(false);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  function handleMouseDown(e: React.MouseEvent) {
     const container = scrollContainerRef.current;
     if (!container) return;
     if (e.button !== 0) return;
@@ -37,9 +37,9 @@ export function ItemSlider({ children }: ItemSliderProps) {
 
     document.addEventListener('mousemove', handleMouseMove, { passive: false });
     document.addEventListener('mouseup', handleMouseUp);
-  };
+  }
 
-  const handleMouseMove = (e: MouseEvent) => {
+  function handleMouseMove(e: MouseEvent) {
     if (!isDraggingRef.current) return;
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -52,15 +52,15 @@ export function ItemSlider({ children }: ItemSliderProps) {
       e.preventDefault();
       container.scrollLeft = scrollLeftRef.current - walkX;
     }
-  };
+  }
 
-  const handleMouseUp = () => {
+  function handleMouseUp() {
     isDraggingRef.current = false;
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
-  };
+  }
 
-  const handleClick = (e: MouseEvent) => {
+  function handleClick(e: MouseEvent) {
     if (preventClickRef.current) {
       e.preventDefault();
       e.stopPropagation();
