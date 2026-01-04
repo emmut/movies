@@ -143,7 +143,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
             <ChevronLeft className="h-6 w-6" />
           </button>
           <div
-            className={`from-background pointer-events-none absolute inset-y-0 -left-3 z-10 w-10 bg-gradient-to-r to-transparent lg:w-30 ${!showLeftArrow ? 'opacity-0' : ''}`}
+            className={`from-background pointer-events-none absolute inset-y-0 -left-3 z-10 w-10 bg-linear-to-r to-transparent lg:w-30 ${!showLeftArrow ? 'opacity-0' : ''}`}
           />
         </>
       )}
@@ -161,7 +161,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
             <ChevronRight className="h-6 w-6" />
           </button>
           <div
-            className={`from-background pointer-events-none absolute inset-y-0 -right-3 z-10 w-10 bg-gradient-to-l to-transparent lg:w-30 ${!showRightArrow ? 'opacity-0' : ''}`}
+            className={`from-background pointer-events-none absolute inset-y-0 -right-3 z-10 w-10 bg-linear-to-l to-transparent lg:w-30 ${!showRightArrow ? 'opacity-0' : ''}`}
           />
         </>
       )}

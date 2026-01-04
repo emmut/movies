@@ -99,13 +99,13 @@ export default async function MoviePage(props: MoviePageProps) {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
         </div>
       )}
 
       {!backdrop_path && (
         <div className="relative -mx-4 mb-8 bg-zinc-900 md:h-80 lg:h-96">
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
         </div>
       )}
 
@@ -336,7 +336,7 @@ export default async function MoviePage(props: MoviePageProps) {
                   <Link
                     key={person.credit_id}
                     href={`/person/${person.id}`}
-                    className="w-32 flex-shrink-0 snap-center transition-transform hover:scale-105"
+                    className="w-32 shrink-0 transition-transform hover:scale-105"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
                       {person.profile_path ? (
