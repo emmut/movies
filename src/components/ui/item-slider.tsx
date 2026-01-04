@@ -68,6 +68,10 @@ export function ItemSlider({ children }: ItemSliderProps) {
     }
   };
 
+  const handleDragStart = (e: DragEvent) => {
+    e.preventDefault();
+  };
+
   const disableArrows = isClient
     ? !window.matchMedia('(hover: hover)').matches
     : false;
@@ -96,15 +100,19 @@ export function ItemSlider({ children }: ItemSliderProps) {
       signal: controller.signal,
     });
 
-    container.addEventListener('click', handleClick, true);
-    container.addEventListener('dragstart', (e) => e.preventDefault());
+    container.addEventListener('click', handleClick, {
+      capture: true,
+      signal: controller.signal,
+    });
+
+    container.addEventListener('dragstart', handleDragStart, {
+      signal: controller.signal,
+    });
 
     updateArrowVisibility();
 
     return () => {
       controller.abort();
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
 
