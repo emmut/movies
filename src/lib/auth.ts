@@ -10,6 +10,7 @@ import { anonymous } from 'better-auth/plugins';
 import { eq } from 'drizzle-orm';
 
 export const auth = betterAuth({
+  baseURL: env.NEXT_PUBLIC_BASE_URL,
   trustedOrigins: [
     env.BETTER_AUTH_TRUSTED_ORIGIN,
     env.VERCEL_BRANCH_URL,
