@@ -20,6 +20,53 @@ export function ItemSlider({ children }: ItemSliderProps) {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const isClient = useIsClient();
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+  const preventClickRef = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    if (e.button !== 0) return;
+
+    isDraggingRef.current = true;
+    preventClickRef.current = false;
+    startXRef.current = e.pageX;
+    scrollLeftRef.current = container.scrollLeft;
+
+    document.addEventListener('mousemove', handleMouseMove, { passive: false });
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDraggingRef.current) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const walkX = e.pageX - startXRef.current;
+    const absWalkX = Math.abs(walkX);
+
+    if (absWalkX > 5) {
+      preventClickRef.current = true;
+      e.preventDefault();
+      container.scrollLeft = scrollLeftRef.current - walkX;
+    }
+  };
+
+  const handleMouseUp = () => {
+    isDraggingRef.current = false;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+  };
+
+  const handleClick = (e: MouseEvent) => {
+    if (preventClickRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      preventClickRef.current = false;
+    }
+  };
 
   const disableArrows = isClient
     ? !window.matchMedia('(hover: hover)').matches
@@ -49,10 +96,15 @@ export function ItemSlider({ children }: ItemSliderProps) {
       signal: controller.signal,
     });
 
+    container.addEventListener('click', handleClick, true);
+    container.addEventListener('dragstart', (e) => e.preventDefault());
+
     updateArrowVisibility();
 
     return () => {
       controller.abort();
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
 
@@ -109,7 +161,8 @@ export function ItemSlider({ children }: ItemSliderProps) {
 
       <div
         ref={scrollContainerRef}
-        className="scrollbar-thin relative -mx-3 flex w-[calc(100%+0.75rem)] snap-x gap-4 overflow-x-auto p-3"
+        onMouseDown={handleMouseDown}
+        className="scrollbar-thin relative -mx-3 flex w-[calc(100%+0.75rem)] cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing"
       >
         {children}
       </div>
