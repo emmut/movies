@@ -162,7 +162,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
       <div
         ref={scrollContainerRef}
         onMouseDown={handleMouseDown}
-        className="scrollbar-thin relative -mx-3 flex w-[calc(100%+0.75rem)] cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing"
+        className="scrollbar-hide relative -mx-3 flex w-[calc(100%+0.75rem)] cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing"
       >
         {children}
       </div>
