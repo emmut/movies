@@ -16,6 +16,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.5.3",
     "@better-auth/passkey": "^1.5.3",
     "@neondatabase/serverless": "^1.0.2",
     "@primer/octicons-react": "^19.22.0",
