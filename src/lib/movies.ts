@@ -67,7 +67,7 @@ async function getUserRegionWithFallback() {
 export async function fetchAvailableGenres() {
   'use cache';
   cacheTag('genres');
-  cacheLife('days');
+  cacheLife('biweekly');
 
   const res = await fetch(`${TMDB_API_URL}/genre/movie/list`, {
     headers: {
