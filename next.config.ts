@@ -19,6 +19,13 @@ const nextConfig: NextConfig = {
   },
   reactCompiler: true,
   cacheComponents: true,
+  cacheLife: {
+    biweekly: {
+      stale: 60 * 60 * 24 * 14, // 14 days
+      revalidate: 60 * 60 * 24, // 1 day
+      expire: 60 * 60 * 24 * 14, // 14 days
+    },
+  }
 };
 
 export default nextConfig;

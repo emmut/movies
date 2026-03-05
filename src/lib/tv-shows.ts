@@ -450,7 +450,7 @@ export async function fetchUserPopularTvShows() {
 export async function fetchAvailableTvGenres() {
   'use cache';
   cacheTag('tv-genres');
-  cacheLife('days');
+  cacheLife('biweekly');
 
   const res = await fetch(`${TMDB_API_URL}/genre/tv/list`, {
     headers: {
