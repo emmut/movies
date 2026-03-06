@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
       revalidate: 60 * 60 * 24, // 1 day
       expire: 60 * 60 * 24 * 14, // 14 days
     },
+    privateShort: {
+      stale: 60, // 1 minute
+      revalidate: 60, // 1 minute
+      expire: 60 * 5, // 5 minutes
+    },
   },
 };
 

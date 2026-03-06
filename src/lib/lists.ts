@@ -93,7 +93,7 @@ export async function getUserListCount() {
 async function getCachedUserListCount(userId: string) {
   'use cache: private';
   cacheTag(CACHE_TAGS.private.lists(userId));
-  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+  cacheLife('privateShort');
 
   try {
     const count = await db
@@ -610,7 +610,7 @@ async function getCachedUserListsWithStatus(
   'use cache: private';
   cacheTag(CACHE_TAGS.private.lists(userId));
   cacheTag(CACHE_TAGS.private.listStatus(userId, mediaType, mediaId));
-  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+  cacheLife('privateShort');
 
   try {
     const listsWithStatusAndCounts = await db

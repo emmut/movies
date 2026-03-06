@@ -31,7 +31,7 @@ async function getCachedUserWatchlist(userId: string) {
   'use cache: private';
   cacheTag(CACHE_TAGS.private.watchlistList(userId, 'movie'));
   cacheTag(CACHE_TAGS.private.watchlistList(userId, 'tv'));
-  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+  cacheLife('privateShort');
 
   try {
     const userWatchlist = await db.select().from(watchlist).where(eq(watchlist.userId, userId));
@@ -67,7 +67,7 @@ async function getCachedWatchlistMembership(
   'use cache: private';
   cacheTag(CACHE_TAGS.private.watchlistItem(userId, resourceType, resourceId));
   cacheTag(CACHE_TAGS.private.watchlistList(userId, resourceType));
-  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+  cacheLife('privateShort');
 
   try {
     const validatedResourceId = resourceIdSchema.parse({
@@ -243,7 +243,7 @@ async function getCachedWatchlistCount(userId: string, resourceType: string) {
   'use cache: private';
   cacheTag(CACHE_TAGS.private.watchlistCount(userId, resourceType));
   cacheTag(CACHE_TAGS.private.watchlistList(userId, resourceType));
-  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+  cacheLife('privateShort');
 
   try {
     const result = await db

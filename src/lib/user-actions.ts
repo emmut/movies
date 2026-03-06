@@ -34,7 +34,7 @@ export async function getUserRegion() {
 async function getCachedUserRegion(userId: string) {
   'use cache: private';
   cacheTag(CACHE_TAGS.private.userRegion(userId));
-  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+  cacheLife('privateShort');
 
   const userData = await db
     .select({ region: user.region })
@@ -176,7 +176,7 @@ export async function getUserWatchProviders() {
 async function getCachedUserWatchProviders(userId: string) {
   'use cache: private';
   cacheTag(CACHE_TAGS.private.userWatchProviders(userId));
-  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+  cacheLife('privateShort');
 
   const result = await db
     .select({ providerId: userWatchProviders.providerId })
