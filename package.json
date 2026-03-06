@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "oxlint -c .oxlintrc.json .",
-    "format": "oxlint -c .oxlintrc.json --fix .",
+    "lint:fix": "oxlint -c .oxlintrc.json --fix .",
+    "format": "oxfmt --write src",
+    "format:check": "oxfmt --check src",
     "db": "drizzle-kit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -54,10 +56,6 @@
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.3.6"
   },
-  "engines": {
-    "node": "22.x"
-  },
-  "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a",
   "devDependencies": {
     "@tanstack/react-query-devtools": "^5.91.3",
     "@types/better-sqlite3": "^7.6.13",
@@ -65,10 +63,15 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "^0.31.9",
+    "oxfmt": "^0.36.0",
     "oxlint": "^1.51.0",
     "shadcn": "^3.8.5",
     "typescript": "5.9.3"
   },
+  "engines": {
+    "node": "22.x"
+  },
+  "packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a",
   "pnpm": {
     "onlyBuiltDependencies": [
       "better-sqlite3",
