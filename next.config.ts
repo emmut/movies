@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
       revalidate: 60 * 60 * 24, // 1 day
       expire: 60 * 60 * 24 * 14, // 14 days
     },
-  }
+  },
 };
 
 export default nextConfig;
