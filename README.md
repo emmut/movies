@@ -30,8 +30,7 @@ A modern web application for exploring and managing movies, built with Next.js 1
 - **Authentication**: Better Auth
 - **Analytics**: Vercel Analytics & PostHog
 - **Development Tools**:
-  - ESLint 9
-  - Prettier
+  - Oxc (oxlint)
   - Turbopack for development
 
 ## Getting Started
@@ -90,8 +89,8 @@ movies/
 - `pnpm dev` - Start development server with Turbopack
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
-- `pnpm lint` - Run ESLint
-- `pnpm format` - Format code with Prettier
+- `pnpm lint` - Run Oxc linting
+- `pnpm format` - Apply Oxc autofixes
 - `pnpm db:generate` - Generate database migrations
 - `pnpm db:push` - Push database changes
 - `pnpm db:studio` - Open Drizzle Studio
@@ -102,6 +101,6 @@ The project uses several modern development tools and practices:
 
 - Turbopack for fast development builds
 - Strict TypeScript configuration
-- ESLint and Prettier for code quality
+- Oxc for linting and autofix
 - Tailwind CSS for styling with custom components
 - Drizzle ORM for type-safe database operations

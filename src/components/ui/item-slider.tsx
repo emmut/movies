@@ -71,9 +71,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
     e.preventDefault();
   }
 
-  const disableArrows = isClient
-    ? !window.matchMedia('(hover: hover)').matches
-    : false;
+  const disableArrows = isClient ? !window.matchMedia('(hover: hover)').matches : false;
 
   function updateArrowVisibility() {
     const container = scrollContainerRef.current;
@@ -82,9 +80,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
     }
 
     setShowLeftArrow(container.scrollLeft > 0);
-    setShowRightArrow(
-      container.scrollLeft < container.scrollWidth - container.clientWidth - 1
-    );
+    setShowRightArrow(container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
   }
 
   useEffect(() => {
@@ -136,7 +132,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
             onClick={() => scroll('left')}
             className={cn(
               'border-muted-foreground/30 hover:bg-muted/30 bg-background/80 absolute top-1/2 left-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border p-2 transition-all',
-              { 'opacity-0': disableArrows }
+              { 'opacity-0': disableArrows },
             )}
           >
             <span className="sr-only">Previous slide</span>
@@ -154,7 +150,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
             onClick={() => scroll('right')}
             className={cn(
               'border-muted-foreground/30 hover:bg-muted/30 bg-background/80 absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border p-2 transition-all',
-              { 'opacity-0': disableArrows }
+              { 'opacity-0': disableArrows },
             )}
           >
             <span className="sr-only">Next slide</span>

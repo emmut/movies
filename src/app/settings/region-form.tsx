@@ -16,16 +16,10 @@ import { toast } from 'sonner';
 interface RegionFormProps {
   currentRegion: string;
   regions: readonly Region[];
-  updateRegionAction: (
-    region: string
-  ) => Promise<{ success: boolean; region: string }>;
+  updateRegionAction: (region: string) => Promise<{ success: boolean; region: string }>;
 }
 
-export function RegionForm({
-  currentRegion,
-  regions,
-  updateRegionAction,
-}: RegionFormProps) {
+export function RegionForm({ currentRegion, regions, updateRegionAction }: RegionFormProps) {
   const [selectedRegion, setSelectedRegion] = useState(currentRegion);
   const [isPending, startTransition] = useTransition();
 
@@ -49,11 +43,7 @@ export function RegionForm({
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="region-select">Region</Label>
-        <Select
-          value={selectedRegion}
-          onValueChange={setSelectedRegion}
-          disabled={isPending}
-        >
+        <Select value={selectedRegion} onValueChange={setSelectedRegion} disabled={isPending}>
           <SelectTrigger id="region-select">
             <SelectValue placeholder="Select region" />
           </SelectTrigger>
@@ -74,10 +64,7 @@ export function RegionForm({
         </Select>
       </div>
 
-      <Button
-        onClick={handleSubmit}
-        disabled={isPending || selectedRegion === currentRegion}
-      >
+      <Button onClick={handleSubmit} disabled={isPending || selectedRegion === currentRegion}>
         {isPending ? 'Saving...' : 'Save changes'}
       </Button>
     </div>

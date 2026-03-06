@@ -7,12 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  DEFAULT_REGION,
-  Region,
-  regions,
-  type RegionCode,
-} from '@/lib/regions';
+import { DEFAULT_REGION, Region, regions, type RegionCode } from '@/lib/regions';
 import { RegionWatchProviders } from '@/types/watch-provider';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 import { Dot } from './ui/dot';
@@ -38,9 +33,7 @@ function RegionSelectItem({
   const purchaseServices = currentRegionProviders?.buy ?? [];
 
   const currentRegionHasServices =
-    streamingServices.length > 0 ||
-    rentalServices.length > 0 ||
-    purchaseServices.length > 0;
+    streamingServices.length > 0 || rentalServices.length > 0 || purchaseServices.length > 0;
 
   return (
     <SelectItem key={code} value={code} className="group">
@@ -51,10 +44,7 @@ function RegionSelectItem({
             className="hidden group-focus-within:flex group-hover:flex"
             animated={true}
           />
-          <Dot
-            size={2}
-            className="group-focus-within:hidden group-hover:hidden"
-          />
+          <Dot size={2} className="group-focus-within:hidden group-hover:hidden" />
         </>
       )}
 
@@ -63,15 +53,10 @@ function RegionSelectItem({
   );
 }
 
-export function RegionSelect({
-  defaultValue,
-  allRegionProviders,
-}: RegionSelectProps) {
+export function RegionSelect({ defaultValue, allRegionProviders }: RegionSelectProps) {
   const [region, setRegion] = useQueryState(
     'region',
-    parseAsStringLiteral(regionCodes).withDefault(
-      defaultValue ?? DEFAULT_REGION
-    )
+    parseAsStringLiteral(regionCodes).withDefault(defaultValue ?? DEFAULT_REGION),
   );
 
   function handleValueChange(value: string) {

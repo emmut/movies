@@ -2,21 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
-import {
-  parseAsArrayOf,
-  parseAsInteger,
-  parseAsString,
-  useQueryStates,
-} from 'nuqs';
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 
 interface WatchProviderFilterProps {
@@ -31,10 +22,7 @@ interface WatchProviderFilterProps {
  * Uses OR logic - shows content available on ANY of the selected providers.
  * The selected providers are applied to URL query parameters for filtering results.
  */
-export default function WatchProviderFilter({
-  providers,
-  userRegion,
-}: WatchProviderFilterProps) {
+export default function WatchProviderFilter({ providers, userRegion }: WatchProviderFilterProps) {
   const [{ with_watch_providers }, setParams] = useQueryStates({
     with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
     watch_region: parseAsString.withDefault(DEFAULT_REGION),
@@ -63,7 +51,7 @@ export default function WatchProviderFilter({
       },
       {
         shallow: false,
-      }
+      },
     );
   }
 
@@ -82,17 +70,9 @@ export default function WatchProviderFilter({
       <Label htmlFor="watch-providers" className="sm:self-end">
         Watch Providers
       </Label>
-      <Popover
-        key={JSON.stringify(with_watch_providers)}
-        open={isOpen}
-        onOpenChange={setIsOpen}
-      >
+      <Popover key={JSON.stringify(with_watch_providers)} open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className="w-full justify-between"
-            id="watch-providers"
-          >
+          <Button variant="outline" className="w-full justify-between" id="watch-providers">
             <Filter className="mr-2 h-4 w-4" />
             {selectedCount > 0
               ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
@@ -129,9 +109,7 @@ export default function WatchProviderFilter({
                 </div>
               ) : (
                 providers.map((provider) => {
-                  const isSelected = selectedProviders.includes(
-                    provider.provider_id
-                  );
+                  const isSelected = selectedProviders.includes(provider.provider_id);
                   const imageError = brokenImages.has(provider.provider_id);
 
                   return (
@@ -140,9 +118,7 @@ export default function WatchProviderFilter({
                       className={`hover:bg-accent flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors ${
                         isSelected ? 'bg-accent' : ''
                       }`}
-                      onClick={() =>
-                        updateSelectedProviders(provider.provider_id)
-                      }
+                      onClick={() => updateSelectedProviders(provider.provider_id)}
                     >
                       <div className="shrink-0">
                         {imageError ? (
@@ -156,15 +132,11 @@ export default function WatchProviderFilter({
                             src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
                             alt={provider.provider_name}
                             className="h-8 w-8 rounded-md object-cover"
-                            onError={() =>
-                              handleImageError(provider.provider_id)
-                            }
+                            onError={() => handleImageError(provider.provider_id)}
                           />
                         )}
                       </div>
-                      <div className="flex-1 text-sm font-medium">
-                        {provider.provider_name}
-                      </div>
+                      <div className="flex-1 text-sm font-medium">{provider.provider_name}</div>
                       {isSelected && <Check className="text-primary h-4 w-4" />}
                     </div>
                   );

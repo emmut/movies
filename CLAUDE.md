@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm dev` - Start development server with Turbopack
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
-- `pnpm lint` - Run ESLint (run after code changes)
-- `pnpm format` - Format code with Prettier
+- `pnpm lint` - Run Oxc linting (run after code changes)
+- `pnpm format` - Apply Oxc autofixes
 - `pnpm db:generate` - Generate database migrations from schema changes
 - `pnpm db:push` - Push database schema changes to database
 - `pnpm db:migrate` - Run pending migrations

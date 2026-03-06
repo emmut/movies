@@ -31,8 +31,7 @@ function LoginError() {
       case 'server_error':
         return {
           title: 'Server Error',
-          description:
-            'An unexpected error occurred on our servers. Please try again in a moment.',
+          description: 'An unexpected error occurred on our servers. Please try again in a moment.',
         };
       default:
         return {
@@ -53,9 +52,7 @@ function LoginError() {
             <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">{error.title}</h1>
-          <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-            {error.description}
-          </p>
+          <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{error.description}</p>
         </div>
 
         <div className="space-y-4">
@@ -65,9 +62,7 @@ function LoginError() {
               <li>Try logging in again</li>
               <li>Check that you allow the application access</li>
               <li>Make sure you have a stable internet connection</li>
-              {errorType === 'failed_to_login' && (
-                <li>Try logging in anonymously instead</li>
-              )}
+              {errorType === 'failed_to_login' && <li>Try logging in anonymously instead</li>}
             </ul>
           </div>
 

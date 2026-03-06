@@ -5,12 +5,7 @@ import { userWatchProviders } from '@/db/schema/user-watch-providers';
 import { env } from '@/env';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import {
-  DEFAULT_REGION,
-  isValidRegionCode,
-  RegionCode,
-  regionSchema,
-} from '@/lib/regions';
+import { DEFAULT_REGION, isValidRegionCode, RegionCode, regionSchema } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
 import { randomUUID } from 'crypto';
 import { and, eq, inArray, not } from 'drizzle-orm';
@@ -72,10 +67,7 @@ export async function updateUserRegion(region: string) {
   return { success: true, region: validatedRegion };
 }
 
-async function fetchWatchProvidersForRegion(
-  region: string,
-  userWatchProviders?: number[]
-) {
+async function fetchWatchProvidersForRegion(region: string, userWatchProviders?: number[]) {
   'use cache';
   cacheTag('watch-providers');
   cacheLife('days');
@@ -87,7 +79,7 @@ async function fetchWatchProvidersForRegion(
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
         accept: 'application/json',
       },
-    }
+    },
   );
 
   if (!res.ok) {
@@ -102,7 +94,7 @@ async function fetchWatchProvidersForRegion(
 
   if (userWatchProviders && userWatchProviders.length > 0) {
     const filteredUserWatchProviders = availableProviders.filter((provider) =>
-      userWatchProviders.includes(provider.provider_id)
+      userWatchProviders.includes(provider.provider_id),
     );
 
     return filteredUserWatchProviders;
@@ -110,25 +102,19 @@ async function fetchWatchProvidersForRegion(
 
   const majorProviderIds = new Set<number>(MAJOR_STREAMING_PROVIDERS);
   const majorProviders = availableProviders.filter((provider) =>
-    majorProviderIds.has(provider.provider_id)
+    majorProviderIds.has(provider.provider_id),
   );
 
   const otherProviders = availableProviders.filter(
-    (provider) => !majorProviderIds.has(provider.provider_id)
+    (provider) => !majorProviderIds.has(provider.provider_id),
   );
 
-  const topProviders = [...majorProviders, ...otherProviders].slice(
-    0,
-    MAX_PROVIDERS
-  );
+  const topProviders = [...majorProviders, ...otherProviders].slice(0, MAX_PROVIDERS);
 
   return topProviders;
 }
 
-export async function getWatchProviders(
-  region?: string,
-  userWatchProviders?: number[]
-) {
+export async function getWatchProviders(region?: string, userWatchProviders?: number[]) {
   const userRegion = region || (await getUserRegion());
   return await fetchWatchProvidersForRegion(userRegion, userWatchProviders);
 }
@@ -145,7 +131,7 @@ async function fetchAllWatchProvidersForRegion(region: string) {
         authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
         accept: 'application/json',
       },
-    }
+    },
   );
 
   if (!res.ok) {
@@ -193,9 +179,7 @@ export async function setUserWatchProviders(providerIds: number[]) {
   const uniqueIds = [...new Set(providerIds)];
 
   if (uniqueIds.length === 0) {
-    await db
-      .delete(userWatchProviders)
-      .where(eq(userWatchProviders.userId, session.user.id));
+    await db.delete(userWatchProviders).where(eq(userWatchProviders.userId, session.user.id));
   } else {
     const values = uniqueIds.map((providerId) => ({
       id: randomUUID(),
@@ -210,8 +194,8 @@ export async function setUserWatchProviders(providerIds: number[]) {
       .where(
         and(
           eq(userWatchProviders.userId, session.user.id),
-          not(inArray(userWatchProviders.providerId, uniqueIds))
-        )
+          not(inArray(userWatchProviders.providerId, uniqueIds)),
+        ),
       );
   }
 

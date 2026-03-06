@@ -2,11 +2,7 @@ import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
 import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { inter } from '@/fonts';
 import { PostHogClientProvider } from '@/providers/posthog';
 import { QueryProvider } from '@/providers/query-provider';
@@ -33,11 +29,7 @@ export const metadata = {
  *
  * @param children - The page content to render within the layout.
  */
-export default async function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className="dark">
       <body className={clsx([inter.className])}>

@@ -25,7 +25,7 @@ export function SearchContent({ userId }: SearchContentProps) {
     },
     {
       history: 'push',
-    }
+    },
   );
 
   const query = urlState.q ?? '';

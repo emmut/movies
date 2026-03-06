@@ -26,11 +26,7 @@ type UseSearchParams = {
  * @param params - Parameters for the search query
  * @returns Query result with data, loading state, and error state
  */
-export function useSearchMovies({
-  query,
-  page,
-  enabled = true,
-}: UseSearchParams) {
+export function useSearchMovies({ query, page, enabled = true }: UseSearchParams) {
   return useQuery<SearchMoviesResult>({
     queryKey: queryKeys.search.movies(query, page),
     queryFn: () => getSearchMovies(query, page),
@@ -46,11 +42,7 @@ export function useSearchMovies({
  * @param params - Parameters for the search query
  * @returns Query result with data, loading state, and error state
  */
-export function useSearchTvShows({
-  query,
-  page,
-  enabled = true,
-}: UseSearchParams) {
+export function useSearchTvShows({ query, page, enabled = true }: UseSearchParams) {
   return useQuery<SearchTvShowsResult>({
     queryKey: queryKeys.search.tvShows(query, page),
     queryFn: () => getSearchTvShows(query, page),
@@ -66,11 +58,7 @@ export function useSearchTvShows({
  * @param params - Parameters for the search query
  * @returns Query result with data, loading state, and error state
  */
-export function useSearchPersons({
-  query,
-  page,
-  enabled = true,
-}: UseSearchParams) {
+export function useSearchPersons({ query, page, enabled = true }: UseSearchParams) {
   return useQuery<SearchPersonsResult>({
     queryKey: queryKeys.search.persons(query, page),
     queryFn: () => getSearchPersons(query, page),
@@ -86,11 +74,7 @@ export function useSearchPersons({
  * @param params - Parameters for the search query
  * @returns Query result with data, loading state, and error state
  */
-export function useSearchMulti({
-  query,
-  page,
-  enabled = true,
-}: UseSearchParams) {
+export function useSearchMulti({ query, page, enabled = true }: UseSearchParams) {
   return useQuery<SearchMultiResult>({
     queryKey: queryKeys.search.multi(query, page),
     queryFn: () => getSearchMulti(query, page),

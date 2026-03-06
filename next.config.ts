@@ -1,10 +1,11 @@
-import { type NextConfig } from 'next';
+import type { NextConfig } from 'next';
 import { env } from './src/env.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-expressions
 env;
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: {
     loader: 'custom',
     loaderFile: './src/loader.ts',
@@ -25,7 +26,7 @@ const nextConfig: NextConfig = {
       revalidate: 60 * 60 * 24, // 1 day
       expire: 60 * 60 * 24 * 14, // 14 days
     },
-  }
+  },
 };
 
 export default nextConfig;

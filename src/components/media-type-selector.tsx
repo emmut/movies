@@ -1,9 +1,6 @@
 'use client';
 
-import {
-  revalidateGenresCache,
-  validateGenreForMediaType,
-} from '@/lib/media-actions';
+import { revalidateGenresCache, validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
@@ -22,9 +19,7 @@ type MediaTypeSelectorProps = {
  *
  * @param currentMediaType - The currently selected media type.
  */
-export default function MediaTypeSelector({
-  currentMediaType,
-}: MediaTypeSelectorProps) {
+export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelectorProps) {
   const [urlState, setUrlState] = useQueryStates(
     {
       mediaType: parseAsString.withDefault('movie'),
@@ -33,11 +28,10 @@ export default function MediaTypeSelector({
     },
     {
       history: 'push',
-    }
+    },
   );
 
-  const [optimisticMediaType, setOptimisticMediaType] =
-    useOptimistic(currentMediaType);
+  const [optimisticMediaType, setOptimisticMediaType] = useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
   const router = useRouter();
 
@@ -52,7 +46,7 @@ export default function MediaTypeSelector({
     if (currentGenreId && currentGenreId !== 0) {
       const genreExists = await validateGenreForMediaType(
         String(currentGenreId),
-        mediaType as 'movie' | 'tv'
+        mediaType as 'movie' | 'tv',
       );
 
       if (!genreExists) {

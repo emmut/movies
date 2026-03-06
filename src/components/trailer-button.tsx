@@ -20,11 +20,7 @@ interface TrailerButtonProps {
  * @param mediaType - The type of media (movie or tv)
  * @returns A React element containing the play button and trailer dialog
  */
-export function TrailerButton({
-  title,
-  trailerKey,
-  mediaType,
-}: TrailerButtonProps) {
+export function TrailerButton({ title, trailerKey, mediaType }: TrailerButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleClick = () => {
@@ -37,7 +33,7 @@ export function TrailerButton({
         onClick={handleClick}
         className={cn(
           mediaType === 'movie' && 'bg-yellow-600 hover:bg-yellow-700',
-          mediaType === 'tv' && 'bg-red-600 text-neutral-50 hover:bg-red-700'
+          mediaType === 'tv' && 'bg-red-600 text-neutral-50 hover:bg-red-700',
         )}
         size="sm"
       >

@@ -21,10 +21,7 @@ type TrendingCardProp = {
  * @returns A React element representing the trending card, or `null` if the index is invalid.
  */
 async function Trending({ index, type }: TrendingCardProp) {
-  const resources =
-    type === 'movie'
-      ? await fetchTrendingMovies()
-      : await fetchTrendingTvShows();
+  const resources = type === 'movie' ? await fetchTrendingMovies() : await fetchTrendingTvShows();
 
   if (resources.length < index - 1) {
     return null;
@@ -33,15 +30,10 @@ async function Trending({ index, type }: TrendingCardProp) {
   const resource = resources[index];
 
   const title = 'title' in resource ? resource.title : resource.name;
-  const releaseDate =
-    'release_date' in resource
-      ? resource.release_date
-      : resource.first_air_date;
-  const href =
-    type === 'movie' ? `/movie/${resource.id}` : `/tv/${resource.id}`;
+  const releaseDate = 'release_date' in resource ? resource.release_date : resource.first_air_date;
+  const href = type === 'movie' ? `/movie/${resource.id}` : `/tv/${resource.id}`;
 
-  const borderColor =
-    type === 'movie' ? 'hover:border-yellow-300' : 'hover:border-red-500';
+  const borderColor = type === 'movie' ? 'hover:border-yellow-300' : 'hover:border-red-500';
 
   return (
     <Link
@@ -71,13 +63,9 @@ async function Trending({ index, type }: TrendingCardProp) {
 
       <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col justify-center bg-gradient-to-t from-zinc-950/50 to-transparent px-3 py-2">
         <div className="flex items-center gap-2">
-          <h2 className="text-md truncate font-semibold whitespace-nowrap md:text-lg">
-            {title}
-          </h2>
+          <h2 className="text-md truncate font-semibold whitespace-nowrap md:text-lg">{title}</h2>
         </div>
-        {releaseDate && (
-          <p className="text-sm">{formatDateYear(releaseDate)}</p>
-        )}
+        {releaseDate && <p className="text-sm">{formatDateYear(releaseDate)}</p>}
       </div>
     </Link>
   );

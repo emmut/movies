@@ -1,9 +1,5 @@
 import { env } from '@/env';
-import {
-  PersonDetails,
-  PersonMovieCredits,
-  PersonTvCredits,
-} from '@/types/person';
+import { PersonDetails, PersonMovieCredits, PersonTvCredits } from '@/types/person';
 import { cacheLife, cacheTag } from 'next/cache';
 import { TMDB_API_URL } from './constants';
 

@@ -50,11 +50,7 @@ export default async function ListDetailsPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <ListDetailsContent
-        listId={id}
-        userId={user?.id}
-        fetchListDetails={fetchListDetails}
-      />
+      <ListDetailsContent listId={id} userId={user?.id} fetchListDetails={fetchListDetails} />
     </HydrationBoundary>
   );
 }

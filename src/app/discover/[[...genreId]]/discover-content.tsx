@@ -7,12 +7,7 @@ import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import { WatchProvider } from '@/types/watch-provider';
-import {
-  parseAsInteger,
-  parseAsString,
-  parseAsStringLiteral,
-  useQueryStates,
-} from 'nuqs';
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
 import { ReactNode, Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -38,9 +33,7 @@ export function DiscoverContent({
     {
       page: parseAsInteger.withDefault(1),
       genreId: parseAsInteger.withDefault(0),
-      mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault(
-        'movie'
-      ),
+      mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
       sort_by: parseAsString.withDefault('popularity.desc'),
       with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
       watch_region: parseAsString,
@@ -51,7 +44,7 @@ export function DiscoverContent({
         runtimeLte: 'runtime',
       },
       history: 'push',
-    }
+    },
   );
   const { page, genreId, mediaType, sort_by: sortBy } = urlState;
   const watchProviders = urlState.with_watch_providers?.join('|');
@@ -63,9 +56,7 @@ export function DiscoverContent({
       <div className="flex items-center gap-4">
         <SectionTitle>Discover</SectionTitle>
 
-        <SkipToElement elementId="content-container">
-          Skip to content
-        </SkipToElement>
+        <SkipToElement elementId="content-container">Skip to content</SkipToElement>
       </div>
 
       <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

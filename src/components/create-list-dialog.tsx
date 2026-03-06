@@ -39,11 +39,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
 
     setIsLoading(true);
     try {
-      const result = await createList(
-        newListName.trim(),
-        newListDescription.trim(),
-        selectedEmoji
-      );
+      const result = await createList(newListName.trim(), newListDescription.trim(), selectedEmoji);
       if (result.success) {
         setNewListName('');
         setNewListDescription('');
@@ -53,9 +49,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
         router.refresh(); // Refresh the page to show the new list
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to create list'
-      );
+      toast.error(error instanceof Error ? error.message : 'Failed to create list');
     } finally {
       setIsLoading(false);
     }
@@ -100,9 +94,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
                     type="button"
                     onClick={() => setSelectedEmoji(emoji)}
                     className={`hover:bg-muted rounded p-2 text-xl transition-colors ${
-                      selectedEmoji === emoji
-                        ? 'bg-primary text-primary-foreground'
-                        : ''
+                      selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
                     }`}
                     disabled={isLoading}
                   >
@@ -110,9 +102,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
                   </button>
                 ))}
               </div>
-              <p className="text-muted-foreground mt-1 text-sm">
-                Selected: {selectedEmoji}
-              </p>
+              <p className="text-muted-foreground mt-1 text-sm">Selected: {selectedEmoji}</p>
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -122,9 +112,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
             <Input
               id="name"
               value={newListName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setNewListName(e.target.value)
-              }
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
               className="col-span-3"
               disabled={isLoading}
               placeholder="e.g. Favorite Movies"
@@ -147,10 +135,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
           </div>
         </div>
         <DialogFooter>
-          <Button
-            onClick={handleCreateList}
-            disabled={isLoading || !newListName.trim()}
-          >
+          <Button onClick={handleCreateList} disabled={isLoading || !newListName.trim()}>
             {isLoading ? 'Creating...' : 'Create List'}
           </Button>
         </DialogFooter>

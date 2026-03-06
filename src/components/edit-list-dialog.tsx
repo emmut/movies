@@ -54,9 +54,7 @@ export function EditListDialog({
       toast.success('List updated successfully');
       router.refresh();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to update list'
-      );
+      toast.error(error instanceof Error ? error.message : 'Failed to update list');
     } finally {
       setIsLoading(false);
     }
@@ -85,9 +83,7 @@ export function EditListDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit List</DialogTitle>
-          <DialogDescription>
-            Update your list details, emoji, and description.
-          </DialogDescription>
+          <DialogDescription>Update your list details, emoji, and description.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
@@ -102,9 +98,7 @@ export function EditListDialog({
                     type="button"
                     onClick={() => setSelectedEmoji(emoji)}
                     className={`hover:bg-muted rounded p-2 text-xl transition-colors ${
-                      selectedEmoji === emoji
-                        ? 'bg-primary text-primary-foreground'
-                        : ''
+                      selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
                     }`}
                     disabled={isLoading}
                   >
@@ -112,9 +106,7 @@ export function EditListDialog({
                   </button>
                 ))}
               </div>
-              <p className="text-muted-foreground mt-1 text-sm">
-                Selected: {selectedEmoji}
-              </p>
+              <p className="text-muted-foreground mt-1 text-sm">Selected: {selectedEmoji}</p>
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -124,9 +116,7 @@ export function EditListDialog({
             <Input
               id="name"
               value={name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setName(e.target.value)
-              }
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
               className="col-span-3"
               disabled={isLoading}
               placeholder="e.g. Favorite Movies"
@@ -149,17 +139,10 @@ export function EditListDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setIsOpen(false)}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
             Cancel
           </Button>
-          <Button
-            onClick={handleUpdateList}
-            disabled={isLoading || !name.trim()}
-          >
+          <Button onClick={handleUpdateList} disabled={isLoading || !name.trim()}>
             {isLoading ? 'Updating...' : 'Update List'}
           </Button>
         </DialogFooter>

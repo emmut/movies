@@ -53,12 +53,7 @@ export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
               <SidebarMenuItem key={href}>
                 <SidebarMenuButton asChild isActive={pathname === href}>
                   <Link href={href} onClick={() => setOpenMobile(false)}>
-                    <Icon
-                      className={cn(
-                        'h-4 w-4',
-                        pathname === href && 'fill-current'
-                      )}
-                    />
+                    <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
                     <span>{label}</span>
                   </Link>
                 </SidebarMenuButton>

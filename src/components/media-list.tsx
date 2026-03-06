@@ -21,14 +21,9 @@ type MediaListProps = {
  * @param type - The media type, either 'movie' or 'tv'.
  * @returns An array of {@link ItemCard} elements representing the media items.
  */
-export default async function MediaList({
-  fetchUserItems,
-  fetchItems,
-  type,
-}: MediaListProps) {
+export default async function MediaList({ fetchUserItems, fetchItems, type }: MediaListProps) {
   const user = await getUser();
-  const items =
-    user && fetchUserItems ? await fetchUserItems() : await fetchItems();
+  const items = user && fetchUserItems ? await fetchUserItems() : await fetchItems();
 
   return items.map((item) => (
     <ItemCard

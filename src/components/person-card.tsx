@@ -45,7 +45,7 @@ export default function PersonCard({
     <div
       className={cn(
         'group/person relative aspect-2/3 w-full shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 hover:scale-105 hover:border-blue-400 focus:scale-105 focus:border-blue-400 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-black focus:outline-none',
-        className
+        className,
       )}
     >
       <Link href={href}>
@@ -74,16 +74,10 @@ export default function PersonCard({
           <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
             <div className="inset-0 bg-linear-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100" />
 
-            <h3 className="mb-1 line-clamp-2 text-sm font-semibold">
-              {person.name}
-            </h3>
+            <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{person.name}</h3>
             <div className="text-xs text-zinc-300">
               <div className="mb-1">{person.known_for_department}</div>
-              {knownFor && (
-                <div className="line-clamp-1 text-zinc-400">
-                  Known for: {knownFor}
-                </div>
-              )}
+              {knownFor && <div className="line-clamp-1 text-zinc-400">Known for: {knownFor}</div>}
             </div>
           </div>
 
@@ -123,7 +117,7 @@ function PersonCardSkeleton({ className }: { className?: string }) {
     <div
       className={cn(
         'group aspect-2/3 w-[150px] shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900',
-        className
+        className,
       )}
     >
       <div className="relative h-full">

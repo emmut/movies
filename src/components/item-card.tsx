@@ -24,7 +24,7 @@ type ItemCardProps = {
  * @returns True if the resource is a movie or movie details; otherwise, false.
  */
 function isResource(
-  resource: Movie | MovieDetails | TvShow | TvDetails
+  resource: Movie | MovieDetails | TvShow | TvDetails,
 ): resource is Movie | MovieDetails {
   return 'title' in resource;
 }
@@ -45,9 +45,7 @@ export default function ItemCard({
   const score = Math.ceil(item.vote_average * 10) / 10;
 
   const title = isResource(item) ? item.title : item.name;
-  const releaseDate = isResource(item)
-    ? item.release_date
-    : item.first_air_date;
+  const releaseDate = isResource(item) ? item.release_date : item.first_air_date;
   const releaseYear = releaseDate ? releaseDate.split('-')[0] : 'N/A';
   const href = `/${type}/${item.id}`;
   const emoji = type === 'movie' ? '🎬' : '📺';
@@ -62,7 +60,7 @@ export default function ItemCard({
       className={cn(
         'group/item relative aspect-2/3 w-full shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 focus-within:scale-105 focus-within:ring-2 focus-within:ring-white/50 focus-within:ring-offset-2 focus-within:ring-offset-black focus-within:outline-none hover:scale-105',
         borderColor,
-        className
+        className,
       )}
     >
       <Link href={href}>
@@ -115,11 +113,7 @@ export default function ItemCard({
 
       {listId !== undefined && (
         <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
-          <RemoveFromListButton
-            listId={listId}
-            mediaId={item.id}
-            mediaType={type}
-          />
+          <RemoveFromListButton listId={listId} mediaId={item.id} mediaType={type} />
         </div>
       )}
     </div>
@@ -140,7 +134,7 @@ function ItemCardSkeleton({ className }: ItemCardSkeletonProps) {
     <div
       className={cn(
         'group aspect-2/3 w-[150px] shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900',
-        className
+        className,
       )}
     >
       <div className="relative h-full">

@@ -15,13 +15,11 @@ import { fetchAvailableTvGenres } from './tv-shows';
  */
 export async function validateGenreForMediaType(
   genreId: string,
-  mediaType: 'movie' | 'tv'
+  mediaType: 'movie' | 'tv',
 ): Promise<boolean> {
   try {
     const availableGenres =
-      mediaType === 'movie'
-        ? await fetchAvailableGenres()
-        : await fetchAvailableTvGenres();
+      mediaType === 'movie' ? await fetchAvailableGenres() : await fetchAvailableTvGenres();
 
     return availableGenres.some((genre) => genre.id.toString() === genreId);
   } catch (error) {

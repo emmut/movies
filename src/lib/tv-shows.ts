@@ -149,7 +149,7 @@ export async function fetchDiscoverTvShows(
   sortBy?: string,
   watchProviders?: string,
   watchRegion?: string,
-  withRuntimeLte?: number
+  withRuntimeLte?: number,
 ) {
   'use cache';
   cacheTag('discover');
@@ -175,10 +175,7 @@ export async function fetchDiscoverTvShows(
 
   if (typeof withRuntimeLte === 'number' && withRuntimeLte > 0) {
     url.searchParams.set('with_runtime.lte', String(withRuntimeLte));
-    url.searchParams.set(
-      'with_runtime.gte',
-      String(MIN_RUNTIME_FILTER_MINUTES)
-    );
+    url.searchParams.set('with_runtime.gte', String(MIN_RUNTIME_FILTER_MINUTES));
   }
 
   const res = await fetch(url, {
@@ -205,10 +202,7 @@ export async function fetchDiscoverTvShows(
  *
  * @throws {Error} If the TV show discovery request fails.
  */
-export async function fetchUserDiscoverTvShows(
-  genreId: number,
-  page: number = 1
-) {
+export async function fetchUserDiscoverTvShows(genreId: number, page: number = 1) {
   const userRegion = await getUserRegionWithFallback();
 
   const url = new URL(`${TMDB_API_URL}/discover/tv`);
@@ -492,9 +486,7 @@ export async function getTvShowTrailer(tvId: number) {
 
     const data: TmdbVideoResponse = await response.json();
     const trailer = data.results.find(
-      (video) =>
-        (video.type === 'Trailer' || video.type === 'Teaser') &&
-        video.site === 'YouTube'
+      (video) => (video.type === 'Trailer' || video.type === 'Teaser') && video.site === 'YouTube',
     );
 
     if (!trailer) {
@@ -534,10 +526,7 @@ export async function getTvShowSimilar(tvId: number, userRegion?: string) {
   return tvShows.results;
 }
 
-export async function getTvShowRecommendations(
-  tvId: number,
-  userRegion?: string
-) {
+export async function getTvShowRecommendations(tvId: number, userRegion?: string) {
   'use cache';
   cacheTag(`tv-recommendations-${tvId}`);
   cacheLife('hours');

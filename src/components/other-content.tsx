@@ -28,22 +28,13 @@ async function SimilarContent({
   return (
     <div className="flex flex-col">
       <div className="mt-8 mb-2 flex items-center justify-between">
-        <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">
-          {titleText}
-        </h2>
-        <p className="text-muted-foreground hidden text-sm sm:block">
-          You might also like
-        </p>
+        <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">{titleText}</h2>
+        <p className="text-muted-foreground hidden text-sm sm:block">You might also like</p>
       </div>
 
       <ItemSlider>
         {similar.map((item) => (
-          <ItemCard
-            key={item.id}
-            resource={item}
-            type={type}
-            className="w-48"
-          />
+          <ItemCard key={item.id} resource={item} type={type} className="w-48" />
         ))}
       </ItemSlider>
     </div>
@@ -64,22 +55,13 @@ async function RecommendationsContent({
   return (
     <div className="flex flex-col">
       <div className="mt-8 mb-2 flex items-center justify-between">
-        <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">
-          Recommendations
-        </h2>
-        <p className="text-muted-foreground hidden text-sm sm:block">
-          You might also like
-        </p>
+        <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Recommendations</h2>
+        <p className="text-muted-foreground hidden text-sm sm:block">You might also like</p>
       </div>
 
       <ItemSlider>
         {recommendations.map((item) => (
-          <ItemCard
-            key={item.id}
-            resource={item}
-            type={type}
-            className="w-48"
-          />
+          <ItemCard key={item.id} resource={item} type={type} className="w-48" />
         ))}
       </ItemSlider>
     </div>
@@ -102,12 +84,7 @@ function OtherContentSkeleton() {
   );
 }
 
-export function OtherContent({
-  id,
-  type,
-  getSimilar,
-  getRecommendations,
-}: OtherContentProps) {
+export function OtherContent({ id, type, getSimilar, getRecommendations }: OtherContentProps) {
   return (
     <div className="flex flex-col">
       <Suspense fallback={<OtherContentSkeleton />}>
@@ -115,11 +92,7 @@ export function OtherContent({
       </Suspense>
 
       <Suspense fallback={<OtherContentSkeleton />}>
-        <RecommendationsContent
-          id={id}
-          type={type}
-          getRecommendations={getRecommendations}
-        />
+        <RecommendationsContent id={id} type={type} getRecommendations={getRecommendations} />
       </Suspense>
     </div>
   );

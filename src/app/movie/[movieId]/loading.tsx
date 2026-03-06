@@ -49,10 +49,7 @@ export default function LoadingMovies() {
             <Skeleton className="mb-3 h-6 w-20" />
             <div className="flex flex-wrap gap-2">
               {[...Array(4)].map((_, i) => (
-                <Skeleton
-                  key={i}
-                  className="h-8 w-20 rounded-full bg-zinc-800"
-                />
+                <Skeleton key={i} className="h-8 w-20 rounded-full bg-zinc-800" />
               ))}
             </div>
           </div>

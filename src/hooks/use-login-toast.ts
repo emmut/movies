@@ -26,12 +26,7 @@ export function useLoginToast() {
     const isNowLoggedIn = !!session?.user;
     const hasGreeted = window.sessionStorage.getItem('greeted') === 'true';
 
-    if (
-      wasLoggedOut &&
-      isNowLoggedIn &&
-      !hasShownToast.current &&
-      !hasGreeted
-    ) {
+    if (wasLoggedOut && isNowLoggedIn && !hasShownToast.current && !hasGreeted) {
       toast.success(`Welcome back, ${session.user.name}!`, {
         description: 'You have successfully logged in.',
         duration: 4000,

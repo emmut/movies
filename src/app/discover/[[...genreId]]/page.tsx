@@ -4,11 +4,7 @@ import { getDiscoverMedia } from '@/lib/discover-client';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
-import {
-  getUserRegion,
-  getUserWatchProviders,
-  getWatchProviders,
-} from '@/lib/user-actions';
+import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { Suspense } from 'react';
@@ -33,9 +29,7 @@ type DiscoverWithGenreParams = {
  *
  * @param props - Contains a `searchParams` promise with optional filter parameters.
  */
-export default async function DiscoverWithGenrePage(
-  props: DiscoverWithGenreParams
-) {
+export default async function DiscoverWithGenrePage(props: DiscoverWithGenreParams) {
   const searchParams = await props.searchParams;
   const {
     page,
@@ -52,15 +46,9 @@ export default async function DiscoverWithGenrePage(
   const watchRegion = watch_region ?? (await getUserRegion());
   const withRuntimeLte = runtime ?? undefined;
 
-  const filteredWatchProviders = await getWatchProviders(
-    watchRegion,
-    userWatchProviders
-  );
+  const filteredWatchProviders = await getWatchProviders(watchRegion, userWatchProviders);
 
-  const watchProviders = getWatchProvidersString(
-    with_watch_providers,
-    userWatchProviders
-  );
+  const watchProviders = getWatchProvidersString(with_watch_providers, userWatchProviders);
 
   // Prefetch data on the server for React Query
   const queryClient = getQueryClient();
@@ -92,7 +80,7 @@ export default async function DiscoverWithGenrePage(
         sortBy,
         watchProviders,
         watchRegion,
-        withRuntimeLte
+        withRuntimeLte,
       ),
   });
 

@@ -35,8 +35,7 @@ export default function MediaTypeSelectorDropdown({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [optimisticMediaType, setOptimisticMediaType] =
-    useOptimistic(currentMediaType);
+  const [optimisticMediaType, setOptimisticMediaType] = useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
 
   async function handleMediaTypeChange(mediaType: MediaType) {
@@ -57,7 +56,7 @@ export default function MediaTypeSelectorDropdown({
     if (currentGenreId && mediaType !== 'person' && mediaType !== 'all') {
       const genreExists = await validateGenreForMediaType(
         currentGenreId,
-        mediaType as 'movie' | 'tv'
+        mediaType as 'movie' | 'tv',
       );
 
       if (!genreExists) {

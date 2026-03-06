@@ -20,9 +20,7 @@ type WatchProvidersResponse = {
   results: WatchProvider[];
 };
 
-async function fetchFromTMDB(
-  endpoint: string
-): Promise<WatchProvidersResponse> {
+async function fetchFromTMDB(endpoint: string): Promise<WatchProvidersResponse> {
   const response = await fetch(`${TMDB_API_URL}${endpoint}`, {
     headers: {
       Authorization: `Bearer ${process.env.MOVIE_DB_ACCESS_TOKEN}`,
@@ -80,12 +78,8 @@ async function main() {
     // Display movie providers
     console.log('🎬 MOVIE PROVIDERS');
     console.log('─'.repeat(90));
-    console.log(
-      '│      ID      │   Priority   │           Provider Name            │'
-    );
-    console.log(
-      '├──────────────┼──────────────┼────────────────────────────────────┤'
-    );
+    console.log('│      ID      │   Priority   │           Provider Name            │');
+    console.log('├──────────────┼──────────────┼────────────────────────────────────┤');
     movieProviders
       .sort((a, b) => a.display_priority - b.display_priority)
       .forEach((provider) => {
@@ -97,21 +91,15 @@ async function main() {
             : provider.provider_name.padEnd(34);
         console.log(`│${id} │${priority} │ ${name} │`);
       });
-    console.log(
-      '└──────────────┴──────────────┴────────────────────────────────────┘'
-    );
+    console.log('└──────────────┴──────────────┴────────────────────────────────────┘');
 
     console.log('');
 
     // Display TV providers
     console.log('📺 TV PROVIDERS');
     console.log('─'.repeat(90));
-    console.log(
-      '│      ID      │   Priority   │           Provider Name            │'
-    );
-    console.log(
-      '├──────────────┼──────────────┼────────────────────────────────────┤'
-    );
+    console.log('│      ID      │   Priority   │           Provider Name            │');
+    console.log('├──────────────┼──────────────┼────────────────────────────────────┤');
     tvProviders
       .sort((a, b) => a.display_priority - b.display_priority)
       .forEach((provider) => {
@@ -123,9 +111,7 @@ async function main() {
             : provider.provider_name.padEnd(34);
         console.log(`│${id} │${priority} │ ${name} │`);
       });
-    console.log(
-      '└──────────────┴──────────────┴────────────────────────────────────┘'
-    );
+    console.log('└──────────────┴──────────────┴────────────────────────────────────┘');
 
     console.log('');
     console.log(`📊 Movie providers: ${movieProviders.length}`);
@@ -133,9 +119,7 @@ async function main() {
 
     // Find common providers
     const movieProviderIds = new Set(movieProviders.map((p) => p.provider_id));
-    const commonProviders = tvProviders.filter((p) =>
-      movieProviderIds.has(p.provider_id)
-    );
+    const commonProviders = tvProviders.filter((p) => movieProviderIds.has(p.provider_id));
     console.log(`📊 Common providers: ${commonProviders.length}`);
 
     // Show available regions if no region specified
@@ -146,10 +130,7 @@ async function main() {
       console.log('   Usage: pnpm run list-providers SE');
     }
   } catch (error) {
-    console.error(
-      '❌ Error:',
-      error instanceof Error ? error.message : String(error)
-    );
+    console.error('❌ Error:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

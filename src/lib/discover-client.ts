@@ -36,7 +36,7 @@ export async function getDiscoverMovies(
   sortBy?: string,
   watchProviders?: string,
   watchRegion?: string,
-  withRuntimeLte?: number
+  withRuntimeLte?: number,
 ): Promise<DiscoverMoviesResult> {
   return await fetchDiscoverMovies(
     genreId,
@@ -44,7 +44,7 @@ export async function getDiscoverMovies(
     sortBy,
     watchProviders,
     watchRegion,
-    withRuntimeLte
+    withRuntimeLte,
   );
 }
 
@@ -66,7 +66,7 @@ export async function getDiscoverTvShows(
   sortBy?: string,
   watchProviders?: string,
   watchRegion?: string,
-  withRuntimeLte?: number
+  withRuntimeLte?: number,
 ): Promise<DiscoverTvShowsResult> {
   return await fetchDiscoverTvShows(
     genreId,
@@ -74,7 +74,7 @@ export async function getDiscoverTvShows(
     sortBy,
     watchProviders,
     watchRegion,
-    withRuntimeLte
+    withRuntimeLte,
   );
 }
 
@@ -98,7 +98,7 @@ export async function getDiscoverMedia(
   sortBy?: string,
   watchProviders?: string,
   watchRegion?: string,
-  withRuntimeLte?: number
+  withRuntimeLte?: number,
 ): Promise<DiscoverResult> {
   if (mediaType === 'tv') {
     const { tvShows, totalPages } = await getDiscoverTvShows(
@@ -107,7 +107,7 @@ export async function getDiscoverMedia(
       sortBy,
       watchProviders,
       watchRegion,
-      withRuntimeLte
+      withRuntimeLte,
     );
     return { results: tvShows, totalPages };
   }
@@ -118,7 +118,7 @@ export async function getDiscoverMedia(
     sortBy,
     watchProviders,
     watchRegion,
-    withRuntimeLte
+    withRuntimeLte,
   );
   return { results: movies, totalPages };
 }

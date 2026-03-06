@@ -47,9 +47,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
 
   const user = await getUser();
   const userRegion = await getUserRegion();
-  const inWatchlist = user
-    ? await isResourceInWatchlist(tvId, RESOURCE_TYPE)
-    : false;
+  const inWatchlist = user ? await isResourceInWatchlist(tvId, RESOURCE_TYPE) : false;
 
   const [tvShow, credits, watchProviders, imdbId] = await Promise.all([
     getTvShowDetails(tvId),
@@ -122,9 +120,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
               <div className="text-2xl font-bold">{score}</div>
               <div className="text-sm text-zinc-400">Rating</div>
-              <div className="text-xs text-zinc-500">
-                ({tvShow.vote_count} votes)
-              </div>
+              <div className="text-xs text-zinc-500">({tvShow.vote_count} votes)</div>
             </div>
 
             <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
@@ -143,9 +139,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
 
             <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
               <Users className="mx-auto mb-2 h-6 w-6 text-purple-500" />
-              <div className="text-2xl font-bold">
-                {Math.round(tvShow.popularity)}
-              </div>
+              <div className="text-2xl font-bold">{Math.round(tvShow.popularity)}</div>
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
           </div>
@@ -157,10 +151,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <h2 className="mb-3 text-xl font-semibold">Genres</h2>
               <div className="flex flex-wrap gap-2">
                 {genres.map((genre) => (
-                  <Link
-                    key={genre.id}
-                    href={`/discover?genreId=${genre.id}&mediaType=tv`}
-                  >
+                  <Link key={genre.id} href={`/discover?genreId=${genre.id}&mediaType=tv`}>
                     <Pill>{genre.name}</Pill>
                   </Link>
                 ))}
@@ -178,9 +169,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <div>
-                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                  Status
-                </h3>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Status</h3>
                 <p>{status || 'Unknown'}</p>
               </div>
 
@@ -211,30 +200,20 @@ export default async function TvShowPage(props: TvShowPageProps) {
 
               {spoken_languages.length > 0 && (
                 <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Languages
-                  </h3>
-                  <p>
-                    {spoken_languages
-                      .map((lang) => lang.english_name)
-                      .join(', ')}
-                  </p>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Languages</h3>
+                  <p>{spoken_languages.map((lang) => lang.english_name).join(', ')}</p>
                 </div>
               )}
             </div>
 
             <div className="space-y-4">
               <div>
-                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                  Episodes
-                </h3>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Episodes</h3>
                 <p>{number_of_episodes}</p>
               </div>
 
               <div>
-                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                  Seasons
-                </h3>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Seasons</h3>
                 <p>{number_of_seasons}</p>
               </div>
 
@@ -249,9 +228,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
 
               {networks.length > 0 && (
                 <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Networks
-                  </h3>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Networks</h3>
                   <p>{networks.map((network) => network.name).join(', ')}</p>
                 </div>
               )}
@@ -281,9 +258,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                         <Users className="h-5 w-5 text-zinc-400" />
                       </div>
                     )}
-                    <span className="font-medium hover:text-white">
-                      {creator.name}
-                    </span>
+                    <span className="font-medium hover:text-white">{creator.name}</span>
                   </Link>
                 ))}
               </div>
@@ -318,9 +293,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                     <h3 className="line-clamp-2 text-sm font-medium hover:text-white">
                       {person.name}
                     </h3>
-                    <p className="line-clamp-2 text-xs text-zinc-400">
-                      {person.character}
-                    </p>
+                    <p className="line-clamp-2 text-xs text-zinc-400">{person.character}</p>
                   </Link>
                 ))}
               </ItemSlider>
@@ -338,17 +311,10 @@ export default async function TvShowPage(props: TvShowPageProps) {
             id={tvId}
             type="tv"
             getSimilar={(id) => getTvShowSimilar(id, userRegion)}
-            getRecommendations={(id) =>
-              getTvShowRecommendations(id, userRegion)
-            }
+            getRecommendations={(id) => getTvShowRecommendations(id, userRegion)}
           />
 
-          <ExternalLinks
-            tmdbId={tvId}
-            homepage={homepage}
-            mediaType="tv"
-            imdbId={imdbId}
-          />
+          <ExternalLinks tmdbId={tvId} homepage={homepage} mediaType="tv" imdbId={imdbId} />
         </div>
       </div>
     </div>

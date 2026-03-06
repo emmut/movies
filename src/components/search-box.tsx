@@ -10,19 +10,14 @@ type SearchBoxProps = {
   autoFocus?: boolean;
 };
 
-export default function SearchBox({
-  mediaType = 'all',
-  autoFocus = false,
-}: SearchBoxProps) {
+export default function SearchBox({ mediaType = 'all', autoFocus = false }: SearchBoxProps) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-12">
       <div className="mb-6">
         <Search className="h-16 w-16 text-zinc-400" />
       </div>
 
-      <h3 className="mb-4 text-xl font-semibold text-zinc-300">
-        Start your search
-      </h3>
+      <h3 className="mb-4 text-xl font-semibold text-zinc-300">Start your search</h3>
 
       <p className="mb-6 text-center text-zinc-400">
         Enter a search term to find movies, TV shows, and persons

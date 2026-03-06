@@ -55,7 +55,7 @@ export const auth = betterAuth({
                 resourceId,
                 resourceType,
                 userId: newUser.user.id,
-              }))
+              })),
             )
             .onConflictDoNothing();
         } catch (error) {

@@ -42,9 +42,7 @@ export function RemoveFromListButton({
 
       router.refresh();
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to remove from list'
-      );
+      toast.error(error instanceof Error ? error.message : 'Failed to remove from list');
     } finally {
       setIsLoading(false);
     }

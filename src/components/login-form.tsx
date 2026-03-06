@@ -18,11 +18,7 @@ type LoginFormProps = {
 export function LoginForm({ redirectUrl }: LoginFormProps) {
   return (
     <div className="flex flex-col justify-center gap-4">
-      <OAuthLoginButton
-        provider="discord"
-        size="lg"
-        redirectUrl={redirectUrl}
-      />
+      <OAuthLoginButton provider="discord" size="lg" redirectUrl={redirectUrl} />
       <OAuthLoginButton provider="github" size="lg" redirectUrl={redirectUrl} />
 
       <div className="relative">
@@ -30,9 +26,7 @@ export function LoginForm({ redirectUrl }: LoginFormProps) {
           <Separator className="w-full" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background text-muted-foreground px-2">
-            Or continue with passkey
-          </span>
+          <span className="bg-background text-muted-foreground px-2">Or continue with passkey</span>
         </div>
       </div>
 
@@ -43,17 +37,11 @@ export function LoginForm({ redirectUrl }: LoginFormProps) {
           <Separator className="w-full" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background text-muted-foreground px-2">
-            Or continue as
-          </span>
+          <span className="bg-background text-muted-foreground px-2">Or continue as</span>
         </div>
       </div>
 
-      <OAuthLoginButton
-        provider="anonymous"
-        size="lg"
-        redirectUrl={redirectUrl}
-      />
+      <OAuthLoginButton provider="anonymous" size="lg" redirectUrl={redirectUrl} />
     </div>
   );
 }

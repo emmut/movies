@@ -19,15 +19,9 @@ type TrailerContentProps = {
  * @param movieTitle - The title of the movie or TV show
  * @returns A JSX element containing the trailer button, or `null` if no trailer is found
  */
-export async function TrailerContent({
-  mediaType,
-  mediaId,
-  title,
-}: TrailerContentProps) {
+export async function TrailerContent({ mediaType, mediaId, title }: TrailerContentProps) {
   const trailerData =
-    mediaType === 'movie'
-      ? await getMovieTrailer(mediaId)
-      : await getTvShowTrailer(mediaId);
+    mediaType === 'movie' ? await getMovieTrailer(mediaId) : await getTvShowTrailer(mediaId);
 
   if (!trailerData) {
     return null;
@@ -35,11 +29,7 @@ export async function TrailerContent({
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <TrailerButton
-        trailerKey={trailerData}
-        title={title}
-        mediaType={mediaType}
-      />
+      <TrailerButton trailerKey={trailerData} title={title} mediaType={mediaType} />
     </Suspense>
   );
 }

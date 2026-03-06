@@ -5,11 +5,7 @@ type SkipToElementProp = {
   children?: ReactNode;
 } & HTMLAttributes<HTMLDivElement>;
 
-export default function SkipToElement({
-  elementId,
-  children,
-  ...rest
-}: SkipToElementProp) {
+export default function SkipToElement({ elementId, children, ...rest }: SkipToElementProp) {
   return (
     <div {...rest}>
       <a

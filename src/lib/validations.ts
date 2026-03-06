@@ -14,9 +14,7 @@ export const resourceIdSchema = z.object({
 /**
  * Schema for validating resourceId as a number directly
  */
-export const resourceIdNumberSchema = z
-  .number()
-  .positive('Resource ID must be a positive number');
+export const resourceIdNumberSchema = z.number().positive('Resource ID must be a positive number');
 
 export const resourceTypeSchema = z.enum(['movie', 'tv']);
 
@@ -48,9 +46,8 @@ export const createListSchema = z.object({
   emoji: z
     .string()
     .refine(
-      (emoji): emoji is (typeof EMOJI_OPTIONS)[number] =>
-        EMOJI_OPTIONS.includes(emoji),
-      'Invalid emoji selection'
+      (emoji): emoji is (typeof EMOJI_OPTIONS)[number] => EMOJI_OPTIONS.includes(emoji),
+      'Invalid emoji selection',
     )
     .default('📝'),
 });
@@ -76,9 +73,8 @@ export const updateListSchema = z.object({
   emoji: z
     .string()
     .refine(
-      (emoji): emoji is (typeof EMOJI_OPTIONS)[number] =>
-        EMOJI_OPTIONS.includes(emoji),
-      'Invalid emoji selection'
+      (emoji): emoji is (typeof EMOJI_OPTIONS)[number] => EMOJI_OPTIONS.includes(emoji),
+      'Invalid emoji selection',
     )
     .default('📝'),
 });

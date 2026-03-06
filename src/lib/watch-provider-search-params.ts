@@ -12,10 +12,7 @@ export const loadWatchProviderSearchParams = createLoader({
   watch_region: parseAsString.withDefault(DEFAULT_REGION),
 });
 
-export function getWatchProvidersString(
-  urlProviders: number[],
-  userProviders: number[]
-) {
+export function getWatchProvidersString(urlProviders: number[], userProviders: number[]) {
   if (urlProviders.length > 0) {
     return urlProviders.join('|');
   }

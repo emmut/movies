@@ -1,11 +1,7 @@
 'use server';
 
 import { env } from '@/env';
-import {
-  Movie,
-  MultiSearchResponse,
-  SearchedMovieResponse,
-} from '@/types/movie';
+import { Movie, MultiSearchResponse, SearchedMovieResponse } from '@/types/movie';
 import { SearchedPerson, SearchedPersonResponse } from '@/types/person';
 import { SearchedTvResponse, TvShow } from '@/types/tv-show';
 
@@ -16,15 +12,12 @@ export async function fetchMoviesBySearchQuery(query: string, page: string) {
   searchParams.set('include_adult', 'false');
   searchParams.set('include_video', 'false');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/search/movie?${searchParams.toString()}`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        cache: 'no-store',
-      },
-    }
-  );
+  const res = await fetch(`https://api.themoviedb.org/3/search/movie?${searchParams.toString()}`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      cache: 'no-store',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed fetching searched movies');
@@ -40,15 +33,12 @@ export async function fetchTvShowsBySearchQuery(query: string, page: string) {
   searchParams.set('page', page);
   searchParams.set('include_adult', 'false');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/search/tv?${searchParams.toString()}`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        cache: 'no-store',
-      },
-    }
-  );
+  const res = await fetch(`https://api.themoviedb.org/3/search/tv?${searchParams.toString()}`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      cache: 'no-store',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed fetching searched TV shows');
@@ -64,15 +54,12 @@ export async function fetchPersonsBySearchQuery(query: string, page: string) {
   searchParams.set('page', page);
   searchParams.set('include_adult', 'false');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/search/person?${searchParams.toString()}`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        cache: 'no-store',
-      },
-    }
-  );
+  const res = await fetch(`https://api.themoviedb.org/3/search/person?${searchParams.toString()}`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      cache: 'no-store',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed fetching searched persons');
@@ -88,15 +75,12 @@ export async function fetchMultiSearchQuery(query: string, page: string) {
   searchParams.set('page', page);
   searchParams.set('include_adult', 'false');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/search/multi?${searchParams.toString()}`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        cache: 'no-store',
-      },
-    }
-  );
+  const res = await fetch(`https://api.themoviedb.org/3/search/multi?${searchParams.toString()}`, {
+    headers: {
+      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+      cache: 'no-store',
+    },
+  });
 
   if (!res.ok) {
     throw new Error('Failed fetching multi search results');
@@ -142,12 +126,9 @@ export type SearchResult =
  */
 export async function getSearchMovies(
   query: string,
-  page: number = 1
+  page: number = 1,
 ): Promise<SearchMoviesResult> {
-  const { movies, totalPages } = await fetchMoviesBySearchQuery(
-    query,
-    String(page)
-  );
+  const { movies, totalPages } = await fetchMoviesBySearchQuery(query, String(page));
   return { movies, totalPages };
 }
 
@@ -161,12 +142,9 @@ export async function getSearchMovies(
  */
 export async function getSearchTvShows(
   query: string,
-  page: number = 1
+  page: number = 1,
 ): Promise<SearchTvShowsResult> {
-  const { tvShows, totalPages } = await fetchTvShowsBySearchQuery(
-    query,
-    String(page)
-  );
+  const { tvShows, totalPages } = await fetchTvShowsBySearchQuery(query, String(page));
   return { tvShows, totalPages };
 }
 
@@ -180,12 +158,9 @@ export async function getSearchTvShows(
  */
 export async function getSearchPersons(
   query: string,
-  page: number = 1
+  page: number = 1,
 ): Promise<SearchPersonsResult> {
-  const { persons, totalPages } = await fetchPersonsBySearchQuery(
-    query,
-    String(page)
-  );
+  const { persons, totalPages } = await fetchPersonsBySearchQuery(query, String(page));
   return { persons, totalPages };
 }
 
@@ -197,13 +172,7 @@ export async function getSearchPersons(
  * @param page - The page number to fetch
  * @returns Object containing mixed results array and total pages
  */
-export async function getSearchMulti(
-  query: string,
-  page: number = 1
-): Promise<SearchMultiResult> {
-  const { results, totalPages } = await fetchMultiSearchQuery(
-    query,
-    String(page)
-  );
+export async function getSearchMulti(query: string, page: number = 1): Promise<SearchMultiResult> {
+  const { results, totalPages } = await fetchMultiSearchQuery(query, String(page));
   return { results, totalPages };
 }

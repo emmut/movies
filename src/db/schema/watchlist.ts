@@ -16,5 +16,5 @@ export const watchlist = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [unique().on(table.userId, table.resourceId, table.resourceType)]
+  (table) => [unique().on(table.userId, table.resourceId, table.resourceType)],
 );
