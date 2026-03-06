@@ -13,6 +13,7 @@ import {
   TvWatchProviders,
 } from '@/types/tv-show';
 import { cacheLife, cacheTag } from 'next/cache';
+import { CACHE_TAGS } from './cache-tags';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';
 import { DEFAULT_REGION } from './regions';
@@ -43,8 +44,8 @@ async function getUserRegionWithFallback() {
  * @throws If the TV show details cannot be loaded from the API.
  */
 export async function getTvShowDetails(tvId: number) {
-  'use cache';
-  cacheTag('tv-details');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.tv.details(tvId));
   cacheLife('minutes');
 
   const res = await fetch(`${TMDB_API_URL}/tv/${tvId}`, {
@@ -72,8 +73,8 @@ export async function getTvShowDetails(tvId: number) {
  * @throws {Error} If the credits cannot be loaded from TMDb.
  */
 export async function getTvShowCredits(resourceId: number) {
-  'use cache';
-  cacheTag('tv-credits');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.tv.credits(resourceId));
   cacheLife('minutes');
 
   const res = await fetch(`${TMDB_API_URL}/tv/${resourceId}/credits`, {
@@ -101,8 +102,8 @@ export async function getTvShowCredits(resourceId: number) {
  * @throws If the watch provider data cannot be loaded from the API.
  */
 export async function getTvShowWatchProviders(tvId: number) {
-  'use cache';
-  cacheTag('tv-watch-providers');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.tv.watchProviders(tvId));
   cacheLife('minutes');
 
   try {
@@ -151,8 +152,8 @@ export async function fetchDiscoverTvShows(
   watchRegion?: string,
   withRuntimeLte?: number,
 ) {
-  'use cache';
-  cacheTag('discover');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.discover.tv);
   cacheLife('minutes');
 
   const url = new URL(`${TMDB_API_URL}/discover/tv`);
@@ -238,8 +239,8 @@ export async function fetchUserDiscoverTvShows(genreId: number, page: number = 1
  * @throws If the trending TV shows cannot be loaded from the API.
  */
 export async function fetchTrendingTvShows() {
-  'use cache';
-  cacheTag('trending-tv');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.home.trendingTv);
   cacheLife('minutes');
 
   const res = await fetch(`${TMDB_API_URL}/trending/tv/day`, {
@@ -265,8 +266,8 @@ export async function fetchTrendingTvShows() {
  * @throws If the request to the TMDb API fails.
  */
 export async function fetchTopRatedTvShows() {
-  'use cache';
-  cacheTag('top-rated-tv');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.home.topRatedTv);
   cacheLife('minutes');
 
   const url = new URL(`${TMDB_API_URL}/tv/top_rated`);
@@ -324,8 +325,8 @@ export async function fetchUserTopRatedTvShows() {
  * @throws If the request to the TMDb API fails.
  */
 export async function fetchOnTheAirTvShows() {
-  'use cache';
-  cacheTag('on-the-air-tv');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.home.onTheAirTv);
   cacheLife('minutes');
 
   const url = new URL(`${TMDB_API_URL}/tv/on_the_air`);
@@ -384,8 +385,8 @@ export async function fetchUserOnTheAirTvShows() {
  * @throws If the request to the TMDb API fails.
  */
 export async function fetchPopularTvShows() {
-  'use cache';
-  cacheTag('popular-tv');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.home.popularTv);
   cacheLife('minutes');
 
   const url = new URL(`${TMDB_API_URL}/tv/popular`);
@@ -442,8 +443,8 @@ export async function fetchUserPopularTvShows() {
  * @throws If the TV genres cannot be loaded from TMDb.
  */
 export async function fetchAvailableTvGenres() {
-  'use cache';
-  cacheTag('tv-genres');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.genres.tv);
   cacheLife('biweekly');
 
   const res = await fetch(`${TMDB_API_URL}/genre/tv/list`, {
@@ -469,8 +470,8 @@ export async function fetchAvailableTvGenres() {
  * @returns The YouTube video key for the trailer or teaser, or null if not found
  */
 export async function getTvShowTrailer(tvId: number) {
-  'use cache';
-  cacheTag(`tv-trailer-${tvId}`);
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.tv.trailer(tvId));
   cacheLife('hours');
 
   try {
@@ -501,8 +502,8 @@ export async function getTvShowTrailer(tvId: number) {
 }
 
 export async function getTvShowSimilar(tvId: number, userRegion?: string) {
-  'use cache';
-  cacheTag(`similar-tv-shows-${tvId}`);
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.tv.similar(tvId));
   cacheLife('hours');
 
   const url = new URL(`${TMDB_API_URL}/tv/${tvId}/similar`);
@@ -527,8 +528,8 @@ export async function getTvShowSimilar(tvId: number, userRegion?: string) {
 }
 
 export async function getTvShowRecommendations(tvId: number, userRegion?: string) {
-  'use cache';
-  cacheTag(`tv-recommendations-${tvId}`);
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.tv.recommendations(tvId));
   cacheLife('hours');
 
   const url = new URL(`${TMDB_API_URL}/tv/${tvId}/recommendations`);
@@ -553,8 +554,8 @@ export async function getTvShowRecommendations(tvId: number, userRegion?: string
 }
 
 export async function getTvShowImdbId(tvId: number) {
-  'use cache';
-  cacheTag(`tv-imdb-id-${tvId}`);
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.tv.imdbId(tvId));
   cacheLife('hours');
 
   const url = new URL(`${TMDB_API_URL}/tv/${tvId}/external_ids`);

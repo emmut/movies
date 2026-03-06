@@ -1,5 +1,6 @@
 'use server';
 
+import { CACHE_TAGS } from '@/lib/cache-tags';
 import { revalidateTag } from 'next/cache';
 import { fetchAvailableGenres } from './movies';
 import { fetchAvailableTvGenres } from './tv-shows';
@@ -34,5 +35,8 @@ export async function validateGenreForMediaType(
  * @param mediaType - The media type to revalidate genres for, either 'movie' or 'tv'.
  */
 export async function revalidateGenresCache(mediaType: 'movie' | 'tv') {
-  revalidateTag(`available-genres-${mediaType}`, 'max');
+  revalidateTag(
+    mediaType === 'movie' ? CACHE_TAGS.public.genres.movies : CACHE_TAGS.public.genres.tv,
+    'max',
+  );
 }

@@ -2,12 +2,14 @@
 
 import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
+import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
 import { pageSchema, resourceIdSchema, resourceTypeSchema } from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
 import { and, count, eq } from 'drizzle-orm';
+import { cacheLife, cacheTag } from 'next/cache';
 import { ITEMS_PER_PAGE } from './config';
 import { getTvShowDetails } from './tv-shows';
 
@@ -22,8 +24,17 @@ export async function getUserWatchlist() {
     return [];
   }
 
+  return await getCachedUserWatchlist(user.id);
+}
+
+async function getCachedUserWatchlist(userId: string) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.watchlistList(userId, 'movie'));
+  cacheTag(CACHE_TAGS.private.watchlistList(userId, 'tv'));
+  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+
   try {
-    const userWatchlist = await db.select().from(watchlist).where(eq(watchlist.userId, user.id));
+    const userWatchlist = await db.select().from(watchlist).where(eq(watchlist.userId, userId));
 
     return userWatchlist;
   } catch (error) {
@@ -45,6 +56,19 @@ export async function isResourceInWatchlist(resourceId: number, resourceType: st
     return false;
   }
 
+  return await getCachedWatchlistMembership(user.id, resourceId, resourceType);
+}
+
+async function getCachedWatchlistMembership(
+  userId: string,
+  resourceId: number,
+  resourceType: string,
+) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.watchlistItem(userId, resourceType, resourceId));
+  cacheTag(CACHE_TAGS.private.watchlistList(userId, resourceType));
+  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+
   try {
     const validatedResourceId = resourceIdSchema.parse({
       resourceId,
@@ -56,7 +80,7 @@ export async function isResourceInWatchlist(resourceId: number, resourceType: st
       .from(watchlist)
       .where(
         and(
-          eq(watchlist.userId, user.id),
+          eq(watchlist.userId, userId),
           eq(watchlist.resourceId, validatedResourceId.resourceId),
           eq(watchlist.resourceType, validatedResourceId.resourceType),
         ),
@@ -212,11 +236,20 @@ export async function getWatchlistCount(resourceType: string) {
     return 0;
   }
 
+  return await getCachedWatchlistCount(user.id, resourceType);
+}
+
+async function getCachedWatchlistCount(userId: string, resourceType: string) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.watchlistCount(userId, resourceType));
+  cacheTag(CACHE_TAGS.private.watchlistList(userId, resourceType));
+  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+
   try {
     const result = await db
       .select({ count: count() })
       .from(watchlist)
-      .where(and(eq(watchlist.userId, user.id), eq(watchlist.resourceType, resourceType)));
+      .where(and(eq(watchlist.userId, userId), eq(watchlist.resourceType, resourceType)));
 
     return result[0]?.count || 0;
   } catch (error) {
