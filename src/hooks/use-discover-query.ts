@@ -50,15 +50,7 @@ export function useDiscoverMedia({
             withRuntimeLte: runtimeLte,
           }),
     queryFn: () =>
-      getDiscoverMedia(
-        mediaType,
-        genreId,
-        page,
-        sortBy,
-        watchProviders,
-        watchRegion,
-        runtimeLte
-      ),
+      getDiscoverMedia(mediaType, genreId, page, sortBy, watchProviders, watchRegion, runtimeLte),
     staleTime: 60 * 1000, // 1 minute
   });
 }

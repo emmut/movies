@@ -36,21 +36,15 @@ export function ListsGrid({ lists }: ListsGridProps) {
             <div className="flex h-full flex-col">
               <div className="flex-1">
                 <div className="mb-4 text-4xl">{list.emoji}</div>
-                <h3 className="text-foreground mb-2 text-lg font-semibold">
-                  {list.name}
-                </h3>
+                <h3 className="text-foreground mb-2 text-lg font-semibold">{list.name}</h3>
                 <div className="min-h-[40px]">
                   {list.description && (
-                    <p className="text-muted-foreground line-clamp-2 text-sm">
-                      {list.description}
-                    </p>
+                    <p className="text-muted-foreground line-clamp-2 text-sm">{list.description}</p>
                   )}
                 </div>
               </div>
               <div className="border-muted mt-4 border-t pt-4">
-                <p className="text-muted-foreground text-sm">
-                  {list.itemCount} items
-                </p>
+                <p className="text-muted-foreground text-sm">{list.itemCount} items</p>
                 <p className="text-muted-foreground text-xs">
                   Updated {list.updatedAt.toLocaleDateString()}
                 </p>

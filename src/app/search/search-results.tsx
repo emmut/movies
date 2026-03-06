@@ -96,12 +96,7 @@ export default function SearchResults({
     return (
       <>
         {tvShows.map((tvShow) => (
-          <ItemCard
-            key={tvShow.id}
-            resource={tvShow}
-            type="tv"
-            userId={userId}
-          />
+          <ItemCard key={tvShow.id} resource={tvShow} type="tv" userId={userId} />
         ))}
         {tvShows.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
@@ -135,12 +130,7 @@ export default function SearchResults({
     return (
       <>
         {movies.map((movie) => (
-          <ItemCard
-            key={movie.id}
-            resource={movie}
-            type="movie"
-            userId={userId}
-          />
+          <ItemCard key={movie.id} resource={movie} type="movie" userId={userId} />
         ))}
         {movies.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
@@ -163,30 +153,12 @@ export default function SearchResults({
       {results.map((result) => {
         // Each result has a media_type property: 'movie', 'tv', or 'person'
         if (result.media_type === 'person') {
-          return (
-            <PersonCard
-              key={`person-${result.id}`}
-              person={result}
-              userId={userId}
-            />
-          );
+          return <PersonCard key={`person-${result.id}`} person={result} userId={userId} />;
         } else if (result.media_type === 'tv') {
-          return (
-            <ItemCard
-              key={`tv-${result.id}`}
-              resource={result}
-              type="tv"
-              userId={userId}
-            />
-          );
+          return <ItemCard key={`tv-${result.id}`} resource={result} type="tv" userId={userId} />;
         } else if (result.media_type === 'movie') {
           return (
-            <ItemCard
-              key={`movie-${result.id}`}
-              resource={result}
-              type="movie"
-              userId={userId}
-            />
+            <ItemCard key={`movie-${result.id}`} resource={result} type="movie" userId={userId} />
           );
         }
         return null;

@@ -74,7 +74,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     },
     {
       history: 'push',
-    }
+    },
   );
 
   const currentPageNumber = urlState.page;
@@ -111,12 +111,10 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             <PaginationContent className="gap-1 sm:gap-2">
               <PaginationItem>
                 <PaginationPrevious
-                  onClick={() =>
-                    hasPrevPage && handlePageSelect(currentPageNumber - 1)
-                  }
+                  onClick={() => hasPrevPage && handlePageSelect(currentPageNumber - 1)}
                   className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
-                    'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm'
+                    'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
                   )}
                 />
               </PaginationItem>
@@ -136,17 +134,15 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                       {pageNumber}
                     </PaginationLink>
                   </PaginationItem>
-                )
+                ),
               )}
 
               <PaginationItem>
                 <PaginationNext
-                  onClick={() =>
-                    hasNextPage && handlePageSelect(currentPageNumber + 1)
-                  }
+                  onClick={() => hasNextPage && handlePageSelect(currentPageNumber + 1)}
                   className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
-                    'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm'
+                    'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
                   )}
                 />
               </PaginationItem>
@@ -171,11 +167,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     const value = Number((e.target as HTMLInputElement).value);
-                    if (
-                      value >= 1 &&
-                      value <= totalPages &&
-                      value !== currentPageNumber
-                    ) {
+                    if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
                       handlePageSelect(value);
                       (e.target as HTMLInputElement).value = '';
                     }
@@ -183,19 +175,13 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 }}
                 onBlur={(e) => {
                   const value = Number(e.target.value);
-                  if (
-                    value >= 1 &&
-                    value <= totalPages &&
-                    value !== currentPageNumber
-                  ) {
+                  if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
                     handlePageSelect(value);
                   }
                   e.target.value = '';
                 }}
               />
-              <span className="text-muted-foreground text-xs">
-                of {totalPages}
-              </span>
+              <span className="text-muted-foreground text-xs">of {totalPages}</span>
             </div>
           </div>
         </div>

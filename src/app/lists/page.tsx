@@ -61,12 +61,10 @@ export default async function ListsPage(props: ListsPageProps) {
       {lists.length === 0 ? (
         <div className="py-12 text-center">
           <div className="mb-4 text-6xl opacity-50">📝</div>
-          <h2 className="mb-2 text-xl font-semibold">
-            You haven&apos;t created any lists yet
-          </h2>
+          <h2 className="mb-2 text-xl font-semibold">You haven&apos;t created any lists yet</h2>
           <p className="mb-6 text-zinc-400">
-            Start creating lists by clicking the button above or the list button
-            on any movie or TV show
+            Start creating lists by clicking the button above or the list button on any movie or TV
+            show
           </p>
           <Link
             href="/discover"
@@ -78,9 +76,7 @@ export default async function ListsPage(props: ListsPageProps) {
       ) : (
         <>
           <ListsGrid lists={lists} />
-          {totalPages > 1 && (
-            <PaginationControls totalPages={totalPages} pageType="lists" />
-          )}
+          {totalPages > 1 && <PaginationControls totalPages={totalPages} pageType="lists" />}
         </>
       )}
     </div>

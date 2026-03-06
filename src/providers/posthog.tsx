@@ -9,9 +9,7 @@ export type PostHogClientProviderProps = {
   children: React.ReactNode;
 };
 
-export function PostHogClientProvider({
-  children,
-}: PostHogClientProviderProps) {
+export function PostHogClientProvider({ children }: PostHogClientProviderProps) {
   useEffect(() => {
     posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY, {
       api_host: env.NEXT_PUBLIC_POSTHOG_HOST,

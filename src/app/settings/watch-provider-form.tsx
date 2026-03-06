@@ -1,13 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { setUserWatchProviders } from '@/lib/user-actions';
 import { WatchProvider } from '@/types/watch-provider';
 import { Check } from 'lucide-react';
@@ -20,20 +14,14 @@ interface WatchProviderFormProps {
   userProviders: number[];
 }
 
-export function WatchProviderForm({
-  availableProviders,
-  userProviders,
-}: WatchProviderFormProps) {
-  const [selectedProviders, setSelectedProviders] =
-    useState<number[]>(userProviders);
+export function WatchProviderForm({ availableProviders, userProviders }: WatchProviderFormProps) {
+  const [selectedProviders, setSelectedProviders] = useState<number[]>(userProviders);
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
   const [isPending, startTransition] = useTransition();
 
   function handleProviderToggle(providerId: number) {
     setSelectedProviders((prev) =>
-      prev.includes(providerId)
-        ? prev.filter((id) => id !== providerId)
-        : [...prev, providerId]
+      prev.includes(providerId) ? prev.filter((id) => id !== providerId) : [...prev, providerId],
     );
   }
 
@@ -69,11 +57,7 @@ export function WatchProviderForm({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            onClick={handleClearAll}
-            disabled={selectedCount === 0}
-          >
+          <Button variant="outline" onClick={handleClearAll} disabled={selectedCount === 0}>
             Clear All
           </Button>
           <Button onClick={handleSave} disabled={isPending}>
@@ -88,9 +72,7 @@ export function WatchProviderForm({
             </div>
           ) : (
             availableProviders.map((provider) => {
-              const isSelected = selectedProviders.includes(
-                provider.provider_id
-              );
+              const isSelected = selectedProviders.includes(provider.provider_id);
               const imageError = brokenImages.has(provider.provider_id);
 
               return (
@@ -119,13 +101,9 @@ export function WatchProviderForm({
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">
-                        {provider.provider_name}
-                      </p>
+                      <p className="truncate text-sm font-medium">{provider.provider_name}</p>
                     </div>
-                    {isSelected && (
-                      <Check className="text-primary h-4 w-4 shrink-0" />
-                    )}
+                    {isSelected && <Check className="text-primary h-4 w-4 shrink-0" />}
                   </div>
                 </button>
               );

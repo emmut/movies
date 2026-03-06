@@ -18,20 +18,13 @@ type FiltersPanelProps = {
  * @param watchProviders - Available watch providers for the user's region.
  * @param userRegion - The user's region code.
  */
-export default function FiltersPanel({
-  mediaType,
-  watchProviders,
-  userRegion,
-}: FiltersPanelProps) {
+export default function FiltersPanel({ mediaType, watchProviders, userRegion }: FiltersPanelProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <SortByFilter mediaType={mediaType} />
         <RuntimeFilter className="mr-auto" />
-        <WatchProviderFilter
-          providers={watchProviders}
-          userRegion={userRegion}
-        />
+        <WatchProviderFilter providers={watchProviders} userRegion={userRegion} />
       </div>
     </div>
   );

@@ -26,20 +26,17 @@ export const queryKeys = {
     list: (mediaType: 'movie' | 'tv', page: number) =>
       [...queryKeys.watchlist.lists(), mediaType, page] as const,
     counts: () => [...queryKeys.watchlist.all, 'counts'] as const,
-    count: (mediaType: 'movie' | 'tv') =>
-      [...queryKeys.watchlist.counts(), mediaType] as const,
+    count: (mediaType: 'movie' | 'tv') => [...queryKeys.watchlist.counts(), mediaType] as const,
   },
   lists: {
     all: ['lists'] as const,
     details: () => [...queryKeys.lists.all, 'detail'] as const,
-    detail: (listId: string, page: number) =>
-      [...queryKeys.lists.details(), listId, page] as const,
+    detail: (listId: string, page: number) => [...queryKeys.lists.details(), listId, page] as const,
   },
   discover: {
     all: ['discover'] as const,
     lists: () => [...queryKeys.discover.all, 'list'] as const,
-    list: (params: DiscoverParams) =>
-      [...queryKeys.discover.lists(), params] as const,
+    list: (params: DiscoverParams) => [...queryKeys.discover.lists(), params] as const,
     movies: (params: Omit<DiscoverParams, 'mediaType'>) =>
       [
         ...queryKeys.discover.lists(),

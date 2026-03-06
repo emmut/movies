@@ -7,11 +7,7 @@ type ImageKitLoaderProps = {
   quality: number;
 };
 
-export default function imageKitLoader({
-  src,
-  width,
-  quality,
-}: ImageKitLoaderProps) {
+export default function imageKitLoader({ src, width, quality }: ImageKitLoaderProps) {
   const params = [`w-${width}`, `q-${quality || 80}`];
   return `https://ik.imagekit.io/${env.NEXT_PUBLIC_IMAGEKIT_ID}/${src}?tr=${params.join(',')}`;
 }

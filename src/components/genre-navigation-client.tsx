@@ -55,8 +55,7 @@ export function GenreNavigationClient({ genres }: GenreNavigationClientProps) {
   });
 
   const currentGenreId = urlState.genreId;
-  const [optimisticGenreId, setOptimisticGenreId] =
-    useOptimistic(currentGenreId);
+  const [optimisticGenreId, setOptimisticGenreId] = useOptimistic(currentGenreId);
 
   function handleGenreClick(targetGenreId: number) {
     // If clicking the same genre, clear it (set to 0)

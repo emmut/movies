@@ -52,8 +52,7 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
     page: parseAsString.withDefault('1'),
   });
 
-  const sortOptions =
-    mediaType === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
+  const sortOptions = mediaType === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
   const defaultSort = 'popularity.desc';
   const currentSort = urlState.sort_by || defaultSort;
 

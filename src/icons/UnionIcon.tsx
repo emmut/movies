@@ -4,12 +4,7 @@ type UnionIconProps = {
 
 export default function UnionIcon({ className }: UnionIconProps) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 40 34"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg className={className} viewBox="0 0 40 34" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         fillRule="evenodd"
         clipRule="evenodd"

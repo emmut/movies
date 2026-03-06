@@ -35,10 +35,7 @@ type AddToWatchlistParams = {
  *
  * @throws {Error} If the resource is already in the user's watchlist or if the operation fails.
  */
-export async function addToWatchlist({
-  resourceId,
-  resourceType,
-}: AddToWatchlistParams) {
+export async function addToWatchlist({ resourceId, resourceType }: AddToWatchlistParams) {
   const validatedResourceId = resourceIdSchema.parse({
     resourceId,
     resourceType,
@@ -58,8 +55,8 @@ export async function addToWatchlist({
         and(
           eq(watchlist.userId, user.id),
           eq(watchlist.resourceId, validatedResourceId.resourceId),
-          eq(watchlist.resourceType, validatedResourceId.resourceType)
-        )
+          eq(watchlist.resourceType, validatedResourceId.resourceType),
+        ),
       );
 
     if (existing.length > 0) {
@@ -74,9 +71,7 @@ export async function addToWatchlist({
     });
 
     revalidatePath('/watchlist');
-    revalidatePath(
-      `/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`
-    );
+    revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
 
     return { success: true };
   } catch (error) {
@@ -110,10 +105,7 @@ type RemoveFromWatchlistParams = {
  * @throws {Error} If the removal operation fails.
  * @remark Redirects to the login page if no authenticated user is found.
  */
-export async function removeFromWatchlist({
-  resourceId,
-  resourceType,
-}: RemoveFromWatchlistParams) {
+export async function removeFromWatchlist({ resourceId, resourceType }: RemoveFromWatchlistParams) {
   const validatedResourceId = resourceIdSchema.parse({
     resourceId,
     resourceType,
@@ -132,14 +124,12 @@ export async function removeFromWatchlist({
         and(
           eq(watchlist.userId, user.id),
           eq(watchlist.resourceId, validatedResourceId.resourceId),
-          eq(watchlist.resourceType, validatedResourceId.resourceType)
-        )
+          eq(watchlist.resourceType, validatedResourceId.resourceType),
+        ),
       );
 
     revalidatePath('/watchlist');
-    revalidatePath(
-      `/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`
-    );
+    revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
 
     return { success: true };
   } catch (error) {
@@ -175,10 +165,7 @@ type ToggleWatchlistParams = {
  * @throws {Error} If the operation fails due to a database error or other unexpected issue.
  * @remark Redirects to the login page if no authenticated user is found.
  */
-export async function toggleWatchlist({
-  resourceId,
-  resourceType,
-}: ToggleWatchlistParams) {
+export async function toggleWatchlist({ resourceId, resourceType }: ToggleWatchlistParams) {
   const validatedResourceId = resourceIdSchema.parse({
     resourceId,
     resourceType,
@@ -198,8 +185,8 @@ export async function toggleWatchlist({
         and(
           eq(watchlist.userId, user.id),
           eq(watchlist.resourceId, validatedResourceId.resourceId),
-          eq(watchlist.resourceType, validatedResourceId.resourceType)
-        )
+          eq(watchlist.resourceType, validatedResourceId.resourceType),
+        ),
       );
 
     let state;
@@ -210,8 +197,8 @@ export async function toggleWatchlist({
           and(
             eq(watchlist.userId, user.id),
             eq(watchlist.resourceId, validatedResourceId.resourceId),
-            eq(watchlist.resourceType, validatedResourceId.resourceType)
-          )
+            eq(watchlist.resourceType, validatedResourceId.resourceType),
+          ),
         );
       state = 'removed';
     } else {
@@ -224,9 +211,7 @@ export async function toggleWatchlist({
       state = 'added';
     }
 
-    revalidatePath(
-      `/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`
-    );
+    revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
     revalidatePath('/watchlist');
 
     return { success: true, action: state };

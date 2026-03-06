@@ -27,5 +27,5 @@ export const listItems = pgTable(
     resourceType: text('resource_type').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [unique().on(table.listId, table.resourceId, table.resourceType)]
+  (table) => [unique().on(table.listId, table.resourceId, table.resourceType)],
 );

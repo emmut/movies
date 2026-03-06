@@ -5,11 +5,7 @@ import ItemCard from '@/components/item-card';
 import { ListButton } from '@/components/list-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
-import {
-  getPersonDetails,
-  getPersonMovieCredits,
-  getPersonTvCredits,
-} from '@/lib/persons';
+import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
 import { deduplicateAndSortByPopularity, formatImageUrl } from '@/lib/utils';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 import { headers } from 'next/headers';
@@ -56,13 +52,13 @@ export default async function PersonPage(props: PersonPageProps) {
   // Deduplicate and sort movies by popularity and release date
   const uniqueMovies = deduplicateAndSortByPopularity(
     movieCredits.cast,
-    (movie) => movie.release_date
+    (movie) => movie.release_date,
   );
 
   // Deduplicate and sort TV shows by popularity and first air date
   const uniqueTvShows = deduplicateAndSortByPopularity(
     tvCredits.cast,
-    (show) => show.first_air_date
+    (show) => show.first_air_date,
   );
 
   // Convert movies to format expected by ResourceCard
@@ -104,8 +100,7 @@ export default async function PersonPage(props: PersonPageProps) {
 
   const birthYear = birthday ? new Date(birthday).getFullYear() : null;
   const deathYear = deathday ? new Date(deathday).getFullYear() : null;
-  const age =
-    birthYear && !deathYear ? new Date().getFullYear() - birthYear : null;
+  const age = birthYear && !deathYear ? new Date().getFullYear() - birthYear : null;
 
   const totalCredits = uniqueMovies.length + uniqueTvShows.length;
 
@@ -139,9 +134,7 @@ export default async function PersonPage(props: PersonPageProps) {
 
         <div className="space-y-6 lg:col-span-8">
           <div className="flex flex-col items-start gap-3">
-            <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">
-              {name}
-            </h1>
+            <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">{name}</h1>
             <div className="flex w-full items-center justify-between gap-2">
               <Badge variant="blue">Person</Badge>
               {user && (
@@ -158,9 +151,7 @@ export default async function PersonPage(props: PersonPageProps) {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="rounded-lg bg-zinc-900 p-4 text-center">
               <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
-              <div className="text-2xl font-bold">
-                {Math.round(person.popularity)}
-              </div>
+              <div className="text-2xl font-bold">{Math.round(person.popularity)}</div>
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
 
@@ -175,9 +166,7 @@ export default async function PersonPage(props: PersonPageProps) {
                 <Calendar className="mx-auto mb-2 h-6 w-6 text-green-500" />
                 <div className="text-2xl font-bold">{birthYear}</div>
                 <div className="text-sm text-zinc-400">Born</div>
-                {age && (
-                  <div className="text-xs text-zinc-500">({age} years old)</div>
-                )}
+                {age && <div className="text-xs text-zinc-500">({age} years old)</div>}
               </div>
             )}
 
@@ -195,26 +184,20 @@ export default async function PersonPage(props: PersonPageProps) {
           {biography && (
             <div>
               <h2 className="mb-3 text-xl font-semibold">Biography</h2>
-              <p className="leading-relaxed whitespace-pre-line text-zinc-300">
-                {biography}
-              </p>
+              <p className="leading-relaxed whitespace-pre-line text-zinc-300">{biography}</p>
             </div>
           )}
 
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <div>
-                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                  Known For
-                </h3>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Known For</h3>
                 <p>{known_for_department || 'Acting'}</p>
               </div>
 
               {birthday && (
                 <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Birthday
-                  </h3>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Birthday</h3>
                   <p>{birthday}</p>
                 </div>
               )}
@@ -232,9 +215,7 @@ export default async function PersonPage(props: PersonPageProps) {
             <div className="space-y-4">
               {deathday && (
                 <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Died
-                  </h3>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Died</h3>
                   <p>{deathday}</p>
                 </div>
               )}
@@ -252,9 +233,7 @@ export default async function PersonPage(props: PersonPageProps) {
 
           {uniqueMovies.length > 0 && (
             <div>
-              <h2 className="mb-4 text-xl font-semibold">
-                Movies ({uniqueMovies.length})
-              </h2>
+              <h2 className="mb-4 text-xl font-semibold">Movies ({uniqueMovies.length})</h2>
               <ItemSlider>
                 {moviesForGrid.map((movie) => (
                   <ItemCard
@@ -271,9 +250,7 @@ export default async function PersonPage(props: PersonPageProps) {
 
           {uniqueTvShows.length > 0 && (
             <div>
-              <h2 className="mb-4 text-xl font-semibold">
-                TV Shows ({uniqueTvShows.length})
-              </h2>
+              <h2 className="mb-4 text-xl font-semibold">TV Shows ({uniqueTvShows.length})</h2>
               <ItemSlider>
                 {tvShowsForGrid.map((show) => (
                   <ItemCard

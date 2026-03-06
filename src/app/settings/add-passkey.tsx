@@ -56,8 +56,8 @@ export function AddPasskey() {
         <DialogHeader>
           <DialogTitle>Add New Passkey</DialogTitle>
           <DialogDescription>
-            Give your passkey a name to help you identify it later. This could
-            be the device name or location.
+            Give your passkey a name to help you identify it later. This could be the device name or
+            location.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">

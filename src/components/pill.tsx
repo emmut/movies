@@ -17,7 +17,7 @@ const pillVariants = cva(
     defaultVariants: {
       variant: 'default',
     },
-  }
+  },
 );
 
 type PillProps = {
@@ -26,19 +26,9 @@ type PillProps = {
 } & HTMLAttributes<HTMLDivElement> &
   VariantProps<typeof pillVariants>;
 
-export default function Pill({
-  active = false,
-  variant,
-  className,
-  children,
-  ...rest
-}: PillProps) {
+export default function Pill({ active = false, variant, className, children, ...rest }: PillProps) {
   return (
-    <div
-      className={cn(pillVariants({ variant, className }))}
-      {...rest}
-      data-active={active}
-    >
+    <div className={cn(pillVariants({ variant, className }))} {...rest} data-active={active}>
       {children}
     </div>
   );

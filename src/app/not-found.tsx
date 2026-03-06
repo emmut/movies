@@ -15,13 +15,11 @@ export default function NotFound() {
 
       <h1 className="mb-4 text-6xl font-bold text-zinc-200">404</h1>
 
-      <h2 className="mb-4 text-2xl font-semibold text-zinc-300">
-        Page Not Found
-      </h2>
+      <h2 className="mb-4 text-2xl font-semibold text-zinc-300">Page Not Found</h2>
 
       <p className="mb-8 max-w-md text-zinc-400">
-        The page you are looking for seems to have vanished like a movie from
-        the theater. It might have been moved or no longer exists.
+        The page you are looking for seems to have vanished like a movie from the theater. It might
+        have been moved or no longer exists.
       </p>
 
       <div className="mb-8">

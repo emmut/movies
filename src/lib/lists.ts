@@ -72,7 +72,7 @@ export async function getUserLists() {
         ...list,
         itemCount,
       };
-    })
+    }),
   );
 
   return listsWithCounts;
@@ -165,7 +165,7 @@ export async function getUserListsPaginated(page: number = 1) {
           ...list,
           itemCount,
         };
-      })
+      }),
     );
 
     return {
@@ -227,10 +227,7 @@ export async function getListDetails(listId: string) {
  * @param itemsPerPage - The number of items per page.
  * @returns An object containing the list details, paginated items, and pagination metadata.
  */
-export async function getListDetailsPaginated(
-  listId: string,
-  page: number = 1
-) {
+export async function getListDetailsPaginated(listId: string, page: number = 1) {
   const user = await getUser();
 
   if (!user) {
@@ -306,10 +303,7 @@ export async function getListDetailsPaginated(
  * Fetches list details with all resource details populated.
  * Helper function to avoid code duplication.
  */
-export async function getListDetailsWithResources(
-  listId: string,
-  page: number = 1
-) {
+export async function getListDetailsWithResources(listId: string, page: number = 1) {
   const { getMovieDetails } = await import('@/lib/movies');
   const { getTvShowDetails } = await import('@/lib/tv-shows');
   const { getPersonDetails } = await import('@/lib/persons');
@@ -317,36 +311,25 @@ export async function getListDetailsWithResources(
   const paginatedList = await getListDetailsPaginated(listId, page);
 
   // Fetch details for paginated items only
-  const movieItems =
-    paginatedList.items?.filter((item) => item.resourceType === 'movie') || [];
-  const tvItems =
-    paginatedList.items?.filter((item) => item.resourceType === 'tv') || [];
-  const personItems =
-    paginatedList.items?.filter((item) => item.resourceType === 'person') || [];
+  const movieItems = paginatedList.items?.filter((item) => item.resourceType === 'movie') || [];
+  const tvItems = paginatedList.items?.filter((item) => item.resourceType === 'tv') || [];
+  const personItems = paginatedList.items?.filter((item) => item.resourceType === 'person') || [];
 
   const [movies, tvShows, persons] = await Promise.all([
-    Promise.allSettled(
-      movieItems.map((item) => getMovieDetails(item.resourceId))
-    ),
-    Promise.allSettled(
-      tvItems.map((item) => getTvShowDetails(item.resourceId))
-    ),
-    Promise.allSettled(
-      personItems.map((item) => getPersonDetails(item.resourceId))
-    ),
+    Promise.allSettled(movieItems.map((item) => getMovieDetails(item.resourceId))),
+    Promise.allSettled(tvItems.map((item) => getTvShowDetails(item.resourceId))),
+    Promise.allSettled(personItems.map((item) => getPersonDetails(item.resourceId))),
   ]).then(
     ([movieResults, tvResults, personResults]) =>
       [
         movieResults
           .filter((result) => result.status === 'fulfilled')
           .map((result) => result.value),
-        tvResults
-          .filter((result) => result.status === 'fulfilled')
-          .map((result) => result.value),
+        tvResults.filter((result) => result.status === 'fulfilled').map((result) => result.value),
         personResults
           .filter((result) => result.status === 'fulfilled')
           .map((result) => result.value),
-      ] as const
+      ] as const,
   );
 
   const allItems = [
@@ -370,11 +353,7 @@ export async function getListDetailsWithResources(
   };
 }
 
-export async function createList(
-  name: string,
-  description: string = '',
-  emoji: string = '📝'
-) {
+export async function createList(name: string, description: string = '', emoji: string = '📝') {
   const user = await getUser();
 
   if (!user) {
@@ -405,7 +384,7 @@ export async function createList(
 export async function addToList(
   listId: string,
   mediaId: number,
-  mediaType: 'movie' | 'tv' | 'person'
+  mediaType: 'movie' | 'tv' | 'person',
 ) {
   const user = await getUser();
 
@@ -461,7 +440,7 @@ export async function addToList(
 export async function removeFromList(
   listId: string,
   mediaId: number,
-  mediaType: 'movie' | 'tv' | 'person'
+  mediaType: 'movie' | 'tv' | 'person',
 ) {
   const user = await getUser();
 
@@ -502,8 +481,8 @@ export async function removeFromList(
       and(
         eq(listItems.listId, validatedData.listId),
         eq(listItems.resourceId, validatedData.resourceId),
-        eq(listItems.resourceType, validatedData.resourceType)
-      )
+        eq(listItems.resourceType, validatedData.resourceType),
+      ),
     );
 
   revalidatePath(`/lists/${validatedData.listId}`);
@@ -539,7 +518,7 @@ export async function updateList(
   listId: string,
   name: string,
   description: string = '',
-  emoji: string = '📝'
+  emoji: string = '📝',
 ) {
   const user = await getUser();
 
@@ -583,7 +562,7 @@ export async function updateList(
 
 export async function getUserListsWithStatus(
   mediaId: number,
-  mediaType: 'movie' | 'tv' | 'person'
+  mediaType: 'movie' | 'tv' | 'person',
 ) {
   const user = await getUser();
 
@@ -622,7 +601,7 @@ export async function getUserListsWithStatus(
         lists.description,
         lists.emoji,
         lists.createdAt,
-        lists.updatedAt
+        lists.updatedAt,
       )
       .orderBy(desc(lists.updatedAt));
 
@@ -633,6 +612,4 @@ export async function getUserListsWithStatus(
   }
 }
 
-export type UserListsWithStatus = Awaited<
-  ReturnType<typeof getUserListsWithStatus>
->;
+export type UserListsWithStatus = Awaited<ReturnType<typeof getUserListsWithStatus>>;

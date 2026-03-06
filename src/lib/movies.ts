@@ -50,11 +50,7 @@ async function getUserRegionWithFallback() {
     return await getUserRegion();
   } catch (error) {
     // Fallback to default region if user is not logged in or error occurs
-    console.warn(
-      'Could not get user region, using fallback:',
-      DEFAULT_REGION,
-      error
-    );
+    console.warn('Could not get user region, using fallback:', DEFAULT_REGION, error);
     return DEFAULT_REGION;
   }
 }
@@ -101,7 +97,7 @@ export async function fetchDiscoverMovies(
   sortBy?: string,
   watchProviders?: string,
   watchRegion?: string,
-  withRuntimeLte?: number
+  withRuntimeLte?: number,
 ) {
   'use cache';
   cacheTag('discover');
@@ -128,10 +124,7 @@ export async function fetchDiscoverMovies(
 
   if (typeof withRuntimeLte === 'number' && withRuntimeLte > 0) {
     url.searchParams.set('with_runtime.lte', String(withRuntimeLte));
-    url.searchParams.set(
-      'with_runtime.gte',
-      String(MIN_RUNTIME_FILTER_MINUTES)
-    );
+    url.searchParams.set('with_runtime.gte', String(MIN_RUNTIME_FILTER_MINUTES));
   }
 
   const res = await fetch(url, {
@@ -158,10 +151,7 @@ export async function fetchDiscoverMovies(
  * @param page - The page number for pagination (default is 1)
  * @returns An object containing the array of discovered movies and the total number of pages (maximum 500)
  */
-export async function fetchUserDiscoverMovies(
-  genreId: number,
-  page: number = 1
-) {
+export async function fetchUserDiscoverMovies(genreId: number, page: number = 1) {
   const userRegion = await getUserRegionWithFallback();
 
   const url = new URL(`${TMDB_API_URL}/discover/movie`);
@@ -246,7 +236,7 @@ export async function fetchUpcomingMovies() {
 
   const nowPlayingIds = new Set(nowPlayingMovies.map((movie) => movie.id));
   const filteredUpcomingMovies = upcomingMovies.results.filter(
-    (movie) => !nowPlayingIds.has(movie.id)
+    (movie) => !nowPlayingIds.has(movie.id),
   );
 
   return filteredUpcomingMovies;
@@ -309,7 +299,7 @@ export async function fetchUserUpcomingMovies() {
 
   const nowPlayingIds = new Set(nowPlayingMovies.map((movie) => movie.id));
   const filteredUpcomingMovies = upcomingMovies.results.filter(
-    (movie) => !nowPlayingIds.has(movie.id)
+    (movie) => !nowPlayingIds.has(movie.id),
   );
 
   return filteredUpcomingMovies;
@@ -442,15 +432,12 @@ export async function getMovieWatchProviders(movieId: number) {
   cacheLife('days');
 
   try {
-    const res = await fetch(
-      `${TMDB_API_URL}/movie/${movieId}/watch/providers`,
-      {
-        headers: {
-          authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-          accept: 'application/json',
-        },
-      }
-    );
+    const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/watch/providers`, {
+      headers: {
+        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+        accept: 'application/json',
+      },
+    });
 
     if (!res.ok) {
       throw new Error('Failed loading movie watch providers');
@@ -493,9 +480,7 @@ export async function getMovieTrailer(movieId: number) {
 
     const data: TmdbVideoResponse = await response.json();
     const trailer = data.results.find(
-      (video) =>
-        (video.type === 'Trailer' || video.type === 'Teaser') &&
-        video.site === 'YouTube'
+      (video) => (video.type === 'Trailer' || video.type === 'Teaser') && video.site === 'YouTube',
     );
 
     if (!trailer) {
@@ -509,10 +494,7 @@ export async function getMovieTrailer(movieId: number) {
   }
 }
 
-export async function getMovieRecommendations(
-  movieId: number,
-  userRegion?: string
-) {
+export async function getMovieRecommendations(movieId: number, userRegion?: string) {
   'use cache';
   cacheTag(`movie-recommendations-${movieId}`);
   cacheLife('hours');

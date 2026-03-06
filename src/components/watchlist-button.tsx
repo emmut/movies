@@ -69,19 +69,15 @@ export function WatchlistButton({
       disabled={isPending}
       variant={optimisticInWatchlist ? 'default' : 'outline'}
       className="gap-2 px-3 py-1"
-      aria-label={
-        optimisticInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'
-      }
+      aria-label={optimisticInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
     >
-      <Star
-        className={`h-4 w-4 ${optimisticInWatchlist ? 'fill-current' : ''}`}
-      />
+      <Star className={`h-4 w-4 ${optimisticInWatchlist ? 'fill-current' : ''}`} />
 
       <div className="grid grid-cols-1 grid-rows-1 place-items-center">
         <span
           className={clsx(
             optimisticInWatchlist ? 'visible' : 'invisible',
-            'col-start-1 row-start-1'
+            'col-start-1 row-start-1',
           )}
         >
           In Watchlist
@@ -89,7 +85,7 @@ export function WatchlistButton({
         <span
           className={clsx(
             optimisticInWatchlist ? 'invisible' : 'visible',
-            'col-start-1 row-start-1'
+            'col-start-1 row-start-1',
           )}
         >
           Add to Watchlist

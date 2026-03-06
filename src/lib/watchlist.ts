@@ -4,11 +4,7 @@ import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
-import {
-  pageSchema,
-  resourceIdSchema,
-  resourceTypeSchema,
-} from '@/lib/validations';
+import { pageSchema, resourceIdSchema, resourceTypeSchema } from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
 import { and, count, eq } from 'drizzle-orm';
@@ -27,10 +23,7 @@ export async function getUserWatchlist() {
   }
 
   try {
-    const userWatchlist = await db
-      .select()
-      .from(watchlist)
-      .where(eq(watchlist.userId, user.id));
+    const userWatchlist = await db.select().from(watchlist).where(eq(watchlist.userId, user.id));
 
     return userWatchlist;
   } catch (error) {
@@ -46,10 +39,7 @@ export async function getUserWatchlist() {
  * @param resourceType - The type of resource (e.g., 'movie', 'tv').
  * @returns `true` if the resource is in the user's watchlist; otherwise, `false`.
  */
-export async function isResourceInWatchlist(
-  resourceId: number,
-  resourceType: string
-) {
+export async function isResourceInWatchlist(resourceId: number, resourceType: string) {
   const user = await getUser();
   if (!user) {
     return false;
@@ -68,8 +58,8 @@ export async function isResourceInWatchlist(
         and(
           eq(watchlist.userId, user.id),
           eq(watchlist.resourceId, validatedResourceId.resourceId),
-          eq(watchlist.resourceType, validatedResourceId.resourceType)
-        )
+          eq(watchlist.resourceType, validatedResourceId.resourceType),
+        ),
       );
 
     return result.length > 0;
@@ -91,9 +81,7 @@ export async function getWatchlistWithResourceDetails(resourceType: string) {
   const userWatchlist = await getUserWatchlist();
 
   // Filter watchlist items by resourceType first
-  const filteredWatchlist = userWatchlist.filter(
-    (item) => item.resourceType === resourceType
-  );
+  const filteredWatchlist = userWatchlist.filter((item) => item.resourceType === resourceType);
 
   const resourcesWithDetails = await Promise.allSettled(
     filteredWatchlist.map(async (item) => {
@@ -112,7 +100,7 @@ export async function getWatchlistWithResourceDetails(resourceType: string) {
         ...item,
         resource: resourceDetails,
       };
-    })
+    }),
   );
 
   return resourcesWithDetails
@@ -130,12 +118,9 @@ export async function getWatchlistWithResourceDetails(resourceType: string) {
  */
 export async function getWatchlistWithResourceDetailsPaginated(
   resourceType: 'movie' | 'tv',
-  page: number = 1
+  page: number = 1,
 ) {
-  if (
-    !resourceTypeSchema.safeParse(resourceType).success ||
-    !pageSchema.safeParse(page).success
-  ) {
+  if (!resourceTypeSchema.safeParse(resourceType).success || !pageSchema.safeParse(page).success) {
     throw new Error('Invalid resource type or page number');
   }
 
@@ -148,12 +133,7 @@ export async function getWatchlistWithResourceDetailsPaginated(
     const totalCountResult = await db
       .select({ count: count() })
       .from(watchlist)
-      .where(
-        and(
-          eq(watchlist.userId, user.id),
-          eq(watchlist.resourceType, resourceType)
-        )
-      );
+      .where(and(eq(watchlist.userId, user.id), eq(watchlist.resourceType, resourceType)));
 
     const totalItems = totalCountResult[0]?.count || 0;
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
@@ -172,12 +152,7 @@ export async function getWatchlistWithResourceDetailsPaginated(
     const paginatedWatchlist = await db
       .select()
       .from(watchlist)
-      .where(
-        and(
-          eq(watchlist.userId, user.id),
-          eq(watchlist.resourceType, resourceType)
-        )
-      )
+      .where(and(eq(watchlist.userId, user.id), eq(watchlist.resourceType, resourceType)))
       .limit(ITEMS_PER_PAGE)
       .offset(offset);
 
@@ -198,7 +173,7 @@ export async function getWatchlistWithResourceDetailsPaginated(
           ...item,
           resource: resourceDetails,
         };
-      })
+      }),
     );
 
     const items = resourcesWithDetails
@@ -241,12 +216,7 @@ export async function getWatchlistCount(resourceType: string) {
     const result = await db
       .select({ count: count() })
       .from(watchlist)
-      .where(
-        and(
-          eq(watchlist.userId, user.id),
-          eq(watchlist.resourceType, resourceType)
-        )
-      );
+      .where(and(eq(watchlist.userId, user.id), eq(watchlist.resourceType, resourceType)));
 
     return result[0]?.count || 0;
   } catch (error) {

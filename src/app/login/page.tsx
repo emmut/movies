@@ -50,27 +50,21 @@ export default async function LoginPage(props: {
             <Shield className="h-5 w-5 shrink-0 text-blue-500" />
             <div>
               <h3 className="text-sm font-medium">Secure Login</h3>
-              <p className="text-muted-foreground text-xs">
-                Fast and secure authentication
-              </p>
+              <p className="text-muted-foreground text-xs">Fast and secure authentication</p>
             </div>
           </div>
           <div className="bg-muted/50 flex items-center space-x-3 rounded-lg p-3">
             <Users className="h-5 w-5 shrink-0 text-green-500" />
             <div>
               <h3 className="text-sm font-medium">Personalized Experience</h3>
-              <p className="text-muted-foreground text-xs">
-                Get recommendations tailored to you
-              </p>
+              <p className="text-muted-foreground text-xs">Get recommendations tailored to you</p>
             </div>
           </div>
           <div className="bg-muted/50 flex items-center space-x-3 rounded-lg p-3">
             <Zap className="h-5 w-5 shrink-0 text-yellow-500" />
             <div>
               <h3 className="text-sm font-medium">Quick Access</h3>
-              <p className="text-muted-foreground text-xs">
-                Save favorites and create watchlists
-              </p>
+              <p className="text-muted-foreground text-xs">Save favorites and create watchlists</p>
             </div>
           </div>
         </div>

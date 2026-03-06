@@ -43,12 +43,7 @@ interface ListButtonProps {
   showWatchlist?: boolean;
 }
 
-export function ListButton({
-  mediaId,
-  mediaType,
-  userId,
-  showWatchlist = true,
-}: ListButtonProps) {
+export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }: ListButtonProps) {
   const [lists, setLists] = useState<UserListsWithStatus>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -111,7 +106,7 @@ export function ListButton({
             ? error.message
             : hasItem
               ? `Failed to remove from "${listName}"`
-              : `Failed to add to "${listName}"`
+              : `Failed to add to "${listName}"`,
         );
       }
     });
@@ -125,11 +120,7 @@ export function ListButton({
 
     setIsLoading(true);
     try {
-      const result = await createList(
-        newListName.trim(),
-        newListDescription.trim(),
-        selectedEmoji
-      );
+      const result = await createList(newListName.trim(), newListDescription.trim(), selectedEmoji);
       if (result.success) {
         await addToList(result.listId, mediaId, mediaType);
         setNewListName('');
@@ -169,18 +160,12 @@ export function ListButton({
           resourceType: mediaType,
         });
         setIsInWatchlist(result.action === 'added');
-        toast.success(
-          result.action === 'added'
-            ? 'Added to watchlist'
-            : 'Removed from watchlist'
-        );
+        toast.success(result.action === 'added' ? 'Added to watchlist' : 'Removed from watchlist');
 
         // Invalidate React Query cache after successful mutation
         queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : 'Failed to update watchlist'
-        );
+        toast.error(error instanceof Error ? error.message : 'Failed to update watchlist');
       }
     });
   }
@@ -208,19 +193,11 @@ export function ListButton({
                 onSelect={handleToggleWatchlist}
                 disabled={isPending}
                 className="flex items-center justify-between"
-                title={
-                  isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'
-                }
+                title={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
               >
                 <span className="flex flex-1 items-center gap-2">
-                  <Star
-                    className={`h-4 w-4 ${isInWatchlist ? 'fill-current' : ''}`}
-                  />
-                  <span>
-                    {isInWatchlist
-                      ? 'Remove from watchlist'
-                      : 'Add to watchlist'}
-                  </span>
+                  <Star className={`h-4 w-4 ${isInWatchlist ? 'fill-current' : ''}`} />
+                  <span>{isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}</span>
                 </span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -243,28 +220,19 @@ export function ListButton({
                   onSelect={() => handleToggleList(list.id, list.hasItem)}
                   disabled={isPending}
                   className="flex items-center justify-between"
-                  title={
-                    list.hasItem
-                      ? `Remove from "${list.name}"`
-                      : `Add to "${list.name}"`
-                  }
+                  title={list.hasItem ? `Remove from "${list.name}"` : `Add to "${list.name}"`}
                 >
                   <span className="flex flex-1 items-center gap-2">
                     <span className="text-lg">{list.emoji}</span>
                     <span>{list.name}</span>
                   </span>
-                  {list.hasItem && (
-                    <Check className="ml-2 h-4 w-4 shrink-0 text-green-500" />
-                  )}
+                  {list.hasItem && <Check className="ml-2 h-4 w-4 shrink-0 text-green-500" />}
                 </DropdownMenuItem>
               ))
             )}
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onSelect={() => setIsCreateOpen(true)}
-            disabled={isPending}
-          >
+          <DropdownMenuItem onSelect={() => setIsCreateOpen(true)} disabled={isPending}>
             <ListPlus className="mr-2 h-4 w-4" />
             Create new list
           </DropdownMenuItem>
@@ -275,9 +243,7 @@ export function ListButton({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create new list</DialogTitle>
-            <DialogDescription>
-              Create a new list and add this item to it.
-            </DialogDescription>
+            <DialogDescription>Create a new list and add this item to it.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -292,9 +258,7 @@ export function ListButton({
                       type="button"
                       onClick={() => setSelectedEmoji(emoji)}
                       className={`hover:bg-muted rounded p-2 text-xl transition-colors ${
-                        selectedEmoji === emoji
-                          ? 'bg-primary text-primary-foreground'
-                          : ''
+                        selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
                       }`}
                       disabled={isLoading}
                     >
@@ -302,9 +266,7 @@ export function ListButton({
                     </button>
                   ))}
                 </div>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  Selected: {selectedEmoji}
-                </p>
+                <p className="text-muted-foreground mt-1 text-sm">Selected: {selectedEmoji}</p>
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -314,9 +276,7 @@ export function ListButton({
               <Input
                 id="name"
                 value={newListName}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setNewListName(e.target.value)
-                }
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
                 className="col-span-3"
                 disabled={isLoading}
                 maxLength={100}
@@ -342,10 +302,7 @@ export function ListButton({
             </div>
           </div>
           <DialogFooter>
-            <Button
-              onClick={handleCreateList}
-              disabled={isLoading || !newListName.trim()}
-            >
+            <Button onClick={handleCreateList} disabled={isLoading || !newListName.trim()}>
               {isLoading ? 'Creating...' : 'Create'}
             </Button>
           </DialogFooter>

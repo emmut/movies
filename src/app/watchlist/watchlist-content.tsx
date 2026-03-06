@@ -6,10 +6,7 @@ import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { queryKeys } from '@/lib/query-keys';
-import {
-  getWatchlistCount,
-  getWatchlistWithResourceDetailsPaginated,
-} from '@/lib/watchlist';
+import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
 import { useQuery } from '@tanstack/react-query';
@@ -33,7 +30,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
     },
     {
       history: 'push',
-    }
+    },
   );
 
   const mediaType = urlState.mediaType as 'movie' | 'tv';
@@ -104,9 +101,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="py-12 text-center">
-          <div className="mb-4 text-6xl opacity-50">
-            {mediaType === 'movie' ? '🎬' : '📺'}
-          </div>
+          <div className="mb-4 text-6xl opacity-50">{mediaType === 'movie' ? '🎬' : '📺'}</div>
           <h2 className="mb-2 text-xl font-semibold">
             {totalItems === 0
               ? 'Your watchlist is empty'

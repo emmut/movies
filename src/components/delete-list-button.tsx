@@ -55,9 +55,7 @@ export function DeleteListButton({
         router.push('/lists');
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to delete list'
-      );
+      toast.error(error instanceof Error ? error.message : 'Failed to delete list');
     } finally {
       setIsLoading(false);
     }

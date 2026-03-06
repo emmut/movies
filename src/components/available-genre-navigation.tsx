@@ -15,13 +15,9 @@ type AvailableGenreProps = {
  *
  * @returns A navigation element with genre filter links.
  */
-async function AvailableGenresNavigation({
-  mediaType = 'movie',
-}: AvailableGenreProps) {
+async function AvailableGenresNavigation({ mediaType = 'movie' }: AvailableGenreProps) {
   const genres =
-    mediaType === 'movie'
-      ? await fetchAvailableGenres()
-      : await fetchAvailableTvGenres();
+    mediaType === 'movie' ? await fetchAvailableGenres() : await fetchAvailableTvGenres();
 
   return <GenreNavigationClient genres={genres} mediaType={mediaType} />;
 }

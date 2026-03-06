@@ -47,9 +47,7 @@ export default async function MoviePage(props: MoviePageProps) {
 
   const user = await getUser();
   const userRegion = await getUserRegion();
-  const inWatchlist = user
-    ? await isResourceInWatchlist(movieId, RESOURCE_TYPE)
-    : false;
+  const inWatchlist = user ? await isResourceInWatchlist(movieId, RESOURCE_TYPE) : false;
 
   const [movie, credits, watchProviders] = await Promise.all([
     getMovieDetails(movieId),
@@ -81,7 +79,7 @@ export default async function MoviePage(props: MoviePageProps) {
       person.job === 'Writer' ||
       person.job === 'Screenplay' ||
       person.job === 'Story' ||
-      person.job === 'Original Story'
+      person.job === 'Original Story',
   );
 
   return (
@@ -127,17 +125,13 @@ export default async function MoviePage(props: MoviePageProps) {
               <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
               <div className="text-2xl font-bold">{score}</div>
               <div className="text-sm text-zinc-400">Rating</div>
-              <div className="text-xs text-zinc-500">
-                ({movie.vote_count} votes)
-              </div>
+              <div className="text-xs text-zinc-500">({movie.vote_count} votes)</div>
             </div>
 
             {runtime > 0 && (
               <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
                 <Clock className="mx-auto mb-2 h-6 w-6 text-blue-500" />
-                <div className="text-2xl font-bold">
-                  {formatRuntime(runtime)}
-                </div>
+                <div className="text-2xl font-bold">{formatRuntime(runtime)}</div>
                 <div className="text-sm text-zinc-400">Runtime</div>
               </div>
             )}
@@ -152,9 +146,7 @@ export default async function MoviePage(props: MoviePageProps) {
 
             <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
               <Users className="mx-auto mb-2 h-6 w-6 text-purple-500" />
-              <div className="text-2xl font-bold">
-                {Math.round(movie.popularity)}
-              </div>
+              <div className="text-2xl font-bold">{Math.round(movie.popularity)}</div>
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
           </div>
@@ -166,10 +158,7 @@ export default async function MoviePage(props: MoviePageProps) {
               <h2 className="mb-3 text-xl font-semibold">Genres</h2>
               <div className="flex flex-wrap gap-2">
                 {genres.map((genre) => (
-                  <Link
-                    key={genre.id}
-                    href={String(`/discover?genreId=${genre.id}`)}
-                  >
+                  <Link key={genre.id} href={String(`/discover?genreId=${genre.id}`)}>
                     <Pill>{genre.name}</Pill>
                   </Link>
                 ))}
@@ -187,9 +176,7 @@ export default async function MoviePage(props: MoviePageProps) {
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <div>
-                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                  Status
-                </h3>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Status</h3>
                 <p>{status || 'Unknown'}</p>
               </div>
 
@@ -203,22 +190,14 @@ export default async function MoviePage(props: MoviePageProps) {
               )}
 
               <div>
-                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                  Release Date
-                </h3>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Release Date</h3>
                 <p>{release_date || 'Not available'}</p>
               </div>
 
               {spoken_languages.length > 0 && (
                 <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Languages
-                  </h3>
-                  <p>
-                    {spoken_languages
-                      .map((lang) => lang.english_name)
-                      .join(', ')}
-                  </p>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Languages</h3>
+                  <p>{spoken_languages.map((lang) => lang.english_name).join(', ')}</p>
                 </div>
               )}
             </div>
@@ -226,9 +205,7 @@ export default async function MoviePage(props: MoviePageProps) {
             <div className="space-y-4">
               {budget > 0 && (
                 <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Budget
-                  </h3>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Budget</h3>
                   <p className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
                     {formatCurrency(budget, false)}
@@ -238,9 +215,7 @@ export default async function MoviePage(props: MoviePageProps) {
 
               {revenue > 0 && (
                 <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Revenue
-                  </h3>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Revenue</h3>
                   <p className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
                     {formatCurrency(revenue, false)}
@@ -250,9 +225,7 @@ export default async function MoviePage(props: MoviePageProps) {
 
               {revenue > 0 && budget > 0 && (
                 <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">
-                    Profit
-                  </h3>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Profit</h3>
                   <p className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
                     {formatCurrency(revenue - budget, false)}
@@ -285,9 +258,7 @@ export default async function MoviePage(props: MoviePageProps) {
                         <Users className="h-5 w-5 text-zinc-400" />
                       </div>
                     )}
-                    <span className="font-medium hover:text-white">
-                      {director.name}
-                    </span>
+                    <span className="font-medium hover:text-white">{director.name}</span>
                   </Link>
                 ))}
               </div>
@@ -318,9 +289,7 @@ export default async function MoviePage(props: MoviePageProps) {
                     )}
                     <div className="flex flex-col gap-0.5">
                       <span className="font-medium">{writer.name}</span>
-                      <span className="text-xs text-zinc-400">
-                        {writer.job}
-                      </span>
+                      <span className="text-xs text-zinc-400">{writer.job}</span>
                     </div>
                   </div>
                 ))}
@@ -356,9 +325,7 @@ export default async function MoviePage(props: MoviePageProps) {
                     <h3 className="line-clamp-2 text-sm font-medium hover:text-white">
                       {person.name}
                     </h3>
-                    <p className="line-clamp-2 text-xs text-zinc-400">
-                      {person.character}
-                    </p>
+                    <p className="line-clamp-2 text-xs text-zinc-400">{person.character}</p>
                   </Link>
                 ))}
               </ItemSlider>

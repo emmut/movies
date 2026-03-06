@@ -51,11 +51,7 @@ export function PasskeyLoginForm({ redirectUrl }: { redirectUrl?: string }) {
     <>
       <div className="space-y-3">
         <form onSubmit={handleEmailSubmit}>
-          <input
-            ref={hiddenInputRef}
-            type="hidden"
-            autoComplete="username webauthn"
-          />
+          <input ref={hiddenInputRef} type="hidden" autoComplete="username webauthn" />
 
           <Button
             onClick={handlePasskeyLogin}

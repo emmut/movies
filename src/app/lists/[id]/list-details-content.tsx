@@ -25,7 +25,7 @@ type ListDetailsContentProps = {
   userId?: string;
   fetchListDetails: (
     listId: string,
-    page: number
+    page: number,
   ) => Promise<{
     id: string;
     name: string;
@@ -43,11 +43,7 @@ type ListDetailsContentProps = {
  * Client component that handles the list details page content with React Query.
  * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
  */
-export function ListDetailsContent({
-  listId,
-  userId,
-  fetchListDetails,
-}: ListDetailsContentProps) {
+export function ListDetailsContent({ listId, userId, fetchListDetails }: ListDetailsContentProps) {
   // Use nuqs to manage URL state
   const [urlState] = useQueryStates(
     {
@@ -55,7 +51,7 @@ export function ListDetailsContent({
     },
     {
       history: 'push',
-    }
+    },
   );
 
   const page = urlState.page;
@@ -133,8 +129,7 @@ export function ListDetailsContent({
           <div className="mb-4 text-6xl opacity-50">{paginatedList.emoji}</div>
           <h2 className="mb-2 text-xl font-semibold">This list is empty</h2>
           <p className="mb-6 text-zinc-400">
-            Add movies, TV shows, or people by clicking the list button on any
-            content
+            Add movies, TV shows, or people by clicking the list button on any content
           </p>
           <Link
             href="/discover"
@@ -166,7 +161,7 @@ export function ListDetailsContent({
                 listId={paginatedList.id}
                 key={`${item.resourceType}-${item.id}`}
               />
-            )
+            ),
           )}
         </div>
       )}

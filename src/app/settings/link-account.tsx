@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
 import { signInGitHubSettings, signInSettings } from '@/lib/auth-client';
 import { useEffect } from 'react';
@@ -35,8 +29,7 @@ function LinkAccount({ error }: LinkAccountProps) {
       <CardHeader>
         <CardTitle>Link your account</CardTitle>
         <CardDescription>
-          Link your account to your preferred social account to get access to
-          more features.
+          Link your account to your preferred social account to get access to more features.
         </CardDescription>
       </CardHeader>
       <CardContent>

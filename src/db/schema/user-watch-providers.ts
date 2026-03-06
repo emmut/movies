@@ -11,5 +11,5 @@ export const userWatchProviders = pgTable(
     providerId: integer('provider_id').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [unique().on(table.userId, table.providerId)]
+  (table) => [unique().on(table.userId, table.providerId)],
 );

@@ -26,11 +26,7 @@ type SearchPaginationProps = {
  * @param mediaType - The type of media to paginate, either 'movie', 'tv', 'person', or 'all'
  * @returns A React element displaying pagination controls for the search results
  */
-export default function SearchPagination({
-  query,
-  page,
-  mediaType,
-}: SearchPaginationProps) {
+export default function SearchPagination({ query, page, mediaType }: SearchPaginationProps) {
   const moviesQuery = useSearchMovies({
     query,
     page,

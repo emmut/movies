@@ -36,10 +36,7 @@ export function StreamingProviders({
   userRegion,
 }: StreamingProvidersProps) {
   const regions = getRegionCodes();
-  const [region] = useQueryState(
-    'region',
-    parseAsStringLiteral(regions).withDefault(userRegion)
-  );
+  const [region] = useQueryState('region', parseAsStringLiteral(regions).withDefault(userRegion));
 
   const regionProviders = watchProviders.results?.[region];
   const allRegionProviders = watchProviders.results;
@@ -49,9 +46,7 @@ export function StreamingProviders({
   const freeServices = regionProviders?.free || [];
 
   const hasAnyServices =
-    streamingServices.length > 0 ||
-    rentalServices.length > 0 ||
-    purchaseServices.length > 0;
+    streamingServices.length > 0 || rentalServices.length > 0 || purchaseServices.length > 0;
 
   function getDefaultWatchUrl() {
     return `https://www.themoviedb.org/${resourceType}/${resourceId}/watch`;
@@ -61,18 +56,13 @@ export function StreamingProviders({
     <div>
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-semibold">Where to watch</h2>
-        <RegionSelect
-          defaultValue={userRegion}
-          allRegionProviders={allRegionProviders}
-        />
+        <RegionSelect defaultValue={userRegion} allRegionProviders={allRegionProviders} />
       </div>
 
       <div className="space-y-6">
         {!hasAnyServices && (
           <div className="rounded-lg bg-zinc-800 p-6 text-center">
-            <p className="text-zinc-400">
-              No services available for this region
-            </p>
+            <p className="text-zinc-400">No services available for this region</p>
           </div>
         )}
 
@@ -98,9 +88,7 @@ export function StreamingProviders({
                     height={32}
                     className="flex-shrink-0 rounded"
                   />
-                  <span className="truncate text-sm font-medium">
-                    {provider.provider_name}
-                  </span>
+                  <span className="truncate text-sm font-medium">{provider.provider_name}</span>
                 </a>
               ))}
             </div>
@@ -129,9 +117,7 @@ export function StreamingProviders({
                     height={32}
                     className="flex-shrink-0 rounded"
                   />
-                  <span className="truncate text-sm font-medium">
-                    {provider.provider_name}
-                  </span>
+                  <span className="truncate text-sm font-medium">{provider.provider_name}</span>
                 </a>
               ))}
             </div>
@@ -160,9 +146,7 @@ export function StreamingProviders({
                     height={32}
                     className="flex-shrink-0 rounded"
                   />
-                  <span className="truncate text-sm font-medium">
-                    {provider.provider_name}
-                  </span>
+                  <span className="truncate text-sm font-medium">{provider.provider_name}</span>
                 </a>
               ))}
             </div>
@@ -191,9 +175,7 @@ export function StreamingProviders({
                     height={32}
                     className="flex-shrink-0 rounded"
                   />
-                  <span className="truncate text-sm font-medium">
-                    {provider.provider_name}
-                  </span>
+                  <span className="truncate text-sm font-medium">{provider.provider_name}</span>
                 </a>
               ))}
             </div>
