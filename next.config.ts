@@ -1,10 +1,11 @@
-import { type NextConfig } from 'next';
+import type { NextConfig } from 'next';
 import { env } from './src/env.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-expressions
 env;
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   images: {
     loader: 'custom',
     loaderFile: './src/loader.ts',
