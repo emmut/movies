@@ -3,8 +3,8 @@
 ## Build/Lint/Test Commands
 - `pnpm dev` - Start development server with turbopack
 - `pnpm build` - Build production app with turbopack  
-- `pnpm lint` - Run ESLint
-- `pnpm format` - Format code with Prettier
+- `pnpm lint` - Run Oxc linting
+- `pnpm format` - Apply Oxc autofixes
 - No test framework configured - verify changes manually
 
 ## Code Style Guidelines
@@ -13,7 +13,7 @@
 - Single quotes, 2-space indentation, semicolons, trailing commas (ES5)
 - Use `@/` path alias for src imports
 - TypeScript strict mode enabled
-- Tailwind CSS with prettier-plugin-tailwindcss for class sorting
+- Oxc (`oxlint`) is used for linting and autofix
 
 ## Naming Conventions
 - Components: PascalCase (e.g., `Button`, `ResourceCard`)

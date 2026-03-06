@@ -1,28 +1,56 @@
-// Folder-specific settings
-//
-// For a full list of overridable settings, and general information on folder-specific settings,
-// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
 {
-	"format_on_save": "on",
-	"formatter": "auto",
-	"languages": {
-		"TypeScript": {
-			"language_servers": ["eslint", "typescript-language-server"],
-			"code_actions_on_format": {
-				"source.fixAll.eslint": true
-			},
-			"prettier": {
-				"allowed": true
-			}
-		},
-		"TSX": {
-			"language_servers": ["eslint", "typescript-language-server"],
-			"code_actions_on_format": {
-				"source.fixAll.eslint": true
-			},
-			"prettier": {
-				"allowed": true
-			}
-		}
-	}
+  "formatter": "language_server",
+  "format_on_save": "on",
+  "languages": {
+    "JavaScript": {
+      "formatter": {
+        "language_server": {
+          "name": "oxfmt"
+        }
+      },
+      "code_actions_on_format": {
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true,
+        "source.fixAll.oxc": true,
+        "source.organizeImports.oxc": true
+      }
+    },
+    "TypeScript": {
+      "formatter": {
+        "language_server": {
+          "name": "oxfmt"
+        }
+      },
+      "code_actions_on_format": {
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true,
+        "source.fixAll.oxc": true,
+        "source.organizeImports.oxc": true
+      }
+    },
+    "TSX": {
+      "formatter": {
+        "language_server": {
+          "name": "oxfmt"
+        }
+      },
+      "code_actions_on_format": {
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true,
+        "source.fixAll.oxc": true,
+        "source.organizeImports.oxc": true
+      }
+    }
+  },
+  "context_servers": {
+    "next-devtools": {
+      "source": "custom",
+      "command": "npx",
+      "args": [
+        "-y",
+        "next-devtools-mcp@latest"
+      ],
+      "env": {}
+    }
+  }
 }
