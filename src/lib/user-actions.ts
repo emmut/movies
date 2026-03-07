@@ -3,6 +3,8 @@
 import { user } from '@/db/schema/auth';
 import { userWatchProviders } from '@/db/schema/user-watch-providers';
 import { env } from '@/env';
+import { revalidateUserPreferenceCache } from '@/lib/cache-invalidation';
+import { CACHE_TAGS } from '@/lib/cache-tags';
 import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { DEFAULT_REGION, isValidRegionCode, RegionCode, regionSchema } from '@/lib/regions';
@@ -26,10 +28,18 @@ export async function getUserRegion() {
     return DEFAULT_REGION;
   }
 
+  return await getCachedUserRegion(session.user.id);
+}
+
+async function getCachedUserRegion(userId: string) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.userRegion(userId));
+  cacheLife('privateShort');
+
   const userData = await db
     .select({ region: user.region })
     .from(user)
-    .where(eq(user.id, session.user.id))
+    .where(eq(user.id, userId))
     .limit(1);
 
   if (userData.length === 0) {
@@ -60,6 +70,8 @@ export async function updateUserRegion(region: string) {
     })
     .where(eq(user.id, session.user.id));
 
+  revalidateUserPreferenceCache(session.user.id);
+
   revalidatePath('/settings');
   revalidatePath('/discover');
   revalidatePath('/');
@@ -68,8 +80,8 @@ export async function updateUserRegion(region: string) {
 }
 
 async function fetchWatchProvidersForRegion(region: string, userWatchProviders?: number[]) {
-  'use cache';
-  cacheTag('watch-providers');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.watchProvidersByRegion(region));
   cacheLife('days');
 
   const res = await fetch(
@@ -120,8 +132,8 @@ export async function getWatchProviders(region?: string, userWatchProviders?: nu
 }
 
 async function fetchAllWatchProvidersForRegion(region: string) {
-  'use cache';
-  cacheTag('watch-providers');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.watchProvidersByRegion(region));
   cacheLife('days');
 
   const res = await fetch(
@@ -158,10 +170,18 @@ export async function getUserWatchProviders() {
     return [];
   }
 
+  return await getCachedUserWatchProviders(session.user.id);
+}
+
+async function getCachedUserWatchProviders(userId: string) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.userWatchProviders(userId));
+  cacheLife('privateShort');
+
   const result = await db
     .select({ providerId: userWatchProviders.providerId })
     .from(userWatchProviders)
-    .where(eq(userWatchProviders.userId, session.user.id));
+    .where(eq(userWatchProviders.userId, userId));
 
   return result.map((row) => row.providerId);
 }
@@ -198,6 +218,8 @@ export async function setUserWatchProviders(providerIds: number[]) {
         ),
       );
   }
+
+  revalidateUserPreferenceCache(session.user.id);
 
   revalidatePath('/settings');
   revalidatePath('/discover');

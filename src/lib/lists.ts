@@ -2,6 +2,8 @@
 
 import { listItems, lists } from '@/db/schema/lists';
 import { getUser } from '@/lib/auth-server';
+import { revalidateUserListCache, revalidateUserListStatusCache } from '@/lib/cache-invalidation';
+import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import {
   createListSchema,
@@ -14,7 +16,7 @@ import {
   updateListSchema,
 } from '@/lib/validations';
 import { and, count, desc, eq, sql } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
+import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ITEMS_PER_PAGE } from './config';
 
@@ -85,11 +87,19 @@ export async function getUserListCount() {
     redirect('/login');
   }
 
+  return await getCachedUserListCount(user.id);
+}
+
+async function getCachedUserListCount(userId: string) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.lists(userId));
+  cacheLife('privateShort');
+
   try {
     const count = await db
       .select({ count: sql`count(*)`.mapWith(Number) })
       .from(lists)
-      .where(eq(lists.userId, user.id));
+      .where(eq(lists.userId, userId));
 
     return count[0].count;
   } catch (error) {
@@ -376,6 +386,8 @@ export async function createList(name: string, description: string = '', emoji: 
     emoji: validatedData.emoji,
   });
 
+  revalidateUserListCache(user.id, listId);
+
   revalidatePath('/lists');
 
   return { success: true, listId };
@@ -433,6 +445,9 @@ export async function addToList(
     throw error;
   }
 
+  revalidateUserListCache(user.id, validatedData.listId);
+  revalidateUserListStatusCache(user.id, validatedData.resourceType, validatedData.resourceId);
+
   revalidatePath(`/lists/${validatedData.listId}`);
   revalidatePath('/lists');
 }
@@ -485,6 +500,9 @@ export async function removeFromList(
       ),
     );
 
+  revalidateUserListCache(user.id, validatedData.listId);
+  revalidateUserListStatusCache(user.id, validatedData.resourceType, validatedData.resourceId);
+
   revalidatePath(`/lists/${validatedData.listId}`);
   revalidatePath('/lists');
 }
@@ -510,6 +528,8 @@ export async function deleteList(listId: string) {
   }
 
   await db.delete(lists).where(eq(lists.id, listId));
+
+  revalidateUserListCache(user.id, listId);
 
   revalidatePath('/lists');
 }
@@ -556,6 +576,8 @@ export async function updateList(
     })
     .where(eq(lists.id, validatedData.listId));
 
+  revalidateUserListCache(user.id, validatedData.listId);
+
   revalidatePath(`/lists/${validatedData.listId}`);
   revalidatePath('/lists');
 }
@@ -577,6 +599,19 @@ export async function getUserListsWithStatus(
     throw new Error('Invalid media type');
   }
 
+  return await getCachedUserListsWithStatus(user.id, mediaId, mediaType);
+}
+
+async function getCachedUserListsWithStatus(
+  userId: string,
+  mediaId: number,
+  mediaType: 'movie' | 'tv' | 'person',
+) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.lists(userId));
+  cacheTag(CACHE_TAGS.private.listStatus(userId, mediaType, mediaId));
+  cacheLife('privateShort');
+
   try {
     const listsWithStatusAndCounts = await db
       .select({
@@ -594,7 +629,7 @@ export async function getUserListsWithStatus(
       })
       .from(lists)
       .leftJoin(listItems, eq(lists.id, listItems.listId))
-      .where(eq(lists.userId, user.id))
+      .where(eq(lists.userId, userId))
       .groupBy(
         lists.id,
         lists.name,

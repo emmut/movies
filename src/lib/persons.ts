@@ -1,6 +1,7 @@
 import { env } from '@/env';
 import { PersonDetails, PersonMovieCredits, PersonTvCredits } from '@/types/person';
 import { cacheLife, cacheTag } from 'next/cache';
+import { CACHE_TAGS } from './cache-tags';
 import { TMDB_API_URL } from './constants';
 
 /**
@@ -12,8 +13,8 @@ import { TMDB_API_URL } from './constants';
  * @throws If the person details cannot be loaded from the API.
  */
 export async function getPersonDetails(personId: number) {
-  'use cache';
-  cacheTag('person-details');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.person.details(personId));
   cacheLife('minutes');
 
   const res = await fetch(`${TMDB_API_URL}/person/${personId}`, {
@@ -40,8 +41,8 @@ export async function getPersonDetails(personId: number) {
  * @throws {Error} If the movie credits cannot be loaded from TMDb.
  */
 export async function getPersonMovieCredits(personId: number) {
-  'use cache';
-  cacheTag('person-movie-credits');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.person.movieCredits(personId));
   cacheLife('minutes');
 
   const res = await fetch(`${TMDB_API_URL}/person/${personId}/movie_credits`, {
@@ -68,8 +69,8 @@ export async function getPersonMovieCredits(personId: number) {
  * @throws {Error} If the TV show credits cannot be loaded from TMDb.
  */
 export async function getPersonTvCredits(personId: number) {
-  'use cache';
-  cacheTag('person-tv-credits');
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.person.tvCredits(personId));
   cacheLife('minutes');
 
   const res = await fetch(`${TMDB_API_URL}/person/${personId}/tv_credits`, {
