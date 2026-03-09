@@ -5,7 +5,6 @@ import { env } from './src/env.ts';
 env;
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
   images: {
     loader: 'custom',
     loaderFile: './src/loader.ts',
