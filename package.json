@@ -63,8 +63,8 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "drizzle-kit": "^0.31.10",
-    "oxfmt": "^0.36.0",
-    "oxlint": "^1.51.0",
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
     "shadcn": "^3.8.5",
     "typescript": "5.9.3"
   },
