@@ -49,9 +49,7 @@ export function AddPasskey() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button>Add Passkey</Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button />}>Add Passkey</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Passkey</DialogTitle>

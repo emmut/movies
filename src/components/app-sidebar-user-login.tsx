@@ -23,11 +23,9 @@ export function UserLogin() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild>
-          <Link href={loginUrl} onClick={() => setOpenMobile(false)}>
-            <LogIn className="h-4 w-4" />
-            <span>Login</span>
-          </Link>
+        <SidebarMenuButton render={<Link href={loginUrl} onClick={() => setOpenMobile(false)} />}>
+          <LogIn className="h-4 w-4" />
+          <span>Login</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>

@@ -25,11 +25,12 @@ function NavLink({ href, label, icon }: NavLinkProps) {
   return (
     <>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild isActive={pathname === href}>
-          <Link href={href} onClick={() => setOpenMobile(false)}>
-            <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
-            <span>{label}</span>
-          </Link>
+        <SidebarMenuButton
+          isActive={pathname === href}
+          render={<Link href={href} onClick={() => setOpenMobile(false)} />}
+        >
+          <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
+          <span>{label}</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </>

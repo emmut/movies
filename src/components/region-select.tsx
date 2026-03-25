@@ -59,14 +59,14 @@ export function RegionSelect({ defaultValue, allRegionProviders }: RegionSelectP
     parseAsStringLiteral(regionCodes).withDefault(defaultValue ?? DEFAULT_REGION),
   );
 
-  function handleValueChange(value: string) {
-    setRegion(value as RegionCode);
+  function handleValueChange(value: string | null) {
+    if (value) setRegion(value as RegionCode);
   }
 
   return (
     <Select value={region} onValueChange={handleValueChange}>
       <SelectTrigger className="w-44">
-        <SelectValue />
+        <SelectValue>{regions.find((r) => r.code === region)?.name}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         {regions.map((regionOption) => (

@@ -51,11 +51,12 @@ export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
           <SidebarGroupContent className="flex flex-col gap-1">
             {navItems.map(({ href, label, icon: Icon }) => (
               <SidebarMenuItem key={href}>
-                <SidebarMenuButton asChild isActive={pathname === href}>
-                  <Link href={href} onClick={() => setOpenMobile(false)}>
-                    <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
-                    <span>{label}</span>
-                  </Link>
+                <SidebarMenuButton
+                  isActive={pathname === href}
+                  render={<Link href={href} onClick={() => setOpenMobile(false)} />}
+                >
+                  <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
+                  <span>{label}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}

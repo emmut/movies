@@ -25,7 +25,7 @@ interface DeleteListButtonProps {
   listName: string;
   itemCount: number;
   redirectAfterDelete?: boolean;
-  children?: React.ReactNode;
+  children?: React.ReactElement;
 }
 
 export function DeleteListButton({
@@ -63,14 +63,16 @@ export function DeleteListButton({
 
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild>
-        {children || (
-          <Button variant="destructive" size="sm">
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete List
-          </Button>
-        )}
-      </AlertDialogTrigger>
+      <AlertDialogTrigger
+        render={
+          children || (
+            <Button variant="destructive" size="sm">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete List
+            </Button>
+          )
+        }
+      />
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete List</AlertDialogTitle>

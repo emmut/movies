@@ -71,20 +71,20 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
         Watch Providers
       </Label>
       <Popover key={JSON.stringify(with_watch_providers)} open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-between" id="watch-providers">
-            <Filter className="mr-2 h-4 w-4" />
-            {selectedCount > 0
-              ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
-              : 'Select watch providers'}
-          </Button>
+        <PopoverTrigger
+          render={
+            <Button variant="outline" className="w-full justify-between" id="watch-providers" />
+          }
+        >
+          <Filter className="mr-2 h-4 w-4" />
+          {selectedCount > 0
+            ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
+            : 'Select watch providers'}
         </PopoverTrigger>
         <PopoverContent
-          className="max-h-(--radix-popover-content-available-height) w-80 overflow-y-auto p-4"
+          className="max-h-(--available-height) w-80 overflow-y-auto p-4"
           align="end"
           side="bottom"
-          avoidCollisions={true}
-          collisionPadding={10}
           sideOffset={4}
         >
           <div className="space-y-4">

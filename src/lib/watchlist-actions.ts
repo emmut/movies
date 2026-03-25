@@ -71,7 +71,11 @@ export async function addToWatchlist({ resourceId, resourceType }: AddToWatchlis
       resourceType: validatedResourceId.resourceType,
     });
 
-    revalidateUserWatchlistCache(user.id, validatedResourceId.resourceType, validatedResourceId.resourceId);
+    revalidateUserWatchlistCache(
+      user.id,
+      validatedResourceId.resourceType,
+      validatedResourceId.resourceId,
+    );
 
     revalidatePath('/watchlist');
     revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
@@ -131,7 +135,11 @@ export async function removeFromWatchlist({ resourceId, resourceType }: RemoveFr
         ),
       );
 
-    revalidateUserWatchlistCache(user.id, validatedResourceId.resourceType, validatedResourceId.resourceId);
+    revalidateUserWatchlistCache(
+      user.id,
+      validatedResourceId.resourceType,
+      validatedResourceId.resourceId,
+    );
 
     revalidatePath('/watchlist');
     revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
@@ -216,7 +224,11 @@ export async function toggleWatchlist({ resourceId, resourceType }: ToggleWatchl
       state = 'added';
     }
 
-    revalidateUserWatchlistCache(user.id, validatedResourceId.resourceType, validatedResourceId.resourceId);
+    revalidateUserWatchlistCache(
+      user.id,
+      validatedResourceId.resourceType,
+      validatedResourceId.resourceId,
+    );
 
     revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
     revalidatePath('/watchlist');

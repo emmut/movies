@@ -99,10 +99,16 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
                   open={deleteDialogOpen === passkey.id}
                   onOpenChange={(open) => setDeleteDialogOpen(open ? passkey.id : null)}
                 >
-                  <DialogTrigger asChild>
-                    <Button variant="destructive" size="sm" disabled={deletingIds.has(passkey.id)}>
-                      {deletingIds.has(passkey.id) ? 'Deleting...' : 'Delete'}
-                    </Button>
+                  <DialogTrigger
+                    render={
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={deletingIds.has(passkey.id)}
+                      />
+                    }
+                  >
+                    {deletingIds.has(passkey.id) ? 'Deleting...' : 'Delete'}
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>

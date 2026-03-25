@@ -44,7 +44,9 @@ export default function RuntimeFilter({ className }: RuntimeFilterProps) {
         }
       >
         <SelectTrigger id="runtime-filter">
-          <SelectValue placeholder="Any runtime" />
+          <SelectValue placeholder="Any runtime">
+            {RUNTIME_OPTIONS.find((o) => o.value === (runtimeLte?.toString() ?? '0'))?.label}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {RUNTIME_OPTIONS.map((option) => (

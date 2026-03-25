@@ -25,7 +25,7 @@ interface EditListDialogProps {
   listName: string;
   listDescription: string | null;
   listEmoji: string;
-  children?: React.ReactNode;
+  children?: React.ReactElement;
 }
 
 export function EditListDialog({
@@ -72,14 +72,16 @@ export function EditListDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button variant="outline" size="sm">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit List
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          children || (
+            <Button variant="outline" size="sm">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit List
+            </Button>
+          )
+        }
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit List</DialogTitle>

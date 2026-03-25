@@ -56,7 +56,8 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
   const defaultSort = 'popularity.desc';
   const currentSort = urlState.sort_by || defaultSort;
 
-  const handleSortChange = (value: string) => {
+  const handleSortChange = (value: string | null) => {
+    if (!value) return;
     setUrlState({
       sort_by: value === defaultSort ? null : value,
       page: '1', // Reset pagination
@@ -68,7 +69,9 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
       <Label className="text-sm font-medium">Sort By</Label>
       <Select value={currentSort} onValueChange={handleSortChange}>
         <SelectTrigger>
-          <SelectValue placeholder="Select sort option" />
+          <SelectValue placeholder="Select sort option">
+            {sortOptions.find((o) => o.value === currentSort)?.label}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {sortOptions.map((option) => (

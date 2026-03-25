@@ -181,10 +181,8 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
           }
         }}
       >
-        <DropdownMenuTrigger asChild>
-          <Button variant="glass" size="icon" disabled={isPending}>
-            <List className="h-4 w-4" />
-          </Button>
+        <DropdownMenuTrigger render={<Button variant="glass" size="icon" disabled={isPending} />}>
+          <List className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-52">
           {showWatchlist && (
