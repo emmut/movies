@@ -1,5 +1,29 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"],
-  "plugins": ["nextjs", "react", "jsx-a11y"],
-  "ignorePatterns": [".next/**", "out/**", "build/**", "next-env.d.ts"]
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": [
+    "next/core-web-vitals",
+    "next/typescript"
+  ],
+  "plugins": [
+    "nextjs",
+    "react",
+    "jsx-a11y"
+  ],
+  "jsPlugins": [
+    "eslint-plugin-better-tailwindcss"
+  ],
+  "ignorePatterns": [
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts"
+  ],
+  "rules": {
+    "better-tailwindcss/no-conflicting-classes": [
+      "error",
+      {
+        "entryPoint": "./src/app/globals.css"
+      }
+    ]
+  }
 }
