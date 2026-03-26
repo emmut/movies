@@ -3,11 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
-  Popover,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
+    Popover,
+    PopoverContent,
+    PopoverHeader,
+    PopoverTitle,
+    PopoverTrigger,
 } from '@/components/ui/popover';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
@@ -87,7 +87,12 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
             ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
             : 'Select watch providers'}
         </PopoverTrigger>
-        <PopoverContent align="end" side="bottom" sideOffset={10}>
+        <PopoverContent
+          align="end"
+          side="bottom"
+          sideOffset={10}
+          className="max-h-[60dvh] overflow-auto"
+        >
           <PopoverHeader>
             <PopoverTitle>Watch Providers</PopoverTitle>
             {selectedCount > 0 && (
