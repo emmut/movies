@@ -2,116 +2,94 @@
   "lsp": {
     "oxlint": {
       "initialization_options": {
-        "settings": {
-          // "run": "onType",
-          // "disableNestedConfig": false,
-          // "fixKind": "safe_fix",
-          // "unusedDisableDirectives": "deny"
-        }
-      }
+        "settings": {},
+      },
     },
     "typescript-language-server": {
       "initialization_options": {
         "preferences": {
           "includeInlayParameterNameHints": "none",
-          "organizeImportsCollation": "unicode"
-        }
-      }
-    },
-    "oxfmt": {
-      "initialization_options": {
-        "settings": {
-          "run": "onSave"
-        }
-      }
+          "organizeImportsCollation": "unicode",
+        },
+      },
     },
     "tailwindcss-language-server": {
       "settings": {
         "classFunctions": ["cva", "cx"],
         "experimental": {
-          "classRegex": ["[cls|className]\\s\\:\\=\\s\"([^\"]*)"]
-        }
-      }
-    }
+          "classRegex": ["[cls|className]\\s\\:\\=\\s\"([^\"]*)"],
+        },
+      },
+    },
   },
   "languages": {
     "JavaScript": {
       "format_on_save": "on",
       "prettier": {
-        "allowed": false
+        "allowed": false,
       },
       "formatter": [
         {
           "language_server": {
-            "name": "oxfmt"
-          }
+            "name": "oxfmt",
+          },
         },
         {
-          "code_action": "source.fixAll.oxc"
-        }
-      ]
+          "code_action": "source.fixAll.oxc",
+        },
+      ],
     },
     "TypeScript": {
       "format_on_save": "on",
       "prettier": {
-        "allowed": false
+        "allowed": false,
       },
       "formatter": [
         {
           "language_server": {
-            "name": "oxfmt"
-          }
+            "name": "oxfmt",
+          },
         },
         {
-          "code_action": "source.fixAll.oxc"
+          "code_action": "source.fixAll.oxc",
         },
         {
-          "code_action": "source.organizeImports"
-        }
-      ]
+          "code_action": "source.organizeImports",
+        },
+      ],
     },
     "TSX": {
       "format_on_save": "on",
       "prettier": {
-        "allowed": false
+        "allowed": false,
       },
       "formatter": [
         {
           "language_server": {
-            "name": "oxfmt"
-          }
+            "name": "oxfmt",
+          },
         },
         {
-          "code_action": "source.fixAll.oxc"
+          "code_action": "source.fixAll.oxc",
         },
         {
-          "code_action": "source.organizeImports"
-        }
-      ]
+          "code_action": "source.organizeImports",
+        },
+      ],
     },
     "CSS": {
       "format_on_save": "on",
       "prettier": {
-        "allowed": false
+        "allowed": false,
       },
       "language_servers": ["tailwindcss-intellisense-css"],
-      "formatter": [
-        {
-          "language_server": {
-            "name": "oxfmt"
-          }
-        }
-      ]
-    }
+    },
   },
   "context_servers": {
     "next-devtools": {
       "command": "npx",
-      "args": [
-        "-y",
-        "next-devtools-mcp@latest"
-      ],
-      "env": {}
-    }
-  }
+      "args": ["-y", "next-devtools-mcp@latest"],
+      "env": {},
+    },
+  },
 }
