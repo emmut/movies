@@ -7,8 +7,13 @@
   "plugins": [
     "nextjs",
     "react",
-    "jsx-a11y"
+    "jsx-a11y",
+    "typescript"
   ],
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
   "jsPlugins": [
     "eslint-plugin-better-tailwindcss"
   ],

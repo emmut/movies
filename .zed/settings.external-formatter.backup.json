@@ -3,33 +3,19 @@
     "oxlint": {
       "initialization_options": {
         "settings": {
-          // "run": "onType",
-          // "disableNestedConfig": false,
-          // "fixKind": "safe_fix",
-          // "unusedDisableDirectives": "deny"
-        }
-      }
-    },
-    "typescript-language-server": {
-      "initialization_options": {
-        "preferences": {
-          "includeInlayParameterNameHints": "none",
-          "organizeImportsCollation": "unicode"
+          "configPath": ".oxlintrc.json",
+          "run": "onType",
+          "disableNestedConfig": false,
+          "fixKind": "safe_fix",
+          "unusedDisableDirectives": "deny"
         }
       }
     },
     "oxfmt": {
       "initialization_options": {
         "settings": {
+          "fmt.configPath": null,
           "run": "onSave"
-        }
-      }
-    },
-    "tailwindcss-language-server": {
-      "settings": {
-        "classFunctions": ["cva", "cx"],
-        "experimental": {
-          "classRegex": ["[cls|className]\\s\\:\\=\\s\"([^\"]*)"]
         }
       }
     }
@@ -42,8 +28,9 @@
       },
       "formatter": [
         {
-          "language_server": {
-            "name": "oxfmt"
+          "external": {
+            "command": "./node_modules/.bin/oxfmt",
+            "arguments": ["--stdin-filepath", "{buffer_path}"]
           }
         },
         {
@@ -58,15 +45,13 @@
       },
       "formatter": [
         {
-          "language_server": {
-            "name": "oxfmt"
+          "external": {
+            "command": "./node_modules/.bin/oxfmt",
+            "arguments": ["--stdin-filepath", "{buffer_path}"]
           }
         },
         {
           "code_action": "source.fixAll.oxc"
-        },
-        {
-          "code_action": "source.organizeImports"
         }
       ]
     },
@@ -77,15 +62,13 @@
       },
       "formatter": [
         {
-          "language_server": {
-            "name": "oxfmt"
+          "external": {
+            "command": "./node_modules/.bin/oxfmt",
+            "arguments": ["--stdin-filepath", "{buffer_path}"]
           }
         },
         {
           "code_action": "source.fixAll.oxc"
-        },
-        {
-          "code_action": "source.organizeImports"
         }
       ]
     },
@@ -94,11 +77,11 @@
       "prettier": {
         "allowed": false
       },
-      "language_servers": ["tailwindcss-intellisense-css"],
       "formatter": [
         {
-          "language_server": {
-            "name": "oxfmt"
+          "external": {
+            "command": "./node_modules/.bin/oxfmt",
+            "arguments": ["--stdin-filepath", "{buffer_path}"]
           }
         }
       ]
