@@ -116,7 +116,7 @@ export default function MediaTypeSelectorDropdown({
   return (
     <Select
       value={optimisticMediaType}
-      onValueChange={(value) => handleMediaTypeChange(value as MediaType)}
+      onValueChange={(value) => value && handleMediaTypeChange(value as MediaType)}
     >
       <SelectTrigger className="w-[180px]">
         <SelectValue>

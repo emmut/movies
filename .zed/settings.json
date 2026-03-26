@@ -1,56 +1,100 @@
 {
-  "formatter": "language_server",
-  "format_on_save": "on",
+  "lsp": {
+    "oxfmt": {
+      "initialization_options": {
+        "settings": {},
+      },
+    },
+    "oxlint": {
+      "initialization_options": {
+        "settings": {},
+      },
+    },
+    "typescript-language-server": {
+      "initialization_options": {
+        "preferences": {
+          "includeInlayParameterNameHints": "none",
+          "organizeImportsCollation": "unicode",
+        },
+      },
+    },
+    "tailwindcss-language-server": {
+      "settings": {
+        "classFunctions": ["cva", "cx"],
+        "experimental": {
+          "classRegex": ["[cls|className]\\s\\:\\=\\s\"([^\"]*)"],
+        },
+      },
+    },
+  },
   "languages": {
     "JavaScript": {
-      "formatter": {
-        "language_server": {
-          "name": "oxfmt"
-        }
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false,
       },
-      "code_actions_on_format": {
-        "source.fixAll.biome": true,
-        "source.organizeImports.biome": true,
-        "source.fixAll.oxc": true,
-        "source.organizeImports.oxc": true
-      }
+      "formatter": [
+        {
+          "language_server": {
+            "name": "oxfmt",
+          },
+        },
+        {
+          "code_action": "source.fixAll.oxc",
+        },
+      ],
     },
     "TypeScript": {
-      "formatter": {
-        "language_server": {
-          "name": "oxfmt"
-        }
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false,
       },
-      "code_actions_on_format": {
-        "source.fixAll.biome": true,
-        "source.organizeImports.biome": true,
-        "source.fixAll.oxc": true,
-        "source.organizeImports.oxc": true
-      }
+      "formatter": [
+        {
+          "language_server": {
+            "name": "oxfmt",
+          },
+        },
+        {
+          "code_action": "source.fixAll.oxc",
+        },
+        {
+          "code_action": "source.organizeImports",
+        },
+      ],
     },
     "TSX": {
-      "formatter": {
-        "language_server": {
-          "name": "oxfmt"
-        }
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false,
       },
-      "code_actions_on_format": {
-        "source.fixAll.biome": true,
-        "source.organizeImports.biome": true,
-        "source.fixAll.oxc": true,
-        "source.organizeImports.oxc": true
-      }
-    }
+      "formatter": [
+        {
+          "language_server": {
+            "name": "oxfmt",
+          },
+        },
+        {
+          "code_action": "source.fixAll.oxc",
+        },
+        {
+          "code_action": "source.organizeImports",
+        },
+      ],
+    },
+    "CSS": {
+      "format_on_save": "on",
+      "prettier": {
+        "allowed": false,
+      },
+      "language_servers": ["tailwindcss-intellisense-css"],
+    },
   },
   "context_servers": {
     "next-devtools": {
-      "source": "custom",
       "command": "npx",
-      "args": [
-        "-y",
-        "next-devtools-mcp@latest"
-      ],
-      "env": {}
-    }
-  }
+      "args": ["-y", "next-devtools-mcp@latest"],
+      "env": {},
+    },
+  },
 }

@@ -34,7 +34,7 @@ export async function UserNav() {
 function UserNavGhost() {
   return (
     <>
-      <Skeleton className="h-8 w-full" />
+      <Skeleton className="h-8 w-full mb-2" />
       <Skeleton className="h-8 w-full" />
     </>
   );

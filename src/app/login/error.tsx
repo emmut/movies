@@ -67,18 +67,14 @@ function LoginError() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <Button asChild className="w-full">
-              <Link href="/login">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Try Again
-              </Link>
+            <Button className="w-full" render={<Link href="/login" />}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
             </Button>
 
-            <Button variant="outline" asChild className="w-full">
-              <Link href="/">
-                <Home className="mr-2 h-4 w-4" />
-                Back to Home
-              </Link>
+            <Button variant="outline" className="w-full" render={<Link href="/" />}>
+              <Home className="mr-2 h-4 w-4" />
+              Back to Home
             </Button>
           </div>
         </div>

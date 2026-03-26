@@ -2,7 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverHeader,
+    PopoverTitle,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
 import { Check, Filter } from 'lucide-react';
@@ -66,83 +72,81 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
   const selectedCount = selectedProviders.length;
 
   return (
-    <div className="flex min-w-54 flex-col gap-2">
-      <Label htmlFor="watch-providers" className="sm:self-end">
+    <div className="min-w-54">
+      <Label htmlFor="watch-providers" className="flex justify-end sm:self-end mb-2">
         Watch Providers
       </Label>
       <Popover key={JSON.stringify(with_watch_providers)} open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-between" id="watch-providers">
-            <Filter className="mr-2 h-4 w-4" />
-            {selectedCount > 0
-              ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
-              : 'Select watch providers'}
-          </Button>
+        <PopoverTrigger
+          render={
+            <Button variant="outline" className="w-full justify-between" id="watch-providers" />
+          }
+        >
+          <Filter className="mr-2 h-4 w-4" />
+          {selectedCount > 0
+            ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
+            : 'Select watch providers'}
         </PopoverTrigger>
         <PopoverContent
-          className="max-h-(--radix-popover-content-available-height) w-80 overflow-y-auto p-4"
           align="end"
           side="bottom"
-          avoidCollisions={true}
-          collisionPadding={10}
-          sideOffset={4}
+          sideOffset={10}
+          className="max-h-[60dvh] overflow-auto"
         >
-          <div className="space-y-4">
-            <div className="flex min-h-8 items-center justify-between">
-              <h4 className="font-medium">Watch Providers</h4>
-              {selectedCount > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAllProviders}
-                  className="h-8 px-2 text-xs"
-                >
-                  Clear all
-                </Button>
-              )}
-            </div>
+          <PopoverHeader>
+            <PopoverTitle>Watch Providers</PopoverTitle>
+            {selectedCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllProviders}
+                className="h-8 px-2 text-xs"
+              >
+                Clear all
+              </Button>
+            )}
+          </PopoverHeader>
 
-            <div className="grid gap-2">
-              {providers.length === 0 ? (
-                <div className="text-muted-foreground flex items-center justify-center p-4 text-sm">
-                  No providers available
-                </div>
-              ) : (
-                providers.map((provider) => {
-                  const isSelected = selectedProviders.includes(provider.provider_id);
-                  const imageError = brokenImages.has(provider.provider_id);
+          <div className="grid gap-2">
+            {providers.length === 0 ? (
+              <div className="text-muted-foreground flex items-center justify-center p-4 text-sm">
+                No providers available
+              </div>
+            ) : (
+              providers.map((provider) => {
+                const isSelected = selectedProviders.includes(provider.provider_id);
+                const imageError = brokenImages.has(provider.provider_id);
 
-                  return (
-                    <div
-                      key={provider.provider_id}
-                      className={`hover:bg-accent flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors ${
-                        isSelected ? 'bg-accent' : ''
-                      }`}
-                      onClick={() => updateSelectedProviders(provider.provider_id)}
-                    >
-                      <div className="shrink-0">
-                        {imageError ? (
-                          <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold">
-                            {provider.provider_name.charAt(0).toUpperCase()}
-                          </div>
-                        ) : (
-                          <Image
-                            width={32}
-                            height={32}
-                            src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
-                            alt={provider.provider_name}
-                            className="h-8 w-8 rounded-md object-cover"
-                            onError={() => handleImageError(provider.provider_id)}
-                          />
-                        )}
-                      </div>
-                      <div className="flex-1 text-sm font-medium">{provider.provider_name}</div>
-                      {isSelected && <Check className="text-primary h-4 w-4" />}
+                return (
+                  <div
+                    key={provider.provider_id}
+                    className={`hover:bg-accent flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors ${
+                      isSelected ? 'bg-accent' : ''
+                    }`}
+                    onClick={() => updateSelectedProviders(provider.provider_id)}
+                  >
+                    <div className="shrink-0">
+                      {imageError ? (
+                        <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold">
+                          {provider.provider_name.charAt(0).toUpperCase()}
+                        </div>
+                      ) : (
+                        <Image
+                          width={32}
+                          height={32}
+                          src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
+                          alt={provider.provider_name}
+                          className="h-8 w-8 rounded-md object-cover"
+                          onError={() => handleImageError(provider.provider_id)}
+                        />
+                      )}
                     </div>
-                  );
-                })
-              )}
-            </div>
+                    <div className="flex-1 text-sm font-medium">{provider.provider_name}</div>
+                    {isSelected && <Check className="text-primary h-4 w-4" />}
+                  </div>
+                );
+              })
+            )}
           </div>
         </PopoverContent>
       </Popover>

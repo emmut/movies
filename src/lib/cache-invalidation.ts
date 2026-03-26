@@ -6,7 +6,11 @@ export function revalidateUserPreferenceCache(userId: string) {
   revalidateTag(CACHE_TAGS.private.userWatchProviders(userId), 'max');
 }
 
-export function revalidateUserWatchlistCache(userId: string, resourceType: string, resourceId: number) {
+export function revalidateUserWatchlistCache(
+  userId: string,
+  resourceType: string,
+  resourceId: number,
+) {
   revalidateTag(CACHE_TAGS.private.watchlistItem(userId, resourceType, resourceId), 'max');
   revalidateTag(CACHE_TAGS.private.watchlistList(userId, resourceType), 'max');
   revalidateTag(CACHE_TAGS.private.watchlistCount(userId, resourceType), 'max');

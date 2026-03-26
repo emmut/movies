@@ -21,7 +21,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface CreateListDialogProps {
-  children?: React.ReactNode;
+  children?: React.ReactElement;
 }
 
 export function CreateListDialog({ children }: CreateListDialogProps) {
@@ -66,14 +66,16 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button>
-            <ListPlus className="mr-2 h-4 w-4" />
-            Create New List
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          children || (
+            <Button>
+              <ListPlus className="mr-2 h-4 w-4" />
+              Create New List
+            </Button>
+          )
+        }
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create New List</DialogTitle>

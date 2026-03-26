@@ -2,11 +2,11 @@
 
 import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from '@/components/ui/select';
 import { parseAsString, useQueryStates } from 'nuqs';
 
@@ -56,7 +56,8 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
   const defaultSort = 'popularity.desc';
   const currentSort = urlState.sort_by || defaultSort;
 
-  const handleSortChange = (value: string) => {
+  const handleSortChange = (value: string | null) => {
+    if (!value) return;
     setUrlState({
       sort_by: value === defaultSort ? null : value,
       page: '1', // Reset pagination
@@ -64,11 +65,13 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
   };
 
   return (
-    <div className="flex min-w-54 flex-col gap-2">
-      <Label className="text-sm font-medium">Sort By</Label>
+    <div className="">
+      <Label className="mb-2 text-sm font-medium">Sort By</Label>
       <Select value={currentSort} onValueChange={handleSortChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select sort option" />
+        <SelectTrigger className="w-full min-w-54">
+          <SelectValue placeholder="Select sort option">
+            {sortOptions.find((o) => o.value === currentSort)?.label}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {sortOptions.map((option) => (
