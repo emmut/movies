@@ -1,0 +1,20 @@
+import { defineConfig } from "oxlint";
+
+export default defineConfig({
+  extends: ["next/core-web-vitals", "next/typescript"],
+  plugins: ["nextjs", "react", "jsx-a11y", "typescript"],
+  options: {
+    typeAware: true,
+    typeCheck: true,
+  },
+  jsPlugins: ["eslint-plugin-better-tailwindcss"],
+  ignorePatterns: [".next/**", "out/**", "build/**", "next-env.d.ts"],
+  rules: {
+    "better-tailwindcss/no-conflicting-classes": [
+      "error",
+      {
+        entryPoint: "./src/app/globals.css",
+      },
+    ],
+  },
+});
