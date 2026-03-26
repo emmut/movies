@@ -6,7 +6,7 @@ export default defineConfig({
     typeAware: true,
     typeCheck: true,
   },
-  jsPlugins: ['eslint-plugin-better-tailwindcss', '@next/eslint-plugin-next'],
+  jsPlugins: ['eslint-plugin-better-tailwindcss'],
   ignorePatterns: ['.next/**', 'out/**', 'build/**', 'next-env.d.ts'],
   rules: {
     'better-tailwindcss/no-conflicting-classes': [
