@@ -1,3 +1,5 @@
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+
 import { getUser } from '@/lib/auth-server';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
@@ -11,7 +13,7 @@ import {
   SearchPersonsResult,
   SearchTvShowsResult,
 } from '@/lib/search';
-import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+
 import { SearchContent } from './search-content';
 
 type MediaType = 'movie' | 'tv' | 'person' | 'all';

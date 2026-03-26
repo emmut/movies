@@ -1,4 +1,9 @@
 'use client';
+import { ChevronsUpDown, LogOut, Settings } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +20,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { signOut } from '@/lib/auth-client';
-import { ChevronsUpDown, LogOut, Settings } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
+
 import { UserAvatar } from './user-avatar';
 import { UserInfo } from './user-info';
 

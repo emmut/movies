@@ -1,5 +1,10 @@
 'use client';
 
+import { ListPlus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,10 +20,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { EMOJI_OPTIONS } from '@/lib/config';
 import { createList } from '@/lib/lists';
-import { ListPlus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface CreateListDialogProps {
   children?: React.ReactElement;

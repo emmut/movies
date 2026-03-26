@@ -1,8 +1,9 @@
 'use client';
-import { useIsClient } from '@/hooks/use-is-client';
-import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
+
+import { useIsClient } from '@/hooks/use-is-client';
+import { cn } from '@/lib/utils';
 
 type ItemSliderProps = {
   children: ReactNode;

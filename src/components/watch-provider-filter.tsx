@@ -1,5 +1,10 @@
 'use client';
 
+import { Check, Filter } from 'lucide-react';
+import Image from 'next/image';
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -11,10 +16,6 @@ import {
 } from '@/components/ui/popover';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
-import { Check, Filter } from 'lucide-react';
-import Image from 'next/image';
-import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { useState } from 'react';
 
 interface WatchProviderFilterProps {
   providers: WatchProvider[];

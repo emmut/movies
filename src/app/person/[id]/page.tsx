@@ -1,3 +1,7 @@
+import { Calendar, MapPin, Star, Users } from 'lucide-react';
+import { headers } from 'next/headers';
+import Image from 'next/image';
+
 import Badge from '@/components/badge';
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
@@ -7,9 +11,6 @@ import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
 import { deduplicateAndSortByPopularity, formatImageUrl } from '@/lib/utils';
-import { Calendar, MapPin, Star, Users } from 'lucide-react';
-import { headers } from 'next/headers';
-import Image from 'next/image';
 
 type PersonPageProps = {
   params: Promise<{

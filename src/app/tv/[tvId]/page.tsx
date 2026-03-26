@@ -1,3 +1,8 @@
+import { Calendar, Star, Tv, Users } from 'lucide-react';
+import { headers } from 'next/headers';
+import Image from 'next/image';
+import Link from 'next/link';
+
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import ItemHeader from '@/components/item-header';
@@ -19,10 +24,6 @@ import {
 import { getUserRegion } from '@/lib/user-actions';
 import { formatImageUrl } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
-import { Calendar, Star, Tv, Users } from 'lucide-react';
-import { headers } from 'next/headers';
-import Image from 'next/image';
-import Link from 'next/link';
 
 type TvShowPageProps = {
   params: Promise<{

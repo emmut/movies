@@ -1,4 +1,5 @@
 import { WatchProvider } from '@/types/watch-provider';
+
 import RuntimeFilter from './runtime-filter';
 import SortByFilter from './sort-by-filter';
 import WatchProviderFilter from './watch-provider-filter';

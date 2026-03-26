@@ -1,13 +1,14 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { setUserWatchProviders } from '@/lib/user-actions';
-import { WatchProvider } from '@/types/watch-provider';
 import { Check } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { setUserWatchProviders } from '@/lib/user-actions';
+import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFormProps {
   availableProviders: WatchProvider[];

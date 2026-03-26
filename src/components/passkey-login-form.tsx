@@ -1,12 +1,13 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { signInPasskey } from '@/lib/auth-client';
-import { getSafeRedirectUrl } from '@/lib/utils';
 import { PasskeyFillIcon } from '@primer/octicons-react';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+
+import { Button } from '@/components/ui/button';
+import { signInPasskey } from '@/lib/auth-client';
+import { getSafeRedirectUrl } from '@/lib/utils';
 
 /**
  * Renders a form for authenticating users via passkey-based login.

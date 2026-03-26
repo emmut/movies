@@ -1,9 +1,10 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+
+import { Button } from '@/components/ui/button';
 
 /**
  * Displays a contextual login error message and troubleshooting steps based on the URL error parameter.

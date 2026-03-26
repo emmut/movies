@@ -1,13 +1,14 @@
-import * as schema from '@/db/schema/auth';
-import { watchlist } from '@/db/schema/watchlist';
-import { env } from '@/env';
-import { db } from '@/lib/db';
 import { passkey } from '@better-auth/passkey';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
 import { anonymous } from 'better-auth/plugins';
 import { eq } from 'drizzle-orm';
+
+import * as schema from '@/db/schema/auth';
+import { watchlist } from '@/db/schema/watchlist';
+import { env } from '@/env';
+import { db } from '@/lib/db';
 
 export const auth = betterAuth({
   baseURL: env.NEXT_PUBLIC_BASE_URL,

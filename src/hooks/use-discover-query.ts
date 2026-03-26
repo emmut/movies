@@ -1,8 +1,9 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
+
 import { getDiscoverMedia } from '@/lib/discover-client';
 import { queryKeys } from '@/lib/query-keys';
-import { useQuery } from '@tanstack/react-query';
 
 type UseDiscoverMediaParams = {
   mediaType: 'movie' | 'tv';

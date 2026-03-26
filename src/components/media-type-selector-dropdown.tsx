@@ -1,5 +1,9 @@
 'use client';
 
+import { Film, Search, Tv, User } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useOptimistic, useTransition } from 'react';
+
 import {
   Select,
   SelectContent,
@@ -9,9 +13,6 @@ import {
 } from '@/components/ui/select';
 import { useIsMounted } from '@/hooks/use-is-mounted';
 import { validateGenreForMediaType } from '@/lib/media-actions';
-import { Film, Search, Tv, User } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useOptimistic, useTransition } from 'react';
 
 type MediaType = 'movie' | 'tv' | 'person' | 'all';
 

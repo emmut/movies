@@ -1,5 +1,7 @@
 'use client';
 
+import { parseAsStringLiteral, useQueryState } from 'nuqs';
+
 import {
   Select,
   SelectContent,
@@ -9,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { DEFAULT_REGION, Region, regions, type RegionCode } from '@/lib/regions';
 import { RegionWatchProviders } from '@/types/watch-provider';
-import { parseAsStringLiteral, useQueryState } from 'nuqs';
+
 import { Dot } from './ui/dot';
 
 const regionCodes = regions.map((r) => r.code);

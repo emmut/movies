@@ -1,10 +1,11 @@
 'use client';
 
-import { revalidateGenresCache, validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
+
+import { revalidateGenresCache, validateGenreForMediaType } from '@/lib/media-actions';
 
 type MediaType = 'movie' | 'tv';
 

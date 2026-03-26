@@ -1,8 +1,9 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Search as SearchIcon } from 'lucide-react';
 import { usePathname, useSearchParams } from 'next/navigation';
+
+import { Input } from '@/components/ui/input';
 
 function getMediaType(pathname: string, searchParams: URLSearchParams) {
   if (!pathname.includes('search')) {

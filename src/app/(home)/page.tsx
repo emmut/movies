@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
 import MediaList from '@/components/media-list';
@@ -18,7 +20,6 @@ import {
   fetchUserPopularTvShows,
   fetchUserTopRatedTvShows,
 } from '@/lib/tv-shows';
-import { Suspense } from 'react';
 
 /**
  * Renders the homepage with categorized sections for trending, popular, and top-rated movies and TV shows.

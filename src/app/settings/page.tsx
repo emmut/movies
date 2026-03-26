@@ -1,3 +1,6 @@
+import { unstable_noStore as noStore } from 'next/cache';
+import { redirect } from 'next/navigation';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getUser } from '@/lib/auth-server';
 import { regions } from '@/lib/regions';
@@ -7,8 +10,7 @@ import {
   getUserWatchProviders,
   updateUserRegion,
 } from '@/lib/user-actions';
-import { unstable_noStore as noStore } from 'next/cache';
-import { redirect } from 'next/navigation';
+
 import { AddPasskey } from './add-passkey';
 import { LinkAccount } from './link-account';
 import { getUserPasskeys } from './passkey-actions';

@@ -1,5 +1,7 @@
 'use server';
 
+import { cacheLife, cacheTag } from 'next/cache';
+
 import { env } from '@/env';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { getUserRegion } from '@/lib/user-actions';
@@ -13,7 +15,7 @@ import {
   MovieWatchProviders,
 } from '@/types/movie';
 import { TmdbVideoResponse } from '@/types/tmdb-video';
-import { cacheLife, cacheTag } from 'next/cache';
+
 import { CACHE_TAGS } from './cache-tags';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';

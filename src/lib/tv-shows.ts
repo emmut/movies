@@ -1,5 +1,7 @@
 'use server';
 
+import { cacheLife, cacheTag } from 'next/cache';
+
 import { env } from '@/env';
 import type { GenreResponse } from '@/types/genre';
 import { TmdbVideoResponse } from '@/types/tmdb-video';
@@ -12,7 +14,7 @@ import {
   TvSimilar,
   TvWatchProviders,
 } from '@/types/tv-show';
-import { cacheLife, cacheTag } from 'next/cache';
+
 import { CACHE_TAGS } from './cache-tags';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';

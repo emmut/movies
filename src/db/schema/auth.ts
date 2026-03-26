@@ -1,6 +1,7 @@
-import { DEFAULT_REGION } from '@/lib/regions';
 import { relations } from 'drizzle-orm';
 import { boolean, index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+
+import { DEFAULT_REGION } from '@/lib/regions';
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),

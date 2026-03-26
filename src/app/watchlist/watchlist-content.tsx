@@ -1,5 +1,9 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+
 import ItemCard from '@/components/item-card';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
@@ -9,9 +13,6 @@ import { queryKeys } from '@/lib/query-keys';
 import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
-import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 type WatchlistContentProps = {
   userId?: string;

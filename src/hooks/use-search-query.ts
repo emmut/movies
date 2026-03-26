@@ -1,5 +1,7 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
+
 import { queryKeys } from '@/lib/query-keys';
 import {
   getSearchMovies,
@@ -11,7 +13,6 @@ import {
   SearchPersonsResult,
   SearchTvShowsResult,
 } from '@/lib/search';
-import { useQuery } from '@tanstack/react-query';
 
 type UseSearchParams = {
   query: string;

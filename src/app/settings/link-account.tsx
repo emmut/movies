@@ -1,10 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
+import { toast } from 'sonner';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
 import { signInGitHubSettings, signInSettings } from '@/lib/auth-client';
-import { useEffect } from 'react';
-import { toast } from 'sonner';
 
 type LinkAccountProps = {
   error?: string;

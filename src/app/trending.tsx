@@ -1,9 +1,10 @@
+import Image from 'next/image';
+import Link from 'next/link';
+
 import Badge from '@/components/badge';
 import { fetchTrendingMovies } from '@/lib/movies';
 import { fetchTrendingTvShows } from '@/lib/tv-shows';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
-import Image from 'next/image';
-import Link from 'next/link';
 
 type TrendingCardProp = {
   index: number;

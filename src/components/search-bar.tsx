@@ -1,4 +1,5 @@
 import { useSearchParams } from 'next/navigation';
+
 import SearchIcon from '@/icons/SearchIcon';
 
 export default function SearchBar() {

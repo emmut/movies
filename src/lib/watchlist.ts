@@ -1,5 +1,8 @@
 'use server';
 
+import { and, count, eq } from 'drizzle-orm';
+import { cacheLife, cacheTag } from 'next/cache';
+
 import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
 import { CACHE_TAGS } from '@/lib/cache-tags';
@@ -8,8 +11,7 @@ import { getMovieDetails } from '@/lib/movies';
 import { pageSchema, resourceIdSchema, resourceTypeSchema } from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
-import { and, count, eq } from 'drizzle-orm';
-import { cacheLife, cacheTag } from 'next/cache';
+
 import { ITEMS_PER_PAGE } from './config';
 import { getTvShowDetails } from './tv-shows';
 

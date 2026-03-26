@@ -1,9 +1,11 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { List, Star } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
+import { cn } from '@/lib/utils';
+
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from './ui/sidebar';
 
 type NavLinkProps = {

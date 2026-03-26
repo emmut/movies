@@ -1,9 +1,10 @@
+import { Edit, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
 import { Button } from '@/components/ui/button';
 import { LocalList } from '@/lib/lists';
-import { Edit, Trash2 } from 'lucide-react';
-import Link from 'next/link';
 
 interface ListsGridProps {
   lists: LocalList[];

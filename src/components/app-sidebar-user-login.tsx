@@ -1,5 +1,9 @@
 'use client';
 
+import { LogIn } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -7,9 +11,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { createLoginUrl } from '@/lib/utils';
-import { LogIn } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 export function UserLogin() {
   const pathname = usePathname();

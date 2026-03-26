@@ -1,9 +1,10 @@
+import { Suspense } from 'react';
+
 import ItemCard from '@/components/item-card';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
-import { Suspense } from 'react';
 
 type OtherContentProps = {
   id: number;

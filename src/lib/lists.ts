@@ -1,5 +1,9 @@
 'use server';
 
+import { and, count, desc, eq, sql } from 'drizzle-orm';
+import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+
 import { listItems, lists } from '@/db/schema/lists';
 import { getUser } from '@/lib/auth-server';
 import { revalidateUserListCache, revalidateUserListStatusCache } from '@/lib/cache-invalidation';
@@ -15,9 +19,7 @@ import {
   removeListItemSchema,
   updateListSchema,
 } from '@/lib/validations';
-import { and, count, desc, eq, sql } from 'drizzle-orm';
-import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
+
 import { ITEMS_PER_PAGE } from './config';
 
 export interface LocalList {

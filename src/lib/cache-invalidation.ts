@@ -1,4 +1,5 @@
 import { revalidateTag } from 'next/cache';
+
 import { CACHE_TAGS } from './cache-tags';
 
 export function revalidateUserPreferenceCache(userId: string) {

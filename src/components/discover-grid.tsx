@@ -1,6 +1,7 @@
 'use client';
 
 import { useDiscoverMedia } from '@/hooks/use-discover-query';
+
 import ItemGrid from './item-grid';
 
 type DiscoverGridProps = {

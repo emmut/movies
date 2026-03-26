@@ -1,5 +1,8 @@
 'use client';
 
+import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -10,8 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Region } from '@/lib/regions';
-import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 
 interface RegionFormProps {
   currentRegion: string;

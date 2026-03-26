@@ -1,8 +1,10 @@
-import { cn, formatImageUrl } from '@/lib/utils';
-import { PersonDetails, SearchedPerson } from '@/types/person';
 import { User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+
+import { cn, formatImageUrl } from '@/lib/utils';
+import { PersonDetails, SearchedPerson } from '@/types/person';
+
 import Badge from './badge';
 import { ListButton } from './list-button';
 import { RemoveFromListButton } from './remove-from-list-button';

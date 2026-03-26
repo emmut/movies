@@ -1,6 +1,8 @@
 'use client';
 
 import { Home, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import type * as React from 'react';
 
 import Brand from '@/components/brand';
@@ -17,8 +19,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 const navItems = [
   {

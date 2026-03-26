@@ -1,5 +1,11 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
+import { Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,11 +20,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { deleteList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
-import { useQueryClient } from '@tanstack/react-query';
-import { Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface DeleteListButtonProps {
   listId: string;

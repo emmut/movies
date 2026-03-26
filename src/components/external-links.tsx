@@ -1,6 +1,7 @@
 'use client';
 
 import { Database, Globe } from 'lucide-react';
+
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type ExternalLinksProps = {

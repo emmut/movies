@@ -2,6 +2,7 @@
 
 import clsx from 'clsx';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+
 import { Input } from './ui/input';
 import {
   Pagination,

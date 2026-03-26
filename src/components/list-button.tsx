@@ -1,5 +1,10 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
+import { Check, List, ListPlus, Star } from 'lucide-react';
+import { ChangeEvent, useState, useTransition } from 'react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -31,10 +36,6 @@ import {
 import { queryKeys } from '@/lib/query-keys';
 import { isResourceInWatchlist } from '@/lib/watchlist';
 import { toggleWatchlist } from '@/lib/watchlist-actions';
-import { useQueryClient } from '@tanstack/react-query';
-import { Check, List, ListPlus, Star } from 'lucide-react';
-import { ChangeEvent, useState, useTransition } from 'react';
-import { toast } from 'sonner';
 
 interface ListButtonProps {
   mediaId: number;

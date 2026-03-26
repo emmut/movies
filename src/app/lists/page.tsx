@@ -1,11 +1,12 @@
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+
 import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
 import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
 import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 type ListsPageProps = {
   searchParams: Promise<{

@@ -1,4 +1,5 @@
 import { twMerge } from 'tailwind-merge';
+
 import SpinnerIcon from '@/icons/SpinnerIcon';
 
 type SpinnerProps = {

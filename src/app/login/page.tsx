@@ -1,8 +1,9 @@
+import { LogIn, Shield, Users, Zap } from 'lucide-react';
+import { redirect } from 'next/navigation';
+
 import { LoginForm } from '@/components/login-form';
 import { getSession } from '@/lib/auth-server';
 import { getSafeRedirectUrl } from '@/lib/utils';
-import { LogIn, Shield, Users, Zap } from 'lucide-react';
-import { redirect } from 'next/navigation';
 
 /**
  * Renders the login page for unauthenticated users or redirects authenticated users to a validated destination.

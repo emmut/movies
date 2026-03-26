@@ -5,6 +5,7 @@ import {
   parseAsInteger,
   parseAsString,
 } from 'nuqs/server';
+
 import { DEFAULT_REGION } from './regions';
 
 export const loadWatchProviderSearchParams = createLoader({

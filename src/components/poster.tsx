@@ -1,5 +1,7 @@
-import { formatImageUrl } from '@/lib/utils';
 import Image from 'next/image';
+
+import { formatImageUrl } from '@/lib/utils';
+
 import { Skeleton } from './ui/skeleton';
 
 type PosterProps = {

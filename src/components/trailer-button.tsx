@@ -1,10 +1,11 @@
 'use client';
 
+import { PlayCircle } from 'lucide-react';
+import { useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { PlayCircle } from 'lucide-react';
-import { useState } from 'react';
 
 interface TrailerButtonProps {
   title: string;

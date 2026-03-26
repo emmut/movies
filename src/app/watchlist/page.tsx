@@ -1,9 +1,11 @@
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { redirect } from 'next/navigation';
+
 import { getUser } from '@/lib/auth-server';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
 import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
-import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-import { redirect } from 'next/navigation';
+
 import { WatchlistContent } from './watchlist-content';
 
 type WatchlistPageProps = {

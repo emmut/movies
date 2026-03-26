@@ -1,6 +1,8 @@
+import { cacheLife, cacheTag } from 'next/cache';
+
 import { env } from '@/env';
 import { PersonDetails, PersonMovieCredits, PersonTvCredits } from '@/types/person';
-import { cacheLife, cacheTag } from 'next/cache';
+
 import { CACHE_TAGS } from './cache-tags';
 import { TMDB_API_URL } from './constants';
 

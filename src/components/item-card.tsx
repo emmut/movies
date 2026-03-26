@@ -1,9 +1,11 @@
-import { cn, formatImageUrl } from '@/lib/utils';
-import { Movie, MovieDetails } from '@/types/movie';
-import { TvDetails, TvShow } from '@/types/tv-show';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+
+import { cn, formatImageUrl } from '@/lib/utils';
+import { Movie, MovieDetails } from '@/types/movie';
+import { TvDetails, TvShow } from '@/types/tv-show';
+
 import Badge from './badge';
 import { ListButton } from './list-button';
 import { RemoveFromListButton } from './remove-from-list-button';

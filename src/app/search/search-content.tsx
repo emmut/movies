@@ -1,9 +1,11 @@
 'use client';
 
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+
 import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown';
 import SectionTitle from '@/components/section-title';
 import { MediaType } from '@/types/media-type';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+
 import SearchPagination from './pagination';
 import SearchResults from './search-results';
 
