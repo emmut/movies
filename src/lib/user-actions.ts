@@ -3,9 +3,9 @@
 import { user } from '@/db/schema/auth';
 import { userWatchProviders } from '@/db/schema/user-watch-providers';
 import { env } from '@/env';
+import { getSession } from '@/lib/auth-server';
 import { revalidateUserPreferenceCache } from '@/lib/cache-invalidation';
 import { CACHE_TAGS } from '@/lib/cache-tags';
-import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { DEFAULT_REGION, isValidRegionCode, RegionCode, regionSchema } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
