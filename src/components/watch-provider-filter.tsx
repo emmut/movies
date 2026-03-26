@@ -3,11 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
-    Popover,
-    PopoverContent,
-    PopoverHeader,
-    PopoverTitle,
-    PopoverTrigger,
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
 } from '@/components/ui/popover';
 import { DEFAULT_REGION } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
@@ -73,7 +73,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
 
   return (
     <div className="min-w-54">
-      <Label htmlFor="watch-providers" className="flex justify-end sm:self-end mb-2">
+      <Label htmlFor="watch-providers" className="mb-2 flex justify-end sm:self-end">
         Watch Providers
       </Label>
       <Popover key={JSON.stringify(with_watch_providers)} open={isOpen} onOpenChange={setIsOpen}>
@@ -109,7 +109,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
 
           <div className="grid gap-2">
             {providers.length === 0 ? (
-              <div className="text-muted-foreground flex items-center justify-center p-4 text-sm">
+              <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
                 No providers available
               </div>
             ) : (
@@ -120,14 +120,14 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                 return (
                   <div
                     key={provider.provider_id}
-                    className={`hover:bg-accent flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors ${
+                    className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
                       isSelected ? 'bg-accent' : ''
                     }`}
                     onClick={() => updateSelectedProviders(provider.provider_id)}
                   >
                     <div className="shrink-0">
                       {imageError ? (
-                        <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-sm font-semibold">
                           {provider.provider_name.charAt(0).toUpperCase()}
                         </div>
                       ) : (
@@ -142,7 +142,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                       )}
                     </div>
                     <div className="flex-1 text-sm font-medium">{provider.provider_name}</div>
-                    {isSelected && <Check className="text-primary h-4 w-4" />}
+                    {isSelected && <Check className="h-4 w-4 text-primary" />}
                   </div>
                 );
               })

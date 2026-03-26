@@ -33,7 +33,7 @@ export default function ListsLoading() {
         {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
           <div
             key={i}
-            className="bg-muted/60 border-muted relative block min-h-[200px] overflow-hidden rounded-lg border p-6"
+            className="relative block min-h-[200px] overflow-hidden rounded-lg border border-muted bg-muted/60 p-6"
           >
             <div className="flex h-full flex-col">
               <div className="flex-1">
@@ -44,7 +44,7 @@ export default function ListsLoading() {
                   <Skeleton className="h-4 w-2/3" />
                 </div>
               </div>
-              <div className="border-muted mt-4 border-t pt-4">
+              <div className="mt-4 border-t border-muted pt-4">
                 <Skeleton className="mb-1 h-4 w-16" />
                 <Skeleton className="h-3 w-24" />
               </div>

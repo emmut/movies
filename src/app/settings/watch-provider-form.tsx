@@ -67,7 +67,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {availableProviders.length === 0 ? (
-            <div className="text-muted-foreground col-span-full py-4 text-center">
+            <div className="col-span-full py-4 text-center text-muted-foreground">
               No streaming services available for your region
             </div>
           ) : (
@@ -78,7 +78,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
               return (
                 <button
                   key={provider.provider_id}
-                  className={`hover:bg-accent cursor-pointer rounded-lg border p-3 transition-all ${
+                  className={`cursor-pointer rounded-lg border p-3 transition-all hover:bg-accent ${
                     isSelected ? 'border-primary bg-accent' : 'border-border'
                   }`}
                   onClick={() => handleProviderToggle(provider.provider_id)}
@@ -86,7 +86,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
                   <div className="flex items-center gap-3">
                     <div className="shrink-0">
                       {imageError ? (
-                        <div className="bg-muted flex h-10 w-10 items-center justify-center rounded-md text-sm font-semibold">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted text-sm font-semibold">
                           {provider.provider_name.charAt(0).toUpperCase()}
                         </div>
                       ) : (
@@ -103,7 +103,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{provider.provider_name}</p>
                     </div>
-                    {isSelected && <Check className="text-primary h-4 w-4 shrink-0" />}
+                    {isSelected && <Check className="h-4 w-4 shrink-0 text-primary" />}
                   </div>
                 </button>
               );

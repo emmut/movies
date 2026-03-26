@@ -26,7 +26,7 @@ export function LoginForm({ redirectUrl }: LoginFormProps) {
           <Separator className="w-full" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background text-muted-foreground px-2">Or continue with passkey</span>
+          <span className="bg-background px-2 text-muted-foreground">Or continue with passkey</span>
         </div>
       </div>
 
@@ -37,7 +37,7 @@ export function LoginForm({ redirectUrl }: LoginFormProps) {
           <Separator className="w-full" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background text-muted-foreground px-2">Or continue as</span>
+          <span className="bg-background px-2 text-muted-foreground">Or continue as</span>
         </div>
       </div>
 

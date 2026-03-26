@@ -65,7 +65,7 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
 
   if (passkeys.length === 0) {
     return (
-      <p className="text-muted-foreground text-sm">
+      <p className="text-sm text-muted-foreground">
         No passkeys found. Add your first passkey to get started.
       </p>
     );
@@ -80,7 +80,7 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="font-medium">{passkey.name || 'Unnamed passkey'}</div>
-                  <div className="text-muted-foreground flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="capitalize">{passkey.deviceType}</span>
                     <span>
                       Created:{' '}

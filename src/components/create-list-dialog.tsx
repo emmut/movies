@@ -95,7 +95,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
                     key={emoji}
                     type="button"
                     onClick={() => setSelectedEmoji(emoji)}
-                    className={`hover:bg-muted rounded p-2 text-xl transition-colors ${
+                    className={`rounded p-2 text-xl transition-colors hover:bg-muted ${
                       selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
                     }`}
                     disabled={isLoading}
@@ -104,7 +104,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
                   </button>
                 ))}
               </div>
-              <p className="text-muted-foreground mt-1 text-sm">Selected: {selectedEmoji}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Selected: {selectedEmoji}</p>
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

@@ -104,7 +104,7 @@ export default function MediaTypeSelectorDropdown({
   // from Radix UI's dynamic aria-controls IDs
   if (!isMounted) {
     return (
-      <div className="border-input flex h-9 w-[180px] items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs">
+      <div className="flex h-9 w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs">
         <div className="flex items-center gap-2">
           {getIcon(currentMediaType)}
           {getDisplayName(currentMediaType)}
