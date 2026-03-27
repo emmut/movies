@@ -27,10 +27,10 @@ export function GET(request: NextRequest) {
   }
 
   const fullSrc = new URL(src, env.IMGPROXY_BASE_URL).toString();
-  const escapedSrc = fullSrc.replace("%", "%25").replace("?", "%3F").replace("@", "%40");
+  const encodedSrc = Buffer.from(fullSrc).toString("base64url");
 
   const path = generateUrl(
-    { value: escapedSrc, type: "plain" },
+    { value: encodedSrc, type: "base64" },
     { width, quality },
   );
 
