@@ -22,6 +22,10 @@ export function GET(request: NextRequest) {
     return new NextResponse("Missing required params", { status: 400 });
   }
 
+  if (!src.startsWith("/")) {
+    return new NextResponse("Invalid src param", { status: 400 });
+  }
+
   const fullSrc = new URL(src, env.IMGPROXY_BASE_URL).toString();
   const escapedSrc = fullSrc.replace("%", "%25").replace("?", "%3F").replace("@", "%40");
 
