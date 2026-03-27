@@ -14,6 +14,9 @@ importers:
       '@better-auth/passkey':
         specifier: ^1.5.3
         version: 1.5.3(02fd6af674ef54377dcc4263112e191e)
+      '@imgproxy/imgproxy-js-core':
+        specifier: ^1.7.0
+        version: 1.7.0
       '@neondatabase/serverless':
         specifier: ^1.0.2
         version: 1.0.2
@@ -833,6 +836,9 @@ packages:
     engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
     cpu: [x64]
     os: [win32]
+
+  '@imgproxy/imgproxy-js-core@1.7.0':
+    resolution: {integrity: sha512-NOitHDWUnlF/Co0bwotnFqAaUUXinrSB+pCLLXxpHVMpureWU5NgApeghoV/mRei1eBLnHRSdL7ZcjvlLWA06w==}
 
   '@inquirer/ansi@1.0.2':
     resolution: {integrity: sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ==}
@@ -4414,6 +4420,8 @@ snapshots:
 
   '@img/sharp-win32-x64@0.34.5':
     optional: true
+
+  '@imgproxy/imgproxy-js-core@1.7.0': {}
 
   '@inquirer/ansi@1.0.2': {}
 
