@@ -21,6 +21,7 @@
     "@better-auth/drizzle-adapter": "^1.5.3",
     "@better-auth/passkey": "^1.5.3",
     "@imgproxy/imgproxy-js-core": "^1.7.0",
+    "@imgproxy/imgproxy-node": "^1.1.0",
     "@neondatabase/serverless": "^1.0.2",
     "@primer/octicons-react": "^19.22.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",

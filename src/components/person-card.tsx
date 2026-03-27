@@ -1,7 +1,7 @@
-import { cn, formatImageUrl } from '@/lib/utils';
+import { Imgproxy } from '@/components/image-proxy';
+import { cn } from '@/lib/utils';
 import { PersonDetails, SearchedPerson } from '@/types/person';
 import { User } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import Badge from './badge';
 import { ListButton } from './list-button';
@@ -51,11 +51,12 @@ export default function PersonCard({
       <Link href={href}>
         <div className="relative h-full w-full">
           {person.profile_path ? (
-            <Image
+            <Imgproxy
               className="object-cover"
-              src={formatImageUrl(person.profile_path, 500)}
+              src={person.profile_path}
               alt={`Profile image of ${person.name}`}
               fill
+              width={500}
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
           ) : (

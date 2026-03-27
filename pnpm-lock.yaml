@@ -17,6 +17,9 @@ importers:
       '@imgproxy/imgproxy-js-core':
         specifier: ^1.7.0
         version: 1.7.0
+      '@imgproxy/imgproxy-node':
+        specifier: ^1.1.0
+        version: 1.1.0
       '@neondatabase/serverless':
         specifier: ^1.0.2
         version: 1.0.2
@@ -839,6 +842,9 @@ packages:
 
   '@imgproxy/imgproxy-js-core@1.7.0':
     resolution: {integrity: sha512-NOitHDWUnlF/Co0bwotnFqAaUUXinrSB+pCLLXxpHVMpureWU5NgApeghoV/mRei1eBLnHRSdL7ZcjvlLWA06w==}
+
+  '@imgproxy/imgproxy-node@1.1.0':
+    resolution: {integrity: sha512-oxet1AVhvZbnBjZrq/moaLAb3LnJN1xDR2oQMam5lJy4equMngH3bfE7ePJ++Yz65tmNcINt9/X4oesJInAEjw==}
 
   '@inquirer/ansi@1.0.2':
     resolution: {integrity: sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ==}
@@ -4422,6 +4428,10 @@ snapshots:
     optional: true
 
   '@imgproxy/imgproxy-js-core@1.7.0': {}
+
+  '@imgproxy/imgproxy-node@1.1.0':
+    dependencies:
+      '@imgproxy/imgproxy-js-core': 1.7.0
 
   '@inquirer/ansi@1.0.2': {}
 
