@@ -11,6 +11,10 @@ export const env = createEnv({
     DISCORD_CLIENT_SECRET: z.string().min(1),
     GITHUB_CLIENT_ID: z.string().min(1),
     GITHUB_CLIENT_SECRET: z.string().min(1),
+    IMGPROXY_ENDPOINT: z.string().min(1),
+    IMGPROXY_BASE_URL: z.string().min(1),
+    IMGPROXY_KEY: z.string().min(1),
+    IMGPROXY_SALT: z.string().min(1),
     VERCEL_BRANCH_URL: z
       .string()
       .min(1)
@@ -26,8 +30,6 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_POSTHOG_KEY: z.string().min(1),
     NEXT_PUBLIC_POSTHOG_HOST: z.string().min(1),
-    NEXT_PUBLIC_IMGPROXY_ENDPOINT: z.string().min(1),
-    NEXT_PUBLIC_IMGPROXY_BASE_URL: z.string().min(1),
     NEXT_PUBLIC_BASE_URL: z.url(),
   },
 
@@ -40,10 +42,12 @@ export const env = createEnv({
     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+    IMGPROXY_ENDPOINT: process.env.IMGPROXY_ENDPOINT,
+    IMGPROXY_BASE_URL: process.env.IMGPROXY_BASE_URL,
+    IMGPROXY_KEY: process.env.IMGPROXY_KEY,
+    IMGPROXY_SALT: process.env.IMGPROXY_SALT,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-    NEXT_PUBLIC_IMGPROXY_ENDPOINT: process.env.NEXT_PUBLIC_IMGPROXY_ENDPOINT,
-    NEXT_PUBLIC_IMGPROXY_BASE_URL: process.env.NEXT_PUBLIC_IMGPROXY_BASE_URL,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     VERCEL_BRANCH_URL: process.env.VERCEL_BRANCH_URL,
     VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
