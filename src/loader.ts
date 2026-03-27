@@ -1,13 +1,18 @@
-import { env } from './env';
+import { type ImageLoaderProps } from "next/image";
+import { generateUrl } from "@imgproxy/imgproxy-js-core";
+import { env } from "@/env";
 
-// Docs: https://imagekit.io/docs/image-transformation
-type ImageKitLoaderProps = {
-  src: string;
-  width: number;
-  quality: number;
-};
+const imgproxyEndpoint = env.NEXT_PUBLIC_IMGPROXY_ENDPOINT;
+const imgproxyBaseUrl = env.NEXT_PUBLIC_IMGPROXY_BASE_URL;
 
-export default function imageKitLoader({ src, width, quality }: ImageKitLoaderProps) {
-  const params = [`w-${width}`, `q-${quality || 80}`];
-  return `https://ik.imagekit.io/${env.NEXT_PUBLIC_IMAGEKIT_ID}/${src}?tr=${params.join(',')}`;
+export default ({ src, width, quality }: ImageLoaderProps) => {
+  const fullSrc = new URL(src, imgproxyBaseUrl).toString();
+  const escapedSrc = fullSrc.replace("%", "%25").replace("?", "%3F").replace("@", "%40");
+
+  const path = generateUrl(
+    { value: escapedSrc, type: "plain" },
+    { width, quality },
+  );
+
+  return `${imgproxyEndpoint}/unsafe${path}`;
 }
