@@ -1,8 +1,8 @@
-import { cn, formatImageUrl } from '@/lib/utils';
+import { Imgproxy } from '@/components/image-proxy';
+import { cn } from '@/lib/utils';
 import { Movie, MovieDetails } from '@/types/movie';
 import { TvDetails, TvShow } from '@/types/tv-show';
 import { Star } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import Badge from './badge';
 import { ListButton } from './list-button';
@@ -66,11 +66,12 @@ export default function ItemCard({
       <Link href={href}>
         <div className="relative h-full w-full">
           {item.poster_path ? (
-            <Image
+            <Imgproxy
               className="object-cover"
-              src={formatImageUrl(item.poster_path, 500)}
+              src={item.poster_path}
               alt={`Poster image of ${title}`}
               fill
+              width={500}
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
           ) : (
