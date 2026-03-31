@@ -12,6 +12,8 @@ type ImgproxyProps = {
   src: string | StaticImageData;
   alt?: string;
   fill?: boolean;
+  priority?: boolean;
+  sizes?: string;
 } & Omit<Options, "resize" | "size" | "resize_type" | "dpr" | "format">;
 
 // The address of your imgproxy server
@@ -27,11 +29,15 @@ export const Imgproxy = ({
   width,
   height,
   fill = false,
+  priority = false,
+  sizes,
   ...imgproxyOptions
 }: ImgproxyProps) => {
   const resolvedSrc = typeof src === "string" ? src : src.src;
-  const fullSrc = new URL(resolvedSrc, imgproxyBaseUrl).toString();
-  const escapedSrc = fullSrc.replace("%", "%25").replace("?", "%3F").replace("@", "%40");
+  const fullSrc = resolvedSrc.startsWith("http")
+    ? resolvedSrc
+    : `${imgproxyBaseUrl.replace(/\/$/, "")}${resolvedSrc}`;
+  const escapedSrc = fullSrc.replace(/%/g, "%25").replace(/\?/g, "%3F").replace(/@/g, "%40");
 
   const imagproxyUrl = (format: Format, dpr: number) => (
     generateImageUrl({
@@ -73,7 +79,8 @@ export const Imgproxy = ({
         className={classNames}
         width={width || undefined}
         height={height || undefined}
-        loading="lazy"
+        sizes={sizes}
+        loading={priority ? "eager" : "lazy"}
         decoding="async"
       />
     </picture>

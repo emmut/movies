@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "docker compose -f docker-compose.dev.yml up -d && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "oxlint -c .oxlintrc.json .",
