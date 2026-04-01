@@ -14,13 +14,14 @@ type ImgproxyProps = {
   fill?: boolean;
   priority?: boolean;
   sizes?: string;
+  fetchPriority?: "high" | "low" | "auto";
 } & Omit<Options, "resize" | "size" | "resize_type" | "dpr" | "format">;
 
 // The address of your imgproxy server
 const imgproxyEndpoint = env.NEXT_PUBLIC_IMGPROXY_ENDPOINT;
-// The address of your Next.js server.
-// This is used to resolve relative image URLs.
 const imgproxyBaseUrl = env.NEXT_PUBLIC_IMGPROXY_BASE_URL;
+const imgproxyKey = env.IMGPROXY_KEY;
+const imgproxySalt = env.IMGPROXY_SALT;
 
 export const Imgproxy = ({
   className,
@@ -31,6 +32,7 @@ export const Imgproxy = ({
   fill = false,
   priority = false,
   sizes,
+  fetchPriority,
   ...imgproxyOptions
 }: ImgproxyProps) => {
   const resolvedSrc = typeof src === "string" ? src : src.src;
@@ -42,6 +44,8 @@ export const Imgproxy = ({
   const imagproxyUrl = (format: Format, dpr: number) => (
     generateImageUrl({
       endpoint: imgproxyEndpoint,
+      key: imgproxyKey,
+      salt: imgproxySalt,
       url: {
         value: escapedSrc,
         displayAs: "plain",
@@ -81,6 +85,7 @@ export const Imgproxy = ({
         height={height || undefined}
         sizes={sizes}
         loading={priority ? "eager" : "lazy"}
+        fetchPriority={fetchPriority}
         decoding="async"
       />
     </picture>

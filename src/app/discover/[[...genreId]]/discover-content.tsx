@@ -1,6 +1,5 @@
 'use client';
 
-import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
@@ -15,7 +14,7 @@ type DiscoverContentProps = {
   filteredWatchProviders: WatchProvider[];
   userRegion: string;
   genreNavigation: ReactNode;
-  userId?: string;
+  grid: ReactNode;
 };
 
 /**
@@ -26,7 +25,7 @@ export function DiscoverContent({
   filteredWatchProviders,
   userRegion,
   genreNavigation,
-  userId,
+  grid,
 }: DiscoverContentProps) {
   // Use nuqs to manage URL state - changes automatically trigger React Query refetches
   const [urlState] = useQueryStates(
@@ -81,18 +80,7 @@ export function DiscoverContent({
         tabIndex={0}
         className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        <Suspense>
-          <DiscoverGrid
-            currentGenreId={genreId}
-            currentPage={page}
-            mediaType={mediaType}
-            sortBy={sortBy}
-            watchProviders={watchProviders}
-            watchRegion={watchRegion}
-            runtimeLte={runtimeLte}
-            userId={userId}
-          />
-        </Suspense>
+        {grid}
       </div>
 
       <Pagination

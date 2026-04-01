@@ -1,12 +1,10 @@
 import { AvailableGenresNavigation } from '@/components/available-genre-navigation';
+import DiscoverGrid from '@/components/discover-grid';
+import ItemGrid from '@/components/item-grid';
 import { getUser } from '@/lib/auth-server';
-import { getDiscoverMedia } from '@/lib/discover-client';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
-import { getQueryClient } from '@/lib/query-client';
-import { queryKeys } from '@/lib/query-keys';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
-import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { Suspense } from 'react';
 import { DiscoverContent } from './discover-content';
 
@@ -50,52 +48,29 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
 
   const watchProviders = getWatchProvidersString(with_watch_providers, userWatchProviders);
 
-  // Prefetch data on the server for React Query
-  const queryClient = getQueryClient();
-
-  await queryClient.prefetchQuery({
-    queryKey:
-      mediaType === 'movie'
-        ? queryKeys.discover.movies({
-            genreId,
-            page,
-            sortBy,
-            watchProviders,
-            watchRegion,
-            withRuntimeLte,
-          })
-        : queryKeys.discover.tvShows({
-            genreId,
-            page,
-            sortBy,
-            watchProviders,
-            watchRegion,
-            withRuntimeLte,
-          }),
-    queryFn: () =>
-      getDiscoverMedia(
-        mediaType,
-        genreId,
-        page,
-        sortBy,
-        watchProviders,
-        watchRegion,
-        withRuntimeLte,
-      ),
-  });
-
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <DiscoverContent
-        filteredWatchProviders={filteredWatchProviders}
-        userRegion={watchRegion}
-        userId={user?.id}
-        genreNavigation={
-          <Suspense fallback={<AvailableGenresNavigation.Skeleton />}>
-            <AvailableGenresNavigation mediaType={mediaType} />
-          </Suspense>
-        }
-      />
-    </HydrationBoundary>
+    <DiscoverContent
+      filteredWatchProviders={filteredWatchProviders}
+      userRegion={watchRegion}
+      genreNavigation={
+        <Suspense fallback={<AvailableGenresNavigation.Skeleton />}>
+          <AvailableGenresNavigation mediaType={mediaType} />
+        </Suspense>
+      }
+      grid={
+        <Suspense fallback={<ItemGrid.Skeletons className="w-full" />}>
+          <DiscoverGrid
+            currentGenreId={genreId}
+            currentPage={page}
+            mediaType={mediaType}
+            sortBy={sortBy}
+            watchProviders={watchProviders}
+            watchRegion={watchRegion}
+            runtimeLte={withRuntimeLte}
+            userId={user?.id}
+          />
+        </Suspense>
+      }
+    />
   );
 }

@@ -4,9 +4,8 @@ services:
     ports:
       - '8080:8080'
     environment:
-      # Must match IMGPROXY_KEY and IMGPROXY_SALT in your .env
-      IMGPROXY_KEY: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
-      IMGPROXY_SALT: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+      IMGPROXY_KEY: '${IMGPROXY_KEY}'
+      IMGPROXY_SALT: '${IMGPROXY_SALT}'
       IMGPROXY_BIND: ':8080'
       IMGPROXY_ALLOWED_SOURCES: 'https://image.tmdb.org/,http://host.docker.internal:3000/'
       IMGPROXY_MAX_SRC_RESOLUTION: '25'
