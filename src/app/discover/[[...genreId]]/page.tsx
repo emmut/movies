@@ -2,22 +2,14 @@ import { AvailableGenresNavigation } from '@/components/available-genre-navigati
 import DiscoverGrid from '@/components/discover-grid';
 import ItemGrid from '@/components/item-grid';
 import { getUser } from '@/lib/auth-server';
-import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
+import { discoverSearchParamsCache } from '@/lib/discover-search-params';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
 import { Suspense } from 'react';
 import { DiscoverContent } from './discover-content';
 
 type DiscoverWithGenreParams = {
-  searchParams: Promise<{
-    page?: string;
-    genreId?: string;
-    mediaType?: string;
-    sort_by?: string;
-    with_watch_providers?: string;
-    watch_region?: string;
-    runtime?: string;
-  }>;
+  searchParams: Promise<Record<string, string | string[]>>;
 };
 
 /**
@@ -28,7 +20,6 @@ type DiscoverWithGenreParams = {
  * @param props - Contains a `searchParams` promise with optional filter parameters.
  */
 export default async function DiscoverWithGenrePage(props: DiscoverWithGenreParams) {
-  const searchParams = await props.searchParams;
   const {
     page,
     genreId,
@@ -37,7 +28,7 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
     with_watch_providers,
     watch_region,
     runtime,
-  } = loadDiscoverSearchParams(searchParams);
+  } = await discoverSearchParamsCache.parse(props.searchParams);
 
   const user = await getUser();
   const userWatchProviders = await getUserWatchProviders();
