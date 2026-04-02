@@ -4,9 +4,14 @@ import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
-import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import { WatchProvider } from '@/types/watch-provider';
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
+import {
+  parseAsArrayOf,
+  parseAsInteger,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryStates,
+} from 'nuqs';
 import { ReactNode, Suspense } from 'react';
 import Pagination from './pagination';
 
@@ -34,7 +39,7 @@ export function DiscoverContent({
       genreId: parseAsInteger.withDefault(0),
       mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
       sort_by: parseAsString.withDefault('popularity.desc'),
-      with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
+      with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
       watch_region: parseAsString,
       runtimeLte: parseAsInteger,
     },

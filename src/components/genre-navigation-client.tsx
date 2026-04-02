@@ -54,7 +54,7 @@ export function GenreNavigationClient({ genres }: GenreNavigationClientProps) {
       genreId: parseAsInteger.withDefault(0),
       page: parseAsString.withDefault('1'),
     },
-    { history: 'push' },
+    { history: 'push', shallow: false },
   );
 
   const currentGenreId = urlState.genreId;
