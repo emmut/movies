@@ -83,6 +83,7 @@ export function StreamingProviders({
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
                   <Image
+                    unoptimized
                     src={formatImageUrl(provider.logo_path, 92)}
                     alt={provider.provider_name}
                     width={32}
@@ -112,6 +113,7 @@ export function StreamingProviders({
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
                   <Image
+                    unoptimized
                     src={formatImageUrl(provider.logo_path, 92)}
                     alt={provider.provider_name}
                     width={32}
@@ -141,6 +143,7 @@ export function StreamingProviders({
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
                   <Image
+                    unoptimized
                     src={formatImageUrl(provider.logo_path, 92)}
                     alt={provider.provider_name}
                     width={32}
@@ -170,6 +173,7 @@ export function StreamingProviders({
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
                   <Image
+                    unoptimized
                     src={formatImageUrl(provider.logo_path, 92)}
                     alt={provider.provider_name}
                     width={32}

@@ -77,16 +77,14 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
       <Label htmlFor="watch-providers" className="mb-2 flex justify-end sm:self-end">
         Watch Providers
       </Label>
-      <Popover key={JSON.stringify(with_watch_providers)} open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger
-          render={
-            <Button variant="outline" className="w-full justify-between" id="watch-providers" />
-          }
-        >
-          <Filter className="mr-2 h-4 w-4" />
-          {selectedCount > 0
-            ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
-            : 'Select watch providers'}
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full justify-between" id="watch-providers">
+            <Filter className="mr-2 h-4 w-4" />
+            {selectedCount > 0
+              ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
+              : 'Select watch providers'}
+          </Button>
         </PopoverTrigger>
         <PopoverContent
           align="end"
@@ -121,18 +119,19 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                 return (
                   <div
                     key={provider.provider_id}
-                    className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
+                    className={`hover:bg-accent flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors ${
                       isSelected ? 'bg-accent' : ''
                     }`}
                     onClick={() => updateSelectedProviders(provider.provider_id)}
                   >
                     <div className="shrink-0">
                       {imageError ? (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-sm font-semibold">
+                        <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-md text-sm font-semibold">
                           {provider.provider_name.charAt(0).toUpperCase()}
                         </div>
                       ) : (
                         <Image
+                          unoptimized
                           width={32}
                           height={32}
                           src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
@@ -143,7 +142,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                       )}
                     </div>
                     <div className="flex-1 text-sm font-medium">{provider.provider_name}</div>
-                    {isSelected && <Check className="h-4 w-4 text-primary" />}
+                    {isSelected && <Check className="text-primary h-4 w-4" />}
                   </div>
                 );
               })

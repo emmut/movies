@@ -50,10 +50,13 @@ type GenreNavigationClientProps = {
 
 export function GenreNavigationClient({ genres }: GenreNavigationClientProps) {
   // Read current genre from URL state
-  const [urlState, setUrlState] = useQueryStates({
-    genreId: parseAsInteger.withDefault(0),
-    page: parseAsString.withDefault('1'),
-  });
+  const [urlState, setUrlState] = useQueryStates(
+    {
+      genreId: parseAsInteger.withDefault(0),
+      page: parseAsString.withDefault('1'),
+    },
+    { history: 'push', shallow: false },
+  );
 
   const currentGenreId = urlState.genreId;
   const [optimisticGenreId, setOptimisticGenreId] = useOptimistic(currentGenreId);

@@ -1,7 +1,4 @@
-import Image from 'next/image';
-
-import { formatImageUrl } from '@/lib/utils';
-
+import { Imgproxy } from '@/components/image-proxy';
 import { Skeleton } from './ui/skeleton';
 
 type PosterProps = {
@@ -13,9 +10,9 @@ function Poster({ poster_path, title }: PosterProps) {
   return (
     <div className="lg:col-span-4">
       {poster_path ? (
-        <Image
+        <Imgproxy
           className="aspect-2/3 w-full max-w-64 rounded-lg border shadow-2xl sm:mx-0 lg:max-w-full"
-          src={formatImageUrl(poster_path, 500)}
+          src={poster_path}
           alt={`Poster image of ${title}`}
           width={500}
           height={750}

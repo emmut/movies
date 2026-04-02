@@ -24,6 +24,7 @@ export function useRuntimeFilter() {
         runtimeLte: 'runtime',
       },
       history: 'push',
+      shallow: false,
     },
   );
 }

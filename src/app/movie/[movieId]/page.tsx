@@ -1,8 +1,3 @@
-import { Calendar, Clock, DollarSign, Star, Users } from 'lucide-react';
-import { headers } from 'next/headers';
-import Image from 'next/image';
-import Link from 'next/link';
-
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import ItemHeader from '@/components/item-header';
@@ -21,8 +16,12 @@ import {
   getMovieWatchProviders,
 } from '@/lib/movies';
 import { getUserRegion } from '@/lib/user-actions';
-import { formatCurrency, formatImageUrl, formatRuntime } from '@/lib/utils';
+import { Imgproxy } from '@/components/image-proxy';
+import { formatCurrency, formatRuntime } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
+import { Calendar, Clock, DollarSign, Star, Users } from 'lucide-react';
+import { headers } from 'next/headers';
+import Link from 'next/link';
 
 type MoviePageProps = {
   params: Promise<{
@@ -91,10 +90,11 @@ export default async function MoviePage(props: MoviePageProps) {
 
       {backdrop_path && (
         <div className="relative -mx-4 mb-8 h-64 md:h-80 lg:h-96">
-          <Image
-            src={formatImageUrl(backdrop_path, 1280)}
+          <Imgproxy
+            src={backdrop_path}
             alt={`Backdrop of ${title}`}
             fill
+            width={1280}
             className="object-cover"
             priority
           />
@@ -247,10 +247,10 @@ export default async function MoviePage(props: MoviePageProps) {
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                   >
                     {director.profile_path ? (
-                      <Image
-                        src={formatImageUrl(director.profile_path, 185)}
+                      <Imgproxy
+                        src={director.profile_path}
                         alt={director.name}
-                        width={40}
+                        width={185}
                         height={40}
                         className="h-10 w-10 rounded-full object-cover"
                       />
@@ -276,10 +276,10 @@ export default async function MoviePage(props: MoviePageProps) {
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3"
                   >
                     {writer.profile_path ? (
-                      <Image
-                        src={formatImageUrl(writer.profile_path, 185)}
+                      <Imgproxy
+                        src={writer.profile_path}
                         alt={writer.name}
-                        width={40}
+                        width={185}
                         height={40}
                         className="h-10 w-10 rounded-full object-cover"
                       />
@@ -310,8 +310,8 @@ export default async function MoviePage(props: MoviePageProps) {
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
                       {person.profile_path ? (
-                        <Image
-                          src={formatImageUrl(person.profile_path, 185)}
+                        <Imgproxy
+                          src={person.profile_path}
                           alt={person.name}
                           width={185}
                           height={278}

@@ -1,6 +1,6 @@
 'use client';
 
-import { parseAsString, useQueryStates } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 import { Label } from '@/components/ui/label';
 import {
@@ -48,20 +48,26 @@ const TV_SORT_OPTIONS = [
  * @param mediaType - Whether to show movie or TV sort options.
  */
 export default function SortByFilter({ mediaType }: SortByFilterProps) {
-  const [urlState, setUrlState] = useQueryStates({
-    sort_by: parseAsString,
-    page: parseAsString.withDefault('1'),
-  });
+  const defaultSort = 'popularity.desc';
+  const [urlState, setUrlState] = useQueryStates(
+    {
+      sort_by: parseAsString,
+      page: parseAsInteger.withDefault(1),
+    },
+    {
+      history: 'push',
+      shallow: false,
+    },
+  );
 
   const sortOptions = mediaType === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
-  const defaultSort = 'popularity.desc';
   const currentSort = urlState.sort_by || defaultSort;
 
   const handleSortChange = (value: string | null) => {
     if (!value) return;
     setUrlState({
       sort_by: value === defaultSort ? null : value,
-      page: '1', // Reset pagination
+      page: 1,
     });
   };
 

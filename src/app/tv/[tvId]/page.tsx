@@ -1,8 +1,3 @@
-import { Calendar, Star, Tv, Users } from 'lucide-react';
-import { headers } from 'next/headers';
-import Image from 'next/image';
-import Link from 'next/link';
-
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import ItemHeader from '@/components/item-header';
@@ -22,8 +17,11 @@ import {
   getTvShowWatchProviders,
 } from '@/lib/tv-shows';
 import { getUserRegion } from '@/lib/user-actions';
-import { formatImageUrl } from '@/lib/utils';
+import { Imgproxy } from '@/components/image-proxy';
 import { isResourceInWatchlist } from '@/lib/watchlist';
+import { Calendar, Star, Tv, Users } from 'lucide-react';
+import { headers } from 'next/headers';
+import Link from 'next/link';
 
 type TvShowPageProps = {
   params: Promise<{
@@ -86,10 +84,11 @@ export default async function TvShowPage(props: TvShowPageProps) {
 
       {backdrop_path && (
         <div className="relative -mx-4 mb-8 h-64 md:h-80 lg:h-96">
-          <Image
-            src={formatImageUrl(backdrop_path, 1280)}
+          <Imgproxy
+            src={backdrop_path}
             alt={`Backdrop of ${name}`}
             fill
+            width={1280}
             className="object-cover"
             priority
           />
@@ -247,10 +246,10 @@ export default async function TvShowPage(props: TvShowPageProps) {
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                   >
                     {creator.profile_path ? (
-                      <Image
-                        src={formatImageUrl(creator.profile_path, 92)}
+                      <Imgproxy
+                        src={creator.profile_path}
                         alt={creator.name}
-                        width={40}
+                        width={92}
                         height={40}
                         className="h-10 w-10 rounded-full object-cover"
                       />
@@ -278,8 +277,8 @@ export default async function TvShowPage(props: TvShowPageProps) {
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
                       {person.profile_path ? (
-                        <Image
-                          src={formatImageUrl(person.profile_path, 185)}
+                        <Imgproxy
+                          src={person.profile_path}
                           alt={person.name}
                           width={185}
                           height={278}
