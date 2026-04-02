@@ -43,11 +43,7 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
     <DiscoverContent
       filteredWatchProviders={filteredWatchProviders}
       userRegion={watchRegion}
-      genreNavigation={
-        <Suspense fallback={<AvailableGenresNavigation.Skeleton />}>
-          <AvailableGenresNavigation mediaType={mediaType} />
-        </Suspense>
-      }
+      genreNavigation={<AvailableGenresNavigation mediaType={mediaType} />}
       grid={
         <Suspense fallback={<ItemGrid.Skeletons className="w-full" />}>
           <DiscoverGrid
