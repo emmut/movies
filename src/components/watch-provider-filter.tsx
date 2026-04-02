@@ -127,6 +127,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                           </div>
                         ) : (
                           <Image
+                            unoptimized
                             width={32}
                             height={32}
                             src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
