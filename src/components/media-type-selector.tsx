@@ -1,6 +1,6 @@
 'use client';
 
-import { revalidateGenresCache, validateGenreForMediaType } from '@/lib/media-actions';
+import { validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
@@ -49,8 +49,6 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
       );
 
       if (!genreExists) {
-        // Clear genre if it doesn't exist for new media type
-        await revalidateGenresCache(mediaType);
         setUrlState({
           mediaType,
           genreId: 0,
@@ -60,7 +58,6 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
       }
     }
 
-    await revalidateGenresCache(mediaType);
     setUrlState({
       mediaType,
       page: '1',
