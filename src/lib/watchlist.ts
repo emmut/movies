@@ -7,13 +7,19 @@ import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
+import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { getMovieDetails } from '@/lib/movies';
 import { pageSchema, resourceIdSchema, resourceTypeSchema } from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
+import type { ProxyImageUrls } from '@/types/proxy-image';
 import { TvDetails } from '@/types/tv-show';
 
 import { ITEMS_PER_PAGE } from './config';
 import { getTvShowDetails } from './tv-shows';
+
+type ResourceDetailsWithImage = (MovieDetails | TvDetails) & {
+  posterImageUrls?: ProxyImageUrls;
+};
 
 /**
  * Retrieves the authenticated user's movie watchlist entries.
@@ -184,11 +190,25 @@ export async function getWatchlistWithResourceDetailsPaginated(
 
     const resourcesWithDetails = await Promise.allSettled(
       paginatedWatchlist.map(async (item) => {
-        let resourceDetails: MovieDetails | TvDetails | null = null;
+        let resourceDetails: ResourceDetailsWithImage | null = null;
         if (resourceType === 'movie') {
-          resourceDetails = await getMovieDetails(item.resourceId);
+          const movieDetails = await getMovieDetails(item.resourceId);
+          resourceDetails = {
+            ...movieDetails,
+            posterImageUrls: buildProxyImageUrls(movieDetails.poster_path, {
+              width: 500,
+              fill: true,
+            }),
+          };
         } else if (resourceType === 'tv') {
-          resourceDetails = await getTvShowDetails(item.resourceId);
+          const tvDetails = await getTvShowDetails(item.resourceId);
+          resourceDetails = {
+            ...tvDetails,
+            posterImageUrls: buildProxyImageUrls(tvDetails.poster_path, {
+              width: 500,
+              fill: true,
+            }),
+          };
         }
 
         if (!resourceDetails) {

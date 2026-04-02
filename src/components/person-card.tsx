@@ -1,6 +1,7 @@
-import { Imgproxy } from '@/components/image-proxy';
-import { cn } from '@/lib/utils';
+import ClientImage from '@/components/client-image';
+import { cn, formatImageUrl } from '@/lib/utils';
 import { PersonDetails, SearchedPerson } from '@/types/person';
+import type { ProxyImageUrls } from '@/types/proxy-image';
 import { User } from 'lucide-react';
 import Link from 'next/link';
 import Badge from './badge';
@@ -30,6 +31,7 @@ export default function PersonCard({
   listId,
   showListButton = true,
 }: PersonCardProps) {
+  const profileImageUrls = (person as { profileImageUrls?: ProxyImageUrls }).profileImageUrls;
   const href = `/person/${person.id}`;
 
   // Handle both SearchedPerson and PersonDetails
@@ -51,13 +53,15 @@ export default function PersonCard({
       <Link href={href}>
         <div className="relative h-full w-full">
           {person.profile_path ? (
-            <Imgproxy
-              className="object-cover"
-              src={person.profile_path}
-              alt={`Profile image of ${person.name}`}
-              fill
-              width={500}
-              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            <ClientImage
+              imageUrls={profileImageUrls}
+              fallbackSrc={
+                person.profile_path.startsWith('http')
+                  ? person.profile_path
+                  : formatImageUrl(person.profile_path, 500)
+              }
+              alt={person.name}
+              className="h-full w-full object-cover"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-zinc-800">

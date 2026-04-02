@@ -18,9 +18,24 @@ import { TmdbVideoResponse } from '@/types/tmdb-video';
 
 import { CACHE_TAGS } from './cache-tags';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
+import { buildProxyImageUrls } from './imgproxy-url';
 import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
+
+function addPosterImageUrls<T extends { poster_path: string | null }>(item: T) {
+  if (!item.poster_path) {
+    return item;
+  }
+
+  return {
+    ...item,
+    posterImageUrls: buildProxyImageUrls(item.poster_path, {
+      width: 500,
+      fill: true,
+    }),
+  };
+}
 
 /**
  * Fetches the list of trending movies for the current day from TMDb.
@@ -142,7 +157,7 @@ export async function fetchDiscoverMovies(
 
   const movies: MovieResponse = await res.json();
   const totalPages = movies.total_pages >= 500 ? 500 : movies.total_pages;
-  return { movies: movies.results, totalPages };
+  return { movies: movies.results.map(addPosterImageUrls), totalPages };
 }
 
 /**
@@ -180,7 +195,7 @@ export async function fetchUserDiscoverMovies(genreId: number, page: number = 1)
 
   const movies: MovieResponse = await res.json();
   const totalPages = movies.total_pages >= 500 ? 500 : movies.total_pages;
-  return { movies: movies.results, totalPages };
+  return { movies: movies.results.map(addPosterImageUrls), totalPages };
 }
 
 /**

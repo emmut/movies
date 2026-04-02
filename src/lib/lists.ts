@@ -9,6 +9,7 @@ import { getUser } from '@/lib/auth-server';
 import { revalidateUserListCache, revalidateUserListStatusCache } from '@/lib/cache-invalidation';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
+import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import {
   createListSchema,
   listIdSchema,
@@ -347,14 +348,28 @@ export async function getListDetailsWithResources(listId: string, page: number =
   const allItems = [
     ...movies.map((movie) => ({
       ...movie,
+      posterImageUrls: buildProxyImageUrls(movie.poster_path, {
+        width: 500,
+        fill: true,
+      }),
       resourceType: 'movie' as const,
     })),
     ...tvShows.map((show) => ({
       ...show,
+      posterImageUrls: buildProxyImageUrls(show.poster_path, {
+        width: 500,
+        fill: true,
+      }),
       resourceType: 'tv' as const,
     })),
     ...persons.map((person) => ({
       ...person,
+      profileImageUrls: person.profile_path
+        ? buildProxyImageUrls(person.profile_path, {
+            width: 500,
+            fill: true,
+          })
+        : undefined,
       resourceType: 'person' as const,
     })),
   ];
