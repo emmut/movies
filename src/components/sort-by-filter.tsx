@@ -1,7 +1,5 @@
 'use client';
 
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -10,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { parseAsString, useQueryStates } from 'nuqs';
 
 type SortByFilterProps = {
   mediaType: 'movie' | 'tv';
@@ -48,37 +47,32 @@ const TV_SORT_OPTIONS = [
  * @param mediaType - Whether to show movie or TV sort options.
  */
 export default function SortByFilter({ mediaType }: SortByFilterProps) {
-  const defaultSort = 'popularity.desc';
-  const [urlState, setUrlState] = useQueryStates(
-    {
-      sort_by: parseAsString,
-      page: parseAsInteger.withDefault(1),
-    },
-    {
-      history: 'push',
-      shallow: false,
-    },
-  );
+  const [urlState, setUrlState] = useQueryStates({
+    sort_by: parseAsString,
+    page: parseAsString.withDefault('1'),
+  });
 
   const sortOptions = mediaType === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
+  const defaultSort = 'popularity.desc';
   const currentSort = urlState.sort_by || defaultSort;
 
-  const handleSortChange = (value: string | null) => {
-    if (!value) return;
+  function handleSortChange(value: string | null) {
+    if (!value) {
+      return;
+    }
+
     setUrlState({
       sort_by: value === defaultSort ? null : value,
-      page: 1,
+      page: '1', // Reset pagination
     });
-  };
+  }
 
   return (
-    <div className="">
-      <Label className="mb-2 text-sm font-medium">Sort By</Label>
+    <div className="flex min-w-54 flex-col gap-2">
+      <Label className="text-sm font-medium">Sort By</Label>
       <Select value={currentSort} onValueChange={handleSortChange}>
-        <SelectTrigger className="w-full min-w-54">
-          <SelectValue placeholder="Select sort option">
-            {sortOptions.find((o) => o.value === currentSort)?.label}
-          </SelectValue>
+        <SelectTrigger>
+          <SelectValue placeholder="Select sort option" />
         </SelectTrigger>
         <SelectContent>
           {sortOptions.map((option) => (

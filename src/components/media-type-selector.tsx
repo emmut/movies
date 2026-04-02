@@ -1,7 +1,8 @@
 'use client';
 
-import { validateGenreForMediaType } from '@/lib/media-actions';
+import { revalidateGenresCache, validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
 
@@ -27,12 +28,12 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
     },
     {
       history: 'push',
-      shallow: false,
     },
   );
 
   const [optimisticMediaType, setOptimisticMediaType] = useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
+  const router = useRouter();
 
   async function handleMediaTypeChange(mediaType: MediaType) {
     startTransition(() => {
@@ -49,11 +50,14 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
       );
 
       if (!genreExists) {
+        // Clear genre if it doesn't exist for new media type
         setUrlState({
           mediaType,
           genreId: 0,
           page: '1',
         });
+        await revalidateGenresCache(mediaType);
+        router.refresh();
         return;
       }
     }
@@ -62,16 +66,18 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
       mediaType,
       page: '1',
     });
+    await revalidateGenresCache(mediaType);
+    router.refresh();
   }
 
   return (
-    <div className="flex rounded-lg bg-muted/60 p-1">
+    <div className="bg-muted/60 flex rounded-lg p-1">
       <button
         onClick={() => handleMediaTypeChange('movie')}
         className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
           optimisticMediaType === 'movie'
             ? 'bg-white text-black'
-            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
         }`}
       >
         <Film className="h-4 w-4" />
@@ -82,7 +88,7 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
         className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
           optimisticMediaType === 'tv'
             ? 'bg-white text-black'
-            : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
         }`}
       >
         <Tv className="h-4 w-4" />

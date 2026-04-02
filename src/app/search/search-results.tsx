@@ -1,12 +1,15 @@
+'use client';
+
 import ItemCard from '@/components/item-card';
+import ItemGrid from '@/components/item-grid';
 import PersonCard from '@/components/person-card';
 import SearchBox from '@/components/search-box';
 import {
-  getSearchMovies,
-  getSearchMulti,
-  getSearchPersons,
-  getSearchTvShows,
-} from '@/lib/search';
+  useSearchMovies,
+  useSearchMulti,
+  useSearchPersons,
+  useSearchTvShows,
+} from '@/hooks/use-search-query';
 import { MediaType } from '@/types/media-type';
 
 type SearchResultsProps = {
@@ -19,25 +22,76 @@ type SearchResultsProps = {
 /**
  * Fetches and displays search results for movies, TV shows, persons, or mixed results based on the media type.
  *
- * Renders ItemCard components for movies/TV shows and PersonCard components for persons in the search results.
+ * Renders ResourceCard components for movies/TV shows and PersonCard components for persons in the search results.
  *
  * @param searchQuery - The search term to filter content.
  * @param currentPage - The page number of results to retrieve.
  * @param mediaType - Whether to search for 'movie', 'tv', 'person', or 'all' content.
  * @param userId - Optional user ID to enable list functionality.
+ * @returns An array of components representing the search results.
  */
-export default async function SearchResults({
+export default function SearchResults({
   searchQuery,
   currentPage,
   mediaType,
   userId,
 }: SearchResultsProps) {
+  // Call all hooks consistently (Rules of Hooks) but only enable the one we need
+  const moviesQuery = useSearchMovies({
+    query: searchQuery,
+    page: currentPage,
+    enabled: mediaType === 'movie',
+  });
+  const tvShowsQuery = useSearchTvShows({
+    query: searchQuery,
+    page: currentPage,
+    enabled: mediaType === 'tv',
+  });
+  const personsQuery = useSearchPersons({
+    query: searchQuery,
+    page: currentPage,
+    enabled: mediaType === 'person',
+  });
+  const multiQuery = useSearchMulti({
+    query: searchQuery,
+    page: currentPage,
+    enabled: mediaType === 'all',
+  });
+
+  // Select the appropriate query based on mediaType
+  const activeQuery =
+    mediaType === 'movie'
+      ? moviesQuery
+      : mediaType === 'tv'
+        ? tvShowsQuery
+        : mediaType === 'person'
+          ? personsQuery
+          : multiQuery;
+
+  const { data, isLoading, error } = activeQuery;
+
   if (!searchQuery) {
     return <SearchBox mediaType={mediaType} autoFocus />;
   }
 
-  if (mediaType === 'tv') {
-    const { tvShows } = await getSearchTvShows(searchQuery, currentPage);
+  if (isLoading) {
+    return <ItemGrid.Skeletons className="w-full" />;
+  }
+
+  if (error) {
+    return (
+      <div className="col-span-full text-center text-red-500">
+        Error loading search results. Please try again.
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  if (mediaType === 'tv' && tvShowsQuery.data) {
+    const { tvShows } = tvShowsQuery.data;
 
     return (
       <>
@@ -53,8 +107,8 @@ export default async function SearchResults({
     );
   }
 
-  if (mediaType === 'person') {
-    const { persons } = await getSearchPersons(searchQuery, currentPage);
+  if (mediaType === 'person' && personsQuery.data) {
+    const { persons } = personsQuery.data;
 
     return (
       <>
@@ -70,8 +124,8 @@ export default async function SearchResults({
     );
   }
 
-  if (mediaType === 'movie') {
-    const { movies } = await getSearchMovies(searchQuery, currentPage);
+  if (mediaType === 'movie' && moviesQuery.data) {
+    const { movies } = moviesQuery.data;
 
     return (
       <>
@@ -88,11 +142,16 @@ export default async function SearchResults({
   }
 
   // 'all' - mixed results from multi search
-  const { results } = await getSearchMulti(searchQuery, currentPage);
+  if (!multiQuery.data) {
+    return null;
+  }
+
+  const { results } = multiQuery.data;
 
   return (
     <>
       {results.map((result) => {
+        // Each result has a media_type property: 'movie', 'tv', or 'person'
         if (result.media_type === 'person') {
           return <PersonCard key={`person-${result.id}`} person={result} userId={userId} />;
         } else if (result.media_type === 'tv') {

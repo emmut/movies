@@ -1,9 +1,8 @@
-import ItemCard from '@/components/item-card';
 import { getUser } from '@/lib/auth-server';
+import { getQueryClient } from '@/lib/query-client';
+import { queryKeys } from '@/lib/query-keys';
 import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
-import { MovieDetails } from '@/types/movie';
-import { TvDetails } from '@/types/tv-show';
-import Link from 'next/link';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { redirect } from 'next/navigation';
 import { WatchlistContent } from './watchlist-content';
 
@@ -33,57 +32,36 @@ export default async function WatchlistPage(props: WatchlistPageProps) {
   const mediaType = (searchParams.mediaType ?? 'movie') as 'movie' | 'tv';
   const page = Number(searchParams.page ?? '1');
 
-  const [paginatedData, totalMovies, totalTvShows] = await Promise.all([
-    getWatchlistWithResourceDetailsPaginated(mediaType, page),
-    getWatchlistCount('movie'),
-    getWatchlistCount('tv'),
-  ]);
+  // Prefetch watchlist data with React Query for client-side caching
+  const queryClient = getQueryClient();
 
-  const items = paginatedData.items.filter((item) => item !== null);
+  // Prefetch current page data
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.watchlist.list(mediaType, page),
+    queryFn: () => getWatchlistWithResourceDetailsPaginated(mediaType, page),
+    staleTime: 1000 * 60 * 5, // 5 minutes - watchlist changes less frequently
+    gcTime: 1000 * 60 * 30, // 30 minutes
+  });
 
-  const grid =
-    items.length === 0 ? (
-      <div className="py-12 text-center col-span-full">
-        <div className="mb-4 text-6xl opacity-50">{mediaType === 'movie' ? '🎬' : '📺'}</div>
-        <h2 className="mb-2 text-xl font-semibold">
-          No {mediaType === 'movie' ? 'movies' : 'TV shows'} in your watchlist
-        </h2>
-        <p className="mb-6 text-zinc-400">
-          Add some {mediaType === 'movie' ? 'movies' : 'TV shows'} to see them here
-        </p>
-        <Link
-          href={`/discover?mediaType=${mediaType}`}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium shadow transition-colors"
-        >
-          Explore {mediaType === 'movie' ? 'Movies' : 'TV Shows'}
-        </Link>
-      </div>
-    ) : (
-      <div
-        id="content-container"
-        className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
-      >
-        {items.map((item) => {
-          const resourceType = item.resourceType as 'movie' | 'tv';
-          return (
-            <ItemCard
-              key={`${resourceType}-${item.id}`}
-              resource={item.resource as MovieDetails | TvDetails}
-              type={resourceType}
-              userId={user?.id}
-            />
-          );
-        })}
-      </div>
-    );
+  // Prefetch movie count
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.watchlist.count('movie'),
+    queryFn: () => getWatchlistCount('movie'),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+  });
+
+  // Prefetch TV count
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.watchlist.count('tv'),
+    queryFn: () => getWatchlistCount('tv'),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+  });
 
   return (
-    <WatchlistContent
-      userId={user?.id}
-      grid={grid}
-      totalMovies={totalMovies}
-      totalTvShows={totalTvShows}
-      totalPages={paginatedData.totalPages}
-    />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <WatchlistContent userId={user?.id} />
+    </HydrationBoundary>
   );
 }

@@ -2,7 +2,6 @@
 
 import clsx from 'clsx';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-
 import { Input } from './ui/input';
 import {
   Pagination,
@@ -75,7 +74,6 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     },
     {
       history: 'push',
-      shallow: false,
     },
   );
 
@@ -156,7 +154,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
       {totalPages > 20 && (
         <div className="mt-2 flex justify-center px-4">
           <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center">
-            <span className="text-center text-xs text-muted-foreground sm:text-sm">
+            <span className="text-muted-foreground text-center text-xs sm:text-sm">
               Jump to page:
             </span>
             <div className="flex items-center justify-center gap-2">
@@ -183,7 +181,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   e.target.value = '';
                 }}
               />
-              <span className="text-xs text-muted-foreground">of {totalPages}</span>
+              <span className="text-muted-foreground text-xs">of {totalPages}</span>
             </div>
           </div>
         </div>

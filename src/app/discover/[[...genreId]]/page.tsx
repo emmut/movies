@@ -1,17 +1,25 @@
-import { Suspense } from 'react';
-
 import { AvailableGenresNavigation } from '@/components/available-genre-navigation';
-import DiscoverGrid from '@/components/discover-grid';
-import ItemGrid from '@/components/item-grid';
 import { getUser } from '@/lib/auth-server';
-import { discoverSearchParamsCache } from '@/lib/discover-search-params';
+import { getDiscoverMedia } from '@/lib/discover-client';
+import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
+import { getQueryClient } from '@/lib/query-client';
+import { queryKeys } from '@/lib/query-keys';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
-
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { Suspense } from 'react';
 import { DiscoverContent } from './discover-content';
 
 type DiscoverWithGenreParams = {
-  searchParams: Promise<Record<string, string | string[]>>;
+  searchParams: Promise<{
+    page?: string;
+    genreId?: string;
+    mediaType?: string;
+    sort_by?: string;
+    with_watch_providers?: string;
+    watch_region?: string;
+    runtime?: string;
+  }>;
 };
 
 /**
@@ -22,6 +30,7 @@ type DiscoverWithGenreParams = {
  * @param props - Contains a `searchParams` promise with optional filter parameters.
  */
 export default async function DiscoverWithGenrePage(props: DiscoverWithGenreParams) {
+  const searchParams = await props.searchParams;
   const {
     page,
     genreId,
@@ -30,7 +39,7 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
     with_watch_providers,
     watch_region,
     runtime,
-  } = await discoverSearchParamsCache.parse(props.searchParams);
+  } = loadDiscoverSearchParams(searchParams);
 
   const user = await getUser();
   const userWatchProviders = await getUserWatchProviders();
@@ -41,25 +50,52 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
 
   const watchProviders = getWatchProvidersString(with_watch_providers, userWatchProviders);
 
+  // Prefetch data on the server for React Query
+  const queryClient = getQueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey:
+      mediaType === 'movie'
+        ? queryKeys.discover.movies({
+            genreId,
+            page,
+            sortBy,
+            watchProviders,
+            watchRegion,
+            withRuntimeLte,
+          })
+        : queryKeys.discover.tvShows({
+            genreId,
+            page,
+            sortBy,
+            watchProviders,
+            watchRegion,
+            withRuntimeLte,
+          }),
+    queryFn: () =>
+      getDiscoverMedia(
+        mediaType,
+        genreId,
+        page,
+        sortBy,
+        watchProviders,
+        watchRegion,
+        withRuntimeLte,
+      ),
+  });
+
   return (
-    <DiscoverContent
-      filteredWatchProviders={filteredWatchProviders}
-      userRegion={watchRegion}
-      genreNavigation={<AvailableGenresNavigation mediaType={mediaType} />}
-      grid={
-        <Suspense fallback={<ItemGrid.Skeletons className="w-full" />}>
-          <DiscoverGrid
-            currentGenreId={genreId}
-            currentPage={page}
-            mediaType={mediaType}
-            sortBy={sortBy}
-            watchProviders={watchProviders}
-            watchRegion={watchRegion}
-            runtimeLte={withRuntimeLte}
-            userId={user?.id}
-          />
-        </Suspense>
-      }
-    />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <DiscoverContent
+        filteredWatchProviders={filteredWatchProviders}
+        userRegion={watchRegion}
+        userId={user?.id}
+        genreNavigation={
+          <Suspense fallback={<AvailableGenresNavigation.Skeleton />}>
+            <AvailableGenresNavigation mediaType={mediaType} />
+          </Suspense>
+        }
+      />
+    </HydrationBoundary>
   );
 }

@@ -1,27 +1,21 @@
 'use client';
 
-import {
-  parseAsArrayOf,
-  parseAsInteger,
-  parseAsString,
-  parseAsStringLiteral,
-  useQueryStates,
-} from 'nuqs';
-import { ReactNode, Suspense } from 'react';
-
+import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
+import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import { WatchProvider } from '@/types/watch-provider';
-
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
+import { ReactNode, Suspense } from 'react';
 import Pagination from './pagination';
 
 type DiscoverContentProps = {
   filteredWatchProviders: WatchProvider[];
   userRegion: string;
   genreNavigation: ReactNode;
-  grid: ReactNode;
+  userId?: string;
 };
 
 /**
@@ -32,7 +26,7 @@ export function DiscoverContent({
   filteredWatchProviders,
   userRegion,
   genreNavigation,
-  grid,
+  userId,
 }: DiscoverContentProps) {
   // Use nuqs to manage URL state - changes automatically trigger React Query refetches
   const [urlState] = useQueryStates(
@@ -41,7 +35,7 @@ export function DiscoverContent({
       genreId: parseAsInteger.withDefault(0),
       mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
       sort_by: parseAsString.withDefault('popularity.desc'),
-      with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
+      with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
       watch_region: parseAsString,
       runtimeLte: parseAsInteger,
     },
@@ -83,7 +77,18 @@ export function DiscoverContent({
         tabIndex={0}
         className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
-        {grid}
+        <Suspense>
+          <DiscoverGrid
+            currentGenreId={genreId}
+            currentPage={page}
+            mediaType={mediaType}
+            sortBy={sortBy}
+            watchProviders={watchProviders}
+            watchRegion={watchRegion}
+            runtimeLte={runtimeLte}
+            userId={userId}
+          />
+        </Suspense>
       </div>
 
       <Pagination
