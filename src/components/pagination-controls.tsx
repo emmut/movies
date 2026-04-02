@@ -74,6 +74,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     },
     {
       history: 'push',
+      shallow: false,
     },
   );
 

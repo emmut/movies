@@ -70,7 +70,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
       <Label htmlFor="watch-providers" className="sm:self-end">
         Watch Providers
       </Label>
-      <Popover key={JSON.stringify(with_watch_providers)} open={isOpen} onOpenChange={setIsOpen}>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button variant="outline" className="w-full justify-between" id="watch-providers">
             <Filter className="mr-2 h-4 w-4" />
@@ -127,6 +127,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                           </div>
                         ) : (
                           <Image
+                            unoptimized
                             width={32}
                             height={32}
                             src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}

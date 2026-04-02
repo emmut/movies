@@ -6,10 +6,10 @@ import { ListButton } from '@/components/list-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
-import { deduplicateAndSortByPopularity, formatImageUrl } from '@/lib/utils';
+import { Imgproxy } from '@/components/image-proxy';
+import { deduplicateAndSortByPopularity } from '@/lib/utils';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 import { headers } from 'next/headers';
-import Image from 'next/image';
 
 type PersonPageProps = {
   params: Promise<{
@@ -113,9 +113,9 @@ export default async function PersonPage(props: PersonPageProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
           {profile_path ? (
-            <Image
+            <Imgproxy
               className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg border shadow-2xl sm:mx-0"
-              src={formatImageUrl(profile_path, 500)}
+              src={profile_path}
               alt={`Profile image of ${name}`}
               width={500}
               height={750}
