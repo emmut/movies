@@ -1,9 +1,10 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+
+import { Button } from '@/components/ui/button';
 
 /**
  * Displays a contextual login error message and troubleshooting steps based on the URL error parameter.
@@ -52,13 +53,13 @@ function LoginError() {
             <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">{error.title}</h1>
-          <p className="text-muted-foreground mt-2 text-sm leading-relaxed">{error.description}</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{error.description}</p>
         </div>
 
         <div className="space-y-4">
-          <div className="bg-muted/50 rounded-lg p-4">
+          <div className="rounded-lg bg-muted/50 p-4">
             <h3 className="mb-2 text-sm font-medium">What you can do</h3>
-            <ul className="text-muted-foreground list-inside list-disc space-y-1 text-xs">
+            <ul className="list-inside list-disc space-y-1 text-xs text-muted-foreground">
               <li>Try logging in again</li>
               <li>Check that you allow the application access</li>
               <li>Make sure you have a stable internet connection</li>
@@ -67,24 +68,20 @@ function LoginError() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <Button asChild className="w-full">
-              <Link href="/login">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Try Again
-              </Link>
+            <Button className="w-full" render={<Link href="/login" />}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Try Again
             </Button>
 
-            <Button variant="outline" asChild className="w-full">
-              <Link href="/">
-                <Home className="mr-2 h-4 w-4" />
-                Back to Home
-              </Link>
+            <Button variant="outline" className="w-full" render={<Link href="/" />}>
+              <Home className="mr-2 h-4 w-4" />
+              Back to Home
             </Button>
           </div>
         </div>
 
         <div className="text-center">
-          <p className="text-muted-foreground text-xs">
+          <p className="text-xs text-muted-foreground">
             If the problem persists, please contact support for help.
           </p>
         </div>

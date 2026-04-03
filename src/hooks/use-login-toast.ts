@@ -1,8 +1,9 @@
 'use client';
 
-import { useSession } from '@/lib/auth-client';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
+
+import { useSession } from '@/lib/auth-client';
 
 /**
  * Custom hook that shows a welcome toast notification when a user successfully logs in.

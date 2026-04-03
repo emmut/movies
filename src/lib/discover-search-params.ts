@@ -1,12 +1,12 @@
 import {
-  createSearchParamsCache,
+  createLoader,
   parseAsArrayOf,
   parseAsInteger,
   parseAsString,
   parseAsStringLiteral,
 } from 'nuqs/server';
 
-export const discoverSearchParamsCache = createSearchParamsCache({
+export const loadDiscoverSearchParams = createLoader({
   page: parseAsInteger.withDefault(1),
   genreId: parseAsInteger.withDefault(0),
   mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),

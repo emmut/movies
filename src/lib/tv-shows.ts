@@ -1,5 +1,7 @@
 'use server';
 
+import { cacheLife, cacheTag } from 'next/cache';
+
 import { env } from '@/env';
 import type { GenreResponse } from '@/types/genre';
 import { TmdbVideoResponse } from '@/types/tmdb-video';
@@ -12,14 +14,29 @@ import {
   TvSimilar,
   TvWatchProviders,
 } from '@/types/tv-show';
-import { cacheLife, cacheTag } from 'next/cache';
+
 import { CACHE_TAGS } from './cache-tags';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
+import { buildProxyImageUrls } from './imgproxy-url';
 import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';
 import { DEFAULT_REGION } from './regions';
 import { getUserRegion } from './user-actions';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
+
+function addPosterImageUrls<T extends { poster_path: string | null }>(item: T) {
+  if (!item.poster_path) {
+    return item;
+  }
+
+  return {
+    ...item,
+    posterImageUrls: buildProxyImageUrls(item.poster_path, {
+      width: 500,
+      fill: true,
+    }),
+  };
+}
 
 /**
  * Retrieves the user's region, returning a default region if retrieval fails.
@@ -191,7 +208,7 @@ export async function fetchDiscoverTvShows(
 
   const tvShows: TvResponse = await res.json();
   const totalPages = tvShows.total_pages >= 500 ? 500 : tvShows.total_pages;
-  return { tvShows: tvShows.results, totalPages };
+  return { tvShows: tvShows.results.map(addPosterImageUrls), totalPages };
 }
 
 /**
@@ -228,7 +245,7 @@ export async function fetchUserDiscoverTvShows(genreId: number, page: number = 1
 
   const tvShows: TvResponse = await res.json();
   const totalPages = tvShows.total_pages >= 500 ? 500 : tvShows.total_pages;
-  return { tvShows: tvShows.results, totalPages };
+  return { tvShows: tvShows.results.map(addPosterImageUrls), totalPages };
 }
 
 /**

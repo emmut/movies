@@ -1,5 +1,7 @@
 'use client';
 
+import { parseAsStringLiteral, useQueryState } from 'nuqs';
+
 import {
   Select,
   SelectContent,
@@ -9,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { DEFAULT_REGION, Region, regions, type RegionCode } from '@/lib/regions';
 import { RegionWatchProviders } from '@/types/watch-provider';
-import { parseAsStringLiteral, useQueryState } from 'nuqs';
+
 import { Dot } from './ui/dot';
 
 const regionCodes = regions.map((r) => r.code);
@@ -59,14 +61,14 @@ export function RegionSelect({ defaultValue, allRegionProviders }: RegionSelectP
     parseAsStringLiteral(regionCodes).withDefault(defaultValue ?? DEFAULT_REGION),
   );
 
-  function handleValueChange(value: string) {
-    setRegion(value as RegionCode);
+  function handleValueChange(value: string | null) {
+    if (value) setRegion(value as RegionCode);
   }
 
   return (
     <Select value={region} onValueChange={handleValueChange}>
       <SelectTrigger className="w-44">
-        <SelectValue />
+        <SelectValue>{regions.find((r) => r.code === region)?.name}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         {regions.map((regionOption) => (

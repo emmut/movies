@@ -1,8 +1,9 @@
 'use client';
-import { useIsClient } from '@/hooks/use-is-client';
-import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
+
+import { useIsClient } from '@/hooks/use-is-client';
+import { cn } from '@/lib/utils';
 
 type ItemSliderProps = {
   children: ReactNode;
@@ -131,7 +132,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
           <button
             onClick={() => scroll('left')}
             className={cn(
-              'border-muted-foreground/30 hover:bg-muted/30 bg-background/80 absolute top-1/2 left-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border p-2 transition-all',
+              'absolute top-1/2 left-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border border-muted-foreground/30 bg-background/80 p-2 transition-all hover:bg-muted/30',
               { 'opacity-0': disableArrows },
             )}
           >
@@ -139,7 +140,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
             <ChevronLeft className="h-6 w-6" />
           </button>
           <div
-            className={`from-background pointer-events-none absolute inset-y-0 -left-3 z-10 w-10 bg-linear-to-r to-transparent lg:w-30 ${!showLeftArrow ? 'opacity-0' : ''}`}
+            className={`pointer-events-none absolute inset-y-0 -left-3 z-10 w-10 bg-linear-to-r from-background to-transparent lg:w-30 ${!showLeftArrow ? 'opacity-0' : ''}`}
           />
         </>
       )}
@@ -149,7 +150,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
           <button
             onClick={() => scroll('right')}
             className={cn(
-              'border-muted-foreground/30 hover:bg-muted/30 bg-background/80 absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border p-2 transition-all',
+              'absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border border-muted-foreground/30 bg-background/80 p-2 transition-all hover:bg-muted/30',
               { 'opacity-0': disableArrows },
             )}
           >
@@ -157,7 +158,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
             <ChevronRight className="h-6 w-6" />
           </button>
           <div
-            className={`from-background pointer-events-none absolute inset-y-0 -right-3 z-10 w-10 bg-linear-to-l to-transparent lg:w-30 ${!showRightArrow ? 'opacity-0' : ''}`}
+            className={`pointer-events-none absolute inset-y-0 -right-3 z-10 w-10 bg-linear-to-l from-background to-transparent lg:w-30 ${!showRightArrow ? 'opacity-0' : ''}`}
           />
         </>
       )}
@@ -168,7 +169,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
-        className="scrollbar-hide relative -mx-3 flex w-[calc(100%+0.75rem)] cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing"
+        className="relative -mx-3 scrollbar-hide flex w-[calc(100%+0.75rem)] cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing"
       >
         {children}
       </div>

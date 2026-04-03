@@ -1,17 +1,20 @@
 'use server';
 
+import { randomUUID } from 'crypto';
+
+import { and, eq, inArray, not } from 'drizzle-orm';
+import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
+
 import { user } from '@/db/schema/auth';
 import { userWatchProviders } from '@/db/schema/user-watch-providers';
 import { env } from '@/env';
+import { getSession } from '@/lib/auth-server';
 import { revalidateUserPreferenceCache } from '@/lib/cache-invalidation';
 import { CACHE_TAGS } from '@/lib/cache-tags';
-import { getSession } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { DEFAULT_REGION, isValidRegionCode, RegionCode, regionSchema } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
-import { randomUUID } from 'crypto';
-import { and, eq, inArray, not } from 'drizzle-orm';
-import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
+
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 
 type WatchProvidersResponse = {

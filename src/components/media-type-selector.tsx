@@ -1,7 +1,8 @@
 'use client';
 
-import { validateGenreForMediaType } from '@/lib/media-actions';
+import { revalidateGenresCache, validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
 
@@ -27,12 +28,12 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
     },
     {
       history: 'push',
-      shallow: false,
     },
   );
 
   const [optimisticMediaType, setOptimisticMediaType] = useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
+  const router = useRouter();
 
   async function handleMediaTypeChange(mediaType: MediaType) {
     startTransition(() => {
@@ -49,11 +50,14 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
       );
 
       if (!genreExists) {
+        // Clear genre if it doesn't exist for new media type
         setUrlState({
           mediaType,
           genreId: 0,
           page: '1',
         });
+        await revalidateGenresCache(mediaType);
+        router.refresh();
         return;
       }
     }
@@ -62,6 +66,8 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
       mediaType,
       page: '1',
     });
+    await revalidateGenresCache(mediaType);
+    router.refresh();
   }
 
   return (

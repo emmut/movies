@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
+
 import { getMovieTrailer } from '@/lib/movies';
 import { getTvShowTrailer } from '@/lib/tv-shows';
-import { Suspense } from 'react';
+
 import { TrailerButton } from './trailer-button';
 
 type TrailerContentProps = {

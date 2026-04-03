@@ -1,7 +1,9 @@
 'use server';
 
-import { CACHE_TAGS } from '@/lib/cache-tags';
 import { revalidateTag } from 'next/cache';
+
+import { CACHE_TAGS } from '@/lib/cache-tags';
+
 import { fetchAvailableGenres } from './movies';
 import { fetchAvailableTvGenres } from './tv-shows';
 

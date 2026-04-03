@@ -1,9 +1,10 @@
 'use client';
-import { SuspendedPostHogPageView } from '@/app/posthog-page-view';
-import { env } from '@/env';
 import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { useEffect } from 'react';
+
+import { SuspendedPostHogPageView } from '@/app/posthog-page-view';
+import { env } from '@/env';
 
 export type PostHogClientProviderProps = {
   children: React.ReactNode;

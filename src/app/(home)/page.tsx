@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
 import MediaList from '@/components/media-list';
@@ -18,7 +20,6 @@ import {
   fetchUserPopularTvShows,
   fetchUserTopRatedTvShows,
 } from '@/lib/tv-shows';
-import { Suspense } from 'react';
 
 /**
  * Renders the homepage with categorized sections for trending, popular, and top-rated movies and TV shows.
@@ -33,7 +34,7 @@ export default async function Home() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Trending Now</h1>
-          <p className="text-muted-foreground hidden text-sm sm:block">
+          <p className="hidden text-sm text-muted-foreground sm:block">
             What everyone&#39;s watching
           </p>
         </div>
@@ -52,7 +53,7 @@ export default async function Home() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Movies in Theaters</h2>
-          <p className="text-muted-foreground hidden text-sm sm:block">Now playing</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">Now playing</p>
         </div>
 
         <ItemSlider>
@@ -69,7 +70,7 @@ export default async function Home() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">TV Shows on Air</h2>
-          <p className="text-muted-foreground hidden text-sm sm:block">Currently airing</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">Currently airing</p>
         </div>
 
         <ItemSlider>
@@ -86,7 +87,7 @@ export default async function Home() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Coming Soon</h2>
-          <p className="text-muted-foreground hidden text-sm sm:block">Upcoming movies</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">Upcoming movies</p>
         </div>
 
         <ItemSlider>
@@ -103,7 +104,7 @@ export default async function Home() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Popular TV Shows</h2>
-          <p className="text-muted-foreground hidden text-sm sm:block">Trending series</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">Trending series</p>
         </div>
 
         <ItemSlider>
@@ -120,7 +121,7 @@ export default async function Home() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Top Rated Movies</h2>
-          <p className="text-muted-foreground hidden text-sm sm:block">All-time favorites</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">All-time favorites</p>
         </div>
 
         <ItemSlider>
@@ -137,7 +138,7 @@ export default async function Home() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Top Rated TV Shows</h2>
-          <p className="text-muted-foreground hidden text-sm sm:block">Highest rated series</p>
+          <p className="hidden text-sm text-muted-foreground sm:block">Highest rated series</p>
         </div>
 
         <ItemSlider>

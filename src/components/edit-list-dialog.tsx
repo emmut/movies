@@ -1,5 +1,10 @@
 'use client';
 
+import { Edit } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,17 +20,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { EMOJI_OPTIONS } from '@/lib/config';
 import { updateList } from '@/lib/lists';
-import { Edit } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface EditListDialogProps {
   listId: string;
   listName: string;
   listDescription: string | null;
   listEmoji: string;
-  children?: React.ReactNode;
+  children?: React.ReactElement;
 }
 
 export function EditListDialog({
@@ -72,14 +73,16 @@ export function EditListDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button variant="outline" size="sm">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit List
-          </Button>
-        )}
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          children || (
+            <Button variant="outline" size="sm">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit List
+            </Button>
+          )
+        }
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit List</DialogTitle>
@@ -97,7 +100,7 @@ export function EditListDialog({
                     key={emoji}
                     type="button"
                     onClick={() => setSelectedEmoji(emoji)}
-                    className={`hover:bg-muted rounded p-2 text-xl transition-colors ${
+                    className={`rounded p-2 text-xl transition-colors hover:bg-muted ${
                       selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
                     }`}
                     disabled={isLoading}
@@ -106,7 +109,7 @@ export function EditListDialog({
                   </button>
                 ))}
               </div>
-              <p className="text-muted-foreground mt-1 text-sm">Selected: {selectedEmoji}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Selected: {selectedEmoji}</p>
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">

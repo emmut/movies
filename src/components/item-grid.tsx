@@ -1,5 +1,6 @@
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
+
 import ItemCard from './item-card';
 
 type ItemGridProps = {

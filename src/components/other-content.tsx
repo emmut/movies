@@ -1,9 +1,10 @@
+import { Suspense } from 'react';
+
 import ItemCard from '@/components/item-card';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
-import { Suspense } from 'react';
 
 type OtherContentProps = {
   id: number;
@@ -29,7 +30,7 @@ async function SimilarContent({
     <div className="flex flex-col">
       <div className="mt-8 mb-2 flex items-center justify-between">
         <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">{titleText}</h2>
-        <p className="text-muted-foreground hidden text-sm sm:block">You might also like</p>
+        <p className="hidden text-sm text-muted-foreground sm:block">You might also like</p>
       </div>
 
       <ItemSlider>
@@ -56,7 +57,7 @@ async function RecommendationsContent({
     <div className="flex flex-col">
       <div className="mt-8 mb-2 flex items-center justify-between">
         <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Recommendations</h2>
-        <p className="text-muted-foreground hidden text-sm sm:block">You might also like</p>
+        <p className="hidden text-sm text-muted-foreground sm:block">You might also like</p>
       </div>
 
       <ItemSlider>

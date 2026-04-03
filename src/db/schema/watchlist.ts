@@ -1,5 +1,6 @@
-import { user } from '@/db/schema/auth';
 import { integer, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+
+import { user } from '@/db/schema/auth';
 
 export const watchlist = pgTable(
   'watchlist',

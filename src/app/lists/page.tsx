@@ -1,11 +1,12 @@
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+
 import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
 import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
 import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
 
 type ListsPageProps = {
   searchParams: Promise<{
@@ -68,7 +69,7 @@ export default async function ListsPage(props: ListsPageProps) {
           </p>
           <Link
             href="/discover"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium shadow transition-colors"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
           >
             Explore Movies & TV Shows
           </Link>

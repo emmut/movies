@@ -1,6 +1,7 @@
-import { IMAGE_CDN_URL } from '@/lib/constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
+import { IMAGE_CDN_URL } from '@/lib/constants';
 
 export function formatDateYear(date: string) {
   return date.split('-')?.[0];

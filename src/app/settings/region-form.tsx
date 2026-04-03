@@ -1,5 +1,8 @@
 'use client';
 
+import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -10,8 +13,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Region } from '@/lib/regions';
-import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
 
 interface RegionFormProps {
   currentRegion: string;
@@ -43,18 +44,17 @@ export function RegionForm({ currentRegion, regions, updateRegionAction }: Regio
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="region-select">Region</Label>
-        <Select value={selectedRegion} onValueChange={setSelectedRegion} disabled={isPending}>
+        <Select
+          value={selectedRegion}
+          onValueChange={(value) => value && setSelectedRegion(value)}
+          disabled={isPending}
+        >
           <SelectTrigger id="region-select">
-            <SelectValue placeholder="Select region" />
+            <SelectValue placeholder="Select region">
+              {regions.find((r) => r.code === selectedRegion)?.name}
+            </SelectValue>
           </SelectTrigger>
-          <SelectContent
-            collisionPadding={10}
-            side="bottom"
-            align="start"
-            sideOffset={2}
-            avoidCollisions={true}
-            className="max-h-60"
-          >
+          <SelectContent side="bottom" align="start" sideOffset={2} className="max-h-60">
             {regions.map((region) => (
               <SelectItem key={region.code} value={region.code}>
                 {region.name}

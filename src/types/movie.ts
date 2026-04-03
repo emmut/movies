@@ -1,4 +1,5 @@
 import { RegionCode } from '@/lib/regions';
+
 import { Genre } from './genre';
 import { SearchedPerson } from './person';
 import { TvShow } from './tv-show';

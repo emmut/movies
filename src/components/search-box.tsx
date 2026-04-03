@@ -1,9 +1,10 @@
 'use client';
 
+import { Search } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import SearchIcon from '@/icons/SearchIcon';
 import { MediaType } from '@/types/media-type';
-import { Search } from 'lucide-react';
 
 type SearchBoxProps = {
   mediaType?: MediaType;

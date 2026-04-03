@@ -1,5 +1,9 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -12,9 +16,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'sonner';
 
 type Passkey = {
   id: string;
@@ -65,7 +66,7 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
 
   if (passkeys.length === 0) {
     return (
-      <p className="text-muted-foreground text-sm">
+      <p className="text-sm text-muted-foreground">
         No passkeys found. Add your first passkey to get started.
       </p>
     );
@@ -80,7 +81,7 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="font-medium">{passkey.name || 'Unnamed passkey'}</div>
-                  <div className="text-muted-foreground flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="capitalize">{passkey.deviceType}</span>
                     <span>
                       Created:{' '}
@@ -99,10 +100,16 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
                   open={deleteDialogOpen === passkey.id}
                   onOpenChange={(open) => setDeleteDialogOpen(open ? passkey.id : null)}
                 >
-                  <DialogTrigger asChild>
-                    <Button variant="destructive" size="sm" disabled={deletingIds.has(passkey.id)}>
-                      {deletingIds.has(passkey.id) ? 'Deleting...' : 'Delete'}
-                    </Button>
+                  <DialogTrigger
+                    render={
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={deletingIds.has(passkey.id)}
+                      />
+                    }
+                  >
+                    {deletingIds.has(passkey.id) ? 'Deleting...' : 'Delete'}
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>

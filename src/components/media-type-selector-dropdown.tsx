@@ -1,5 +1,9 @@
 'use client';
 
+import { Film, Search, Tv, User } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useOptimistic, useTransition } from 'react';
+
 import {
   Select,
   SelectContent,
@@ -9,9 +13,6 @@ import {
 } from '@/components/ui/select';
 import { useIsMounted } from '@/hooks/use-is-mounted';
 import { validateGenreForMediaType } from '@/lib/media-actions';
-import { Film, Search, Tv, User } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useOptimistic, useTransition } from 'react';
 
 type MediaType = 'movie' | 'tv' | 'person' | 'all';
 
@@ -104,7 +105,7 @@ export default function MediaTypeSelectorDropdown({
   // from Radix UI's dynamic aria-controls IDs
   if (!isMounted) {
     return (
-      <div className="border-input flex h-9 w-[180px] items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs">
+      <div className="flex h-9 w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs">
         <div className="flex items-center gap-2">
           {getIcon(currentMediaType)}
           {getDisplayName(currentMediaType)}
@@ -116,7 +117,7 @@ export default function MediaTypeSelectorDropdown({
   return (
     <Select
       value={optimisticMediaType}
-      onValueChange={(value) => handleMediaTypeChange(value as MediaType)}
+      onValueChange={(value) => value && handleMediaTypeChange(value as MediaType)}
     >
       <SelectTrigger className="w-[180px]">
         <SelectValue>

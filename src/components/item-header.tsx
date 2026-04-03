@@ -1,4 +1,5 @@
 import { User } from 'better-auth';
+
 import Badge from './badge';
 import { ListButton } from './list-button';
 import { WatchlistButton } from './watchlist-button';

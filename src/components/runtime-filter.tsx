@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useRuntimeFilter } from '@/hooks/use-runtime-filter';
-import { cn } from '@/lib/utils';
 
 const RUNTIME_OPTIONS = [
   { value: '0', label: 'Any' },
@@ -33,8 +32,10 @@ export default function RuntimeFilter({ className }: RuntimeFilterProps) {
   const [{ runtimeLte }, setRuntimeFilter] = useRuntimeFilter();
 
   return (
-    <div className={cn('flex min-w-32 flex-col gap-2', className)}>
-      <Label htmlFor="runtime-filter">Runtime</Label>
+    <div className={className}>
+      <Label htmlFor="runtime-filter" className="mb-2">
+        Runtime
+      </Label>
       <Select
         value={runtimeLte?.toString() ?? '0'}
         onValueChange={(value) =>
@@ -43,8 +44,10 @@ export default function RuntimeFilter({ className }: RuntimeFilterProps) {
           })
         }
       >
-        <SelectTrigger id="runtime-filter">
-          <SelectValue placeholder="Any runtime" />
+        <SelectTrigger id="runtime-filter" className="w-full min-w-54">
+          <SelectValue placeholder="Any runtime">
+            {RUNTIME_OPTIONS.find((o) => o.value === (runtimeLte?.toString() ?? '0'))?.label}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {RUNTIME_OPTIONS.map((option) => (

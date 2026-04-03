@@ -1,8 +1,10 @@
 'use client';
 
-import { useIsClient } from '@/hooks/use-is-client';
 import { ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+import { useIsClient } from '@/hooks/use-is-client';
+
 import { Button } from './ui/button';
 
 type GoBackProps = {

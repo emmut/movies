@@ -1,6 +1,7 @@
-import { Imgproxy } from '@/components/image-proxy';
-import { cn } from '@/lib/utils';
+import ClientImage from '@/components/client-image';
+import { cn, formatImageUrl } from '@/lib/utils';
 import { Movie, MovieDetails } from '@/types/movie';
+import type { ProxyImageUrls } from '@/types/proxy-image';
 import { TvDetails, TvShow } from '@/types/tv-show';
 import { Star } from 'lucide-react';
 import Link from 'next/link';
@@ -29,6 +30,14 @@ function isResource(
   return 'title' in resource;
 }
 
+function resolveImageSrc(src: string, size: number) {
+  if (src.startsWith('http')) {
+    return src;
+  }
+
+  return formatImageUrl(src, size);
+}
+
 /**
  * Displays a card for a movie or TV show resource with poster, title, release year, and score.
  *
@@ -42,6 +51,7 @@ export default function ItemCard({
   showListButton = true,
   listId,
 }: ItemCardProps) {
+  const posterImageUrls = (item as { posterImageUrls?: ProxyImageUrls }).posterImageUrls;
   const score = Math.ceil(item.vote_average * 10) / 10;
 
   const title = isResource(item) ? item.title : item.name;
@@ -66,13 +76,11 @@ export default function ItemCard({
       <Link href={href}>
         <div className="relative h-full w-full">
           {item.poster_path ? (
-            <Imgproxy
-              className="object-cover"
-              src={item.poster_path}
-              alt={`Poster image of ${title}`}
-              fill
-              width={500}
-              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            <ClientImage
+              imageUrls={posterImageUrls}
+              fallbackSrc={resolveImageSrc(item.poster_path, 500)}
+              alt={title}
+              className="h-full w-full object-cover"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-zinc-800">

@@ -1,9 +1,38 @@
 'use server';
 
 import { env } from '@/env';
+import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { Movie, MultiSearchResponse, SearchedMovieResponse } from '@/types/movie';
 import { SearchedPerson, SearchedPersonResponse } from '@/types/person';
 import { SearchedTvResponse, TvShow } from '@/types/tv-show';
+
+function addPosterImageUrls<T extends { poster_path: string | null }>(item: T) {
+  if (!item.poster_path) {
+    return item;
+  }
+
+  return {
+    ...item,
+    posterImageUrls: buildProxyImageUrls(item.poster_path, {
+      width: 500,
+      fill: true,
+    }),
+  };
+}
+
+function addProfileImageUrls<T extends { profile_path: string | null }>(item: T) {
+  if (!item.profile_path) {
+    return item;
+  }
+
+  return {
+    ...item,
+    profileImageUrls: buildProxyImageUrls(item.profile_path, {
+      width: 500,
+      fill: true,
+    }),
+  };
+}
 
 export async function fetchMoviesBySearchQuery(query: string, page: string) {
   const searchParams = new URLSearchParams();
@@ -129,7 +158,7 @@ export async function getSearchMovies(
   page: number = 1,
 ): Promise<SearchMoviesResult> {
   const { movies, totalPages } = await fetchMoviesBySearchQuery(query, String(page));
-  return { movies, totalPages };
+  return { movies: movies.map(addPosterImageUrls), totalPages };
 }
 
 /**
@@ -145,7 +174,7 @@ export async function getSearchTvShows(
   page: number = 1,
 ): Promise<SearchTvShowsResult> {
   const { tvShows, totalPages } = await fetchTvShowsBySearchQuery(query, String(page));
-  return { tvShows, totalPages };
+  return { tvShows: tvShows.map(addPosterImageUrls), totalPages };
 }
 
 /**
@@ -161,7 +190,7 @@ export async function getSearchPersons(
   page: number = 1,
 ): Promise<SearchPersonsResult> {
   const { persons, totalPages } = await fetchPersonsBySearchQuery(query, String(page));
-  return { persons, totalPages };
+  return { persons: persons.map(addProfileImageUrls), totalPages };
 }
 
 /**
@@ -174,5 +203,18 @@ export async function getSearchPersons(
  */
 export async function getSearchMulti(query: string, page: number = 1): Promise<SearchMultiResult> {
   const { results, totalPages } = await fetchMultiSearchQuery(query, String(page));
-  return { results, totalPages };
+  return {
+    results: results.map((result) => {
+      if (result.media_type === 'person') {
+        return addProfileImageUrls(result);
+      }
+
+      if (result.media_type === 'movie' || result.media_type === 'tv') {
+        return addPosterImageUrls(result);
+      }
+
+      return result;
+    }),
+    totalPages,
+  };
 }

@@ -1,13 +1,14 @@
 'use server';
 
+import { and, eq } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+
 import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
 import { revalidateUserWatchlistCache } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
 import { resourceIdSchema } from '@/lib/validations';
-import { and, eq } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 /**
  * Adds a movie to the authenticated user's watchlist.
@@ -71,7 +72,11 @@ export async function addToWatchlist({ resourceId, resourceType }: AddToWatchlis
       resourceType: validatedResourceId.resourceType,
     });
 
-    revalidateUserWatchlistCache(user.id, validatedResourceId.resourceType, validatedResourceId.resourceId);
+    revalidateUserWatchlistCache(
+      user.id,
+      validatedResourceId.resourceType,
+      validatedResourceId.resourceId,
+    );
 
     revalidatePath('/watchlist');
     revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
@@ -131,7 +136,11 @@ export async function removeFromWatchlist({ resourceId, resourceType }: RemoveFr
         ),
       );
 
-    revalidateUserWatchlistCache(user.id, validatedResourceId.resourceType, validatedResourceId.resourceId);
+    revalidateUserWatchlistCache(
+      user.id,
+      validatedResourceId.resourceType,
+      validatedResourceId.resourceId,
+    );
 
     revalidatePath('/watchlist');
     revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
@@ -216,7 +225,11 @@ export async function toggleWatchlist({ resourceId, resourceType }: ToggleWatchl
       state = 'added';
     }
 
-    revalidateUserWatchlistCache(user.id, validatedResourceId.resourceType, validatedResourceId.resourceId);
+    revalidateUserWatchlistCache(
+      user.id,
+      validatedResourceId.resourceType,
+      validatedResourceId.resourceId,
+    );
 
     revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
     revalidatePath('/watchlist');

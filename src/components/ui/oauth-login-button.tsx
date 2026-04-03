@@ -1,12 +1,14 @@
 'use client';
 
-import { signInAnonymous, signInDiscord, signInGitHub } from '@/lib/auth-client';
-import { cn, getSafeRedirectUrl } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2, UserIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
+
+import { signInAnonymous, signInDiscord, signInGitHub } from '@/lib/auth-client';
+import { cn, getSafeRedirectUrl } from '@/lib/utils';
+
 import { Button } from './button';
 
 type AvailableOAuthProviders = 'discord' | 'google' | 'github' | 'anonymous';

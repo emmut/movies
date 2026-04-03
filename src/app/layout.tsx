@@ -1,3 +1,8 @@
+import clsx from 'clsx';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { ReactNode, Suspense } from 'react';
+import { Toaster } from 'sonner';
+
 import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
@@ -6,10 +11,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { inter } from '@/fonts';
 import { PostHogClientProvider } from '@/providers/posthog';
 import { QueryProvider } from '@/providers/query-provider';
-import clsx from 'clsx';
-import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { ReactNode, Suspense } from 'react';
-import { Toaster } from 'sonner';
+
 import './globals.css';
 import { Search } from './search';
 

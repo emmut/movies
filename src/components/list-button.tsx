@@ -1,5 +1,10 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
+import { Check, List, ListPlus, Star } from 'lucide-react';
+import { ChangeEvent, useState, useTransition } from 'react';
+import { toast } from 'sonner';
+
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -31,10 +36,6 @@ import {
 import { queryKeys } from '@/lib/query-keys';
 import { isResourceInWatchlist } from '@/lib/watchlist';
 import { toggleWatchlist } from '@/lib/watchlist-actions';
-import { useQueryClient } from '@tanstack/react-query';
-import { Check, List, ListPlus, Star } from 'lucide-react';
-import { ChangeEvent, useState, useTransition } from 'react';
-import { toast } from 'sonner';
 
 interface ListButtonProps {
   mediaId: number;
@@ -181,10 +182,8 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
           }
         }}
       >
-        <DropdownMenuTrigger asChild>
-          <Button variant="glass" size="icon" disabled={isPending}>
-            <List className="h-4 w-4" />
-          </Button>
+        <DropdownMenuTrigger render={<Button variant="glass" size="icon" disabled={isPending} />}>
+          <List className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-52">
           {showWatchlist && (
@@ -257,7 +256,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
                       key={emoji}
                       type="button"
                       onClick={() => setSelectedEmoji(emoji)}
-                      className={`hover:bg-muted rounded p-2 text-xl transition-colors ${
+                      className={`rounded p-2 text-xl transition-colors hover:bg-muted ${
                         selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
                       }`}
                       disabled={isLoading}
@@ -266,7 +265,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
                     </button>
                   ))}
                 </div>
-                <p className="text-muted-foreground mt-1 text-sm">Selected: {selectedEmoji}</p>
+                <p className="mt-1 text-sm text-muted-foreground">Selected: {selectedEmoji}</p>
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">

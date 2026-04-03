@@ -1,9 +1,11 @@
 {
   "permissions": {
     "allow": [
+      "Skill(shadcn)",
       "Bash(pnpm build:*)",
       "Bash(pnpm tsc:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "Bash(gh api:*)"
     ]
   }
 }
