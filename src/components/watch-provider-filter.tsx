@@ -140,7 +140,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                         />
                       )}
                     </div>
-                    <div className="flex-1 text-sm font-medium">{provider.provider_name}</div>
+                    <div className="flex-1 text-sm font-medium text-left">{provider.provider_name}</div>
                     {isSelected && <Check className="h-4 w-4 text-primary" />}
                   </button>
                 );
