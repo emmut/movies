@@ -1,9 +1,11 @@
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { redirect } from 'next/navigation';
+
 import { getUser } from '@/lib/auth-server';
 import { getListDetailsWithResources } from '@/lib/lists';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
-import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-import { redirect } from 'next/navigation';
+
 import { ListDetailsContent } from './list-details-content';
 
 export default async function ListDetailsPage({
@@ -50,7 +52,7 @@ export default async function ListDetailsPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <ListDetailsContent listId={id} userId={user?.id} fetchListDetails={fetchListDetails} />
+      <ListDetailsContent listId={id} userId={user?.id} fetchListDetailsAction={fetchListDetails} />
     </HydrationBoundary>
   );
 }

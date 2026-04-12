@@ -1,5 +1,9 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { parseAsInteger, useQueryStates } from 'nuqs';
+
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
 import ItemCard from '@/components/item-card';
@@ -11,9 +15,6 @@ import { queryKeys } from '@/lib/query-keys';
 import { MovieDetails } from '@/types/movie';
 import { PersonDetails } from '@/types/person';
 import { TvDetails } from '@/types/tv-show';
-import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
-import { parseAsInteger, useQueryStates } from 'nuqs';
 
 type ListItem =
   | (MovieDetails & { resourceType: 'movie' })
@@ -23,7 +24,7 @@ type ListItem =
 type ListDetailsContentProps = {
   listId: string;
   userId?: string;
-  fetchListDetails: (
+  fetchListDetailsAction: (
     listId: string,
     page: number,
   ) => Promise<{
@@ -43,7 +44,11 @@ type ListDetailsContentProps = {
  * Client component that handles the list details page content with React Query.
  * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
  */
-export function ListDetailsContent({ listId, userId, fetchListDetails }: ListDetailsContentProps) {
+export function ListDetailsContent({
+  listId,
+  userId,
+  fetchListDetailsAction,
+}: ListDetailsContentProps) {
   // Use nuqs to manage URL state
   const [urlState] = useQueryStates(
     {
@@ -59,7 +64,7 @@ export function ListDetailsContent({ listId, userId, fetchListDetails }: ListDet
   // Fetch paginated list details
   const { data: paginatedList, isLoading } = useQuery({
     queryKey: queryKeys.lists.detail(listId, page),
-    queryFn: () => fetchListDetails(listId, page),
+    queryFn: () => fetchListDetailsAction(listId, page),
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
@@ -133,7 +138,7 @@ export function ListDetailsContent({ listId, userId, fetchListDetails }: ListDet
           </p>
           <Link
             href="/discover"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium shadow transition-colors"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
           >
             Explore Movies & TV Shows
           </Link>
