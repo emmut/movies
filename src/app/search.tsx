@@ -1,38 +1,68 @@
-'use client';
+import { createFileRoute } from '@tanstack/react-router';
 
-import { Search as SearchIcon } from 'lucide-react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { getUser } from '@/lib/auth-server';
+import { getQueryClient } from '@/lib/query-client';
+import { queryKeys } from '@/lib/query-keys';
+import {
+  getSearchMovies,
+  getSearchMulti,
+  getSearchPersons,
+  getSearchTvShows,
+  type SearchMoviesResult,
+  type SearchMultiResult,
+  type SearchPersonsResult,
+  type SearchTvShowsResult,
+} from '@/lib/search';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { SearchContent } from './search/search-content';
 
-import { Input } from '@/components/ui/input';
+export const Route = createFileRoute('/search')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    q: (search.q as string) ?? '',
+    page: Number(search.page ?? 1),
+    mediaType: (search.mediaType as string) ?? 'all',
+  }),
+  loader: async ({ search }) => {
+    const { q: query, page, mediaType } = search;
 
-function getMediaType(pathname: string, searchParams: URLSearchParams) {
-  if (!pathname.includes('search')) {
-    return 'all';
-  }
+    const user = await getUser();
+    const queryClient = getQueryClient();
 
-  return searchParams.get('mediaType') ?? 'all';
-}
+    if (query) {
+      if (mediaType === 'movie') {
+        await queryClient.prefetchQuery<SearchMoviesResult>({
+          queryKey: queryKeys.search.movies(query, page),
+          queryFn: () => getSearchMovies(query, page),
+        });
+      } else if (mediaType === 'tv') {
+        await queryClient.prefetchQuery<SearchTvShowsResult>({
+          queryKey: queryKeys.search.tvShows(query, page),
+          queryFn: () => getSearchTvShows(query, page),
+        });
+      } else if (mediaType === 'person') {
+        await queryClient.prefetchQuery<SearchPersonsResult>({
+          queryKey: queryKeys.search.persons(query, page),
+          queryFn: () => getSearchPersons(query, page),
+        });
+      } else {
+        await queryClient.prefetchQuery<SearchMultiResult>({
+          queryKey: queryKeys.search.multi(query, page),
+          queryFn: () => getSearchMulti(query, page),
+        });
+      }
+    }
 
-export function Search() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const mediaType = getMediaType(pathname, searchParams);
-  const q = searchParams.get('q') ?? '';
+    return { dehydratedState: dehydrate(queryClient), userId: user?.id };
+  },
+  component: SearchPage,
+});
+
+function SearchPage() {
+  const { dehydratedState, userId } = Route.useLoaderData();
 
   return (
-    <form action="/search" className="relative max-w-md flex-1">
-      <SearchIcon className="absolute top-1/2 left-2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-      <Input
-        type="search"
-        placeholder="Search..."
-        className="pl-8"
-        name="q"
-        spellCheck={false}
-        autoComplete="off"
-        autoCorrect="off"
-        defaultValue={q}
-      />
-      <input type="hidden" name="mediaType" value={mediaType} />
-    </form>
+    <HydrationBoundary state={dehydratedState}>
+      <SearchContent userId={userId} />
+    </HydrationBoundary>
   );
 }

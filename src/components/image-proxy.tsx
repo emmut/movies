@@ -1,4 +1,3 @@
-import { StaticImageData } from "next/image";
 import { generateImageUrl, type IGenerateImageUrl } from "@imgproxy/imgproxy-node";
 
 import styles from "./Imgproxy.module.css";
@@ -9,7 +8,7 @@ type Format = Options["format"];
 
 type ImgproxyProps = {
   className?: string;
-  src: string | StaticImageData;
+  src: string;
   alt?: string;
   fill?: boolean;
   priority?: boolean;
@@ -35,7 +34,7 @@ export const Imgproxy = ({
   fetchPriority,
   ...imgproxyOptions
 }: ImgproxyProps) => {
-  const resolvedSrc = typeof src === "string" ? src : src.src;
+  const resolvedSrc = src;
   const fullSrc = resolvedSrc.startsWith("http")
     ? resolvedSrc
     : `${imgproxyBaseUrl.replace(/\/$/, "")}${resolvedSrc}`;

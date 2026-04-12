@@ -1,9 +1,7 @@
-'use server';
-
 import { randomUUID } from 'crypto';
 
 import { and, eq, inArray, not } from 'drizzle-orm';
-import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
+import { createServerFn } from '@tanstack/react-start';
 
 import { user } from '@/db/schema/auth';
 import { userWatchProviders } from '@/db/schema/user-watch-providers';
@@ -16,6 +14,7 @@ import { DEFAULT_REGION, isValidRegionCode, RegionCode, regionSchema } from '@/l
 import { WatchProvider } from '@/types/watch-provider';
 
 import { MAJOR_STREAMING_PROVIDERS } from './config';
+import { withCache, TTL } from './server-cache';
 
 type WatchProvidersResponse = {
   results: WatchProvider[];
@@ -34,138 +33,105 @@ export async function getUserRegion() {
   return await getCachedUserRegion(session.user.id);
 }
 
-async function getCachedUserRegion(userId: string) {
-  'use cache: private';
-  cacheTag(CACHE_TAGS.private.userRegion(userId));
-  cacheLife('privateShort');
+const getCachedUserRegion = withCache(
+  async (userId: string) => {
+    const userData = await db
+      .select({ region: user.region })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
 
-  const userData = await db
-    .select({ region: user.region })
-    .from(user)
-    .where(eq(user.id, userId))
-    .limit(1);
+    if (userData.length === 0) {
+      throw new Error('User not found');
+    }
 
-  if (userData.length === 0) {
-    throw new Error('User not found');
-  }
+    return (userData[0].region ?? DEFAULT_REGION) as RegionCode;
+  },
+  (userId) => CACHE_TAGS.private.userRegion(userId),
+  TTL.minutes,
+);
 
-  return (userData[0].region ?? DEFAULT_REGION) as RegionCode;
-}
+export const updateUserRegion = createServerFn()
+  .inputValidator((data: string) => data)
+  .handler(async ({ data: region }) => {
+    const session = await getSession();
 
-export async function updateUserRegion(region: string) {
-  const session = await getSession();
+    if (!session?.user?.id) {
+      throw new Error('Unauthorized');
+    }
 
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
+    const validatedRegion = regionSchema.parse(region);
 
-  const validatedRegion = regionSchema.parse(region);
+    if (!isValidRegionCode(validatedRegion)) {
+      throw new Error('Invalid region code');
+    }
 
-  if (!isValidRegionCode(validatedRegion)) {
-    throw new Error('Invalid region code');
-  }
+    await db
+      .update(user)
+      .set({
+        region: validatedRegion,
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, session.user.id));
 
-  await db
-    .update(user)
-    .set({
-      region: validatedRegion,
-      updatedAt: new Date(),
-    })
-    .where(eq(user.id, session.user.id));
+    revalidateUserPreferenceCache(session.user.id);
 
-  revalidateUserPreferenceCache(session.user.id);
+    return { success: true, region: validatedRegion };
+  });
 
-  revalidatePath('/settings');
-  revalidatePath('/discover');
-  revalidatePath('/');
-
-  return { success: true, region: validatedRegion };
-}
-
-async function fetchWatchProvidersForRegion(region: string, userWatchProviders?: number[]) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.watchProvidersByRegion(region));
-  cacheLife('days');
-
-  const res = await fetch(
-    `https://api.themoviedb.org/3/watch/providers/movie?watch_region=${region}`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
+const fetchWatchProvidersForRegion = withCache(
+  async (region: string, _userWatchProviderIds?: number[]) => {
+    const res = await fetch(
+      `https://api.themoviedb.org/3/watch/providers/movie?watch_region=${region}`,
+      {
+        headers: {
+          authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+          accept: 'application/json',
+        },
       },
-    },
-  );
+    );
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch watch providers');
-  }
+    if (!res.ok) {
+      throw new Error('Failed to fetch watch providers');
+    }
 
-  const data: WatchProvidersResponse = await res.json();
+    const data: WatchProvidersResponse = await res.json();
+    return data.results;
+  },
+  (region) => CACHE_TAGS.public.watchProvidersByRegion(region),
+  TTL.days,
+);
 
-  const availableProviders = data.results
+export async function getWatchProviders(region?: string, userWatchProviderIds?: number[]) {
+  const userRegion = region || (await getUserRegion());
+  const allProviders = await fetchWatchProvidersForRegion(userRegion);
+
+  const availableProviders = allProviders
     .filter((provider) => provider.display_priority <= MAX_DISPLAY_PRIORITY)
     .sort((a, b) => a.display_priority - b.display_priority);
 
-  if (userWatchProviders && userWatchProviders.length > 0) {
-    const filteredUserWatchProviders = availableProviders.filter((provider) =>
-      userWatchProviders.includes(provider.provider_id),
+  if (userWatchProviderIds && userWatchProviderIds.length > 0) {
+    return availableProviders.filter((provider) =>
+      userWatchProviderIds.includes(provider.provider_id),
     );
-
-    return filteredUserWatchProviders;
   }
 
   const majorProviderIds = new Set<number>(MAJOR_STREAMING_PROVIDERS);
   const majorProviders = availableProviders.filter((provider) =>
     majorProviderIds.has(provider.provider_id),
   );
-
   const otherProviders = availableProviders.filter(
     (provider) => !majorProviderIds.has(provider.provider_id),
   );
 
-  const topProviders = [...majorProviders, ...otherProviders].slice(0, MAX_PROVIDERS);
-
-  return topProviders;
-}
-
-export async function getWatchProviders(region?: string, userWatchProviders?: number[]) {
-  const userRegion = region || (await getUserRegion());
-  return await fetchWatchProvidersForRegion(userRegion, userWatchProviders);
-}
-
-async function fetchAllWatchProvidersForRegion(region: string) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.watchProvidersByRegion(region));
-  cacheLife('days');
-
-  const res = await fetch(
-    `https://api.themoviedb.org/3/watch/providers/movie?watch_region=${region}`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    },
-  );
-
-  if (!res.ok) {
-    throw new Error('Failed to fetch watch providers');
-  }
-
-  const data: WatchProvidersResponse = await res.json();
-
-  return data.results;
+  return [...majorProviders, ...otherProviders].slice(0, MAX_PROVIDERS);
 }
 
 export async function getAllWatchProviders(region?: string) {
   const userRegion = region || (await getUserRegion());
-  return await fetchAllWatchProvidersForRegion(userRegion);
+  return await fetchWatchProvidersForRegion(userRegion);
 }
 
-/**
- * Gets the watch providers preferred by the user
- */
 export async function getUserWatchProviders() {
   const session = await getSession();
 
@@ -176,54 +142,50 @@ export async function getUserWatchProviders() {
   return await getCachedUserWatchProviders(session.user.id);
 }
 
-async function getCachedUserWatchProviders(userId: string) {
-  'use cache: private';
-  cacheTag(CACHE_TAGS.private.userWatchProviders(userId));
-  cacheLife('privateShort');
+const getCachedUserWatchProviders = withCache(
+  async (userId: string) => {
+    const result = await db
+      .select({ providerId: userWatchProviders.providerId })
+      .from(userWatchProviders)
+      .where(eq(userWatchProviders.userId, userId));
 
-  const result = await db
-    .select({ providerId: userWatchProviders.providerId })
-    .from(userWatchProviders)
-    .where(eq(userWatchProviders.userId, userId));
+    return result.map((row) => row.providerId);
+  },
+  (userId) => CACHE_TAGS.private.userWatchProviders(userId),
+  TTL.minutes,
+);
 
-  return result.map((row) => row.providerId);
-}
+export const setUserWatchProviders = createServerFn()
+  .inputValidator((data: number[]) => data)
+  .handler(async ({ data: providerIds }) => {
+    const session = await getSession();
 
-/**
- * Sets the watch providers preferred by the user
- */
-export async function setUserWatchProviders(providerIds: number[]) {
-  const session = await getSession();
+    if (!session?.user?.id) {
+      throw new Error('Unauthorized');
+    }
 
-  if (!session?.user?.id) {
-    throw new Error('Unauthorized');
-  }
+    const uniqueIds = [...new Set(providerIds)];
 
-  const uniqueIds = [...new Set(providerIds)];
+    if (uniqueIds.length === 0) {
+      await db.delete(userWatchProviders).where(eq(userWatchProviders.userId, session.user.id));
+    } else {
+      const values = uniqueIds.map((providerId) => ({
+        id: randomUUID(),
+        userId: session.user.id,
+        providerId,
+        createdAt: new Date(),
+      }));
 
-  if (uniqueIds.length === 0) {
-    await db.delete(userWatchProviders).where(eq(userWatchProviders.userId, session.user.id));
-  } else {
-    const values = uniqueIds.map((providerId) => ({
-      id: randomUUID(),
-      userId: session.user.id,
-      providerId,
-      createdAt: new Date(),
-    }));
+      await db.insert(userWatchProviders).values(values).onConflictDoNothing();
+      await db
+        .delete(userWatchProviders)
+        .where(
+          and(
+            eq(userWatchProviders.userId, session.user.id),
+            not(inArray(userWatchProviders.providerId, uniqueIds)),
+          ),
+        );
+    }
 
-    await db.insert(userWatchProviders).values(values).onConflictDoNothing();
-    await db
-      .delete(userWatchProviders)
-      .where(
-        and(
-          eq(userWatchProviders.userId, session.user.id),
-          not(inArray(userWatchProviders.providerId, uniqueIds)),
-        ),
-      );
-  }
-
-  revalidateUserPreferenceCache(session.user.id);
-
-  revalidatePath('/settings');
-  revalidatePath('/discover');
-}
+    revalidateUserPreferenceCache(session.user.id);
+  });

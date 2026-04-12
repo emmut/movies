@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -42,7 +42,7 @@ export function AddPasskey() {
       toast.success('Passkey added successfully!');
       setIsOpen(false);
       setName('My Passkey');
-      router.refresh();
+      router.invalidate();
     }
 
     setIsLoading(false);

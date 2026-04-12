@@ -1,7 +1,6 @@
 import { passkey } from '@better-auth/passkey';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { nextCookies } from 'better-auth/next-js';
 import { anonymous } from 'better-auth/plugins';
 import { eq } from 'drizzle-orm';
 
@@ -33,7 +32,6 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    nextCookies(),
     anonymous({
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         try {

@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { createFileRoute, redirect } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 
 import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
@@ -8,33 +8,37 @@ import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
 import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
 
-type ListsPageProps = {
-  searchParams: Promise<{
-    page?: string;
-  }>;
-};
+export const Route = createFileRoute('/lists')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    page: Number(search.page ?? 1),
+  }),
+  beforeLoad: async () => {
+    const user = await getUser();
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
+    return { user };
+  },
+  loader: async ({ search }) => {
+    const { page } = search;
 
-export default async function ListsPage(props: ListsPageProps) {
-  const user = await getUser();
+    const [paginatedData, totalListsCount] = await Promise.all([
+      getUserListsPaginated(page),
+      getUserListCount(),
+    ]);
 
-  if (!user) {
-    redirect('/login');
-  }
+    if (paginatedData.totalPages > 0 && page > paginatedData.totalPages) {
+      throw redirect({ to: '/lists', search: { page: paginatedData.totalPages } });
+    }
 
-  const searchParams = await props.searchParams;
-  const page = Number(searchParams.page ?? '1');
+    return { paginatedData, totalListsCount };
+  },
+  component: ListsPage,
+});
 
-  const [paginatedData, totalListsCount] = await Promise.all([
-    getUserListsPaginated(page),
-    getUserListCount(),
-  ]);
-
+function ListsPage() {
+  const { paginatedData, totalListsCount } = Route.useLoaderData();
   const { lists, totalPages } = paginatedData;
-
-  // If requested page is beyond the last, canonicalize the URL
-  if (paginatedData.totalPages > 0 && page > paginatedData.totalPages) {
-    redirect(`/lists?page=${paginatedData.totalPages}`);
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -68,7 +72,7 @@ export default async function ListsPage(props: ListsPageProps) {
             show
           </p>
           <Link
-            href="/discover"
+            to="/discover"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
           >
             Explore Movies & TV Shows

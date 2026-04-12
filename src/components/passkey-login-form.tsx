@@ -1,7 +1,7 @@
 'use client';
 
 import { PasskeyFillIcon } from '@primer/octicons-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -38,8 +38,8 @@ export function PasskeyLoginForm({ redirectUrl }: { redirectUrl?: string }) {
       setIsLoading(false);
     } else {
       const safeRedirectUrl = getSafeRedirectUrl(redirectUrl);
-      router.push(safeRedirectUrl);
-      router.refresh();
+      router.navigate({ to: safeRedirectUrl });
+      router.invalidate();
     }
   }
 

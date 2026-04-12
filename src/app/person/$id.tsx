@@ -1,40 +1,63 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { Calendar, MapPin, Star, Users } from 'lucide-react';
+
 import Badge from '@/components/badge';
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
+import { Imgproxy } from '@/components/image-proxy';
 import ItemCard from '@/components/item-card';
 import { ListButton } from '@/components/list-button';
 import { ItemSlider } from '@/components/ui/item-slider';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getUser } from '@/lib/auth-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
-import { Imgproxy } from '@/components/image-proxy';
 import { deduplicateAndSortByPopularity } from '@/lib/utils';
-import { Calendar, MapPin, Star, Users } from 'lucide-react';
-import { headers } from 'next/headers';
+import { getRequest } from '@tanstack/react-start/server';
 
-type PersonPageProps = {
-  params: Promise<{
-    id: string;
-  }>;
-};
+export const Route = createFileRoute('/person/$id')({
+  loader: async ({ params }) => {
+    const personId = Number(params.id);
+    const request = getRequest();
+    const referer = request?.headers.get('referer') ?? null;
 
-/**
- * Renders a server-side React page displaying comprehensive details for a specific person, including their biography, filmography, and personal information.
- *
- * @param props - Contains a promise resolving to route parameters with the person ID.
- * @returns The server-rendered React component for the person detail page.
- */
-export default async function PersonPage(props: PersonPageProps) {
-  const params = await props.params;
-  const personId = Number(params.id);
-  const headersList = await headers();
-  const referer = headersList.get('referer');
+    const user = await getUser();
+    const [person, movieCredits, tvCredits] = await Promise.all([
+      getPersonDetails(personId),
+      getPersonMovieCredits(personId),
+      getPersonTvCredits(personId),
+    ]);
 
-  const user = await getUser();
-  const [person, movieCredits, tvCredits] = await Promise.all([
-    getPersonDetails(personId),
-    getPersonMovieCredits(personId),
-    getPersonTvCredits(personId),
-  ]);
+    return { personId, referer, user, person, movieCredits, tvCredits };
+  },
+  pendingComponent: PersonPending,
+  component: PersonPage,
+});
+
+function PersonPending() {
+  return (
+    <div className="min-h-screen">
+      <div className="mb-6">
+        <Skeleton className="h-10 w-24" />
+      </div>
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
+        <div className="lg:col-span-4">
+          <Skeleton className="aspect-2/3 w-full max-w-xs rounded-lg" />
+        </div>
+        <div className="space-y-6 lg:col-span-8">
+          <Skeleton className="h-12 w-64" />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PersonPage() {
+  const { personId, referer, user, person, movieCredits, tvCredits } = Route.useLoaderData();
 
   const {
     name,
@@ -49,19 +72,16 @@ export default async function PersonPage(props: PersonPageProps) {
     imdb_id,
   } = person;
 
-  // Deduplicate and sort movies by popularity and release date
   const uniqueMovies = deduplicateAndSortByPopularity(
     movieCredits.cast,
     (movie) => movie.release_date,
   );
 
-  // Deduplicate and sort TV shows by popularity and first air date
   const uniqueTvShows = deduplicateAndSortByPopularity(
     tvCredits.cast,
     (show) => show.first_air_date,
   );
 
-  // Convert movies to format expected by ResourceCard
   const moviesForGrid = uniqueMovies.map((movie) => ({
     id: movie.id,
     title: movie.title,
@@ -80,7 +100,6 @@ export default async function PersonPage(props: PersonPageProps) {
     vote_count: 0,
   }));
 
-  // Convert TV shows to format expected by ResourceCard
   const tvShowsForGrid = uniqueTvShows.map((show) => ({
     id: show.id,
     name: show.name,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -51,7 +51,7 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
 
       toast.success('Passkey deleted successfully!');
       setDeleteDialogOpen(null);
-      router.refresh();
+      router.invalidate();
     } catch (error) {
       console.error('Failed to delete passkey:', error);
       toast.error('Failed to delete passkey. Please try again.');

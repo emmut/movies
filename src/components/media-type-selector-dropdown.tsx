@@ -1,7 +1,7 @@
 'use client';
 
 import { Film, Search, Tv, User } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useLocation, useRouter } from '@tanstack/react-router';
 import { useOptimistic, useTransition } from 'react';
 
 import {
@@ -20,27 +20,17 @@ type MediaTypeSelectorDropdownProps = {
   currentMediaType: MediaType;
 };
 
-/**
- * Renders a dropdown selector for choosing between media types.
- *
- * Updates the URL query parameters and navigates to reflect the selected media type. If a genre is selected that is not valid for the new media type, it is removed from the query parameters.
- *
- * @param currentMediaType - The currently selected media type.
- * @param includePersons - Whether to show the persons option. Defaults to false.
- * @param includeAll - Whether to show the all option. Defaults to false.
- */
 export default function MediaTypeSelectorDropdown({
   currentMediaType,
 }: MediaTypeSelectorDropdownProps) {
   const isMounted = useIsMounted();
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const { pathname, search } = useLocation();
   const [optimisticMediaType, setOptimisticMediaType] = useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
 
   async function handleMediaTypeChange(mediaType: MediaType) {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(search);
     const currentGenreId = params.get('genreId');
 
     startTransition(() => {
@@ -64,11 +54,10 @@ export default function MediaTypeSelectorDropdown({
         params.delete('genreId');
       }
     } else if (mediaType === 'person' || mediaType === 'all') {
-      // Persons and mixed results don't have genres, so remove genreId
       params.delete('genreId');
     }
 
-    router.push(`${pathname}?${params.toString()}`);
+    router.navigate({ to: `${pathname}?${params.toString()}` });
   }
 
   function getDisplayName(mediaType: MediaType) {
@@ -101,8 +90,6 @@ export default function MediaTypeSelectorDropdown({
     }
   }
 
-  // Only render the dropdown after mounting to avoid hydration mismatch
-  // from Radix UI's dynamic aria-controls IDs
   if (!isMounted) {
     return (
       <div className="flex h-9 w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs">

@@ -3,7 +3,7 @@ import { cn, formatImageUrl } from '@/lib/utils';
 import { PersonDetails, SearchedPerson } from '@/types/person';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 import { User } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import Badge from './badge';
 import { ListButton } from './list-button';
 import { RemoveFromListButton } from './remove-from-list-button';
@@ -50,7 +50,7 @@ export default function PersonCard({
         className,
       )}
     >
-      <Link href={href}>
+      <Link to={href}>
         <div className="relative h-full w-full">
           {person.profile_path ? (
             <ClientImage

@@ -1,9 +1,14 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { Calendar, Star, Tv, Users } from 'lucide-react';
+
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
+import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
+import { Skeleton } from '@/components/ui/skeleton';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
@@ -17,43 +22,65 @@ import {
   getTvShowWatchProviders,
 } from '@/lib/tv-shows';
 import { getUserRegion } from '@/lib/user-actions';
-import { Imgproxy } from '@/components/image-proxy';
 import { isResourceInWatchlist } from '@/lib/watchlist';
-import { Calendar, Star, Tv, Users } from 'lucide-react';
-import { headers } from 'next/headers';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
+import { getRequest } from '@tanstack/react-start/server';
 
-type TvShowPageProps = {
-  params: Promise<{
-    tvId: string;
-  }>;
-};
+export const Route = createFileRoute('/tv/$tvId')({
+  loader: async ({ params }) => {
+    const tvId = Number(params.tvId);
+    const request = getRequest();
+    const referer = request?.headers.get('referer') ?? null;
 
-const RESOURCE_TYPE = 'tv';
+    const user = await getUser();
+    const userRegion = await getUserRegion();
+    const inWatchlist = user ? await isResourceInWatchlist(tvId, 'tv') : false;
 
-/**
- * Displays a comprehensive TV show page with details, cast, creators, streaming providers, and interactive controls.
- *
- * Fetches and presents information about a TV show based on the provided TV show ID, including images, overview, genres, ratings, seasons, episodes, networks, creators, and cast. Shows streaming providers available in the user's region and allows authenticated users to manage their watchlist. Provides external links to TMDB and the official website if available.
- *
- * @param props - Contains a promise resolving to route parameters with the TV show ID.
- */
-export default async function TvShowPage(props: TvShowPageProps) {
-  const params = await props.params;
-  const tvId = Number(params.tvId);
-  const headersList = await headers();
-  const referer = headersList.get('referer');
+    const [tvShow, credits, watchProviders, imdbId] = await Promise.all([
+      getTvShowDetails(tvId),
+      getTvShowCredits(tvId),
+      getTvShowWatchProviders(tvId),
+      getTvShowImdbId(tvId),
+    ]);
 
-  const user = await getUser();
-  const userRegion = await getUserRegion();
-  const inWatchlist = user ? await isResourceInWatchlist(tvId, RESOURCE_TYPE) : false;
+    return { tvId, referer, user, userRegion, inWatchlist, tvShow, credits, watchProviders, imdbId };
+  },
+  pendingComponent: TvPending,
+  component: TvShowPage,
+});
 
-  const [tvShow, credits, watchProviders, imdbId] = await Promise.all([
-    getTvShowDetails(tvId),
-    getTvShowCredits(tvId),
-    getTvShowWatchProviders(tvId),
-    getTvShowImdbId(tvId),
-  ]);
+function TvPending() {
+  return (
+    <div className="min-h-screen">
+      <div className="mb-6">
+        <Skeleton className="h-10 w-24" />
+      </div>
+      <div className="relative -mx-4 mb-8 h-64 md:h-80 lg:h-96">
+        <Skeleton className="h-full w-full" />
+      </div>
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
+        <div className="lg:col-span-4">
+          <Poster.Skeleton />
+        </div>
+        <div className="space-y-6 lg:col-span-8">
+          <Skeleton className="h-12 w-64" />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-lg bg-zinc-900 p-4 text-center">
+                <Skeleton className="mx-auto mb-2 h-6 w-6" />
+                <Skeleton className="mx-auto mb-1 h-6 w-12" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TvShowPage() {
+  const { tvId, referer, user, userRegion, inWatchlist, tvShow, credits, watchProviders, imdbId } =
+    Route.useLoaderData();
 
   const {
     name,
@@ -112,7 +139,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
             itemId={tvId}
             inWatchlist={inWatchlist}
             userId={user?.id}
-            resourceType={RESOURCE_TYPE}
+            resourceType="tv"
           />
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -151,7 +178,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <h2 className="mb-3 text-xl font-semibold">Genres</h2>
               <div className="flex flex-wrap gap-2">
                 {genres.map((genre) => (
-                  <Link key={genre.id} href={`/discover?genreId=${genre.id}&mediaType=tv`}>
+                  <Link key={genre.id} to={`/discover?genreId=${genre.id}&mediaType=tv`}>
                     <Pill>{genre.name}</Pill>
                   </Link>
                 ))}
@@ -242,7 +269,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                 {created_by.map((creator) => (
                   <Link
                     key={creator.credit_id}
-                    href={`/person/${creator.id}`}
+                    to={`/person/${creator.id}`}
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                   >
                     {creator.profile_path ? (
@@ -272,7 +299,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                 {credits.cast.map((person) => (
                   <Link
                     key={person.credit_id}
-                    href={`/person/${person.id}`}
+                    to={`/person/${person.id}`}
                     className="w-32 shrink-0 snap-center transition-transform hover:scale-105"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">

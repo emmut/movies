@@ -3,7 +3,7 @@ import { Imgproxy } from '@/components/image-proxy';
 import { fetchTrendingMovies } from '@/lib/movies';
 import { fetchTrendingTvShows } from '@/lib/tv-shows';
 import { formatDateYear } from '@/lib/utils';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 type TrendingCardProp = {
   index: number;
@@ -37,7 +37,7 @@ async function Trending({ index, type }: TrendingCardProp) {
 
   return (
     <Link
-      href={href}
+      to={href}
       className={`group relative h-52 overflow-hidden rounded-xl border ${borderColor} transition-all hover:scale-[1.02] focus:scale-[1.02] focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none lg:h-72 lg:flex-1`}
     >
       {resource.backdrop_path && (

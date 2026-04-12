@@ -10,7 +10,7 @@ import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/l
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 type WatchlistContentProps = {
@@ -113,7 +113,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
               : `Add some ${mediaType === 'movie' ? 'movies' : 'TV shows'} to see them here`}
           </p>
           <Link
-            href={`/discover?mediaType=${mediaType}`}
+            to={`/discover?mediaType=${mediaType}`}
             className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium shadow transition-colors"
           >
             Explore {mediaType === 'movie' ? 'Movies' : 'TV Shows'}

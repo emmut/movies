@@ -1,5 +1,5 @@
 import { Film, Home } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 import SearchBox from '@/components/search-box';
 import { Button } from '@/components/ui/button';
@@ -28,12 +28,12 @@ export default function NotFound() {
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
-        <Button size="lg" render={<Link href="/" />}>
+        <Button size="lg" render={<Link to="/" />}>
           <Home className="h-4 w-4" />
           Home
         </Button>
 
-        <Button variant="outline" size="lg" render={<Link href="/discover" />}>
+        <Button variant="outline" size="lg" render={<Link to="/discover" />}>
           <Film className="h-4 w-4" />
           Discover Movies
         </Button>

@@ -1,9 +1,10 @@
-import { useSearchParams } from 'next/navigation';
+import { useLocation } from '@tanstack/react-router';
 
 import SearchIcon from '@/icons/SearchIcon';
 
 export default function SearchBar() {
-  const searchParams = useSearchParams();
+  const { search } = useLocation();
+  const searchParams = new URLSearchParams(search);
   const q = searchParams.get('q') ?? '';
 
   return (

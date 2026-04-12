@@ -64,7 +64,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
   async function refreshLists() {
     try {
       setIsLoadingWatchlist(true);
-      const userLists = await getUserListsWithStatus(mediaId, mediaType);
+      const userLists = await getUserListsWithStatus({ data: { mediaId, mediaType } });
       setLists(userLists);
       const watchlistStatus = showWatchlist
         ? await isResourceInWatchlist(mediaId, mediaType)
@@ -84,10 +84,10 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
     startTransition(async () => {
       try {
         if (hasItem) {
-          await removeFromList(listId, mediaId, mediaType);
+          await removeFromList({ data: { listId, mediaId, mediaType } });
           toast.success(`Removed from "${listName}"`);
         } else {
-          await addToList(listId, mediaId, mediaType);
+          await addToList({ data: { listId, mediaId, mediaType } });
           toast.success(`Added to "${listName}"`);
         }
 
@@ -121,9 +121,9 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
 
     setIsLoading(true);
     try {
-      const result = await createList(newListName.trim(), newListDescription.trim(), selectedEmoji);
+      const result = await createList({ data: { name: newListName.trim(), description: newListDescription.trim(), emoji: selectedEmoji } });
       if (result.success) {
-        await addToList(result.listId, mediaId, mediaType);
+        await addToList({ data: { listId: result.listId, mediaId, mediaType } });
         setNewListName('');
         setNewListDescription('');
         setSelectedEmoji('📝');
@@ -157,8 +157,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
     startTransition(async () => {
       try {
         const result = await toggleWatchlist({
-          resourceId: mediaId,
-          resourceType: mediaType,
+          data: { resourceId: mediaId, resourceType: mediaType },
         });
         setIsInWatchlist(result.action === 'added');
         toast.success(result.action === 'added' ? 'Added to watchlist' : 'Removed from watchlist');

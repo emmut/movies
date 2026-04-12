@@ -1,36 +1,19 @@
 'use client';
 
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useLocation } from '@tanstack/react-router';
 import { usePostHog } from 'posthog-js/react';
-import { Suspense, useEffect } from 'react';
+import { useEffect } from 'react';
 
-function PostHogPageView() {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+export function SuspendedPostHogPageView() {
+  const { pathname, search } = useLocation();
   const posthog = usePostHog();
 
-  // Track pageviews
   useEffect(() => {
     if (pathname && posthog) {
-      let url = window.origin + pathname;
-      if (searchParams.toString()) {
-        url = url + `?${searchParams.toString()}`;
-      }
-
+      const url = window.origin + pathname + (search ? search : '');
       posthog.capture('$pageview', { $current_url: url });
     }
-  }, [pathname, searchParams, posthog]);
+  }, [pathname, search, posthog]);
 
   return null;
-}
-
-// Wrap this in Suspense to avoid the `useSearchParams` usage above
-// from de-opting the whole app into client-side rendering
-// See: https://nextjs.org/docs/messages/deopted-into-client-rendering
-export function SuspendedPostHogPageView() {
-  return (
-    <Suspense fallback={null}>
-      <PostHogPageView />
-    </Suspense>
-  );
 }

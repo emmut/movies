@@ -1,3 +1,4 @@
+@import '@fontsource-variable/inter';
 @import 'tailwindcss';
 /*
   ---break---
@@ -10,6 +11,7 @@
 
 @theme {
   --breakpoint-desktop: 1024px;
+  --font-sans: 'Inter Variable', sans-serif;
 }
 
 /*

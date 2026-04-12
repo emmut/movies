@@ -1,7 +1,7 @@
 'use client';
 import { ChevronsUpDown, LogOut, Settings } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { Link } from '@tanstack/react-router';
+import { useRouter } from '@tanstack/react-router';
 import { toast } from 'sonner';
 
 import {
@@ -57,7 +57,7 @@ export function NavUser({
         toast.success('You have been logged out', {
           description: 'See you soon!',
         });
-        router.refresh();
+        router.invalidate();
       } else {
         console.error('Unexpected logout response:', data);
         toast.error('An error occurred', {
@@ -104,7 +104,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              render={<Link href="/settings" onClick={() => setOpenMobile(false)} />}
+              render={<Link to="/settings" onClick={() => setOpenMobile(false)} />}
             >
               <Settings />
               Settings

@@ -1,7 +1,7 @@
 'use client';
 
 import { Check, Filter } from 'lucide-react';
-import Image from 'next/image';
+
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 
@@ -130,9 +130,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                           {provider.provider_name.charAt(0).toUpperCase()}
                         </div>
                       ) : (
-                        <Image
-                          unoptimized
-                          width={32}
+                        <img width={32}
                           height={32}
                           src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
                           alt={provider.provider_name}

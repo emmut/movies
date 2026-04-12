@@ -1,48 +1,48 @@
 import clsx from 'clsx';
-import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { ReactNode, Suspense } from 'react';
+import { NuqsAdapter } from 'nuqs/adapters/tanstack-router';
+import { Suspense } from 'react';
 import { Toaster } from 'sonner';
 
 import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
 import { Footer } from '@/components/footer';
-import { ScrollToTop } from '@/components/scroll-to-top';
 import { LoginToastHandler } from '@/components/login-toast-handler';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { inter } from '@/fonts';
 import { PostHogClientProvider } from '@/providers/posthog';
 import { QueryProvider } from '@/providers/query-provider';
 
+import { createRootRoute, HeadContent, Outlet, Scripts } from '@tanstack/react-router';
+import { Search } from '@/components/header-search';
+
 import './globals.css';
-import { Search } from './search';
 
-export const metadata = {
-  title: 'Movies',
-  description: 'Find movies to watch',
-  icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
-    apple: '/apple-touch-icon.png',
-  },
-};
+export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      { title: 'Movies' },
+      { name: 'description', content: 'Find movies to watch' },
+    ],
+    links: [
+      { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+      { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+    ],
+  }),
+  component: RootLayout,
+});
 
-/**
- * Server-side layout component for the application, providing global structure, theming, and context providers.
- *
- * Fetches the current user session and supplies it to the sidebar. Wraps all pages with analytics, sidebar state, and UI scaffolding including header, search, and footer.
- *
- * @param children - The page content to render within the layout.
- */
-export default async function RootLayout({ children }: { children: ReactNode }) {
+function RootLayout() {
   return (
     <html lang="en" className="dark">
-      <body className={clsx([inter.className])}>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
         <QueryProvider>
           <NuqsAdapter>
             <PostHogClientProvider>
               <SidebarProvider>
                 <AppSidebarWrapper />
                 <SidebarInset>
-                  <ScrollToTop />
                   <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
                     <SidebarTrigger className="-ml-1" />
                     <Separator orientation="vertical" className="h-4" />
@@ -50,7 +50,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                       <Search />
                     </Suspense>
                   </header>
-                  <div className="mx-auto w-full max-w-7xl p-4">{children}</div>
+                  <div className="mx-auto w-full max-w-7xl p-4">
+                    <Outlet />
+                  </div>
                   <Footer />
                 </SidebarInset>
               </SidebarProvider>
@@ -59,6 +61,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           </NuqsAdapter>
         </QueryProvider>
         <Toaster position="top-center" richColors />
+        <Scripts />
       </body>
     </html>
   );

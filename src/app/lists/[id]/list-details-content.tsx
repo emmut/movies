@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { parseAsInteger, useQueryStates } from 'nuqs';
 
 import { DeleteListButton } from '@/components/delete-list-button';
@@ -137,7 +137,7 @@ export function ListDetailsContent({
             Add movies, TV shows, or people by clicking the list button on any content
           </p>
           <Link
-            href="/discover"
+            to="/discover"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
           >
             Explore Movies & TV Shows

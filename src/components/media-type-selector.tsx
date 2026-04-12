@@ -2,7 +2,7 @@
 
 import { revalidateGenresCache, validateGenreForMediaType } from '@/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
 
@@ -44,10 +44,9 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
 
     // Check if current genre is valid for new media type
     if (currentGenreId && currentGenreId !== 0) {
-      const genreExists = await validateGenreForMediaType(
-        String(currentGenreId),
-        mediaType as 'movie' | 'tv',
-      );
+      const genreExists = await validateGenreForMediaType({
+        data: { genreId: String(currentGenreId), mediaType },
+      });
 
       if (!genreExists) {
         // Clear genre if it doesn't exist for new media type
@@ -56,8 +55,8 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
           genreId: 0,
           page: '1',
         });
-        await revalidateGenresCache(mediaType);
-        router.refresh();
+        await revalidateGenresCache({ data: mediaType });
+        router.invalidate();
         return;
       }
     }
@@ -66,8 +65,8 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
       mediaType,
       page: '1',
     });
-    await revalidateGenresCache(mediaType);
-    router.refresh();
+    await revalidateGenresCache({ data: mediaType });
+    router.invalidate();
   }
 
   return (

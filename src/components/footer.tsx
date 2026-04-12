@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 function Footer() {
   return (
     <footer className="mt-auto flex flex-col items-center gap-4 py-16">
@@ -8,14 +6,13 @@ function Footer() {
       </p>
 
       <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
-        <Image
+        <img
           src="/tmdb-logo.svg"
           alt="TMDb Logo"
           width={150}
           height={13}
           className="mx-auto"
           loading="eager"
-          unoptimized
         />
       </a>
     </footer>

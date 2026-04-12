@@ -1,7 +1,7 @@
 'use client';
 
 import { Edit } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -50,10 +50,10 @@ export function EditListDialog({
 
     setIsLoading(true);
     try {
-      await updateList(listId, name.trim(), description.trim(), selectedEmoji);
+      await updateList({ data: { listId, name: name.trim(), description: description.trim(), emoji: selectedEmoji } });
       setIsOpen(false);
       toast.success('List updated successfully');
-      router.refresh();
+      router.invalidate();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update list');
     } finally {

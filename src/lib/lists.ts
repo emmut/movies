@@ -1,8 +1,6 @@
-'use server';
-
 import { and, count, desc, eq, sql } from 'drizzle-orm';
-import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
+import { redirect } from '@tanstack/react-router';
+import { createServerFn } from '@tanstack/react-start';
 
 import { listItems, lists } from '@/db/schema/lists';
 import { getUser } from '@/lib/auth-server';
@@ -20,6 +18,7 @@ import {
   removeListItemSchema,
   updateListSchema,
 } from '@/lib/validations';
+import { withCache, TTL } from '@/lib/server-cache';
 
 import { ITEMS_PER_PAGE } from './config';
 
@@ -47,7 +46,7 @@ export async function getUserLists() {
   const user = await getUser();
 
   if (!user) {
-    redirect('/login');
+    throw redirect({ to: '/login' });
   }
 
   const userLists = await db
@@ -63,7 +62,6 @@ export async function getUserLists() {
     .where(eq(lists.userId, user.id))
     .orderBy(desc(lists.updatedAt));
 
-  // Get item counts for each list
   const listsWithCounts = await Promise.all(
     userLists.map(async (list) => {
       const result = await db
@@ -87,46 +85,39 @@ export async function getUserListCount() {
   const user = await getUser();
 
   if (!user) {
-    redirect('/login');
+    throw redirect({ to: '/login' });
   }
 
   return await getCachedUserListCount(user.id);
 }
 
-async function getCachedUserListCount(userId: string) {
-  'use cache: private';
-  cacheTag(CACHE_TAGS.private.lists(userId));
-  cacheLife('privateShort');
+const getCachedUserListCount = withCache(
+  async (userId: string) => {
+    try {
+      const result = await db
+        .select({ count: sql`count(*)`.mapWith(Number) })
+        .from(lists)
+        .where(eq(lists.userId, userId));
 
-  try {
-    const count = await db
-      .select({ count: sql`count(*)`.mapWith(Number) })
-      .from(lists)
-      .where(eq(lists.userId, userId));
+      return result[0].count;
+    } catch (error) {
+      console.error('Error fetching user list count:', error);
+      return 0;
+    }
+  },
+  (userId) => CACHE_TAGS.private.lists(userId),
+  TTL.minutes,
+);
 
-    return count[0].count;
-  } catch (error) {
-    console.error('Error fetching user list count:', error);
-    return 0;
-  }
-}
-
-/**
- * Retrieves a paginated list of the authenticated user's lists with item counts.
- *
- * @param page - The page number (1-based).
- * @param itemsPerPage - The number of lists per page.
- * @returns An object containing the paginated lists and pagination metadata.
- */
 export async function getUserListsPaginated(page: number = 1) {
   const user = await getUser();
 
   if (!user) {
-    redirect('/login');
+    throw redirect({ to: '/login' });
   }
 
   if (!pageSchema.safeParse(page).success) {
-    redirect('/lists');
+    throw redirect({ to: '/lists' });
   }
 
   try {
@@ -205,7 +196,7 @@ export async function getListDetails(listId: string) {
   const user = await getUser();
 
   if (!user) {
-    redirect('/login');
+    throw redirect({ to: '/login' });
   }
 
   const listResult = await db
@@ -232,27 +223,19 @@ export async function getListDetails(listId: string) {
   };
 }
 
-/**
- * Retrieves paginated list details with items for a specific list.
- *
- * @param listId - The ID of the list to retrieve.
- * @param page - The page number (1-based).
- * @param itemsPerPage - The number of items per page.
- * @returns An object containing the list details, paginated items, and pagination metadata.
- */
 export async function getListDetailsPaginated(listId: string, page: number = 1) {
   const user = await getUser();
 
   if (!user) {
-    redirect('/login');
+    throw redirect({ to: '/login' });
   }
 
   if (!listIdSchema.safeParse(listId).success) {
-    redirect('/lists');
+    throw redirect({ to: '/lists' });
   }
 
   if (!pageSchema.safeParse(page).success) {
-    redirect(`/lists/${listId}`);
+    throw redirect({ to: `/lists/${listId}` });
   }
 
   const listResult = await db
@@ -271,11 +254,9 @@ export async function getListDetailsPaginated(listId: string, page: number = 1) 
     .from(listItems)
     .where(eq(listItems.listId, listId));
 
-  // Safely coerce count to number, handling BigInt/string/null cases
   const totalItems = Number(totalCountResult[0]?.count) || 0;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-  // Parse and clamp page to valid range
   const parsedPage = parseInt(String(page), 10) || 1;
   const currentPage = Math.max(1, Math.min(parsedPage, totalPages || 1));
 
@@ -291,7 +272,6 @@ export async function getListDetailsPaginated(listId: string, page: number = 1) 
     };
   }
 
-  // Ensure offset is always >= 0
   const offset = Math.max(0, (currentPage - 1) * ITEMS_PER_PAGE);
   const items = await db
     .select()
@@ -312,10 +292,6 @@ export async function getListDetailsPaginated(listId: string, page: number = 1) 
   };
 }
 
-/**
- * Fetches list details with all resource details populated.
- * Helper function to avoid code duplication.
- */
 export async function getListDetailsWithResources(listId: string, page: number = 1) {
   const { getMovieDetails } = await import('@/lib/movies');
   const { getTvShowDetails } = await import('@/lib/tv-shows');
@@ -323,7 +299,6 @@ export async function getListDetailsWithResources(listId: string, page: number =
 
   const paginatedList = await getListDetailsPaginated(listId, page);
 
-  // Fetch details for paginated items only
   const movieItems = paginatedList.items?.filter((item) => item.resourceType === 'movie') || [];
   const tvItems = paginatedList.items?.filter((item) => item.resourceType === 'tv') || [];
   const personItems = paginatedList.items?.filter((item) => item.resourceType === 'person') || [];
@@ -380,288 +355,281 @@ export async function getListDetailsWithResources(listId: string, page: number =
   };
 }
 
-export async function createList(name: string, description: string = '', emoji: string = '📝') {
-  const user = await getUser();
+type CreateListInput = { name: string; description: string; emoji: string };
 
-  if (!user) {
-    redirect('/login');
-  }
+export const createList = createServerFn()
+  .inputValidator((data: CreateListInput) => data)
+  .handler(async ({ data: { name, description, emoji } }) => {
+    const user = await getUser();
 
-  const validatedData = createListSchema.parse({
-    name,
-    description,
-    emoji,
-  });
-
-  const listId = crypto.randomUUID();
-
-  await db.insert(lists).values({
-    id: listId,
-    userId: user.id,
-    name: validatedData.name,
-    description: validatedData.description,
-    emoji: validatedData.emoji,
-  });
-
-  revalidateUserListCache(user.id, listId);
-
-  revalidatePath('/lists');
-
-  return { success: true, listId };
-}
-
-export async function addToList(
-  listId: string,
-  mediaId: number,
-  mediaType: 'movie' | 'tv' | 'person',
-) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  if (!listIdSchema.safeParse(listId).success) {
-    throw new Error('Invalid list ID');
-  }
-
-  if (!mediaIdSchema.safeParse(mediaId).success) {
-    throw new Error('Invalid media ID');
-  }
-
-  if (!mediaTypeSchema.safeParse(mediaType).success) {
-    throw new Error('Invalid media type');
-  }
-
-  const validatedData = listItemSchema.parse({
-    listId,
-    resourceId: mediaId,
-    resourceType: mediaType,
-  });
-
-  const [{ count }] = await db
-    .select({ count: sql`count(*)`.mapWith(Number) })
-    .from(lists)
-    .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
-
-  if (count === 0) {
-    throw new Error('List not found');
-  }
-
-  try {
-    await db.insert(listItems).values({
-      id: crypto.randomUUID(),
-      listId: validatedData.listId,
-      resourceId: validatedData.resourceId,
-      resourceType: validatedData.resourceType,
-    });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('unique')) {
-      throw new Error('Item already in list');
+    if (!user) {
+      throw redirect({ to: '/login' });
     }
-    throw error;
-  }
 
-  revalidateUserListCache(user.id, validatedData.listId);
-  revalidateUserListStatusCache(user.id, validatedData.resourceType, validatedData.resourceId);
+    const validatedData = createListSchema.parse({
+      name,
+      description,
+      emoji,
+    });
 
-  revalidatePath(`/lists/${validatedData.listId}`);
-  revalidatePath('/lists');
-}
+    const listId = crypto.randomUUID();
 
-export async function removeFromList(
-  listId: string,
-  mediaId: number,
-  mediaType: 'movie' | 'tv' | 'person',
-) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  if (!listIdSchema.safeParse(listId).success) {
-    throw new Error('Invalid list ID');
-  }
-
-  if (!mediaIdSchema.safeParse(mediaId).success) {
-    throw new Error('Invalid media ID');
-  }
-
-  if (!mediaTypeSchema.safeParse(mediaType).success) {
-    throw new Error('Invalid media type');
-  }
-
-  const validatedData = removeListItemSchema.parse({
-    listId,
-    resourceId: mediaId,
-    resourceType: mediaType,
-  });
-
-  const [{ count }] = await db
-    .select({ count: sql`count(*)`.mapWith(Number) })
-    .from(lists)
-    .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
-
-  if (count === 0) {
-    throw new Error('List not found');
-  }
-
-  await db
-    .delete(listItems)
-    .where(
-      and(
-        eq(listItems.listId, validatedData.listId),
-        eq(listItems.resourceId, validatedData.resourceId),
-        eq(listItems.resourceType, validatedData.resourceType),
-      ),
-    );
-
-  revalidateUserListCache(user.id, validatedData.listId);
-  revalidateUserListStatusCache(user.id, validatedData.resourceType, validatedData.resourceId);
-
-  revalidatePath(`/lists/${validatedData.listId}`);
-  revalidatePath('/lists');
-}
-
-export async function deleteList(listId: string) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  if (!listIdSchema.safeParse(listId).success) {
-    throw new Error('Invalid list ID');
-  }
-
-  const [{ count }] = await db
-    .select({ count: sql`count(*)`.mapWith(Number) })
-    .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
-
-  if (count === 0) {
-    throw new Error('List not found');
-  }
-
-  await db.delete(lists).where(eq(lists.id, listId));
-
-  revalidateUserListCache(user.id, listId);
-
-  revalidatePath('/lists');
-}
-
-export async function updateList(
-  listId: string,
-  name: string,
-  description: string = '',
-  emoji: string = '📝',
-) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  if (!listIdSchema.safeParse(listId).success) {
-    throw new Error('Invalid list ID');
-  }
-
-  const validatedData = updateListSchema.parse({
-    listId,
-    name,
-    description,
-    emoji,
-  });
-
-  const [{ count }] = await db
-    .select({ count: sql`count(*)`.mapWith(Number) })
-    .from(lists)
-    .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
-
-  if (count === 0) {
-    throw new Error('List not found');
-  }
-
-  await db
-    .update(lists)
-    .set({
+    await db.insert(lists).values({
+      id: listId,
+      userId: user.id,
       name: validatedData.name,
       description: validatedData.description,
       emoji: validatedData.emoji,
-      updatedAt: new Date(),
-    })
-    .where(eq(lists.id, validatedData.listId));
+    });
 
-  revalidateUserListCache(user.id, validatedData.listId);
+    revalidateUserListCache(user.id, listId);
 
-  revalidatePath(`/lists/${validatedData.listId}`);
-  revalidatePath('/lists');
-}
+    return { success: true, listId };
+  });
 
-export async function getUserListsWithStatus(
-  mediaId: number,
-  mediaType: 'movie' | 'tv' | 'person',
-) {
-  const user = await getUser();
+type AddToListInput = { listId: string; mediaId: number; mediaType: 'movie' | 'tv' | 'person' };
 
-  if (!user) {
-    redirect('/login');
-  }
+export const addToList = createServerFn()
+  .inputValidator((data: AddToListInput) => data)
+  .handler(async ({ data: { listId, mediaId, mediaType } }) => {
+    const user = await getUser();
 
-  if (!mediaIdSchema.safeParse(mediaId).success) {
-    throw new Error('Invalid media ID');
-  }
-  if (!mediaTypeSchema.safeParse(mediaType).success) {
-    throw new Error('Invalid media type');
-  }
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
 
-  return await getCachedUserListsWithStatus(user.id, mediaId, mediaType);
-}
+    if (!listIdSchema.safeParse(listId).success) {
+      throw new Error('Invalid list ID');
+    }
 
-async function getCachedUserListsWithStatus(
-  userId: string,
-  mediaId: number,
-  mediaType: 'movie' | 'tv' | 'person',
-) {
-  'use cache: private';
-  cacheTag(CACHE_TAGS.private.lists(userId));
-  cacheTag(CACHE_TAGS.private.listStatus(userId, mediaType, mediaId));
-  cacheLife('privateShort');
+    if (!mediaIdSchema.safeParse(mediaId).success) {
+      throw new Error('Invalid media ID');
+    }
 
-  try {
-    const listsWithStatusAndCounts = await db
-      .select({
-        id: lists.id,
-        name: lists.name,
-        description: lists.description,
-        emoji: lists.emoji,
-        createdAt: lists.createdAt,
-        updatedAt: lists.updatedAt,
-        itemCount: sql<number>`count(${listItems.id})`.mapWith(Number),
-        hasItem: sql<boolean>`bool_or(
+    if (!mediaTypeSchema.safeParse(mediaType).success) {
+      throw new Error('Invalid media type');
+    }
+
+    const validatedData = listItemSchema.parse({
+      listId,
+      resourceId: mediaId,
+      resourceType: mediaType,
+    });
+
+    const [{ count: listCount }] = await db
+      .select({ count: sql`count(*)`.mapWith(Number) })
+      .from(lists)
+      .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
+
+    if (listCount === 0) {
+      throw new Error('List not found');
+    }
+
+    try {
+      await db.insert(listItems).values({
+        id: crypto.randomUUID(),
+        listId: validatedData.listId,
+        resourceId: validatedData.resourceId,
+        resourceType: validatedData.resourceType,
+      });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('unique')) {
+        throw new Error('Item already in list');
+      }
+      throw error;
+    }
+
+    revalidateUserListCache(user.id, validatedData.listId);
+    revalidateUserListStatusCache(user.id, validatedData.resourceType, validatedData.resourceId);
+  });
+
+type RemoveFromListInput = {
+  listId: string;
+  mediaId: number;
+  mediaType: 'movie' | 'tv' | 'person';
+};
+
+export const removeFromList = createServerFn()
+  .inputValidator((data: RemoveFromListInput) => data)
+  .handler(async ({ data: { listId, mediaId, mediaType } }) => {
+    const user = await getUser();
+
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
+
+    if (!listIdSchema.safeParse(listId).success) {
+      throw new Error('Invalid list ID');
+    }
+
+    if (!mediaIdSchema.safeParse(mediaId).success) {
+      throw new Error('Invalid media ID');
+    }
+
+    if (!mediaTypeSchema.safeParse(mediaType).success) {
+      throw new Error('Invalid media type');
+    }
+
+    const validatedData = removeListItemSchema.parse({
+      listId,
+      resourceId: mediaId,
+      resourceType: mediaType,
+    });
+
+    const [{ count: listCount }] = await db
+      .select({ count: sql`count(*)`.mapWith(Number) })
+      .from(lists)
+      .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
+
+    if (listCount === 0) {
+      throw new Error('List not found');
+    }
+
+    await db
+      .delete(listItems)
+      .where(
+        and(
+          eq(listItems.listId, validatedData.listId),
+          eq(listItems.resourceId, validatedData.resourceId),
+          eq(listItems.resourceType, validatedData.resourceType),
+        ),
+      );
+
+    revalidateUserListCache(user.id, validatedData.listId);
+    revalidateUserListStatusCache(user.id, validatedData.resourceType, validatedData.resourceId);
+  });
+
+export const deleteList = createServerFn()
+  .inputValidator((data: string) => data)
+  .handler(async ({ data: listId }) => {
+    const user = await getUser();
+
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
+
+    if (!listIdSchema.safeParse(listId).success) {
+      throw new Error('Invalid list ID');
+    }
+
+    const [{ count: listCount }] = await db
+      .select({ count: sql`count(*)`.mapWith(Number) })
+      .from(lists)
+      .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
+
+    if (listCount === 0) {
+      throw new Error('List not found');
+    }
+
+    await db.delete(lists).where(eq(lists.id, listId));
+
+    revalidateUserListCache(user.id, listId);
+  });
+
+type UpdateListInput = { listId: string; name: string; description: string; emoji: string };
+
+export const updateList = createServerFn()
+  .inputValidator((data: UpdateListInput) => data)
+  .handler(async ({ data: { listId, name, description, emoji } }) => {
+    const user = await getUser();
+
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
+
+    if (!listIdSchema.safeParse(listId).success) {
+      throw new Error('Invalid list ID');
+    }
+
+    const validatedData = updateListSchema.parse({
+      listId,
+      name,
+      description,
+      emoji,
+    });
+
+    const [{ count: listCount }] = await db
+      .select({ count: sql`count(*)`.mapWith(Number) })
+      .from(lists)
+      .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
+
+    if (listCount === 0) {
+      throw new Error('List not found');
+    }
+
+    await db
+      .update(lists)
+      .set({
+        name: validatedData.name,
+        description: validatedData.description,
+        emoji: validatedData.emoji,
+        updatedAt: new Date(),
+      })
+      .where(eq(lists.id, validatedData.listId));
+
+    revalidateUserListCache(user.id, validatedData.listId);
+  });
+
+type GetListsWithStatusInput = { mediaId: number; mediaType: 'movie' | 'tv' | 'person' };
+
+export const getUserListsWithStatus = createServerFn()
+  .inputValidator((data: GetListsWithStatusInput) => data)
+  .handler(async ({ data: { mediaId, mediaType } }) => {
+    const user = await getUser();
+
+    if (!user) {
+      throw redirect({ to: '/login' });
+    }
+
+    if (!mediaIdSchema.safeParse(mediaId).success) {
+      throw new Error('Invalid media ID');
+    }
+    if (!mediaTypeSchema.safeParse(mediaType).success) {
+      throw new Error('Invalid media type');
+    }
+
+    return await getCachedUserListsWithStatus(user.id, mediaId, mediaType);
+  });
+
+const getCachedUserListsWithStatus = withCache(
+  async (userId: string, mediaId: number, mediaType: 'movie' | 'tv' | 'person') => {
+    try {
+      const listsWithStatusAndCounts = await db
+        .select({
+          id: lists.id,
+          name: lists.name,
+          description: lists.description,
+          emoji: lists.emoji,
+          createdAt: lists.createdAt,
+          updatedAt: lists.updatedAt,
+          itemCount: sql<number>`count(${listItems.id})`.mapWith(Number),
+          hasItem: sql<boolean>`bool_or(
           ${listItems.resourceId} = ${mediaId} AND
           ${listItems.resourceType} = ${mediaType}
         )`.mapWith(Boolean),
-      })
-      .from(lists)
-      .leftJoin(listItems, eq(lists.id, listItems.listId))
-      .where(eq(lists.userId, userId))
-      .groupBy(
-        lists.id,
-        lists.name,
-        lists.description,
-        lists.emoji,
-        lists.createdAt,
-        lists.updatedAt,
-      )
-      .orderBy(desc(lists.updatedAt));
+        })
+        .from(lists)
+        .leftJoin(listItems, eq(lists.id, listItems.listId))
+        .where(eq(lists.userId, userId))
+        .groupBy(
+          lists.id,
+          lists.name,
+          lists.description,
+          lists.emoji,
+          lists.createdAt,
+          lists.updatedAt,
+        )
+        .orderBy(desc(lists.updatedAt));
 
-    return listsWithStatusAndCounts;
-  } catch (error) {
-    console.error('Error fetching user lists with status:', error);
-    throw new Error('Failed to fetch user lists');
-  }
-}
+      return listsWithStatusAndCounts;
+    } catch (error) {
+      console.error('Error fetching user lists with status:', error);
+      throw new Error('Failed to fetch user lists');
+    }
+  },
+  (userId, mediaId, mediaType) =>
+    `${CACHE_TAGS.private.listStatus(userId, mediaType, mediaId)}:${CACHE_TAGS.private.lists(userId)}`,
+  TTL.minutes,
+);
 
-export type UserListsWithStatus = Awaited<ReturnType<typeof getUserListsWithStatus>>;
+export type UserListsWithStatus = Awaited<ReturnType<typeof getCachedUserListsWithStatus>>;

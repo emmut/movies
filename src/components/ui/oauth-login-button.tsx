@@ -2,7 +2,7 @@
 
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2, UserIcon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -151,8 +151,8 @@ export function OAuthLoginButton({
       }
 
       if (provider === 'anonymous') {
-        router.push(safeRedirectUrl);
-        router.refresh();
+        router.navigate({ to: safeRedirectUrl });
+        router.invalidate();
       }
     } catch (error) {
       console.error('Failed to sign in:', error);

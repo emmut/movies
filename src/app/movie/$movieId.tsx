@@ -1,5 +1,9 @@
+import { createFileRoute } from '@tanstack/react-router';
+import { Calendar, Clock, DollarSign, Star, Users } from 'lucide-react';
+
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
+import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
@@ -7,6 +11,7 @@ import Poster from '@/components/poster';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getUser } from '@/lib/auth-server';
 import {
   getMovieCredits,
@@ -16,44 +21,65 @@ import {
   getMovieWatchProviders,
 } from '@/lib/movies';
 import { getUserRegion } from '@/lib/user-actions';
-import { Imgproxy } from '@/components/image-proxy';
 import { formatCurrency, formatRuntime } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
-import { Calendar, Clock, DollarSign, Star, Users } from 'lucide-react';
-import { headers } from 'next/headers';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
+import { getRequest } from '@tanstack/react-start/server';
 
-type MoviePageProps = {
-  params: Promise<{
-    movieId: string;
-  }>;
-};
+export const Route = createFileRoute('/movie/$movieId')({
+  loader: async ({ params }) => {
+    const movieId = Number(params.movieId);
+    const request = getRequest();
+    const referer = request?.headers.get('referer') ?? null;
 
-const RESOURCE_TYPE = 'movie';
+    const user = await getUser();
+    const userRegion = await getUserRegion();
+    const inWatchlist = user ? await isResourceInWatchlist(movieId, 'movie') : false;
 
-/**
- * Renders a server-side React page displaying comprehensive details for a specific movie, including its information, cast, crew, genres, statistics, streaming providers, and external links.
- *
- * @param props - Contains a promise resolving to route parameters with the movie ID.
- * @returns The server-rendered React component for the movie detail page.
- *
- * @remarks If a user is logged in, the page displays a watchlist button reflecting the user's watchlist status for the movie.
- */
-export default async function MoviePage(props: MoviePageProps) {
-  const params = await props.params;
-  const movieId = Number(params.movieId);
-  const headersList = await headers();
-  const referer = headersList.get('referer');
+    const [movie, credits, watchProviders] = await Promise.all([
+      getMovieDetails(movieId),
+      getMovieCredits(movieId),
+      getMovieWatchProviders(movieId),
+    ]);
 
-  const user = await getUser();
-  const userRegion = await getUserRegion();
-  const inWatchlist = user ? await isResourceInWatchlist(movieId, RESOURCE_TYPE) : false;
+    return { movieId, referer, user, userRegion, inWatchlist, movie, credits, watchProviders };
+  },
+  pendingComponent: MoviePending,
+  component: MoviePage,
+});
 
-  const [movie, credits, watchProviders] = await Promise.all([
-    getMovieDetails(movieId),
-    getMovieCredits(movieId),
-    getMovieWatchProviders(movieId),
-  ]);
+function MoviePending() {
+  return (
+    <div className="min-h-screen">
+      <div className="mb-6">
+        <Skeleton className="h-10 w-24" />
+      </div>
+      <div className="relative -mx-4 mb-8 h-64 md:h-80 lg:h-96">
+        <Skeleton className="h-full w-full" />
+      </div>
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
+        <div className="lg:col-span-4">
+          <Poster.Skeleton />
+        </div>
+        <div className="space-y-6 lg:col-span-8">
+          <Skeleton className="h-12 w-64" />
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="rounded-lg bg-zinc-900 p-4 text-center">
+                <Skeleton className="mx-auto mb-2 h-6 w-6" />
+                <Skeleton className="mx-auto mb-1 h-6 w-12" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MoviePage() {
+  const { movieId, referer, user, userRegion, inWatchlist, movie, credits, watchProviders } =
+    Route.useLoaderData();
 
   const {
     title,
@@ -118,7 +144,7 @@ export default async function MoviePage(props: MoviePageProps) {
             itemId={movieId}
             inWatchlist={inWatchlist}
             userId={user?.id}
-            resourceType={RESOURCE_TYPE}
+            resourceType="movie"
           />
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -159,7 +185,7 @@ export default async function MoviePage(props: MoviePageProps) {
               <h2 className="mb-3 text-xl font-semibold">Genres</h2>
               <div className="flex flex-wrap gap-2">
                 {genres.map((genre) => (
-                  <Link key={genre.id} href={String(`/discover?genreId=${genre.id}`)}>
+                  <Link key={genre.id} to={`/discover?genreId=${genre.id}`}>
                     <Pill>{genre.name}</Pill>
                   </Link>
                 ))}
@@ -243,7 +269,7 @@ export default async function MoviePage(props: MoviePageProps) {
                 {directors.map((director) => (
                   <Link
                     key={director.credit_id}
-                    href={`/person/${director.id}`}
+                    to={`/person/${director.id}`}
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                   >
                     {director.profile_path ? (
@@ -305,7 +331,7 @@ export default async function MoviePage(props: MoviePageProps) {
                 {credits.cast.map((person) => (
                   <Link
                     key={person.credit_id}
-                    href={`/person/${person.id}`}
+                    to={`/person/${person.id}`}
                     className="w-32 shrink-0 transition-transform hover:scale-105"
                   >
                     <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">

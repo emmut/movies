@@ -1,5 +1,3 @@
-'use server';
-
 import { env } from '@/env';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { Movie, MultiSearchResponse, SearchedMovieResponse } from '@/types/movie';

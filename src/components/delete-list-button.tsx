@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -43,7 +43,7 @@ export function DeleteListButton({
   async function handleDelete() {
     setIsLoading(true);
     try {
-      await deleteList(listId);
+      await deleteList({ data: listId });
       toast.success('List deleted successfully');
 
       // Invalidate all list queries to ensure fresh data
@@ -51,9 +51,9 @@ export function DeleteListButton({
         queryKey: queryKeys.lists.all,
       });
 
-      router.refresh();
+      router.invalidate();
       if (redirectAfterDelete) {
-        router.push('/lists');
+        router.navigate({ to: '/lists' });
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to delete list');

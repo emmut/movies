@@ -1,5 +1,5 @@
 import { Popcorn } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 import { cn } from '@/lib/utils';
 
@@ -12,7 +12,7 @@ export default function Brand({ className }: BrandProps) {
 
   return (
     <Link
-      href="/"
+      to="/"
       className={cn('flex items-center gap-2 px-2 py-1', className)}
       onClick={() => setOpenMobile(false)}
     >

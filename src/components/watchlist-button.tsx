@@ -52,8 +52,7 @@ export function WatchlistButton({
       addOptimistic((prevOptimisticInWatchlist) => !prevOptimisticInWatchlist);
       try {
         await toggleWatchlist({
-          resourceId,
-          resourceType,
+          data: { resourceId, resourceType },
         });
 
         // Invalidate React Query cache after successful mutation

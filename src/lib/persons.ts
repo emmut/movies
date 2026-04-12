@@ -1,24 +1,11 @@
-import { cacheLife, cacheTag } from 'next/cache';
-
 import { env } from '@/env';
 import { PersonDetails, PersonMovieCredits, PersonTvCredits } from '@/types/person';
 
 import { CACHE_TAGS } from './cache-tags';
 import { TMDB_API_URL } from './constants';
+import { withCache, TTL } from './server-cache';
 
-/**
- * Fetches detailed information for an person from TMDb by their ID.
- *
- * @param personId - The TMDb ID of the person.
- * @returns The person's detailed information.
- *
- * @throws If the person details cannot be loaded from the API.
- */
-export async function getPersonDetails(personId: number) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.person.details(personId));
-  cacheLife('minutes');
-
+async function _getPersonDetails(personId: number) {
   const res = await fetch(`${TMDB_API_URL}/person/${personId}`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
@@ -34,19 +21,13 @@ export async function getPersonDetails(personId: number) {
   return person;
 }
 
-/**
- * Fetches movie credits for an person by their TMDb ID.
- *
- * @param personId - The TMDb ID of the person.
- * @returns The movie credits for the specified person.
- *
- * @throws {Error} If the movie credits cannot be loaded from TMDb.
- */
-export async function getPersonMovieCredits(personId: number) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.person.movieCredits(personId));
-  cacheLife('minutes');
+export const getPersonDetails = withCache(
+  _getPersonDetails,
+  (personId) => CACHE_TAGS.public.person.details(personId),
+  TTL.minutes,
+);
 
+async function _getPersonMovieCredits(personId: number) {
   const res = await fetch(`${TMDB_API_URL}/person/${personId}/movie_credits`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
@@ -62,19 +43,13 @@ export async function getPersonMovieCredits(personId: number) {
   return credits;
 }
 
-/**
- * Fetches TV show credits for an person by their TMDb ID.
- *
- * @param personId - The TMDb ID of the person.
- * @returns The TV show credits for the specified person.
- *
- * @throws {Error} If the TV show credits cannot be loaded from TMDb.
- */
-export async function getPersonTvCredits(personId: number) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.person.tvCredits(personId));
-  cacheLife('minutes');
+export const getPersonMovieCredits = withCache(
+  _getPersonMovieCredits,
+  (personId) => CACHE_TAGS.public.person.movieCredits(personId),
+  TTL.minutes,
+);
 
+async function _getPersonTvCredits(personId: number) {
   const res = await fetch(`${TMDB_API_URL}/person/${personId}/tv_credits`, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
@@ -89,3 +64,9 @@ export async function getPersonTvCredits(personId: number) {
   const credits: PersonTvCredits = await res.json();
   return credits;
 }
+
+export const getPersonTvCredits = withCache(
+  _getPersonTvCredits,
+  (personId) => CACHE_TAGS.public.person.tvCredits(personId),
+  TTL.minutes,
+);

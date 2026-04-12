@@ -1,7 +1,7 @@
 'use client';
 
 import { ChevronLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 
 import { useIsClient } from '@/hooks/use-is-client';
 
@@ -22,9 +22,9 @@ export function GoBack({ referer }: GoBackProps) {
     <Button
       onClick={() => {
         if (useDynamicBackButton) {
-          router.back();
+          router.history.back();
         } else {
-          router.push('/discover');
+          router.navigate({ to: '/discover' });
         }
       }}
       className="inline-flex items-center gap-2 p-0 text-zinc-400 transition-colors hover:text-white"

@@ -1,8 +1,8 @@
 'use client';
 
 import { List, Star } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link } from '@tanstack/react-router';
+import { useLocation } from '@tanstack/react-router';
 
 import { cn } from '@/lib/utils';
 
@@ -21,7 +21,7 @@ const iconMap = {
 
 function NavLink({ href, label, icon }: NavLinkProps) {
   const { setOpenMobile } = useSidebar();
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const Icon = iconMap[icon];
 
   return (
@@ -29,7 +29,7 @@ function NavLink({ href, label, icon }: NavLinkProps) {
       <SidebarMenuItem>
         <SidebarMenuButton
           isActive={pathname === href}
-          render={<Link href={href} onClick={() => setOpenMobile(false)} />}
+          render={<Link to={href} onClick={() => setOpenMobile(false)} />}
         >
           <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
           <span>{label}</span>

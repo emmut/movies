@@ -1,44 +1,29 @@
-'use server';
-
-import { revalidateTag } from 'next/cache';
+import { createServerFn } from '@tanstack/react-start';
 
 import { CACHE_TAGS } from '@/lib/cache-tags';
+import { invalidateCacheKey } from '@/lib/server-cache';
 
 import { fetchAvailableGenres } from './movies';
 import { fetchAvailableTvGenres } from './tv-shows';
 
-/**
- * Checks if a given genre ID is valid for the specified media type.
- *
- * @param genreId - The genre ID to validate.
- * @param mediaType - The media type to check against, either 'movie' or 'tv'.
- * @returns `true` if the genre ID exists for the given media type, otherwise `false`.
- *
- * @remark If an error occurs during validation, the function logs a warning and returns `true` as a fallback.
- */
-export async function validateGenreForMediaType(
-  genreId: string,
-  mediaType: 'movie' | 'tv',
-): Promise<boolean> {
-  try {
-    const availableGenres =
-      mediaType === 'movie' ? await fetchAvailableGenres() : await fetchAvailableTvGenres();
+export const validateGenreForMediaType = createServerFn()
+  .inputValidator((data: { genreId: string; mediaType: 'movie' | 'tv' }) => data)
+  .handler(async ({ data }) => {
+    const { genreId, mediaType } = data;
+    try {
+      const availableGenres =
+        mediaType === 'movie' ? await fetchAvailableGenres() : await fetchAvailableTvGenres();
+      return availableGenres.some((genre) => genre.id.toString() === genreId);
+    } catch (error) {
+      console.warn('Failed to validate genre for media type:', error);
+      return true;
+    }
+  });
 
-    return availableGenres.some((genre) => genre.id.toString() === genreId);
-  } catch (error) {
-    console.warn('Failed to validate genre for media type:', error);
-    return true;
-  }
-}
-
-/**
- * Revalidates the cache for available genres navigation when media type changes.
- *
- * @param mediaType - The media type to revalidate genres for, either 'movie' or 'tv'.
- */
-export async function revalidateGenresCache(mediaType: 'movie' | 'tv') {
-  revalidateTag(
-    mediaType === 'movie' ? CACHE_TAGS.public.genres.movies : CACHE_TAGS.public.genres.tv,
-    'max',
-  );
-}
+export const revalidateGenresCache = createServerFn()
+  .inputValidator((mediaType: 'movie' | 'tv') => mediaType)
+  .handler(async ({ data: mediaType }) => {
+    invalidateCacheKey(
+      mediaType === 'movie' ? CACHE_TAGS.public.genres.movies : CACHE_TAGS.public.genres.tv,
+    );
+  });

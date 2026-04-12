@@ -1,8 +1,8 @@
 'use client';
 
 import { Home, Sparkles } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { Link } from '@tanstack/react-router';
+import { useLocation } from '@tanstack/react-router';
 import type * as React from 'react';
 
 import Brand from '@/components/brand';
@@ -39,7 +39,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 };
 
 export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const { setOpenMobile } = useSidebar();
   return (
     <Sidebar {...props}>
@@ -53,7 +53,7 @@ export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
               <SidebarMenuItem key={href}>
                 <SidebarMenuButton
                   isActive={pathname === href}
-                  render={<Link href={href} onClick={() => setOpenMobile(false)} />}
+                  render={<Link to={href} onClick={() => setOpenMobile(false)} />}
                 >
                   <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
                   <span>{label}</span>

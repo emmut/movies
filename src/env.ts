@@ -1,7 +1,8 @@
-import { createEnv } from '@t3-oss/env-nextjs';
+import { createEnv } from '@t3-oss/env-core';
 import { z } from 'zod/v4';
 
 export const env = createEnv({
+  clientPrefix: 'NEXT_PUBLIC_',
   server: {
     MOVIE_DB_ACCESS_TOKEN: z.string().min(1),
     BETTER_AUTH_SECRET: z.string().min(1),

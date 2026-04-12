@@ -1,4 +1,4 @@
-import 'server-only';
+import '@tanstack/react-start/server-only';
 
 import { generateImageUrl, type IGenerateImageUrl } from '@imgproxy/imgproxy-node';
 

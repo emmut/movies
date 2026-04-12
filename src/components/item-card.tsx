@@ -4,7 +4,7 @@ import { Movie, MovieDetails } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 import { TvDetails, TvShow } from '@/types/tv-show';
 import { Star } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import Badge from './badge';
 import { ListButton } from './list-button';
 import { RemoveFromListButton } from './remove-from-list-button';
@@ -73,7 +73,7 @@ export default function ItemCard({
         className,
       )}
     >
-      <Link href={href}>
+      <Link to={href}>
         <div className="relative h-full w-full">
           {item.poster_path ? (
             <ClientImage

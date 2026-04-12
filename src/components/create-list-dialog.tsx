@@ -1,7 +1,7 @@
 'use client';
 
 import { ListPlus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -40,14 +40,14 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
 
     setIsLoading(true);
     try {
-      const result = await createList(newListName.trim(), newListDescription.trim(), selectedEmoji);
+      const result = await createList({ data: { name: newListName.trim(), description: newListDescription.trim(), emoji: selectedEmoji } });
       if (result.success) {
         setNewListName('');
         setNewListDescription('');
         setSelectedEmoji('📝');
         setIsOpen(false);
         toast.success('List created successfully');
-        router.refresh(); // Refresh the page to show the new list
+        router.invalidate(); // Refresh the page to show the new list
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to create list');

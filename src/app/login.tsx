@@ -1,37 +1,30 @@
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { LogIn, Shield, Users, Zap } from 'lucide-react';
-import { redirect } from 'next/navigation';
 
 import { LoginForm } from '@/components/login-form';
 import { getSession } from '@/lib/auth-server';
 import { getSafeRedirectUrl } from '@/lib/utils';
 
-/**
- * Renders the login page for unauthenticated users or redirects authenticated users to a validated destination.
- *
- * If a login error is detected in the search parameters, throws an error. Authenticated users are redirected to a safe URL specified by `redirect_url` or to the home page. Unauthenticated users are presented with the login interface, feature highlights, and authentication options.
- */
-export default async function LoginPage(props: {
-  searchParams: Promise<{
-    error?: string;
-    redirect_url?: string;
-  }>;
-}) {
-  const { error, redirect_url } = await props.searchParams;
+export const Route = createFileRoute('/login')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    error: search.error as string | undefined,
+    redirect_url: search.redirect_url as string | undefined,
+  }),
+  beforeLoad: async ({ search }) => {
+    const session = await getSession();
+    if (session?.user) {
+      const redirectTo = getSafeRedirectUrl(search.redirect_url);
+      throw redirect({ to: redirectTo });
+    }
+    if (search.error === 'failed_to_login') {
+      throw new Error('failed_to_login');
+    }
+  },
+  component: LoginPage,
+});
 
-  if (error === 'failed_to_login') {
-    throw new Error(error);
-  }
-
-  const session = await getSession();
-
-  if (session?.user) {
-    // Only redirect if URL is valid, otherwise go to home
-    const redirectTo = getSafeRedirectUrl(redirect_url);
-    redirect(redirectTo);
-  }
-
-  // Pass redirect URL to LoginForm (validation happens on successful login)
-  const redirectUrl = redirect_url;
+function LoginPage() {
+  const { redirect_url } = Route.useSearch();
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
@@ -82,7 +75,7 @@ export default async function LoginPage(props: {
             </div>
           </div>
 
-          <LoginForm redirectUrl={redirectUrl} />
+          <LoginForm redirectUrl={redirect_url} />
 
           <div className="text-center text-sm text-muted-foreground">
             <p>Choose between secure passkey authentication or social login</p>

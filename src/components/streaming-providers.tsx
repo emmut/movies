@@ -1,7 +1,6 @@
 'use client';
 
 import { Play, ShoppingCart, TicketCheck, Tv } from 'lucide-react';
-import Image from 'next/image';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 import { RegionSelect } from '@/components/region-select';
@@ -82,9 +81,7 @@ export function StreamingProviders({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
+                  <img src={formatImageUrl(provider.logo_path, 92)}
                     alt={provider.provider_name}
                     width={32}
                     height={32}
@@ -112,9 +109,7 @@ export function StreamingProviders({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
+                  <img src={formatImageUrl(provider.logo_path, 92)}
                     alt={provider.provider_name}
                     width={32}
                     height={32}
@@ -142,9 +137,7 @@ export function StreamingProviders({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
+                  <img src={formatImageUrl(provider.logo_path, 92)}
                     alt={provider.provider_name}
                     width={32}
                     height={32}
@@ -172,9 +165,7 @@ export function StreamingProviders({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
+                  <img src={formatImageUrl(provider.logo_path, 92)}
                     alt={provider.provider_name}
                     width={32}
                     height={32}

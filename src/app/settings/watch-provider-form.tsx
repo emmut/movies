@@ -1,7 +1,6 @@
 'use client';
 
 import { Check } from 'lucide-react';
-import Image from 'next/image';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -33,7 +32,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
   async function handleSave() {
     startTransition(async () => {
       try {
-        await setUserWatchProviders(selectedProviders);
+        await setUserWatchProviders({ data: selectedProviders });
         toast.success('Preferences saved!');
       } catch (error) {
         console.error('Error saving watch providers:', error);
@@ -91,7 +90,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
                           {provider.provider_name.charAt(0).toUpperCase()}
                         </div>
                       ) : (
-                        <Image
+                        <img
                           width={40}
                           height={40}
                           src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}

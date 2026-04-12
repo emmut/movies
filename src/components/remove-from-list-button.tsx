@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@tanstack/react-router';
 import { MouseEvent, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -33,7 +33,7 @@ export function RemoveFromListButton({
 
     setIsLoading(true);
     try {
-      await removeFromList(listId, mediaId, mediaType);
+      await removeFromList({ data: { listId, mediaId, mediaType } });
       toast.success('Removed from list');
 
       // Invalidate all list queries to ensure fresh data on next navigation
@@ -41,7 +41,7 @@ export function RemoveFromListButton({
         queryKey: queryKeys.lists.all,
       });
 
-      router.refresh();
+      router.invalidate();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to remove from list');
     } finally {

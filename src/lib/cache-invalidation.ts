@@ -1,10 +1,9 @@
-import { revalidateTag } from 'next/cache';
-
+import { invalidateCacheKey } from './server-cache';
 import { CACHE_TAGS } from './cache-tags';
 
 export function revalidateUserPreferenceCache(userId: string) {
-  revalidateTag(CACHE_TAGS.private.userRegion(userId), 'max');
-  revalidateTag(CACHE_TAGS.private.userWatchProviders(userId), 'max');
+  invalidateCacheKey(CACHE_TAGS.private.userRegion(userId));
+  invalidateCacheKey(CACHE_TAGS.private.userWatchProviders(userId));
 }
 
 export function revalidateUserWatchlistCache(
@@ -12,16 +11,16 @@ export function revalidateUserWatchlistCache(
   resourceType: string,
   resourceId: number,
 ) {
-  revalidateTag(CACHE_TAGS.private.watchlistItem(userId, resourceType, resourceId), 'max');
-  revalidateTag(CACHE_TAGS.private.watchlistList(userId, resourceType), 'max');
-  revalidateTag(CACHE_TAGS.private.watchlistCount(userId, resourceType), 'max');
+  invalidateCacheKey(CACHE_TAGS.private.watchlistItem(userId, resourceType, resourceId));
+  invalidateCacheKey(CACHE_TAGS.private.watchlistList(userId, resourceType));
+  invalidateCacheKey(CACHE_TAGS.private.watchlistCount(userId, resourceType));
 }
 
 export function revalidateUserListCache(userId: string, listId?: string) {
-  revalidateTag(CACHE_TAGS.private.lists(userId), 'max');
+  invalidateCacheKey(CACHE_TAGS.private.lists(userId));
 
   if (listId !== undefined) {
-    revalidateTag(CACHE_TAGS.private.listDetails(userId, listId), 'max');
+    invalidateCacheKey(CACHE_TAGS.private.listDetails(userId, listId));
   }
 }
 
@@ -30,5 +29,5 @@ export function revalidateUserListStatusCache(
   resourceType: string,
   resourceId: number,
 ) {
-  revalidateTag(CACHE_TAGS.private.listStatus(userId, resourceType, resourceId), 'max');
+  invalidateCacheKey(CACHE_TAGS.private.listStatus(userId, resourceType, resourceId));
 }

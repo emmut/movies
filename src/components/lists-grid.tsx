@@ -1,5 +1,5 @@
 import { Edit, Trash2 } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
@@ -31,7 +31,7 @@ export function ListsGrid({ lists }: ListsGridProps) {
           className="group/list relative rounded-lg focus-within:ring-2 focus-within:ring-blue-400 focus-within:ring-offset-2 focus-within:ring-offset-black"
         >
           <Link
-            href={`/lists/${list.id}`}
+            to={`/lists/${list.id}`}
             className="relative block min-h-[200px] overflow-hidden rounded-lg border border-muted bg-muted/60 p-6 transition-all hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-black focus:outline-none"
           >
             <div className="flex h-full flex-col">
