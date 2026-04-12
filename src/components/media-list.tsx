@@ -25,10 +25,11 @@ export default async function MediaList({ fetchUserItems, fetchItems, type }: Me
   const user = await getUser();
   const items = user && fetchUserItems ? await fetchUserItems() : await fetchItems();
 
-  return items.map((item) => (
+  return items.map((item, index) => (
     <ItemCard
       className="max-w-[150px]"
       key={item.id}
+      index={index}
       resource={item}
       type={type}
       userId={user?.id}

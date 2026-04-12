@@ -235,9 +235,10 @@ export default async function PersonPage(props: PersonPageProps) {
             <div>
               <h2 className="mb-4 text-xl font-semibold">Movies ({uniqueMovies.length})</h2>
               <ItemSlider>
-                {moviesForGrid.map((movie) => (
+                {moviesForGrid.map((movie, index) => (
                   <ItemCard
                     key={movie.id}
+                    index={index}
                     resource={movie}
                     className="w-48"
                     type="movie"
@@ -252,9 +253,10 @@ export default async function PersonPage(props: PersonPageProps) {
             <div>
               <h2 className="mb-4 text-xl font-semibold">TV Shows ({uniqueTvShows.length})</h2>
               <ItemSlider>
-                {tvShowsForGrid.map((show) => (
+                {tvShowsForGrid.map((show, index) => (
                   <ItemCard
                     key={show.id}
+                    index={index}
                     resource={show}
                     className="w-48"
                     type="tv"

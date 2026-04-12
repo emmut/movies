@@ -22,8 +22,8 @@ export function ItemGrid({ resources, type, userId }: ItemGridProps) {
 
   return (
     <>
-      {resources.map((resource) => (
-        <ItemCard key={resource.id} resource={resource} type={type} userId={userId} />
+      {resources.map((resource, index) => (
+        <ItemCard key={resource.id} index={index} resource={resource} type={type} userId={userId} />
       ))}
       {resources.length === 0 && (
         <p className="col-span-full text-center">No {resourceName} was found</p>

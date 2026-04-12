@@ -56,7 +56,7 @@ export function DiscoverContent({
       <div className="flex items-center gap-4">
         <SectionTitle>Discover</SectionTitle>
 
-        <SkipToElement elementId="content-container">Skip to content</SkipToElement>
+        <SkipToElement elementId="item-0">Skip to content</SkipToElement>
       </div>
 
       <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -73,8 +73,6 @@ export function DiscoverContent({
       </div>
 
       <div
-        id="content-container"
-        tabIndex={0}
         className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
         <Suspense>

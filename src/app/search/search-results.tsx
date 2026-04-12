@@ -95,8 +95,8 @@ export default function SearchResults({
 
     return (
       <>
-        {tvShows.map((tvShow) => (
-          <ItemCard key={tvShow.id} resource={tvShow} type="tv" userId={userId} />
+        {tvShows.map((tvShow, index) => (
+          <ItemCard key={tvShow.id} index={index} resource={tvShow} type="tv" userId={userId} />
         ))}
         {tvShows.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
@@ -129,8 +129,8 @@ export default function SearchResults({
 
     return (
       <>
-        {movies.map((movie) => (
-          <ItemCard key={movie.id} resource={movie} type="movie" userId={userId} />
+        {movies.map((movie, index) => (
+          <ItemCard key={movie.id} index={index} resource={movie} type="movie" userId={userId} />
         ))}
         {movies.length === 0 && (
           <p className="col-span-full text-center text-zinc-400">
@@ -150,15 +150,15 @@ export default function SearchResults({
 
   return (
     <>
-      {results.map((result) => {
+      {results.map((result, index) => {
         // Each result has a media_type property: 'movie', 'tv', or 'person'
         if (result.media_type === 'person') {
           return <PersonCard key={`person-${result.id}`} person={result} userId={userId} />;
         } else if (result.media_type === 'tv') {
-          return <ItemCard key={`tv-${result.id}`} resource={result} type="tv" userId={userId} />;
+          return <ItemCard key={`tv-${result.id}`} index={index} resource={result} type="tv" userId={userId} />;
         } else if (result.media_type === 'movie') {
           return (
-            <ItemCard key={`movie-${result.id}`} resource={result} type="movie" userId={userId} />
+            <ItemCard key={`movie-${result.id}`} index={index} resource={result} type="movie" userId={userId} />
           );
         }
         return null;

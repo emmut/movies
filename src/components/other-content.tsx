@@ -34,8 +34,8 @@ async function SimilarContent({
       </div>
 
       <ItemSlider>
-        {similar.map((item) => (
-          <ItemCard key={item.id} resource={item} type={type} className="w-48" />
+        {similar.map((item, index) => (
+          <ItemCard key={item.id} index={index} resource={item} type={type} className="w-48" />
         ))}
       </ItemSlider>
     </div>
@@ -61,8 +61,8 @@ async function RecommendationsContent({
       </div>
 
       <ItemSlider>
-        {recommendations.map((item) => (
-          <ItemCard key={item.id} resource={item} type={type} className="w-48" />
+        {recommendations.map((item, index) => (
+          <ItemCard key={item.id} index={index} resource={item} type={type} className="w-48" />
         ))}
       </ItemSlider>
     </div>

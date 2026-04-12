@@ -126,11 +126,12 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
         >
           {filteredItems
             .filter((item) => item !== null)
-            .map((item) => {
+            .map((item, index) => {
               const resourceType = item.resourceType as 'movie' | 'tv';
               return (
                 <ItemCard
                   key={`${resourceType}-${item.id}`}
+                  index={index}
                   resource={item.resource as MovieDetails | TvDetails}
                   type={resourceType}
                   userId={userId}

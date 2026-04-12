@@ -143,7 +143,7 @@ export function ListDetailsContent({ listId, userId, fetchListDetails }: ListDet
           id="content-container"
           className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
         >
-          {allItems.map((item) =>
+          {allItems.map((item, index) =>
             item.resourceType === 'person' ? (
               <PersonCard
                 person={item}
@@ -154,6 +154,7 @@ export function ListDetailsContent({ listId, userId, fetchListDetails }: ListDet
               />
             ) : (
               <ItemCard
+                index={index}
                 resource={item}
                 type={item.resourceType}
                 userId={userId}
