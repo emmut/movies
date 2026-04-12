@@ -117,6 +117,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
 
                 return (
                   <button
+                    type="button"
                     key={provider.provider_id}
                     className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
                       isSelected ? 'bg-accent' : ''
@@ -140,7 +141,9 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                         />
                       )}
                     </div>
-                    <div className="flex-1 text-sm font-medium text-left">{provider.provider_name}</div>
+                    <div className="flex-1 text-left text-sm font-medium">
+                      {provider.provider_name}
+                    </div>
                     {isSelected && <Check className="h-4 w-4 text-primary" />}
                   </button>
                 );
