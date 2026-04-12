@@ -53,12 +53,11 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
     page: parseAsString.withDefault('1'),
   });
 
+  const DEFAULT_SORT = 'popularity.desc';
   const sortOptions = mediaType === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
-  const defaultSort = 'popularity.desc';
-  const currentSort = urlState.sort_by ?? defaultSort;
-  const currentSortLabel = sortOptions
-    .filter((option) => option.value === currentSort)
-    .map((option) => option.label);
+  const currentSortOption =
+    sortOptions.find((option) => option.value === urlState.sort_by) ??
+    sortOptions.find((option) => option.value === DEFAULT_SORT);
 
   function handleSortChange(value: string | null) {
     if (!value) {
@@ -66,7 +65,7 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
     }
 
     setUrlState({
-      sort_by: value === defaultSort ? null : value,
+      sort_by: value === DEFAULT_SORT ? null : value,
       page: '1', // Reset pagination
     });
   }
@@ -76,9 +75,13 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
       <Label className="mb-2 text-sm font-medium" htmlFor="select-sort-option">
         Sort By
       </Label>
-      <Select id="select-sort-option" value={currentSort} onValueChange={handleSortChange}>
+      <Select
+        id="select-sort-option"
+        value={currentSortOption?.value}
+        onValueChange={handleSortChange}
+      >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select sort option">{currentSortLabel}</SelectValue>
+          <SelectValue placeholder="Select sort option">{currentSortOption?.label}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {sortOptions.map((option) => (
