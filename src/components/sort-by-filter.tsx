@@ -1,5 +1,7 @@
 'use client';
 
+import { parseAsString, useQueryStates } from 'nuqs';
+
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -8,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { parseAsString, useQueryStates } from 'nuqs';
 
 type SortByFilterProps = {
   mediaType: 'movie' | 'tv';
@@ -54,7 +55,10 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
 
   const sortOptions = mediaType === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
   const defaultSort = 'popularity.desc';
-  const currentSort = urlState.sort_by || defaultSort;
+  const currentSort = urlState.sort_by ?? defaultSort;
+  const currentSortLabel = sortOptions
+    .filter((option) => option.value === currentSort)
+    .map((option) => option.label);
 
   function handleSortChange(value: string | null) {
     if (!value) {
@@ -68,11 +72,13 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
   }
 
   return (
-    <div className="flex min-w-54 flex-col gap-2">
-      <Label className="text-sm font-medium">Sort By</Label>
-      <Select value={currentSort} onValueChange={handleSortChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select sort option" />
+    <div className="min-w-54">
+      <Label className="mb-2 text-sm font-medium" htmlFor="select-sort-option">
+        Sort By
+      </Label>
+      <Select id="select-sort-option" value={currentSort} onValueChange={handleSortChange}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select sort option">{currentSortLabel}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {sortOptions.map((option) => (

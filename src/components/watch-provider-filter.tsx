@@ -95,17 +95,14 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
           className="max-h-[60dvh] overflow-auto"
         >
           <PopoverHeader>
-            <PopoverTitle>Watch Providers</PopoverTitle>
-            {selectedCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearAllProviders}
-                className="h-8 px-2 text-xs"
-              >
-                Clear all
-              </Button>
-            )}
+            <div className="flex items-baseline justify-between">
+              <PopoverTitle className="py-1">Watch Providers</PopoverTitle>
+              {selectedCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearAllProviders} className="text-xs">
+                  Clear all
+                </Button>
+              )}
+            </div>
           </PopoverHeader>
 
           <div className="grid gap-2">
@@ -119,7 +116,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                 const imageError = brokenImages.has(provider.provider_id);
 
                 return (
-                  <div
+                  <button
                     key={provider.provider_id}
                     className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
                       isSelected ? 'bg-accent' : ''
@@ -145,7 +142,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                     </div>
                     <div className="flex-1 text-sm font-medium">{provider.provider_name}</div>
                     {isSelected && <Check className="h-4 w-4 text-primary" />}
-                  </div>
+                  </button>
                 );
               })
             )}
