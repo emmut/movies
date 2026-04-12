@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 
 import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
 import { Footer } from '@/components/footer';
+import { ScrollToTop } from '@/components/scroll-to-top';
 import { LoginToastHandler } from '@/components/login-toast-handler';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -41,6 +42,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <SidebarProvider>
                 <AppSidebarWrapper />
                 <SidebarInset>
+                  <ScrollToTop />
                   <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
                     <SidebarTrigger className="-ml-1" />
                     <Separator orientation="vertical" className="h-4" />
