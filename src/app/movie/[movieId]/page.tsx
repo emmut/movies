@@ -253,7 +253,7 @@ export default async function MoviePage(props: MoviePageProps) {
                           alt={director.name}
                           width={40}
                           height={40}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-cover object-center"
                         />
                       </div>
                     ) : (
@@ -284,7 +284,7 @@ export default async function MoviePage(props: MoviePageProps) {
                           alt={writer.name}
                           width={40}
                           height={40}
-                          className="h-full w-full object-cover"
+                          className="h-full w-full object-cover object-center"
                         />
                       </div>
                     ) : (
