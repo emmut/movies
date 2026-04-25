@@ -246,15 +246,17 @@ export default async function TvShowPage(props: TvShowPageProps) {
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                   >
                     {creator.profile_path ? (
-                      <Imgproxy
-                        src={creator.profile_path}
-                        alt={creator.name}
-                        width={92}
-                        height={40}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                        <Imgproxy
+                          src={creator.profile_path}
+                          alt={creator.name}
+                          width={40}
+                          height={40}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-700">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-700">
                         <Users className="h-5 w-5 text-zinc-400" />
                       </div>
                     )}
