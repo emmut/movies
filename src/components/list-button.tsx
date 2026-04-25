@@ -189,7 +189,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
           {showWatchlist && (
             <>
               <DropdownMenuItem
-                onSelect={handleToggleWatchlist}
+                onClick={handleToggleWatchlist}
                 disabled={isPending}
                 className="flex items-center justify-between"
                 title={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
@@ -216,7 +216,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
               lists.map((list) => (
                 <DropdownMenuItem
                   key={list.id}
-                  onSelect={() => handleToggleList(list.id, list.hasItem)}
+                  onClick={() => handleToggleList(list.id, list.hasItem)}
                   disabled={isPending}
                   className="flex items-center justify-between"
                   title={list.hasItem ? `Remove from "${list.name}"` : `Add to "${list.name}"`}
@@ -231,7 +231,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
             )}
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => setIsCreateOpen(true)} disabled={isPending}>
+          <DropdownMenuItem onClick={() => setIsCreateOpen(true)} disabled={isPending}>
             <ListPlus className="mr-2 h-4 w-4" />
             Create new list
           </DropdownMenuItem>
