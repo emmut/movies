@@ -247,15 +247,17 @@ export default async function MoviePage(props: MoviePageProps) {
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                   >
                     {director.profile_path ? (
-                      <Imgproxy
-                        src={director.profile_path}
-                        alt={director.name}
-                        width={185}
-                        height={40}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                        <Imgproxy
+                          src={director.profile_path}
+                          alt={director.name}
+                          width={40}
+                          height={40}
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-700">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-700">
                         <Users className="h-5 w-5 text-zinc-400" />
                       </div>
                     )}
@@ -276,15 +278,17 @@ export default async function MoviePage(props: MoviePageProps) {
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3"
                   >
                     {writer.profile_path ? (
-                      <Imgproxy
-                        src={writer.profile_path}
-                        alt={writer.name}
-                        width={185}
-                        height={40}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                        <Imgproxy
+                          src={writer.profile_path}
+                          alt={writer.name}
+                          width={40}
+                          height={40}
+                          className="h-full w-full object-cover object-center"
+                        />
+                      </div>
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-700">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-700">
                         <Users className="h-5 w-5 text-zinc-400" />
                       </div>
                     )}
