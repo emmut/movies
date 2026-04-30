@@ -2,8 +2,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Loading() {
   return (
-    <div>
+    <div className="space-y-6">
       <div className="mb-6">
+        <Skeleton className="h-10 w-20" />
+      </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
