@@ -2,14 +2,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LoadingMovies() {
   return (
-    <div>
+    <>
       <div className="mb-6">
         <Skeleton className="h-10 w-24" />
       </div>
 
       <div className="relative -mx-4 mb-8 h-64 md:h-80 lg:h-96">
         <Skeleton className="h-full w-full" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
@@ -49,6 +49,6 @@ export default function LoadingMovies() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
