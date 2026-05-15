@@ -92,6 +92,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
                         </div>
                       ) : (
                         <Image
+                          unoptimized
                           width={40}
                           height={40}
                           src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
