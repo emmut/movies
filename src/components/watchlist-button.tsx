@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { Star } from 'lucide-react';
-import { useOptimistic, useTransition } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { queryKeys } from '@/lib/query-keys';
@@ -16,78 +16,60 @@ interface WatchlistButtonProps {
   userId?: string;
 }
 
-/**
- * Renders a button that lets the user add or remove a resource from their watchlist with optimistic UI updates.
- *
- * The button reflects the current watchlist status and provides immediate feedback by updating the UI optimistically while the backend operation completes. If {@link userId} is not provided, nothing is rendered.
- *
- * @param resourceId - The unique identifier of the resource to toggle in the watchlist.
- * @param resourceType - The type of resource being toggled.
- * @param isInWatchlist - Whether the resource is initially in the user's watchlist.
- * @param userId - The user's identifier; if absent, the button is not rendered.
- *
- * @returns The watchlist toggle button, or `null` if {@link userId} is not provided.
- */
 export function WatchlistButton({
   resourceId,
   resourceType,
   isInWatchlist,
   userId,
 }: WatchlistButtonProps) {
-  const [isPending, startTransition] = useTransition();
-  const [optimisticInWatchlist, addOptimistic] = useOptimistic(isInWatchlist);
+  const [isPending, setIsPending] = useState(false);
+  const [localIsInWatchlist, setLocalIsInWatchlist] = useState(isInWatchlist);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setLocalIsInWatchlist(isInWatchlist);
+  }, [isInWatchlist]);
 
   if (!userId) {
     return null;
   }
 
-  /**
-   * Initiates an optimistic toggle of the resource's watchlist status and updates the backend.
-   *
-   * Updates the UI immediately to reflect the toggled watchlist state, then asynchronously calls the backend to persist the change. Errors from the backend are logged but do not revert the optimistic UI update.
-   */
-  function handleToggleWatchlist() {
-    startTransition(async () => {
-      addOptimistic((prevOptimisticInWatchlist) => !prevOptimisticInWatchlist);
-      try {
-        await toggleWatchlist({
-          resourceId,
-          resourceType,
-        });
-
-        // Invalidate React Query cache after successful mutation
-        queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
-      } catch (error) {
-        console.error('Error updating watchlist:', error);
-      }
-    });
+  async function handleToggleWatchlist() {
+    if (isPending) {
+      return;
+    }
+    const previous = localIsInWatchlist;
+    setLocalIsInWatchlist((prev) => !prev);
+    setIsPending(true);
+    try {
+      await toggleWatchlist({ resourceId, resourceType });
+      queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
+    } catch (error) {
+      setLocalIsInWatchlist(previous);
+      console.error('Error updating watchlist:', error);
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
     <Button
       onClick={handleToggleWatchlist}
       disabled={isPending}
-      variant={optimisticInWatchlist ? 'default' : 'outline'}
+      variant={localIsInWatchlist ? 'default' : 'outline'}
       className="gap-2 px-3 py-1"
-      aria-label={optimisticInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+      aria-label={localIsInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
     >
-      <Star className={`h-4 w-4 ${optimisticInWatchlist ? 'fill-current' : ''}`} />
+      <Star className={`h-4 w-4 ${localIsInWatchlist ? 'fill-current' : ''}`} />
 
       <div className="grid grid-cols-1 grid-rows-1 place-items-center">
         <span
-          className={clsx(
-            optimisticInWatchlist ? 'visible' : 'invisible',
-            'col-start-1 row-start-1',
-          )}
+          className={clsx(localIsInWatchlist ? 'visible' : 'invisible', 'col-start-1 row-start-1')}
         >
           In Watchlist
         </span>
         <span
-          className={clsx(
-            optimisticInWatchlist ? 'invisible' : 'visible',
-            'col-start-1 row-start-1',
-          )}
+          className={clsx(localIsInWatchlist ? 'invisible' : 'visible', 'col-start-1 row-start-1')}
         >
           Add to Watchlist
         </span>

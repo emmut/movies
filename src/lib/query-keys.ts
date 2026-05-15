@@ -27,11 +27,15 @@ export const queryKeys = {
       [...queryKeys.watchlist.lists(), mediaType, page] as const,
     counts: () => [...queryKeys.watchlist.all, 'counts'] as const,
     count: (mediaType: 'movie' | 'tv') => [...queryKeys.watchlist.counts(), mediaType] as const,
+    status: (resourceId: number, resourceType: string) =>
+      [...queryKeys.watchlist.all, 'status', resourceId, resourceType] as const,
   },
   lists: {
     all: ['lists'] as const,
     details: () => [...queryKeys.lists.all, 'detail'] as const,
     detail: (listId: string, page: number) => [...queryKeys.lists.details(), listId, page] as const,
+    withStatus: (mediaId: number, mediaType: string) =>
+      [...queryKeys.lists.all, 'withStatus', mediaId, mediaType] as const,
   },
   discover: {
     all: ['discover'] as const,

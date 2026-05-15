@@ -75,10 +75,10 @@ export default async function ListsPage(props: ListsPageProps) {
           </Link>
         </div>
       ) : (
-        <>
+        <div id="content-container">
           <ListsGrid lists={lists} />
           {totalPages > 1 && <PaginationControls totalPages={totalPages} pageType="lists" />}
-        </>
+        </div>
       )}
     </div>
   );

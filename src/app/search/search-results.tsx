@@ -71,7 +71,7 @@ export default function SearchResults({
   const { data, isLoading, error } = activeQuery;
 
   if (!searchQuery) {
-    return <SearchBox mediaType={mediaType} autoFocus />;
+    return <SearchBox mediaType={mediaType} />;
   }
 
   if (isLoading) {

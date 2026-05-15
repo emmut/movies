@@ -52,6 +52,7 @@ export function PasskeyLoginForm({ redirectUrl }: { redirectUrl?: string }) {
     <>
       <div className="space-y-3">
         <form onSubmit={handleEmailSubmit}>
+          {/* eslint-disable-next-line jsx-a11y/autocomplete-valid -- valid per WebAuthn spec */}
           <input ref={hiddenInputRef} type="hidden" autoComplete="username webauthn" />
 
           <Button
