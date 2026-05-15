@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { parseAsInteger, useQueryStates } from 'nuqs';
 
 import { DeleteListButton } from '@/components/delete-list-button';
@@ -61,13 +62,19 @@ export function ListDetailsContent({
 
   const page = urlState.page;
 
-  // Fetch paginated list details
+  const [createdAt, setCreatedAt] = useState<string | null>(null);
   const { data: paginatedList, isLoading } = useQuery({
     queryKey: queryKeys.lists.detail(listId, page),
     queryFn: () => fetchListDetailsAction(listId, page),
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
+
+  useEffect(() => {
+    if (paginatedList) {
+      setCreatedAt(paginatedList.createdAt.toLocaleDateString());
+    }
+  }, [paginatedList]);
 
   if (isLoading || !paginatedList) {
     return (
@@ -118,9 +125,9 @@ export function ListDetailsContent({
               {paginatedList.itemCount} item
               {paginatedList.itemCount !== 1 ? 's' : ''} in this list
             </p>
-            <span className="text-zinc-500">
-              • Created {paginatedList.createdAt.toLocaleDateString()}
-            </span>
+            {createdAt && (
+              <span className="text-zinc-500">• Created {createdAt}</span>
+            )}
           </div>
         </div>
 
