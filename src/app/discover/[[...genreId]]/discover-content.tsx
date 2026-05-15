@@ -1,5 +1,8 @@
 'use client';
 
+import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
+import { ReactNode, Suspense } from 'react';
+
 import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
@@ -7,8 +10,7 @@ import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import { WatchProvider } from '@/types/watch-provider';
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
-import { ReactNode, Suspense } from 'react';
+
 import Pagination from './pagination';
 
 type DiscoverContentProps = {
@@ -74,7 +76,6 @@ export function DiscoverContent({
 
       <div
         id="content-container"
-        tabIndex={0}
         className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
       >
         <Suspense>
