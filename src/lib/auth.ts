@@ -33,7 +33,6 @@ export const auth = betterAuth({
   },
 
   plugins: [
-    nextCookies(),
     anonymous({
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         try {
@@ -65,5 +64,6 @@ export const auth = betterAuth({
       },
     }),
     passkey(),
+    nextCookies(),
   ],
 });
