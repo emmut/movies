@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { Check, List, ListPlus, Star } from 'lucide-react';
-import { ChangeEvent, useState, useTransition } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('📝');
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(false);
   const queryClient = useQueryClient();
@@ -80,37 +80,34 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
   async function handleToggleList(listId: string, hasItem: boolean) {
     const list = lists.find((l) => l.id === listId);
     const listName = list?.name || 'list';
-
-    startTransition(async () => {
-      try {
-        if (hasItem) {
-          await removeFromList(listId, mediaId, mediaType);
-          toast.success(`Removed from "${listName}"`);
-        } else {
-          await addToList(listId, mediaId, mediaType);
-          toast.success(`Added to "${listName}"`);
-        }
-
-        // Invalidate React Query cache after successful mutation
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.lists.details(),
-          predicate: (query) => {
-            const [, , queryListId] = query.queryKey;
-            return queryListId === listId;
-          },
-        });
-
-        await refreshLists(); // Refresh to update checkboxes
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : hasItem
-              ? `Failed to remove from "${listName}"`
-              : `Failed to add to "${listName}"`,
-        );
+    setIsPending(true);
+    try {
+      if (hasItem) {
+        await removeFromList(listId, mediaId, mediaType);
+        toast.success(`Removed from "${listName}"`);
+      } else {
+        await addToList(listId, mediaId, mediaType);
+        toast.success(`Added to "${listName}"`);
       }
-    });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.lists.details(),
+        predicate: (query) => {
+          const [, , queryListId] = query.queryKey;
+          return queryListId === listId;
+        },
+      });
+      await refreshLists();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : hasItem
+            ? `Failed to remove from "${listName}"`
+            : `Failed to add to "${listName}"`,
+      );
+    } finally {
+      setIsPending(false);
+    }
   }
 
   async function handleCreateList() {
@@ -154,21 +151,20 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
   }
 
   async function handleToggleWatchlist() {
-    startTransition(async () => {
-      try {
-        const result = await toggleWatchlist({
-          resourceId: mediaId,
-          resourceType: mediaType,
-        });
-        setIsInWatchlist(result.action === 'added');
-        toast.success(result.action === 'added' ? 'Added to watchlist' : 'Removed from watchlist');
-
-        // Invalidate React Query cache after successful mutation
-        queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : 'Failed to update watchlist');
-      }
-    });
+    const previous = isInWatchlist;
+    setIsInWatchlist((prev) => !prev);
+    setIsPending(true);
+    try {
+      const result = await toggleWatchlist({ resourceId: mediaId, resourceType: mediaType });
+      setIsInWatchlist(result.action === 'added');
+      toast.success(result.action === 'added' ? 'Added to watchlist' : 'Removed from watchlist');
+      queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
+    } catch (error) {
+      setIsInWatchlist(previous);
+      toast.error(error instanceof Error ? error.message : 'Failed to update watchlist');
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
