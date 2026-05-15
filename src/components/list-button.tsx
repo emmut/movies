@@ -118,21 +118,13 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
         toast.success('List created and item added');
       }
     } catch (error) {
-      let errorMessage = 'Failed to create list';
-      if (error instanceof Error) {
-        if (
-          error.message.includes('List name') ||
-          error.message.includes('Description') ||
-          error.message.includes('emoji')
-        ) {
-          errorMessage = error.message.includes('emoji')
+      toast.error(
+        error instanceof Error
+          ? error.message.includes('emoji')
             ? 'Invalid emoji selection'
-            : error.message;
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      toast.error(errorMessage);
+            : error.message
+          : 'Failed to create list',
+      );
     } finally {
       setIsLoading(false);
     }
