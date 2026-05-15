@@ -9,13 +9,6 @@ type ItemSliderProps = {
   children: ReactNode;
 };
 
-/**
- * Provides a horizontally scrollable container with optional left and right navigation arrows.
- *
- * Displays navigation arrows when the content overflows horizontally, allowing users to scroll by clicking the arrows. Arrow visibility and interactivity adapt to device capabilities and current scroll position.
- *
- * @param children - The elements to display inside the scrollable slider.
- */
 export function ItemSlider({ children }: ItemSliderProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -28,8 +21,12 @@ export function ItemSlider({ children }: ItemSliderProps) {
 
   function handleMouseDown(e: React.MouseEvent) {
     const container = scrollContainerRef.current;
-    if (!container) return;
-    if (e.button !== 0) return;
+    if (!container) {
+      return;
+    }
+    if (e.button !== 0) {
+      return;
+    }
 
     isDraggingRef.current = true;
     preventClickRef.current = false;
@@ -38,14 +35,17 @@ export function ItemSlider({ children }: ItemSliderProps) {
   }
 
   function handleMouseMove(e: React.MouseEvent) {
-    if (!isDraggingRef.current) return;
+    if (!isDraggingRef.current) {
+      return;
+    }
     const container = scrollContainerRef.current;
-    if (!container) return;
+    if (!container) {
+      return;
+    }
 
     const walkX = e.pageX - startXRef.current;
-    const absWalkX = Math.abs(walkX);
 
-    if (absWalkX > 5) {
+    if (Math.abs(walkX) > 5) {
       preventClickRef.current = true;
       e.preventDefault();
       container.scrollLeft = scrollLeftRef.current - walkX;
@@ -60,7 +60,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
     isDraggingRef.current = false;
   }
 
-  function handleClick(e: MouseEvent) {
+  function handleClickCapture(e: React.MouseEvent) {
     if (preventClickRef.current) {
       e.preventDefault();
       e.stopPropagation();
@@ -68,48 +68,37 @@ export function ItemSlider({ children }: ItemSliderProps) {
     }
   }
 
-  function handleDragStart(e: DragEvent) {
+  function handleDragStart(e: React.DragEvent) {
     e.preventDefault();
   }
 
-  const disableArrows = isClient ? !window.matchMedia('(hover: hover)').matches : false;
+  function handleKeyDown(e: React.KeyboardEvent) {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      container.scrollBy({ left: -container.clientWidth * 0.75, behavior: 'smooth' });
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      container.scrollBy({ left: container.clientWidth * 0.75, behavior: 'smooth' });
+    }
+  }
 
   function updateArrowVisibility() {
     const container = scrollContainerRef.current;
     if (!container) {
       return;
     }
-
     setShowLeftArrow(container.scrollLeft > 0);
     setShowRightArrow(container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
   }
 
+  const disableArrows = isClient ? !window.matchMedia('(hover: hover)').matches : false;
+
   useEffect(() => {
-    const controller = new AbortController();
-    const container = scrollContainerRef.current;
-
-    if (!container) {
-      return;
-    }
-
-    container.addEventListener('scroll', updateArrowVisibility, {
-      signal: controller.signal,
-    });
-
-    container.addEventListener('click', handleClick, {
-      capture: true,
-      signal: controller.signal,
-    });
-
-    container.addEventListener('dragstart', handleDragStart, {
-      signal: controller.signal,
-    });
-
     updateArrowVisibility();
-
-    return () => {
-      controller.abort();
-    };
   }, []);
 
   function scroll(direction: 'left' | 'right') {
@@ -117,7 +106,6 @@ export function ItemSlider({ children }: ItemSliderProps) {
     if (!container) {
       return;
     }
-
     const scrollAmount = container.clientWidth * 0.75;
     container.scrollBy({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
@@ -164,11 +152,17 @@ export function ItemSlider({ children }: ItemSliderProps) {
       )}
 
       <div
+        role="application"
+        aria-label="Scrollable items"
         ref={scrollContainerRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        onClickCapture={handleClickCapture}
+        onDragStart={handleDragStart}
+        onScroll={updateArrowVisibility}
+        onKeyDown={handleKeyDown}
         className="relative -mx-3 scrollbar-hide flex w-[calc(100%+0.75rem)] cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing"
       >
         {children}
