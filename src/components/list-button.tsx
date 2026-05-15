@@ -1,6 +1,6 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, List, ListPlus, Star } from 'lucide-react';
 import { ChangeEvent, useState } from 'react';
 import { toast } from 'sonner';
@@ -26,13 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { EMOJI_OPTIONS } from '@/lib/config';
-import {
-  addToList,
-  createList,
-  getUserListsWithStatus,
-  removeFromList,
-  UserListsWithStatus,
-} from '@/lib/lists';
+import { addToList, createList, getUserListsWithStatus, removeFromList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 import { isResourceInWatchlist } from '@/lib/watchlist';
 import { toggleWatchlist } from '@/lib/watchlist-actions';
@@ -45,36 +39,31 @@ interface ListButtonProps {
 }
 
 export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }: ListButtonProps) {
-  const [lists, setLists] = useState<UserListsWithStatus>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('📝');
-  const [isPending, setIsPending] = useState(false);
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const [isLoadingWatchlist, setIsLoadingWatchlist] = useState(false);
   const queryClient = useQueryClient();
+
+  const { data: lists = [], isLoading: isLoadingLists } = useQuery({
+    queryKey: queryKeys.lists.withStatus(mediaId, mediaType),
+    queryFn: () => getUserListsWithStatus(mediaId, mediaType),
+    staleTime: 30_000,
+    enabled: isOpen,
+  });
+
+  const { data: isInWatchlist = false } = useQuery({
+    queryKey: queryKeys.watchlist.status(mediaId, mediaType),
+    queryFn: () => isResourceInWatchlist(mediaId, mediaType),
+    staleTime: 30_000,
+    enabled: isOpen && showWatchlist,
+  });
 
   if (!userId) {
     return null;
-  }
-
-  async function refreshLists() {
-    try {
-      setIsLoadingWatchlist(true);
-      const userLists = await getUserListsWithStatus(mediaId, mediaType);
-      setLists(userLists);
-      const watchlistStatus = showWatchlist
-        ? await isResourceInWatchlist(mediaId, mediaType)
-        : false;
-      setIsInWatchlist(watchlistStatus);
-    } catch (error) {
-      console.error('Failed to fetch lists:', error);
-    } finally {
-      setIsLoadingWatchlist(false);
-    }
   }
 
   async function handleToggleList(listId: string, hasItem: boolean) {
@@ -96,7 +85,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
           return queryListId === listId;
         },
       });
-      await refreshLists();
+      queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -125,25 +114,24 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
         setNewListDescription('');
         setSelectedEmoji('📝');
         setIsCreateOpen(false);
-        await refreshLists();
+        queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
         toast.success('List created and item added');
       }
     } catch (error) {
       let errorMessage = 'Failed to create list';
-
       if (error instanceof Error) {
-        // Handle validation errors from Zod
-        if (error.message.includes('List name')) {
-          errorMessage = error.message;
-        } else if (error.message.includes('Description')) {
-          errorMessage = error.message;
-        } else if (error.message.includes('emoji')) {
-          errorMessage = 'Invalid emoji selection';
+        if (
+          error.message.includes('List name') ||
+          error.message.includes('Description') ||
+          error.message.includes('emoji')
+        ) {
+          errorMessage = error.message.includes('emoji')
+            ? 'Invalid emoji selection'
+            : error.message;
         } else {
           errorMessage = error.message;
         }
       }
-
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
@@ -151,16 +139,20 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
   }
 
   async function handleToggleWatchlist() {
-    const previous = isInWatchlist;
-    setIsInWatchlist((prev) => !prev);
+    const previous =
+      queryClient.getQueryData<boolean>(queryKeys.watchlist.status(mediaId, mediaType)) ?? false;
+    queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), !previous);
     setIsPending(true);
     try {
       const result = await toggleWatchlist({ resourceId: mediaId, resourceType: mediaType });
-      setIsInWatchlist(result.action === 'added');
+      queryClient.setQueryData(
+        queryKeys.watchlist.status(mediaId, mediaType),
+        result.action === 'added',
+      );
       toast.success(result.action === 'added' ? 'Added to watchlist' : 'Removed from watchlist');
       queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
     } catch (error) {
-      setIsInWatchlist(previous);
+      queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), previous);
       toast.error(error instanceof Error ? error.message : 'Failed to update watchlist');
     } finally {
       setIsPending(false);
@@ -171,12 +163,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
     <>
       <DropdownMenu
         open={isOpen}
-        onOpenChange={(open) => {
-          setIsOpen(open);
-          if (open) {
-            refreshLists();
-          }
-        }}
+        onOpenChange={setIsOpen}
       >
         <DropdownMenuTrigger render={<Button variant="glass" size="icon" disabled={isPending} />}>
           <List className="h-4 w-4" />
@@ -200,7 +187,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
           )}
 
           <DropdownMenuGroup>
-            {isLoadingWatchlist ? (
+            {isLoadingLists ? (
               <DropdownMenuItem disabled className="py-2.5">
                 Loading lists...
               </DropdownMenuItem>
