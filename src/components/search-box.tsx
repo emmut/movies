@@ -8,10 +8,9 @@ import { MediaType } from '@/types/media-type';
 
 type SearchBoxProps = {
   mediaType?: MediaType;
-  autoFocus?: boolean;
 };
 
-export default function SearchBox({ mediaType = 'all', autoFocus = false }: SearchBoxProps) {
+export default function SearchBox({ mediaType = 'all' }: SearchBoxProps) {
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-12">
       <div className="mb-6">
@@ -36,7 +35,6 @@ export default function SearchBox({ mediaType = 'all', autoFocus = false }: Sear
               placeholder="Search for movies, TV shows, or people..."
               autoComplete="off"
               autoCorrect="off"
-              autoFocus={autoFocus}
             />
           </div>
           <Button type="submit" size="lg" className="p-6">

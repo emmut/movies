@@ -24,7 +24,7 @@ export default function NotFound() {
       </p>
 
       <div className="mb-8">
-        <SearchBox autoFocus />
+        <SearchBox />
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row">
