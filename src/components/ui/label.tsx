@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-function Label({ className, ...props }: React.ComponentProps<'label'>) {
+function Label({ className, children, ...props }: React.ComponentProps<'label'>) {
   return (
     <label
       data-slot="label"
@@ -13,7 +13,9 @@ function Label({ className, ...props }: React.ComponentProps<'label'>) {
         className,
       )}
       {...props}
-    />
+    >
+      {children}
+    </label>
   );
 }
 
