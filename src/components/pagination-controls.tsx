@@ -1,7 +1,9 @@
 'use client';
 
 import clsx from 'clsx';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { useEffect, useRef } from 'react';
 import { Input } from './ui/input';
 import {
   Pagination,
@@ -66,7 +68,9 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
 }
 
 export function PaginationControls({ totalPages }: PaginationControls) {
-  const [urlState, setUrlState] = useQueryStates(
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [urlState] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
       q: parseAsString,
@@ -80,25 +84,25 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   const currentPageNumber = urlState.page;
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
+  const isInitialRender = useRef(true);
 
-  function handlePageSelect(pageNumber: number) {
-    setUrlState({ page: pageNumber });
+  useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+    const container = document.querySelector('#content-container');
+    if (container) {
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentPageNumber]);
 
-    // Scroll to content after state update
-    setTimeout(() => {
-      const container = document.querySelector('#content-container');
-      if (container) {
-        container.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-      } else {
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth',
-        });
-      }
-    }, 0);
+  function buildPageHref(page: number) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(page));
+    return `?${params.toString()}`;
   }
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
@@ -111,7 +115,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             <PaginationContent className="gap-1 sm:gap-2">
               <PaginationItem>
                 <PaginationPrevious
-                  onClick={() => hasPrevPage && handlePageSelect(currentPageNumber - 1)}
+                  href={buildPageHref(currentPageNumber - 1)}
                   className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -127,7 +131,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 ) : (
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
-                      onClick={() => handlePageSelect(pageNumber)}
+                      href={buildPageHref(pageNumber)}
                       isActive={pageNumber === currentPageNumber}
                       className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
                     >
@@ -139,7 +143,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
 
               <PaginationItem>
                 <PaginationNext
-                  onClick={() => hasNextPage && handlePageSelect(currentPageNumber + 1)}
+                  href={buildPageHref(currentPageNumber + 1)}
                   className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -168,7 +172,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   if (e.key === 'Enter') {
                     const value = Number((e.target as HTMLInputElement).value);
                     if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
-                      handlePageSelect(value);
+                      router.push(buildPageHref(value));
                       (e.target as HTMLInputElement).value = '';
                     }
                   }
@@ -176,7 +180,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 onBlur={(e) => {
                   const value = Number(e.target.value);
                   if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
-                    handlePageSelect(value);
+                    router.push(buildPageHref(value));
                   }
                   e.target.value = '';
                 }}

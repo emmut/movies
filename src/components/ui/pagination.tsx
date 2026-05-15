@@ -1,4 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react';
+import Link from 'next/link';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,6 @@ import { cn } from '@/lib/utils';
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
   return (
     <nav
-      role="navigation"
       aria-label="pagination"
       data-slot="pagination"
       className={cn('mx-auto flex w-full justify-center', className)}
@@ -32,10 +32,16 @@ function PaginationItem({ ...props }: React.ComponentProps<'li'>) {
 
 type PaginationLinkProps = {
   isActive?: boolean;
-} & Pick<React.ComponentProps<typeof Button>, 'size'> &
-  React.ComponentProps<'a'>;
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+} & React.ComponentProps<typeof Link>;
 
-function PaginationLink({ className, isActive, size = 'icon', ...props }: PaginationLinkProps) {
+function PaginationLink({
+  className,
+  isActive,
+  size = 'icon',
+  children,
+  ...props
+}: PaginationLinkProps) {
   return (
     <Button
       variant={isActive ? 'outline' : 'ghost'}
@@ -43,12 +49,15 @@ function PaginationLink({ className, isActive, size = 'icon', ...props }: Pagina
       className={cn(className)}
       nativeButton={false}
       render={
-        <a
+        <Link
+          scroll={false}
           aria-current={isActive ? 'page' : undefined}
           data-slot="pagination-link"
           data-active={isActive}
           {...props}
-        />
+        >
+          {children}
+        </Link>
       }
     />
   );
