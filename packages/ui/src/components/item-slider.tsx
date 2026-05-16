@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState, type MouseEvent } from 'react';
 
 import { useIsClient } from '../hooks/use-is-client';
 import { cn } from '../lib/utils';
@@ -33,7 +33,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
     scrollLeftRef.current = container.scrollLeft;
   }
 
-  function handleMouseMove(e: React.MouseEvent) {
+  function handleMouseMove(e: MouseEvent) {
     if (!isDraggingRef.current) {
       return;
     }

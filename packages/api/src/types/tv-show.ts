@@ -1,7 +1,7 @@
-import { RegionCode } from '@movies/media';
+import type { RegionCode } from '@movies/media';
 
-import { Genre } from './genre';
-import { RegionWatchProviders } from './watch-provider';
+import type { Genre } from './genre';
+import type { RegionWatchProviders } from './watch-provider';
 
 export type TvDetails = {
   id: number;

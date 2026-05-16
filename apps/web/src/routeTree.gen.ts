@@ -15,6 +15,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ListsRouteImport } from './routes/lists'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DiscoverIndexRouteImport } from './routes/discover/index'
 import { Route as TvTvIdRouteImport } from './routes/tv/$tvId'
 import { Route as PersonIdRouteImport } from './routes/person/$id'
 import { Route as MovieMovieIdRouteImport } from './routes/movie/$movieId'
@@ -51,6 +52,11 @@ const ListsRoute = ListsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiscoverIndexRoute = DiscoverIndexRouteImport.update({
+  id: '/discover/',
+  path: '/discover/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TvTvIdRoute = TvTvIdRouteImport.update({
@@ -101,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/movie/$movieId': typeof MovieMovieIdRoute
   '/person/$id': typeof PersonIdRoute
   '/tv/$tvId': typeof TvTvIdRoute
+  '/discover/': typeof DiscoverIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/movie/$movieId': typeof MovieMovieIdRoute
   '/person/$id': typeof PersonIdRoute
   '/tv/$tvId': typeof TvTvIdRoute
+  '/discover': typeof DiscoverIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/movie/$movieId': typeof MovieMovieIdRoute
   '/person/$id': typeof PersonIdRoute
   '/tv/$tvId': typeof TvTvIdRoute
+  '/discover/': typeof DiscoverIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/movie/$movieId'
     | '/person/$id'
     | '/tv/$tvId'
+    | '/discover/'
     | '/api/auth/$'
     | '/api/rpc/$'
   fileRoutesByTo: FileRoutesByTo
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/movie/$movieId'
     | '/person/$id'
     | '/tv/$tvId'
+    | '/discover'
     | '/api/auth/$'
     | '/api/rpc/$'
   id:
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '/movie/$movieId'
     | '/person/$id'
     | '/tv/$tvId'
+    | '/discover/'
     | '/api/auth/$'
     | '/api/rpc/$'
   fileRoutesById: FileRoutesById
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   MovieMovieIdRoute: typeof MovieMovieIdRoute
   PersonIdRoute: typeof PersonIdRoute
   TvTvIdRoute: typeof TvTvIdRoute
+  DiscoverIndexRoute: typeof DiscoverIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
@@ -240,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/discover/': {
+      id: '/discover/'
+      path: '/discover'
+      fullPath: '/discover/'
+      preLoaderRoute: typeof DiscoverIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tv/$tvId': {
@@ -315,6 +335,7 @@ const rootRouteChildren: RootRouteChildren = {
   MovieMovieIdRoute: MovieMovieIdRoute,
   PersonIdRoute: PersonIdRoute,
   TvTvIdRoute: TvTvIdRoute,
+  DiscoverIndexRoute: DiscoverIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
