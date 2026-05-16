@@ -50,12 +50,13 @@ export function GenreNavigationClient({ genres, currentGenreId = 0 }: GenreNavig
 
   function handleGenreClick(targetGenreId: number) {
     const nextGenreId = currentGenreId === targetGenreId ? 0 : targetGenreId;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate({
-      search: (prev: Record<string, unknown>) => ({
+      search: ((prev: any) => ({
         ...prev,
         genreId: nextGenreId || undefined,
         page: 1,
-      }),
+      })) as any,
     });
   }
 

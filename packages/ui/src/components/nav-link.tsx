@@ -1,11 +1,10 @@
 
 import { List, Star } from 'lucide-react';
-import Link from '@tanstack/react-router';
-import { useLocation } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 
 import { cn } from '../lib/utils';
 
-import { SidebarMenuButton, SidebarMenuItem, useSidebar } from './ui/sidebar';
+import { SidebarMenuButton, SidebarMenuItem, useSidebar } from './sidebar';
 
 type NavLinkProps = {
   href: string;

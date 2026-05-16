@@ -39,7 +39,7 @@ export default function MediaTypeSelectorDropdown({
     });
 
     // Parse current search params from the URL
-    const searchParams = new URLSearchParams(location.search);
+    const searchParams = new URLSearchParams(location.searchStr ?? '');
     const currentGenreId = searchParams.get('genreId');
 
     if (mediaType === 'all') {
@@ -66,10 +66,8 @@ export default function MediaTypeSelectorDropdown({
       searchParams.delete('genreId');
     }
 
-    navigate({
-      to: location.pathname,
-      search: Object.fromEntries(searchParams.entries()),
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    navigate({ search: Object.fromEntries(searchParams.entries()) as any });
   }
 
   function getDisplayName(mediaType: MediaType) {

@@ -1,9 +1,9 @@
 import { Popcorn } from 'lucide-react';
-import Link from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 
 import { cn } from '../lib/utils';
 
-import { useSidebar } from './ui/sidebar';
+import { useSidebar } from './sidebar';
 type BrandProps = {
   className?: string;
 };

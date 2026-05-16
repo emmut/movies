@@ -1,5 +1,4 @@
-
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, List, ListPlus, Star } from 'lucide-react';
 import { ChangeEvent, useState } from 'react';
 import { toast } from 'sonner';
@@ -25,10 +24,8 @@ import { Input } from '@movies/ui/components/input';
 import { Label } from '@movies/ui/components/label';
 import { Textarea } from '@movies/ui/components/textarea';
 import { EMOJI_OPTIONS } from '@movies/api/lib/config';
-import { addToList, createList, getUserListsWithStatus, removeFromList } from '@movies/api/lib/lists';
 import { queryKeys } from '@movies/api/lib/query-keys';
-import { isResourceInWatchlist } from '@movies/api/lib/watchlist';
-import { toggleWatchlist } from '@movies/api/lib/watchlist';
+import { orpc } from '@/utils/orpc';
 
 interface ListButtonProps {
   mediaId: number;
@@ -40,133 +37,99 @@ interface ListButtonProps {
 export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }: ListButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPending, setIsPending] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('📝');
   const queryClient = useQueryClient();
 
-  const { data: lists = [], isLoading: isLoadingLists } = useQuery({
-    queryKey: queryKeys.lists.withStatus(mediaId, mediaType),
-    queryFn: () => getUserListsWithStatus(mediaId, mediaType),
-    staleTime: 30_000,
-    enabled: isOpen,
-  });
+  const { data: lists = [], isLoading: isLoadingLists } = useQuery(
+    orpc.lists.withStatus.queryOptions({
+      input: { mediaId, mediaType },
+      enabled: isOpen,
+      staleTime: 30_000,
+    }),
+  );
 
-  const { data: isInWatchlist = false } = useQuery({
-    queryKey: queryKeys.watchlist.status(mediaId, mediaType),
-    queryFn: () => isResourceInWatchlist(mediaId, mediaType),
-    staleTime: 30_000,
-    enabled: isOpen && showWatchlist,
-  });
+  const { data: isInWatchlist = false } = useQuery(
+    orpc.watchlist.status.queryOptions({
+      input: { resourceId: mediaId, resourceType: mediaType },
+      enabled: isOpen && showWatchlist,
+      staleTime: 30_000,
+    }),
+  );
+
+  const addItem = useMutation(
+    orpc.lists.addItem.mutationOptions({
+      onSuccess: (_, vars) => {
+        const list = lists.find((l) => l.id === vars.listId);
+        toast.success(`Added to "${list?.name ?? 'list'}"`);
+        queryClient.invalidateQueries({ queryKey: orpc.lists.withStatus.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.lists.detail.key() });
+      },
+      onError: (error) => toast.error(error instanceof Error ? error.message : 'Failed to add'),
+    }),
+  );
+
+  const removeItem = useMutation(
+    orpc.lists.removeItem.mutationOptions({
+      onSuccess: (_, vars) => {
+        const list = lists.find((l) => l.id === vars.listId);
+        toast.success(`Removed from "${list?.name ?? 'list'}"`);
+        queryClient.invalidateQueries({ queryKey: orpc.lists.withStatus.key() });
+        queryClient.invalidateQueries({ queryKey: orpc.lists.detail.key() });
+      },
+      onError: (error) => toast.error(error instanceof Error ? error.message : 'Failed to remove'),
+    }),
+  );
+
+  const createList = useMutation(
+    orpc.lists.create.mutationOptions({
+      onSuccess: async (result) => {
+        addItem.mutate({ listId: result.listId, mediaId, mediaType });
+        setNewListName('');
+        setNewListDescription('');
+        setSelectedEmoji('📝');
+        setIsCreateOpen(false);
+        queryClient.invalidateQueries({ queryKey: orpc.lists.withStatus.key() });
+        toast.success('List created and item added');
+      },
+      onError: (error) => toast.error(error instanceof Error ? error.message : 'Failed to create list'),
+    }),
+  );
+
+  const toggleWatchlistMutation = useMutation(
+    orpc.watchlist.toggle.mutationOptions({
+      onSuccess: (result) => {
+        queryClient.setQueryData(
+          orpc.watchlist.status.queryOptions({ input: { resourceId: mediaId, resourceType: mediaType } }).queryKey,
+          result.action === 'added',
+        );
+        toast.success(result.action === 'added' ? 'Added to watchlist' : 'Removed from watchlist');
+        queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
+      },
+      onError: (error) => toast.error(error instanceof Error ? error.message : 'Failed to update watchlist'),
+    }),
+  );
 
   if (!userId) {
     return null;
   }
 
-  async function handleToggleList(listId: string, hasItem: boolean) {
-    const list = lists.find((l) => l.id === listId);
-    const listName = list?.name || 'list';
-    setIsPending(true);
-    try {
-      if (hasItem) {
-        await removeFromList(listId, mediaId, mediaType);
-        toast.success(`Removed from "${listName}"`);
-      } else {
-        await addToList(listId, mediaId, mediaType);
-        toast.success(`Added to "${listName}"`);
-      }
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.lists.details(),
-        predicate: (query) => {
-          const [, , queryListId] = query.queryKey;
-          return queryListId === listId;
-        },
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : hasItem
-            ? `Failed to remove from "${listName}"`
-            : `Failed to add to "${listName}"`,
-      );
-    } finally {
-      setIsPending(false);
-    }
-  }
-
-  async function handleCreateList() {
-    if (!newListName.trim()) {
-      toast.error('List name is required');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const result = await createList(newListName.trim(), newListDescription.trim(), selectedEmoji);
-      if (result.success) {
-        await addToList(result.listId, mediaId, mediaType);
-        setNewListName('');
-        setNewListDescription('');
-        setSelectedEmoji('📝');
-        setIsCreateOpen(false);
-        queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
-        toast.success('List created and item added');
-      }
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message.includes('emoji')
-            ? 'Invalid emoji selection'
-            : error.message
-          : 'Failed to create list',
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleToggleWatchlist() {
-    const previous =
-      queryClient.getQueryData<boolean>(queryKeys.watchlist.status(mediaId, mediaType)) ?? false;
-    queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), !previous);
-    setIsPending(true);
-    try {
-      const result = await toggleWatchlist({ resourceId: mediaId, resourceType: mediaType });
-      queryClient.setQueryData(
-        queryKeys.watchlist.status(mediaId, mediaType),
-        result.action === 'added',
-      );
-      toast.success(result.action === 'added' ? 'Added to watchlist' : 'Removed from watchlist');
-      queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
-    } catch (error) {
-      queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), previous);
-      toast.error(error instanceof Error ? error.message : 'Failed to update watchlist');
-    } finally {
-      setIsPending(false);
-    }
-  }
+  const isPending = addItem.isPending || removeItem.isPending || toggleWatchlistMutation.isPending;
 
   return (
     <>
-      <DropdownMenu
-        open={isOpen}
-        onOpenChange={setIsOpen}
-      >
-        <DropdownMenuTrigger render={<Button variant="glass" size="icon" disabled={isPending} />}>
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenuTrigger render={<Button variant="outline" size="icon" disabled={isPending} />}>
           <List className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-52">
           {showWatchlist && (
             <>
               <DropdownMenuItem
-                onClick={handleToggleWatchlist}
+                onClick={() => toggleWatchlistMutation.mutate({ resourceId: mediaId, resourceType: mediaType })}
                 disabled={isPending}
                 className="flex items-center justify-between"
-                title={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
               >
                 <span className="flex flex-1 items-center gap-2">
                   <Star className={`h-4 w-4 ${isInWatchlist ? 'fill-current' : ''}`} />
@@ -190,10 +153,13 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
               lists.map((list) => (
                 <DropdownMenuItem
                   key={list.id}
-                  onClick={() => handleToggleList(list.id, list.hasItem)}
+                  onClick={() =>
+                    list.hasItem
+                      ? removeItem.mutate({ listId: list.id, mediaId, mediaType })
+                      : addItem.mutate({ listId: list.id, mediaId, mediaType })
+                  }
                   disabled={isPending}
                   className="flex items-center justify-between"
-                  title={list.hasItem ? `Remove from "${list.name}"` : `Add to "${list.name}"`}
                 >
                   <span className="flex flex-1 items-center gap-2">
                     <span className="text-lg">{list.emoji}</span>
@@ -233,7 +199,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
                       className={`rounded p-2 text-xl transition-colors hover:bg-muted ${
                         selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
                       }`}
-                      disabled={isLoading}
+                      disabled={createList.isPending}
                     >
                       {emoji}
                     </button>
@@ -251,7 +217,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
                 value={newListName}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
                 className="col-span-3"
-                disabled={isLoading}
+                disabled={createList.isPending}
                 maxLength={100}
                 placeholder="Enter list name..."
               />
@@ -267,7 +233,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
                   setNewListDescription(e.target.value)
                 }
                 className="col-span-3"
-                disabled={isLoading}
+                disabled={createList.isPending}
                 maxLength={500}
                 placeholder="Optional description..."
                 rows={3}
@@ -275,8 +241,17 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={handleCreateList} disabled={isLoading || !newListName.trim()}>
-              {isLoading ? 'Creating...' : 'Create'}
+            <Button
+              onClick={() =>
+                createList.mutate({
+                  name: newListName.trim(),
+                  description: newListDescription.trim(),
+                  emoji: selectedEmoji,
+                })
+              }
+              disabled={createList.isPending || !newListName.trim()}
+            >
+              {createList.isPending ? 'Creating...' : 'Create'}
             </Button>
           </DialogFooter>
         </DialogContent>

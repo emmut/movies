@@ -24,36 +24,26 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
       setOptimisticMediaType(mediaType);
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     navigate({
-      search: (prev: Record<string, unknown>) => {
+      search: ((prev: any) => {
         const currentGenreId = prev.genreId as number | undefined;
-
-        // Optimistically clear genreId — validate asynchronously below
         const next = { ...prev, mediaType, genreId: undefined, page: 1 };
 
         if (currentGenreId && currentGenreId !== 0) {
-          // Fire-and-forget validation; if genre is invalid we already cleared it
           client.discover.validateGenre({
             genreId: String(currentGenreId),
             mediaType,
           }).then((valid) => {
             if (valid) {
-              navigate({
-                search: (p: Record<string, unknown>) => ({
-                  ...p,
-                  mediaType,
-                  genreId: currentGenreId,
-                  page: 1,
-                }),
-              });
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              navigate({ search: ((p: any) => ({ ...p, mediaType, genreId: currentGenreId, page: 1 })) as any });
             }
-          }).catch(() => {
-            // Genre cleared already, ignore
-          });
+          }).catch(() => { /* ignore */ });
         }
 
         return next;
-      },
+      }) as any,
     });
   }
 

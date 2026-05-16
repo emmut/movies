@@ -65,15 +65,14 @@ export function PaginationControls({ totalPages, currentPage }: PaginationContro
   const hasNextPage = currentPage < totalPages;
 
   function buildPageHref(page: number) {
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(location.searchStr ?? '');
     params.set('page', String(page));
     return `${location.pathname}?${params.toString()}`;
   }
 
   function navigateToPage(page: number) {
-    navigate({
-      search: (prev: Record<string, unknown>) => ({ ...prev, page }),
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    navigate({ search: ((prev: any) => ({ ...prev, page })) as any });
   }
 
   const pageNumbers = generatePageNumbers(currentPage, totalPages);

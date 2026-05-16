@@ -1,4 +1,3 @@
-import { ImageProxy } from '@movies/media';
 import { Skeleton } from '@movies/ui/components/skeleton';
 
 type PosterProps = {
@@ -10,13 +9,12 @@ function Poster({ poster_path, title }: PosterProps) {
   return (
     <div className="lg:col-span-4">
       {poster_path ? (
-        <Imgproxy
+        <img
           className="aspect-2/3 w-full max-w-64 rounded-lg border shadow-2xl sm:mx-0 lg:max-w-full"
-          src={poster_path}
+          src={`https://image.tmdb.org/t/p/w500${poster_path}`}
           alt={`Poster image of ${title}`}
           width={500}
           height={750}
-          priority
         />
       ) : (
         <div className="mx-auto flex aspect-2/3 w-full max-w-md items-center justify-center rounded-lg bg-zinc-800 shadow-2xl">

@@ -1,5 +1,5 @@
 import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react';
-import Link from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import * as React from 'react';
 
 import { Button } from './button';

@@ -1,4 +1,4 @@
-import ClientImage from '@movies/media';
+import { ImageProxy } from '@movies/media';
 import { cn, formatImageUrl } from '@movies/ui/lib/utils';
 import { PersonDetails, SearchedPerson } from '@movies/api/types/person';
 import type { ProxyImageUrls } from '@movies/api/types/proxy-image';
@@ -50,7 +50,7 @@ export default function PersonCard({
         className,
       )}
     >
-      <Link href={href}>
+      <Link to={href}>
         <div className="relative h-full w-full">
           {person.profile_path ? (
             <ClientImage

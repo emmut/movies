@@ -1,9 +1,10 @@
-import { useSearchParams } from '@tanstack/react-router';
+import { useLocation } from '@tanstack/react-router';
 
 import SearchIcon from '@movies/ui/icons/SearchIcon';
 
 export default function SearchBar() {
-  const searchParams = useSearchParams();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.searchStr ?? '');
   const q = searchParams.get('q') ?? '';
 
   return (

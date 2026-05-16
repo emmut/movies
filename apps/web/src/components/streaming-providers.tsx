@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Play, ShoppingCart, TicketCheck, Tv } from 'lucide-react';
 
 import { RegionSelect } from '@/components/region-select';
-import { getRegionCodes, RegionCode } from '@movies/media';
+import { RegionCode } from '@movies/media';
 import { formatImageUrl } from '@movies/ui/lib/utils';
 import type { MovieWatchProviders } from '@movies/api/types/movie';
 import type { TvWatchProviders } from '@movies/api/types/tv-show';
@@ -23,7 +23,7 @@ export function StreamingProviders({
   const [region, setRegion] = useState<RegionCode>(userRegion);
 
   const regionProviders = watchProviders.results?.[region];
-  const allRegionProviders = watchProviders.results;
+  const allRegionProviders = watchProviders.results as Record<RegionCode, import('@movies/api/types/watch-provider').RegionWatchProviders>;
   const streamingServices = regionProviders?.flatrate || [];
   const rentalServices = regionProviders?.rent || [];
   const purchaseServices = regionProviders?.buy || [];
@@ -53,7 +53,6 @@ export function StreamingProviders({
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-semibold">Where to watch</h2>
         <RegionSelect
-          defaultValue={userRegion}
           allRegionProviders={allRegionProviders}
           value={region}
           onChange={setRegion}

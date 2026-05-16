@@ -474,6 +474,9 @@ importers:
       '@movies/config':
         specifier: workspace:*
         version: link:../config
+      '@tanstack/react-router':
+        specifier: ^1.168.22
+        version: 1.170.2(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@types/react':
         specifier: ^19.2.10
         version: 19.2.14

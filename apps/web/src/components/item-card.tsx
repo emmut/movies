@@ -1,4 +1,4 @@
-import ClientImage from '@movies/media';
+import { ImageProxy } from '@movies/media';
 import { cn, formatImageUrl } from '@movies/ui/lib/utils';
 import { Movie, MovieDetails } from '@movies/api/types/movie';
 import type { ProxyImageUrls } from '@movies/api/types/proxy-image';
@@ -73,7 +73,7 @@ export default function ItemCard({
         className,
       )}
     >
-      <Link href={href}>
+      <Link to={href}>
         <div className="relative h-full w-full">
           {item.poster_path ? (
             <ClientImage
