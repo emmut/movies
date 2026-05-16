@@ -1,28 +1,14 @@
-import { fetchAvailableGenres } from '@movies/api/lib/movies';
-import { fetchAvailableTvGenres } from '@movies/api/lib/tv-shows';
+'use client';
 
-import { GenreNavigationClient } from './genre-navigation-client';
+import { useQuery } from '@tanstack/react-query';
+
+import { Route } from '@/routes/discover/$';
+import { orpc } from '@/utils/orpc';
 import Pill from '@movies/ui/components/pill';
 
-type AvailableGenreProps = {
-  mediaType?: 'movie' | 'tv';
-};
+import { GenreNavigationClient } from './genre-navigation-client';
 
-/**
- * Displays a navigation bar of available genres for movies or TV shows, allowing users to filter content by genre.
- *
- * @param mediaType - The type of media to display genres for; either 'movie' or 'tv'. Defaults to 'movie'.
- *
- * @returns A navigation element with genre filter links.
- */
-async function AvailableGenresNavigation({ mediaType = 'movie' }: AvailableGenreProps) {
-  const genres =
-    mediaType === 'movie' ? await fetchAvailableGenres() : await fetchAvailableTvGenres();
-
-  return <GenreNavigationClient genres={genres} />;
-}
-
-const availableGenresSkeleton = [
+const skeletonItems = [
   { id: 1, className: 'w-18' },
   { id: 2, className: 'w-24' },
   { id: 3, className: 'w-32' },
@@ -33,22 +19,13 @@ const availableGenresSkeleton = [
   { id: 8, className: 'w-16' },
   { id: 9, className: 'w-24' },
   { id: 10, className: 'w-32' },
-  { id: 11, className: 'w-24' },
-  { id: 12, className: 'w-36' },
-  { id: 13, className: 'w-19' },
-  { id: 14, className: 'w-28' },
-  { id: 15, className: 'w-19' },
-  { id: 16, className: 'w-36' },
 ] as const;
 
-/**
- * Displays a skeleton navigation UI with placeholder genre pills to indicate loading state.
- */
-function AvailableGenresNavigationSkeleton() {
+function GenreNavigationSkeleton() {
   return (
     <nav>
       <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
-        {availableGenresSkeleton.map(({ id, className }) => (
+        {skeletonItems.map(({ id, className }) => (
           <li key={id}>
             <Pill variant="skeleton" className={className}>
               Loading...
@@ -60,5 +37,17 @@ function AvailableGenresNavigationSkeleton() {
   );
 }
 
-AvailableGenresNavigation.Skeleton = AvailableGenresNavigationSkeleton;
-export { AvailableGenresNavigation };
+export function AvailableGenresNavigation() {
+  const { mediaType, genreId } = Route.useSearch();
+
+  const { data: genres, isLoading } = useQuery(
+    mediaType === 'movie'
+      ? orpc.movies.genres.queryOptions()
+      : orpc.tv.genres.queryOptions(),
+  );
+
+  if (isLoading) return <GenreNavigationSkeleton />;
+  if (!genres) return null;
+
+  return <GenreNavigationClient genres={genres} currentGenreId={genreId} />;
+}

@@ -1,100 +1,81 @@
-import { Suspense } from 'react';
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
 
 import ItemCard from '@/components/item-card';
 import { ItemSlider } from '@movies/ui/components/item-slider';
 import { Skeleton } from '@movies/ui/components/skeleton';
-import { Movie } from '@movies/api/types/movie';
-import { TvShow } from '@movies/api/types/tv-show';
+import { orpc } from '@/utils/orpc';
 
 type OtherContentProps = {
   id: number;
   type: 'movie' | 'tv';
-  getSimilar: (id: number) => Promise<(Movie | TvShow)[]>;
-  getRecommendations: (id: number) => Promise<(Movie | TvShow)[]>;
 };
 
-async function SimilarContent({
-  id,
-  type,
-  getSimilar,
-}: Pick<OtherContentProps, 'id' | 'type' | 'getSimilar'>) {
-  const similar = await getSimilar(id);
-
-  if (similar.length === 0) {
-    return null;
-  }
-
-  const titleText = type === 'movie' ? 'Similar Movies' : 'Similar TV Shows';
-
+function SectionSkeleton({ title }: { title: string }) {
   return (
     <div className="flex flex-col">
-      <div className="mt-8 mb-2 flex items-center justify-between">
-        <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">{titleText}</h2>
-        <p className="hidden text-sm text-muted-foreground sm:block">You might also like</p>
-      </div>
-
-      <ItemSlider>
-        {similar.map((item) => (
-          <ItemCard key={item.id} resource={item} type={type} className="w-48" />
-        ))}
-      </ItemSlider>
-    </div>
-  );
-}
-
-async function RecommendationsContent({
-  id,
-  type,
-  getRecommendations,
-}: Pick<OtherContentProps, 'id' | 'type' | 'getRecommendations'>) {
-  const recommendations = await getRecommendations(id);
-
-  if (recommendations.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col">
-      <div className="mt-8 mb-2 flex items-center justify-between">
-        <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Recommendations</h2>
-        <p className="hidden text-sm text-muted-foreground sm:block">You might also like</p>
-      </div>
-
-      <ItemSlider>
-        {recommendations.map((item) => (
-          <ItemCard key={item.id} resource={item} type={type} className="w-48" />
-        ))}
-      </ItemSlider>
-    </div>
-  );
-}
-
-function OtherContentSkeleton() {
-  return (
-    <>
-      <div className="flex items-end justify-between">
-        <Skeleton className="mt-8 mb-4 h-10 w-48" />
-        <Skeleton className="mt-8 mb-4 h-8 w-40" />
+      <div className="mt-8 mb-2 flex items-end justify-between">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-6 w-40" />
       </div>
       <div className="grid grid-cols-4 gap-2">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <ItemCard.Skeleton key={index} className="w-48" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <ItemCard.Skeleton key={i} className="w-48" />
         ))}
       </div>
-    </>
+    </div>
   );
 }
 
-export function OtherContent({ id, type, getSimilar, getRecommendations }: OtherContentProps) {
+export function OtherContent({ id, type }: OtherContentProps) {
+  const similar = useQuery(
+    type === 'movie'
+      ? orpc.movies.similar.queryOptions({ input: { movieId: id } })
+      : orpc.tv.similar.queryOptions({ input: { tvId: id } }),
+  );
+
+  const recommendations = useQuery(
+    type === 'movie'
+      ? orpc.movies.recommendations.queryOptions({ input: { movieId: id } })
+      : orpc.tv.recommendations.queryOptions({ input: { tvId: id } }),
+  );
+
+  const similarTitle = type === 'movie' ? 'Similar Movies' : 'Similar TV Shows';
+
   return (
     <div className="flex flex-col">
-      <Suspense fallback={<OtherContentSkeleton />}>
-        <SimilarContent id={id} type={type} getSimilar={getSimilar} />
-      </Suspense>
+      {similar.isLoading ? (
+        <SectionSkeleton title={similarTitle} />
+      ) : (similar.data?.length ?? 0) > 0 ? (
+        <div className="flex flex-col">
+          <div className="mt-8 mb-2 flex items-center justify-between">
+            <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">{similarTitle}</h2>
+            <p className="hidden text-sm text-muted-foreground sm:block">You might also like</p>
+          </div>
+          <ItemSlider>
+            {similar.data!.map((item) => (
+              <ItemCard key={item.id} resource={item} type={type} className="w-48" />
+            ))}
+          </ItemSlider>
+        </div>
+      ) : null}
 
-      <Suspense fallback={<OtherContentSkeleton />}>
-        <RecommendationsContent id={id} type={type} getRecommendations={getRecommendations} />
-      </Suspense>
+      {recommendations.isLoading ? (
+        <SectionSkeleton title="Recommendations" />
+      ) : (recommendations.data?.length ?? 0) > 0 ? (
+        <div className="flex flex-col">
+          <div className="mt-8 mb-2 flex items-center justify-between">
+            <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Recommendations</h2>
+            <p className="hidden text-sm text-muted-foreground sm:block">You might also like</p>
+          </div>
+          <ItemSlider>
+            {recommendations.data!.map((item) => (
+              <ItemCard key={item.id} resource={item} type={type} className="w-48" />
+            ))}
+          </ItemSlider>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,12 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
+import { useQuery } from '@tanstack/react-query';
+import { createFileRoute } from '@tanstack/react-router';
+import { Calendar, ChevronLeft, MapPin, Star, Users } from 'lucide-react';
+import { z } from 'zod';
 
-import { orpc } from "@/utils/orpc";
+import { authClient } from '@/lib/auth-client';
+import ItemCard from '@/components/item-card';
+import { ExternalLinks } from '@/components/external-links';
+import { ListButton } from '@/components/list-button';
+import { ItemSlider } from '@movies/ui/components/item-slider';
+import Badge from '@movies/ui/components/badge';
+import { orpc } from '@/utils/orpc';
 
 const paramsSchema = z.object({ id: z.coerce.number().int().positive() });
 
-export const Route = createFileRoute("/person/$id")({
+function deduplicateById<T extends { id: number; popularity?: number }>(items: T[]): T[] {
+  const seen = new Set<number>();
+  return items
+    .filter((i) => !seen.has(i.id) && seen.add(i.id))
+    .sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
+}
+
+export const Route = createFileRoute('/person/$id')({
   params: { parse: (raw) => paramsSchema.parse(raw) },
   loader: ({ context, params }) =>
     context.queryClient.ensureQueryData(
@@ -16,14 +30,212 @@ export const Route = createFileRoute("/person/$id")({
 });
 
 function PersonRoute() {
-  const { id } = Route.useParams();
-  const person = useQuery(orpc.persons.details.queryOptions({ input: { personId: id } }));
+  const { id: personId } = Route.useParams();
+  const { data: session } = authClient.useSession();
+  const userId = session?.user?.id;
+
+  const person = useQuery(orpc.persons.details.queryOptions({ input: { personId } }));
+  const movieCredits = useQuery(orpc.persons.movieCredits.queryOptions({ input: { personId } }));
+  const tvCredits = useQuery(orpc.persons.tvCredits.queryOptions({ input: { personId } }));
+
   if (person.isLoading) return <div className="p-4">Loading…</div>;
   if (!person.data) return <div className="p-4">Not found</div>;
+
+  const {
+    name,
+    biography,
+    birthday,
+    deathday,
+    place_of_birth,
+    profile_path,
+    known_for_department,
+    also_known_as,
+    homepage,
+    imdb_id,
+  } = person.data;
+
+  const uniqueMovies = deduplicateById(movieCredits.data?.cast ?? []);
+  const uniqueTvShows = deduplicateById(tvCredits.data?.cast ?? []);
+
+  const birthYear = birthday ? new Date(birthday).getFullYear() : null;
+  const deathYear = deathday ? new Date(deathday).getFullYear() : null;
+  const age = birthYear && !deathYear ? new Date().getFullYear() - birthYear : null;
+  const totalCredits = uniqueMovies.length + uniqueTvShows.length;
+
+  const moviesForGrid = uniqueMovies.map((movie) => ({
+    id: movie.id,
+    title: movie.title,
+    poster_path: movie.poster_path,
+    release_date: movie.release_date,
+    vote_average: movie.vote_average,
+    adult: false,
+    backdrop_path: '' as string | null,
+    original_language: '',
+    original_title: movie.original_title,
+    overview: '',
+    media_type: 'movie' as const,
+    genre_ids: [] as number[],
+    popularity: movie.popularity,
+    video: false,
+    vote_count: 0,
+  }));
+
+  const tvShowsForGrid = uniqueTvShows.map((show) => ({
+    id: show.id,
+    name: show.name,
+    original_name: show.original_name,
+    poster_path: show.poster_path,
+    first_air_date: show.first_air_date,
+    vote_average: show.vote_average,
+    backdrop_path: '' as string | null,
+    overview: '',
+    vote_count: 0,
+    genre_ids: [] as number[],
+    popularity: show.popularity,
+    media_type: 'tv' as const,
+    origin_country: [] as string[],
+    original_language: '',
+  }));
+
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 p-4">
-      <h1 className="text-2xl font-bold">{person.data.name}</h1>
-      <p className="text-muted-foreground">{person.data.biography}</p>
+    <div className="min-h-screen">
+      <div className="mb-6">
+        <button
+          onClick={() => window.history.back()}
+          className="inline-flex items-center gap-2 text-zinc-400 transition-colors hover:text-white"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Go back
+        </button>
+      </div>
+
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
+        <div className="lg:col-span-4">
+          {profile_path ? (
+            <img
+              src={`https://image.tmdb.org/t/p/w500${profile_path}`}
+              alt={`Profile image of ${name}`}
+              className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg border shadow-2xl sm:mx-0 object-cover"
+            />
+          ) : (
+            <div className="mx-auto flex aspect-2/3 w-full max-w-md items-center justify-center rounded-lg bg-zinc-800 shadow-2xl">
+              <div className="text-center text-zinc-400">
+                <div className="mb-4 text-6xl">👤</div>
+                <div className="text-lg font-semibold">No Photo</div>
+                <div className="text-sm">Available</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-6 lg:col-span-8">
+          <div className="flex flex-col items-start gap-3">
+            <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">{name}</h1>
+            <div className="flex w-full items-center justify-between gap-2">
+              <Badge variant="blue">Person</Badge>
+              {userId && (
+                <ListButton mediaId={personId} mediaType="person" userId={userId} showWatchlist={false} />
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="rounded-lg bg-zinc-900 p-4 text-center">
+              <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
+              <div className="text-2xl font-bold">{Math.round(person.data.popularity)}</div>
+              <div className="text-sm text-zinc-400">Popularity</div>
+            </div>
+            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
+              <Users className="mx-auto mb-2 h-6 w-6 text-purple-500" />
+              <div className="text-2xl font-bold">{totalCredits}</div>
+              <div className="text-sm text-zinc-400">Credits</div>
+            </div>
+            {birthYear && (
+              <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
+                <Calendar className="mx-auto mb-2 h-6 w-6 text-green-500" />
+                <div className="text-2xl font-bold">{birthYear}</div>
+                <div className="text-sm text-zinc-400">Born</div>
+                {age && <div className="text-xs text-zinc-500">({age} years old)</div>}
+              </div>
+            )}
+            {place_of_birth && (
+              <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
+                <MapPin className="mx-auto mb-2 h-6 w-6 text-blue-500" />
+                <div className="text-center text-sm leading-tight font-bold">
+                  {place_of_birth.split(', ').slice(-1)[0]}
+                </div>
+                <div className="text-sm text-zinc-400">Origin</div>
+              </div>
+            )}
+          </div>
+
+          {biography && (
+            <div>
+              <h2 className="mb-3 text-xl font-semibold">Biography</h2>
+              <p className="leading-relaxed whitespace-pre-line text-zinc-300">{biography}</p>
+            </div>
+          )}
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-4">
+              <div>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Known For</h3>
+                <p>{known_for_department || 'Acting'}</p>
+              </div>
+              {birthday && (
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Birthday</h3>
+                  <p>{birthday}</p>
+                </div>
+              )}
+              {place_of_birth && (
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Place of Birth</h3>
+                  <p>{place_of_birth}</p>
+                </div>
+              )}
+            </div>
+            <div className="space-y-4">
+              {deathday && (
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Died</h3>
+                  <p>{deathday}</p>
+                </div>
+              )}
+              {also_known_as.length > 0 && (
+                <div>
+                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Also Known As</h3>
+                  <p>{also_known_as.slice(0, 3).join(', ')}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {moviesForGrid.length > 0 && (
+            <div>
+              <h2 className="mb-4 text-xl font-semibold">Movies ({moviesForGrid.length})</h2>
+              <ItemSlider>
+                {moviesForGrid.map((movie) => (
+                  <ItemCard key={movie.id} resource={movie} className="w-48" type="movie" userId={userId} />
+                ))}
+              </ItemSlider>
+            </div>
+          )}
+
+          {tvShowsForGrid.length > 0 && (
+            <div>
+              <h2 className="mb-4 text-xl font-semibold">TV Shows ({tvShowsForGrid.length})</h2>
+              <ItemSlider>
+                {tvShowsForGrid.map((show) => (
+                  <ItemCard key={show.id} resource={show} className="w-48" type="tv" userId={userId} />
+                ))}
+              </ItemSlider>
+            </div>
+          )}
+
+          <ExternalLinks tmdbId={personId} homepage={homepage} imdbId={imdb_id} mediaType="person" />
+        </div>
+      </div>
     </div>
   );
 }
