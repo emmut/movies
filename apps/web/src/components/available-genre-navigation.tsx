@@ -19,7 +19,7 @@ async function AvailableGenresNavigation({ mediaType = 'movie' }: AvailableGenre
   const genres =
     mediaType === 'movie' ? await fetchAvailableGenres() : await fetchAvailableTvGenres();
 
-  return <GenreNavigationClient genres={genres} mediaType={mediaType} />;
+  return <GenreNavigationClient genres={genres} />;
 }
 
 const availableGenresSkeleton = [

@@ -70,5 +70,5 @@ export default function SearchPagination({ query, page, mediaType }: SearchPagin
     return null;
   }
 
-  return <PaginationControls totalPages={data.totalPages} pageType="search" />;
+  return <PaginationControls totalPages={data.totalPages} currentPage={page} />;
 }

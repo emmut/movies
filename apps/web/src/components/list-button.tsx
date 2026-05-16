@@ -127,7 +127,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
           {showWatchlist && (
             <>
               <DropdownMenuItem
-                onClick={() => toggleWatchlistMutation.mutate({ resourceId: mediaId, resourceType: mediaType })}
+                onClick={() => toggleWatchlistMutation.mutate({ resourceId: mediaId, resourceType: mediaType as 'movie' | 'tv' })}
                 disabled={isPending}
                 className="flex items-center justify-between"
               >

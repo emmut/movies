@@ -1,8 +1,6 @@
-
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Trash2 } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -17,8 +15,8 @@ import {
   AlertDialogTrigger,
 } from '@movies/ui/components/alert-dialog';
 import { Button } from '@movies/ui/components/button';
-import { deleteList } from '@movies/api/lib/lists';
 import { queryKeys } from '@movies/api/lib/query-keys';
+import { orpc } from '@/utils/orpc';
 
 interface DeleteListButtonProps {
   listId: string;
@@ -37,28 +35,21 @@ export function DeleteListButton({
 }: DeleteListButtonProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
 
-  async function handleDelete() {
-    setIsLoading(true);
-    try {
-      await deleteList(listId);
-      toast.success('List deleted successfully');
-
-      // Invalidate all list queries to ensure fresh data
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.lists.all,
-      });
-
-      if (redirectAfterDelete) {
-        navigate({ to: '/lists' });
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete list');
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const deleteList = useMutation(
+    orpc.lists.delete.mutationOptions({
+      onSuccess: () => {
+        toast.success('List deleted successfully');
+        queryClient.invalidateQueries({ queryKey: queryKeys.lists.all });
+        if (redirectAfterDelete) {
+          navigate({ to: '/lists' });
+        }
+      },
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : 'Failed to delete list');
+      },
+    }),
+  );
 
   return (
     <AlertDialog>
@@ -85,11 +76,11 @@ export function DeleteListButton({
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleDelete}
-            disabled={isLoading}
+            onClick={() => deleteList.mutate({ listId })}
+            disabled={deleteList.isPending}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isLoading ? 'Deleting...' : 'Delete List'}
+            {deleteList.isPending ? 'Deleting...' : 'Delete List'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

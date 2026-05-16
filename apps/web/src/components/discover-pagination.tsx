@@ -55,5 +55,5 @@ export default function Pagination({
     return null;
   }
 
-  return <PaginationControls totalPages={data.totalPages} pageType="discover" />;
+  return <PaginationControls totalPages={data.totalPages} currentPage={currentPage} />;
 }

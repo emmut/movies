@@ -53,7 +53,7 @@ export default function PersonCard({
       <Link to={href}>
         <div className="relative h-full w-full">
           {person.profile_path ? (
-            <ClientImage
+            <ImageProxy
               imageUrls={profileImageUrls}
               fallbackSrc={
                 person.profile_path.startsWith('http')

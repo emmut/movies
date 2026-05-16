@@ -9,7 +9,7 @@ import { orpc } from '@/utils/orpc';
 
 interface WatchlistButtonProps {
   resourceId: number;
-  resourceType: string;
+  resourceType: 'movie' | 'tv';
   isInWatchlist: boolean;
   userId?: string;
 }

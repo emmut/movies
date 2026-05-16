@@ -76,7 +76,7 @@ export default function ItemCard({
       <Link to={href}>
         <div className="relative h-full w-full">
           {item.poster_path ? (
-            <ClientImage
+            <ImageProxy
               imageUrls={posterImageUrls}
               fallbackSrc={resolveImageSrc(item.poster_path, 500)}
               alt={title}
