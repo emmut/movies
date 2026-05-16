@@ -2,82 +2,31 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { parseAsInteger, useQueryStates } from 'nuqs';
-import { useEffect, useState } from 'react';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
 import ItemCard from '@/components/item-card';
 import { PaginationControls } from '@/components/pagination-controls';
 import PersonCard from '@/components/person-card';
+import { Route } from '@/routes/lists/$id';
 import SectionTitle from '@movies/ui/components/section-title';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { useScrollOnPageChange } from '@movies/ui/hooks/use-scroll-on-page-change';
-import { queryKeys } from '@movies/api/lib/query-keys';
-import { MovieDetails } from '@movies/api/types/movie';
-import { PersonDetails } from '@movies/api/types/person';
-import { TvDetails } from '@movies/api/types/tv-show';
-
-type ListItem =
-  | (MovieDetails & { resourceType: 'movie' })
-  | (TvDetails & { resourceType: 'tv' })
-  | (PersonDetails & { resourceType: 'person' });
+import { orpc } from '@/utils/orpc';
 
 type ListDetailsContentProps = {
   listId: string;
   userId?: string;
-  fetchListDetailsAction: (
-    listId: string,
-    page: number,
-  ) => Promise<{
-    id: string;
-    name: string;
-    description: string | null;
-    emoji: string;
-    createdAt: Date;
-    updatedAt: Date;
-    itemCount: number;
-    totalPages: number;
-    allItems: ListItem[];
-  }>;
 };
 
-/**
- * Client component that handles the list details page content with React Query.
- * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
- */
-export function ListDetailsContent({
-  listId,
-  userId,
-  fetchListDetailsAction,
-}: ListDetailsContentProps) {
-  // Use nuqs to manage URL state
-  const [urlState] = useQueryStates(
-    {
-      page: parseAsInteger.withDefault(1),
-    },
-    {
-      history: 'push',
-    },
-  );
-
-  const page = urlState.page;
+export function ListDetailsContent({ listId, userId }: ListDetailsContentProps) {
+  const { page } = Route.useSearch();
 
   useScrollOnPageChange(page);
 
-  const [createdAt, setCreatedAt] = useState<string | null>(null);
-  const { data: paginatedList, isLoading } = useQuery({
-    queryKey: queryKeys.lists.detail(listId, page),
-    queryFn: () => fetchListDetailsAction(listId, page),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-  });
-
-  useEffect(() => {
-    if (paginatedList) {
-      setCreatedAt(paginatedList.createdAt.toLocaleDateString());
-    }
-  }, [paginatedList]);
+  const { data: paginatedList, isLoading } = useQuery(
+    orpc.lists.detailWithResources.queryOptions({ input: { listId, page } }),
+  );
 
   if (isLoading || !paginatedList) {
     return (
@@ -128,7 +77,9 @@ export function ListDetailsContent({
               {paginatedList.itemCount} item
               {paginatedList.itemCount !== 1 ? 's' : ''} in this list
             </p>
-            {createdAt && <span className="text-zinc-500">• Created {createdAt}</span>}
+            <span className="text-zinc-500">
+              • Created {new Date(paginatedList.createdAt).toLocaleDateString()}
+            </span>
           </div>
         </div>
 
@@ -145,7 +96,9 @@ export function ListDetailsContent({
             Add movies, TV shows, or people by clicking the list button on any content
           </p>
           <Link
-            href="/discover"
+            to="/discover/$"
+            params={{ _splat: '' }}
+            search={{ mediaType: 'movie', page: 1 }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
           >
             Explore Movies & TV Shows
@@ -159,7 +112,7 @@ export function ListDetailsContent({
           {allItems.map((item) =>
             item.resourceType === 'person' ? (
               <PersonCard
-                person={item}
+                person={item as any}
                 userId={userId}
                 showListButton={false}
                 listId={paginatedList.id}
@@ -167,7 +120,7 @@ export function ListDetailsContent({
               />
             ) : (
               <ItemCard
-                resource={item}
+                resource={item as any}
                 type={item.resourceType}
                 userId={userId}
                 showListButton={false}
@@ -180,7 +133,7 @@ export function ListDetailsContent({
       )}
 
       {paginatedList.itemCount > 0 && totalPages > 1 && (
-        <PaginationControls totalPages={totalPages} pageType="lists" />
+        <PaginationControls totalPages={totalPages} currentPage={page} />
       )}
     </div>
   );

@@ -1,24 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
-import { orpc } from "@/utils/orpc";
+import { authClient } from "@/lib/auth-client";
+import { WatchlistContent } from "@/components/watchlist-content";
 
-export const Route = createFileRoute("/watchlist")({ component: WatchlistRoute });
+const watchlistSchema = z.object({
+  mediaType: z.enum(["movie", "tv"]).default("movie"),
+  page: z.coerce.number().int().min(1).default(1),
+});
+
+export const Route = createFileRoute("/watchlist")({
+  validateSearch: watchlistSchema,
+  component: WatchlistRoute,
+});
 
 function WatchlistRoute() {
-  const list = useQuery(orpc.watchlist.list.queryOptions());
-  if (list.isLoading) return <div className="p-4">Loading…</div>;
-  return (
-    <div className="mx-auto w-full max-w-7xl space-y-4 p-4">
-      <h1 className="text-2xl font-bold">Watchlist</h1>
-      <div>{list.data?.length ?? 0} items</div>
-      <ul>
-        {list.data?.map((item) => (
-          <li key={item.id} className="border-b py-2 text-sm">
-            {item.resourceType} #{item.resourceId}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  const { data: session } = authClient.useSession();
+  return <WatchlistContent userId={session?.user.id} />;
 }

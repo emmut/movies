@@ -1,6 +1,7 @@
 
 import { OAuthLoginButton } from '@movies/ui/components/oauth-login-button';
 import { Separator } from '@movies/ui/components/separator';
+import { signInAnonymous, signInDiscord, signInGitHub } from '@/lib/auth-client';
 
 import { PasskeyLoginForm } from './passkey-login-form';
 
@@ -8,18 +9,21 @@ type LoginFormProps = {
   redirectUrl?: string;
 };
 
-/**
- * Displays a login form offering authentication via OAuth providers, passkey, or anonymous login.
- *
- * Arranges multiple login options vertically, passing an optional redirect URL to each authentication method.
- *
- * @param redirectUrl - Optional URL to redirect to after successful authentication
- */
 export function LoginForm({ redirectUrl }: LoginFormProps) {
   return (
     <div className="flex flex-col justify-center gap-4">
-      <OAuthLoginButton provider="discord" size="lg" redirectUrl={redirectUrl} />
-      <OAuthLoginButton provider="github" size="lg" redirectUrl={redirectUrl} />
+      <OAuthLoginButton
+        provider="discord"
+        size="lg"
+        redirectUrl={redirectUrl}
+        signIn={(url) => signInDiscord(url ?? '/')}
+      />
+      <OAuthLoginButton
+        provider="github"
+        size="lg"
+        redirectUrl={redirectUrl}
+        signIn={(url) => signInGitHub(url ?? '/')}
+      />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
@@ -41,7 +45,12 @@ export function LoginForm({ redirectUrl }: LoginFormProps) {
         </div>
       </div>
 
-      <OAuthLoginButton provider="anonymous" size="lg" redirectUrl={redirectUrl} />
+      <OAuthLoginButton
+        provider="anonymous"
+        size="lg"
+        redirectUrl={redirectUrl}
+        signIn={() => signInAnonymous()}
+      />
     </div>
   );
 }

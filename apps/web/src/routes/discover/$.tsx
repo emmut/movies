@@ -26,11 +26,6 @@ function DiscoverRoute() {
   const search = Route.useSearch();
   // genreId can come from the splat path segment OR from the search param
   const genreId = Number(_splat ?? 0) || search.genreId || 0;
-  const watchProviderIds = search.with_watch_providers
-    ?.split("|")
-    .map(Number)
-    .filter(Boolean) ?? [];
-
   const data = useQuery(
     orpc.discover.media.queryOptions({
       input: {

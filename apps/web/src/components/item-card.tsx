@@ -77,8 +77,8 @@ export default function ItemCard({
         <div className="relative h-full w-full">
           {item.poster_path ? (
             <ImageProxy
-              imageUrls={posterImageUrls}
-              fallbackSrc={resolveImageSrc(item.poster_path, 500)}
+              urls={posterImageUrls}
+              src={resolveImageSrc(item.poster_path, 500)}
               alt={title}
               className="h-full w-full object-cover"
             />

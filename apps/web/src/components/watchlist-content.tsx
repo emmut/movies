@@ -2,16 +2,15 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 import ItemCard from '@/components/item-card';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
+import { Route } from '@/routes/watchlist';
 import SectionTitle from '@movies/ui/components/section-title';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { useScrollOnPageChange } from '@movies/ui/hooks/use-scroll-on-page-change';
-import { queryKeys } from '@movies/api/lib/query-keys';
-import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
+import { orpc } from '@/utils/orpc';
 import { MovieDetails } from '@movies/api/types/movie';
 import { TvDetails } from '@movies/api/types/tv-show';
 
@@ -19,50 +18,22 @@ type WatchlistContentProps = {
   userId?: string;
 };
 
-/**
- * Client component that handles the watchlist page content with React Query.
- * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
- */
 export function WatchlistContent({ userId }: WatchlistContentProps) {
-  // Use nuqs to manage URL state
-  const [urlState] = useQueryStates(
-    {
-      mediaType: parseAsString.withDefault('movie'),
-      page: parseAsInteger.withDefault(1),
-    },
-    {
-      history: 'push',
-    },
-  );
-
-  const mediaType = urlState.mediaType as 'movie' | 'tv';
-  const page = urlState.page;
+  const { mediaType, page } = Route.useSearch();
 
   useScrollOnPageChange(page);
 
-  // Fetch paginated watchlist data
-  const { data: paginatedData, isLoading: isLoadingList } = useQuery({
-    queryKey: queryKeys.watchlist.list(mediaType, page),
-    queryFn: () => getWatchlistWithResourceDetailsPaginated(mediaType, page),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-  });
+  const { data: paginatedData, isLoading: isLoadingList } = useQuery(
+    orpc.watchlist.paginated.queryOptions({ input: { resourceType: mediaType, page } }),
+  );
 
-  // Fetch movie count
-  const { data: totalMovies = 0 } = useQuery({
-    queryKey: queryKeys.watchlist.count('movie'),
-    queryFn: () => getWatchlistCount('movie'),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-  });
+  const { data: totalMovies = 0 } = useQuery(
+    orpc.watchlist.count.queryOptions({ input: { resourceType: 'movie' } }),
+  );
 
-  // Fetch TV count
-  const { data: totalTvShows = 0 } = useQuery({
-    queryKey: queryKeys.watchlist.count('tv'),
-    queryFn: () => getWatchlistCount('tv'),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-  });
+  const { data: totalTvShows = 0 } = useQuery(
+    orpc.watchlist.count.queryOptions({ input: { resourceType: 'tv' } }),
+  );
 
   const filteredItems = paginatedData?.items || [];
   const totalPages = paginatedData?.totalPages || 0;
@@ -117,7 +88,9 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
               : `Add some ${mediaType === 'movie' ? 'movies' : 'TV shows'} to see them here`}
           </p>
           <Link
-            href={`/discover?mediaType=${mediaType}`}
+            to="/discover/$"
+            params={{ _splat: '' }}
+            search={{ mediaType, page: 1 }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
           >
             Explore {mediaType === 'movie' ? 'Movies' : 'TV Shows'}
@@ -131,12 +104,12 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
           {filteredItems
             .filter((item) => item !== null)
             .map((item) => {
-              const resourceType = item.resourceType as 'movie' | 'tv';
+              const row = item as typeof item & { id: number; resourceType: 'movie' | 'tv' };
               return (
                 <ItemCard
-                  key={`${resourceType}-${item.id}`}
+                  key={`${row.resourceType}-${row.id}`}
                   resource={item.resource as MovieDetails | TvDetails}
-                  type={resourceType}
+                  type={row.resourceType}
                   userId={userId}
                 />
               );
@@ -145,7 +118,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
       )}
 
       {filteredItems.length > 0 && totalPages > 1 && (
-        <PaginationControls totalPages={totalPages} pageType="watchlist" />
+        <PaginationControls totalPages={totalPages} currentPage={page} />
       )}
     </div>
   );

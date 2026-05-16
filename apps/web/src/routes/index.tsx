@@ -48,7 +48,7 @@ function TrendingGrid({
       <ul className="grid grid-cols-4 gap-2">
         {items.map((item) => (
           <li key={item.id}>
-            <Link to={type === "movie" ? "/movie/$movieId" : "/tv/$tvId"} params={type === "movie" ? { movieId: String(item.id) } : { tvId: String(item.id) }}>
+            <Link to={type === "movie" ? "/movie/$movieId" : "/tv/$tvId"} params={type === "movie" ? { movieId: item.id } : { tvId: item.id }}>
               <ImageProxy urls={null} alt={item.title ?? item.name ?? ""} className="aspect-[2/3] w-full rounded" />
               <div className="mt-1 truncate text-sm">{item.title ?? item.name}</div>
             </Link>

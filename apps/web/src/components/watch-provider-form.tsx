@@ -1,14 +1,14 @@
 'use client';
 
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
-// next/image removed: use <img> directly;
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@movies/ui/components/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@movies/ui/components/card';
-import { setUserWatchProviders } from '@/lib/user-actions';
 import { WatchProvider } from '@movies/api/types/watch-provider';
+import { orpc } from '@/utils/orpc';
 
 interface WatchProviderFormProps {
   availableProviders: WatchProvider[];
@@ -18,7 +18,16 @@ interface WatchProviderFormProps {
 export function WatchProviderForm({ availableProviders, userProviders }: WatchProviderFormProps) {
   const [selectedProviders, setSelectedProviders] = useState<number[]>(userProviders);
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
-  const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
+
+  const save = useMutation({
+    ...orpc.user.setUserWatchProviders.mutationOptions(),
+    onSuccess: () => {
+      toast.success('Preferences saved!');
+      queryClient.invalidateQueries({ queryKey: orpc.user.userWatchProviders.key() });
+    },
+    onError: () => toast.error('Failed to save preferences. Please try again.'),
+  });
 
   function handleProviderToggle(providerId: number) {
     setSelectedProviders((prev) =>
@@ -28,22 +37,6 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
 
   function handleImageError(providerId: number) {
     setBrokenImages((prev) => new Set([...prev, providerId]));
-  }
-
-  async function handleSave() {
-    startTransition(async () => {
-      try {
-        await setUserWatchProviders(selectedProviders);
-        toast.success('Preferences saved!');
-      } catch (error) {
-        console.error('Error saving watch providers:', error);
-        toast.error('Failed to save preferences. Please try again.');
-      }
-    });
-  }
-
-  function handleClearAll() {
-    setSelectedProviders([]);
   }
 
   const selectedCount = selectedProviders.length;
@@ -58,11 +51,18 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={handleClearAll} disabled={selectedCount === 0}>
+          <Button
+            variant="outline"
+            onClick={() => setSelectedProviders([])}
+            disabled={selectedCount === 0}
+          >
             Clear All
           </Button>
-          <Button onClick={handleSave} disabled={isPending}>
-            {isPending ? 'Saving...' : 'Save Preferences'}
+          <Button
+            onClick={() => save.mutate({ providerIds: selectedProviders })}
+            disabled={save.isPending}
+          >
+            {save.isPending ? 'Saving...' : 'Save Preferences'}
           </Button>
         </div>
 
@@ -91,12 +91,11 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
                           {provider.provider_name.charAt(0).toUpperCase()}
                         </div>
                       ) : (
-                        <Image
-                          unoptimized
-                          width={40}
-                          height={40}
+                        <img
                           src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
                           alt={provider.provider_name}
+                          width={40}
+                          height={40}
                           className="h-10 w-10 rounded-md object-contain"
                           onError={() => handleImageError(provider.provider_id)}
                         />

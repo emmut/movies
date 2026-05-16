@@ -54,8 +54,8 @@ export default function PersonCard({
         <div className="relative h-full w-full">
           {person.profile_path ? (
             <ImageProxy
-              imageUrls={profileImageUrls}
-              fallbackSrc={
+              urls={profileImageUrls}
+              src={
                 person.profile_path.startsWith('http')
                   ? person.profile_path
                   : formatImageUrl(person.profile_path, 500)

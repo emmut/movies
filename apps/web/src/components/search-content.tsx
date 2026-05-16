@@ -1,39 +1,20 @@
 'use client';
 
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-
+import { Route } from '@/routes/search';
 import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown';
 import SectionTitle from '@movies/ui/components/section-title';
 import { useScrollOnPageChange } from '@movies/ui/hooks/use-scroll-on-page-change';
 import { MediaType } from '@movies/api/types/media-type';
 
-import SearchPagination from './pagination';
+import SearchPagination from './search-pagination';
 import SearchResults from './search-results';
 
 type SearchContentProps = {
   userId?: string;
 };
 
-/**
- * Client component that handles the search page content with React Query.
- * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
- */
 export function SearchContent({ userId }: SearchContentProps) {
-  // Use nuqs to manage URL state - changes automatically trigger React Query refetches
-  const [urlState] = useQueryStates(
-    {
-      q: parseAsString,
-      page: parseAsInteger.withDefault(1),
-      mediaType: parseAsString.withDefault('all'),
-    },
-    {
-      history: 'push',
-    },
-  );
-
-  const query = urlState.q ?? '';
-  const page = urlState.page;
-  const mediaType = (urlState.mediaType ?? 'all') as MediaType;
+  const { q, page, mediaType } = Route.useSearch();
 
   useScrollOnPageChange(page);
 
@@ -41,7 +22,7 @@ export function SearchContent({ userId }: SearchContentProps) {
     <>
       <div className="mt-4 mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
-        <MediaTypeSelectorDropdown currentMediaType={mediaType} />
+        <MediaTypeSelectorDropdown currentMediaType={mediaType as MediaType} />
       </div>
 
       <div
@@ -49,14 +30,14 @@ export function SearchContent({ userId }: SearchContentProps) {
         id="content-container"
       >
         <SearchResults
-          searchQuery={query}
+          searchQuery={q}
           currentPage={page}
-          mediaType={mediaType}
+          mediaType={mediaType as MediaType}
           userId={userId}
         />
       </div>
 
-      <SearchPagination query={query} page={page} mediaType={mediaType} />
+      <SearchPagination query={q} page={page} mediaType={mediaType as MediaType} />
     </>
   );
 }

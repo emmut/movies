@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@movi
 import { OAuthLoginButton } from '@movies/ui/components/oauth-login-button';
 import { signInGitHubSettings, signInSettings } from '@/lib/auth-client';
 
+
 type LinkAccountProps = {
   error?: string;
 };
@@ -38,17 +39,15 @@ function LinkAccount({ error }: LinkAccountProps) {
           <OAuthLoginButton
             provider="discord"
             text="Link using Discord"
-            onClick={() => {
-              signInSettings('/');
-            }}
+            redirectUrl="/"
+            signIn={(url) => signInSettings(url ?? '/')}
             className="w-full max-w-sm"
           />
           <OAuthLoginButton
             provider="github"
             text="Link using GitHub"
-            onClick={() => {
-              signInGitHubSettings('/');
-            }}
+            redirectUrl="/"
+            signIn={(url) => signInGitHubSettings(url ?? '/')}
             className="w-full max-w-sm"
           />
         </div>
