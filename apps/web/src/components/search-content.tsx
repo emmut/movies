@@ -4,7 +4,7 @@ import { Route } from '@/routes/search';
 import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown';
 import SectionTitle from '@movies/ui/components/section-title';
 import { useScrollOnPageChange } from '@movies/ui/hooks/use-scroll-on-page-change';
-import { MediaType } from '@movies/api/types/media-type';
+import type { MediaType } from '@movies/api/types/media-type';
 
 import SearchPagination from './search-pagination';
 import SearchResults from './search-results';

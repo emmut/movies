@@ -7,7 +7,7 @@ import { SearchContent } from "@/components/search-content";
 const searchSchema = z.object({
   q: z.string().optional().default(""),
   page: z.coerce.number().int().min(1).default(1),
-  mediaType: z.enum(["movie", "tv", "person", "multi"]).default("multi"),
+  mediaType: z.enum(["movie", "tv", "person", "all", "multi"]).transform((v) => v === "multi" ? "all" : v).default("all"),
 });
 
 export const Route = createFileRoute("/search")({

@@ -11,8 +11,8 @@ import SectionTitle from '@movies/ui/components/section-title';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { useScrollOnPageChange } from '@movies/ui/hooks/use-scroll-on-page-change';
 import { orpc } from '@/utils/orpc';
-import { MovieDetails } from '@movies/api/types/movie';
-import { TvDetails } from '@movies/api/types/tv-show';
+import type { MovieDetails } from '@movies/api/types/movie';
+import type { TvDetails } from '@movies/api/types/tv-show';
 
 type WatchlistContentProps = {
   userId?: string;

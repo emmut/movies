@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from '@movies/ui/components/select';
 import { Region, regions, type RegionCode } from '@movies/media';
-import { RegionWatchProviders } from '@movies/api/types/watch-provider';
+import type { RegionWatchProviders } from '@movies/api/types/watch-provider';
 
 import { Dot } from '@movies/ui/components/dot';
 

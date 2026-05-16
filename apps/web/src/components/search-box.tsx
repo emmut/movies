@@ -3,7 +3,7 @@ import { Search } from 'lucide-react';
 
 import { Button } from '@movies/ui/components/button';
 import SearchIcon from '@movies/ui/icons/SearchIcon';
-import { MediaType } from '@movies/api/types/media-type';
+import type { MediaType } from '@movies/api/types/media-type';
 
 type SearchBoxProps = {
   mediaType?: MediaType;

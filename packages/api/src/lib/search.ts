@@ -1,9 +1,9 @@
 
 import { env } from '@movies/env/server';
 import { buildProxyImageUrls } from '@movies/media/imgproxy-url';
-import { Movie, MultiSearchResponse, SearchedMovieResponse } from '../types/movie';
-import { SearchedPerson, SearchedPersonResponse } from '../types/person';
-import { SearchedTvResponse, TvShow } from '../types/tv-show';
+import type { Movie, MultiSearchResponse, SearchedMovieResponse } from '../types/movie';
+import type { SearchedPerson, SearchedPersonResponse } from '../types/person';
+import type { SearchedTvResponse, TvShow } from '../types/tv-show';
 
 function addPosterImageUrls<T extends { poster_path: string | null }>(item: T) {
   if (!item.poster_path) {

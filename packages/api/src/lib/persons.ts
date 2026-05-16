@@ -1,6 +1,6 @@
 
 import { env } from '@movies/env/server';
-import { PersonDetails, PersonMovieCredits, PersonTvCredits } from '../types/person';
+import type { PersonDetails, PersonMovieCredits, PersonTvCredits } from '../types/person';
 
 import { TMDB_API_URL } from './constants';
 

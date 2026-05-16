@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@movies/ui/components/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@movies/ui/components/card';
-import { WatchProvider } from '@movies/api/types/watch-provider';
+import type { WatchProvider } from '@movies/api/types/watch-provider';
 import { orpc } from '@/utils/orpc';
 
 interface WatchProviderFormProps {

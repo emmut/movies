@@ -4,7 +4,7 @@ import { ReactNode, Suspense } from 'react';
 import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
-import { WatchProvider } from '@movies/api/types/watch-provider';
+import type { WatchProvider } from '@movies/api/types/watch-provider';
 import { Route } from '@/routes/discover/$';
 
 type DiscoverContentProps = {

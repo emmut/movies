@@ -1,4 +1,4 @@
-import { WatchProvider } from '@movies/api/types/watch-provider';
+import type { WatchProvider } from '@movies/api/types/watch-provider';
 
 import RuntimeFilter from './runtime-filter';
 import SortByFilter from './sort-by-filter';

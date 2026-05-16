@@ -8,7 +8,7 @@ import {
   useSearchPersons,
   useSearchTvShows,
 } from '@/hooks/use-search-query';
-import { MediaType } from '@movies/api/types/media-type';
+import type { MediaType } from '@movies/api/types/media-type';
 
 type SearchPaginationProps = {
   query: string;

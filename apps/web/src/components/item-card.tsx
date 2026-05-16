@@ -1,8 +1,8 @@
 import { ImageProxy } from '@movies/media';
 import { cn, formatImageUrl } from '@movies/ui/lib/utils';
-import { Movie, MovieDetails } from '@movies/api/types/movie';
+import type { Movie, MovieDetails } from '@movies/api/types/movie';
 import type { ProxyImageUrls } from '@movies/api/types/proxy-image';
-import { TvDetails, TvShow } from '@movies/api/types/tv-show';
+import type { TvDetails, TvShow } from '@movies/api/types/tv-show';
 import { Star } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import Badge from '@movies/ui/components/badge';

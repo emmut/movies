@@ -1,5 +1,5 @@
-import { Movie } from '@movies/api/types/movie';
-import { TvShow } from '@movies/api/types/tv-show';
+import type { Movie } from '@movies/api/types/movie';
+import type { TvShow } from '@movies/api/types/tv-show';
 
 import ItemCard from './item-card';
 

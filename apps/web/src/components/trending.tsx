@@ -1,7 +1,7 @@
 import Badge from '@movies/ui/components/badge';
 import { Link } from '@tanstack/react-router';
-import { Movie } from '@movies/api/types/movie';
-import { TvShow } from '@movies/api/types/tv-show';
+import type { Movie } from '@movies/api/types/movie';
+import type { TvShow } from '@movies/api/types/tv-show';
 import { formatDateYear } from '@movies/ui/lib/utils';
 
 type TrendingCardProps = {

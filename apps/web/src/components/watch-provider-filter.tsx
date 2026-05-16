@@ -10,7 +10,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@movies/ui/components/popover';
-import { WatchProvider } from '@movies/api/types/watch-provider';
+import type { WatchProvider } from '@movies/api/types/watch-provider';
 
 interface WatchProviderFilterProps {
   providers: WatchProvider[];

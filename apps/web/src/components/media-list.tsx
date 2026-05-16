@@ -1,7 +1,7 @@
 import ItemCard from '@/components/item-card';
 import { authClient } from '@/lib/auth-client';
-import { Movie } from '@movies/api/types/movie';
-import { TvShow } from '@movies/api/types/tv-show';
+import type { Movie } from '@movies/api/types/movie';
+import type { TvShow } from '@movies/api/types/tv-show';
 
 type MediaItem = Movie | TvShow;
 

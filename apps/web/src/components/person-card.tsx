@@ -1,6 +1,6 @@
 import { ImageProxy } from '@movies/media';
 import { cn, formatImageUrl } from '@movies/ui/lib/utils';
-import { PersonDetails, SearchedPerson } from '@movies/api/types/person';
+import type { PersonDetails, SearchedPerson } from '@movies/api/types/person';
 import type { ProxyImageUrls } from '@movies/api/types/proxy-image';
 import { User } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
