@@ -2,8 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { parseAsInteger, useQueryStates } from 'nuqs';
+import { useEffect, useState } from 'react';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
@@ -12,6 +12,7 @@ import { PaginationControls } from '@/components/pagination-controls';
 import PersonCard from '@/components/person-card';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { queryKeys } from '@/lib/query-keys';
 import { MovieDetails } from '@/types/movie';
 import { PersonDetails } from '@/types/person';
@@ -61,6 +62,8 @@ export function ListDetailsContent({
   );
 
   const page = urlState.page;
+
+  useScrollOnPageChange(page);
 
   const [createdAt, setCreatedAt] = useState<string | null>(null);
   const { data: paginatedList, isLoading } = useQuery({
@@ -125,9 +128,7 @@ export function ListDetailsContent({
               {paginatedList.itemCount} item
               {paginatedList.itemCount !== 1 ? 's' : ''} in this list
             </p>
-            {createdAt && (
-              <span className="text-zinc-500">• Created {createdAt}</span>
-            )}
+            {createdAt && <span className="text-zinc-500">• Created {createdAt}</span>}
           </div>
         </div>
 

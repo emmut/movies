@@ -5,6 +5,7 @@ import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
 import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
+import { ScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { getUser } from '@/lib/auth-server';
 import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
 
@@ -76,6 +77,7 @@ export default async function ListsPage(props: ListsPageProps) {
         </div>
       ) : (
         <div id="content-container">
+          <ScrollOnPageChange page={page} />
           <ListsGrid lists={lists} />
           {totalPages > 1 && <PaginationControls totalPages={totalPages} pageType="lists" />}
         </div>

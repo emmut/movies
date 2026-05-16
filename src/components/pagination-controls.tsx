@@ -3,7 +3,7 @@
 import clsx from 'clsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { useEffect, useRef } from 'react';
+
 import { Input } from './ui/input';
 import {
   Pagination,
@@ -84,20 +84,6 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   const currentPageNumber = urlState.page;
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
-  const isInitialRender = useRef(true);
-
-  useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
-      return;
-    }
-    const container = document.querySelector('#content-container');
-    if (container) {
-      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [currentPageNumber]);
 
   function buildPageHref(page: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -158,7 +144,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
       {totalPages > 20 && (
         <div className="mt-2 flex justify-center px-4">
           <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center">
-            <span className="text-muted-foreground text-center text-xs sm:text-sm">
+            <span className="text-center text-xs text-muted-foreground sm:text-sm">
               Jump to page:
             </span>
             <div className="flex items-center justify-center gap-2">
@@ -185,7 +171,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   e.target.value = '';
                 }}
               />
-              <span className="text-muted-foreground text-xs">of {totalPages}</span>
+              <span className="text-xs text-muted-foreground">of {totalPages}</span>
             </div>
           </div>
         </div>
