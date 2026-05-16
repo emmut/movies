@@ -9,25 +9,73 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WatchlistRouteImport } from './routes/watchlist'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ListsRouteImport } from './routes/lists'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TvTvIdRouteImport } from './routes/tv/$tvId'
+import { Route as PersonIdRouteImport } from './routes/person/$id'
+import { Route as MovieMovieIdRouteImport } from './routes/movie/$movieId'
+import { Route as ListsIdRouteImport } from './routes/lists/$id'
+import { Route as DiscoverSplatRouteImport } from './routes/discover/$'
 import { Route as ApiRpcSplatRouteImport } from './routes/api/rpc/$'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
+const WatchlistRoute = WatchlistRouteImport.update({
+  id: '/watchlist',
+  path: '/watchlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const ListsRoute = ListsRouteImport.update({
+  id: '/lists',
+  path: '/lists',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TvTvIdRoute = TvTvIdRouteImport.update({
+  id: '/tv/$tvId',
+  path: '/tv/$tvId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PersonIdRoute = PersonIdRouteImport.update({
+  id: '/person/$id',
+  path: '/person/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MovieMovieIdRoute = MovieMovieIdRouteImport.update({
+  id: '/movie/$movieId',
+  path: '/movie/$movieId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ListsIdRoute = ListsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ListsRoute,
+} as any)
+const DiscoverSplatRoute = DiscoverSplatRouteImport.update({
+  id: '/discover/$',
+  path: '/discover/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRpcSplatRoute = ApiRpcSplatRouteImport.update({
@@ -43,44 +91,136 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/lists': typeof ListsRouteWithChildren
   '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/watchlist': typeof WatchlistRoute
+  '/discover/$': typeof DiscoverSplatRoute
+  '/lists/$id': typeof ListsIdRoute
+  '/movie/$movieId': typeof MovieMovieIdRoute
+  '/person/$id': typeof PersonIdRoute
+  '/tv/$tvId': typeof TvTvIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/lists': typeof ListsRouteWithChildren
   '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/watchlist': typeof WatchlistRoute
+  '/discover/$': typeof DiscoverSplatRoute
+  '/lists/$id': typeof ListsIdRoute
+  '/movie/$movieId': typeof MovieMovieIdRoute
+  '/person/$id': typeof PersonIdRoute
+  '/tv/$tvId': typeof TvTvIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/dashboard': typeof DashboardRoute
+  '/lists': typeof ListsRouteWithChildren
   '/login': typeof LoginRoute
+  '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
+  '/watchlist': typeof WatchlistRoute
+  '/discover/$': typeof DiscoverSplatRoute
+  '/lists/$id': typeof ListsIdRoute
+  '/movie/$movieId': typeof MovieMovieIdRoute
+  '/person/$id': typeof PersonIdRoute
+  '/tv/$tvId': typeof TvTvIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/rpc/$': typeof ApiRpcSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login' | '/api/auth/$' | '/api/rpc/$'
+  fullPaths:
+    | '/'
+    | '/lists'
+    | '/login'
+    | '/search'
+    | '/settings'
+    | '/watchlist'
+    | '/discover/$'
+    | '/lists/$id'
+    | '/movie/$movieId'
+    | '/person/$id'
+    | '/tv/$tvId'
+    | '/api/auth/$'
+    | '/api/rpc/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login' | '/api/auth/$' | '/api/rpc/$'
-  id: '__root__' | '/' | '/dashboard' | '/login' | '/api/auth/$' | '/api/rpc/$'
+  to:
+    | '/'
+    | '/lists'
+    | '/login'
+    | '/search'
+    | '/settings'
+    | '/watchlist'
+    | '/discover/$'
+    | '/lists/$id'
+    | '/movie/$movieId'
+    | '/person/$id'
+    | '/tv/$tvId'
+    | '/api/auth/$'
+    | '/api/rpc/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/lists'
+    | '/login'
+    | '/search'
+    | '/settings'
+    | '/watchlist'
+    | '/discover/$'
+    | '/lists/$id'
+    | '/movie/$movieId'
+    | '/person/$id'
+    | '/tv/$tvId'
+    | '/api/auth/$'
+    | '/api/rpc/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DashboardRoute: typeof DashboardRoute
+  ListsRoute: typeof ListsRouteWithChildren
   LoginRoute: typeof LoginRoute
+  SearchRoute: typeof SearchRoute
+  SettingsRoute: typeof SettingsRoute
+  WatchlistRoute: typeof WatchlistRoute
+  DiscoverSplatRoute: typeof DiscoverSplatRoute
+  MovieMovieIdRoute: typeof MovieMovieIdRoute
+  PersonIdRoute: typeof PersonIdRoute
+  TvTvIdRoute: typeof TvTvIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiRpcSplatRoute: typeof ApiRpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/watchlist': {
+      id: '/watchlist'
+      path: '/watchlist'
+      fullPath: '/watchlist'
+      preLoaderRoute: typeof WatchlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -88,11 +228,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/lists': {
+      id: '/lists'
+      path: '/lists'
+      fullPath: '/lists'
+      preLoaderRoute: typeof ListsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -100,6 +240,41 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tv/$tvId': {
+      id: '/tv/$tvId'
+      path: '/tv/$tvId'
+      fullPath: '/tv/$tvId'
+      preLoaderRoute: typeof TvTvIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/person/$id': {
+      id: '/person/$id'
+      path: '/person/$id'
+      fullPath: '/person/$id'
+      preLoaderRoute: typeof PersonIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/movie/$movieId': {
+      id: '/movie/$movieId'
+      path: '/movie/$movieId'
+      fullPath: '/movie/$movieId'
+      preLoaderRoute: typeof MovieMovieIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lists/$id': {
+      id: '/lists/$id'
+      path: '/$id'
+      fullPath: '/lists/$id'
+      preLoaderRoute: typeof ListsIdRouteImport
+      parentRoute: typeof ListsRoute
+    }
+    '/discover/$': {
+      id: '/discover/$'
+      path: '/discover/$'
+      fullPath: '/discover/$'
+      preLoaderRoute: typeof DiscoverSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/rpc/$': {
@@ -119,10 +294,27 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ListsRouteChildren {
+  ListsIdRoute: typeof ListsIdRoute
+}
+
+const ListsRouteChildren: ListsRouteChildren = {
+  ListsIdRoute: ListsIdRoute,
+}
+
+const ListsRouteWithChildren = ListsRoute._addFileChildren(ListsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DashboardRoute: DashboardRoute,
+  ListsRoute: ListsRouteWithChildren,
   LoginRoute: LoginRoute,
+  SearchRoute: SearchRoute,
+  SettingsRoute: SettingsRoute,
+  WatchlistRoute: WatchlistRoute,
+  DiscoverSplatRoute: DiscoverSplatRoute,
+  MovieMovieIdRoute: MovieMovieIdRoute,
+  PersonIdRoute: PersonIdRoute,
+  TvTvIdRoute: TvTvIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiRpcSplatRoute: ApiRpcSplatRoute,
 }
