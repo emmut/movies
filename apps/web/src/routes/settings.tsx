@@ -1,35 +1,87 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from '@tanstack/react-query';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { z } from 'zod';
 
-import { orpc } from "@/utils/orpc";
+import { authClient } from '@/lib/auth-client';
+import { AddPasskey } from '@/components/add-passkey';
+import { LinkAccount } from '@/components/link-account';
+import { PasskeyList } from '@/components/passkey-list';
+import { RegionForm } from '@/components/region-form';
+import { WatchProviderForm } from '@/components/watch-provider-form';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@movies/ui/components/card';
+import { regions } from '@movies/media';
+import { orpc } from '@/utils/orpc';
 
-export const Route = createFileRoute("/settings")({ component: SettingsRoute });
+export const Route = createFileRoute('/settings')({
+  validateSearch: z.object({ error: z.string().optional() }),
+  component: SettingsRoute,
+});
 
 function SettingsRoute() {
-  const queryClient = useQueryClient();
+  const { error } = Route.useSearch();
+  const navigate = useNavigate();
+  const { data: session, isPending } = authClient.useSession();
+
+  const passkeys = useQuery(orpc.passkey.list.queryOptions());
   const region = useQuery(orpc.user.region.queryOptions());
-  const updateRegion = useMutation(
-    orpc.user.updateRegion.mutationOptions({
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: orpc.user.region.key() }),
-    }),
-  );
+  const allProviders = useQuery(orpc.user.allWatchProviders.queryOptions({ input: { region: region.data } }));
+  const userProviders = useQuery(orpc.user.userWatchProviders.queryOptions());
+
+  if (isPending) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-600 border-t-white" />
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    navigate({ to: '/login' });
+    return null;
+  }
+
+  const { user } = session;
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-4 p-4">
-      <h1 className="text-2xl font-bold">Settings</h1>
-      <section>
-        <h2 className="text-lg font-medium">Region</h2>
-        <p>Current: {region.data ?? "…"}</p>
-        <select
-          className="rounded border bg-background px-2 py-1"
-          value={region.data ?? "SE"}
-          onChange={(e) => updateRegion.mutate({ region: e.target.value })}
-        >
-          {["SE", "US", "GB", "DE", "FR", "ES", "IT", "NO", "DK", "FI"].map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </section>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">Manage your personal settings</p>
+      </div>
+
+      {user.isAnonymous && <LinkAccount error={error} />}
+
+      {!user.isAnonymous && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Passkeys</CardTitle>
+            <CardDescription>
+              Manage your passkeys for secure, passwordless authentication
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <AddPasskey />
+            <PasskeyList passkeys={passkeys.data ?? []} />
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Region</CardTitle>
+          <CardDescription>
+            Choose your region to get relevant movies and streaming services
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RegionForm currentRegion={region.data ?? 'US'} regions={regions} />
+        </CardContent>
+      </Card>
+
+      <WatchProviderForm
+        availableProviders={allProviders.data ?? []}
+        userProviders={userProviders.data ?? []}
+      />
     </div>
   );
 }
