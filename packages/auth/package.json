@@ -1,0 +1,24 @@
+{
+  "name": "@movies/auth",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@movies/db": "workspace:*",
+    "@movies/env": "workspace:*",
+    "better-auth": "catalog:",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@movies/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

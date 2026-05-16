@@ -1,1 +1,0 @@
-ALTER TABLE "watchlist" ADD CONSTRAINT "watchlist_user_id_resource_id_resource_type_unique" UNIQUE("user_id","resource_id","resource_type");

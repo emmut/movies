@@ -1,106 +1,100 @@
-# Movies App
+# movies
 
-A modern web application for exploring and managing movies, built with Next.js 15 and TypeScript.
-
-## Road map
-
-- [x] Movie trailers
-- [x] Person pages
-- [x] Custom movie lists
-- [ ] Watched movies tracking
-- [ ] Personal ratings
-- [ ] Social features
+This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Self, ORPC, and more.
 
 ## Features
 
-- Browse movie library
-- Search for movies
-- View detailed information about each movie
-- User authentication
-- Dark mode support
-- Responsive design with modern UI components
-
-## Tech Stack
-
-- **Framework**: Next.js 15 (Canary) with App Router
-- **Language**: TypeScript 5.8
-- **Database**: PostgreSQL with Drizzle ORM
-- **Styling**: Tailwind CSS 4.1 with Radix UI components
-- **Package Manager**: PNPM 10
-- **Authentication**: Better Auth
-- **Analytics**: Vercel Analytics & PostHog
-- **Development Tools**:
-  - Oxc (oxlint)
-  - Turbopack for development
+- **TypeScript** - For type safety and improved developer experience
+- **TanStack Start** - SSR framework with TanStack Router
+- **TailwindCSS** - Utility-first CSS for rapid UI development
+- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
+- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
+- **Drizzle** - TypeScript-first ORM
+- **PostgreSQL** - Database engine
+- **Authentication** - Better-Auth
+- **Nx** - Smart monorepo task orchestration and caching
+- **Oxlint** - Oxlint + Oxfmt (linting & formatting)
 
 ## Getting Started
 
-1. Clone the project:
-
-```bash
-git clone <your-repo-url>
-cd movies
-```
-
-2. Install dependencies:
+First, install the dependencies:
 
 ```bash
 pnpm install
 ```
 
-3. Set up environment variables:
-   - Copy `.env.example` to `.env`
-   - Update the database URL and other required variables
+## Database Setup
 
-4. Set up the database:
+This project uses PostgreSQL with Drizzle ORM.
 
-```bash
-pnpm db:generate  # Generate migrations
-pnpm db:push     # Push changes to database
-```
+1. Make sure you have a PostgreSQL database set up.
+2. Update your `apps/web/.env` file with your PostgreSQL connection details.
 
-5. Start the development server:
+3. Apply the schema to your database:
 
 ```bash
-pnpm dev
+pnpm run db:push
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
+Then, run the development server:
+
+```bash
+pnpm run dev
+```
+
+Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
+
+## UI Customization
+
+React web apps in this stack share shadcn/ui primitives through `packages/ui`.
+
+- Change design tokens and global styles in `packages/ui/src/styles/globals.css`
+- Update shared primitives in `packages/ui/src/components/*`
+- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
+
+### Add more shared components
+
+Run this from the project root to add more primitives to the shared UI package:
+
+```bash
+npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
+```
+
+Import shared components like this:
+
+```tsx
+import { Button } from "@movies/ui/components/button";
+```
+
+### Add app-specific blocks
+
+If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
+
+## Git Hooks and Formatting
+
+- Format and lint fix: `pnpm run check`
 
 ## Project Structure
 
 ```
 movies/
-├── src/
-│   ├── app/          # Next.js app router pages and layouts
-│   ├── components/   # Reusable React components
-│   ├── db/          # Database schema and configurations
-│   ├── hooks/       # Custom React hooks
-│   ├── lib/         # Utility functions and shared logic
-│   ├── providers/   # React context providers
-│   ├── types/       # TypeScript type definitions
-│   └── icons/       # SVG icons and assets
-├── public/          # Static assets
-└── drizzle/         # Database migrations and configuration
+├── apps/
+│   └── web/         # Fullstack application (React + TanStack Start)
+├── packages/
+│   ├── ui/          # Shared shadcn/ui components and styles
+│   ├── api/         # API layer / business logic
+│   ├── auth/        # Authentication configuration & logic
+│   └── db/          # Database schema & queries
 ```
 
 ## Available Scripts
 
-- `pnpm dev` - Start development server with Turbopack
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm lint` - Run Oxc linting
-- `pnpm format` - Apply Oxc autofixes
-- `pnpm db:generate` - Generate database migrations
-- `pnpm db:push` - Push database changes
-- `pnpm db:studio` - Open Drizzle Studio
-
-## Development
-
-The project uses several modern development tools and practices:
-
-- Turbopack for fast development builds
-- Strict TypeScript configuration
-- Oxc for linting and autofix
-- Tailwind CSS for styling with custom components
-- Drizzle ORM for type-safe database operations
+- `pnpm run dev`: Start all applications in development mode
+- `pnpm run build`: Build all applications
+- `pnpm run dev:web`: Start only the web application
+- `pnpm run check-types`: Check TypeScript types across all apps
+- `pnpm run db:push`: Push schema changes to database
+- `pnpm run db:generate`: Generate database client/types
+- `pnpm run db:migrate`: Run database migrations
+- `pnpm run db:studio`: Open database studio UI
+- `pnpm run check`: Run Oxlint and Oxfmt
