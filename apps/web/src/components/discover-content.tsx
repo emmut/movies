@@ -1,18 +1,11 @@
-'use client';
-
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
+import { useNavigate } from '@tanstack/react-router';
 import { ReactNode, Suspense } from 'react';
 
 import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
-import SectionTitle from '@/components/section-title';
-import SkipToElement from '@/components/skip-to-element';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
-import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
-import { WatchProvider } from '@/types/watch-provider';
-
-import Pagination from './pagination';
+import { WatchProvider } from '@movies/api/types/watch-provider';
+import { Route } from '@/routes/discover/$';
 
 type DiscoverContentProps = {
   filteredWatchProviders: WatchProvider[];
@@ -21,49 +14,31 @@ type DiscoverContentProps = {
   userId?: string;
 };
 
-/**
- * Client component that handles the discover page content with React Query.
- * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
- */
 export function DiscoverContent({
   filteredWatchProviders,
   userRegion,
   genreNavigation,
   userId,
 }: DiscoverContentProps) {
-  // Use nuqs to manage URL state - changes automatically trigger React Query refetches
-  const [urlState] = useQueryStates(
-    {
-      page: parseAsInteger.withDefault(1),
-      genreId: parseAsInteger.withDefault(0),
-      mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
-      sort_by: parseAsString.withDefault('popularity.desc'),
-      with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
-      watch_region: parseAsString,
-      runtimeLte: parseAsInteger,
-    },
-    {
-      urlKeys: {
-        runtimeLte: 'runtime',
-      },
-      history: 'push',
-    },
-  );
-  const { page, genreId, mediaType, sort_by: sortBy } = urlState;
-  const watchProviders = urlState.with_watch_providers?.join('|');
-  const watchRegion = urlState.watch_region ?? userRegion;
-  const runtimeLte = urlState.runtimeLte ?? undefined;
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: '/discover/$' });
 
-  useScrollOnPageChange(page);
+  const { page, mediaType, sort_by: sortBy, runtime, with_watch_providers, watch_region } = search;
+  const selectedWatchProviders = with_watch_providers
+    ?.split('|')
+    .map(Number)
+    .filter(Boolean) ?? [];
+  const watchRegion = watch_region ?? userRegion;
+  const runtimeLte = runtime ?? null;
+
+  function updateSearch(updates: Partial<typeof search>) {
+    navigate({
+      search: (prev) => ({ ...prev, ...updates, page: updates.page ?? 1 }),
+    });
+  }
 
   return (
     <>
-      <div className="flex items-center gap-4">
-        <SectionTitle>Discover</SectionTitle>
-
-        <SkipToElement elementId="content-container">Skip to content</SkipToElement>
-      </div>
-
       <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 flex-wrap gap-2">{genreNavigation}</div>
         <MediaTypeSelector currentMediaType={mediaType} />
@@ -74,6 +49,20 @@ export function DiscoverContent({
           mediaType={mediaType}
           watchProviders={filteredWatchProviders}
           userRegion={watchRegion}
+          sortBy={sortBy ?? 'popularity.desc'}
+          runtimeLte={runtimeLte}
+          selectedWatchProviders={selectedWatchProviders}
+          onSortByChange={(value) => updateSearch({ sort_by: value })}
+          onRuntimeChange={(value) =>
+            updateSearch({ runtime: value ?? undefined })
+          }
+          onWatchProvidersChange={(providerIds) =>
+            updateSearch({
+              with_watch_providers:
+                providerIds.length > 0 ? providerIds.join('|') : undefined,
+              watch_region: providerIds.length > 0 ? userRegion : undefined,
+            })
+          }
         />
       </div>
 
@@ -83,27 +72,17 @@ export function DiscoverContent({
       >
         <Suspense>
           <DiscoverGrid
-            currentGenreId={genreId}
+            currentGenreId={0}
             currentPage={page}
             mediaType={mediaType}
             sortBy={sortBy}
-            watchProviders={watchProviders}
+            watchProviders={with_watch_providers}
             watchRegion={watchRegion}
-            runtimeLte={runtimeLte}
+            runtimeLte={runtimeLte ?? undefined}
             userId={userId}
           />
         </Suspense>
       </div>
-
-      <Pagination
-        currentGenreId={genreId}
-        currentPage={page}
-        mediaType={mediaType}
-        sortBy={sortBy}
-        watchProviders={watchProviders}
-        watchRegion={watchRegion}
-        runtimeLte={runtimeLte}
-      />
     </>
   );
 }

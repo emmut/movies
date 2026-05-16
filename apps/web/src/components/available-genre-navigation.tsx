@@ -2,7 +2,7 @@ import { fetchAvailableGenres } from '@movies/api/lib/movies';
 import { fetchAvailableTvGenres } from '@movies/api/lib/tv-shows';
 
 import { GenreNavigationClient } from './genre-navigation-client';
-import Pill from './pill';
+import Pill from '@movies/ui/components/pill';
 
 type AvailableGenreProps = {
   mediaType?: 'movie' | 'tv';

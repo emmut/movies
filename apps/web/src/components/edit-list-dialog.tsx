@@ -1,6 +1,5 @@
-
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Edit } from 'lucide-react';
-import { useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -18,7 +17,7 @@ import { Input } from '@movies/ui/components/input';
 import { Label } from '@movies/ui/components/label';
 import { Textarea } from '@movies/ui/components/textarea';
 import { EMOJI_OPTIONS } from '@movies/api/lib/config';
-import { updateList } from '@movies/api/lib/lists';
+import { orpc } from '@/utils/orpc';
 
 interface EditListDialogProps {
   listId: string;
@@ -35,35 +34,28 @@ export function EditListDialog({
   listEmoji,
   children,
 }: EditListDialogProps) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [name, setName] = useState(listName);
   const [description, setDescription] = useState(listDescription || '');
   const [selectedEmoji, setSelectedEmoji] = useState(listEmoji);
 
-  async function handleUpdateList() {
-    if (!name.trim()) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await updateList(listId, name.trim(), description.trim(), selectedEmoji);
-      setIsOpen(false);
-      toast.success('List updated successfully');
-      router.refresh();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update list');
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const updateList = useMutation(
+    orpc.lists.update.mutationOptions({
+      onSuccess: () => {
+        setIsOpen(false);
+        toast.success('List updated successfully');
+        queryClient.invalidateQueries({ queryKey: orpc.lists.all.key() });
+      },
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : 'Failed to update list');
+      },
+    }),
+  );
 
   function handleOpenChange(open: boolean) {
     setIsOpen(open);
     if (!open) {
-      // Reset to original values when closing
       setName(listName);
       setDescription(listDescription || '');
       setSelectedEmoji(listEmoji);
@@ -102,7 +94,7 @@ export function EditListDialog({
                     className={`rounded p-2 text-xl transition-colors hover:bg-muted ${
                       selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
                     }`}
-                    disabled={isLoading}
+                    disabled={updateList.isPending}
                   >
                     {emoji}
                   </button>
@@ -120,7 +112,7 @@ export function EditListDialog({
               value={name}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
               className="col-span-3"
-              disabled={isLoading}
+              disabled={updateList.isPending}
               placeholder="e.g. Favorite Movies"
             />
           </div>
@@ -135,17 +127,31 @@ export function EditListDialog({
                 setDescription(e.target.value)
               }
               className="col-span-3"
-              disabled={isLoading}
+              disabled={updateList.isPending}
               placeholder="Optional description for your list"
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+            disabled={updateList.isPending}
+          >
             Cancel
           </Button>
-          <Button onClick={handleUpdateList} disabled={isLoading || !name.trim()}>
-            {isLoading ? 'Updating...' : 'Update List'}
+          <Button
+            onClick={() =>
+              updateList.mutate({
+                listId,
+                name: name.trim(),
+                description: description.trim(),
+                emoji: selectedEmoji,
+              })
+            }
+            disabled={updateList.isPending || !name.trim()}
+          >
+            {updateList.isPending ? 'Updating...' : 'Update List'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,6 +1,3 @@
-
-import { parseAsStringLiteral, useQueryState } from 'nuqs';
-
 import {
   Select,
   SelectContent,
@@ -8,16 +5,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movies/ui/components/select';
-import { DEFAULT_REGION, Region, regions, type RegionCode } from '@movies/media';
+import { Region, regions, type RegionCode } from '@movies/media';
 import { RegionWatchProviders } from '@movies/api/types/watch-provider';
 
-import { Dot } from './ui/dot';
-
-const regionCodes = regions.map((r) => r.code);
+import { Dot } from '@movies/ui/components/dot';
 
 type RegionSelectProps = {
-  defaultValue: RegionCode;
   allRegionProviders: Record<RegionCode, RegionWatchProviders>;
+  value: RegionCode;
+  onChange: (region: RegionCode) => void;
 };
 
 function RegionSelectItem({
@@ -48,26 +44,16 @@ function RegionSelectItem({
           <Dot size={2} className="group-focus-within:hidden group-hover:hidden" />
         </>
       )}
-
       <span className="whitespace-nowrap">{name}</span>
     </SelectItem>
   );
 }
 
-export function RegionSelect({ defaultValue, allRegionProviders }: RegionSelectProps) {
-  const [region, setRegion] = useQueryState(
-    'region',
-    parseAsStringLiteral(regionCodes).withDefault(defaultValue ?? DEFAULT_REGION),
-  );
-
-  function handleValueChange(value: string | null) {
-    if (value) setRegion(value as RegionCode);
-  }
-
+export function RegionSelect({ allRegionProviders, value, onChange }: Omit<RegionSelectProps, 'defaultValue'>) {
   return (
-    <Select value={region} onValueChange={handleValueChange}>
+    <Select value={value} onValueChange={(v) => v && onChange(v as RegionCode)}>
       <SelectTrigger className="w-44">
-        <SelectValue>{regions.find((r) => r.code === region)?.name}</SelectValue>
+        <SelectValue>{regions.find((r) => r.code === value)?.name}</SelectValue>
       </SelectTrigger>
       <SelectContent>
         {regions.map((regionOption) => (

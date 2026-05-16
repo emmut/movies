@@ -8,24 +8,40 @@ type FiltersPanelProps = {
   mediaType: 'movie' | 'tv';
   watchProviders: WatchProvider[];
   userRegion: string;
+  sortBy: string;
+  runtimeLte: number | null;
+  selectedWatchProviders: number[];
+  onSortByChange: (value: string) => void;
+  onRuntimeChange: (value: number | null) => void;
+  onWatchProvidersChange: (providerIds: number[]) => void;
 };
 
-/**
- * Renders a panel containing all available filters for movies or TV shows.
- *
- * Combines sorting, watch provider, and other filter options in a responsive layout.
- *
- * @param mediaType - Whether to show movie or TV filters.
- * @param watchProviders - Available watch providers for the user's region.
- * @param userRegion - The user's region code.
- */
-export default function FiltersPanel({ mediaType, watchProviders, userRegion }: FiltersPanelProps) {
+export default function FiltersPanel({
+  mediaType,
+  watchProviders,
+  userRegion,
+  sortBy,
+  runtimeLte,
+  selectedWatchProviders,
+  onSortByChange,
+  onRuntimeChange,
+  onWatchProvidersChange,
+}: FiltersPanelProps) {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <SortByFilter mediaType={mediaType} />
-        <RuntimeFilter className="md:mr-auto" />
-        <WatchProviderFilter providers={watchProviders} userRegion={userRegion} />
+        <SortByFilter mediaType={mediaType} value={sortBy} onChange={onSortByChange} />
+        <RuntimeFilter
+          className="md:mr-auto"
+          value={runtimeLte}
+          onChange={onRuntimeChange}
+        />
+        <WatchProviderFilter
+          providers={watchProviders}
+          selectedProviders={selectedWatchProviders}
+          userRegion={userRegion}
+          onChange={onWatchProvidersChange}
+        />
       </div>
     </div>
   );

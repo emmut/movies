@@ -1,17 +1,8 @@
-
-
-
 import { fetchAvailableGenres } from './movies';
 import { fetchAvailableTvGenres } from './tv-shows';
 
 /**
  * Checks if a given genre ID is valid for the specified media type.
- *
- * @param genreId - The genre ID to validate.
- * @param mediaType - The media type to check against, either 'movie' or 'tv'.
- * @returns `true` if the genre ID exists for the given media type, otherwise `false`.
- *
- * @remark If an error occurs during validation, the function logs a warning and returns `true` as a fallback.
  */
 export async function validateGenreForMediaType(
   genreId: string,
@@ -26,16 +17,4 @@ export async function validateGenreForMediaType(
     console.warn('Failed to validate genre for media type:', error);
     return true;
   }
-}
-
-/**
- * Revalidates the cache for available genres navigation when media type changes.
- *
- * @param mediaType - The media type to revalidate genres for, either 'movie' or 'tv'.
- */
-export async function revalidateGenresCache(mediaType: 'movie' | 'tv') {
-  revalidateTag(
-    mediaType === 'movie' ? CACHE_TAGS.public.genres.movies : CACHE_TAGS.public.genres.tv,
-    'max',
-  );
 }

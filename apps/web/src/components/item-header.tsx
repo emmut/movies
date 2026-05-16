@@ -1,6 +1,6 @@
 import { User } from 'better-auth';
 
-import Badge from './badge';
+import Badge from '@movies/ui/components/badge';
 import { ListButton } from './list-button';
 import { WatchlistButton } from './watchlist-button';
 

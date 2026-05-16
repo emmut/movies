@@ -1,11 +1,15 @@
-import { getSession } from '@movies/auth';
+import { Skeleton } from '@movies/ui/components/skeleton';
+import { authClient } from '@/lib/auth-client';
 
 import { UserLogin } from './app-sidebar-user-login';
 import { NavUser } from './nav-user';
-import { Skeleton } from './ui/skeleton';
 
-export async function UserFooter() {
-  const session = await getSession();
+export function UserFooter() {
+  const { data: session, isPending } = authClient.useSession();
+
+  if (isPending) {
+    return <Skeleton className="h-12 w-full" />;
+  }
 
   if (session?.user) {
     return (

@@ -1,6 +1,3 @@
-
-import { parseAsString, useQueryStates } from 'nuqs';
-
 import { Label } from '@movies/ui/components/label';
 import {
   Select,
@@ -12,6 +9,9 @@ import {
 
 type SortByFilterProps = {
   mediaType: 'movie' | 'tv';
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
 };
 
 const MOVIE_SORT_OPTIONS = [
@@ -38,49 +38,23 @@ const TV_SORT_OPTIONS = [
   { value: 'first_air_date.asc', label: 'First Air Date (Oldest)' },
 ];
 
-/**
- * Renders a sort-by dropdown filter for ordering movies or TV shows.
- *
- * Allows users to select different sorting criteria for the results.
- * The sort option is applied to URL query parameters.
- *
- * @param mediaType - Whether to show movie or TV sort options.
- */
-export default function SortByFilter({ mediaType }: SortByFilterProps) {
-  const [urlState, setUrlState] = useQueryStates({
-    sort_by: parseAsString,
-    page: parseAsString.withDefault('1'),
-  });
-
-  const DEFAULT_SORT = 'popularity.desc';
+export default function SortByFilter({ mediaType, value, onChange, className }: SortByFilterProps) {
   const sortOptions = mediaType === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
-  const currentSortOption =
-    sortOptions.find((option) => option.value === urlState.sort_by) ??
-    sortOptions.find((option) => option.value === DEFAULT_SORT);
-
-  function handleSortChange(value: string | null) {
-    if (!value) {
-      return;
-    }
-
-    setUrlState({
-      sort_by: value === DEFAULT_SORT ? null : value,
-      page: '1', // Reset pagination
-    });
-  }
+  const currentOption =
+    sortOptions.find((o) => o.value === value) ??
+    sortOptions.find((o) => o.value === 'popularity.desc');
 
   return (
-    <div className="min-w-54">
+    <div className={className ?? 'min-w-54'}>
       <Label className="mb-2 text-sm font-medium" htmlFor="select-sort-option">
         Sort By
       </Label>
       <Select
-        id="select-sort-option"
-        value={currentSortOption?.value}
-        onValueChange={handleSortChange}
+        value={currentOption?.value}
+        onValueChange={(v) => v && onChange(v)}
       >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select sort option">{currentSortOption?.label}</SelectValue>
+        <SelectTrigger className="w-full" id="select-sort-option">
+          <SelectValue>{currentOption?.label}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {sortOptions.map((option) => (

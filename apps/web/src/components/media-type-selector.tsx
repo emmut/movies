@@ -1,9 +1,8 @@
-
-import { revalidateGenresCache, validateGenreForMediaType } from '@movies/api/lib/media-actions';
 import { Film, Tv } from 'lucide-react';
-import { useRouter } from '@tanstack/react-router';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { useNavigate } from '@tanstack/react-router';
 import { useOptimistic, useTransition } from 'react';
+
+import { client } from '@/utils/orpc';
 
 type MediaType = 'movie' | 'tv';
 
@@ -12,61 +11,50 @@ type MediaTypeSelectorProps = {
 };
 
 /**
- * Renders a toggle component for selecting between media types.
- *
- * Updates the URL query parameters and navigates to reflect the selected media type. If a genre is selected that is not valid for the new media type, it is removed from the query parameters.
- *
- * @param currentMediaType - The currently selected media type.
+ * Renders a toggle component for selecting between movie and TV media types.
+ * Updates the URL search params when selection changes.
  */
 export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelectorProps) {
-  const [urlState, setUrlState] = useQueryStates(
-    {
-      mediaType: parseAsString.withDefault('movie'),
-      genreId: parseAsInteger.withDefault(0),
-      page: parseAsString.withDefault('1'),
-    },
-    {
-      history: 'push',
-    },
-  );
-
   const [optimisticMediaType, setOptimisticMediaType] = useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   async function handleMediaTypeChange(mediaType: MediaType) {
     startTransition(() => {
       setOptimisticMediaType(mediaType);
     });
 
-    const currentGenreId = urlState.genreId;
+    navigate({
+      search: (prev: Record<string, unknown>) => {
+        const currentGenreId = prev.genreId as number | undefined;
 
-    // Check if current genre is valid for new media type
-    if (currentGenreId && currentGenreId !== 0) {
-      const genreExists = await validateGenreForMediaType(
-        String(currentGenreId),
-        mediaType as 'movie' | 'tv',
-      );
+        // Optimistically clear genreId — validate asynchronously below
+        const next = { ...prev, mediaType, genreId: undefined, page: 1 };
 
-      if (!genreExists) {
-        // Clear genre if it doesn't exist for new media type
-        setUrlState({
-          mediaType,
-          genreId: 0,
-          page: '1',
-        });
-        await revalidateGenresCache(mediaType);
-        router.refresh();
-        return;
-      }
-    }
+        if (currentGenreId && currentGenreId !== 0) {
+          // Fire-and-forget validation; if genre is invalid we already cleared it
+          client.discover.validateGenre({
+            genreId: String(currentGenreId),
+            mediaType,
+          }).then((valid) => {
+            if (valid) {
+              navigate({
+                search: (p: Record<string, unknown>) => ({
+                  ...p,
+                  mediaType,
+                  genreId: currentGenreId,
+                  page: 1,
+                }),
+              });
+            }
+          }).catch(() => {
+            // Genre cleared already, ignore
+          });
+        }
 
-    setUrlState({
-      mediaType,
-      page: '1',
+        return next;
+      },
     });
-    await revalidateGenresCache(mediaType);
-    router.refresh();
   }
 
   return (

@@ -1,4 +1,3 @@
-
 import { Label } from '@movies/ui/components/label';
 import {
   Select,
@@ -7,7 +6,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movies/ui/components/select';
-import { useRuntimeFilter } from '@/hooks/use-runtime-filter';
 
 const RUNTIME_OPTIONS = [
   { value: '0', label: 'Any' },
@@ -18,34 +16,24 @@ const RUNTIME_OPTIONS = [
 ];
 
 type RuntimeFilterProps = {
+  value: number | null;
+  onChange: (value: number | null) => void;
   className?: string;
 };
 
-/**
- * Runtime filter component for discover page.
- *
- * Allows users to filter movies and TV shows by maximum runtime (less than or equal to).
- * Uses nuqs to manage URL state with a clean 'runtime' URL parameter.
- */
-export default function RuntimeFilter({ className }: RuntimeFilterProps) {
-  const [{ runtimeLte }, setRuntimeFilter] = useRuntimeFilter();
-
+export default function RuntimeFilter({ value, onChange, className }: RuntimeFilterProps) {
   return (
     <div className={className}>
       <Label htmlFor="runtime-filter" className="mb-2">
         Runtime
       </Label>
       <Select
-        value={runtimeLte?.toString() ?? '0'}
-        onValueChange={(value) =>
-          setRuntimeFilter({
-            runtimeLte: value && value !== '0' ? Number(value) : null,
-          })
-        }
+        value={value?.toString() ?? '0'}
+        onValueChange={(v) => onChange(v && v !== '0' ? Number(v) : null)}
       >
         <SelectTrigger id="runtime-filter" className="w-full min-w-54">
-          <SelectValue placeholder="Any runtime">
-            {RUNTIME_OPTIONS.find((o) => o.value === (runtimeLte?.toString() ?? '0'))?.label}
+          <SelectValue>
+            {RUNTIME_OPTIONS.find((o) => o.value === (value?.toString() ?? '0'))?.label}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>

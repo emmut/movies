@@ -1,7 +1,5 @@
-
+import { useState } from 'react';
 import { Play, ShoppingCart, TicketCheck, Tv } from 'lucide-react';
-
-import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 import { RegionSelect } from '@/components/region-select';
 import { getRegionCodes, RegionCode } from '@movies/media';
@@ -16,27 +14,13 @@ type StreamingProvidersProps = {
   userRegion: RegionCode;
 };
 
-/**
- * Displays available streaming, rental, and purchase providers for a movie or TV show by region.
- *
- * Renders provider options based on the selected or default region, allowing users to view where a specific movie or TV show can be streamed, rented, or purchased. If no providers are available for the chosen region, a fallback message is shown.
- *
- * @param watchProviders - Watch provider data for the resource, organized by region.
- * @param resourceId - The TMDB ID of the movie or TV show.
- * @param resourceType - The type of resource, either 'movie' or 'tv'.
- * @param userRegion - The user's default region code.
- *
- * @remark
- * Provider links open in a new tab and default to the TMDB watch page if a region-specific link is unavailable.
- */
 export function StreamingProviders({
   watchProviders,
   resourceId,
   resourceType,
   userRegion,
 }: StreamingProvidersProps) {
-  const regions = getRegionCodes();
-  const [region] = useQueryState('region', parseAsStringLiteral(regions).withDefault(userRegion));
+  const [region, setRegion] = useState<RegionCode>(userRegion);
 
   const regionProviders = watchProviders.results?.[region];
   const allRegionProviders = watchProviders.results;
@@ -52,11 +36,28 @@ export function StreamingProviders({
     return `https://www.themoviedb.org/${resourceType}/${resourceId}/watch`;
   }
 
+  function ProviderImage({ logoPath, name }: { logoPath: string; name: string }) {
+    return (
+      <img
+        src={formatImageUrl(logoPath, 92)}
+        alt={name}
+        width={32}
+        height={32}
+        className="flex-shrink-0 rounded"
+      />
+    );
+  }
+
   return (
     <div>
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-semibold">Where to watch</h2>
-        <RegionSelect defaultValue={userRegion} allRegionProviders={allRegionProviders} />
+        <RegionSelect
+          defaultValue={userRegion}
+          allRegionProviders={allRegionProviders}
+          value={region}
+          onChange={setRegion}
+        />
       </div>
 
       <div className="space-y-6">
@@ -81,14 +82,7 @@ export function StreamingProviders({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
-                    alt={provider.provider_name}
-                    width={32}
-                    height={32}
-                    className="flex-shrink-0 rounded"
-                  />
+                  <ProviderImage logoPath={provider.logo_path} name={provider.provider_name} />
                   <span className="truncate text-sm font-medium">{provider.provider_name}</span>
                 </a>
               ))}
@@ -111,14 +105,7 @@ export function StreamingProviders({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
-                    alt={provider.provider_name}
-                    width={32}
-                    height={32}
-                    className="flex-shrink-0 rounded"
-                  />
+                  <ProviderImage logoPath={provider.logo_path} name={provider.provider_name} />
                   <span className="truncate text-sm font-medium">{provider.provider_name}</span>
                 </a>
               ))}
@@ -141,14 +128,7 @@ export function StreamingProviders({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
-                    alt={provider.provider_name}
-                    width={32}
-                    height={32}
-                    className="flex-shrink-0 rounded"
-                  />
+                  <ProviderImage logoPath={provider.logo_path} name={provider.provider_name} />
                   <span className="truncate text-sm font-medium">{provider.provider_name}</span>
                 </a>
               ))}
@@ -171,14 +151,7 @@ export function StreamingProviders({
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
                 >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
-                    alt={provider.provider_name}
-                    width={32}
-                    height={32}
-                    className="flex-shrink-0 rounded"
-                  />
+                  <ProviderImage logoPath={provider.logo_path} name={provider.provider_name} />
                   <span className="truncate text-sm font-medium">{provider.provider_name}</span>
                 </a>
               ))}

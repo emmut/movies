@@ -1,7 +1,6 @@
-import { getSession } from '@movies/auth';
-
-import { NavLink } from './nav-link';
-import { Skeleton } from './ui/skeleton';
+import { Skeleton } from '@movies/ui/components/skeleton';
+import { NavLink } from '@movies/ui/components/nav-link';
+import { authClient } from '@/lib/auth-client';
 
 const userNavItems = [
   {
@@ -16,8 +15,17 @@ const userNavItems = [
   },
 ];
 
-export async function UserNav() {
-  const session = await getSession();
+export function UserNav() {
+  const { data: session, isPending } = authClient.useSession();
+
+  if (isPending) {
+    return (
+      <>
+        <Skeleton className="mb-2 h-8 w-full" />
+        <Skeleton className="h-8 w-full" />
+      </>
+    );
+  }
 
   if (!session?.user) {
     return null;

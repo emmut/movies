@@ -1,7 +1,6 @@
 
 import { LogIn } from 'lucide-react';
-import Link from '@tanstack/react-router';
-import { usePathname } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 
 import {
   SidebarMenu,
@@ -12,7 +11,7 @@ import {
 import { createLoginUrl } from '@movies/ui/lib/utils';
 
 export function UserLogin() {
-  const pathname = usePathname();
+  const { pathname } = useLocation();
   const loginUrl = createLoginUrl(pathname);
   const { setOpenMobile } = useSidebar();
 
@@ -23,7 +22,7 @@ export function UserLogin() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton render={<Link href={loginUrl} onClick={() => setOpenMobile(false)} />}>
+        <SidebarMenuButton render={<Link to={loginUrl} onClick={() => setOpenMobile(false)} />}>
           <LogIn className="h-4 w-4" />
           <span>Login</span>
         </SidebarMenuButton>

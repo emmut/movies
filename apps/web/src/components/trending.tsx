@@ -1,9 +1,9 @@
-import Badge from '@/components/badge';
-import { Imgproxy } from '@/components/image-proxy';
+import Badge from '@movies/ui/components/badge';
+import { Imgproxy } from '@movies/media';
 import { fetchTrendingMovies } from '@/lib/movies';
 import { fetchTrendingTvShows } from '@/lib/tv-shows';
 import { formatDateYear } from '@/lib/utils';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 type TrendingCardProp = {
   index: number;

@@ -1,6 +1,5 @@
-
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ListPlus } from 'lucide-react';
-import { useRouter } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -18,42 +17,34 @@ import { Input } from '@movies/ui/components/input';
 import { Label } from '@movies/ui/components/label';
 import { Textarea } from '@movies/ui/components/textarea';
 import { EMOJI_OPTIONS } from '@movies/api/lib/config';
-import { createList } from '@movies/api/lib/lists';
+import { orpc } from '@/utils/orpc';
 
 interface CreateListDialogProps {
   children?: React.ReactElement;
 }
 
 export function CreateListDialog({ children }: CreateListDialogProps) {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('📝');
 
-  async function handleCreateList() {
-    if (!newListName.trim()) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const result = await createList(newListName.trim(), newListDescription.trim(), selectedEmoji);
-      if (result.success) {
+  const createList = useMutation(
+    orpc.lists.create.mutationOptions({
+      onSuccess: () => {
         setNewListName('');
         setNewListDescription('');
         setSelectedEmoji('📝');
         setIsOpen(false);
         toast.success('List created successfully');
-        router.refresh(); // Refresh the page to show the new list
-      }
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to create list');
-    } finally {
-      setIsLoading(false);
-    }
-  }
+        queryClient.invalidateQueries({ queryKey: orpc.lists.all.key() });
+      },
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : 'Failed to create list');
+      },
+    }),
+  );
 
   function handleOpenChange(open: boolean) {
     setIsOpen(open);
@@ -98,7 +89,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
                     className={`rounded p-2 text-xl transition-colors hover:bg-muted ${
                       selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
                     }`}
-                    disabled={isLoading}
+                    disabled={createList.isPending}
                   >
                     {emoji}
                   </button>
@@ -116,7 +107,7 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
               value={newListName}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
               className="col-span-3"
-              disabled={isLoading}
+              disabled={createList.isPending}
               placeholder="e.g. Favorite Movies"
             />
           </div>
@@ -131,14 +122,23 @@ export function CreateListDialog({ children }: CreateListDialogProps) {
                 setNewListDescription(e.target.value)
               }
               className="col-span-3"
-              disabled={isLoading}
+              disabled={createList.isPending}
               placeholder="Optional description for your list"
             />
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleCreateList} disabled={isLoading || !newListName.trim()}>
-            {isLoading ? 'Creating...' : 'Create List'}
+          <Button
+            onClick={() =>
+              createList.mutate({
+                name: newListName.trim(),
+                description: newListDescription.trim(),
+                emoji: selectedEmoji,
+              })
+            }
+            disabled={createList.isPending || !newListName.trim()}
+          >
+            {createList.isPending ? 'Creating...' : 'Create List'}
           </Button>
         </DialogFooter>
       </DialogContent>

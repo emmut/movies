@@ -10,7 +10,7 @@ import {
   useSearchPersons,
   useSearchTvShows,
 } from '@/hooks/use-search-query';
-import { MediaType } from '@/types/media-type';
+import { MediaType } from '@movies/api/types/media-type';
 
 type SearchResultsProps = {
   searchQuery: string;

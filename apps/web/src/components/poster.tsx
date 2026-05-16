@@ -1,5 +1,5 @@
-import { Imgproxy } from '@movies/media';
-import { Skeleton } from './ui/skeleton';
+import { ImageProxy } from '@movies/media';
+import { Skeleton } from '@movies/ui/components/skeleton';
 
 type PosterProps = {
   poster_path: string;

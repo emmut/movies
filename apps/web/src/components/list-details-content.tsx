@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { parseAsInteger, useQueryStates } from 'nuqs';
 import { useEffect, useState } from 'react';
 
@@ -10,13 +10,13 @@ import { EditListDialog } from '@/components/edit-list-dialog';
 import ItemCard from '@/components/item-card';
 import { PaginationControls } from '@/components/pagination-controls';
 import PersonCard from '@/components/person-card';
-import SectionTitle from '@/components/section-title';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
-import { queryKeys } from '@/lib/query-keys';
-import { MovieDetails } from '@/types/movie';
-import { PersonDetails } from '@/types/person';
-import { TvDetails } from '@/types/tv-show';
+import SectionTitle from '@movies/ui/components/section-title';
+import { Skeleton } from '@movies/ui/components/skeleton';
+import { useScrollOnPageChange } from '@movies/ui/hooks/use-scroll-on-page-change';
+import { queryKeys } from '@movies/api/lib/query-keys';
+import { MovieDetails } from '@movies/api/types/movie';
+import { PersonDetails } from '@movies/api/types/person';
+import { TvDetails } from '@movies/api/types/tv-show';
 
 type ListItem =
   | (MovieDetails & { resourceType: 'movie' })

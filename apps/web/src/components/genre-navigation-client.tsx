@@ -1,7 +1,6 @@
-
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { useNavigate } from '@tanstack/react-router';
 import { useOptimistic, useTransition } from 'react';
-import Pill from './pill';
+import Pill from '@movies/ui/components/pill';
 
 type Genre = {
   id: number;
@@ -24,7 +23,6 @@ function GenrePill({
   onClick,
 }: GenrePillProps) {
   const [isPending, startTransition] = useTransition();
-
   const active = currentGenreId === genreId || isPending;
 
   return (
@@ -43,25 +41,21 @@ function GenrePill({
 
 type GenreNavigationClientProps = {
   genres: Genre[];
-  mediaType: 'movie' | 'tv';
+  currentGenreId?: number;
 };
 
-export function GenreNavigationClient({ genres }: GenreNavigationClientProps) {
-  // Read current genre from URL state
-  const [urlState, setUrlState] = useQueryStates({
-    genreId: parseAsInteger.withDefault(0),
-    page: parseAsString.withDefault('1'),
-  });
-
-  const currentGenreId = urlState.genreId;
+export function GenreNavigationClient({ genres, currentGenreId = 0 }: GenreNavigationClientProps) {
+  const navigate = useNavigate();
   const [optimisticGenreId, setOptimisticGenreId] = useOptimistic(currentGenreId);
 
   function handleGenreClick(targetGenreId: number) {
-    // If clicking the same genre, clear it (set to 0)
-    // Otherwise, set the new genre and reset to page 1
-    setUrlState({
-      genreId: currentGenreId === targetGenreId ? 0 : targetGenreId,
-      page: '1',
+    const nextGenreId = currentGenreId === targetGenreId ? 0 : targetGenreId;
+    navigate({
+      search: (prev: Record<string, unknown>) => ({
+        ...prev,
+        genreId: nextGenreId || undefined,
+        page: 1,
+      }),
     });
   }
 

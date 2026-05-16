@@ -1,9 +1,7 @@
+import { cn } from '@movies/ui/lib/utils';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 
-import clsx from 'clsx';
-import { useRouter, useSearchParams } from '@tanstack/react-router';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-
-import { Input } from './ui/input';
+import { Input } from '@movies/ui/components/input';
 import {
   Pagination,
   PaginationContent,
@@ -12,29 +10,24 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from './ui/pagination';
+} from '@movies/ui/components/pagination';
 
-type PaginationControls = {
+type PaginationControlsProps = {
   totalPages: number;
-  pageType?: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists';
+  currentPage: number;
 };
 
-// Generate page numbers with ellipsis logic (mobile-first)
 function generatePageNumbers(currentPage: number, totalPages: number) {
   const pages: (number | 'ellipsis')[] = [];
 
-  // Mobile-first: show fewer pages, enhance for desktop with CSS
   if (totalPages <= 5) {
-    // If we have 5 or fewer pages, show all
     for (let i = 1; i <= totalPages; i++) {
       pages.push(i);
     }
   } else {
-    // Always include first page
     pages.push(1);
 
     if (currentPage <= 3) {
-      // Near the beginning: [1] [2] [3] [...] [totalPages]
       for (let i = 2; i <= Math.min(4, totalPages - 1); i++) {
         pages.push(i);
       }
@@ -43,7 +36,6 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
         pages.push(totalPages);
       }
     } else if (currentPage >= totalPages - 2) {
-      // Near the end: [1] [...] [totalPages-3] [totalPages-2] [totalPages-1] [totalPages]
       if (totalPages > 4) {
         pages.push('ellipsis');
       }
@@ -51,7 +43,6 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
         pages.push(i);
       }
     } else {
-      // In the middle: [1] [...] [current-2] [current-1] [current] [current+1] [current+2] [...] [totalPages]
       pages.push('ellipsis');
       for (let i = currentPage - 2; i <= currentPage + 2; i++) {
         if (i > 1 && i < totalPages) {
@@ -66,31 +57,26 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
   return pages;
 }
 
-export function PaginationControls({ totalPages }: PaginationControls) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [urlState] = useQueryStates(
-    {
-      page: parseAsInteger.withDefault(1),
-      q: parseAsString,
-      mediaType: parseAsString,
-    },
-    {
-      history: 'push',
-    },
-  );
+export function PaginationControls({ totalPages, currentPage }: PaginationControlsProps) {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const currentPageNumber = urlState.page;
-  const hasPrevPage = currentPageNumber > 1;
-  const hasNextPage = currentPageNumber < totalPages;
+  const hasPrevPage = currentPage > 1;
+  const hasNextPage = currentPage < totalPages;
 
   function buildPageHref(page: number) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(location.search);
     params.set('page', String(page));
-    return `?${params.toString()}`;
+    return `${location.pathname}?${params.toString()}`;
   }
 
-  const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
+  function navigateToPage(page: number) {
+    navigate({
+      search: (prev: Record<string, unknown>) => ({ ...prev, page }),
+    });
+  }
+
+  const pageNumbers = generatePageNumbers(currentPage, totalPages);
 
   return (
     <>
@@ -100,8 +86,8 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             <PaginationContent className="gap-1 sm:gap-2">
               <PaginationItem>
                 <PaginationPrevious
-                  href={buildPageHref(currentPageNumber - 1)}
-                  className={clsx(
+                  href={buildPageHref(currentPage - 1)}
+                  className={cn(
                     !hasPrevPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
                   )}
@@ -117,7 +103,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
                       href={buildPageHref(pageNumber)}
-                      isActive={pageNumber === currentPageNumber}
+                      isActive={pageNumber === currentPage}
                       className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
                     >
                       {pageNumber}
@@ -128,8 +114,8 @@ export function PaginationControls({ totalPages }: PaginationControls) {
 
               <PaginationItem>
                 <PaginationNext
-                  href={buildPageHref(currentPageNumber + 1)}
-                  className={clsx(
+                  href={buildPageHref(currentPage + 1)}
+                  className={cn(
                     !hasNextPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
                   )}
@@ -151,21 +137,21 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 type="number"
                 min={1}
                 max={totalPages}
-                placeholder={String(currentPageNumber)}
+                placeholder={String(currentPage)}
                 className="h-8 w-16 appearance-none text-center text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     const value = Number((e.target as HTMLInputElement).value);
-                    if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
-                      router.push(buildPageHref(value));
+                    if (value >= 1 && value <= totalPages && value !== currentPage) {
+                      navigateToPage(value);
                       (e.target as HTMLInputElement).value = '';
                     }
                   }
                 }}
                 onBlur={(e) => {
                   const value = Number(e.target.value);
-                  if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
-                    router.push(buildPageHref(value));
+                  if (value >= 1 && value <= totalPages && value !== currentPage) {
+                    navigateToPage(value);
                   }
                   e.target.value = '';
                 }}

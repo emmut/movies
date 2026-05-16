@@ -1,4 +1,4 @@
-import { RegionCode } from '@/lib/regions';
+import { RegionCode } from '@movies/media';
 
 import { Genre } from './genre';
 import { RegionWatchProviders } from './watch-provider';

@@ -1,10 +1,8 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@movies/ui/components/button';
 import {
   Dialog,
   DialogContent,
@@ -13,21 +11,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@movies/ui/components/dialog';
+import { Input } from '@movies/ui/components/input';
+import { Label } from '@movies/ui/components/label';
 import { addPasskey } from '@/lib/auth-client';
 
 export function AddPasskey() {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('My Passkey');
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
   async function handleAddPasskey() {
     setIsLoading(true);
 
-    // Validate that the passkey name is not empty
     if (name.trim() === '') {
       toast.error('Please enter a name for your passkey.');
       setIsLoading(false);
@@ -42,7 +39,7 @@ export function AddPasskey() {
       toast.success('Passkey added successfully!');
       setIsOpen(false);
       setName('My Passkey');
-      router.refresh();
+      queryClient.invalidateQueries({ queryKey: ['passkeys'] });
     }
 
     setIsLoading(false);

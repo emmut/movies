@@ -1,6 +1,6 @@
 import { ChevronsUpDown, LogOut, Settings } from 'lucide-react';
-import Link from '@tanstack/react-router';
-import { useRouter } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import {
@@ -25,10 +25,6 @@ import { UserInfo } from './user-info';
 
 /**
  * Renders a user navigation menu within a sidebar, providing access to user information and a logout option.
- *
- * Displays the user's avatar and details in a sidebar menu button that triggers a dropdown. The dropdown adapts its alignment based on device type and includes a logout action that signs the user out and refreshes the page upon success.
- *
- * @param user - The user object containing name, email, and avatar URL to display in the menu.
  */
 export function NavUser({
   user,
@@ -40,7 +36,8 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
-  const router = useRouter();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { setOpenMobile } = useSidebar();
 
   async function handleLogout() {
@@ -56,7 +53,8 @@ export function NavUser({
         toast.success('You have been logged out', {
           description: 'See you soon!',
         });
-        router.refresh();
+        await queryClient.invalidateQueries();
+        navigate({ to: '/' });
       } else {
         console.error('Unexpected logout response:', data);
         toast.error('An error occurred', {
@@ -103,7 +101,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              render={<Link href="/settings" onClick={() => setOpenMobile(false)} />}
+              render={<Link to="/settings" onClick={() => setOpenMobile(false)} />}
             >
               <Settings />
               Settings

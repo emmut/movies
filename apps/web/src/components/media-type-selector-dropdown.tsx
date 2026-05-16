@@ -1,6 +1,5 @@
-
 import { Film, Search, Tv, User } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from '@tanstack/react-router';
+import { useLocation, useNavigate } from '@tanstack/react-router';
 import { useOptimistic, useTransition } from 'react';
 
 import {
@@ -11,7 +10,7 @@ import {
   SelectValue,
 } from '@movies/ui/components/select';
 import { useIsMounted } from '@movies/ui/hooks/use-is-mounted';
-import { validateGenreForMediaType } from '@movies/api/lib/media-actions';
+import { client } from '@/utils/orpc';
 
 type MediaType = 'movie' | 'tv' | 'person' | 'all';
 
@@ -22,52 +21,55 @@ type MediaTypeSelectorDropdownProps = {
 /**
  * Renders a dropdown selector for choosing between media types.
  *
- * Updates the URL query parameters and navigates to reflect the selected media type. If a genre is selected that is not valid for the new media type, it is removed from the query parameters.
- *
- * @param currentMediaType - The currently selected media type.
- * @param includePersons - Whether to show the persons option. Defaults to false.
- * @param includeAll - Whether to show the all option. Defaults to false.
+ * Updates the URL query parameters and navigates to reflect the selected media type. If a genre is
+ * selected that is not valid for the new media type, it is removed from the query parameters.
  */
 export default function MediaTypeSelectorDropdown({
   currentMediaType,
 }: MediaTypeSelectorDropdownProps) {
   const isMounted = useIsMounted();
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [optimisticMediaType, setOptimisticMediaType] = useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
 
   async function handleMediaTypeChange(mediaType: MediaType) {
-    const params = new URLSearchParams(searchParams);
-    const currentGenreId = params.get('genreId');
-
     startTransition(() => {
       setOptimisticMediaType(mediaType);
     });
 
+    // Parse current search params from the URL
+    const searchParams = new URLSearchParams(location.search);
+    const currentGenreId = searchParams.get('genreId');
+
     if (mediaType === 'all') {
-      params.delete('mediaType');
+      searchParams.delete('mediaType');
     } else {
-      params.set('mediaType', mediaType);
+      searchParams.set('mediaType', mediaType);
     }
-    params.delete('page');
+    searchParams.delete('page');
 
     if (currentGenreId && mediaType !== 'person' && mediaType !== 'all') {
-      const genreExists = await validateGenreForMediaType(
-        currentGenreId,
-        mediaType as 'movie' | 'tv',
-      );
-
-      if (!genreExists) {
-        params.delete('genreId');
+      // Validate genre on the server via oRPC
+      try {
+        const genreExists = await client.discover.validateGenre({
+          genreId: currentGenreId,
+          mediaType: mediaType as 'movie' | 'tv',
+        });
+        if (!genreExists) {
+          searchParams.delete('genreId');
+        }
+      } catch {
+        searchParams.delete('genreId');
       }
     } else if (mediaType === 'person' || mediaType === 'all') {
-      // Persons and mixed results don't have genres, so remove genreId
-      params.delete('genreId');
+      searchParams.delete('genreId');
     }
 
-    router.push(`${pathname}?${params.toString()}`);
+    navigate({
+      to: location.pathname,
+      search: Object.fromEntries(searchParams.entries()),
+    });
   }
 
   function getDisplayName(mediaType: MediaType) {
@@ -100,8 +102,6 @@ export default function MediaTypeSelectorDropdown({
     }
   }
 
-  // Only render the dropdown after mounting to avoid hydration mismatch
-  // from Radix UI's dynamic aria-controls IDs
   if (!isMounted) {
     return (
       <div className="flex h-9 w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs">

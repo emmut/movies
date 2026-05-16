@@ -1,14 +1,14 @@
 'use client';
 
 import { PaginationControls } from '@/components/pagination-controls';
-import Spinner from '@/components/spinner';
+import Spinner from '@movies/ui/components/spinner';
 import {
   useSearchMovies,
   useSearchMulti,
   useSearchPersons,
   useSearchTvShows,
 } from '@/hooks/use-search-query';
-import { MediaType } from '@/types/media-type';
+import { MediaType } from '@movies/api/types/media-type';
 
 type SearchPaginationProps = {
   query: string;

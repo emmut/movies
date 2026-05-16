@@ -1,10 +1,10 @@
-import ClientImage from '@/components/client-image';
+import ClientImage from '@movies/media';
 import { cn, formatImageUrl } from '@movies/ui/lib/utils';
 import { PersonDetails, SearchedPerson } from '@movies/api/types/person';
 import type { ProxyImageUrls } from '@movies/api/types/proxy-image';
 import { User } from 'lucide-react';
-import Link from '@tanstack/react-router';
-import Badge from './badge';
+import { Link } from '@tanstack/react-router';
+import Badge from '@movies/ui/components/badge';
 import { ListButton } from './list-button';
 import { RemoveFromListButton } from './remove-from-list-button';
 

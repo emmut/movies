@@ -1,7 +1,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { Trash2 } from 'lucide-react';
-import { useRouter } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -35,7 +35,7 @@ export function DeleteListButton({
   redirectAfterDelete = false,
   children,
 }: DeleteListButtonProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -50,9 +50,8 @@ export function DeleteListButton({
         queryKey: queryKeys.lists.all,
       });
 
-      router.refresh();
       if (redirectAfterDelete) {
-        router.push('/lists');
+        navigate({ to: '/lists' });
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to delete list');

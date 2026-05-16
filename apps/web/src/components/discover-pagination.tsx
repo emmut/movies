@@ -1,7 +1,7 @@
 'use client';
 
 import { PaginationControls } from '@/components/pagination-controls';
-import Spinner from '@/components/spinner';
+import Spinner from '@movies/ui/components/spinner';
 import { useDiscoverMedia } from '@/hooks/use-discover-query';
 
 type PaginationProps = {

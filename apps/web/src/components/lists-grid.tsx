@@ -1,5 +1,5 @@
 import { Edit, Trash2 } from 'lucide-react';
-import Link from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';

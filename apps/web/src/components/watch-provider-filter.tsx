@@ -1,7 +1,4 @@
-
 import { Check, Filter } from 'lucide-react';
-
-import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 
 import { Button } from '@movies/ui/components/button';
@@ -13,56 +10,28 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@movies/ui/components/popover';
-import { DEFAULT_REGION } from '@movies/media';
 import { WatchProvider } from '@movies/api/types/watch-provider';
 
 interface WatchProviderFilterProps {
   providers: WatchProvider[];
+  selectedProviders: number[];
   userRegion: string;
+  onChange: (providerIds: number[]) => void;
 }
 
-/**
- * Renders a popover filter for selecting streaming service providers.
- *
- * Allows users to filter content by multiple watch providers using a popover interface.
- * Uses OR logic - shows content available on ANY of the selected providers.
- * The selected providers are applied to URL query parameters for filtering results.
- */
-export default function WatchProviderFilter({ providers, userRegion }: WatchProviderFilterProps) {
-  const [{ with_watch_providers }, setParams] = useQueryStates({
-    with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
-    watch_region: parseAsString.withDefault(DEFAULT_REGION),
-    page: parseAsString.withDefault('1'),
-  });
-
-  const selectedProviders = with_watch_providers || [];
-
+export default function WatchProviderFilter({
+  providers,
+  selectedProviders,
+  onChange,
+}: WatchProviderFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [brokenImages, setBrokenImages] = useState(new Set<number>());
 
-  function updateSelectedProviders(providerId: number) {
-    const newProviders = selectedProviders.includes(providerId)
+  function toggleProvider(providerId: number) {
+    const next = selectedProviders.includes(providerId)
       ? selectedProviders.filter((id) => id !== providerId)
       : [...selectedProviders, providerId];
-
-    updateUrl(newProviders);
-  }
-
-  function updateUrl(providerIds: number[]) {
-    setParams(
-      {
-        with_watch_providers: providerIds.length > 0 ? providerIds : null,
-        watch_region: providerIds.length > 0 ? userRegion : null,
-        page: '1',
-      },
-      {
-        shallow: false,
-      },
-    );
-  }
-
-  function clearAllProviders() {
-    updateUrl([]);
+    onChange(next);
   }
 
   function handleImageError(providerId: number) {
@@ -79,14 +48,14 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           render={
-            <Button variant="outline" className="w-full justify-between" id="watch-providers">
-              <Filter className="mr-2 h-4 w-4" />
-              {selectedCount > 0
-                ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
-                : 'Select watch providers'}
-            </Button>
+            <Button variant="outline" className="w-full justify-between" id="watch-providers" />
           }
-        />
+        >
+          <Filter className="mr-2 h-4 w-4" />
+          {selectedCount > 0
+            ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
+            : 'Select watch providers'}
+        </PopoverTrigger>
         <PopoverContent
           align="end"
           side="bottom"
@@ -97,7 +66,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
             <div className="flex items-baseline justify-between">
               <PopoverTitle className="py-1">Watch Providers</PopoverTitle>
               {selectedCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearAllProviders} className="text-xs">
+                <Button variant="ghost" size="sm" onClick={() => onChange([])} className="text-xs">
                   Clear all
                 </Button>
               )}
@@ -121,7 +90,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                     className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
                       isSelected ? 'bg-accent' : ''
                     }`}
-                    onClick={() => updateSelectedProviders(provider.provider_id)}
+                    onClick={() => toggleProvider(provider.provider_id)}
                   >
                     <div className="shrink-0">
                       {imageError ? (
@@ -129,8 +98,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
                           {provider.provider_name.charAt(0).toUpperCase()}
                         </div>
                       ) : (
-                        <Image
-                          unoptimized
+                        <img
                           width={32}
                           height={32}
                           src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}

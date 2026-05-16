@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { OAuthLoginButton } from '@/components/ui/oauth-login-button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@movies/ui/components/card';
+import { OAuthLoginButton } from '@movies/ui/components/oauth-login-button';
 import { signInGitHubSettings, signInSettings } from '@/lib/auth-client';
 
 type LinkAccountProps = {

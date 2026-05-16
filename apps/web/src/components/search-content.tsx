@@ -3,9 +3,9 @@
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown';
-import SectionTitle from '@/components/section-title';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
-import { MediaType } from '@/types/media-type';
+import SectionTitle from '@movies/ui/components/section-title';
+import { useScrollOnPageChange } from '@movies/ui/hooks/use-scroll-on-page-change';
+import { MediaType } from '@movies/api/types/media-type';
 
 import SearchPagination from './pagination';
 import SearchResults from './search-results';

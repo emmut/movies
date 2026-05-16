@@ -1,13 +1,11 @@
-
-import { useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
-import { useRouter } from '@tanstack/react-router';
-import { MouseEvent, useState } from 'react';
+import { MouseEvent } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@movies/ui/components/button';
-import { removeFromList } from '@movies/api/lib/lists';
 import { queryKeys } from '@movies/api/lib/query-keys';
+import { orpc } from '@/utils/orpc';
 
 interface RemoveFromListButtonProps {
   listId: string;
@@ -22,30 +20,24 @@ export function RemoveFromListButton({
   mediaType,
   className,
 }: RemoveFromListButtonProps) {
-  const router = useRouter();
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
 
-  async function handleRemove(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault(); // Prevent link navigation when clicking the button
+  const removeItem = useMutation(
+    orpc.lists.removeItem.mutationOptions({
+      onSuccess: () => {
+        toast.success('Removed from list');
+        queryClient.invalidateQueries({ queryKey: queryKeys.lists.all });
+      },
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : 'Failed to remove from list');
+      },
+    }),
+  );
+
+  function handleRemove(e: MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
     e.stopPropagation();
-
-    setIsLoading(true);
-    try {
-      await removeFromList(listId, mediaId, mediaType);
-      toast.success('Removed from list');
-
-      // Invalidate all list queries to ensure fresh data on next navigation
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.lists.all,
-      });
-
-      router.refresh();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to remove from list');
-    } finally {
-      setIsLoading(false);
-    }
+    removeItem.mutate({ listId, mediaId, mediaType });
   }
 
   return (
@@ -54,7 +46,7 @@ export function RemoveFromListButton({
       size="icon"
       className={className}
       onClick={handleRemove}
-      disabled={isLoading}
+      disabled={removeItem.isPending}
       aria-label="Remove from list"
     >
       <X className="h-4 w-4" />

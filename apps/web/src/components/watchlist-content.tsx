@@ -1,19 +1,19 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 import ItemCard from '@/components/item-card';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
-import SectionTitle from '@/components/section-title';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
-import { queryKeys } from '@/lib/query-keys';
+import SectionTitle from '@movies/ui/components/section-title';
+import { Skeleton } from '@movies/ui/components/skeleton';
+import { useScrollOnPageChange } from '@movies/ui/hooks/use-scroll-on-page-change';
+import { queryKeys } from '@movies/api/lib/query-keys';
 import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
-import { MovieDetails } from '@/types/movie';
-import { TvDetails } from '@/types/tv-show';
+import { MovieDetails } from '@movies/api/types/movie';
+import { TvDetails } from '@movies/api/types/tv-show';
 
 type WatchlistContentProps = {
   userId?: string;

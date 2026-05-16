@@ -1,11 +1,9 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@movies/ui/components/button';
+import { Card, CardContent } from '@movies/ui/components/card';
 import {
   Dialog,
   DialogContent,
@@ -14,8 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
+} from '@movies/ui/components/dialog';
+import { Separator } from '@movies/ui/components/separator';
+import { orpc } from '@/utils/orpc';
 
 type Passkey = {
   id: string;
@@ -31,7 +30,7 @@ type PasskeyListProps = {
 export function PasskeyList({ passkeys }: PasskeyListProps) {
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
   async function handleDeletePasskey(passkeyId: string) {
     setDeletingIds((prev) => new Set([...prev, passkeyId]));
@@ -51,7 +50,7 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
 
       toast.success('Passkey deleted successfully!');
       setDeleteDialogOpen(null);
-      router.refresh();
+      queryClient.invalidateQueries({ queryKey: orpc.passkey.list.key() });
     } catch (error) {
       console.error('Failed to delete passkey:', error);
       toast.error('Failed to delete passkey. Please try again.');

@@ -1,42 +1,45 @@
-'use client';
-
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { Button } from '@movies/ui/components/button';
+import { Label } from '@movies/ui/components/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import type { Region } from '@/lib/regions';
+} from '@movies/ui/components/select';
+import type { Region } from '@movies/media';
+import { orpc } from '@/utils/orpc';
 
 interface RegionFormProps {
   currentRegion: string;
   regions: readonly Region[];
-  updateRegionAction: (region: string) => Promise<{ success: boolean; region: string }>;
 }
 
-export function RegionForm({ currentRegion, regions, updateRegionAction }: RegionFormProps) {
+export function RegionForm({ currentRegion, regions }: RegionFormProps) {
   const [selectedRegion, setSelectedRegion] = useState(currentRegion);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
-  async function handleSubmit() {
-    if (selectedRegion === currentRegion) {
-      return;
-    }
-
-    startTransition(async () => {
-      try {
-        await updateRegionAction(selectedRegion);
+  const updateRegion = useMutation(
+    orpc.user.updateRegion.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: orpc.user.region.key() });
         toast('Region settings saved!');
-      } catch (error) {
-        console.error('Error updating region:', error);
+      },
+      onError: () => {
         toast.error('Could not save region settings');
-      }
+      },
+    }),
+  );
+
+  function handleSubmit() {
+    if (selectedRegion === currentRegion) return;
+    startTransition(() => {
+      updateRegion.mutate({ region: selectedRegion });
     });
   }
 
@@ -47,10 +50,10 @@ export function RegionForm({ currentRegion, regions, updateRegionAction }: Regio
         <Select
           value={selectedRegion}
           onValueChange={(value) => value && setSelectedRegion(value)}
-          disabled={isPending}
+          disabled={updateRegion.isPending}
         >
           <SelectTrigger id="region-select">
-            <SelectValue placeholder="Select region">
+            <SelectValue>
               {regions.find((r) => r.code === selectedRegion)?.name}
             </SelectValue>
           </SelectTrigger>
@@ -64,8 +67,11 @@ export function RegionForm({ currentRegion, regions, updateRegionAction }: Regio
         </Select>
       </div>
 
-      <Button onClick={handleSubmit} disabled={isPending || selectedRegion === currentRegion}>
-        {isPending ? 'Saving...' : 'Save changes'}
+      <Button
+        onClick={handleSubmit}
+        disabled={updateRegion.isPending || selectedRegion === currentRegion}
+      >
+        {updateRegion.isPending ? 'Saving...' : 'Save changes'}
       </Button>
     </div>
   );
