@@ -8,10 +8,13 @@
     "dev": "vite dev"
   },
   "dependencies": {
+    "@better-auth/passkey": "catalog:",
     "@movies/api": "workspace:*",
     "@movies/auth": "workspace:*",
     "@movies/env": "workspace:*",
+    "@movies/media": "workspace:*",
     "@movies/ui": "workspace:*",
+    "posthog-js": "catalog:",
     "@orpc/client": "catalog:",
     "@orpc/openapi": "catalog:",
     "@orpc/server": "catalog:",

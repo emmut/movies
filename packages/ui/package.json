@@ -7,7 +7,9 @@
     "./globals.css": "./src/styles/globals.css",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
+    "./hooks/*.tsx": "./src/hooks/*.tsx",
     "./hooks/*": "./src/hooks/*.ts",
+    "./icons/*": "./src/icons/*.tsx",
     "./postcss.config": "./postcss.config.mjs"
   },
   "scripts": {
@@ -15,6 +17,17 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",
+    "@radix-ui/react-alert-dialog": "catalog:",
+    "@radix-ui/react-aspect-ratio": "catalog:",
+    "@radix-ui/react-avatar": "catalog:",
+    "@radix-ui/react-dialog": "catalog:",
+    "@radix-ui/react-dropdown-menu": "catalog:",
+    "@radix-ui/react-label": "catalog:",
+    "@radix-ui/react-popover": "catalog:",
+    "@radix-ui/react-select": "catalog:",
+    "@radix-ui/react-separator": "catalog:",
+    "@radix-ui/react-slot": "catalog:",
+    "@radix-ui/react-tooltip": "catalog:",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.546.0",

@@ -11,9 +11,11 @@
   },
   "scripts": {},
   "dependencies": {
+    "@better-auth/passkey": "catalog:",
     "@movies/db": "workspace:*",
     "@movies/env": "workspace:*",
     "better-auth": "catalog:",
+    "drizzle-orm": "catalog:",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },

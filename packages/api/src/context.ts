@@ -5,7 +5,6 @@ export async function createContext({ req }: { req: Request }) {
     headers: req.headers,
   });
   return {
-    auth: null,
     session,
   };
 }

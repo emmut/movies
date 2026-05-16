@@ -1,0 +1,26 @@
+{
+  "name": "@movies/media",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts",
+    "./components/*": "./src/components/*.tsx"
+  },
+  "dependencies": {
+    "@imgproxy/imgproxy-js-core": "catalog:",
+    "@imgproxy/imgproxy-node": "catalog:",
+    "@movies/env": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@movies/config": "workspace:*",
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "*"
+  }
+}

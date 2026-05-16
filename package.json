@@ -11,6 +11,8 @@
     "build": "nx run-many -t build",
     "check-types": "nx run-many -t check-types",
     "dev:web": "nx run-many -t dev --projects=web",
+    "dev:imgproxy:up": "docker compose -f docker-compose.dev.yml up -d",
+    "dev:imgproxy:down": "docker compose -f docker-compose.dev.yml down",
     "db:push": "nx run-many -t db:push --projects=@movies/db",
     "db:studio": "nx run-many -t db:studio --projects=@movies/db",
     "db:generate": "nx run-many -t db:generate --projects=@movies/db",
