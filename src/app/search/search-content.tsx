@@ -1,9 +1,12 @@
 'use client';
 
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+
 import MediaTypeSelectorDropdown from '@/components/media-type-selector-dropdown';
 import SectionTitle from '@/components/section-title';
+import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { MediaType } from '@/types/media-type';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+
 import SearchPagination from './pagination';
 import SearchResults from './search-results';
 
@@ -31,6 +34,8 @@ export function SearchContent({ userId }: SearchContentProps) {
   const query = urlState.q ?? '';
   const page = urlState.page;
   const mediaType = (urlState.mediaType ?? 'all') as MediaType;
+
+  useScrollOnPageChange(page);
 
   return (
     <>

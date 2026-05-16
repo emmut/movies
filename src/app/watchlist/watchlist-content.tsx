@@ -1,17 +1,19 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+
 import ItemCard from '@/components/item-card';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { queryKeys } from '@/lib/query-keys';
 import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
-import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 type WatchlistContentProps = {
   userId?: string;
@@ -35,6 +37,8 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
 
   const mediaType = urlState.mediaType as 'movie' | 'tv';
   const page = urlState.page;
+
+  useScrollOnPageChange(page);
 
   // Fetch paginated watchlist data
   const { data: paginatedData, isLoading: isLoadingList } = useQuery({
@@ -114,7 +118,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
           </p>
           <Link
             href={`/discover?mediaType=${mediaType}`}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium shadow transition-colors"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
           >
             Explore {mediaType === 'movie' ? 'Movies' : 'TV Shows'}
           </Link>
