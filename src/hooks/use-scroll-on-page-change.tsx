@@ -6,10 +6,12 @@ export function useScrollOnPageChange(page: number) {
   const lastPage = useRef(page);
 
   useEffect(() => {
-    if (lastPage.current === page) {
+    const previous = lastPage.current;
+    lastPage.current = page;
+
+    if (page <= previous) {
       return;
     }
-    lastPage.current = page;
 
     const container = document.querySelector('#content-container');
     if (container) {
