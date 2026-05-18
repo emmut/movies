@@ -1,4 +1,5 @@
 import { AvailableGenresNavigation } from '@/components/available-genre-navigation';
+import { GenreFilter } from '@/components/genre-filter';
 import { getUser } from '@/lib/auth-server';
 import { getDiscoverMedia } from '@/lib/discover-client';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
@@ -93,6 +94,11 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
         genreNavigation={
           <Suspense fallback={<AvailableGenresNavigation.Skeleton />}>
             <AvailableGenresNavigation mediaType={mediaType} />
+          </Suspense>
+        }
+        genreFilter={
+          <Suspense fallback={<GenreFilter.Skeleton />}>
+            <GenreFilter mediaType={mediaType} />
           </Suspense>
         }
       />

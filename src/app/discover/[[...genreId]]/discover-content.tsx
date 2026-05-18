@@ -17,6 +17,7 @@ type DiscoverContentProps = {
   filteredWatchProviders: WatchProvider[];
   userRegion: string;
   genreNavigation: ReactNode;
+  genreFilter: ReactNode;
   userId?: string;
 };
 
@@ -28,6 +29,7 @@ export function DiscoverContent({
   filteredWatchProviders,
   userRegion,
   genreNavigation,
+  genreFilter,
   userId,
 }: DiscoverContentProps) {
   // Use nuqs to manage URL state - changes automatically trigger React Query refetches
@@ -71,6 +73,7 @@ export function DiscoverContent({
           mediaType={mediaType}
           watchProviders={filteredWatchProviders}
           userRegion={watchRegion}
+          genreFilter={genreFilter}
         />
       </div>
 
