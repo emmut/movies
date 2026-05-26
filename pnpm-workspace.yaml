@@ -2,5 +2,5 @@ allowBuilds:
   core-js: true
   esbuild: true
   msw: true
-  protobufjs: true
-  sharp: true
+  protobufjs: set this to true or false
+  sharp: false
