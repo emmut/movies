@@ -1,9 +1,11 @@
+import { User } from 'lucide-react';
+import Link from 'next/link';
+
 import ClientImage from '@/components/client-image';
 import { cn, formatImageUrl } from '@/lib/utils';
 import { PersonDetails, SearchedPerson } from '@/types/person';
 import type { ProxyImageUrls } from '@/types/proxy-image';
-import { User } from 'lucide-react';
-import Link from 'next/link';
+
 import Badge from './badge';
 import { ListButton } from './list-button';
 import { RemoveFromListButton } from './remove-from-list-button';

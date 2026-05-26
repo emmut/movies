@@ -1,11 +1,12 @@
-import { StaticImageData } from "next/image";
-import { generateImageUrl, type IGenerateImageUrl } from "@imgproxy/imgproxy-node";
+import { generateImageUrl, type IGenerateImageUrl } from '@imgproxy/imgproxy-node';
+import { StaticImageData } from 'next/image';
 
-import styles from "./Imgproxy.module.css";
-import { env } from "@/env";
+import { env } from '@/env';
 
-type Options = NonNullable<IGenerateImageUrl["options"]>;
-type Format = Options["format"];
+import styles from './Imgproxy.module.css';
+
+type Options = NonNullable<IGenerateImageUrl['options']>;
+type Format = Options['format'];
 
 type ImgproxyProps = {
   className?: string;
@@ -14,8 +15,8 @@ type ImgproxyProps = {
   fill?: boolean;
   priority?: boolean;
   sizes?: string;
-  fetchPriority?: "high" | "low" | "auto";
-} & Omit<Options, "resize" | "size" | "resize_type" | "dpr" | "format">;
+  fetchPriority?: 'high' | 'low' | 'auto';
+} & Omit<Options, 'resize' | 'size' | 'resize_type' | 'dpr' | 'format'>;
 
 // The address of your imgproxy server
 const imgproxyEndpoint = env.NEXT_PUBLIC_IMGPROXY_ENDPOINT;
@@ -35,56 +36,50 @@ export const Imgproxy = ({
   fetchPriority,
   ...imgproxyOptions
 }: ImgproxyProps) => {
-  const resolvedSrc = typeof src === "string" ? src : src.src;
-  const fullSrc = resolvedSrc.startsWith("http")
+  const resolvedSrc = typeof src === 'string' ? src : src.src;
+  const fullSrc = resolvedSrc.startsWith('http')
     ? resolvedSrc
-    : `${imgproxyBaseUrl.replace(/\/$/, "")}${resolvedSrc}`;
-  const escapedSrc = fullSrc.replace(/%/g, "%25").replace(/\?/g, "%3F").replace(/@/g, "%40");
+    : `${imgproxyBaseUrl.replace(/\/$/, '')}${resolvedSrc}`;
+  const escapedSrc = fullSrc.replace(/%/g, '%25').replace(/\?/g, '%3F').replace(/@/g, '%40');
 
-  const imagproxyUrl = (format: Format, dpr: number) => (
+  const imagproxyUrl = (format: Format, dpr: number) =>
     generateImageUrl({
       endpoint: imgproxyEndpoint,
       key: imgproxyKey,
       salt: imgproxySalt,
       url: {
         value: escapedSrc,
-        displayAs: "plain",
+        displayAs: 'plain',
       },
       options: {
         resize: {
           width,
           height,
-          resizing_type: fill ? "fill-down" : "fit",
+          resizing_type: fill ? 'fill-down' : 'fit',
         },
         format,
         dpr,
-        ...imgproxyOptions
+        ...imgproxyOptions,
       },
-    })
-  );
+    });
 
-  const srcSet = (format?: Format) => [
-    `${imagproxyUrl(format, 1)} 1x`,
-    `${imagproxyUrl(format, 2)} 2x`,
-  ].join(", ");
+  const srcSet = (format?: Format) =>
+    [`${imagproxyUrl(format, 1)} 1x`, `${imagproxyUrl(format, 2)} 2x`].join(', ');
 
-  const classNames = [
-    className,
-    fill ? styles.fill : styles.fit,
-  ].filter(Boolean).join(" ");
+  const classNames = [className, fill ? styles.fill : styles.fit].filter(Boolean).join(' ');
 
   return (
     <picture>
-      <source srcSet={srcSet("avif")} type="image/avif" />
-      <source srcSet={srcSet("webp")} type="image/webp" />
+      <source srcSet={srcSet('avif')} type="image/avif" />
+      <source srcSet={srcSet('webp')} type="image/webp" />
       <img
-        src={imagproxyUrl("webp", 2)}
+        src={imagproxyUrl('webp', 2)}
         alt={alt}
         className={classNames}
         width={width || undefined}
         height={height || undefined}
         sizes={sizes}
-        loading={priority ? "eager" : "lazy"}
+        loading={priority ? 'eager' : 'lazy'}
         fetchPriority={fetchPriority}
         decoding="async"
       />

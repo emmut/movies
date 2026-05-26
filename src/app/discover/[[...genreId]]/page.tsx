@@ -1,3 +1,6 @@
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { Suspense } from 'react';
+
 import { AvailableGenresNavigation } from '@/components/available-genre-navigation';
 import { getUser } from '@/lib/auth-server';
 import { getDiscoverMedia } from '@/lib/discover-client';
@@ -6,8 +9,7 @@ import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
-import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-import { Suspense } from 'react';
+
 import { DiscoverContent } from './discover-content';
 
 type DiscoverWithGenreParams = {

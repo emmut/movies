@@ -1,15 +1,16 @@
+import { Calendar, MapPin, Star, Users } from 'lucide-react';
+import { headers } from 'next/headers';
+
 import Badge from '@/components/badge';
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
+import { Imgproxy } from '@/components/image-proxy';
 import ItemCard from '@/components/item-card';
 import { ListButton } from '@/components/list-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
-import { Imgproxy } from '@/components/image-proxy';
 import { deduplicateAndSortByPopularity } from '@/lib/utils';
-import { Calendar, MapPin, Star, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 
 type PersonPageProps = {
   params: Promise<{

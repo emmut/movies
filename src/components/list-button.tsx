@@ -153,10 +153,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
 
   return (
     <>
-      <DropdownMenu
-        open={isOpen}
-        onOpenChange={setIsOpen}
-      >
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger render={<Button variant="glass" size="icon" disabled={isPending} />}>
           <List className="h-4 w-4" />
         </DropdownMenuTrigger>

@@ -1,5 +1,10 @@
+import { Calendar, Clock, DollarSign, Star, Users } from 'lucide-react';
+import { headers } from 'next/headers';
+import Link from 'next/link';
+
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
+import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
@@ -16,12 +21,8 @@ import {
   getMovieWatchProviders,
 } from '@/lib/movies';
 import { getUserRegion } from '@/lib/user-actions';
-import { Imgproxy } from '@/components/image-proxy';
 import { formatCurrency, formatRuntime } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
-import { Calendar, Clock, DollarSign, Star, Users } from 'lucide-react';
-import { headers } from 'next/headers';
-import Link from 'next/link';
 
 type MoviePageProps = {
   params: Promise<{

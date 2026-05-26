@@ -2,6 +2,7 @@
 
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
+
 import Pill from './pill';
 
 type Genre = {

@@ -18,8 +18,8 @@ import { TmdbVideoResponse } from '@/types/tmdb-video';
 
 import { CACHE_TAGS } from './cache-tags';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
-import { buildProxyImageUrls } from './imgproxy-url';
 import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';
+import { buildProxyImageUrls } from './imgproxy-url';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 

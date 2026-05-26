@@ -1,5 +1,10 @@
+import { Calendar, Star, Tv, Users } from 'lucide-react';
+import { headers } from 'next/headers';
+import Link from 'next/link';
+
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
+import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
@@ -17,11 +22,7 @@ import {
   getTvShowWatchProviders,
 } from '@/lib/tv-shows';
 import { getUserRegion } from '@/lib/user-actions';
-import { Imgproxy } from '@/components/image-proxy';
 import { isResourceInWatchlist } from '@/lib/watchlist';
-import { Calendar, Star, Tv, Users } from 'lucide-react';
-import { headers } from 'next/headers';
-import Link from 'next/link';
 
 type TvShowPageProps = {
   params: Promise<{
