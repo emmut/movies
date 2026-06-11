@@ -2,9 +2,7 @@
 
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { env } from '@/env';
 import { DEFAULT_REGION } from '@/lib/regions';
-import { getUserRegion } from '@/lib/user-actions';
 import type { GenreResponse } from '@/types/genre';
 import {
   MovieCredits,
@@ -18,24 +16,11 @@ import { TmdbVideoResponse } from '@/types/tmdb-video';
 
 import { CACHE_TAGS } from './cache-tags';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
-import { buildProxyImageUrls } from './imgproxy-url';
-import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';
+import { MIN_RUNTIME_FILTER_MINUTES } from './constants';
+import { addPosterImageUrls, tmdbFetch } from './tmdb';
+import { getUserRegionWithFallback } from './user-region';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
-
-function addPosterImageUrls<T extends { poster_path: string | null }>(item: T) {
-  if (!item.poster_path) {
-    return item;
-  }
-
-  return {
-    ...item,
-    posterImageUrls: buildProxyImageUrls(item.poster_path, {
-      width: 500,
-      fill: true,
-    }),
-  };
-}
 
 /**
  * Fetches the list of trending movies for the current day from TMDb.
@@ -48,29 +33,10 @@ export async function fetchTrendingMovies() {
   cacheTag(CACHE_TAGS.public.home.trendingMovies);
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/trending/movie/day`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const movies = await tmdbFetch<MovieResponse>('/trending/movie/day', {
+    errorMessage: 'Failed loading trending movies',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading trending movies');
-  }
-
-  const movies: MovieResponse = await res.json();
   return movies.results;
-}
-
-async function getUserRegionWithFallback() {
-  try {
-    return await getUserRegion();
-  } catch (error) {
-    // Fallback to default region if user is not logged in or error occurs
-    console.warn('Could not get user region, using fallback:', DEFAULT_REGION, error);
-    return DEFAULT_REGION;
-  }
 }
 
 /**
@@ -83,17 +49,9 @@ export async function fetchAvailableGenres() {
   cacheTag(CACHE_TAGS.public.genres.movies);
   cacheLife('biweekly');
 
-  const res = await fetch(`${TMDB_API_URL}/genre/movie/list`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-    },
+  const movies = await tmdbFetch<GenreResponse>('/genre/movie/list', {
+    errorMessage: 'Error loading genres',
   });
-
-  if (!res.ok) {
-    throw new Error('Error loading genres');
-  }
-
-  const movies: GenreResponse = await res.json();
   return movies.genres;
 }
 
@@ -121,41 +79,25 @@ export async function fetchDiscoverMovies(
   cacheTag(CACHE_TAGS.public.discover.movies);
   cacheLife('minutes');
 
-  const url = new URL(`${TMDB_API_URL}/discover/movie`);
-  url.searchParams.set('page', String(page));
-  url.searchParams.set('sort_by', sortBy || 'popularity.desc');
-  url.searchParams.set('region', DEFAULT_REGION);
-  url.searchParams.set('include_adult', 'false');
-  url.searchParams.set('include_video', 'false');
+  const hasWatchProviderFilter = watchProviders !== undefined && watchRegion !== undefined;
+  const hasRuntimeFilter = typeof withRuntimeLte === 'number' && withRuntimeLte > 0;
 
-  if (genreId !== 0) {
-    url.searchParams.set('with_genres', String(genreId));
-  }
-
-  if (watchProviders !== undefined && watchRegion !== undefined) {
-    url.searchParams.set('with_watch_providers', watchProviders);
-    url.searchParams.set('watch_region', watchRegion);
-  } else {
-    url.searchParams.set('with_watch_providers', majorProviders);
-    url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
-  }
-
-  if (typeof withRuntimeLte === 'number' && withRuntimeLte > 0) {
-    url.searchParams.set('with_runtime.lte', String(withRuntimeLte));
-    url.searchParams.set('with_runtime.gte', String(MIN_RUNTIME_FILTER_MINUTES));
-  }
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+  const movies = await tmdbFetch<MovieResponse>('/discover/movie', {
+    searchParams: {
+      page,
+      sort_by: sortBy || 'popularity.desc',
+      region: DEFAULT_REGION,
+      include_adult: 'false',
+      include_video: 'false',
+      with_genres: genreId !== 0 ? genreId : undefined,
+      with_watch_providers: hasWatchProviderFilter ? watchProviders : majorProviders,
+      watch_region: hasWatchProviderFilter ? watchRegion : watchRegion || DEFAULT_REGION,
+      'with_runtime.lte': hasRuntimeFilter ? withRuntimeLte : undefined,
+      'with_runtime.gte': hasRuntimeFilter ? MIN_RUNTIME_FILTER_MINUTES : undefined,
     },
+    errorMessage: 'Error loading discover movies',
   });
 
-  if (!res.ok) {
-    throw new Error('Error loading discover movies');
-  }
-
-  const movies: MovieResponse = await res.json();
   const totalPages = movies.total_pages >= 500 ? 500 : movies.total_pages;
   return { movies: movies.results.map(addPosterImageUrls), totalPages };
 }
@@ -172,28 +114,18 @@ export async function fetchDiscoverMovies(
 export async function fetchUserDiscoverMovies(genreId: number, page: number = 1) {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL(`${TMDB_API_URL}/discover/movie`);
-  url.searchParams.set('page', String(page));
-  url.searchParams.set('sort_by', 'popularity.desc');
-  url.searchParams.set('region', userRegion);
-  url.searchParams.set('include_adult', 'false');
-  url.searchParams.set('include_video', 'false');
-
-  if (genreId !== 0) {
-    url.searchParams.set('with_genres', String(genreId));
-  }
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+  const movies = await tmdbFetch<MovieResponse>('/discover/movie', {
+    searchParams: {
+      page,
+      sort_by: 'popularity.desc',
+      region: userRegion,
+      include_adult: 'false',
+      include_video: 'false',
+      with_genres: genreId !== 0 ? genreId : undefined,
     },
+    errorMessage: 'Error loading discover movies',
   });
 
-  if (!res.ok) {
-    throw new Error('Error loading discover movies');
-  }
-
-  const movies: MovieResponse = await res.json();
   const totalPages = movies.total_pages >= 500 ? 500 : movies.total_pages;
   return { movies: movies.results.map(addPosterImageUrls), totalPages };
 }
@@ -208,18 +140,9 @@ export async function fetchNowPlayingMovies() {
   cacheTag(CACHE_TAGS.public.home.nowPlayingMovies);
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/movie/now_playing`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const movies = await tmdbFetch<MovieResponse>('/movie/now_playing', {
+    errorMessage: 'Failed loading now playing movies',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading now playing movies');
-  }
-
-  const movies: MovieResponse = await res.json();
   return movies.results;
 }
 
@@ -233,24 +156,12 @@ export async function fetchUpcomingMovies() {
   cacheTag(CACHE_TAGS.public.home.upcomingMovies);
   cacheLife('minutes');
 
-  const [upcomingRes, nowPlayingMovies] = await Promise.all([
-    fetch(`${TMDB_API_URL}/movie/upcoming`, {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-      next: {
-        revalidate: 60 * 5,
-      },
+  const [upcomingMovies, nowPlayingMovies] = await Promise.all([
+    tmdbFetch<MovieResponse>('/movie/upcoming', {
+      errorMessage: 'Failed loading upcoming movies',
     }),
     fetchNowPlayingMovies(),
   ]);
-
-  if (!upcomingRes.ok) {
-    throw new Error('Failed loading upcoming movies');
-  }
-
-  const upcomingMovies: MovieResponse = await upcomingRes.json();
 
   const nowPlayingIds = new Set(nowPlayingMovies.map((movie) => movie.id));
   const filteredUpcomingMovies = upcomingMovies.results.filter(
@@ -268,21 +179,10 @@ export async function fetchUpcomingMovies() {
 export async function fetchUserNowPlayingMovies() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL(`${TMDB_API_URL}/movie/now_playing`);
-  url.searchParams.set('region', userRegion);
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const movies = await tmdbFetch<MovieResponse>('/movie/now_playing', {
+    searchParams: { region: userRegion },
+    errorMessage: 'Failed loading now playing movies',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading now playing movies');
-  }
-
-  const movies: MovieResponse = await res.json();
   return movies.results;
 }
 
@@ -296,24 +196,13 @@ export async function fetchUserNowPlayingMovies() {
 export async function fetchUserUpcomingMovies() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL(`${TMDB_API_URL}/movie/upcoming`);
-  url.searchParams.set('region', userRegion);
-
-  const [upcomingRes, nowPlayingMovies] = await Promise.all([
-    fetch(url, {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
+  const [upcomingMovies, nowPlayingMovies] = await Promise.all([
+    tmdbFetch<MovieResponse>('/movie/upcoming', {
+      searchParams: { region: userRegion },
+      errorMessage: 'Failed loading upcoming movies',
     }),
     fetchUserNowPlayingMovies(),
   ]);
-
-  if (!upcomingRes.ok) {
-    throw new Error('Failed loading upcoming movies');
-  }
-
-  const upcomingMovies: MovieResponse = await upcomingRes.json();
 
   const nowPlayingIds = new Set(nowPlayingMovies.map((movie) => movie.id));
   const filteredUpcomingMovies = upcomingMovies.results.filter(
@@ -337,21 +226,10 @@ export async function fetchTopRatedMovies() {
   cacheTag(CACHE_TAGS.public.home.topRatedMovies);
   cacheLife('minutes');
 
-  const url = new URL(`${TMDB_API_URL}/movie/top_rated`);
-  url.searchParams.set('region', DEFAULT_REGION);
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const movies = await tmdbFetch<MovieResponse>('/movie/top_rated', {
+    searchParams: { region: DEFAULT_REGION },
+    errorMessage: 'Failed loading top rated movies',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading top rated movies');
-  }
-
-  const movies: MovieResponse = await res.json();
   return movies.results;
 }
 
@@ -365,21 +243,10 @@ export async function fetchTopRatedMovies() {
 export async function fetchUserTopRatedMovies() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL(`${TMDB_API_URL}/movie/top_rated`);
-  url.searchParams.set('region', userRegion);
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const movies = await tmdbFetch<MovieResponse>('/movie/top_rated', {
+    searchParams: { region: userRegion },
+    errorMessage: 'Failed loading top rated movies',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading top rated movies');
-  }
-
-  const movies: MovieResponse = await res.json();
   return movies.results;
 }
 
@@ -396,20 +263,9 @@ export async function getMovieDetails(movieId: number) {
   cacheTag(CACHE_TAGS.public.movie.details(movieId));
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  return await tmdbFetch<MovieDetails>(`/movie/${movieId}`, {
+    errorMessage: 'Failed loading movie details',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading movie details');
-  }
-
-  const movie: MovieDetails = await res.json();
-
-  return movie;
 }
 
 /**
@@ -423,19 +279,9 @@ export async function getMovieCredits(movieId: number) {
   cacheTag(CACHE_TAGS.public.movie.credits(movieId));
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/credits`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  return await tmdbFetch<MovieCredits>(`/movie/${movieId}/credits`, {
+    errorMessage: 'Failed loading movie credits',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading movie credits');
-  }
-
-  const credits: MovieCredits = await res.json();
-  return credits;
 }
 
 /**
@@ -449,27 +295,13 @@ export async function getMovieWatchProviders(movieId: number) {
   cacheTag(CACHE_TAGS.public.movie.watchProviders(movieId));
   cacheLife('days');
 
-  try {
-    const res = await fetch(`${TMDB_API_URL}/movie/${movieId}/watch/providers`, {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    });
+  const watchProviders = await tmdbFetch<MovieWatchProviders>(`/movie/${movieId}/watch/providers`, {
+    errorMessage: 'Failed loading movie watch providers',
+  });
 
-    if (!res.ok) {
-      throw new Error('Failed loading movie watch providers');
-    }
-
-    const watchProviders: MovieWatchProviders = await res.json();
-
-    return {
-      results: watchProviders.results,
-    };
-  } catch (error) {
-    console.error('Error fetching movie watch providers:', error);
-    throw error;
-  }
+  return {
+    results: watchProviders.results,
+  };
 }
 
 /**
@@ -486,17 +318,10 @@ export async function getMovieTrailer(movieId: number) {
   cacheLife('hours');
 
   try {
-    const response = await fetch(`${TMDB_API_URL}/movie/${movieId}/videos`, {
-      headers: {
-        Authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      },
+    const data = await tmdbFetch<TmdbVideoResponse>(`/movie/${movieId}/videos`, {
+      errorMessage: 'Failed to fetch trailer',
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch trailer');
-    }
-
-    const data: TmdbVideoResponse = await response.json();
     const trailer = data.results.find(
       (video) => (video.type === 'Trailer' || video.type === 'Teaser') && video.site === 'YouTube',
     );
@@ -517,24 +342,13 @@ export async function getMovieRecommendations(movieId: number, userRegion?: stri
   cacheTag(CACHE_TAGS.public.movie.recommendations(movieId));
   cacheLife('hours');
 
-  const url = new URL(`${TMDB_API_URL}/movie/${movieId}/recommendations`);
-
-  if (userRegion !== undefined) {
-    url.searchParams.set('region', userRegion);
-  }
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
+  const recommendations = await tmdbFetch<MovieRecommendations>(
+    `/movie/${movieId}/recommendations`,
+    {
+      searchParams: { region: userRegion },
+      errorMessage: 'Failed loading movie recommendations',
     },
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed loading movie recommendations');
-  }
-
-  const recommendations: MovieRecommendations = await res.json();
+  );
   return recommendations.results;
 }
 
@@ -543,23 +357,9 @@ export async function getMovieSimilar(movieId: number, userRegion?: string) {
   cacheTag(CACHE_TAGS.public.movie.similar(movieId));
   cacheLife('hours');
 
-  const url = new URL(`${TMDB_API_URL}/movie/${movieId}/similar`);
-
-  if (userRegion !== undefined) {
-    url.searchParams.set('region', userRegion);
-  }
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const similar = await tmdbFetch<MovieSimilar>(`/movie/${movieId}/similar`, {
+    searchParams: { region: userRegion },
+    errorMessage: 'Failed loading movie similar',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading movie similar');
-  }
-
-  const similar: MovieSimilar = await res.json();
   return similar.results;
 }

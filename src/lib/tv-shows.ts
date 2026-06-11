@@ -2,7 +2,6 @@
 
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { env } from '@/env';
 import type { GenreResponse } from '@/types/genre';
 import { TmdbVideoResponse } from '@/types/tmdb-video';
 import {
@@ -17,40 +16,12 @@ import {
 
 import { CACHE_TAGS } from './cache-tags';
 import { MAJOR_STREAMING_PROVIDERS } from './config';
-import { buildProxyImageUrls } from './imgproxy-url';
-import { MIN_RUNTIME_FILTER_MINUTES, TMDB_API_URL } from './constants';
+import { MIN_RUNTIME_FILTER_MINUTES } from './constants';
 import { DEFAULT_REGION } from './regions';
-import { getUserRegion } from './user-actions';
+import { addPosterImageUrls, tmdbFetch } from './tmdb';
+import { getUserRegionWithFallback } from './user-region';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
-
-function addPosterImageUrls<T extends { poster_path: string | null }>(item: T) {
-  if (!item.poster_path) {
-    return item;
-  }
-
-  return {
-    ...item,
-    posterImageUrls: buildProxyImageUrls(item.poster_path, {
-      width: 500,
-      fill: true,
-    }),
-  };
-}
-
-/**
- * Retrieves the user's region, returning a default region if retrieval fails.
- *
- * @returns The user's region code, or the default region code if an error occurs.
- */
-async function getUserRegionWithFallback() {
-  try {
-    return await getUserRegion();
-  } catch (error) {
-    console.warn('Failed to get user region:', error);
-    return DEFAULT_REGION;
-  }
-}
 
 /**
  * Fetches detailed information for a TV show from TMDb by its ID.
@@ -65,20 +36,9 @@ export async function getTvShowDetails(tvId: number) {
   cacheTag(CACHE_TAGS.public.tv.details(tvId));
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/tv/${tvId}`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  return await tmdbFetch<TvDetails>(`/tv/${tvId}`, {
+    errorMessage: 'Failed loading TV show details',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading TV show details');
-  }
-
-  const tvShow: TvDetails = await res.json();
-
-  return tvShow;
 }
 
 /**
@@ -94,20 +54,9 @@ export async function getTvShowCredits(resourceId: number) {
   cacheTag(CACHE_TAGS.public.tv.credits(resourceId));
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/tv/${resourceId}/credits`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  return await tmdbFetch<TvCredits>(`/tv/${resourceId}/credits`, {
+    errorMessage: 'Failed loading tv credits',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading tv credits');
-  }
-
-  const tvCredits: TvCredits = await res.json();
-
-  return tvCredits;
 }
 
 /**
@@ -123,27 +72,13 @@ export async function getTvShowWatchProviders(tvId: number) {
   cacheTag(CACHE_TAGS.public.tv.watchProviders(tvId));
   cacheLife('minutes');
 
-  try {
-    const res = await fetch(`${TMDB_API_URL}/tv/${tvId}/watch/providers`, {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    });
+  const watchProviders = await tmdbFetch<TvWatchProviders>(`/tv/${tvId}/watch/providers`, {
+    errorMessage: 'Failed loading tv watch providers',
+  });
 
-    if (!res.ok) {
-      throw new Error('Failed loading tv watch providers');
-    }
-
-    const watchProviders: TvWatchProviders = await res.json();
-
-    return {
-      results: watchProviders.results,
-    };
-  } catch (error) {
-    console.error('Error fetching tv show watch providers:', error);
-    throw error;
-  }
+  return {
+    results: watchProviders.results,
+  };
 }
 
 /**
@@ -173,40 +108,24 @@ export async function fetchDiscoverTvShows(
   cacheTag(CACHE_TAGS.public.discover.tv);
   cacheLife('minutes');
 
-  const url = new URL(`${TMDB_API_URL}/discover/tv`);
-  url.searchParams.set('page', String(page));
-  url.searchParams.set('sort_by', sortBy || 'popularity.desc');
-  url.searchParams.set('region', DEFAULT_REGION);
-  url.searchParams.set('include_adult', 'false');
+  const hasWatchProviderFilter = Boolean(watchProviders && watchRegion);
+  const hasRuntimeFilter = typeof withRuntimeLte === 'number' && withRuntimeLte > 0;
 
-  if (genreId !== 0) {
-    url.searchParams.set('with_genres', String(genreId));
-  }
-
-  if (watchProviders && watchRegion) {
-    url.searchParams.set('with_watch_providers', watchProviders);
-    url.searchParams.set('watch_region', watchRegion);
-  } else {
-    url.searchParams.set('with_watch_providers', majorProviders);
-    url.searchParams.set('watch_region', watchRegion || DEFAULT_REGION);
-  }
-
-  if (typeof withRuntimeLte === 'number' && withRuntimeLte > 0) {
-    url.searchParams.set('with_runtime.lte', String(withRuntimeLte));
-    url.searchParams.set('with_runtime.gte', String(MIN_RUNTIME_FILTER_MINUTES));
-  }
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+  const tvShows = await tmdbFetch<TvResponse>('/discover/tv', {
+    searchParams: {
+      page,
+      sort_by: sortBy || 'popularity.desc',
+      region: DEFAULT_REGION,
+      include_adult: 'false',
+      with_genres: genreId !== 0 ? genreId : undefined,
+      with_watch_providers: hasWatchProviderFilter ? watchProviders : majorProviders,
+      watch_region: hasWatchProviderFilter ? watchRegion : watchRegion || DEFAULT_REGION,
+      'with_runtime.lte': hasRuntimeFilter ? withRuntimeLte : undefined,
+      'with_runtime.gte': hasRuntimeFilter ? MIN_RUNTIME_FILTER_MINUTES : undefined,
     },
+    errorMessage: 'Error loading discover tv shows',
   });
 
-  if (!res.ok) {
-    throw new Error('Error loading discover tv shows');
-  }
-
-  const tvShows: TvResponse = await res.json();
   const totalPages = tvShows.total_pages >= 500 ? 500 : tvShows.total_pages;
   return { tvShows: tvShows.results.map(addPosterImageUrls), totalPages };
 }
@@ -223,27 +142,17 @@ export async function fetchDiscoverTvShows(
 export async function fetchUserDiscoverTvShows(genreId: number, page: number = 1) {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL(`${TMDB_API_URL}/discover/tv`);
-  url.searchParams.set('page', String(page));
-  url.searchParams.set('sort_by', 'popularity.desc');
-  url.searchParams.set('region', userRegion);
-  url.searchParams.set('include_adult', 'false');
-
-  if (genreId !== 0) {
-    url.searchParams.set('with_genres', String(genreId));
-  }
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
+  const tvShows = await tmdbFetch<TvResponse>('/discover/tv', {
+    searchParams: {
+      page,
+      sort_by: 'popularity.desc',
+      region: userRegion,
+      include_adult: 'false',
+      with_genres: genreId !== 0 ? genreId : undefined,
     },
+    errorMessage: 'Error loading discover tv shows',
   });
 
-  if (!res.ok) {
-    throw new Error('Error loading discover tv shows');
-  }
-
-  const tvShows: TvResponse = await res.json();
   const totalPages = tvShows.total_pages >= 500 ? 500 : tvShows.total_pages;
   return { tvShows: tvShows.results.map(addPosterImageUrls), totalPages };
 }
@@ -260,18 +169,9 @@ export async function fetchTrendingTvShows() {
   cacheTag(CACHE_TAGS.public.home.trendingTv);
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/trending/tv/day`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const tvShows = await tmdbFetch<TvResponse>('/trending/tv/day', {
+    errorMessage: 'Failed loading trending TV shows',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading trending TV shows');
-  }
-
-  const tvShows: TvResponse = await res.json();
   return tvShows.results;
 }
 
@@ -287,21 +187,10 @@ export async function fetchTopRatedTvShows() {
   cacheTag(CACHE_TAGS.public.home.topRatedTv);
   cacheLife('minutes');
 
-  const url = new URL(`${TMDB_API_URL}/tv/top_rated`);
-  url.searchParams.set('region', DEFAULT_REGION);
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const tvShows = await tmdbFetch<TvResponse>('/tv/top_rated', {
+    searchParams: { region: DEFAULT_REGION },
+    errorMessage: 'Failed loading top rated TV shows',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading top rated TV shows');
-  }
-
-  const tvShows: TvResponse = await res.json();
   return tvShows.results;
 }
 
@@ -315,22 +204,10 @@ export async function fetchTopRatedTvShows() {
 export async function fetchUserTopRatedTvShows() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL(`${TMDB_API_URL}/tv/top_rated`);
-  url.searchParams.set('region', userRegion);
-  url.searchParams.set('include_adult', 'false');
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const tvShows = await tmdbFetch<TvResponse>('/tv/top_rated', {
+    searchParams: { region: userRegion, include_adult: 'false' },
+    errorMessage: 'Failed loading top rated TV shows',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading top rated TV shows');
-  }
-
-  const tvShows: TvResponse = await res.json();
   return tvShows.results;
 }
 
@@ -346,21 +223,10 @@ export async function fetchOnTheAirTvShows() {
   cacheTag(CACHE_TAGS.public.home.onTheAirTv);
   cacheLife('minutes');
 
-  const url = new URL(`${TMDB_API_URL}/tv/on_the_air`);
-  url.searchParams.set('region', DEFAULT_REGION);
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const tvShows = await tmdbFetch<TvResponse>('/tv/on_the_air', {
+    searchParams: { region: DEFAULT_REGION },
+    errorMessage: 'Failed loading on the air TV shows',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading on the air TV shows');
-  }
-
-  const tvShows: TvResponse = await res.json();
   return tvShows.results;
 }
 
@@ -376,21 +242,10 @@ export async function fetchOnTheAirTvShows() {
 export async function fetchUserOnTheAirTvShows() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL(`${TMDB_API_URL}/tv/on_the_air`);
-  url.searchParams.set('region', userRegion);
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const tvShows = await tmdbFetch<TvResponse>('/tv/on_the_air', {
+    searchParams: { region: userRegion },
+    errorMessage: 'Failed loading on the air TV shows',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading on the air TV shows');
-  }
-
-  const tvShows: TvResponse = await res.json();
   return tvShows.results;
 }
 
@@ -406,21 +261,10 @@ export async function fetchPopularTvShows() {
   cacheTag(CACHE_TAGS.public.home.popularTv);
   cacheLife('minutes');
 
-  const url = new URL(`${TMDB_API_URL}/tv/popular`);
-  url.searchParams.set('region', DEFAULT_REGION);
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const tvShows = await tmdbFetch<TvResponse>('/tv/popular', {
+    searchParams: { region: DEFAULT_REGION },
+    errorMessage: 'Failed loading popular TV shows',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading popular TV shows');
-  }
-
-  const tvShows: TvResponse = await res.json();
   return tvShows.results;
 }
 
@@ -434,21 +278,10 @@ export async function fetchPopularTvShows() {
 export async function fetchUserPopularTvShows() {
   const userRegion = await getUserRegionWithFallback();
 
-  const url = new URL(`${TMDB_API_URL}/tv/popular`);
-  url.searchParams.set('region', userRegion);
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const tvShows = await tmdbFetch<TvResponse>('/tv/popular', {
+    searchParams: { region: userRegion },
+    errorMessage: 'Failed loading popular TV shows',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading popular TV shows');
-  }
-
-  const tvShows: TvResponse = await res.json();
   return tvShows.results;
 }
 
@@ -464,17 +297,9 @@ export async function fetchAvailableTvGenres() {
   cacheTag(CACHE_TAGS.public.genres.tv);
   cacheLife('biweekly');
 
-  const res = await fetch(`${TMDB_API_URL}/genre/tv/list`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-    },
+  const tvGenres = await tmdbFetch<GenreResponse>('/genre/tv/list', {
+    errorMessage: 'Error loading TV genres',
   });
-
-  if (!res.ok) {
-    throw new Error('Error loading TV genres');
-  }
-
-  const tvGenres: GenreResponse = await res.json();
   return tvGenres.genres;
 }
 
@@ -492,17 +317,10 @@ export async function getTvShowTrailer(tvId: number) {
   cacheLife('hours');
 
   try {
-    const response = await fetch(`${TMDB_API_URL}/tv/${tvId}/videos`, {
-      headers: {
-        Authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      },
+    const data = await tmdbFetch<TmdbVideoResponse>(`/tv/${tvId}/videos`, {
+      errorMessage: 'Failed to fetch trailer',
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch trailer');
-    }
-
-    const data: TmdbVideoResponse = await response.json();
     const trailer = data.results.find(
       (video) => (video.type === 'Trailer' || video.type === 'Teaser') && video.site === 'YouTube',
     );
@@ -523,24 +341,10 @@ export async function getTvShowSimilar(tvId: number, userRegion?: string) {
   cacheTag(CACHE_TAGS.public.tv.similar(tvId));
   cacheLife('hours');
 
-  const url = new URL(`${TMDB_API_URL}/tv/${tvId}/similar`);
-
-  if (userRegion !== undefined) {
-    url.searchParams.set('region', userRegion);
-  }
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const tvShows = await tmdbFetch<TvSimilar>(`/tv/${tvId}/similar`, {
+    searchParams: { region: userRegion },
+    errorMessage: 'Failed loading similar TV shows',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading similar TV shows');
-  }
-
-  const tvShows: TvSimilar = await res.json();
   return tvShows.results;
 }
 
@@ -549,24 +353,10 @@ export async function getTvShowRecommendations(tvId: number, userRegion?: string
   cacheTag(CACHE_TAGS.public.tv.recommendations(tvId));
   cacheLife('hours');
 
-  const url = new URL(`${TMDB_API_URL}/tv/${tvId}/recommendations`);
-
-  if (userRegion !== undefined) {
-    url.searchParams.set('region', userRegion);
-  }
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const tvShows = await tmdbFetch<TvRecommendations>(`/tv/${tvId}/recommendations`, {
+    searchParams: { region: userRegion },
+    errorMessage: 'Failed loading TV show recommendations',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading TV show recommendations');
-  }
-
-  const tvShows: TvRecommendations = await res.json();
   return tvShows.results;
 }
 
@@ -575,19 +365,8 @@ export async function getTvShowImdbId(tvId: number) {
   cacheTag(CACHE_TAGS.public.tv.imdbId(tvId));
   cacheLife('hours');
 
-  const url = new URL(`${TMDB_API_URL}/tv/${tvId}/external_ids`);
-
-  const res = await fetch(url, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  const data = await tmdbFetch<TmdbExternalIdsResponse>(`/tv/${tvId}/external_ids`, {
+    errorMessage: 'Failed loading TV show IMDB ID',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading TV show IMDB ID');
-  }
-
-  const data: TmdbExternalIdsResponse = await res.json();
   return data.imdb_id;
 }
