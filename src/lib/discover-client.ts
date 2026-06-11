@@ -8,12 +8,12 @@ export type DiscoverResult = {
   totalPages: number;
 };
 
-export type DiscoverMoviesResult = {
+type DiscoverMoviesResult = {
   movies: Movie[];
   totalPages: number;
 };
 
-export type DiscoverTvShowsResult = {
+type DiscoverTvShowsResult = {
   tvShows: TvShow[];
   totalPages: number;
 };
