@@ -46,26 +46,22 @@ jobs:
   fallow:
     name: Fallow audit
     runs-on: ubuntu-latest
+    # Needed to upload SARIF results to GitHub code scanning.
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v4
         with:
           # Full history so audit can resolve the merge-base for changed files.
           fetch-depth: 0
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Run Fallow
+        uses: fallow-rs/fallow@v2
         with:
-          node-version-file: package.json
-          cache: pnpm
+          format: sarif
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      # PR: audit against the target branch. Push to main: against the previous commit.
-      - name: Audit changed files
-        env:
-          FALLOW_AUDIT_BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || 'HEAD~1' }}
-        run: pnpm fallow
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: fallow.sarif
