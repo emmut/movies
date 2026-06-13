@@ -195,23 +195,6 @@ export async function fetchTopRatedTvShows() {
 }
 
 /**
- * Fetches the top-rated TV shows for the user's region, using a fallback region if necessary.
- *
- * @returns An array of top-rated TV shows for the determined user region.
- *
- * @throws {Error} If the request to fetch top-rated TV shows fails.
- */
-export async function fetchUserTopRatedTvShows() {
-  const userRegion = await getUserRegionWithFallback();
-
-  const tvShows = await tmdbFetch<TvResponse>('/tv/top_rated', {
-    searchParams: { region: userRegion, include_adult: 'false' },
-    errorMessage: 'Failed loading top rated TV shows',
-  });
-  return tvShows.results;
-}
-
-/**
  * Fetches TV shows that are currently airing in the default region.
  *
  * @returns An array of TV show objects currently on the air in the default region.
@@ -231,25 +214,6 @@ export async function fetchOnTheAirTvShows() {
 }
 
 /**
- * Fetches TV shows currently airing in the user's region.
- *
- * Determines the user's region with fallback and retrieves a list of TV shows that are currently on the air for that region.
- *
- * @returns An array of TV shows currently airing in the user's region.
- *
- * @throws {Error} If the request to fetch on-the-air TV shows fails.
- */
-export async function fetchUserOnTheAirTvShows() {
-  const userRegion = await getUserRegionWithFallback();
-
-  const tvShows = await tmdbFetch<TvResponse>('/tv/on_the_air', {
-    searchParams: { region: userRegion },
-    errorMessage: 'Failed loading on the air TV shows',
-  });
-  return tvShows.results;
-}
-
-/**
  * Fetches a list of popular TV shows for the default region.
  *
  * @returns An array of popular TV shows.
@@ -263,23 +227,6 @@ export async function fetchPopularTvShows() {
 
   const tvShows = await tmdbFetch<TvResponse>('/tv/popular', {
     searchParams: { region: DEFAULT_REGION },
-    errorMessage: 'Failed loading popular TV shows',
-  });
-  return tvShows.results;
-}
-
-/**
- * Fetches popular TV shows for the user's region, using a fallback if the region cannot be determined.
- *
- * @returns An array of popular TV shows available in the user's region.
- *
- * @throws If the request to fetch popular TV shows fails.
- */
-export async function fetchUserPopularTvShows() {
-  const userRegion = await getUserRegionWithFallback();
-
-  const tvShows = await tmdbFetch<TvResponse>('/tv/popular', {
-    searchParams: { region: userRegion },
     errorMessage: 'Failed loading popular TV shows',
   });
   return tvShows.results;

@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import { CreateListDialog } from '@/components/create-list-dialog';
 import { Button } from '@/components/ui/button';
+import { useSession } from '@/lib/auth-client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,7 +126,11 @@ function ListMenuItems({
   ));
 }
 
-export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }: ListButtonProps) {
+function ListButtonInner({
+  mediaId,
+  mediaType,
+  showWatchlist = true,
+}: Omit<ListButtonProps, 'userId'>) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -145,9 +150,6 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
     enabled: isOpen && showWatchlist,
   });
 
-  if (!userId) {
-    return null;
-  }
 
   async function handleToggleList(listId: string, hasItem: boolean) {
     const listName = findListName(lists, listId);
@@ -241,4 +243,25 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
       />
     </>
   );
+}
+
+// Fallback for cards rendered from prerendered (cached) lists that have no
+// server-provided userId: resolve the signed-in user from the client session.
+// Only this path subscribes to the session, so server-id callers stay cheap.
+function SessionListButton(props: Omit<ListButtonProps, 'userId'>) {
+  const { data: session } = useSession();
+
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  return <ListButtonInner {...props} />;
+}
+
+export function ListButton({ userId, ...props }: ListButtonProps) {
+  if (userId) {
+    return <ListButtonInner {...props} />;
+  }
+
+  return <SessionListButton {...props} />;
 }
