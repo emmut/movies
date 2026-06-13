@@ -111,10 +111,6 @@ jobs:
   fallow:
     name: Fallow audit
     runs-on: ubuntu-latest
-    # Needed to upload SARIF results to GitHub code scanning.
-    permissions:
-      contents: read
-      security-events: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -122,14 +118,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Fallow
-        id: fallow
         uses: fallow-rs/fallow@v2
         with:
           command: audit
           gate: new-only
-          format: sarif
-
-      - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: ${{ steps.fallow.outputs.sarif }}
