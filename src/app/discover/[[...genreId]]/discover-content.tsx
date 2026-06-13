@@ -8,7 +8,6 @@ import FiltersPanel from '@/components/filters-panel';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import { WatchProvider } from '@/types/watch-provider';
 
@@ -53,8 +52,6 @@ export function DiscoverContent({
   const watchProviders = urlState.with_watch_providers?.join('|');
   const watchRegion = urlState.watch_region ?? userRegion;
   const runtimeLte = urlState.runtimeLte ?? undefined;
-
-  useScrollOnPageChange(page);
 
   return (
     <>

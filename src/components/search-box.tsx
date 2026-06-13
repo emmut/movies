@@ -31,6 +31,7 @@ export default function SearchBox({ mediaType = 'all' }: SearchBoxProps) {
               className="w-full rounded-lg border border-zinc-700 bg-zinc-800 py-3 pr-4 pl-10 text-zinc-200 placeholder-zinc-500 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
               name="q"
               type="search"
+              aria-label="Search for movies, TV shows, or people"
               spellCheck={false}
               placeholder="Search for movies, TV shows, or people..."
               autoComplete="off"

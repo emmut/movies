@@ -151,6 +151,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
         </>
       )}
 
+      {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- drag-to-scroll + keyboard nav on a scroll container */}
       <div
         role="application"
         aria-label="Scrollable items"

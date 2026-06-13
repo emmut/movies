@@ -12,7 +12,6 @@ import { PaginationControls } from '@/components/pagination-controls';
 import PersonCard from '@/components/person-card';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { queryKeys } from '@/lib/query-keys';
 import { MovieDetails } from '@/types/movie';
 import { PersonDetails } from '@/types/person';
@@ -62,8 +61,6 @@ export function ListDetailsContent({
   );
 
   const page = urlState.page;
-
-  useScrollOnPageChange(page);
 
   const [createdAt, setCreatedAt] = useState<string | null>(null);
   const { data: paginatedList, isLoading } = useQuery({
