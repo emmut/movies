@@ -20,24 +20,9 @@ import { revalidateUserPreferenceCache } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
-import { setUserWatchProviders, updateUserRegion } from './user-actions';
+import { chain } from '@/test/db-chain';
 
-// Awaiting any method chain resolves to `result`; intermediate calls return self.
-function chain<T>(result: T) {
-  const builder = new Proxy(
-    {},
-    {
-      get(_t, prop) {
-        if (prop === 'then') {
-          return (resolve: (v: T) => unknown, reject: (e: unknown) => unknown) =>
-            Promise.resolve(result).then(resolve, reject);
-        }
-        return () => builder;
-      },
-    },
-  );
-  return builder as never;
-}
+import { setUserWatchProviders, updateUserRegion } from './user-actions';
 
 beforeEach(() => {
   vi.clearAllMocks();

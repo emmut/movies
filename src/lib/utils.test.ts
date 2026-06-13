@@ -141,30 +141,35 @@ describe('deduplicateAndSortByPopularity', () => {
     expect(result[0].popularity).toBe(5); // kept first, not the higher-popularity dupe
   });
 
-  it('sorts by popularity descending', () => {
-    const items = [
-      { id: 1, popularity: 1, release_date: '2020-01-01' },
-      { id: 2, popularity: 10, release_date: '2020-01-01' },
-      { id: 3, popularity: 5, release_date: '2020-01-01' },
-    ];
-    expect(deduplicateAndSortByPopularity(items, getDate).map((i) => i.id)).toEqual([2, 3, 1]);
-  });
-
-  it('breaks popularity ties by date descending', () => {
-    const items = [
-      { id: 1, popularity: 5, release_date: '2018-01-01' },
-      { id: 2, popularity: 5, release_date: '2022-01-01' },
-      { id: 3, popularity: 5, release_date: '2020-01-01' },
-    ];
-    expect(deduplicateAndSortByPopularity(items, getDate).map((i) => i.id)).toEqual([2, 3, 1]);
-  });
-
-  it('treats missing dates as the 1900 epoch fallback', () => {
-    const items = [
-      { id: 1, popularity: 5, release_date: '' },
-      { id: 2, popularity: 5, release_date: '2000-01-01' },
-    ];
-    expect(deduplicateAndSortByPopularity(items, getDate).map((i) => i.id)).toEqual([2, 1]);
+  it.each([
+    {
+      name: 'sorts by popularity descending',
+      items: [
+        { id: 1, popularity: 1, release_date: '2020-01-01' },
+        { id: 2, popularity: 10, release_date: '2020-01-01' },
+        { id: 3, popularity: 5, release_date: '2020-01-01' },
+      ],
+      expected: [2, 3, 1],
+    },
+    {
+      name: 'breaks popularity ties by date descending',
+      items: [
+        { id: 1, popularity: 5, release_date: '2018-01-01' },
+        { id: 2, popularity: 5, release_date: '2022-01-01' },
+        { id: 3, popularity: 5, release_date: '2020-01-01' },
+      ],
+      expected: [2, 3, 1],
+    },
+    {
+      name: 'treats missing dates as the 1900 epoch fallback',
+      items: [
+        { id: 1, popularity: 5, release_date: '' },
+        { id: 2, popularity: 5, release_date: '2000-01-01' },
+      ],
+      expected: [2, 1],
+    },
+  ])('$name', ({ items, expected }) => {
+    expect(deduplicateAndSortByPopularity(items, getDate).map((i) => i.id)).toEqual(expected);
   });
 
   it('returns an empty array unchanged', () => {

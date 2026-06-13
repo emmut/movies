@@ -32,10 +32,8 @@ export const resourcePageParamsSchema = z.object({
 
 export type ResourcePageParams = z.infer<typeof resourcePageParamsSchema>;
 
-/**
- * Schema for validating list creation data
- */
-export const createListSchema = z.object({
+// Shared name/description/emoji fields for the create and update list schemas.
+const listFields = {
   name: z
     .string()
     .trim()
@@ -54,7 +52,12 @@ export const createListSchema = z.object({
       'Invalid emoji selection',
     )
     .default('📝'),
-});
+} as const;
+
+/**
+ * Schema for validating list creation data
+ */
+export const createListSchema = z.object({ ...listFields });
 
 export type CreateListData = z.infer<typeof createListSchema>;
 
@@ -63,24 +66,7 @@ export type CreateListData = z.infer<typeof createListSchema>;
  */
 export const updateListSchema = z.object({
   listId: z.uuid('Invalid list ID'),
-  name: z
-    .string()
-    .trim()
-    .min(1, 'List name is required')
-    .max(100, 'List name must be 100 characters or less'),
-  description: z
-    .string()
-    .max(500, 'Description must be 500 characters or less')
-    .trim()
-    .optional()
-    .default(''),
-  emoji: z
-    .string()
-    .refine(
-      (emoji): emoji is (typeof EMOJI_OPTIONS)[number] => EMOJI_OPTIONS.includes(emoji),
-      'Invalid emoji selection',
-    )
-    .default('📝'),
+  ...listFields,
 });
 
 export type UpdateListData = z.infer<typeof updateListSchema>;
@@ -97,13 +83,9 @@ export const listItemSchema = z.object({
 export type ListItemData = z.infer<typeof listItemSchema>;
 
 /**
- * Schema for validating list item removal
+ * Schema for validating list item removal. Identical shape to {@link listItemSchema}.
  */
-export const removeListItemSchema = z.object({
-  listId: z.uuid('Invalid list ID'),
-  resourceId: z.number().int().positive('Resource ID must be a positive integer'),
-  resourceType: z.enum(['movie', 'tv', 'person']),
-});
+export const removeListItemSchema = listItemSchema;
 
 export type RemoveListItemData = z.infer<typeof removeListItemSchema>;
 

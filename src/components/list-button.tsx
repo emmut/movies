@@ -137,11 +137,12 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
     setIsPending(true);
     try {
       const result = await toggleWatchlist({ resourceId: mediaId, resourceType: mediaType });
-      queryClient.setQueryData(
-        queryKeys.watchlist.status(mediaId, mediaType),
-        result.action === 'added',
-      );
-      toast.success(result.action === 'added' ? 'Added to watchlist' : 'Removed from watchlist');
+      // 'added' and 'unchanged' both mean the row is present (the latter when a
+      // concurrent insert won the race); only 'removed' clears it. From the
+      // user's view the end state is identical, so both show "Added".
+      const inWatchlist = result.action !== 'removed';
+      queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), inWatchlist);
+      toast.success(inWatchlist ? 'Added to watchlist' : 'Removed from watchlist');
       queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
     } catch (error) {
       queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), previous);

@@ -18,26 +18,11 @@ vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
 import { requireUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 
+import { chain } from '@/test/db-chain';
+
 import { addToList, createList, deleteList, removeFromList, updateList } from './lists';
 
 const UUID = '123e4567-e89b-12d3-a456-426614174000';
-
-// Awaiting any method chain resolves to `result`; intermediate calls return self.
-function chain<T>(result: T) {
-  const builder = new Proxy(
-    {},
-    {
-      get(_t, prop) {
-        if (prop === 'then') {
-          return (resolve: (v: T) => unknown, reject: (e: unknown) => unknown) =>
-            Promise.resolve(result).then(resolve, reject);
-        }
-        return () => builder;
-      },
-    },
-  );
-  return builder as never;
-}
 
 /** Stubs the ownership count query (`db.select`) used by assertListOwnership. */
 function setOwnedCount(count: number) {

@@ -10,30 +10,15 @@ import { revalidateUserWatchlistCache } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
-import { toggleWatchlist } from './watchlist-actions';
+import { chain } from '@/test/db-chain';
 
-// Builds a fluent query-builder stand-in: every method returns the builder, and
-// awaiting it resolves to `result`. Lets us stub arbitrary drizzle chains.
-function chain<T>(result: T) {
-  const builder = new Proxy(
-    {},
-    {
-      get(_t, prop) {
-        if (prop === 'then') {
-          return (resolve: (v: T) => unknown, reject: (e: unknown) => unknown) =>
-            Promise.resolve(result).then(resolve, reject);
-        }
-        return () => builder;
-      },
-    },
-  );
-  return builder as never;
-}
+import { toggleWatchlist } from './watchlist-actions';
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(requireUser).mockResolvedValue({ id: 'user-1' } as never);
-  vi.mocked(db.insert).mockReturnValue(chain(undefined));
+  // Default: insert returns the new row (the common, uncontended path).
+  vi.mocked(db.insert).mockReturnValue(chain([{ id: 'row-1' }]));
 });
 
 describe('toggleWatchlist', () => {
@@ -53,6 +38,17 @@ describe('toggleWatchlist', () => {
     const result = await toggleWatchlist({ resourceId: 5, resourceType: 'tv' });
 
     expect(result).toEqual({ success: true, action: 'added' });
+    expect(db.insert).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports "unchanged" when a concurrent insert won the race (onConflictDoNothing no-op)', async () => {
+    vi.mocked(db.delete).mockReturnValue(chain([]));
+    // Insert was suppressed by the conflict: no row returned.
+    vi.mocked(db.insert).mockReturnValue(chain([]));
+
+    const result = await toggleWatchlist({ resourceId: 5, resourceType: 'movie' });
+
+    expect(result).toEqual({ success: true, action: 'unchanged' });
     expect(db.insert).toHaveBeenCalledTimes(1);
   });
 

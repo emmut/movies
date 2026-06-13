@@ -52,7 +52,10 @@ export async function toggleWatchlist({ resourceId, resourceType }: ToggleWatchl
     if (removed.length > 0) {
       state = 'removed';
     } else {
-      await db
+      // A concurrent request may have inserted the row between our delete and
+      // this insert; onConflictDoNothing then makes it a no-op. Trust the
+      // returned rows, not the attempt, so callers don't show a false "added".
+      const inserted = await db
         .insert(watchlist)
         .values({
           id: crypto.randomUUID(),
@@ -60,8 +63,9 @@ export async function toggleWatchlist({ resourceId, resourceType }: ToggleWatchl
           resourceId: validatedResourceId.resourceId,
           resourceType: validatedResourceId.resourceType,
         })
-        .onConflictDoNothing();
-      state = 'added';
+        .onConflictDoNothing()
+        .returning({ id: watchlist.id });
+      state = inserted.length > 0 ? 'added' : 'unchanged';
     }
 
     revalidateUserWatchlistCache(
