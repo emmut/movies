@@ -1,12 +1,10 @@
 import ItemCard from '@/components/item-card';
-import { getUser } from '@/lib/auth-server';
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
 
 type MediaItem = Movie | TvShow;
 
 type MediaListProps = {
-  fetchUserItems?: () => Promise<MediaItem[]>;
   fetchItems: () => Promise<MediaItem[]>;
   type: 'movie' | 'tv';
 };
@@ -14,24 +12,20 @@ type MediaListProps = {
 /**
  * Generic component that displays a list of media items (movies or TV shows) as resource cards.
  *
- * Fetches either personalized or general items depending on user authentication, and renders each as an {@link ItemCard}.
+ * Renders only cached, request-independent data so the surrounding Suspense boundary can be
+ * prerendered rather than server-streamed. Per-user state (the list/watchlist button) is resolved
+ * client-side inside {@link ItemCard}'s ListButton via the auth session, so the markup stays cacheable.
+ * Streaming this content instead crashes hydration under cacheComponents on next@16.2.9 — see the
+ * blank-landing-page bug.
  *
- * @param fetchUserItems - Optional function to fetch user-specific items. If not provided, fetchItems will be used for all users.
- * @param fetchItems - Function to fetch general items (used when user is not logged in or when fetchUserItems is not provided).
+ * @param fetchItems - Function to fetch the (cached) items to display.
  * @param type - The media type, either 'movie' or 'tv'.
  * @returns An array of {@link ItemCard} elements representing the media items.
  */
-export default async function MediaList({ fetchUserItems, fetchItems, type }: MediaListProps) {
-  const user = await getUser();
-  const items = user && fetchUserItems ? await fetchUserItems() : await fetchItems();
+export default async function MediaList({ fetchItems, type }: MediaListProps) {
+  const items = await fetchItems();
 
   return items.map((item) => (
-    <ItemCard
-      className="max-w-[150px]"
-      key={item.id}
-      resource={item}
-      type={type}
-      userId={user?.id}
-    />
+    <ItemCard className="max-w-[150px]" key={item.id} resource={item} type={type} />
   ));
 }

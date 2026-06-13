@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import { CreateListDialog } from '@/components/create-list-dialog';
 import { Button } from '@/components/ui/button';
+import { useSession } from '@/lib/auth-client';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,11 +126,19 @@ function ListMenuItems({
   ));
 }
 
+// Prefer the server-provided id, but fall back to the client session so cards
+// rendered from prerendered (cached) lists still get the button once hydrated.
+function useResolvedUserId(userId?: string) {
+  const { data: session } = useSession();
+  return userId ?? session?.user?.id;
+}
+
 export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }: ListButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const queryClient = useQueryClient();
+  const resolvedUserId = useResolvedUserId(userId);
 
   const { data: lists = [], isLoading: isLoadingLists } = useQuery({
     queryKey: queryKeys.lists.withStatus(mediaId, mediaType),
@@ -145,7 +154,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
     enabled: isOpen && showWatchlist,
   });
 
-  if (!userId) {
+  if (!resolvedUserId) {
     return null;
   }
 

@@ -4,22 +4,73 @@ import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
 import MediaList from '@/components/media-list';
 import { ItemSlider } from '@/components/ui/item-slider';
-import {
-  fetchNowPlayingMovies,
-  fetchTopRatedMovies,
-  fetchUpcomingMovies,
-  fetchUserNowPlayingMovies,
-  fetchUserTopRatedMovies,
-  fetchUserUpcomingMovies,
-} from '@/lib/movies';
-import {
-  fetchOnTheAirTvShows,
-  fetchPopularTvShows,
-  fetchTopRatedTvShows,
-  fetchUserOnTheAirTvShows,
-  fetchUserPopularTvShows,
-  fetchUserTopRatedTvShows,
-} from '@/lib/tv-shows';
+import { fetchNowPlayingMovies, fetchTopRatedMovies, fetchUpcomingMovies } from '@/lib/movies';
+import { fetchOnTheAirTvShows, fetchPopularTvShows, fetchTopRatedTvShows } from '@/lib/tv-shows';
+import { Movie } from '@/types/movie';
+import { TvShow } from '@/types/tv-show';
+
+type MediaSectionConfig = {
+  heading: string;
+  caption: string;
+  type: 'movie' | 'tv';
+  fetchItems: () => Promise<Movie[] | TvShow[]>;
+};
+
+const SECTIONS: MediaSectionConfig[] = [
+  {
+    heading: 'Movies in Theaters',
+    caption: 'Now playing',
+    type: 'movie',
+    fetchItems: fetchNowPlayingMovies,
+  },
+  {
+    heading: 'TV Shows on Air',
+    caption: 'Currently airing',
+    type: 'tv',
+    fetchItems: fetchOnTheAirTvShows,
+  },
+  {
+    heading: 'Coming Soon',
+    caption: 'Upcoming movies',
+    type: 'movie',
+    fetchItems: fetchUpcomingMovies,
+  },
+  {
+    heading: 'Popular TV Shows',
+    caption: 'Trending series',
+    type: 'tv',
+    fetchItems: fetchPopularTvShows,
+  },
+  {
+    heading: 'Top Rated Movies',
+    caption: 'All-time favorites',
+    type: 'movie',
+    fetchItems: fetchTopRatedMovies,
+  },
+  {
+    heading: 'Top Rated TV Shows',
+    caption: 'Highest rated series',
+    type: 'tv',
+    fetchItems: fetchTopRatedTvShows,
+  },
+];
+
+function MediaSection({ heading, caption, type, fetchItems }: MediaSectionConfig) {
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">{heading}</h2>
+        <p className="hidden text-sm text-muted-foreground sm:block">{caption}</p>
+      </div>
+
+      <ItemSlider>
+        <Suspense fallback={<ItemGrid.Skeletons />}>
+          <MediaList fetchItems={fetchItems} type={type} />
+        </Suspense>
+      </ItemSlider>
+    </section>
+  );
+}
 
 /**
  * Renders the homepage with categorized sections for trending, popular, and top-rated movies and TV shows.
@@ -28,7 +79,7 @@ import {
  *
  * @returns The structured homepage layout as a React element.
  */
-export default async function Home() {
+export default function Home() {
   return (
     <div className="space-y-8">
       <section className="space-y-4">
@@ -50,107 +101,9 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Movies in Theaters</h2>
-          <p className="hidden text-sm text-muted-foreground sm:block">Now playing</p>
-        </div>
-
-        <ItemSlider>
-          <Suspense fallback={<ItemGrid.Skeletons />}>
-            <MediaList
-              fetchUserItems={fetchUserNowPlayingMovies}
-              fetchItems={fetchNowPlayingMovies}
-              type="movie"
-            />
-          </Suspense>
-        </ItemSlider>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">TV Shows on Air</h2>
-          <p className="hidden text-sm text-muted-foreground sm:block">Currently airing</p>
-        </div>
-
-        <ItemSlider>
-          <Suspense fallback={<ItemGrid.Skeletons />}>
-            <MediaList
-              fetchUserItems={fetchUserOnTheAirTvShows}
-              fetchItems={fetchOnTheAirTvShows}
-              type="tv"
-            />
-          </Suspense>
-        </ItemSlider>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Coming Soon</h2>
-          <p className="hidden text-sm text-muted-foreground sm:block">Upcoming movies</p>
-        </div>
-
-        <ItemSlider>
-          <Suspense fallback={<ItemGrid.Skeletons />}>
-            <MediaList
-              fetchUserItems={fetchUserUpcomingMovies}
-              fetchItems={fetchUpcomingMovies}
-              type="movie"
-            />
-          </Suspense>
-        </ItemSlider>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Popular TV Shows</h2>
-          <p className="hidden text-sm text-muted-foreground sm:block">Trending series</p>
-        </div>
-
-        <ItemSlider>
-          <Suspense fallback={<ItemGrid.Skeletons />}>
-            <MediaList
-              fetchUserItems={fetchUserPopularTvShows}
-              fetchItems={fetchPopularTvShows}
-              type="tv"
-            />
-          </Suspense>
-        </ItemSlider>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Top Rated Movies</h2>
-          <p className="hidden text-sm text-muted-foreground sm:block">All-time favorites</p>
-        </div>
-
-        <ItemSlider>
-          <Suspense fallback={<ItemGrid.Skeletons />}>
-            <MediaList
-              fetchUserItems={fetchUserTopRatedMovies}
-              fetchItems={fetchTopRatedMovies}
-              type="movie"
-            />
-          </Suspense>
-        </ItemSlider>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">Top Rated TV Shows</h2>
-          <p className="hidden text-sm text-muted-foreground sm:block">Highest rated series</p>
-        </div>
-
-        <ItemSlider>
-          <Suspense fallback={<ItemGrid.Skeletons />}>
-            <MediaList
-              fetchUserItems={fetchUserTopRatedTvShows}
-              fetchItems={fetchTopRatedTvShows}
-              type="tv"
-            />
-          </Suspense>
-        </ItemSlider>
-      </section>
+      {SECTIONS.map((section) => (
+        <MediaSection key={section.heading} {...section} />
+      ))}
     </div>
   );
 }

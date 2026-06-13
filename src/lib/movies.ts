@@ -172,47 +172,6 @@ export async function fetchUpcomingMovies() {
 }
 
 /**
- * Fetches movies currently playing in theaters for the user's region, using a fallback if the region cannot be determined.
- *
- * @returns An array of movies now playing in the user's region
- */
-export async function fetchUserNowPlayingMovies() {
-  const userRegion = await getUserRegionWithFallback();
-
-  const movies = await tmdbFetch<MovieResponse>('/movie/now_playing', {
-    searchParams: { region: userRegion },
-    errorMessage: 'Failed loading now playing movies',
-  });
-  return movies.results;
-}
-
-/**
- * Retrieves upcoming movies for the user's region, excluding those currently playing in theaters.
- *
- * @returns An array of upcoming movies not currently in theaters for the user's region.
- *
- * @throws {Error} If the request for upcoming movies fails.
- */
-export async function fetchUserUpcomingMovies() {
-  const userRegion = await getUserRegionWithFallback();
-
-  const [upcomingMovies, nowPlayingMovies] = await Promise.all([
-    tmdbFetch<MovieResponse>('/movie/upcoming', {
-      searchParams: { region: userRegion },
-      errorMessage: 'Failed loading upcoming movies',
-    }),
-    fetchUserNowPlayingMovies(),
-  ]);
-
-  const nowPlayingIds = new Set(nowPlayingMovies.map((movie) => movie.id));
-  const filteredUpcomingMovies = upcomingMovies.results.filter(
-    (movie) => !nowPlayingIds.has(movie.id),
-  );
-
-  return filteredUpcomingMovies;
-}
-
-/**
  * Retrieves a list of top-rated movies from the Movie Database API for the SE region.
  *
  * Filters out adult content and videos, sorts results by highest vote average, and returns the resulting movie array.
@@ -228,23 +187,6 @@ export async function fetchTopRatedMovies() {
 
   const movies = await tmdbFetch<MovieResponse>('/movie/top_rated', {
     searchParams: { region: DEFAULT_REGION },
-    errorMessage: 'Failed loading top rated movies',
-  });
-  return movies.results;
-}
-
-/**
- * Fetches top-rated movies for the user's region, using a fallback if the region cannot be determined.
- *
- * @returns An array of top-rated movies for the user's region.
- *
- * @throws {Error} If the request to fetch top-rated movies fails.
- */
-export async function fetchUserTopRatedMovies() {
-  const userRegion = await getUserRegionWithFallback();
-
-  const movies = await tmdbFetch<MovieResponse>('/movie/top_rated', {
-    searchParams: { region: userRegion },
     errorMessage: 'Failed loading top rated movies',
   });
   return movies.results;
