@@ -126,19 +126,15 @@ function ListMenuItems({
   ));
 }
 
-// Prefer the server-provided id, but fall back to the client session so cards
-// rendered from prerendered (cached) lists still get the button once hydrated.
-function useResolvedUserId(userId?: string) {
-  const { data: session } = useSession();
-  return userId ?? session?.user?.id;
-}
-
-export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }: ListButtonProps) {
+function ListButtonInner({
+  mediaId,
+  mediaType,
+  showWatchlist = true,
+}: Omit<ListButtonProps, 'userId'>) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const queryClient = useQueryClient();
-  const resolvedUserId = useResolvedUserId(userId);
 
   const { data: lists = [], isLoading: isLoadingLists } = useQuery({
     queryKey: queryKeys.lists.withStatus(mediaId, mediaType),
@@ -154,9 +150,6 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
     enabled: isOpen && showWatchlist,
   });
 
-  if (!resolvedUserId) {
-    return null;
-  }
 
   async function handleToggleList(listId: string, hasItem: boolean) {
     const listName = findListName(lists, listId);
@@ -250,4 +243,25 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
       />
     </>
   );
+}
+
+// Fallback for cards rendered from prerendered (cached) lists that have no
+// server-provided userId: resolve the signed-in user from the client session.
+// Only this path subscribes to the session, so server-id callers stay cheap.
+function SessionListButton(props: Omit<ListButtonProps, 'userId'>) {
+  const { data: session } = useSession();
+
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  return <ListButtonInner {...props} />;
+}
+
+export function ListButton({ userId, ...props }: ListButtonProps) {
+  if (userId) {
+    return <ListButtonInner {...props} />;
+  }
+
+  return <SessionListButton {...props} />;
 }
