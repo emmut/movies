@@ -52,4 +52,7 @@ export const env = createEnv({
     VERCEL_BRANCH_URL: process.env.VERCEL_BRANCH_URL,
     VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
   },
+
+  // Skip validation in test/CI where the full secret set is absent.
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
 });

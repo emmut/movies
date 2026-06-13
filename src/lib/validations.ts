@@ -38,9 +38,9 @@ export type ResourcePageParams = z.infer<typeof resourcePageParamsSchema>;
 export const createListSchema = z.object({
   name: z
     .string()
+    .trim()
     .min(1, 'List name is required')
-    .max(100, 'List name must be 100 characters or less')
-    .trim(),
+    .max(100, 'List name must be 100 characters or less'),
   description: z
     .string()
     .max(500, 'Description must be 500 characters or less')
@@ -65,9 +65,9 @@ export const updateListSchema = z.object({
   listId: z.uuid('Invalid list ID'),
   name: z
     .string()
+    .trim()
     .min(1, 'List name is required')
-    .max(100, 'List name must be 100 characters or less')
-    .trim(),
+    .max(100, 'List name must be 100 characters or less'),
   description: z
     .string()
     .max(500, 'Description must be 500 characters or less')

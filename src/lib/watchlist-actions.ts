@@ -2,10 +2,9 @@
 
 import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 import { watchlist } from '@/db/schema/watchlist';
-import { getUser } from '@/lib/auth-server';
+import { requireUser } from '@/lib/auth-server';
 import { revalidateUserWatchlistCache } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
 import { resourceIdSchema } from '@/lib/validations';
@@ -33,43 +32,35 @@ export async function toggleWatchlist({ resourceId, resourceType }: ToggleWatchl
     resourceType,
   });
 
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const user = await requireUser();
 
   try {
-    const existing = await db
-      .select()
-      .from(watchlist)
+    // Toggle in a single round-trip: delete returns the removed row(s); an empty
+    // result means the item was absent, so we insert it instead.
+    const removed = await db
+      .delete(watchlist)
       .where(
         and(
           eq(watchlist.userId, user.id),
           eq(watchlist.resourceId, validatedResourceId.resourceId),
           eq(watchlist.resourceType, validatedResourceId.resourceType),
         ),
-      );
+      )
+      .returning({ id: watchlist.id });
 
     let state;
-    if (existing.length > 0) {
-      await db
-        .delete(watchlist)
-        .where(
-          and(
-            eq(watchlist.userId, user.id),
-            eq(watchlist.resourceId, validatedResourceId.resourceId),
-            eq(watchlist.resourceType, validatedResourceId.resourceType),
-          ),
-        );
+    if (removed.length > 0) {
       state = 'removed';
     } else {
-      await db.insert(watchlist).values({
-        id: crypto.randomUUID(),
-        userId: user.id,
-        resourceId: validatedResourceId.resourceId,
-        resourceType: validatedResourceId.resourceType,
-      });
+      await db
+        .insert(watchlist)
+        .values({
+          id: crypto.randomUUID(),
+          userId: user.id,
+          resourceId: validatedResourceId.resourceId,
+          resourceType: validatedResourceId.resourceType,
+        })
+        .onConflictDoNothing();
       state = 'added';
     }
 

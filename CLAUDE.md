@@ -9,6 +9,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm start` - Start production server
 - `pnpm lint` - Run Oxc linting (run after code changes)
 - `pnpm format` - Apply Oxc autofixes
+- `pnpm test` - Run Vitest unit tests once
+- `pnpm test:watch` - Run Vitest in watch mode
+- `pnpm test:coverage` - Run tests with coverage report
 - `pnpm db:generate` - Generate database migrations from schema changes
 - `pnpm db:push` - Push database schema changes to database
 - `pnpm db:migrate` - Run pending migrations
