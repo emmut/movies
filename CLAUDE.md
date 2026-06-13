@@ -9,6 +9,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full setup, commands, architect
 - **Stack**: Next.js 16 App Router · React 19 (React Compiler) · TypeScript · PostgreSQL/Drizzle · Better Auth · TMDB API · Tailwind 4.
 - **Package manager**: `pnpm` (enforced by Volta).
 - **After code changes**: `pnpm lint` · `pnpm exec tsc --noEmit` · `pnpm test`.
+- **When building a feature**: agents must write tests (aim for 100% coverage) and run `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` before calling it done — all must pass. See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **Path alias**: `@/*` → `src/*`.
 - **Conventions**: kebab-case files, PascalCase exports; prefer normal functions over arrows except inline.
 
