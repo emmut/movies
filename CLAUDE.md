@@ -1,77 +1,28 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) working in this repo.
 
-## Development Commands
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full setup, commands, architecture, and conventions. Read it before non-trivial work.
 
-- `pnpm dev` - Start development server with Turbopack
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm lint` - Run Oxc linting (run after code changes)
-- `pnpm format` - Apply Oxc autofixes
-- `pnpm test` - Run Vitest unit tests once
-- `pnpm test:watch` - Run Vitest in watch mode
-- `pnpm test:coverage` - Run tests with coverage report
-- `pnpm db:generate` - Generate database migrations from schema changes
-- `pnpm db:push` - Push database schema changes to database
-- `pnpm db:migrate` - Run pending migrations
-- `pnpm db:studio` - Open Drizzle Studio for database inspection
+## Quick reference
 
-## Architecture Overview
+- **Stack**: Next.js 16 App Router · React 19 (React Compiler) · TypeScript · PostgreSQL/Drizzle · Better Auth · TMDB API · Tailwind 4.
+- **Package manager**: `pnpm` (enforced by Volta).
+- **After code changes**: `pnpm lint` · `pnpm exec tsc --noEmit` · `pnpm test`.
+- **Path alias**: `@/*` → `src/*`.
+- **Conventions**: kebab-case files, PascalCase exports; prefer normal functions over arrows except inline.
 
-This is a Next.js 15 movies application using the App Router with TypeScript. Key architectural patterns:
+## Where things live
 
-### Database & ORM
-
-- PostgreSQL database with Drizzle ORM
-- Schema split into `auth` and `watchlist` modules in `src/db/schema/`
-- Database instance exported from `src/lib/db/index.ts`
-- Migrations stored in `drizzle/` directory
-
-### Authentication System
-
-- Better Auth for authentication with social providers (Discord, GitHub)
-- Anonymous user support with watchlist transfer on account linking
-- Auth configuration in `src/lib/auth.ts`
-- Session management with automatic watchlist migration from anonymous to authenticated users
-
-### API Integration
-
-- TMDB (The Movie Database) API for movie data
-- API functions organized by resource type: `src/lib/movies.ts`, `src/lib/tv-shows.ts`, `src/lib/persons.ts`
-- Next.js caching with `'use cache'` directive and cache tags for performance
-
-### Environment & Configuration
-
-- Type-safe environment variables using `@t3-oss/env-nextjs` in `src/env.ts`
-- API configuration constants in `src/lib/config.ts`
-- Required env vars: MOVIE_DB_ACCESS_TOKEN, DATABASE_URL, auth provider secrets
-
-### UI Architecture
-
-- Radix UI components with custom styling in `src/components/ui/`
-- Tailwind CSS 4.1 for styling
-- App uses sidebar layout pattern with search functionality
-- Components follow naming convention: kebab-case files, PascalCase exports
-
-### State Management
-
-- URL state management with `nuqs` for filters and pagination
-- Server components for data fetching, client components for interactivity
-- Watchlist state managed through server actions
-
-### Key Directories
-
-- `src/app/` - Next.js App Router pages and API routes
-- `src/components/` - Reusable React components and UI primitives
-- `src/lib/` - Business logic, API clients, and utility functions
-- `src/types/` - TypeScript type definitions for TMDB API responses
-- `src/hooks/` - Custom React hooks
-
-## Development Notes
-
-- Use `pnpm` as package manager (enforced by Volta config)
-- Prefer normal functions over arrow functions except for inline usage
-- Uses path alias `@/*` for `src/*` imports
-- PostgreSQL database required for local development
-- Environment variables must be properly configured for TMDB API and auth providers
+| Need | File(s) |
+| --- | --- |
+| Commands & architecture | `CONTRIBUTING.md` |
+| Env vars (source of truth) | `src/env.ts` |
+| DB instance / schema | `src/lib/db.ts` · `src/db/schema/` |
+| Auth config / session helpers | `src/lib/auth.ts` · `src/lib/auth-server.ts` (`requireUser`) |
+| TMDB client / resources | `src/lib/tmdb.ts` · `src/lib/{movies,tv-shows,persons}.ts` |
+| Server actions (mutations) | `src/lib/{watchlist-actions,lists,user-actions}.ts` |
+| Input validation (Zod) | `src/lib/validations.ts` |
+| Caching tags / invalidation | `src/lib/cache-tags.ts` · `src/lib/cache-invalidation.ts` |
+| Tests & config | `src/**/*.test.ts` · `vitest.config.ts` |
+| CI | `.github/workflows/ci.yml` |
