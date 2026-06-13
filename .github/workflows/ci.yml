@@ -126,6 +126,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Fallow
+        id: fallow
         uses: fallow-rs/fallow@v2
         with:
           command: audit
@@ -133,6 +134,6 @@ jobs:
           format: sarif
 
       - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: fallow.sarif
+          sarif_file: ${{ steps.fallow.outputs.sarif }}
