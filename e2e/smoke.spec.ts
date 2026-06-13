@@ -21,6 +21,7 @@ test('search page exposes a search input and accepts a query', async ({ page }) 
   const searchBox = page.getByRole('searchbox').or(page.getByRole('textbox')).first();
   await expect(searchBox).toBeVisible();
   await searchBox.fill('matrix');
-  // Query is reflected into the URL (nuqs) so results can be deep-linked.
+  // Submitting the search form navigates to a deep-linkable results URL.
+  await searchBox.press('Enter');
   await expect(page).toHaveURL(/q=matrix/i, { timeout: 10_000 });
 });

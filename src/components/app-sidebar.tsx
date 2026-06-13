@@ -47,22 +47,24 @@ export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
         <Brand />
       </SidebarHeader>
       <SidebarContent className="p-1">
-        <SidebarMenu>
-          <SidebarGroupContent className="flex flex-col gap-1">
-            {navItems.map(({ href, label, icon: Icon }) => (
-              <SidebarMenuItem key={href}>
-                <SidebarMenuButton
-                  isActive={pathname === href}
-                  render={<Link href={href} onClick={() => setOpenMobile(false)} />}
-                >
-                  <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
-                  <span>{label}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-            {userNav}
-          </SidebarGroupContent>
-        </SidebarMenu>
+        <nav aria-label="Main">
+          <SidebarMenu>
+            <SidebarGroupContent className="flex flex-col gap-1">
+              {navItems.map(({ href, label, icon: Icon }) => (
+                <SidebarMenuItem key={href}>
+                  <SidebarMenuButton
+                    isActive={pathname === href}
+                    render={<Link href={href} onClick={() => setOpenMobile(false)} />}
+                  >
+                    <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
+                    <span>{label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+              {userNav}
+            </SidebarGroupContent>
+          </SidebarMenu>
+        </nav>
       </SidebarContent>
       <SidebarRail />
       <SidebarFooter>{userFooter}</SidebarFooter>
