@@ -61,18 +61,29 @@ export function deduplicateAndSortByPopularity<T extends { id: number; popularit
     });
 }
 
+// Sentinel origin used only to resolve candidate redirect paths. Any value that
+// resolves to a different origin is an off-origin redirect and gets rejected.
+const REDIRECT_SENTINEL_ORIGIN = 'https://redirect.invalid';
+
 /**
- * Checks if a URL is a safe relative redirect path.
+ * Checks if a URL is a safe same-origin relative redirect path.
  *
- * Returns true only if the input is a string that starts with a single slash ('/'), does not contain '://', and does not start with '//'.
+ * The value must start with '/' and, when resolved by the URL parser, stay on
+ * the sentinel origin. Resolving with `URL` catches the bypasses a plain string
+ * check misses: browsers normalize backslashes and strip control characters and
+ * whitespace, so inputs like '/\\evil.com' would otherwise escape to an
+ * attacker-controlled origin (CWE-601).
  */
 export function isValidRedirectUrl(url?: string): boolean {
-  if (!url || typeof url !== 'string') {
+  if (!url || typeof url !== 'string' || !url.startsWith('/')) {
     return false;
   }
 
-  // Must start with '/' and not contain protocol or domain
-  return url.startsWith('/') && !url.includes('://') && !url.startsWith('//');
+  try {
+    return new URL(url, REDIRECT_SENTINEL_ORIGIN).origin === REDIRECT_SENTINEL_ORIGIN;
+  } catch {
+    return false;
+  }
 }
 
 /**

@@ -8,12 +8,12 @@ export type DiscoverResult = {
   totalPages: number;
 };
 
-export type DiscoverMoviesResult = {
+type DiscoverMoviesResult = {
   movies: Movie[];
   totalPages: number;
 };
 
-export type DiscoverTvShowsResult = {
+type DiscoverTvShowsResult = {
   tvShows: TvShow[];
   totalPages: number;
 };
@@ -30,7 +30,7 @@ export type DiscoverTvShowsResult = {
  * @param withRuntimeLte - Optional maximum runtime filter
  * @returns Object containing movies array and total pages
  */
-export async function getDiscoverMovies(
+async function getDiscoverMovies(
   genreId: number,
   page: number = 1,
   sortBy?: string,
@@ -60,7 +60,7 @@ export async function getDiscoverMovies(
  * @param withRuntimeLte - Optional maximum runtime filter
  * @returns Object containing TV shows array and total pages
  */
-export async function getDiscoverTvShows(
+async function getDiscoverTvShows(
   genreId: number,
   page: number = 1,
   sortBy?: string,

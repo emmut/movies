@@ -43,46 +43,6 @@ export interface LocalListWithStatus extends LocalList {
   hasItem: boolean;
 }
 
-export async function getUserLists() {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  const userLists = await db
-    .select({
-      id: lists.id,
-      name: lists.name,
-      description: lists.description,
-      emoji: lists.emoji,
-      createdAt: lists.createdAt,
-      updatedAt: lists.updatedAt,
-    })
-    .from(lists)
-    .where(eq(lists.userId, user.id))
-    .orderBy(desc(lists.updatedAt));
-
-  // Get item counts for each list
-  const listsWithCounts = await Promise.all(
-    userLists.map(async (list) => {
-      const result = await db
-        .select({ count: sql`count(*)`.mapWith(Number) })
-        .from(listItems)
-        .where(eq(listItems.listId, list.id));
-
-      const itemCount = result[0].count;
-
-      return {
-        ...list,
-        itemCount,
-      };
-    }),
-  );
-
-  return listsWithCounts;
-}
-
 export async function getUserListCount() {
   const user = await getUser();
 
@@ -150,7 +110,7 @@ export async function getUserListsPaginated(page: number = 1) {
     }
 
     const offset = Math.max(0, (currentPage - 1) * ITEMS_PER_PAGE);
-    const paginatedLists = await db
+    const listsWithCounts = await db
       .select({
         id: lists.id,
         name: lists.name,
@@ -158,28 +118,15 @@ export async function getUserListsPaginated(page: number = 1) {
         emoji: lists.emoji,
         createdAt: lists.createdAt,
         updatedAt: lists.updatedAt,
+        itemCount: sql`count(${listItems.id})`.mapWith(Number),
       })
       .from(lists)
+      .leftJoin(listItems, eq(lists.id, listItems.listId))
       .where(eq(lists.userId, user.id))
+      .groupBy(lists.id)
       .orderBy(desc(lists.updatedAt))
       .limit(ITEMS_PER_PAGE)
       .offset(offset);
-
-    const listsWithCounts = await Promise.all(
-      paginatedLists.map(async (list) => {
-        const result = await db
-          .select({ count: sql`count(*)`.mapWith(Number) })
-          .from(listItems)
-          .where(eq(listItems.listId, list.id));
-
-        const itemCount = result[0].count;
-
-        return {
-          ...list,
-          itemCount,
-        };
-      }),
-    );
 
     return {
       lists: listsWithCounts,
@@ -199,37 +146,6 @@ export async function getUserListsPaginated(page: number = 1) {
       itemsPerPage: ITEMS_PER_PAGE,
     };
   }
-}
-
-export async function getListDetails(listId: string) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  const listResult = await db
-    .select()
-    .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
-
-  if (listResult.length === 0) {
-    throw new Error('List not found');
-  }
-
-  const list = listResult[0];
-
-  const items = await db
-    .select()
-    .from(listItems)
-    .where(eq(listItems.listId, listId))
-    .orderBy(desc(listItems.createdAt));
-
-  return {
-    ...list,
-    items,
-    itemCount: items.length,
-  };
 }
 
 /**

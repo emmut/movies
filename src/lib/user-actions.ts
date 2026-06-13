@@ -7,7 +7,6 @@ import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 
 import { user } from '@/db/schema/auth';
 import { userWatchProviders } from '@/db/schema/user-watch-providers';
-import { env } from '@/env';
 import { getSession } from '@/lib/auth-server';
 import { revalidateUserPreferenceCache } from '@/lib/cache-invalidation';
 import { CACHE_TAGS } from '@/lib/cache-tags';
@@ -16,6 +15,7 @@ import { DEFAULT_REGION, isValidRegionCode, RegionCode, regionSchema } from '@/l
 import { WatchProvider } from '@/types/watch-provider';
 
 import { MAJOR_STREAMING_PROVIDERS } from './config';
+import { tmdbFetch } from './tmdb';
 
 type WatchProvidersResponse = {
   results: WatchProvider[];
@@ -87,21 +87,10 @@ async function fetchWatchProvidersForRegion(region: string, userWatchProviders?:
   cacheTag(CACHE_TAGS.public.watchProvidersByRegion(region));
   cacheLife('days');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/watch/providers/movie?watch_region=${region}`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    },
-  );
-
-  if (!res.ok) {
-    throw new Error('Failed to fetch watch providers');
-  }
-
-  const data: WatchProvidersResponse = await res.json();
+  const data = await tmdbFetch<WatchProvidersResponse>('/watch/providers/movie', {
+    searchParams: { watch_region: region },
+    errorMessage: 'Failed to fetch watch providers',
+  });
 
   const availableProviders = data.results
     .filter((provider) => provider.display_priority <= MAX_DISPLAY_PRIORITY)
@@ -139,21 +128,10 @@ async function fetchAllWatchProvidersForRegion(region: string) {
   cacheTag(CACHE_TAGS.public.watchProvidersByRegion(region));
   cacheLife('days');
 
-  const res = await fetch(
-    `https://api.themoviedb.org/3/watch/providers/movie?watch_region=${region}`,
-    {
-      headers: {
-        authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-        accept: 'application/json',
-      },
-    },
-  );
-
-  if (!res.ok) {
-    throw new Error('Failed to fetch watch providers');
-  }
-
-  const data: WatchProvidersResponse = await res.json();
+  const data = await tmdbFetch<WatchProvidersResponse>('/watch/providers/movie', {
+    searchParams: { watch_region: region },
+    errorMessage: 'Failed to fetch watch providers',
+  });
 
   return data.results;
 }

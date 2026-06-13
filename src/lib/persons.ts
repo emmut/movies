@@ -1,10 +1,9 @@
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { env } from '@/env';
 import { PersonDetails, PersonMovieCredits, PersonTvCredits } from '@/types/person';
 
 import { CACHE_TAGS } from './cache-tags';
-import { TMDB_API_URL } from './constants';
+import { tmdbFetch } from './tmdb';
 
 /**
  * Fetches detailed information for an person from TMDb by their ID.
@@ -19,19 +18,9 @@ export async function getPersonDetails(personId: number) {
   cacheTag(CACHE_TAGS.public.person.details(personId));
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/person/${personId}`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  return await tmdbFetch<PersonDetails>(`/person/${personId}`, {
+    errorMessage: 'Failed loading person details',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading person details');
-  }
-
-  const person: PersonDetails = await res.json();
-  return person;
 }
 
 /**
@@ -47,19 +36,9 @@ export async function getPersonMovieCredits(personId: number) {
   cacheTag(CACHE_TAGS.public.person.movieCredits(personId));
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/person/${personId}/movie_credits`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  return await tmdbFetch<PersonMovieCredits>(`/person/${personId}/movie_credits`, {
+    errorMessage: 'Failed loading person movie credits',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading person movie credits');
-  }
-
-  const credits: PersonMovieCredits = await res.json();
-  return credits;
 }
 
 /**
@@ -75,17 +54,7 @@ export async function getPersonTvCredits(personId: number) {
   cacheTag(CACHE_TAGS.public.person.tvCredits(personId));
   cacheLife('minutes');
 
-  const res = await fetch(`${TMDB_API_URL}/person/${personId}/tv_credits`, {
-    headers: {
-      authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
-      accept: 'application/json',
-    },
+  return await tmdbFetch<PersonTvCredits>(`/person/${personId}/tv_credits`, {
+    errorMessage: 'Failed loading person TV credits',
   });
-
-  if (!res.ok) {
-    throw new Error('Failed loading person TV credits');
-  }
-
-  const credits: PersonTvCredits = await res.json();
-  return credits;
 }

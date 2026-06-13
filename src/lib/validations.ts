@@ -8,14 +8,17 @@ import { EMOJI_OPTIONS } from '@/lib/config';
  * Transforms the string to a number for database storage.
  */
 export const resourceIdSchema = z.object({
-  resourceId: z.number().positive('Resource ID must be a positive number'),
+  resourceId: z.number().int().positive('Resource ID must be a positive integer'),
   resourceType: z.enum(['movie', 'tv']),
 });
 
 /**
  * Schema for validating resourceId as a number directly
  */
-export const resourceIdNumberSchema = z.number().positive('Resource ID must be a positive number');
+export const resourceIdNumberSchema = z
+  .number()
+  .int()
+  .positive('Resource ID must be a positive integer');
 
 export const resourceTypeSchema = z.enum(['movie', 'tv']);
 
@@ -87,7 +90,7 @@ export type UpdateListData = z.infer<typeof updateListSchema>;
  */
 export const listItemSchema = z.object({
   listId: z.uuid('Invalid list ID'),
-  resourceId: z.number().positive('Resource ID must be a positive number'),
+  resourceId: z.number().int().positive('Resource ID must be a positive integer'),
   resourceType: z.enum(['movie', 'tv', 'person']),
 });
 
@@ -98,14 +101,14 @@ export type ListItemData = z.infer<typeof listItemSchema>;
  */
 export const removeListItemSchema = z.object({
   listId: z.uuid('Invalid list ID'),
-  resourceId: z.number().positive('Resource ID must be a positive number'),
+  resourceId: z.number().int().positive('Resource ID must be a positive integer'),
   resourceType: z.enum(['movie', 'tv', 'person']),
 });
 
 export type RemoveListItemData = z.infer<typeof removeListItemSchema>;
 
-export const mediaIdSchema = z.number().min(1);
+export const mediaIdSchema = z.number().int().min(1);
 export const mediaTypeSchema = z.enum(['movie', 'tv', 'person']);
 
-export const listIdSchema = z.string();
-export const pageSchema = z.number().min(1).positive();
+export const listIdSchema = z.uuid('Invalid list ID');
+export const pageSchema = z.number().int().min(1);
