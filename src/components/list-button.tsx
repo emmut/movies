@@ -1,19 +1,12 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { type Query, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, List, ListPlus, Star } from 'lucide-react';
-import { ChangeEvent, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { CreateListDialog } from '@/components/create-list-dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,11 +15,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { EMOJI_OPTIONS } from '@/lib/config';
-import { addToList, createList, getUserListsWithStatus, removeFromList } from '@/lib/lists';
+import {
+  addToList,
+  getUserListsWithStatus,
+  removeFromList,
+  type UserListsWithStatus,
+} from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 import { getErrorMessage } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
@@ -39,14 +33,102 @@ interface ListButtonProps {
   showWatchlist?: boolean;
 }
 
+type ListWithStatus = UserListsWithStatus[number];
+
+function findListName(lists: UserListsWithStatus, listId: string) {
+  return lists.find((list) => list.id === listId)?.name ?? 'list';
+}
+
+// list details query keys are shaped [..., ..., listId]; match by that slot.
+function listDetailsPredicate(listId: string) {
+  return (query: Query) => query.queryKey[2] === listId;
+}
+
+function WatchlistMenuItem({
+  isInWatchlist,
+  disabled,
+  onToggle,
+}: {
+  isInWatchlist: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+}) {
+  const label = isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist';
+  return (
+    <DropdownMenuItem
+      onClick={onToggle}
+      disabled={disabled}
+      className="flex items-center justify-between"
+      title={label}
+    >
+      <span className="flex flex-1 items-center gap-2">
+        <Star className={`h-4 w-4 ${isInWatchlist ? 'fill-current' : ''}`} />
+        <span>{label}</span>
+      </span>
+    </DropdownMenuItem>
+  );
+}
+
+function ListMenuItem({
+  list,
+  disabled,
+  onToggle,
+}: {
+  list: ListWithStatus;
+  disabled: boolean;
+  onToggle: (listId: string, hasItem: boolean) => void;
+}) {
+  const title = list.hasItem ? `Remove from "${list.name}"` : `Add to "${list.name}"`;
+  return (
+    <DropdownMenuItem
+      onClick={() => onToggle(list.id, list.hasItem)}
+      disabled={disabled}
+      className="flex items-center justify-between"
+      title={title}
+    >
+      <span className="flex flex-1 items-center gap-2">
+        <span className="text-lg">{list.emoji}</span>
+        <span>{list.name}</span>
+      </span>
+      {list.hasItem && <Check className="ml-2 h-4 w-4 shrink-0 text-green-500" />}
+    </DropdownMenuItem>
+  );
+}
+
+function ListMenuItems({
+  lists,
+  isLoading,
+  disabled,
+  onToggle,
+}: {
+  lists: UserListsWithStatus;
+  isLoading: boolean;
+  disabled: boolean;
+  onToggle: (listId: string, hasItem: boolean) => void;
+}) {
+  if (isLoading) {
+    return (
+      <DropdownMenuItem disabled className="py-2.5">
+        Loading lists...
+      </DropdownMenuItem>
+    );
+  }
+  if (lists.length === 0) {
+    return (
+      <DropdownMenuItem disabled className="py-2.5">
+        No lists yet
+      </DropdownMenuItem>
+    );
+  }
+  return lists.map((list) => (
+    <ListMenuItem key={list.id} list={list} disabled={disabled} onToggle={onToggle} />
+  ));
+}
+
 export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }: ListButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isPending, setIsPending] = useState(false);
-  const [newListName, setNewListName] = useState('');
-  const [newListDescription, setNewListDescription] = useState('');
-  const [selectedEmoji, setSelectedEmoji] = useState('📝');
   const queryClient = useQueryClient();
 
   const { data: lists = [], isLoading: isLoadingLists } = useQuery({
@@ -68,8 +150,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
   }
 
   async function handleToggleList(listId: string, hasItem: boolean) {
-    const list = lists.find((l) => l.id === listId);
-    const listName = list?.name || 'list';
+    const listName = findListName(lists, listId);
     setIsPending(true);
     try {
       if (hasItem) {
@@ -81,53 +162,13 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
       }
       queryClient.invalidateQueries({
         queryKey: queryKeys.lists.details(),
-        predicate: (query) => {
-          const [, , queryListId] = query.queryKey;
-          return queryListId === listId;
-        },
+        predicate: listDetailsPredicate(listId),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : hasItem
-            ? `Failed to remove from "${listName}"`
-            : `Failed to add to "${listName}"`,
-      );
+      toast.error(getErrorMessage(error, `Couldn't update "${listName}"`));
     } finally {
       setIsPending(false);
-    }
-  }
-
-  async function handleCreateList() {
-    if (!newListName.trim()) {
-      toast.error('List name is required');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const result = await createList(newListName.trim(), newListDescription.trim(), selectedEmoji);
-      if (result.success) {
-        await addToList(result.listId, mediaId, mediaType);
-        setNewListName('');
-        setNewListDescription('');
-        setSelectedEmoji('📝');
-        setIsCreateOpen(false);
-        queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
-        toast.success('List created and item added');
-      }
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message.includes('emoji')
-            ? 'Invalid emoji selection'
-            : error.message
-          : 'Failed to create list',
-      );
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -153,59 +194,36 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
     }
   }
 
+  async function handleListCreated(listId: string) {
+    await addToList(listId, mediaId, mediaType);
+    queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
+  }
+
   return (
     <>
-      <DropdownMenu
-        open={isOpen}
-        onOpenChange={setIsOpen}
-      >
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger render={<Button variant="glass" size="icon" disabled={isPending} />}>
           <List className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-52">
           {showWatchlist && (
             <>
-              <DropdownMenuItem
-                onClick={handleToggleWatchlist}
+              <WatchlistMenuItem
+                isInWatchlist={isInWatchlist}
                 disabled={isPending}
-                className="flex items-center justify-between"
-                title={isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}
-              >
-                <span className="flex flex-1 items-center gap-2">
-                  <Star className={`h-4 w-4 ${isInWatchlist ? 'fill-current' : ''}`} />
-                  <span>{isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist'}</span>
-                </span>
-              </DropdownMenuItem>
+                onToggle={handleToggleWatchlist}
+              />
               <DropdownMenuSeparator />
             </>
           )}
 
           <DropdownMenuGroup>
-            {isLoadingLists ? (
-              <DropdownMenuItem disabled className="py-2.5">
-                Loading lists...
-              </DropdownMenuItem>
-            ) : lists.length === 0 ? (
-              <DropdownMenuItem disabled className="py-2.5">
-                No lists yet
-              </DropdownMenuItem>
-            ) : (
-              lists.map((list) => (
-                <DropdownMenuItem
-                  key={list.id}
-                  onClick={() => handleToggleList(list.id, list.hasItem)}
-                  disabled={isPending}
-                  className="flex items-center justify-between"
-                  title={list.hasItem ? `Remove from "${list.name}"` : `Add to "${list.name}"`}
-                >
-                  <span className="flex flex-1 items-center gap-2">
-                    <span className="text-lg">{list.emoji}</span>
-                    <span>{list.name}</span>
-                  </span>
-                  {list.hasItem && <Check className="ml-2 h-4 w-4 shrink-0 text-green-500" />}
-                </DropdownMenuItem>
-              ))
-            )}
+            <ListMenuItems
+              lists={lists}
+              isLoading={isLoadingLists}
+              disabled={isPending}
+              onToggle={handleToggleList}
+            />
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setIsCreateOpen(true)} disabled={isPending}>
@@ -215,75 +233,12 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create new list</DialogTitle>
-            <DialogDescription>Create a new list and add this item to it.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="emoji" className="text-right">
-                Emoji
-              </Label>
-              <div className="col-span-3">
-                <div className="grid max-h-32 grid-cols-6 gap-2 overflow-y-auto rounded-md border p-2">
-                  {EMOJI_OPTIONS.map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() => setSelectedEmoji(emoji)}
-                      className={`rounded p-2 text-xl transition-colors hover:bg-muted ${
-                        selectedEmoji === emoji ? 'bg-primary text-primary-foreground' : ''
-                      }`}
-                      disabled={isLoading}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">Selected: {selectedEmoji}</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="name"
-                value={newListName}
-                onChange={(e: ChangeEvent<HTMLInputElement>) => setNewListName(e.target.value)}
-                className="col-span-3"
-                disabled={isLoading}
-                maxLength={100}
-                placeholder="Enter list name..."
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                value={newListDescription}
-                onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-                  setNewListDescription(e.target.value)
-                }
-                className="col-span-3"
-                disabled={isLoading}
-                maxLength={500}
-                placeholder="Optional description..."
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleCreateList} disabled={isLoading || !newListName.trim()}>
-              {isLoading ? 'Creating...' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateListDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        onCreated={handleListCreated}
+        successMessage="List created and item added"
+      />
     </>
   );
 }
