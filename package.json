@@ -35,7 +35,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.16.0",
-    "next": "16.2.6",
+    "next": "16.2.9",
     "nuqs": "^2.8.9",
     "postcss": "8.5.14",
     "posthog-js": "^1.373.4",
