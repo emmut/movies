@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     # Env validation is skipped; secrets are not needed for lint/typecheck/tests.
     env:
-      SKIP_ENV_VALIDATION: 'true'
+      SKIP_ENV_VALIDATION: "true"
     steps:
       - uses: actions/checkout@v4
 
@@ -46,10 +46,6 @@ jobs:
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
-    # Opt-in: needs a real TMDB token + DB. Set repo variable RUN_E2E=true and
-    # the MOVIE_DB_ACCESS_TOKEN secret to enable. Skipped otherwise so PRs from
-    # forks (no secrets) stay green.
-    if: ${{ vars.RUN_E2E == 'true' }}
     services:
       postgres:
         image: postgres:16
