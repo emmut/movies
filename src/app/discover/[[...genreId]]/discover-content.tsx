@@ -54,7 +54,7 @@ export function DiscoverContent({
   const watchRegion = urlState.watch_region ?? userRegion;
   const runtimeLte = urlState.runtimeLte ?? undefined;
 
-  useScrollOnPageChange(page);
+  useScrollOnPageChange(page, genreId);
 
   return (
     <>

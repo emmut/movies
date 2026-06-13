@@ -2,14 +2,22 @@
 
 import { useEffect, useRef } from 'react';
 
-export function useScrollOnPageChange(page: number) {
+export function useScrollOnPageChange(page: number, resetKey?: unknown) {
   const lastPage = useRef(page);
+  const lastResetKey = useRef(resetKey);
 
   useEffect(() => {
-    if (lastPage.current === page) {
+    const resetKeyChanged = lastResetKey.current !== resetKey;
+    lastResetKey.current = resetKey;
+
+    const pageChanged = lastPage.current !== page;
+    lastPage.current = page;
+
+    // Skip scroll when the reset key changed (e.g. selecting a genre resets the
+    // page), only scroll on genuine page navigation.
+    if (!pageChanged || resetKeyChanged) {
       return;
     }
-    lastPage.current = page;
 
     const container = document.querySelector('#content-container');
     if (container) {
@@ -17,10 +25,10 @@ export function useScrollOnPageChange(page: number) {
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [page]);
+  }, [page, resetKey]);
 }
 
-export function ScrollOnPageChange({ page }: { page: number }) {
-  useScrollOnPageChange(page);
+export function ScrollOnPageChange({ page, resetKey }: { page: number; resetKey?: unknown }) {
+  useScrollOnPageChange(page, resetKey);
   return null;
 }
