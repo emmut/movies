@@ -7,9 +7,22 @@ import {
   formatDateYear,
   formatImageUrl,
   formatRuntime,
+  getErrorMessage,
   getSafeRedirectUrl,
   isValidRedirectUrl,
 } from './utils';
+
+describe('getErrorMessage', () => {
+  it("returns the Error's message when given an Error", () => {
+    expect(getErrorMessage(new Error('boom'), 'fallback')).toBe('boom');
+  });
+
+  it('returns the fallback for non-Error values', () => {
+    expect(getErrorMessage('boom', 'fallback')).toBe('fallback');
+    expect(getErrorMessage(undefined, 'fallback')).toBe('fallback');
+    expect(getErrorMessage({ message: 'boom' }, 'fallback')).toBe('fallback');
+  });
+});
 
 describe('isValidRedirectUrl', () => {
   it('accepts plain relative paths', () => {

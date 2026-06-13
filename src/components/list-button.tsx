@@ -28,6 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { EMOJI_OPTIONS } from '@/lib/config';
 import { addToList, createList, getUserListsWithStatus, removeFromList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
+import { getErrorMessage } from '@/lib/utils';
 import { isResourceInWatchlist } from '@/lib/watchlist';
 import { toggleWatchlist } from '@/lib/watchlist-actions';
 
@@ -146,7 +147,7 @@ export function ListButton({ mediaId, mediaType, userId, showWatchlist = true }:
       queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
     } catch (error) {
       queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), previous);
-      toast.error(error instanceof Error ? error.message : 'Failed to update watchlist');
+      toast.error(getErrorMessage(error, 'Failed to update watchlist'));
     } finally {
       setIsPending(false);
     }
