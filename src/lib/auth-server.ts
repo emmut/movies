@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { cache } from 'react';
 
 import { auth } from './auth';
@@ -24,4 +25,19 @@ export const getSession = cache(async () => {
 export async function getUser() {
   const session = await getSession();
   return session?.user ?? null;
+}
+
+/**
+ * Retrieves the authenticated user, redirecting to the login page when none is present.
+ *
+ * @returns The authenticated user. Never returns when unauthenticated (redirects instead).
+ */
+export async function requireUser() {
+  const user = await getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  return user;
 }

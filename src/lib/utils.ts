@@ -109,3 +109,17 @@ export function createLoginUrl(redirectUrl?: string) {
   }
   return `/login?redirect_url=${encodeURIComponent(redirectUrl)}`;
 }
+
+/**
+ * Extracts a user-facing message from a caught value.
+ *
+ * Returns the `Error`'s message when the thrown value is an `Error`; otherwise
+ * falls back to the provided default (caught values are `unknown` and may be
+ * anything).
+ *
+ * @param error - The caught value
+ * @param fallback - Message to use when `error` is not an `Error`
+ */
+export function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
+}

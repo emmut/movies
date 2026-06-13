@@ -5,7 +5,7 @@ import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { listItems, lists } from '@/db/schema/lists';
-import { getUser } from '@/lib/auth-server';
+import { requireUser } from '@/lib/auth-server';
 import { revalidateUserListCache, revalidateUserListStatusCache } from '@/lib/cache-invalidation';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
@@ -43,12 +43,24 @@ export interface LocalListWithStatus extends LocalList {
   hasItem: boolean;
 }
 
-export async function getUserListCount() {
-  const user = await getUser();
+/**
+ * Asserts that a list exists and belongs to the given user.
+ *
+ * @throws {Error} 'List not found' when the list does not exist or is owned by another user.
+ */
+async function assertListOwnership(listId: string, userId: string) {
+  const [{ count: ownedCount }] = await db
+    .select({ count: sql`count(*)`.mapWith(Number) })
+    .from(lists)
+    .where(and(eq(lists.id, listId), eq(lists.userId, userId)));
 
-  if (!user) {
-    redirect('/login');
+  if (ownedCount === 0) {
+    throw new Error('List not found');
   }
+}
+
+export async function getUserListCount() {
+  const user = await requireUser();
 
   return await getCachedUserListCount(user.id);
 }
@@ -79,11 +91,7 @@ async function getCachedUserListCount(userId: string) {
  * @returns An object containing the paginated lists and pagination metadata.
  */
 export async function getUserListsPaginated(page: number = 1) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const user = await requireUser();
 
   if (!pageSchema.safeParse(page).success) {
     redirect('/lists');
@@ -157,11 +165,7 @@ export async function getUserListsPaginated(page: number = 1) {
  * @returns An object containing the list details, paginated items, and pagination metadata.
  */
 export async function getListDetailsPaginated(listId: string, page: number = 1) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const user = await requireUser();
 
   if (!listIdSchema.safeParse(listId).success) {
     redirect('/lists');
@@ -297,11 +301,7 @@ export async function getListDetailsWithResources(listId: string, page: number =
 }
 
 export async function createList(name: string, description: string = '', emoji: string = '📝') {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const user = await requireUser();
 
   const validatedData = createListSchema.parse({
     name,
@@ -331,23 +331,7 @@ export async function addToList(
   mediaId: number,
   mediaType: 'movie' | 'tv' | 'person',
 ) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  if (!listIdSchema.safeParse(listId).success) {
-    throw new Error('Invalid list ID');
-  }
-
-  if (!mediaIdSchema.safeParse(mediaId).success) {
-    throw new Error('Invalid media ID');
-  }
-
-  if (!mediaTypeSchema.safeParse(mediaType).success) {
-    throw new Error('Invalid media type');
-  }
+  const user = await requireUser();
 
   const validatedData = listItemSchema.parse({
     listId,
@@ -355,14 +339,7 @@ export async function addToList(
     resourceType: mediaType,
   });
 
-  const [{ count }] = await db
-    .select({ count: sql`count(*)`.mapWith(Number) })
-    .from(lists)
-    .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
-
-  if (count === 0) {
-    throw new Error('List not found');
-  }
+  await assertListOwnership(validatedData.listId, user.id);
 
   try {
     await db.insert(listItems).values({
@@ -390,23 +367,7 @@ export async function removeFromList(
   mediaId: number,
   mediaType: 'movie' | 'tv' | 'person',
 ) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  if (!listIdSchema.safeParse(listId).success) {
-    throw new Error('Invalid list ID');
-  }
-
-  if (!mediaIdSchema.safeParse(mediaId).success) {
-    throw new Error('Invalid media ID');
-  }
-
-  if (!mediaTypeSchema.safeParse(mediaType).success) {
-    throw new Error('Invalid media type');
-  }
+  const user = await requireUser();
 
   const validatedData = removeListItemSchema.parse({
     listId,
@@ -414,14 +375,7 @@ export async function removeFromList(
     resourceType: mediaType,
   });
 
-  const [{ count }] = await db
-    .select({ count: sql`count(*)`.mapWith(Number) })
-    .from(lists)
-    .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
-
-  if (count === 0) {
-    throw new Error('List not found');
-  }
+  await assertListOwnership(validatedData.listId, user.id);
 
   await db
     .delete(listItems)
@@ -441,24 +395,13 @@ export async function removeFromList(
 }
 
 export async function deleteList(listId: string) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const user = await requireUser();
 
   if (!listIdSchema.safeParse(listId).success) {
     throw new Error('Invalid list ID');
   }
 
-  const [{ count }] = await db
-    .select({ count: sql`count(*)`.mapWith(Number) })
-    .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
-
-  if (count === 0) {
-    throw new Error('List not found');
-  }
+  await assertListOwnership(listId, user.id);
 
   await db.delete(lists).where(eq(lists.id, listId));
 
@@ -473,15 +416,7 @@ export async function updateList(
   description: string = '',
   emoji: string = '📝',
 ) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  if (!listIdSchema.safeParse(listId).success) {
-    throw new Error('Invalid list ID');
-  }
+  const user = await requireUser();
 
   const validatedData = updateListSchema.parse({
     listId,
@@ -490,14 +425,7 @@ export async function updateList(
     emoji,
   });
 
-  const [{ count }] = await db
-    .select({ count: sql`count(*)`.mapWith(Number) })
-    .from(lists)
-    .where(and(eq(lists.id, validatedData.listId), eq(lists.userId, user.id)));
-
-  if (count === 0) {
-    throw new Error('List not found');
-  }
+  await assertListOwnership(validatedData.listId, user.id);
 
   await db
     .update(lists)
@@ -519,11 +447,7 @@ export async function getUserListsWithStatus(
   mediaId: number,
   mediaType: 'movie' | 'tv' | 'person',
 ) {
-  const user = await getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const user = await requireUser();
 
   if (!mediaIdSchema.safeParse(mediaId).success) {
     throw new Error('Invalid media ID');

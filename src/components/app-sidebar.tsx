@@ -1,11 +1,9 @@
 'use client';
 
-import { Home, Sparkles } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import type * as React from 'react';
 
 import Brand from '@/components/brand';
+import { NavLink } from '@/components/nav-link';
 import {
   Sidebar,
   SidebarContent,
@@ -13,25 +11,21 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarRail,
-  useSidebar,
 } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
 
 const navItems = [
   {
     href: '/',
     label: 'Home',
-    icon: Home,
+    icon: 'home',
   },
   {
     href: '/discover',
     label: 'Discover',
-    icon: Sparkles,
+    icon: 'sparkles',
   },
-];
+] as const;
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   userNav?: React.ReactNode;
@@ -39,30 +33,22 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
 };
 
 export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
-  const pathname = usePathname();
-  const { setOpenMobile } = useSidebar();
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <Brand />
       </SidebarHeader>
       <SidebarContent className="p-1">
-        <SidebarMenu>
-          <SidebarGroupContent className="flex flex-col gap-1">
-            {navItems.map(({ href, label, icon: Icon }) => (
-              <SidebarMenuItem key={href}>
-                <SidebarMenuButton
-                  isActive={pathname === href}
-                  render={<Link href={href} onClick={() => setOpenMobile(false)} />}
-                >
-                  <Icon className={cn('h-4 w-4', pathname === href && 'fill-current')} />
-                  <span>{label}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-            {userNav}
-          </SidebarGroupContent>
-        </SidebarMenu>
+        <nav aria-label="Main">
+          <SidebarMenu>
+            <SidebarGroupContent className="flex flex-col gap-1">
+              {navItems.map((item) => (
+                <NavLink key={item.href} {...item} />
+              ))}
+              {userNav}
+            </SidebarGroupContent>
+          </SidebarMenu>
+        </nav>
       </SidebarContent>
       <SidebarRail />
       <SidebarFooter>{userFooter}</SidebarFooter>

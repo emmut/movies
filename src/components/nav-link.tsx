@@ -1,6 +1,6 @@
 'use client';
 
-import { List, Star } from 'lucide-react';
+import { Home, List, Sparkles, Star } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -8,15 +8,17 @@ import { cn } from '@/lib/utils';
 
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from './ui/sidebar';
 
-type NavLinkProps = {
-  href: string;
-  label: string;
-  icon: 'star' | 'list';
-};
-
 const iconMap = {
   star: Star,
   list: List,
+  home: Home,
+  sparkles: Sparkles,
+};
+
+type NavLinkProps = {
+  href: string;
+  label: string;
+  icon: keyof typeof iconMap;
 };
 
 function NavLink({ href, label, icon }: NavLinkProps) {
