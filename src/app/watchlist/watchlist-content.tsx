@@ -9,7 +9,6 @@ import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { queryKeys } from '@/lib/query-keys';
 import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
 import { MovieDetails } from '@/types/movie';
@@ -37,8 +36,6 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
 
   const mediaType = urlState.mediaType as 'movie' | 'tv';
   const page = urlState.page;
-
-  useScrollOnPageChange(page);
 
   // Fetch paginated watchlist data
   const { data: paginatedData, isLoading: isLoadingList } = useQuery({

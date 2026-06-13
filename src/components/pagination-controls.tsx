@@ -20,6 +20,15 @@ type PaginationControls = {
   pageType?: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists';
 };
 
+function scrollToContent() {
+  const container = document.querySelector('#content-container');
+  if (container) {
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
 // Generate page numbers with ellipsis logic (mobile-first)
 function generatePageNumbers(currentPage: number, totalPages: number) {
   const pages: (number | 'ellipsis')[] = [];
@@ -102,6 +111,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               <PaginationItem>
                 <PaginationPrevious
                   href={buildPageHref(currentPageNumber - 1)}
+                  onClick={scrollToContent}
                   className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -118,6 +128,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
                       href={buildPageHref(pageNumber)}
+                      onClick={scrollToContent}
                       isActive={pageNumber === currentPageNumber}
                       className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
                     >
@@ -130,6 +141,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               <PaginationItem>
                 <PaginationNext
                   href={buildPageHref(currentPageNumber + 1)}
+                  onClick={scrollToContent}
                   className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -158,7 +170,8 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   if (e.key === 'Enter') {
                     const value = Number((e.target as HTMLInputElement).value);
                     if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
-                      router.push(buildPageHref(value));
+                      router.push(buildPageHref(value), { scroll: false });
+                      scrollToContent();
                       (e.target as HTMLInputElement).value = '';
                     }
                   }
@@ -166,7 +179,8 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 onBlur={(e) => {
                   const value = Number(e.target.value);
                   if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
-                    router.push(buildPageHref(value));
+                    router.push(buildPageHref(value), { scroll: false });
+                    scrollToContent();
                   }
                   e.target.value = '';
                 }}
