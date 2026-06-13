@@ -7,6 +7,11 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string().min(1),
     BETTER_AUTH_TRUSTED_ORIGIN: z.string().min(1).optional(),
     DATABASE_URL: z.url(),
+    // Max TCP connections this instance's pool holds open. Serverless/
+    // scale-to-zero runs many instances, each with its own pool, so
+    // max × instances must stay under the database connection limit.
+    // Keep small; raise only for a single persistent container.
+    DB_POOL_MAX: z.coerce.number().int().positive().default(3),
     DISCORD_CLIENT_ID: z.string().min(1),
     DISCORD_CLIENT_SECRET: z.string().min(1),
     GITHUB_CLIENT_ID: z.string().min(1),
@@ -38,6 +43,7 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_TRUSTED_ORIGIN: process.env.BETTER_AUTH_TRUSTED_ORIGIN,
     DATABASE_URL: process.env.DATABASE_URL,
+    DB_POOL_MAX: process.env.DB_POOL_MAX,
     DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
