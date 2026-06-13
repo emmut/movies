@@ -43,6 +43,75 @@ jobs:
       - name: Test
         run: pnpm test
 
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    # Opt-in: needs a real TMDB token + DB. Set repo variable RUN_E2E=true and
+    # the MOVIE_DB_ACCESS_TOKEN secret to enable. Skipped otherwise so PRs from
+    # forks (no secrets) stay green.
+    if: ${{ vars.RUN_E2E == 'true' }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: movies
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/movies
+      BETTER_AUTH_SECRET: test-secret-test-secret-test-secret-0001
+      MOVIE_DB_ACCESS_TOKEN: ${{ secrets.MOVIE_DB_ACCESS_TOKEN }}
+      DISCORD_CLIENT_ID: test
+      DISCORD_CLIENT_SECRET: test
+      GITHUB_CLIENT_ID: test
+      GITHUB_CLIENT_SECRET: test
+      # Valid hex; imgproxy URL signing decodes these.
+      IMGPROXY_KEY: deadbeef
+      IMGPROXY_SALT: cafe
+      NEXT_PUBLIC_IMGPROXY_ENDPOINT: http://localhost:8080
+      NEXT_PUBLIC_IMGPROXY_BASE_URL: https://image.tmdb.org/t/p/original
+      NEXT_PUBLIC_POSTHOG_KEY: test
+      NEXT_PUBLIC_POSTHOG_HOST: https://us.i.posthog.com
+      NEXT_PUBLIC_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run database migrations
+        run: pnpm db:migrate
+
+      - name: Install Playwright browser
+        run: pnpm e2e:install
+
+      - name: Run e2e tests
+        run: pnpm e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   fallow:
     name: Fallow audit
     runs-on: ubuntu-latest
