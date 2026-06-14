@@ -29,7 +29,7 @@ export function buildDiscoverSearchParams({
 }: DiscoverParams): Record<string, string | number | undefined> {
   const params: Record<string, string | number | undefined> = {
     page,
-    sort_by: sortBy ?? 'popularity.desc',
+    sort_by: sortBy || 'popularity.desc',
     region: DEFAULT_REGION,
     include_adult: 'false',
   };
