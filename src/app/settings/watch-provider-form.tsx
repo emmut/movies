@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useTransition } from 'react';
@@ -7,6 +8,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { queryKeys } from '@/lib/query-keys';
 import { setUserWatchProviders } from '@/lib/user-actions';
 import { WatchProvider } from '@/types/watch-provider';
 
@@ -19,6 +21,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
   const [selectedProviders, setSelectedProviders] = useState<number[]>(userProviders);
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
   const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
   function handleProviderToggle(providerId: number) {
     setSelectedProviders((prev) =>
@@ -34,6 +37,11 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
     startTransition(async () => {
       try {
         await setUserWatchProviders(selectedProviders);
+        // Server caches are revalidated by the action; drop the in-memory React
+        // Query cache for the user's queries too (partial match covers the
+        // region-keyed watch-provider queries), so client-side consumers don't
+        // serve the old selection until it goes stale.
+        await queryClient.invalidateQueries({ queryKey: queryKeys.user.all });
         toast.success('Preferences saved!');
       } catch (error) {
         console.error('Error saving watch providers:', error);
