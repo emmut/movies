@@ -15,12 +15,8 @@ import {
 import { TmdbVideoResponse } from '@/types/tmdb-video';
 
 import { CACHE_TAGS } from './cache-tags';
-import { MAJOR_STREAMING_PROVIDERS } from './config';
-import { MIN_RUNTIME_FILTER_MINUTES } from './constants';
+import { buildDiscoverSearchParams } from './discover-params';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
-import { getUserRegionWithFallback } from './user-region';
-
-const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
 /**
  * Fetches the list of trending movies for the current day from TMDb.
@@ -79,55 +75,17 @@ export async function fetchDiscoverMovies(
   cacheTag(CACHE_TAGS.public.discover.movies);
   cacheLife('minutes');
 
-  const hasWatchProviderFilter = watchProviders !== undefined && watchRegion !== undefined;
-  const hasRuntimeFilter = typeof withRuntimeLte === 'number' && withRuntimeLte > 0;
+  const searchParams = {
+    ...buildDiscoverSearchParams({ genreId, page, sortBy, watchProviders, watchRegion, withRuntimeLte }),
+    include_video: 'false',
+  };
 
   const movies = await tmdbFetch<MovieResponse>('/discover/movie', {
-    searchParams: {
-      page,
-      sort_by: sortBy || 'popularity.desc',
-      region: DEFAULT_REGION,
-      include_adult: 'false',
-      include_video: 'false',
-      with_genres: genreId !== 0 ? genreId : undefined,
-      with_watch_providers: hasWatchProviderFilter ? watchProviders : majorProviders,
-      watch_region: hasWatchProviderFilter ? watchRegion : watchRegion || DEFAULT_REGION,
-      'with_runtime.lte': hasRuntimeFilter ? withRuntimeLte : undefined,
-      'with_runtime.gte': hasRuntimeFilter ? MIN_RUNTIME_FILTER_MINUTES : undefined,
-    },
+    searchParams,
     errorMessage: 'Error loading discover movies',
   });
 
-  const totalPages = movies.total_pages >= 500 ? 500 : movies.total_pages;
-  return { movies: movies.results.map(addPosterImageUrls), totalPages };
-}
-
-/**
- * Fetches discovered movies for the user's region, filtered by genre and paginated by page number.
- *
- * Uses the user's region (with fallback) and sorts results by popularity. Returns a list of movies and the total number of pages, capped at 500.
- *
- * @param genreId - The genre ID to filter movies by; use 0 for no genre filter
- * @param page - The page number for pagination (default is 1)
- * @returns An object containing the array of discovered movies and the total number of pages (maximum 500)
- */
-export async function fetchUserDiscoverMovies(genreId: number, page: number = 1) {
-  const userRegion = await getUserRegionWithFallback();
-
-  const movies = await tmdbFetch<MovieResponse>('/discover/movie', {
-    searchParams: {
-      page,
-      sort_by: 'popularity.desc',
-      region: userRegion,
-      include_adult: 'false',
-      include_video: 'false',
-      with_genres: genreId !== 0 ? genreId : undefined,
-    },
-    errorMessage: 'Error loading discover movies',
-  });
-
-  const totalPages = movies.total_pages >= 500 ? 500 : movies.total_pages;
-  return { movies: movies.results.map(addPosterImageUrls), totalPages };
+  return { movies: movies.results.map(addPosterImageUrls), totalPages: Math.min(movies.total_pages, 500) };
 }
 
 /**
@@ -135,12 +93,13 @@ export async function fetchUserDiscoverMovies(genreId: number, page: number = 1)
  *
  * @returns An array of now playing movie results
  */
-export async function fetchNowPlayingMovies() {
+export async function fetchNowPlayingMovies(region: string = DEFAULT_REGION) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.home.nowPlayingMovies);
-  cacheLife('minutes');
+  cacheLife('days');
 
   const movies = await tmdbFetch<MovieResponse>('/movie/now_playing', {
+    searchParams: { region },
     errorMessage: 'Failed loading now playing movies',
   });
   return movies.results;
@@ -151,16 +110,17 @@ export async function fetchNowPlayingMovies() {
  *
  * @returns An array of upcoming movies not currently in theaters.
  */
-export async function fetchUpcomingMovies() {
+export async function fetchUpcomingMovies(region: string = DEFAULT_REGION) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.home.upcomingMovies);
-  cacheLife('minutes');
+  cacheLife('days');
 
   const [upcomingMovies, nowPlayingMovies] = await Promise.all([
     tmdbFetch<MovieResponse>('/movie/upcoming', {
+      searchParams: { region },
       errorMessage: 'Failed loading upcoming movies',
     }),
-    fetchNowPlayingMovies(),
+    fetchNowPlayingMovies(region),
   ]);
 
   const nowPlayingIds = new Set(nowPlayingMovies.map((movie) => movie.id));
@@ -180,13 +140,13 @@ export async function fetchUpcomingMovies() {
  *
  * @throws {Error} If the API request fails or returns a non-successful response.
  */
-export async function fetchTopRatedMovies() {
+export async function fetchTopRatedMovies(region: string = DEFAULT_REGION) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.home.topRatedMovies);
-  cacheLife('minutes');
+  cacheLife('days');
 
   const movies = await tmdbFetch<MovieResponse>('/movie/top_rated', {
-    searchParams: { region: DEFAULT_REGION },
+    searchParams: { region },
     errorMessage: 'Failed loading top rated movies',
   });
   return movies.results;
