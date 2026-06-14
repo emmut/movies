@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -12,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { queryKeys } from '@/lib/query-keys';
 import type { Region } from '@/lib/regions';
 
 interface RegionFormProps {
@@ -23,6 +25,7 @@ interface RegionFormProps {
 export function RegionForm({ currentRegion, regions, updateRegionAction }: RegionFormProps) {
   const [selectedRegion, setSelectedRegion] = useState(currentRegion);
   const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
   async function handleSubmit() {
     if (selectedRegion === currentRegion) {
@@ -32,6 +35,14 @@ export function RegionForm({ currentRegion, regions, updateRegionAction }: Regio
     startTransition(async () => {
       try {
         await updateRegionAction(selectedRegion);
+        // The server action revalidates server caches, but the client React
+        // Query cache (region + region-derived lists) must be invalidated too,
+        // or client-side navigation back to / keeps serving the old region's
+        // homepage lists until useUserRegion's query goes stale.
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: queryKeys.user.all }),
+          queryClient.invalidateQueries({ queryKey: queryKeys.home.all }),
+        ]);
         toast('Region settings saved!');
       } catch (error) {
         console.error('Error updating region:', error);
