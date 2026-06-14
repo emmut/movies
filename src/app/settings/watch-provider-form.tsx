@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { queryKeys } from '@/lib/query-keys';
+import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
 import { setUserWatchProviders } from '@/lib/user-actions';
 import { WatchProvider } from '@/types/watch-provider';
 
@@ -38,10 +38,9 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
       try {
         await setUserWatchProviders(selectedProviders);
         // Server caches are revalidated by the action; drop the in-memory React
-        // Query cache for the user's queries too (partial match covers the
-        // region-keyed watch-provider queries), so client-side consumers don't
-        // serve the old selection until it goes stale.
-        await queryClient.invalidateQueries({ queryKey: queryKeys.user.all });
+        // Query cache for the user's queries too, so client-side consumers
+        // don't serve the old selection until it goes stale.
+        await invalidateUserPreferenceQueries(queryClient);
         toast.success('Preferences saved!');
       } catch (error) {
         console.error('Error saving watch providers:', error);

@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { queryKeys } from '@/lib/query-keys';
+import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
 import type { Region } from '@/lib/regions';
 
 interface RegionFormProps {
@@ -35,14 +35,10 @@ export function RegionForm({ currentRegion, regions, updateRegionAction }: Regio
     startTransition(async () => {
       try {
         await updateRegionAction(selectedRegion);
-        // The server action revalidates server caches, but the client React
-        // Query cache (region + region-derived lists) must be invalidated too,
-        // or client-side navigation back to / keeps serving the old region's
-        // homepage lists until useUserRegion's query goes stale.
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: queryKeys.user.all }),
-          queryClient.invalidateQueries({ queryKey: queryKeys.home.all }),
-        ]);
+        // Region drives the homepage lists too, so drop their client cache as
+        // well — otherwise client-side navigation back to / serves the old
+        // region until useUserRegion's query goes stale.
+        await invalidateUserPreferenceQueries(queryClient, { includeHomeLists: true });
         toast('Region settings saved!');
       } catch (error) {
         console.error('Error updating region:', error);
