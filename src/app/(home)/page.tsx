@@ -4,16 +4,13 @@ import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
 import MediaList from '@/components/media-list';
 import { ItemSlider } from '@/components/ui/item-slider';
-import { fetchNowPlayingMovies, fetchTopRatedMovies, fetchUpcomingMovies } from '@/lib/movies';
-import { fetchOnTheAirTvShows, fetchPopularTvShows, fetchTopRatedTvShows } from '@/lib/tv-shows';
-import { Movie } from '@/types/movie';
-import { TvShow } from '@/types/tv-show';
+import { HomeMediaCategory } from '@/lib/home-media';
 
 type MediaSectionConfig = {
   heading: string;
   caption: string;
   type: 'movie' | 'tv';
-  fetchItems: () => Promise<Movie[] | TvShow[]>;
+  category: HomeMediaCategory;
 };
 
 const SECTIONS: MediaSectionConfig[] = [
@@ -21,41 +18,41 @@ const SECTIONS: MediaSectionConfig[] = [
     heading: 'Movies in Theaters',
     caption: 'Now playing',
     type: 'movie',
-    fetchItems: fetchNowPlayingMovies,
+    category: 'now-playing-movies',
   },
   {
     heading: 'TV Shows on Air',
     caption: 'Currently airing',
     type: 'tv',
-    fetchItems: fetchOnTheAirTvShows,
+    category: 'on-the-air-tv',
   },
   {
     heading: 'Coming Soon',
     caption: 'Upcoming movies',
     type: 'movie',
-    fetchItems: fetchUpcomingMovies,
+    category: 'upcoming-movies',
   },
   {
     heading: 'Popular TV Shows',
     caption: 'Trending series',
     type: 'tv',
-    fetchItems: fetchPopularTvShows,
+    category: 'popular-tv',
   },
   {
     heading: 'Top Rated Movies',
     caption: 'All-time favorites',
     type: 'movie',
-    fetchItems: fetchTopRatedMovies,
+    category: 'top-rated-movies',
   },
   {
     heading: 'Top Rated TV Shows',
     caption: 'Highest rated series',
     type: 'tv',
-    fetchItems: fetchTopRatedTvShows,
+    category: 'top-rated-tv',
   },
 ];
 
-function MediaSection({ heading, caption, type, fetchItems }: MediaSectionConfig) {
+function MediaSection({ heading, caption, type, category }: MediaSectionConfig) {
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
@@ -65,7 +62,7 @@ function MediaSection({ heading, caption, type, fetchItems }: MediaSectionConfig
 
       <ItemSlider>
         <Suspense fallback={<ItemGrid.Skeletons />}>
-          <MediaList fetchItems={fetchItems} type={type} />
+          <MediaList category={category} type={type} />
         </Suspense>
       </ItemSlider>
     </section>

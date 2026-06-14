@@ -15,13 +15,9 @@ import {
 } from '@/types/tv-show';
 
 import { CACHE_TAGS } from './cache-tags';
-import { MAJOR_STREAMING_PROVIDERS } from './config';
-import { MIN_RUNTIME_FILTER_MINUTES } from './constants';
+import { buildDiscoverSearchParams } from './discover-params';
 import { DEFAULT_REGION } from './regions';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
-import { getUserRegionWithFallback } from './user-region';
-
-const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
 /**
  * Fetches detailed information for a TV show from TMDb by its ID.
@@ -108,53 +104,21 @@ export async function fetchDiscoverTvShows(
   cacheTag(CACHE_TAGS.public.discover.tv);
   cacheLife('minutes');
 
-  const hasWatchProviderFilter = Boolean(watchProviders && watchRegion);
-  const hasRuntimeFilter = typeof withRuntimeLte === 'number' && withRuntimeLte > 0;
+  const searchParams = buildDiscoverSearchParams({
+    genreId,
+    page,
+    sortBy,
+    watchProviders,
+    watchRegion,
+    withRuntimeLte,
+  });
 
   const tvShows = await tmdbFetch<TvResponse>('/discover/tv', {
-    searchParams: {
-      page,
-      sort_by: sortBy || 'popularity.desc',
-      region: DEFAULT_REGION,
-      include_adult: 'false',
-      with_genres: genreId !== 0 ? genreId : undefined,
-      with_watch_providers: hasWatchProviderFilter ? watchProviders : majorProviders,
-      watch_region: hasWatchProviderFilter ? watchRegion : watchRegion || DEFAULT_REGION,
-      'with_runtime.lte': hasRuntimeFilter ? withRuntimeLte : undefined,
-      'with_runtime.gte': hasRuntimeFilter ? MIN_RUNTIME_FILTER_MINUTES : undefined,
-    },
+    searchParams,
     errorMessage: 'Error loading discover tv shows',
   });
 
-  const totalPages = tvShows.total_pages >= 500 ? 500 : tvShows.total_pages;
-  return { tvShows: tvShows.results.map(addPosterImageUrls), totalPages };
-}
-
-/**
- * Retrieves a paginated list of TV shows filtered by genre and sorted by popularity for the user's region.
- *
- * @param genreId - The genre ID to filter TV shows by. If 0, no genre filter is applied.
- * @param page - The page number to retrieve (default is 1).
- * @returns An object containing the list of discovered TV shows and the total number of pages, capped at 500.
- *
- * @throws {Error} If the TV show discovery request fails.
- */
-export async function fetchUserDiscoverTvShows(genreId: number, page: number = 1) {
-  const userRegion = await getUserRegionWithFallback();
-
-  const tvShows = await tmdbFetch<TvResponse>('/discover/tv', {
-    searchParams: {
-      page,
-      sort_by: 'popularity.desc',
-      region: userRegion,
-      include_adult: 'false',
-      with_genres: genreId !== 0 ? genreId : undefined,
-    },
-    errorMessage: 'Error loading discover tv shows',
-  });
-
-  const totalPages = tvShows.total_pages >= 500 ? 500 : tvShows.total_pages;
-  return { tvShows: tvShows.results.map(addPosterImageUrls), totalPages };
+  return { tvShows: tvShows.results.map(addPosterImageUrls), totalPages: Math.min(tvShows.total_pages, 500) };
 }
 
 /**
@@ -182,13 +146,13 @@ export async function fetchTrendingTvShows() {
  *
  * @throws If the request to the TMDb API fails.
  */
-export async function fetchTopRatedTvShows() {
+export async function fetchTopRatedTvShows(region: string = DEFAULT_REGION) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.home.topRatedTv);
-  cacheLife('minutes');
+  cacheLife('days');
 
   const tvShows = await tmdbFetch<TvResponse>('/tv/top_rated', {
-    searchParams: { region: DEFAULT_REGION },
+    searchParams: { region },
     errorMessage: 'Failed loading top rated TV shows',
   });
   return tvShows.results;
@@ -201,13 +165,13 @@ export async function fetchTopRatedTvShows() {
  *
  * @throws If the request to the TMDb API fails.
  */
-export async function fetchOnTheAirTvShows() {
+export async function fetchOnTheAirTvShows(region: string = DEFAULT_REGION) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.home.onTheAirTv);
-  cacheLife('minutes');
+  cacheLife('days');
 
   const tvShows = await tmdbFetch<TvResponse>('/tv/on_the_air', {
-    searchParams: { region: DEFAULT_REGION },
+    searchParams: { region },
     errorMessage: 'Failed loading on the air TV shows',
   });
   return tvShows.results;
@@ -220,13 +184,13 @@ export async function fetchOnTheAirTvShows() {
  *
  * @throws If the request to the TMDb API fails.
  */
-export async function fetchPopularTvShows() {
+export async function fetchPopularTvShows(region: string = DEFAULT_REGION) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.home.popularTv);
-  cacheLife('minutes');
+  cacheLife('days');
 
   const tvShows = await tmdbFetch<TvResponse>('/tv/popular', {
-    searchParams: { region: DEFAULT_REGION },
+    searchParams: { region },
     errorMessage: 'Failed loading popular TV shows',
   });
   return tvShows.results;

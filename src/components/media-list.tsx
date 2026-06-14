@@ -1,31 +1,26 @@
-import ItemCard from '@/components/item-card';
-import { Movie } from '@/types/movie';
-import { TvShow } from '@/types/tv-show';
-
-type MediaItem = Movie | TvShow;
+import PersonalizedMediaList from '@/components/personalized-media-list';
+import { getHomeMediaList, HomeMediaCategory } from '@/lib/home-media';
+import { DEFAULT_REGION } from '@/lib/regions';
 
 type MediaListProps = {
-  fetchItems: () => Promise<MediaItem[]>;
+  category: HomeMediaCategory;
   type: 'movie' | 'tv';
 };
 
 /**
- * Generic component that displays a list of media items (movies or TV shows) as resource cards.
+ * Prerenders a home-page media slider for the default region, then hands off to
+ * {@link PersonalizedMediaList} for client-side region personalization.
  *
- * Renders only cached, request-independent data so the surrounding Suspense boundary can be
- * prerendered rather than server-streamed. Per-user state (the list/watchlist button) is resolved
- * client-side inside {@link ItemCard}'s ListButton via the auth session, so the markup stays cacheable.
- * Streaming this content instead crashes hydration under cacheComponents on next@16.2.9 — see the
- * blank-landing-page bug.
+ * Only cached, request-independent data is fetched here so the surrounding Suspense boundary can be
+ * prerendered rather than server-streamed — streaming this content crashes hydration under
+ * cacheComponents on next@16.2.9 (see the blank-landing-page bug). The user's region is resolved
+ * client-side after hydration, never during this server render.
  *
- * @param fetchItems - Function to fetch the (cached) items to display.
+ * @param category - The home-page media category to display.
  * @param type - The media type, either 'movie' or 'tv'.
- * @returns An array of {@link ItemCard} elements representing the media items.
  */
-export default async function MediaList({ fetchItems, type }: MediaListProps) {
-  const items = await fetchItems();
+export default async function MediaList({ category, type }: MediaListProps) {
+  const items = await getHomeMediaList(category, DEFAULT_REGION);
 
-  return items.map((item) => (
-    <ItemCard className="max-w-[150px]" key={item.id} resource={item} type={type} />
-  ));
+  return <PersonalizedMediaList category={category} type={type} initialItems={items} />;
 }

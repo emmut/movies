@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
@@ -12,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
 import type { Region } from '@/lib/regions';
 
 interface RegionFormProps {
@@ -23,6 +25,7 @@ interface RegionFormProps {
 export function RegionForm({ currentRegion, regions, updateRegionAction }: RegionFormProps) {
   const [selectedRegion, setSelectedRegion] = useState(currentRegion);
   const [isPending, startTransition] = useTransition();
+  const queryClient = useQueryClient();
 
   async function handleSubmit() {
     if (selectedRegion === currentRegion) {
@@ -32,6 +35,10 @@ export function RegionForm({ currentRegion, regions, updateRegionAction }: Regio
     startTransition(async () => {
       try {
         await updateRegionAction(selectedRegion);
+        // Region drives the homepage lists too, so drop their client cache as
+        // well — otherwise client-side navigation back to / serves the old
+        // region until useUserRegion's query goes stale.
+        await invalidateUserPreferenceQueries(queryClient, { includeHomeLists: true });
         toast('Region settings saved!');
       } catch (error) {
         console.error('Error updating region:', error);

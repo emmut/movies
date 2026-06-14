@@ -20,6 +20,12 @@ export const queryKeys = {
     watchProviders: (region: string, userProviders?: number[]) =>
       [...queryKeys.user.all, 'watchProviders', region, userProviders] as const,
   },
+  home: {
+    all: ['home'] as const,
+    lists: () => [...queryKeys.home.all, 'list'] as const,
+    list: (category: string, region: string) =>
+      [...queryKeys.home.lists(), category, region] as const,
+  },
   watchlist: {
     all: ['watchlist'] as const,
     lists: () => [...queryKeys.watchlist.all, 'list'] as const,
