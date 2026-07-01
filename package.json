@@ -67,7 +67,7 @@
     "@vitest/coverage-v8": "^4.1.8",
     "drizzle-kit": "^0.31.10",
     "eslint-plugin-better-tailwindcss": "^4.6.0",
-    "fallow": "^2.95.0",
+    "fallow": "^2.103.0",
     "oxfmt": "^0.54.0",
     "oxlint": "^1.69.0",
     "oxlint-tsgolint": "^0.23.0",
