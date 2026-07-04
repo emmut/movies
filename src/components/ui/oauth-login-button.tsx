@@ -148,6 +148,7 @@ export function OAuthLoginButton({
             : `with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
         toast.error(`Failed to sign in ${providerName}`);
         console.error(error);
+        return;
       }
 
       if (provider === 'anonymous') {
