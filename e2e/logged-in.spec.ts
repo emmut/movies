@@ -10,7 +10,6 @@ import { MOVIE_PATH, signInAnonymously } from './helpers';
 test.describe('logged-in watchlist and lists', () => {
   test('adds and removes a movie via the watchlist button', async ({ page }) => {
     await signInAnonymously(page, MOVIE_PATH);
-    await page.goto(MOVIE_PATH);
 
     const addButton = page.getByRole('button', { name: /add to watchlist/i });
     await expect(addButton).toBeVisible();
