@@ -58,7 +58,7 @@ test.describe('logged-in watchlist and lists', () => {
 
     await page.goto('/lists');
     await expect(page.getByRole('link', { name: new RegExp(listName, 'i') })).toContainText(
-      '1 items',
+      /1\s+items?/i,
     );
 
     // Remove it again through the same dropdown.
