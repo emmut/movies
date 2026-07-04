@@ -61,7 +61,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       imgproxy:
-        image: darthsim/imgproxy:latest
+        image: darthsim/imgproxy:v4
         env:
           # Must match IMGPROXY_KEY/SALT below — the app signs URLs with those
           # and imgproxy verifies the signature with these.

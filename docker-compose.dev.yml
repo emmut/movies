@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16
     ports:
-      - '5432:5432'
+      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -10,25 +10,25 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   imgproxy:
-    image: darthsim/imgproxy:latest
+    image: darthsim/imgproxy:v4
     ports:
-      - '8080:8080'
+      - "8080:8080"
     environment:
-      IMGPROXY_KEY: '${IMGPROXY_KEY}'
-      IMGPROXY_SALT: '${IMGPROXY_SALT}'
-      IMGPROXY_BIND: ':8080'
-      IMGPROXY_ALLOWED_SOURCES: 'https://image.tmdb.org/,http://host.docker.internal:3000/'
-      IMGPROXY_MAX_SRC_RESOLUTION: '25'
-      IMGPROXY_DEVELOPMENT_ERRORS_MODE: 'true'
-      IMGPROXY_LOG_LEVEL: 'info'
+      IMGPROXY_KEY: "${IMGPROXY_KEY}"
+      IMGPROXY_SALT: "${IMGPROXY_SALT}"
+      IMGPROXY_BIND: ":8080"
+      IMGPROXY_ALLOWED_SOURCES: "https://image.tmdb.org/,http://host.docker.internal:3000/"
+      IMGPROXY_MAX_SRC_RESOLUTION: "25"
+      IMGPROXY_DEVELOPMENT_ERRORS_MODE: "true"
+      IMGPROXY_LOG_LEVEL: "info"
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - "host.docker.internal:host-gateway"
 
 volumes:
   postgres-data:
