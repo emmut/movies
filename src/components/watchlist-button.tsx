@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { Star } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { queryKeys } from '@/lib/query-keys';
@@ -22,13 +22,21 @@ export function WatchlistButton({
   isInWatchlist,
   userId,
 }: WatchlistButtonProps) {
+  // Not useOptimistic/useTransition: the toggle's revalidatePath makes Next
+  // intermittently never settle the transition, wedging isPending at true and
+  // the button disabled (https://github.com/vercel/next.js/discussions/82289).
+  // Manual pending state with a finally block cannot wedge.
   const [isPending, setIsPending] = useState(false);
   const [localIsInWatchlist, setLocalIsInWatchlist] = useState(isInWatchlist);
+  const [prevIsInWatchlist, setPrevIsInWatchlist] = useState(isInWatchlist);
   const queryClient = useQueryClient();
 
-  useEffect(() => {
+  // Render-time reset when the server-rendered prop changes — the React-docs
+  // replacement for syncing props into state with an effect.
+  if (prevIsInWatchlist !== isInWatchlist) {
+    setPrevIsInWatchlist(isInWatchlist);
     setLocalIsInWatchlist(isInWatchlist);
-  }, [isInWatchlist]);
+  }
 
   if (!userId) {
     return null;
@@ -39,11 +47,11 @@ export function WatchlistButton({
       return;
     }
     const previous = localIsInWatchlist;
-    setLocalIsInWatchlist((prev) => !prev);
+    setLocalIsInWatchlist(!previous);
     setIsPending(true);
     try {
       await toggleWatchlist({ resourceId, resourceType });
-      queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
     } catch (error) {
       setLocalIsInWatchlist(previous);
       console.error('Error updating watchlist:', error);
