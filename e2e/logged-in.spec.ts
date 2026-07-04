@@ -34,6 +34,40 @@ test.describe('logged-in watchlist and lists', () => {
     await expect(page.getByRole('heading', { name: /your watchlist is empty/i })).toBeVisible();
   });
 
+  test('survives repeated watchlist toggling and a rapid double-click', async ({ page }) => {
+    // Seven toggles and six reloads — well beyond the default 30s budget.
+    test.slow();
+    await signInAnonymously(page, MOVIE_PATH);
+
+    const addButton = page.getByRole('button', { name: /add to watchlist/i });
+    const removeButton = page.getByRole('button', { name: /remove from watchlist/i });
+    await expect(addButton).toBeVisible();
+
+    // Three full add/remove cycles: the optimistic label must flip on click and
+    // the committed state must survive a full reload (server-rendered prop).
+    for (let cycle = 0; cycle < 3; cycle++) {
+      await addButton.click();
+      await expect(removeButton).toBeEnabled();
+      await page.reload();
+      await expect(removeButton).toBeVisible();
+
+      await removeButton.click();
+      await expect(addButton).toBeEnabled();
+      await page.reload();
+      await expect(addButton).toBeVisible();
+    }
+
+    // A second click while the action is pending must not double-toggle: the
+    // button disables during the transition, so the result is a single add.
+    await addButton.click();
+    await removeButton.click({ timeout: 1_000, force: true }).catch(() => {
+      // Expected: the button is disabled while the server action is pending.
+    });
+    await expect(removeButton).toBeEnabled({ timeout: 15_000 });
+    await page.reload();
+    await expect(removeButton).toBeVisible();
+  });
+
   test('creates a list and adds/removes a movie through the list dropdown', async ({ page }) => {
     const listName = 'Weekend Picks';
 
