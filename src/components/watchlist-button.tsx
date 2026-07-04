@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { Star } from 'lucide-react';
-import { useOptimistic, useTransition } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { queryKeys } from '@/lib/query-keys';
@@ -22,51 +22,62 @@ export function WatchlistButton({
   isInWatchlist,
   userId,
 }: WatchlistButtonProps) {
-  const [isPending, startTransition] = useTransition();
-  const [optimisticIsInWatchlist, setOptimisticIsInWatchlist] = useOptimistic(isInWatchlist);
+  // Not useOptimistic/useTransition: the toggle's revalidatePath makes Next
+  // intermittently never settle the transition, wedging isPending at true and
+  // the button disabled (https://github.com/vercel/next.js/discussions/82289).
+  // Manual pending state with a finally block cannot wedge.
+  const [isPending, setIsPending] = useState(false);
+  const [localIsInWatchlist, setLocalIsInWatchlist] = useState(isInWatchlist);
+  const [prevIsInWatchlist, setPrevIsInWatchlist] = useState(isInWatchlist);
   const queryClient = useQueryClient();
+
+  // Render-time reset when the server-rendered prop changes — the React-docs
+  // replacement for syncing props into state with an effect.
+  if (prevIsInWatchlist !== isInWatchlist) {
+    setPrevIsInWatchlist(isInWatchlist);
+    setLocalIsInWatchlist(isInWatchlist);
+  }
 
   if (!userId) {
     return null;
   }
 
-  function handleToggleWatchlist() {
+  async function handleToggleWatchlist() {
     if (isPending) {
       return;
     }
-    startTransition(async () => {
-      setOptimisticIsInWatchlist((prev) => !prev);
-      try {
-        await toggleWatchlist({ resourceId, resourceType });
-        // Fire-and-forget: awaiting this ties the transition (and the disabled
-        // button) to refetches of every active watchlist query — a paused or
-        // retrying refetch would leave the button stuck in its pending state.
-        void queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
-      } catch (error) {
-        // useOptimistic reverts to the isInWatchlist prop when the transition ends.
-        console.error('Error updating watchlist:', error);
-      }
-    });
+    const previous = localIsInWatchlist;
+    setLocalIsInWatchlist(!previous);
+    setIsPending(true);
+    try {
+      await toggleWatchlist({ resourceId, resourceType });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
+    } catch (error) {
+      setLocalIsInWatchlist(previous);
+      console.error('Error updating watchlist:', error);
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
     <Button
       onClick={handleToggleWatchlist}
       disabled={isPending}
-      variant={optimisticIsInWatchlist ? 'default' : 'outline'}
+      variant={localIsInWatchlist ? 'default' : 'outline'}
       className="gap-2 px-3 py-1"
-      aria-label={optimisticIsInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
+      aria-label={localIsInWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
     >
-      <Star className={`h-4 w-4 ${optimisticIsInWatchlist ? 'fill-current' : ''}`} />
+      <Star className={`h-4 w-4 ${localIsInWatchlist ? 'fill-current' : ''}`} />
 
       <div className="grid grid-cols-1 grid-rows-1 place-items-center">
         <span
-          className={clsx(optimisticIsInWatchlist ? 'visible' : 'invisible', 'col-start-1 row-start-1')}
+          className={clsx(localIsInWatchlist ? 'visible' : 'invisible', 'col-start-1 row-start-1')}
         >
           In Watchlist
         </span>
         <span
-          className={clsx(optimisticIsInWatchlist ? 'invisible' : 'visible', 'col-start-1 row-start-1')}
+          className={clsx(localIsInWatchlist ? 'invisible' : 'visible', 'col-start-1 row-start-1')}
         >
           Add to Watchlist
         </span>
