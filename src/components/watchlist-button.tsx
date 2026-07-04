@@ -35,7 +35,7 @@ export function WatchlistButton({
       return;
     }
     startTransition(async () => {
-      setOptimisticIsInWatchlist(!optimisticIsInWatchlist);
+      setOptimisticIsInWatchlist((prev) => !prev);
       try {
         await toggleWatchlist({ resourceId, resourceType });
         await queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
