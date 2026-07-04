@@ -1,8 +1,7 @@
 'use client';
 
-import { revalidateGenresCache, validateGenreForMediaType } from '@/lib/media-actions';
+import type { Genre } from '@/types/genre';
 import { Film, Tv } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
 
@@ -10,7 +9,56 @@ type MediaType = 'movie' | 'tv';
 
 type MediaTypeSelectorProps = {
   currentMediaType: MediaType;
+  movieGenres?: Genre[];
+  tvGenres?: Genre[];
 };
+
+type MediaTypeUrlUpdate = {
+  mediaType: MediaType;
+  genreId?: number;
+  page: '1';
+};
+
+type MediaTypeButtonProps = {
+  active: boolean;
+  label: string;
+  mediaType: MediaType;
+  onSelect: (mediaType: MediaType) => void;
+};
+
+export function getMediaTypeUrlUpdate(
+  mediaType: MediaType,
+  currentGenreId: number,
+  movieGenres?: Genre[],
+  tvGenres?: Genre[],
+): MediaTypeUrlUpdate {
+  const targetGenres = mediaType === 'movie' ? movieGenres : tvGenres;
+  if (currentGenreId === 0 || !targetGenres) {
+    return { mediaType, page: '1' };
+  }
+
+  return {
+    mediaType,
+    genreId: targetGenres.some((genre) => genre.id === currentGenreId) ? undefined : 0,
+    page: '1',
+  };
+}
+
+function MediaTypeButton({ active, label, mediaType, onSelect }: MediaTypeButtonProps) {
+  const Icon = mediaType === 'movie' ? Film : Tv;
+
+  return (
+    <button
+      onClick={() => onSelect(mediaType)}
+      className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+        active ? 'bg-white text-black' : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+      }`}
+    >
+      <Icon className="h-4 w-4" />
+      {label}
+    </button>
+  );
+}
 
 /**
  * Renders a toggle component for selecting between media types.
@@ -19,7 +67,11 @@ type MediaTypeSelectorProps = {
  *
  * @param currentMediaType - The currently selected media type.
  */
-export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelectorProps) {
+export default function MediaTypeSelector({
+  currentMediaType,
+  movieGenres,
+  tvGenres,
+}: MediaTypeSelectorProps) {
   const [urlState, setUrlState] = useQueryStates(
     {
       mediaType: parseAsString.withDefault('movie'),
@@ -33,67 +85,29 @@ export default function MediaTypeSelector({ currentMediaType }: MediaTypeSelecto
 
   const [optimisticMediaType, setOptimisticMediaType] = useOptimistic(currentMediaType);
   const [, startTransition] = useTransition();
-  const router = useRouter();
 
-  async function handleMediaTypeChange(mediaType: MediaType) {
+  function handleMediaTypeChange(mediaType: MediaType) {
     startTransition(() => {
       setOptimisticMediaType(mediaType);
     });
 
-    const currentGenreId = urlState.genreId;
-
-    // Check if current genre is valid for new media type
-    if (currentGenreId && currentGenreId !== 0) {
-      const genreExists = await validateGenreForMediaType(
-        String(currentGenreId),
-        mediaType as 'movie' | 'tv',
-      );
-
-      if (!genreExists) {
-        // Clear genre if it doesn't exist for new media type
-        setUrlState({
-          mediaType,
-          genreId: 0,
-          page: '1',
-        });
-        await revalidateGenresCache(mediaType);
-        router.refresh();
-        return;
-      }
-    }
-
-    setUrlState({
-      mediaType,
-      page: '1',
-    });
-    await revalidateGenresCache(mediaType);
-    router.refresh();
+    setUrlState(getMediaTypeUrlUpdate(mediaType, urlState.genreId, movieGenres, tvGenres));
   }
 
   return (
     <div className="bg-muted/60 flex rounded-lg p-1">
-      <button
-        onClick={() => handleMediaTypeChange('movie')}
-        className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-          optimisticMediaType === 'movie'
-            ? 'bg-white text-black'
-            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
-        }`}
-      >
-        <Film className="h-4 w-4" />
-        Movies
-      </button>
-      <button
-        onClick={() => handleMediaTypeChange('tv')}
-        className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-          optimisticMediaType === 'tv'
-            ? 'bg-white text-black'
-            : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
-        }`}
-      >
-        <Tv className="h-4 w-4" />
-        TV Shows
-      </button>
+      <MediaTypeButton
+        active={optimisticMediaType === 'movie'}
+        label="Movies"
+        mediaType="movie"
+        onSelect={handleMediaTypeChange}
+      />
+      <MediaTypeButton
+        active={optimisticMediaType === 'tv'}
+        label="TV Shows"
+        mediaType="tv"
+        onSelect={handleMediaTypeChange}
+      />
     </div>
   );
 }

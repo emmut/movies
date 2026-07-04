@@ -1,15 +1,17 @@
 'use client';
 
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
-import { ReactNode, Suspense } from 'react';
+import { Suspense } from 'react';
 
 import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
+import { GenreNavigationClient } from '@/components/genre-navigation-client';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
+import type { Genre } from '@/types/genre';
 import { WatchProvider } from '@/types/watch-provider';
 
 import Pagination from './pagination';
@@ -17,21 +19,22 @@ import Pagination from './pagination';
 type DiscoverContentProps = {
   filteredWatchProviders: WatchProvider[];
   userRegion: string;
-  genreNavigation: ReactNode;
+  movieGenres: Genre[];
+  tvGenres: Genre[];
   userId?: string;
 };
 
-/**
- * Client component that handles the discover page content with React Query.
- * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
- */
-export function DiscoverContent({
-  filteredWatchProviders,
-  userRegion,
-  genreNavigation,
-  userId,
-}: DiscoverContentProps) {
-  // Use nuqs to manage URL state - changes automatically trigger React Query refetches
+type DiscoverViewState = {
+  page: number;
+  genreId: number;
+  mediaType: 'movie' | 'tv';
+  sortBy: string;
+  watchProviders?: string;
+  watchRegion: string;
+  runtimeLte?: number;
+};
+
+function useDiscoverViewState(userRegion: string): DiscoverViewState {
   const [urlState] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
@@ -49,25 +52,110 @@ export function DiscoverContent({
       history: 'push',
     },
   );
-  const { page, genreId, mediaType, sort_by: sortBy } = urlState;
-  const watchProviders = urlState.with_watch_providers?.join('|');
-  const watchRegion = urlState.watch_region ?? userRegion;
-  const runtimeLte = urlState.runtimeLte ?? undefined;
+
+  return {
+    page: urlState.page,
+    genreId: urlState.genreId,
+    mediaType: urlState.mediaType,
+    sortBy: urlState.sort_by,
+    watchProviders: urlState.with_watch_providers?.join('|'),
+    watchRegion: urlState.watch_region ?? userRegion,
+    runtimeLte: urlState.runtimeLte ?? undefined,
+  };
+}
+
+function DiscoverHeader() {
+  return (
+    <div className="flex items-center gap-4">
+      <SectionTitle>Discover</SectionTitle>
+      <SkipToElement elementId="content-container">Skip to content</SkipToElement>
+    </div>
+  );
+}
+
+type DiscoverToolbarProps = {
+  genres: Genre[];
+  mediaType: 'movie' | 'tv';
+  movieGenres: Genre[];
+  tvGenres: Genre[];
+};
+
+function DiscoverToolbar({ genres, mediaType, movieGenres, tvGenres }: DiscoverToolbarProps) {
+  return (
+    <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-1 flex-wrap gap-2">
+        <GenreNavigationClient genres={genres} />
+      </div>
+      <MediaTypeSelector
+        currentMediaType={mediaType}
+        movieGenres={movieGenres}
+        tvGenres={tvGenres}
+      />
+    </div>
+  );
+}
+
+type DiscoverResultsProps = DiscoverViewState & {
+  userId?: string;
+};
+
+function DiscoverResults({
+  page,
+  genreId,
+  mediaType,
+  sortBy,
+  watchProviders,
+  watchRegion,
+  runtimeLte,
+  userId,
+}: DiscoverResultsProps) {
+  return (
+    <div
+      id="content-container"
+      className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
+    >
+      <Suspense>
+        <DiscoverGrid
+          currentGenreId={genreId}
+          currentPage={page}
+          mediaType={mediaType}
+          sortBy={sortBy}
+          watchProviders={watchProviders}
+          watchRegion={watchRegion}
+          runtimeLte={runtimeLte}
+          userId={userId}
+        />
+      </Suspense>
+    </div>
+  );
+}
+
+/**
+ * Client component that handles the discover page content with React Query.
+ * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
+ */
+export function DiscoverContent({
+  filteredWatchProviders,
+  userRegion,
+  movieGenres,
+  tvGenres,
+  userId,
+}: DiscoverContentProps) {
+  const { page, genreId, mediaType, sortBy, watchProviders, watchRegion, runtimeLte } =
+    useDiscoverViewState(userRegion);
+  const genres = mediaType === 'movie' ? movieGenres : tvGenres;
 
   useScrollOnPageChange(page, genreId);
 
   return (
     <>
-      <div className="flex items-center gap-4">
-        <SectionTitle>Discover</SectionTitle>
-
-        <SkipToElement elementId="content-container">Skip to content</SkipToElement>
-      </div>
-
-      <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 flex-wrap gap-2">{genreNavigation}</div>
-        <MediaTypeSelector currentMediaType={mediaType} />
-      </div>
+      <DiscoverHeader />
+      <DiscoverToolbar
+        genres={genres}
+        mediaType={mediaType}
+        movieGenres={movieGenres}
+        tvGenres={tvGenres}
+      />
 
       <div className="mt-6">
         <FiltersPanel
@@ -77,23 +165,16 @@ export function DiscoverContent({
         />
       </div>
 
-      <div
-        id="content-container"
-        className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
-      >
-        <Suspense>
-          <DiscoverGrid
-            currentGenreId={genreId}
-            currentPage={page}
-            mediaType={mediaType}
-            sortBy={sortBy}
-            watchProviders={watchProviders}
-            watchRegion={watchRegion}
-            runtimeLte={runtimeLte}
-            userId={userId}
-          />
-        </Suspense>
-      </div>
+      <DiscoverResults
+        page={page}
+        genreId={genreId}
+        mediaType={mediaType}
+        sortBy={sortBy}
+        watchProviders={watchProviders}
+        watchRegion={watchRegion}
+        runtimeLte={runtimeLte}
+        userId={userId}
+      />
 
       <Pagination
         currentGenreId={genreId}
