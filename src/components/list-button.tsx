@@ -204,7 +204,16 @@ function ListButtonInner({
   return (
     <>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-        <DropdownMenuTrigger render={<Button variant="glass" size="icon" disabled={isPending} />}>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="glass"
+              size="icon"
+              disabled={isPending}
+              aria-label={showWatchlist ? 'Add to list or watchlist' : 'Add to list'}
+            />
+          }
+        >
           <List className="h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-52">

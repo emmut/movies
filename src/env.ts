@@ -12,6 +12,10 @@ export const env = createEnv({
     // max × instances must stay under the database connection limit.
     // Keep small; raise only for a single persistent container.
     DB_POOL_MAX: z.coerce.number().int().positive().default(3),
+    // Turns off better-auth's rate limiter (its default 3 sign-ins per 10s
+    // per IP would 429 the e2e suite, which mints anonymous users from one
+    // IP). Only set by the Playwright-managed server — never in real deploys.
+    AUTH_RATE_LIMIT_DISABLED: z.stringbool().default(false),
     DISCORD_CLIENT_ID: z.string().min(1),
     DISCORD_CLIENT_SECRET: z.string().min(1),
     GITHUB_CLIENT_ID: z.string().min(1),
@@ -44,6 +48,7 @@ export const env = createEnv({
     BETTER_AUTH_TRUSTED_ORIGIN: process.env.BETTER_AUTH_TRUSTED_ORIGIN,
     DATABASE_URL: process.env.DATABASE_URL,
     DB_POOL_MAX: process.env.DB_POOL_MAX,
+    AUTH_RATE_LIMIT_DISABLED: process.env.AUTH_RATE_LIMIT_DISABLED,
     DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
     DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,

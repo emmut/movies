@@ -60,6 +60,21 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      imgproxy:
+        image: darthsim/imgproxy:v4
+        env:
+          # Must match IMGPROXY_KEY/SALT below — the app signs URLs with those
+          # and imgproxy verifies the signature with these.
+          IMGPROXY_KEY: deadbeef
+          IMGPROXY_SALT: cafe
+          IMGPROXY_ALLOWED_SOURCES: https://image.tmdb.org/
+        ports:
+          - 8080:8080
+        options: >-
+          --health-cmd "imgproxy health"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/movies
       BETTER_AUTH_SECRET: test-secret-test-secret-test-secret-0001

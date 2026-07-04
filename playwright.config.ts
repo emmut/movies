@@ -12,7 +12,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
+  // printSteps streams each action (goto, click, expect) to stdout so a local
+  // run reads as a play-by-play of what the test is doing.
+  reporter: process.env.CI
+    ? [['github'], ['html', { open: 'never' }]]
+    : [['list', { printSteps: true }]],
   use: {
     baseURL,
     trace: 'on-first-retry',
@@ -23,8 +27,14 @@ export default defineConfig({
     ? {
         command: process.env.E2E_WEBSERVER_CMD ?? 'pnpm build && pnpm start',
         url: baseURL,
+        // Every test signs in anonymously from one IP; better-auth's default
+        // rate limit (3 sign-ins per 10s per IP) would 429 the suite.
+        env: { AUTH_RATE_LIMIT_DISABLED: 'true' },
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
+        // Stream build/server output so headless runs aren't silent.
+        stdout: 'pipe',
+        stderr: 'pipe',
       }
     : undefined,
 });

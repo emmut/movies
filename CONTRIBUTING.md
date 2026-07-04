@@ -15,7 +15,7 @@ A Next.js (App Router) movies app in TypeScript, backed by PostgreSQL/Drizzle an
 3. Apply the schema to your database: `pnpm db:push`.
 4. Start the dev server: `pnpm dev`.
 
-`pnpm dev` also boots a local imgproxy via Docker Compose, so Docker needs to be running.
+`pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
 
 ## Common commands
 

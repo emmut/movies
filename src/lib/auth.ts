@@ -21,6 +21,11 @@ export const auth = betterAuth({
     provider: 'pg',
     schema,
   }),
+  rateLimit: {
+    // Mirrors better-auth's default (on in production only), with an env
+    // escape hatch for e2e runs where every sign-in comes from one IP.
+    enabled: process.env.NODE_ENV === 'production' && !env.AUTH_RATE_LIMIT_DISABLED,
+  },
   socialProviders: {
     discord: {
       clientId: env.DISCORD_CLIENT_ID,
