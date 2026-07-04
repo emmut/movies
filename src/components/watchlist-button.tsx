@@ -38,7 +38,10 @@ export function WatchlistButton({
       setOptimisticIsInWatchlist((prev) => !prev);
       try {
         await toggleWatchlist({ resourceId, resourceType });
-        await queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
+        // Fire-and-forget: awaiting this ties the transition (and the disabled
+        // button) to refetches of every active watchlist query — a paused or
+        // retrying refetch would leave the button stuck in its pending state.
+        void queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
       } catch (error) {
         // useOptimistic reverts to the isInWatchlist prop when the transition ends.
         console.error('Error updating watchlist:', error);
