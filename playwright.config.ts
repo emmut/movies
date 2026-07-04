@@ -25,6 +25,9 @@ export default defineConfig({
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
+        // Stream build/server output so headless runs aren't silent.
+        stdout: 'pipe',
+        stderr: 'pipe',
       }
     : undefined,
 });
