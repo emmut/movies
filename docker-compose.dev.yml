@@ -1,4 +1,20 @@
 services:
+  postgres:
+    image: postgres:16
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: movies
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   imgproxy:
     image: darthsim/imgproxy:latest
     ports:
@@ -13,3 +29,6 @@ services:
       IMGPROXY_LOG_LEVEL: 'info'
     extra_hosts:
       - 'host.docker.internal:host-gateway'
+
+volumes:
+  postgres-data:
