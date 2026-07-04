@@ -15,8 +15,9 @@ test.describe('logged-in watchlist and lists', () => {
     await expect(addButton).toBeVisible();
     await addButton.click();
 
-    // The button flips to the "in watchlist" state optimistically.
-    await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeVisible();
+    // The label flips optimistically, but the button stays disabled until the
+    // server action commits — wait for enabled so /watchlist sees the row.
+    await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeEnabled();
 
     // The movie now shows up on the watchlist page.
     await page.goto('/watchlist');
@@ -27,7 +28,7 @@ test.describe('logged-in watchlist and lists', () => {
     // Remove it again from the detail page and confirm the watchlist empties.
     await page.goto(MOVIE_PATH);
     await page.getByRole('button', { name: /remove from watchlist/i }).click();
-    await expect(page.getByRole('button', { name: /add to watchlist/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /add to watchlist/i })).toBeEnabled();
 
     await page.goto('/watchlist');
     await expect(page.getByRole('heading', { name: /your watchlist is empty/i })).toBeVisible();
@@ -54,6 +55,8 @@ test.describe('logged-in watchlist and lists', () => {
     // cast/similar cards render "Add to list or watchlist" triggers too.
     await page.getByRole('button', { name: 'Add to list', exact: true }).click();
     await page.getByRole('menuitem', { name: new RegExp(listName, 'i') }).click();
+    // The success toast fires after the server action commits.
+    await expect(page.getByText(`Added to "${listName}"`)).toBeVisible();
 
     await page.goto('/lists');
     await expect(page.getByRole('link', { name: new RegExp(listName, 'i') })).toContainText(
@@ -66,6 +69,8 @@ test.describe('logged-in watchlist and lists', () => {
     // cast/similar cards render "Add to list or watchlist" triggers too.
     await page.getByRole('button', { name: 'Add to list', exact: true }).click();
     await page.getByRole('menuitem', { name: new RegExp(listName, 'i') }).click();
+    // The success toast fires after the server action commits.
+    await expect(page.getByText(`Removed from "${listName}"`)).toBeVisible();
 
     await page.goto('/lists');
     await expect(page.getByRole('link', { name: new RegExp(listName, 'i') })).toContainText(
@@ -79,7 +84,9 @@ test.describe('logged-in watchlist and lists', () => {
     // Seed one watchlist item so the watchlist page renders exactly one card.
     await page.goto(MOVIE_PATH);
     await page.getByRole('button', { name: /add to watchlist/i }).click();
-    await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeVisible();
+    // The label flips optimistically, but the button stays disabled until the
+    // server action commits — wait for enabled so /watchlist sees the row.
+    await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeEnabled();
 
     await page.goto('/watchlist');
     const card = page.locator(`a[href="${MOVIE_PATH}"]`).first();
@@ -88,6 +95,8 @@ test.describe('logged-in watchlist and lists', () => {
     // Open the card's list dropdown and use its watchlist toggle to remove it.
     await page.getByRole('button', { name: /add to list or watchlist/i }).click();
     await page.getByRole('menuitem', { name: /remove from watchlist/i }).click();
+    // The success toast fires after the server action commits.
+    await expect(page.getByText('Removed from watchlist')).toBeVisible();
 
     // Reload for a deterministic server render and confirm the card is gone.
     await page.goto('/watchlist');
