@@ -44,7 +44,6 @@ function GenrePill({
 
 type GenreNavigationClientProps = {
   genres: Genre[];
-  mediaType: 'movie' | 'tv';
 };
 
 export function GenreNavigationClient({ genres }: GenreNavigationClientProps) {
