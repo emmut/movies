@@ -10,6 +10,7 @@ import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
+import { ITEMS_PER_PAGE } from '@/lib/config';
 import { queryKeys } from '@/lib/query-keys';
 import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
 import { MovieDetails } from '@/types/movie';
@@ -95,7 +96,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
 
       {isLoadingList ? (
         <div className="grid grid-cols-2 gap-4 @5xl:grid-cols-4 @8xl:grid-cols-5">
-          {Array.from({ length: 12 }).map((_, i) => (
+          {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
             <Skeleton key={i} className="aspect-2/3 w-full rounded-lg" />
           ))}
         </div>

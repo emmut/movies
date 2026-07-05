@@ -4,7 +4,7 @@ import { ITEMS_PER_PAGE } from '@/lib/config';
 /**
  * Displays a skeleton placeholder UI for the watchlist page while content is loading.
  *
- * Renders a header section and a responsive grid of 12 placeholder cards to simulate the layout of the watchlist.
+ * Renders a header section and a responsive grid of placeholder cards to simulate the layout of the watchlist.
  */
 export default function WatchlistLoading() {
   return (
