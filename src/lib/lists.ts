@@ -21,7 +21,7 @@ import {
   updateListSchema,
 } from '@/lib/validations';
 
-import { ITEMS_PER_PAGE } from './config';
+import { ITEMS_PER_PAGE, LISTS_PER_PAGE } from './config';
 
 export interface LocalList {
   id: string;
@@ -104,7 +104,7 @@ export async function getUserListsPaginated(page: number = 1) {
       .where(eq(lists.userId, user.id));
 
     const totalItems = totalCountResult[0]?.count ?? 0;
-    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(totalItems / LISTS_PER_PAGE);
     const currentPage = Math.max(1, Math.min(page, totalPages));
 
     if (totalItems === 0) {
@@ -113,11 +113,11 @@ export async function getUserListsPaginated(page: number = 1) {
         totalItems: 0,
         totalPages: 0,
         currentPage,
-        itemsPerPage: ITEMS_PER_PAGE,
+        itemsPerPage: LISTS_PER_PAGE,
       };
     }
 
-    const offset = Math.max(0, (currentPage - 1) * ITEMS_PER_PAGE);
+    const offset = Math.max(0, (currentPage - 1) * LISTS_PER_PAGE);
     const listsWithCounts = await db
       .select({
         id: lists.id,
@@ -133,7 +133,7 @@ export async function getUserListsPaginated(page: number = 1) {
       .where(eq(lists.userId, user.id))
       .groupBy(lists.id)
       .orderBy(desc(lists.updatedAt))
-      .limit(ITEMS_PER_PAGE)
+      .limit(LISTS_PER_PAGE)
       .offset(offset);
 
     return {
@@ -141,7 +141,7 @@ export async function getUserListsPaginated(page: number = 1) {
       totalItems,
       totalPages,
       currentPage,
-      itemsPerPage: ITEMS_PER_PAGE,
+      itemsPerPage: LISTS_PER_PAGE,
     };
   } catch (error) {
     console.error('Error fetching paginated user lists:', error);
@@ -151,7 +151,7 @@ export async function getUserListsPaginated(page: number = 1) {
       totalItems: 0,
       totalPages: 0,
       currentPage,
-      itemsPerPage: ITEMS_PER_PAGE,
+      itemsPerPage: LISTS_PER_PAGE,
     };
   }
 }

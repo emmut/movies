@@ -24,7 +24,7 @@ export function ListsGrid({ lists }: ListsGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4">
       {lists.map((list) => (
         <div
           key={list.id}

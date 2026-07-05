@@ -81,12 +81,12 @@ export function ListDetailsContent({
 
   if (isLoading || !paginatedList) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container @container mx-auto px-4 py-8">
         <div className="mb-8">
           <Skeleton className="mb-4 h-10 w-64" />
           <Skeleton className="h-6 w-96" />
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-4 @5xl:grid-cols-4 @8xl:grid-cols-5">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="aspect-2/3 w-full" />
@@ -102,7 +102,7 @@ export function ListDetailsContent({
   const { allItems, totalPages } = paginatedList;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container @container mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <SectionTitle>{paginatedList.name}</SectionTitle>
@@ -154,7 +154,7 @@ export function ListDetailsContent({
       ) : (
         <div
           id="content-container"
-          className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+          className="grid grid-cols-2 gap-4 @5xl:grid-cols-4 @8xl:grid-cols-5"
         >
           {allItems.map((item) =>
             item.resourceType === 'person' ? (

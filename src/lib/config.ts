@@ -48,4 +48,5 @@ export const EMOJI_OPTIONS = [
   '🎤',
 ];
 
-export const ITEMS_PER_PAGE = 24;
+export const ITEMS_PER_PAGE = 20;
+export const LISTS_PER_PAGE = 24;
