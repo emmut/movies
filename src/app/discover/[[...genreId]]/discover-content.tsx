@@ -112,7 +112,7 @@ function DiscoverResults({
   return (
     <div
       id="content-container"
-      className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
+      className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 @4xl:grid-cols-4 @8xl:grid-cols-5"
     >
       <Suspense>
         <DiscoverGrid
@@ -148,7 +148,7 @@ export function DiscoverContent({
   useScrollOnPageChange(page, genreId);
 
   return (
-    <>
+    <div className="@container container mx-auto px-4 py-8">
       <DiscoverHeader />
       <DiscoverToolbar
         genres={genres}
@@ -185,6 +185,6 @@ export function DiscoverContent({
         watchRegion={watchRegion}
         runtimeLte={runtimeLte}
       />
-    </>
+    </div>
   );
 }

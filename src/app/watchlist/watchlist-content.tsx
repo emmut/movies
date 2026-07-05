@@ -70,7 +70,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
   const totalItems = totalMovies + totalTvShows;
 
   return (
-    <div className="container @container mx-auto px-4 py-8">
+    <div className="@container container mx-auto px-4 py-8">
       <div className="mb-8">
         <div className="mb-4 flex items-center gap-4">
           <SectionTitle>My Watchlist</SectionTitle>
@@ -95,7 +95,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
       </div>
 
       {isLoadingList ? (
-        <div className="grid grid-cols-2 gap-4 @5xl:grid-cols-4 @8xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 @4xl:grid-cols-4 @8xl:grid-cols-5">
           {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
             <Skeleton key={i} className="aspect-2/3 w-full rounded-lg" />
           ))}

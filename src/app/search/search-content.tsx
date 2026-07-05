@@ -38,14 +38,14 @@ export function SearchContent({ userId }: SearchContentProps) {
   useScrollOnPageChange(page);
 
   return (
-    <>
-      <div className="mt-4 mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="@container container mx-auto px-4 py-8">
+      <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
         <MediaTypeSelectorDropdown currentMediaType={mediaType} />
       </div>
 
       <div
-        className="mt-8 grid scroll-m-5 grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5"
+        className="mt-8 grid scroll-m-5 grid-cols-2 gap-4 @4xl:grid-cols-4 @8xl:grid-cols-5"
         id="content-container"
       >
         <SearchResults
@@ -57,6 +57,6 @@ export function SearchContent({ userId }: SearchContentProps) {
       </div>
 
       <SearchPagination query={query} page={page} mediaType={mediaType} />
-    </>
+    </div>
   );
 }
