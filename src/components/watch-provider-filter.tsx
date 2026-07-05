@@ -74,7 +74,7 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
 
   return (
     <div className="min-w-54">
-      <Label htmlFor="watch-providers" className="mb-2 flex justify-end sm:self-end">
+      <Label htmlFor="watch-providers" className="mb-2 flex justify-end @3xl:self-end">
         Watch Providers
       </Label>
       <Popover open={isOpen} onOpenChange={setIsOpen}>

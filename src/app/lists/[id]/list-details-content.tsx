@@ -13,6 +13,7 @@ import PersonCard from '@/components/person-card';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
+import { ITEMS_PER_PAGE } from '@/lib/config';
 import { queryKeys } from '@/lib/query-keys';
 import { MovieDetails } from '@/types/movie';
 import { PersonDetails } from '@/types/person';
@@ -81,13 +82,13 @@ export function ListDetailsContent({
 
   if (isLoading || !paginatedList) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="@container w-full px-4 py-8">
         <div className="mb-8">
           <Skeleton className="mb-4 h-10 w-64" />
           <Skeleton className="h-6 w-96" />
         </div>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-          {Array.from({ length: 12 }).map((_, i) => (
+        <div className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4">
+          {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="aspect-2/3 w-full" />
               <Skeleton className="h-4 w-3/4" />
@@ -102,7 +103,7 @@ export function ListDetailsContent({
   const { allItems, totalPages } = paginatedList;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="@container w-full px-4 py-8">
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <SectionTitle>{paginatedList.name}</SectionTitle>
@@ -122,7 +123,7 @@ export function ListDetailsContent({
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
           <div className="flex items-center gap-2">
             <p className="text-zinc-400">
               {paginatedList.itemCount} item
@@ -154,7 +155,7 @@ export function ListDetailsContent({
       ) : (
         <div
           id="content-container"
-          className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+          className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4"
         >
           {allItems.map((item) =>
             item.resourceType === 'person' ? (

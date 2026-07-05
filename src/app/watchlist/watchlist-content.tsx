@@ -10,6 +10,7 @@ import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
+import { ITEMS_PER_PAGE } from '@/lib/config';
 import { queryKeys } from '@/lib/query-keys';
 import { getWatchlistCount, getWatchlistWithResourceDetailsPaginated } from '@/lib/watchlist';
 import { MovieDetails } from '@/types/movie';
@@ -69,13 +70,13 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
   const totalItems = totalMovies + totalTvShows;
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="@container w-full px-4 py-8">
       <div className="mb-8">
         <div className="mb-4 flex items-center gap-4">
           <SectionTitle>My Watchlist</SectionTitle>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
           <div className="flex items-center gap-2">
             <p className="text-zinc-400">
               {mediaType === 'movie'
@@ -94,13 +95,9 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
       </div>
 
       {isLoadingList ? (
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <Skeleton className="aspect-2/3 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
+        <div className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4">
+          {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+            <Skeleton key={i} className="aspect-2/3 w-full rounded-lg" />
           ))}
         </div>
       ) : filteredItems.length === 0 ? (
@@ -126,7 +123,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
       ) : (
         <div
           id="content-container"
-          className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+          className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4"
         >
           {filteredItems
             .filter((item) => item !== null)

@@ -12,10 +12,10 @@ import { ITEMS_PER_PAGE } from '@/lib/config';
  */
 export default function ListDetailsLoading() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="@container w-full px-4 py-8">
       {/* Header section */}
       <div className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <Skeleton className="h-8 w-48" />
           <div className="flex items-center gap-2">
             <Skeleton className="h-9 w-20" />
@@ -23,7 +23,7 @@ export default function ListDetailsLoading() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-4 w-24" />
@@ -38,7 +38,7 @@ export default function ListDetailsLoading() {
       </div>
 
       {/* Items grid */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+      <div className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4">
         {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="aspect-2/3 w-full rounded-lg" />

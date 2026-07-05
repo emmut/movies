@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm run dev:imgproxy:up && next dev",
-    "dev:imgproxy:up": "docker compose -f docker-compose.dev.yml up -d",
-    "dev:imgproxy:down": "docker compose -f docker-compose.dev.yml down",
+    "dev": "pnpm run dev:docker:up && next dev",
+    "dev:docker:up": "docker compose -f docker-compose.dev.yml up -d",
+    "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
     "build": "pnpm lint && next build",
     "start": "next start",
     "lint": "oxlint .",
@@ -25,7 +25,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "seed": "tsx --env-file=.env scripts/seed-watchlist-and-lists.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -72,6 +73,7 @@
     "oxlint": "^1.72.0",
     "oxlint-tsgolint": "^0.24.0",
     "shadcn": "^4.13.0",
+    "tsx": "^4.23.0",
     "typescript": "6.0.3",
     "vitest": "^4.1.9"
   },

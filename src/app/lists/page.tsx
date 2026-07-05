@@ -38,14 +38,14 @@ export default async function ListsPage(props: ListsPageProps) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="@container w-full px-4 py-8">
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <SectionTitle>My Lists</SectionTitle>
           <CreateListDialog />
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
           <div className="flex items-center gap-2">
             <p className="text-zinc-400">
               {totalListsCount} list{totalListsCount !== 1 ? 's' : ''} created

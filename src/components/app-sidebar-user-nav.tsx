@@ -2,6 +2,7 @@ import { getSession } from '@/lib/auth-server';
 
 import { NavLink } from './nav-link';
 import { Skeleton } from './ui/skeleton';
+import { SidebarMenuItem } from './ui/sidebar';
 
 const userNavItems = [
   {
@@ -35,9 +36,20 @@ export async function UserNav() {
 function UserNavGhost() {
   return (
     <>
-      <Skeleton className="mb-2 h-8 w-full" />
-      <Skeleton className="h-8 w-full" />
+      <NavGhostItem />
+      <NavGhostItem />
     </>
+  );
+}
+
+function NavGhostItem() {
+  return (
+    <SidebarMenuItem>
+      <div className="flex w-full items-center gap-2 rounded-md p-2">
+        <Skeleton className="h-4 w-4 shrink-0" />
+        <Skeleton className="h-4 flex-1" />
+      </div>
+    </SidebarMenuItem>
   );
 }
 

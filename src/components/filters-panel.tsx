@@ -21,10 +21,10 @@ type FiltersPanelProps = {
  */
 export default function FiltersPanel({ mediaType, watchProviders, userRegion }: FiltersPanelProps) {
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="@container space-y-4">
+      <div className="flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between">
         <SortByFilter mediaType={mediaType} />
-        <RuntimeFilter className="md:mr-auto" />
+        <RuntimeFilter className="@3xl:mr-auto" />
         <WatchProviderFilter providers={watchProviders} userRegion={userRegion} />
       </div>
     </div>

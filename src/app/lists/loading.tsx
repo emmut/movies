@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
-import { ITEMS_PER_PAGE } from '@/lib/config';
+import { LISTS_PER_PAGE } from '@/lib/config';
 
 /**
  * Loading skeleton for the lists page.
@@ -12,15 +12,15 @@ import { ITEMS_PER_PAGE } from '@/lib/config';
  */
 export default function ListsLoading() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="@container w-full px-4 py-8">
       {/* Header section */}
       <div className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-9 w-28" />
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-4 w-20" />
@@ -29,8 +29,8 @@ export default function ListsLoading() {
       </div>
 
       {/* Lists grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+      <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4">
+        {Array.from({ length: LISTS_PER_PAGE }).map((_, i) => (
           <div
             key={i}
             className="relative block min-h-[200px] overflow-hidden rounded-lg border border-muted bg-muted/60 p-6"
