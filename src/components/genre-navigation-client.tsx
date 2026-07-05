@@ -2,6 +2,7 @@
 
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
+
 import Pill from './pill';
 
 type Genre = {
@@ -66,8 +67,8 @@ export function GenreNavigationClient({ genres }: GenreNavigationClientProps) {
   }
 
   return (
-    <nav>
-      <ul className="flex max-w-(--breakpoint-lg) flex-wrap gap-2 pt-3">
+    <nav className="min-w-0">
+      <ul className="flex max-w-full flex-wrap gap-2 pt-3">
         {genres.map((genre) => (
           <li key={genre.id}>
             <GenrePill

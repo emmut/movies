@@ -82,7 +82,7 @@ type DiscoverToolbarProps = {
 
 function DiscoverToolbar({ genres, mediaType, movieGenres, tvGenres }: DiscoverToolbarProps) {
   return (
-    <div className="relative mt-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="@container relative mt-4 flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
       <div className="flex flex-1 flex-wrap gap-2">
         <GenreNavigationClient genres={genres} />
       </div>
@@ -112,7 +112,7 @@ function DiscoverResults({
   return (
     <div
       id="content-container"
-      className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 @4xl:grid-cols-4 @8xl:grid-cols-5"
+      className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
     >
       <Suspense>
         <DiscoverGrid

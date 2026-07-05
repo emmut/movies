@@ -9,7 +9,7 @@ export default function Loading() {
         <div className="h-10 w-32 animate-pulse rounded-md bg-neutral-50/10" />
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-4 @4xl:grid-cols-4 @8xl:grid-cols-5">
+      <div className="mt-8 grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
         <ItemGrid.Skeletons className="w-full" />
       </div>
 

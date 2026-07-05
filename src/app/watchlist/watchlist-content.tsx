@@ -95,7 +95,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
       </div>
 
       {isLoadingList ? (
-        <div className="grid grid-cols-2 gap-4 @4xl:grid-cols-4 @8xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
           {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
             <Skeleton key={i} className="aspect-2/3 w-full rounded-lg" />
           ))}
