@@ -3,7 +3,7 @@ import SectionTitle from '@/components/section-title';
 
 export default function Loading() {
   return (
-    <div className="@container w-full px-4 py-8">
+    <div className="@container w-full">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
         <div className="h-10 w-32 animate-pulse rounded-md bg-neutral-50/10" />
