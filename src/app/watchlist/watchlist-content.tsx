@@ -76,7 +76,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
           <SectionTitle>My Watchlist</SectionTitle>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
           <div className="flex items-center gap-2">
             <p className="text-zinc-400">
               {mediaType === 'movie'
@@ -95,7 +95,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
       </div>
 
       {isLoadingList ? (
-        <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
+        <div className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4">
           {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
             <Skeleton key={i} className="aspect-2/3 w-full rounded-lg" />
           ))}
@@ -123,7 +123,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
       ) : (
         <div
           id="content-container"
-          className="grid grid-cols-2 gap-4 @5xl:grid-cols-4 @8xl:grid-cols-5"
+          className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4"
         >
           {filteredItems
             .filter((item) => item !== null)

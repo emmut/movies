@@ -87,7 +87,7 @@ export function ListDetailsContent({
           <Skeleton className="mb-4 h-10 w-64" />
           <Skeleton className="h-6 w-96" />
         </div>
-        <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
+        <div className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4">
           {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="aspect-2/3 w-full" />
@@ -123,7 +123,7 @@ export function ListDetailsContent({
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
           <div className="flex items-center gap-2">
             <p className="text-zinc-400">
               {paginatedList.itemCount} item
@@ -155,7 +155,7 @@ export function ListDetailsContent({
       ) : (
         <div
           id="content-container"
-          className="grid grid-cols-2 gap-4 @5xl:grid-cols-4 @8xl:grid-cols-5"
+          className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4"
         >
           {allItems.map((item) =>
             item.resourceType === 'person' ? (

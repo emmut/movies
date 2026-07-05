@@ -12,15 +12,15 @@ import { LISTS_PER_PAGE } from '@/lib/config';
  */
 export default function ListsLoading() {
   return (
-    <div className="container @container mx-auto px-4 py-8">
+    <div className="@container container mx-auto px-4 py-8">
       {/* Header section */}
       <div className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-9 w-28" />
         </div>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-4 w-20" />
