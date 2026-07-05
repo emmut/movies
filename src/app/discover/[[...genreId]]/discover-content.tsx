@@ -148,7 +148,7 @@ export function DiscoverContent({
   useScrollOnPageChange(page, genreId);
 
   return (
-    <div className="@container w-full px-4 py-8">
+    <div className="@container w-full">
       <DiscoverHeader />
       <DiscoverToolbar
         genres={genres}

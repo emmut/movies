@@ -12,7 +12,7 @@ import { LISTS_PER_PAGE } from '@/lib/config';
  */
 export default function ListsLoading() {
   return (
-    <div className="@container w-full px-4 py-8">
+    <div className="@container w-full">
       {/* Header section */}
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">

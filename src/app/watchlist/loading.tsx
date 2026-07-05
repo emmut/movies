@@ -8,7 +8,7 @@ import { ITEMS_PER_PAGE } from '@/lib/config';
  */
 export default function WatchlistLoading() {
   return (
-    <div className="@container w-full px-4 py-8">
+    <div className="@container w-full">
       <div className="mb-8">
         <Skeleton className="mb-2 h-8 w-48" />
         <Skeleton className="h-4 w-64" />

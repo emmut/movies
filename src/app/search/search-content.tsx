@@ -38,7 +38,7 @@ export function SearchContent({ userId }: SearchContentProps) {
   useScrollOnPageChange(page);
 
   return (
-    <div className="@container w-full px-4 py-8">
+    <div className="@container w-full">
       <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
         <MediaTypeSelectorDropdown currentMediaType={mediaType} />
