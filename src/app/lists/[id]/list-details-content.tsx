@@ -82,7 +82,7 @@ export function ListDetailsContent({
 
   if (isLoading || !paginatedList) {
     return (
-      <div className="@container container mx-auto px-4 py-8">
+      <div className="@container w-full px-4 py-8">
         <div className="mb-8">
           <Skeleton className="mb-4 h-10 w-64" />
           <Skeleton className="h-6 w-96" />
@@ -103,7 +103,7 @@ export function ListDetailsContent({
   const { allItems, totalPages } = paginatedList;
 
   return (
-    <div className="@container container mx-auto px-4 py-8">
+    <div className="@container w-full px-4 py-8">
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <SectionTitle>{paginatedList.name}</SectionTitle>

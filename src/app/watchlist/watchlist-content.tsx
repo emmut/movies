@@ -70,7 +70,7 @@ export function WatchlistContent({ userId }: WatchlistContentProps) {
   const totalItems = totalMovies + totalTvShows;
 
   return (
-    <div className="@container container mx-auto px-4 py-8">
+    <div className="@container w-full px-4 py-8">
       <div className="mb-8">
         <div className="mb-4 flex items-center gap-4">
           <SectionTitle>My Watchlist</SectionTitle>

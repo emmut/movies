@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/auth-server';
 
 import { NavLink } from './nav-link';
-import { Skeleton } from './ui/skeleton';
+import { SidebarMenuSkeleton } from './ui/sidebar';
 
 const userNavItems = [
   {
@@ -35,8 +35,8 @@ export async function UserNav() {
 function UserNavGhost() {
   return (
     <>
-      <Skeleton className="mb-2 h-8 w-full" />
-      <Skeleton className="h-8 w-full" />
+      <SidebarMenuSkeleton />
+      <SidebarMenuSkeleton />
     </>
   );
 }
