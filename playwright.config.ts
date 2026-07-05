@@ -12,11 +12,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  // printSteps streams each action (goto, click, expect) to stdout so a local
-  // run reads as a play-by-play of what the test is doing.
-  reporter: process.env.CI
-    ? [['github'], ['html', { open: 'never' }]]
-    : [['list', { printSteps: true }]],
+  reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL,
     trace: 'on-first-retry',
