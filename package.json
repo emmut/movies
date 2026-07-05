@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm run dev:imgproxy:up && next dev",
-    "dev:imgproxy:up": "docker compose -f docker-compose.dev.yml up -d",
-    "dev:imgproxy:down": "docker compose -f docker-compose.dev.yml down",
+    "dev": "pnpm run dev:docker:up && next dev",
+    "dev:docker:up": "docker compose -f docker-compose.dev.yml up -d",
+    "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
     "build": "pnpm lint && next build",
     "start": "next start",
     "lint": "oxlint .",
