@@ -89,7 +89,7 @@ export function DeleteListButton({
           <AlertDialogAction
             onClick={handleDelete}
             disabled={isLoading}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            variant="destructive"
           >
             {isLoading ? 'Deleting...' : 'Delete List'}
           </AlertDialogAction>
