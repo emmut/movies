@@ -67,14 +67,17 @@ function toSearchCommandItem(result: MultiResult): SearchCommandItem | null {
 }
 
 /**
- * Maps raw multi-search results to command-palette rows, dropping unsupported
+ * Maps a multi-search response to command-palette rows, dropping unsupported
  * media types (e.g. collections) and capping the list.
  *
- * @param results - Results from a TMDB multi search
+ * @param data - The multi search result, or undefined while nothing has loaded
  * @param limit - Maximum number of rows to return
  */
-export function toSearchCommandItems(results: MultiResult[], limit = 8): SearchCommandItem[] {
-  return results
+export function toSearchCommandItems(
+  data: SearchMultiResult | undefined,
+  limit = 8,
+): SearchCommandItem[] {
+  return (data?.results ?? [])
     .map(toSearchCommandItem)
     .filter((item): item is SearchCommandItem => item !== null)
     .slice(0, limit);

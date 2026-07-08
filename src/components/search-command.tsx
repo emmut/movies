@@ -161,14 +161,14 @@ function SearchCommandInput({ query, isFetching, onChange, onKeyDown }: SearchCo
 }
 
 type SearchCommandFooterProps = {
-  show: boolean;
+  itemCount: number;
   href: string;
   query: string;
   onNavigate: (href: string) => void;
 };
 
-function SearchCommandFooter({ show, href, query, onNavigate }: SearchCommandFooterProps) {
-  if (!show) {
+function SearchCommandFooter({ itemCount, href, query, onNavigate }: SearchCommandFooterProps) {
+  if (!query || itemCount === 0) {
     return null;
   }
 
@@ -193,21 +193,29 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
   const [activeIndex, setActiveIndex] = useState(0);
 
   const debouncedQuery = useDebouncedValue(query.trim(), 250);
-  const { data, isLoading, isFetching } = useSearchMulti({
+  const { data, isLoading, isFetching, isPlaceholderData } = useSearchMulti({
     query: debouncedQuery,
     page: 1,
     keepPrevious: true,
   });
 
-  const items = toSearchCommandItems(data?.results ?? [], RESULT_LIMIT);
+  const items = toSearchCommandItems(data, RESULT_LIMIT);
   const clampedIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));
   const trimmedQuery = query.trim();
   const seeAllHref = `/search?q=${encodeURIComponent(trimmedQuery)}`;
+  // While the debounce or fetch is behind the input, `items` still shows the
+  // previous query's rows; Enter must not navigate to one of those.
+  const resultsAreFresh = trimmedQuery === debouncedQuery && !isPlaceholderData;
 
   function submit() {
-    const href = items[clampedIndex] ? items[clampedIndex].href : trimmedQuery ? seeAllHref : null;
-    if (href) {
-      onNavigate(href);
+    const item = resultsAreFresh ? items[clampedIndex] : undefined;
+    if (item) {
+      onNavigate(item.href);
+      return;
+    }
+
+    if (trimmedQuery) {
+      onNavigate(seeAllHref);
     }
   }
 
@@ -238,7 +246,7 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
         onChange={onQueryChange}
         onKeyDown={onInputKeyDown}
       />
-      <div className="max-h-96 overflow-y-auto p-2">
+      <div className={cn('max-h-96 overflow-y-auto p-2', !resultsAreFresh && 'opacity-60')}>
         <SearchCommandBody
           query={trimmedQuery}
           isLoading={isLoading}
@@ -249,7 +257,7 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
         />
       </div>
       <SearchCommandFooter
-        show={trimmedQuery.length > 0 && items.length > 0}
+        itemCount={items.length}
         href={seeAllHref}
         query={trimmedQuery}
         onNavigate={onNavigate}

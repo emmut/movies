@@ -8,6 +8,10 @@ type MultiResult = SearchMultiResult['results'][number];
 
 const imageUrls = { src: 'src', srcSetAvif: 'avif', srcSetWebp: 'webp' };
 
+function multiResult(results: MultiResult[]): SearchMultiResult {
+  return { results, totalPages: 1 };
+}
+
 function movie(overrides: Partial<MultiResult> = {}): MultiResult {
   return {
     id: 1,
@@ -21,7 +25,9 @@ function movie(overrides: Partial<MultiResult> = {}): MultiResult {
 
 describe('toSearchCommandItems', () => {
   it('maps a movie to a palette row', () => {
-    const [item] = toSearchCommandItems([movie({ posterImageUrls: imageUrls } as never)]);
+    const [item] = toSearchCommandItems(
+      multiResult([movie({ posterImageUrls: imageUrls } as never)]),
+    );
 
     expect(item).toEqual({
       key: 'movie-1',
@@ -37,15 +43,17 @@ describe('toSearchCommandItems', () => {
   });
 
   it('maps a tv show to a palette row', () => {
-    const [item] = toSearchCommandItems([
-      {
-        id: 2,
-        media_type: 'tv',
-        name: 'The Office',
-        first_air_date: '2005-03-24',
-        poster_path: null,
-      } as MultiResult,
-    ]);
+    const [item] = toSearchCommandItems(
+      multiResult([
+        {
+          id: 2,
+          media_type: 'tv',
+          name: 'The Office',
+          first_air_date: '2005-03-24',
+          poster_path: null,
+        } as MultiResult,
+      ]),
+    );
 
     expect(item).toMatchObject({
       key: 'tv-2',
@@ -59,15 +67,17 @@ describe('toSearchCommandItems', () => {
   });
 
   it('maps a person to a palette row', () => {
-    const [item] = toSearchCommandItems([
-      {
-        id: 3,
-        media_type: 'person',
-        name: 'Keanu Reeves',
-        known_for_department: 'Acting',
-        profile_path: '/keanu.jpg',
-      } as MultiResult,
-    ]);
+    const [item] = toSearchCommandItems(
+      multiResult([
+        {
+          id: 3,
+          media_type: 'person',
+          name: 'Keanu Reeves',
+          known_for_department: 'Acting',
+          profile_path: '/keanu.jpg',
+        } as MultiResult,
+      ]),
+    );
 
     expect(item).toMatchObject({
       key: 'person-3',
@@ -80,15 +90,14 @@ describe('toSearchCommandItems', () => {
   });
 
   it('leaves the subtitle empty when dates are missing', () => {
-    const [item] = toSearchCommandItems([movie({ release_date: '' })]);
+    const [item] = toSearchCommandItems(multiResult([movie({ release_date: '' })]));
     expect(item.subtitle).toBe('');
   });
 
   it('drops unsupported media types', () => {
-    const items = toSearchCommandItems([
-      { id: 4, media_type: 'collection' } as unknown as MultiResult,
-      movie(),
-    ]);
+    const items = toSearchCommandItems(
+      multiResult([{ id: 4, media_type: 'collection' } as unknown as MultiResult, movie()]),
+    );
 
     expect(items).toHaveLength(1);
     expect(items[0].key).toBe('movie-1');
@@ -96,8 +105,12 @@ describe('toSearchCommandItems', () => {
 
   it('caps the list at the given limit', () => {
     const results = Array.from({ length: 12 }, (_, index) => movie({ id: index + 1 }));
-    expect(toSearchCommandItems(results)).toHaveLength(8);
-    expect(toSearchCommandItems(results, 3)).toHaveLength(3);
+    expect(toSearchCommandItems(multiResult(results))).toHaveLength(8);
+    expect(toSearchCommandItems(multiResult(results), 3)).toHaveLength(3);
+  });
+
+  it('returns an empty list while no data has loaded', () => {
+    expect(toSearchCommandItems(undefined)).toEqual([]);
   });
 });
 
