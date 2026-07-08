@@ -272,7 +272,15 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
         onChange={onQueryChange}
         onKeyDown={onInputKeyDown}
       />
-      <div className={cn('max-h-96 overflow-y-auto p-2', !resultsAreFresh && 'opacity-60')}>
+      {/* Stale rows (previous query, kept by keepPreviousData) are dimmed AND
+          inert — a click during the debounce/fetch window must not route to
+          the previous query's result. */}
+      <div
+        className={cn(
+          'max-h-96 overflow-y-auto p-2',
+          !resultsAreFresh && 'pointer-events-none opacity-60',
+        )}
+      >
         <SearchCommandBody
           query={trimmedQuery}
           isLoading={isLoading}
