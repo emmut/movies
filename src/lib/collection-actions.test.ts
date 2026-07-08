@@ -2,17 +2,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/db', () => ({ db: { delete: vi.fn(), insert: vi.fn() } }));
 vi.mock('@/lib/auth-server', () => ({ requireUser: vi.fn() }));
-vi.mock('@/lib/cache-invalidation', () => ({ revalidateUserWatchlistCache: vi.fn() }));
+vi.mock('@/lib/cache-invalidation', () => ({ revalidateUserCollectionCache: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
 import { revalidatePath } from 'next/cache';
 
 import { requireUser } from '@/lib/auth-server';
-import { revalidateUserWatchlistCache } from '@/lib/cache-invalidation';
+import { revalidateUserCollectionCache } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
 import { chain } from '@/test/db-chain';
 
-import { toggleWatchlist } from './watchlist-actions';
+import { toggleCollection } from './collection-actions';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -21,11 +21,15 @@ beforeEach(() => {
   vi.mocked(db.insert).mockReturnValue(chain([{ id: 'row-1' }]));
 });
 
-describe('toggleWatchlist', () => {
+describe('toggleCollection', () => {
   it('removes the item when a row was deleted, without inserting', async () => {
     vi.mocked(db.delete).mockReturnValue(chain([{ id: 'row-1' }]));
 
-    const result = await toggleWatchlist({ resourceId: 5, resourceType: 'movie' });
+    const result = await toggleCollection({
+      collection: 'watchlist',
+      resourceId: 5,
+      resourceType: 'movie',
+    });
 
     expect(result).toEqual({ success: true, action: 'removed' });
     expect(db.delete).toHaveBeenCalledTimes(1);
@@ -35,7 +39,11 @@ describe('toggleWatchlist', () => {
   it('adds the item when nothing was deleted', async () => {
     vi.mocked(db.delete).mockReturnValue(chain([]));
 
-    const result = await toggleWatchlist({ resourceId: 5, resourceType: 'tv' });
+    const result = await toggleCollection({
+      collection: 'watched',
+      resourceId: 5,
+      resourceType: 'tv',
+    });
 
     expect(result).toEqual({ success: true, action: 'added' });
     expect(db.insert).toHaveBeenCalledTimes(1);
@@ -46,37 +54,46 @@ describe('toggleWatchlist', () => {
     // Insert was suppressed by the conflict: no row returned.
     vi.mocked(db.insert).mockReturnValue(chain([]));
 
-    const result = await toggleWatchlist({ resourceId: 5, resourceType: 'movie' });
+    const result = await toggleCollection({
+      collection: 'watchlist',
+      resourceId: 5,
+      resourceType: 'movie',
+    });
 
     expect(result).toEqual({ success: true, action: 'unchanged' });
     expect(db.insert).toHaveBeenCalledTimes(1);
   });
 
-  it('revalidates the watchlist cache and resource paths', async () => {
+  it('revalidates the collection cache, the resource page, and the collection page', async () => {
     vi.mocked(db.delete).mockReturnValue(chain([]));
 
-    await toggleWatchlist({ resourceId: 7, resourceType: 'movie' });
+    await toggleCollection({ collection: 'watched', resourceId: 7, resourceType: 'movie' });
 
-    expect(revalidateUserWatchlistCache).toHaveBeenCalledWith('user-1', 'movie', 7);
+    expect(revalidateUserCollectionCache).toHaveBeenCalledWith('user-1', 'watched', 'movie', 7);
     expect(revalidatePath).toHaveBeenCalledWith('/movie/7');
-    expect(revalidatePath).toHaveBeenCalledWith('/watchlist');
+    expect(revalidatePath).toHaveBeenCalledWith('/watched');
   });
 
-  it('rejects invalid resource ids before touching the database', async () => {
-    await expect(toggleWatchlist({ resourceId: 0, resourceType: 'movie' })).rejects.toThrow();
+  it('rejects invalid input before touching the database', async () => {
     await expect(
-      toggleWatchlist({ resourceId: 1, resourceType: 'person' as never }),
+      toggleCollection({ collection: 'watchlist', resourceId: 0, resourceType: 'movie' }),
+    ).rejects.toThrow();
+    await expect(
+      toggleCollection({ collection: 'favorites', resourceId: 1, resourceType: 'movie' }),
+    ).rejects.toThrow();
+    await expect(
+      toggleCollection({ collection: 'watchlist', resourceId: 1, resourceType: 'person' }),
     ).rejects.toThrow();
     expect(db.delete).not.toHaveBeenCalled();
   });
 
-  it('wraps database failures in a generic error', async () => {
+  it('wraps database failures in a collection-specific error', async () => {
     vi.mocked(db.delete).mockImplementation(() => {
       throw new Error('connection lost');
     });
 
-    await expect(toggleWatchlist({ resourceId: 1, resourceType: 'movie' })).rejects.toThrow(
-      'Failed to update watchlist',
-    );
+    await expect(
+      toggleCollection({ collection: 'watchlist', resourceId: 1, resourceType: 'movie' }),
+    ).rejects.toThrow('Failed to update watchlist');
   });
 });

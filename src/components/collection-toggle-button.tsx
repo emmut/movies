@@ -1,36 +1,62 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { CircleCheck, Eye, Star } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { toggleCollection } from '@/lib/collection-actions';
+import { CollectionKind } from '@/lib/collections-config';
+import { queryKeys } from '@/lib/query-keys';
 import { cn } from '@/lib/utils';
 
-type ToggleAction = (params: { resourceId: number; resourceType: string }) => Promise<unknown>;
-
-type CollectionToggleState = {
+type ToggleView = {
   icon: ReactNode;
   label: string;
   ariaLabel: string;
 };
 
-export type CollectionToggleButtonProps = {
+const TOGGLE_VIEWS: Record<CollectionKind, { active: ToggleView; inactive: ToggleView }> = {
+  watchlist: {
+    active: {
+      icon: <Star className="h-4 w-4 fill-current" />,
+      label: 'In Watchlist',
+      ariaLabel: 'Remove from Watchlist',
+    },
+    inactive: {
+      icon: <Star className="h-4 w-4" />,
+      label: 'Add to Watchlist',
+      ariaLabel: 'Add to Watchlist',
+    },
+  },
+  watched: {
+    active: {
+      icon: <CircleCheck className="h-4 w-4" />,
+      label: 'Watched',
+      ariaLabel: 'Mark as not watched',
+    },
+    inactive: {
+      icon: <Eye className="h-4 w-4" />,
+      label: 'Mark as Watched',
+      ariaLabel: 'Mark as watched',
+    },
+  },
+};
+
+type CollectionToggleButtonProps = {
+  collection: CollectionKind;
   resourceId: number;
   resourceType: string;
   isActive: boolean;
   userId?: string;
   className?: string;
-  action: ToggleAction;
-  invalidateKey: readonly unknown[];
-  active: CollectionToggleState;
-  inactive: CollectionToggleState;
 };
 
 // Not useOptimistic/useTransition: the toggle's revalidatePath makes Next
 // intermittently never settle the transition, wedging isPending at true and
 // the button disabled (https://github.com/vercel/next.js/discussions/82289).
 // Manual pending state with a finally block cannot wedge.
-function useCollectionToggle(isActive: boolean, toggle: () => Promise<void>) {
+function useOptimisticToggle(isActive: boolean, toggle: () => Promise<void>) {
   const [isPending, setIsPending] = useState(false);
   const [localIsActive, setLocalIsActive] = useState(isActive);
   const [prevIsActive, setPrevIsActive] = useState(isActive);
@@ -76,32 +102,30 @@ function StackedLabels({ current, other }: { current: string; other: string }) {
 }
 
 /**
- * Toggle button for per-user resource collections (watchlist, watched).
- * Optimistically flips its state, calls the server action, and invalidates
- * the collection's React Query cache; rolls back on failure.
+ * Toggle button for a user collection (watchlist, watched). Optimistically
+ * flips its state, calls the toggle action, and invalidates the collection's
+ * React Query cache; rolls back on failure. Hidden for anonymous visitors.
  */
 export function CollectionToggleButton({
+  collection,
   resourceId,
   resourceType,
   isActive,
   userId,
   className,
-  action,
-  invalidateKey,
-  active,
-  inactive,
 }: CollectionToggleButtonProps) {
   const queryClient = useQueryClient();
-  const { isPending, localIsActive, handleToggle } = useCollectionToggle(isActive, async () => {
-    await action({ resourceId, resourceType });
-    void queryClient.invalidateQueries({ queryKey: invalidateKey });
+  const { isPending, localIsActive, handleToggle } = useOptimisticToggle(isActive, async () => {
+    await toggleCollection({ collection, resourceId, resourceType });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.collections.kind(collection) });
   });
 
   if (!userId) {
     return null;
   }
 
-  const [current, other] = localIsActive ? [active, inactive] : [inactive, active];
+  const views = TOGGLE_VIEWS[collection];
+  const [current, other] = localIsActive ? [views.active, views.inactive] : [views.inactive, views.active];
 
   return (
     <Button

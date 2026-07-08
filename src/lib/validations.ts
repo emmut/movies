@@ -1,5 +1,6 @@
 import { z } from 'zod/v4';
 
+import { COLLECTION_KINDS } from '@/lib/collections-config';
 import { EMOJI_OPTIONS } from '@/lib/config';
 
 /**
@@ -21,6 +22,26 @@ export const resourceIdNumberSchema = z
   .positive('Resource ID must be a positive integer');
 
 export const resourceTypeSchema = z.enum(['movie', 'tv']);
+
+export const collectionKindSchema = z.enum(COLLECTION_KINDS);
+
+/**
+ * Schema for toggling a resource in a user collection.
+ */
+export const toggleCollectionSchema = z.object({
+  collection: collectionKindSchema,
+  resourceId: z.number().int().positive('Resource ID must be a positive integer'),
+  resourceType: z.enum(['movie', 'tv']),
+});
+
+/**
+ * Schema for reading a page of a user collection.
+ */
+export const collectionQuerySchema = z.object({
+  collection: collectionKindSchema,
+  resourceType: resourceTypeSchema,
+  page: z.number().int().min(1),
+});
 
 /**
  * Schema for movie page route parameters

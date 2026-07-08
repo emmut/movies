@@ -10,21 +10,22 @@ import { PaginationControls } from '@/components/pagination-controls';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import SectionTitle from '@/components/section-title';
 import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
+import { CollectionPage, getCollectionCount, getCollectionPage } from '@/lib/collections';
 import {
   COLLECTION_GC_TIME,
   COLLECTION_STALE_TIME,
-  CollectionCountFetcher,
-  CollectionMediaType,
-  CollectionPageData,
-  CollectionPageFetcher,
-  CollectionQueryKeys,
-} from '@/lib/collection-query';
+  CollectionKind,
+} from '@/lib/collections-config';
+import { queryKeys } from '@/lib/query-keys';
+
+type MediaType = 'movie' | 'tv';
+
 const MEDIA_META = {
   movie: { emoji: '🎬', singular: 'movie', plural: 'movies', explore: 'Movies' },
   tv: { emoji: '📺', singular: 'TV show', plural: 'TV shows', explore: 'TV Shows' },
 } as const;
 
-export type CollectionCopy = {
+type CollectionCopy = {
   title: string;
   /** Follows the item count, e.g. "3 movies saved" / "3 movies watched". */
   countVerb: string;
@@ -32,41 +33,49 @@ export type CollectionCopy = {
   emptyHint: (mediaLabel: string, isCollectionEmpty: boolean) => string;
 };
 
-type CollectionContentProps = {
-  userId?: string;
-  copy: CollectionCopy;
-  pageType: 'watchlist' | 'watched';
-  keys: CollectionQueryKeys;
-  fetchPage: CollectionPageFetcher;
-  fetchCount: CollectionCountFetcher;
+const COLLECTION_COPY: Record<CollectionKind, CollectionCopy> = {
+  watchlist: {
+    title: 'My Watchlist',
+    countVerb: 'saved',
+    emptyTitle: (mediaLabel, isCollectionEmpty) =>
+      isCollectionEmpty ? 'Your watchlist is empty' : `No ${mediaLabel} in your watchlist`,
+    emptyHint: (mediaLabel, isCollectionEmpty) =>
+      isCollectionEmpty
+        ? `Start adding ${mediaLabel} by clicking the star on any detail page`
+        : `Add some ${mediaLabel} to see them here`,
+  },
+  watched: {
+    title: 'Watched',
+    countVerb: 'watched',
+    emptyTitle: (mediaLabel, isCollectionEmpty) =>
+      isCollectionEmpty ? "You haven't watched anything yet" : `No ${mediaLabel} watched yet`,
+    emptyHint: (mediaLabel, isCollectionEmpty) =>
+      isCollectionEmpty
+        ? `Mark ${mediaLabel} as watched from any detail page to track them here`
+        : `Mark some ${mediaLabel} as watched to see them here`,
+  },
 };
 
-function useCollectionCount(
-  keys: CollectionQueryKeys,
-  fetchCount: CollectionCountFetcher,
-  mediaType: CollectionMediaType,
-) {
-  const { data = 0 } = useQuery({
-    queryKey: keys.count(mediaType),
-    queryFn: () => fetchCount(mediaType),
-    staleTime: COLLECTION_STALE_TIME,
-    gcTime: COLLECTION_GC_TIME,
-  });
+function useCollectionUrlState() {
+  const [urlState] = useQueryStates(
+    {
+      mediaType: parseAsString.withDefault('movie'),
+      page: parseAsInteger.withDefault(1),
+    },
+    {
+      history: 'push',
+    },
+  );
 
-  return data;
+  return { mediaType: urlState.mediaType as MediaType, page: urlState.page };
 }
 
-const EMPTY_PAGE: CollectionPageData = { items: [], totalPages: 0 };
+const EMPTY_PAGE = { items: [] as CollectionPage['items'], totalPages: 0 };
 
-function useCollectionPage(
-  keys: CollectionQueryKeys,
-  fetchPage: CollectionPageFetcher,
-  mediaType: CollectionMediaType,
-  page: number,
-) {
+function useCollectionPage(collection: CollectionKind, mediaType: MediaType, page: number) {
   const { data, isLoading } = useQuery({
-    queryKey: keys.list(mediaType, page),
-    queryFn: () => fetchPage(mediaType, page),
+    queryKey: queryKeys.collections.list(collection, mediaType, page),
+    queryFn: () => getCollectionPage(collection, mediaType, page),
     staleTime: COLLECTION_STALE_TIME,
     gcTime: COLLECTION_GC_TIME,
   });
@@ -74,8 +83,43 @@ function useCollectionPage(
   return { ...(data ?? EMPTY_PAGE), isLoading };
 }
 
+function useCollectionCount(collection: CollectionKind, mediaType: MediaType) {
+  const { data = 0 } = useQuery({
+    queryKey: queryKeys.collections.count(collection, mediaType),
+    queryFn: () => getCollectionCount(collection, mediaType),
+    staleTime: COLLECTION_STALE_TIME,
+    gcTime: COLLECTION_GC_TIME,
+  });
+
+  return data;
+}
+
+type CollectionSummaryProps = {
+  mediaType: MediaType;
+  typeCount: number;
+  totalItems: number;
+  countVerb: string;
+};
+
+function CollectionSummary({ mediaType, typeCount, totalItems, countVerb }: CollectionSummaryProps) {
+  const meta = MEDIA_META[mediaType];
+
+  return (
+    <div className="flex items-center gap-2">
+      <p className="text-zinc-400">
+        {typeCount} {typeCount === 1 ? meta.singular : meta.plural} {countVerb}
+      </p>
+      {totalItems > 0 && (
+        <span className="text-zinc-500">
+          • Total: {totalItems} item{totalItems !== 1 ? 's' : ''}
+        </span>
+      )}
+    </div>
+  );
+}
+
 type CollectionEmptyStateProps = {
-  mediaType: CollectionMediaType;
+  mediaType: MediaType;
   isCollectionEmpty: boolean;
   copy: CollectionCopy;
 };
@@ -101,91 +145,35 @@ function CollectionEmptyState({ mediaType, isCollectionEmpty, copy }: Collection
 }
 
 type CollectionGridProps = {
-  items: CollectionPageData['items'];
+  items: CollectionPage['items'];
   userId?: string;
 };
 
 function CollectionGrid({ items, userId }: CollectionGridProps) {
   return (
-    <div
-      id="content-container"
-      className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
-    >
-      {items.map((item) => {
-        const resourceType = item.resourceType as CollectionMediaType;
-        return (
-          <ItemCard
-            key={`${resourceType}-${item.id}`}
-            resource={item.resource}
-            type={resourceType}
-            userId={userId}
-          />
-        );
-      })}
+    <div id="content-container" className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
+      {items.map((item) => (
+        <ItemCard
+          key={item.id}
+          resource={item.resource}
+          type={item.resourceType as MediaType}
+          userId={userId}
+        />
+      ))}
     </div>
   );
-}
-
-type CollectionSummaryProps = {
-  mediaType: CollectionMediaType;
-  typeCount: number;
-  totalItems: number;
-  countVerb: string;
-};
-
-function CollectionSummary({
-  mediaType,
-  typeCount,
-  totalItems,
-  countVerb,
-}: CollectionSummaryProps) {
-  const meta = MEDIA_META[mediaType];
-
-  return (
-    <div className="flex items-center gap-2">
-      <p className="text-zinc-400">
-        {typeCount} {typeCount === 1 ? meta.singular : meta.plural} {countVerb}
-      </p>
-      {totalItems > 0 && (
-        <span className="text-zinc-500">
-          • Total: {totalItems} item{totalItems !== 1 ? 's' : ''}
-        </span>
-      )}
-    </div>
-  );
-}
-
-function useCollectionUrlState() {
-  const [urlState] = useQueryStates(
-    {
-      mediaType: parseAsString.withDefault('movie'),
-      page: parseAsInteger.withDefault(1),
-    },
-    {
-      history: 'push',
-    },
-  );
-
-  return { mediaType: urlState.mediaType as CollectionMediaType, page: urlState.page };
 }
 
 type CollectionBodyProps = {
   isLoading: boolean;
-  items: CollectionPageData['items'];
-  mediaType: CollectionMediaType;
+  items: CollectionPage['items'];
+  mediaType: MediaType;
   totalItems: number;
   copy: CollectionCopy;
   userId?: string;
 };
 
-function CollectionBody({
-  isLoading,
-  items,
-  mediaType,
-  totalItems,
-  copy,
-  userId,
-}: CollectionBodyProps) {
+function CollectionBody({ isLoading, items, mediaType, totalItems, copy, userId }: CollectionBodyProps) {
   if (isLoading) {
     return <PosterSkeletonGrid />;
   }
@@ -199,26 +187,25 @@ function CollectionBody({
   return <CollectionGrid items={items} userId={userId} />;
 }
 
+type CollectionContentProps = {
+  collection: CollectionKind;
+  userId?: string;
+};
+
 /**
- * Client component for a per-user collection page (watchlist, watched) with
- * React Query. Uses nuqs to manage URL state, which automatically triggers
- * React Query refetches.
+ * Client content for a user collection page (watchlist, watched). URL state
+ * (media type, page) lives in nuqs; changing it re-keys the React Query
+ * fetches against the collection server functions.
  */
-export function CollectionContent({
-  userId,
-  copy,
-  pageType,
-  keys,
-  fetchPage,
-  fetchCount,
-}: CollectionContentProps) {
+export function CollectionContent({ collection, userId }: CollectionContentProps) {
+  const copy = COLLECTION_COPY[collection];
   const { mediaType, page } = useCollectionUrlState();
 
   useScrollOnPageChange(page);
 
-  const { items, totalPages, isLoading } = useCollectionPage(keys, fetchPage, mediaType, page);
-  const totalMovies = useCollectionCount(keys, fetchCount, 'movie');
-  const totalTvShows = useCollectionCount(keys, fetchCount, 'tv');
+  const { items, totalPages, isLoading } = useCollectionPage(collection, mediaType, page);
+  const totalMovies = useCollectionCount(collection, 'movie');
+  const totalTvShows = useCollectionCount(collection, 'tv');
 
   const totalItems = totalMovies + totalTvShows;
   const showPagination = items.length > 0 && totalPages > 1;
@@ -251,7 +238,7 @@ export function CollectionContent({
         userId={userId}
       />
 
-      {showPagination && <PaginationControls totalPages={totalPages} pageType={pageType} />}
+      {showPagination && <PaginationControls totalPages={totalPages} pageType={collection} />}
     </div>
   );
 }

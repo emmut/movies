@@ -57,6 +57,20 @@
       "when": 1783527771859,
       "tag": "0007_tearful_leech",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1783532147387,
+      "tag": "0008_add-user-collections",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1783532167588,
+      "tag": "0009_migrate-and-drop-legacy-collections",
+      "breakpoints": true
     }
   ]
 }

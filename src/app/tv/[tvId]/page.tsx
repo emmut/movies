@@ -22,8 +22,7 @@ import {
   getTvShowWatchProviders,
 } from '@/lib/tv-shows';
 import { getUserRegion } from '@/lib/user-actions';
-import { isResourceWatched } from '@/lib/watched';
-import { isResourceInWatchlist } from '@/lib/watchlist';
+import { isInCollection } from '@/lib/collections';
 
 type TvShowPageProps = {
   params: Promise<{
@@ -50,8 +49,8 @@ export default async function TvShowPage(props: TvShowPageProps) {
   const userRegion = await getUserRegion();
   // Both membership checks short-circuit to false for anonymous visitors.
   const [inWatchlist, watched] = await Promise.all([
-    isResourceInWatchlist(tvId, RESOURCE_TYPE),
-    isResourceWatched(tvId, RESOURCE_TYPE),
+    isInCollection('watchlist', tvId, RESOURCE_TYPE),
+    isInCollection('watched', tvId, RESOURCE_TYPE),
   ]);
 
   const [tvShow, credits, watchProviders, imdbId] = await Promise.all([

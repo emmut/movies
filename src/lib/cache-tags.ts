@@ -83,23 +83,14 @@ export const CACHE_TAGS = {
     userWatchProviders(userId: string) {
       return `private:user:${userId}:watch-providers`;
     },
-    watchlistItem(userId: string, resourceType: string, resourceId: number) {
-      return `private:user:${userId}:watchlist:${resourceType}:${resourceId}`;
+    collectionItem(userId: string, collection: string, resourceType: string, resourceId: number) {
+      return `private:user:${userId}:${collection}:${resourceType}:${resourceId}`;
     },
-    watchlistList(userId: string, resourceType: string) {
-      return `private:user:${userId}:watchlist-list:${resourceType}`;
+    collectionList(userId: string, collection: string, resourceType: string) {
+      return `private:user:${userId}:${collection}-list:${resourceType}`;
     },
-    watchlistCount(userId: string, resourceType: string) {
-      return `private:user:${userId}:watchlist-count:${resourceType}`;
-    },
-    watchedItem(userId: string, resourceType: string, resourceId: number) {
-      return `private:user:${userId}:watched:${resourceType}:${resourceId}`;
-    },
-    watchedList(userId: string, resourceType: string) {
-      return `private:user:${userId}:watched-list:${resourceType}`;
-    },
-    watchedCount(userId: string, resourceType: string) {
-      return `private:user:${userId}:watched-count:${resourceType}`;
+    collectionCount(userId: string, collection: string, resourceType: string) {
+      return `private:user:${userId}:${collection}-count:${resourceType}`;
     },
     lists(userId: string) {
       return `private:user:${userId}:lists`;

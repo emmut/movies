@@ -26,25 +26,15 @@ export const queryKeys = {
     list: (category: string, region: string) =>
       [...queryKeys.home.lists(), category, region] as const,
   },
-  watchlist: {
-    all: ['watchlist'] as const,
-    lists: () => [...queryKeys.watchlist.all, 'list'] as const,
-    list: (mediaType: 'movie' | 'tv', page: number) =>
-      [...queryKeys.watchlist.lists(), mediaType, page] as const,
-    counts: () => [...queryKeys.watchlist.all, 'counts'] as const,
-    count: (mediaType: 'movie' | 'tv') => [...queryKeys.watchlist.counts(), mediaType] as const,
-    status: (resourceId: number, resourceType: string) =>
-      [...queryKeys.watchlist.all, 'status', resourceId, resourceType] as const,
-  },
-  watched: {
-    all: ['watched'] as const,
-    lists: () => [...queryKeys.watched.all, 'list'] as const,
-    list: (mediaType: 'movie' | 'tv', page: number) =>
-      [...queryKeys.watched.lists(), mediaType, page] as const,
-    counts: () => [...queryKeys.watched.all, 'counts'] as const,
-    count: (mediaType: 'movie' | 'tv') => [...queryKeys.watched.counts(), mediaType] as const,
-    status: (resourceId: number, resourceType: string) =>
-      [...queryKeys.watched.all, 'status', resourceId, resourceType] as const,
+  collections: {
+    all: ['collections'] as const,
+    kind: (collection: string) => [...queryKeys.collections.all, collection] as const,
+    list: (collection: string, mediaType: 'movie' | 'tv', page: number) =>
+      [...queryKeys.collections.kind(collection), 'list', mediaType, page] as const,
+    count: (collection: string, mediaType: 'movie' | 'tv') =>
+      [...queryKeys.collections.kind(collection), 'count', mediaType] as const,
+    status: (collection: string, resourceId: number, resourceType: string) =>
+      [...queryKeys.collections.kind(collection), 'status', resourceId, resourceType] as const,
   },
   lists: {
     all: ['lists'] as const,

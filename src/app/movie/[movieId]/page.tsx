@@ -22,8 +22,7 @@ import {
 } from '@/lib/movies';
 import { getUserRegion } from '@/lib/user-actions';
 import { formatCurrency, formatRuntime } from '@/lib/utils';
-import { isResourceWatched } from '@/lib/watched';
-import { isResourceInWatchlist } from '@/lib/watchlist';
+import { isInCollection } from '@/lib/collections';
 
 type MoviePageProps = {
   params: Promise<{
@@ -51,8 +50,8 @@ export default async function MoviePage(props: MoviePageProps) {
   const userRegion = await getUserRegion();
   // Both membership checks short-circuit to false for anonymous visitors.
   const [inWatchlist, watched] = await Promise.all([
-    isResourceInWatchlist(movieId, RESOURCE_TYPE),
-    isResourceWatched(movieId, RESOURCE_TYPE),
+    isInCollection('watchlist', movieId, RESOURCE_TYPE),
+    isInCollection('watched', movieId, RESOURCE_TYPE),
   ]);
 
   const [movie, credits, watchProviders] = await Promise.all([

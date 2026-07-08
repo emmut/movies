@@ -22,10 +22,10 @@ import {
   removeFromList,
   type UserListsWithStatus,
 } from '@/lib/lists';
+import { toggleCollection } from '@/lib/collection-actions';
+import { isInCollection } from '@/lib/collections';
 import { queryKeys } from '@/lib/query-keys';
 import { getErrorMessage } from '@/lib/utils';
-import { isResourceInWatchlist } from '@/lib/watchlist';
-import { toggleWatchlist } from '@/lib/watchlist-actions';
 
 interface ListButtonProps {
   mediaId: number;
@@ -144,8 +144,8 @@ function ListButtonInner({
   });
 
   const { data: isInWatchlist = false } = useQuery({
-    queryKey: queryKeys.watchlist.status(mediaId, mediaType),
-    queryFn: () => isResourceInWatchlist(mediaId, mediaType),
+    queryKey: queryKeys.collections.status('watchlist', mediaId, mediaType),
+    queryFn: () => isInCollection('watchlist', mediaId, mediaType),
     staleTime: 30_000,
     enabled: isOpen && showWatchlist,
   });
@@ -175,21 +175,25 @@ function ListButtonInner({
   }
 
   async function handleToggleWatchlist() {
-    const previous =
-      queryClient.getQueryData<boolean>(queryKeys.watchlist.status(mediaId, mediaType)) ?? false;
-    queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), !previous);
+    const statusKey = queryKeys.collections.status('watchlist', mediaId, mediaType);
+    const previous = queryClient.getQueryData<boolean>(statusKey) ?? false;
+    queryClient.setQueryData(statusKey, !previous);
     setIsPending(true);
     try {
-      const result = await toggleWatchlist({ resourceId: mediaId, resourceType: mediaType });
+      const result = await toggleCollection({
+        collection: 'watchlist',
+        resourceId: mediaId,
+        resourceType: mediaType,
+      });
       // 'added' and 'unchanged' both mean the row is present (the latter when a
       // concurrent insert won the race); only 'removed' clears it. From the
       // user's view the end state is identical, so both show "Added".
       const inWatchlist = result.action !== 'removed';
-      queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), inWatchlist);
+      queryClient.setQueryData(statusKey, inWatchlist);
       toast.success(inWatchlist ? 'Added to watchlist' : 'Removed from watchlist');
-      queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.collections.kind('watchlist') });
     } catch (error) {
-      queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), previous);
+      queryClient.setQueryData(statusKey, previous);
       toast.error(getErrorMessage(error, 'Failed to update watchlist'));
     } finally {
       setIsPending(false);

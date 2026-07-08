@@ -1,64 +1,52 @@
 import 'server-only';
+
 import { dehydrate } from '@tanstack/react-query';
 import { redirect } from 'next/navigation';
 
 import { getUser } from '@/lib/auth-server';
+import { getCollectionCount, getCollectionPage } from '@/lib/collections';
 import {
   COLLECTION_GC_TIME,
   COLLECTION_STALE_TIME,
-  CollectionCountFetcher,
-  CollectionMediaType,
-  CollectionPageFetcher,
-  CollectionQueryKeys,
-} from '@/lib/collection-query';
+  CollectionKind,
+} from '@/lib/collections-config';
 import { getQueryClient } from '@/lib/query-client';
+import { queryKeys } from '@/lib/query-keys';
 
-type CollectionPageDataOptions = {
-  searchParams: Promise<{ mediaType?: string; page?: string }>;
-  keys: CollectionQueryKeys;
-  fetchPage: CollectionPageFetcher;
-  fetchCount: CollectionCountFetcher;
-};
-
-function parseCollectionSearchParams(params: { mediaType?: string; page?: string }) {
-  return {
-    mediaType: (params.mediaType ?? 'movie') as CollectionMediaType,
-    page: Number(params.page ?? '1'),
-  };
-}
+type CollectionSearchParams = Promise<{ mediaType?: string; page?: string }>;
 
 /**
  * Server-side data loading for a collection page (watchlist, watched):
  * redirects unauthenticated users to login, then prefetches the requested
  * page and both media-type counts into a dehydrated React Query state.
  */
-export async function loadCollectionPageData({
-  searchParams,
-  keys,
-  fetchPage,
-  fetchCount,
-}: CollectionPageDataOptions) {
+export async function loadCollectionPageData(
+  collection: CollectionKind,
+  searchParams: CollectionSearchParams,
+) {
   const user = await getUser();
 
   if (!user) {
     redirect('/login');
   }
 
-  const { mediaType, page } = parseCollectionSearchParams(await searchParams);
+  const params = await searchParams;
+  const mediaType = (params.mediaType ?? 'movie') as 'movie' | 'tv';
+  const page = Number(params.page ?? '1');
 
   const queryClient = getQueryClient();
 
   await queryClient.prefetchQuery({
-    queryKey: keys.list(mediaType, page),
-    queryFn: () => fetchPage(mediaType, page),
+    queryKey: queryKeys.collections.list(collection, mediaType, page),
+    queryFn: () => getCollectionPage(collection, mediaType, page),
     staleTime: COLLECTION_STALE_TIME,
     gcTime: COLLECTION_GC_TIME,
   });
 
   for (const countMediaType of ['movie', 'tv'] as const) {
     await queryClient.prefetchQuery({
-      queryKey: keys.count(countMediaType),
-      queryFn: () => fetchCount(countMediaType),
+      queryKey: queryKeys.collections.count(collection, countMediaType),
+      queryFn: () => getCollectionCount(collection, countMediaType),
       staleTime: COLLECTION_STALE_TIME,
       gcTime: COLLECTION_GC_TIME,
     });

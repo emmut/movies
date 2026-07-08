@@ -15,7 +15,8 @@ import { eq } from 'drizzle-orm';
 
 import { lists, listItems } from '@/db/schema/lists';
 import { user } from '@/db/schema/auth';
-import { watchlist } from '@/db/schema/watchlist';
+import { userCollections } from '@/db/schema/user-collections';
+import type { CollectionKind } from '@/lib/collections-config';
 import { db } from '@/lib/db';
 import { env } from '@/env';
 import { TMDB_API_URL } from '@/lib/constants';
@@ -117,52 +118,39 @@ function randomSelect<T>(arr: T[], count: number): T[] {
   return shuffled.slice(0, count);
 }
 
-async function seedWatchlist(
+async function seedCollection(
   userId: string,
+  collection: CollectionKind,
   movies: TmdbMovie[],
   tvShows: TmdbTv[],
-  persons: TmdbPerson[],
+  movieCount: number,
+  tvCount: number,
 ) {
-  const selectedMovies = randomSelect(movies, 50);
-  const selectedTv = randomSelect(tvShows, 30);
-  const selectedPersons = randomSelect(persons, 20);
-  
-  const watchlistItems = [
-    ...selectedMovies.map((m) => ({
-      id: randomUUID(),
-      userId,
-      resourceId: m.id,
-      resourceType: 'movie' as const,
-      createdAt: new Date(),
-    })),
-    ...selectedTv.map((t) => ({
-      id: randomUUID(),
-      userId,
-      resourceId: t.id,
-      resourceType: 'tv' as const,
-      createdAt: new Date(),
-    })),
-    ...selectedPersons.map((p) => ({
-      id: randomUUID(),
-      userId,
-      resourceId: p.id,
-      resourceType: 'person' as const,
-      createdAt: new Date(),
-    })),
+  const selectedMovies = randomSelect(movies, movieCount);
+  const selectedTv = randomSelect(tvShows, tvCount);
+
+  const items = [
+    ...selectedMovies.map((m) => ({ resourceId: m.id, resourceType: 'movie' as const })),
+    ...selectedTv.map((t) => ({ resourceId: t.id, resourceType: 'tv' as const })),
   ];
-  
-  for (const item of watchlistItems) {
+
+  for (const item of items) {
     await db
-      .insert(watchlist)
-      .values(item)
+      .insert(userCollections)
+      .values({
+        id: randomUUID(),
+        userId,
+        collection,
+        ...item,
+        createdAt: new Date(),
+      })
       .onConflictDoNothing();
   }
-  
+
   return {
     movies: selectedMovies.length,
     tv: selectedTv.length,
-    persons: selectedPersons.length,
-    total: watchlistItems.length,
+    total: items.length,
   };
 }
 
@@ -301,13 +289,25 @@ async function main() {
   const tmdbData = await fetchTmdbData();
   console.log('');
   
-  const watchlistResult = await seedWatchlist(
+  const watchlistResult = await seedCollection(
     userRecord.id,
+    'watchlist',
     tmdbData.movies,
     tmdbData.tvShows,
-    tmdbData.persons,
+    50,
+    30,
   );
-  console.log(`✅ Watchlist: Added ${watchlistResult.total} items (${watchlistResult.movies} movies, ${watchlistResult.tv} TV, ${watchlistResult.persons} persons)`);
+  console.log(`✅ Watchlist: Added ${watchlistResult.total} items (${watchlistResult.movies} movies, ${watchlistResult.tv} TV)`);
+
+  const watchedResult = await seedCollection(
+    userRecord.id,
+    'watched',
+    tmdbData.movies,
+    tmdbData.tvShows,
+    40,
+    25,
+  );
+  console.log(`✅ Watched: Added ${watchedResult.total} items (${watchedResult.movies} movies, ${watchedResult.tv} TV)`);
   
   const listsResult = await seedLists(userRecord.id, tmdbData.movies, tmdbData.tvShows, tmdbData.persons);
   for (const list of listsResult) {

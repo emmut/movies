@@ -30,19 +30,20 @@ describe('CACHE_TAGS private', () => {
     expect(CACHE_TAGS.private.listDetails('u1', 'l1')).toBe('private:user:u1:list:l1');
   });
 
-  it('builds watchlist and list-status tags with resource scope', () => {
-    expect(CACHE_TAGS.private.watchlistItem('u1', 'movie', 5)).toBe(
-      'private:user:u1:watchlist:movie:5',
-    );
+  it('builds list-status tags with resource scope', () => {
     expect(CACHE_TAGS.private.listStatus('u1', 'tv', 8)).toBe('private:user:u1:list-status:tv:8');
   });
 
-  it('builds watched tags with resource scope', () => {
-    expect(CACHE_TAGS.private.watchedItem('u1', 'movie', 5)).toBe(
-      'private:user:u1:watched:movie:5',
+  // Collection tags keep the pre-consolidation `watchlist`/`watched` naming so
+  // existing cache entries stay addressable.
+  it('builds collection tags scoped by kind and resource', () => {
+    expect(CACHE_TAGS.private.collectionItem('u1', 'watchlist', 'movie', 5)).toBe(
+      'private:user:u1:watchlist:movie:5',
     );
-    expect(CACHE_TAGS.private.watchedList('u1', 'tv')).toBe('private:user:u1:watched-list:tv');
-    expect(CACHE_TAGS.private.watchedCount('u1', 'movie')).toBe(
+    expect(CACHE_TAGS.private.collectionList('u1', 'watched', 'tv')).toBe(
+      'private:user:u1:watched-list:tv',
+    );
+    expect(CACHE_TAGS.private.collectionCount('u1', 'watched', 'movie')).toBe(
       'private:user:u1:watched-count:movie',
     );
   });

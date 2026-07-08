@@ -7,24 +7,15 @@ export function revalidateUserPreferenceCache(userId: string) {
   revalidateTag(CACHE_TAGS.private.userWatchProviders(userId), 'max');
 }
 
-export function revalidateUserWatchlistCache(
+export function revalidateUserCollectionCache(
   userId: string,
+  collection: string,
   resourceType: string,
   resourceId: number,
 ) {
-  revalidateTag(CACHE_TAGS.private.watchlistItem(userId, resourceType, resourceId), 'max');
-  revalidateTag(CACHE_TAGS.private.watchlistList(userId, resourceType), 'max');
-  revalidateTag(CACHE_TAGS.private.watchlistCount(userId, resourceType), 'max');
-}
-
-export function revalidateUserWatchedCache(
-  userId: string,
-  resourceType: string,
-  resourceId: number,
-) {
-  revalidateTag(CACHE_TAGS.private.watchedItem(userId, resourceType, resourceId), 'max');
-  revalidateTag(CACHE_TAGS.private.watchedList(userId, resourceType), 'max');
-  revalidateTag(CACHE_TAGS.private.watchedCount(userId, resourceType), 'max');
+  revalidateTag(CACHE_TAGS.private.collectionItem(userId, collection, resourceType, resourceId), 'max');
+  revalidateTag(CACHE_TAGS.private.collectionList(userId, collection, resourceType), 'max');
+  revalidateTag(CACHE_TAGS.private.collectionCount(userId, collection, resourceType), 'max');
 }
 
 export function revalidateUserListCache(userId: string, listId?: string) {

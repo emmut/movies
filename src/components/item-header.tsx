@@ -1,9 +1,8 @@
 import { User } from 'better-auth';
 
 import Badge from './badge';
+import { CollectionToggleButton } from './collection-toggle-button';
 import { ListButton } from './list-button';
-import { WatchedButton } from './watched-button';
-import { WatchlistButton } from './watchlist-button';
 
 type ItemHeaderProps = {
   title: string;
@@ -37,16 +36,18 @@ export default function ItemHeader({
             )}
           </div>
           <div className="flex w-full justify-between gap-2 sm:w-max @2xl/title:justify-end">
-            <WatchlistButton
+            <CollectionToggleButton
+              collection="watchlist"
               resourceId={itemId}
               resourceType={resourceType}
-              isInWatchlist={inWatchlist}
+              isActive={inWatchlist}
               userId={userId}
             />
-            <WatchedButton
+            <CollectionToggleButton
+              collection="watched"
               resourceId={itemId}
               resourceType={resourceType}
-              isWatched={isWatched}
+              isActive={isWatched}
               userId={userId}
               className="mr-auto"
             />
