@@ -51,7 +51,11 @@ async function fetchPersonsBySearchQuery(query: string, page: string) {
     },
     errorMessage: 'Failed fetching searched persons',
   });
-  return { persons: persons.results, totalPages: persons.total_pages };
+  return {
+    persons: persons.results,
+    totalPages: persons.total_pages,
+    totalResults: persons.total_results,
+  };
 }
 
 async function fetchMultiSearchQuery(query: string, page: string) {
@@ -169,8 +173,10 @@ export async function getSearchPersons(
  *
  * TMDB's multi endpoint has no year parameter, so when the query ends in a
  * year (e.g. "heat 1995") the movie and TV endpoints are searched in parallel
- * with the year filter and merged by popularity. When that yields nothing, the
- * raw query falls through to a plain multi search.
+ * with the year filter — plus the person endpoint with the year-stripped title,
+ * so people are not lost to the filter (e.g. "brad pitt 1995") — and merged by
+ * popularity. When all of that yields nothing, the raw query falls through to
+ * a plain multi search.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
@@ -180,20 +186,35 @@ export async function getSearchMulti(query: string, page: number = 1): Promise<S
   const { title, year } = parseSearchQuery(query);
 
   if (year !== undefined) {
-    const [movieResults, tvResults] = await Promise.all([
+    const [movieResults, tvResults, personResults] = await Promise.all([
       fetchMoviesBySearchQuery(title, String(page), year),
       fetchTvShowsBySearchQuery(title, String(page), year),
+      fetchPersonsBySearchQuery(title, String(page)),
     ]);
 
-    if (movieResults.totalResults + tvResults.totalResults > 0) {
+    const totalResults =
+      movieResults.totalResults + tvResults.totalResults + personResults.totalResults;
+
+    if (totalResults > 0) {
       const merged = [
-        ...movieResults.movies.map((movie) => ({ ...movie, media_type: 'movie' as const })),
-        ...tvResults.tvShows.map((tvShow) => ({ ...tvShow, media_type: 'tv' as const })),
+        ...movieResults.movies.map((movie) =>
+          addPosterImageUrls({ ...movie, media_type: 'movie' as const }),
+        ),
+        ...tvResults.tvShows.map((tvShow) =>
+          addPosterImageUrls({ ...tvShow, media_type: 'tv' as const }),
+        ),
+        ...personResults.persons.map((person) =>
+          addProfileImageUrls({ ...person, media_type: 'person' as const }),
+        ),
       ].sort((a, b) => b.popularity - a.popularity);
 
       return {
-        results: merged.map(addPosterImageUrls),
-        totalPages: Math.max(movieResults.totalPages, tvResults.totalPages),
+        results: merged,
+        totalPages: Math.max(
+          movieResults.totalPages,
+          tvResults.totalPages,
+          personResults.totalPages,
+        ),
       };
     }
   }

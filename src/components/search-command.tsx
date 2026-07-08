@@ -15,7 +15,12 @@ import { useSearchMulti } from '@/hooks/use-search-query';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
 import { cn } from '@/lib/utils';
 
-import { moveSelection, SearchCommandItem, toSearchCommandItems } from './search-command-items';
+import {
+  getSubmitHref,
+  moveSelection,
+  SearchCommandItem,
+  toSearchCommandItems,
+} from './search-command-items';
 
 const RESULT_LIMIT = 8;
 
@@ -208,14 +213,9 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
   const resultsAreFresh = trimmedQuery === debouncedQuery && !isPlaceholderData;
 
   function submit() {
-    const item = resultsAreFresh ? items[clampedIndex] : undefined;
-    if (item) {
-      onNavigate(item.href);
-      return;
-    }
-
-    if (trimmedQuery) {
-      onNavigate(seeAllHref);
+    const href = getSubmitHref(items, clampedIndex, resultsAreFresh, seeAllHref, !!trimmedQuery);
+    if (href) {
+      onNavigate(href);
     }
   }
 

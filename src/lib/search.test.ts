@@ -165,13 +165,20 @@ describe('getSearchMulti routing by media_type', () => {
 });
 
 describe('getSearchMulti with a trailing year', () => {
-  it('searches movies and tv with the year filter and merges by popularity', async () => {
+  it('searches movies, tv, and persons and merges by popularity', async () => {
     mockedFetch.mockImplementation((path: string) => {
       if (path === '/search/movie') {
         return Promise.resolve({
           results: [{ id: 1, popularity: 10 }],
           total_pages: 3,
           total_results: 41,
+        });
+      }
+      if (path === '/search/person') {
+        return Promise.resolve({
+          results: [{ id: 4, popularity: 99 }],
+          total_pages: 1,
+          total_results: 1,
         });
       }
       return Promise.resolve({
@@ -186,7 +193,7 @@ describe('getSearchMulti with a trailing year', () => {
 
     const result = await getSearchMulti('heat 1995');
 
-    expect(mockedFetch).toHaveBeenCalledTimes(2);
+    expect(mockedFetch).toHaveBeenCalledTimes(3);
     expect(mockedFetch).toHaveBeenCalledWith(
       '/search/movie',
       expect.objectContaining({
@@ -199,7 +206,13 @@ describe('getSearchMulti with a trailing year', () => {
         searchParams: expect.objectContaining({ query: 'heat', first_air_date_year: 1995 }),
       }),
     );
+    // Person search gets the year-stripped title; persons have no year filter.
+    expect(mockedFetch).toHaveBeenCalledWith(
+      '/search/person',
+      expect.objectContaining({ searchParams: expect.objectContaining({ query: 'heat' }) }),
+    );
     expect(result.results).toEqual([
+      { id: 4, popularity: 99, media_type: 'person', _profile: true },
       { id: 2, popularity: 50, media_type: 'tv', _poster: true },
       { id: 1, popularity: 10, media_type: 'movie', _poster: true },
       { id: 3, popularity: 5, media_type: 'tv', _poster: true },
@@ -207,7 +220,28 @@ describe('getSearchMulti with a trailing year', () => {
     expect(result.totalPages).toBe(3);
   });
 
-  it('falls back to a plain multi search when both year-filtered searches are empty', async () => {
+  it('keeps person matches even when movie and tv searches are empty', async () => {
+    mockedFetch.mockImplementation((path: string) => {
+      if (path === '/search/person') {
+        return Promise.resolve({
+          results: [{ id: 287, popularity: 80 }],
+          total_pages: 1,
+          total_results: 1,
+        });
+      }
+      return Promise.resolve({ results: [], total_pages: 1, total_results: 0 });
+    });
+
+    const result = await getSearchMulti('brad pitt 1995');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(3);
+    expect(mockedFetch).not.toHaveBeenCalledWith('/search/multi', expect.anything());
+    expect(result.results).toEqual([
+      { id: 287, popularity: 80, media_type: 'person', _profile: true },
+    ]);
+  });
+
+  it('falls back to a plain multi search when all year-path searches are empty', async () => {
     mockedFetch.mockImplementation((path: string) => {
       if (path === '/search/multi') {
         return Promise.resolve({
@@ -220,7 +254,7 @@ describe('getSearchMulti with a trailing year', () => {
 
     const result = await getSearchMulti('blade runner 2026');
 
-    expect(mockedFetch).toHaveBeenCalledTimes(3);
+    expect(mockedFetch).toHaveBeenCalledTimes(4);
     expect(mockedFetch).toHaveBeenCalledWith(
       '/search/multi',
       expect.objectContaining({

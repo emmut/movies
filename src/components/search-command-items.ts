@@ -84,6 +84,31 @@ export function toSearchCommandItems(
 }
 
 /**
+ * Resolves where Enter should navigate: the selected row when the visible
+ * results actually belong to the current query, otherwise the full search
+ * page for the typed query, or nowhere when the input is empty.
+ *
+ * `resultsAreFresh` guards against `keepPreviousData`: while a new query's
+ * debounce/fetch is pending, `items` still holds the previous query's rows
+ * and Enter must not open one of those.
+ */
+export function getSubmitHref(
+  items: SearchCommandItem[],
+  index: number,
+  resultsAreFresh: boolean,
+  seeAllHref: string,
+  hasQuery: boolean,
+): string | null {
+  const item = resultsAreFresh ? items[index] : undefined;
+
+  if (item) {
+    return item.href;
+  }
+
+  return hasQuery ? seeAllHref : null;
+}
+
+/**
  * Returns the next selected index for a keyboard event, wrapping at both ends.
  * Keys other than ArrowDown/ArrowUp leave the selection unchanged.
  */

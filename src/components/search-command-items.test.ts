@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { SearchMultiResult } from '@/lib/search';
 
-import { moveSelection, toSearchCommandItems } from './search-command-items';
+import { getSubmitHref, moveSelection, toSearchCommandItems } from './search-command-items';
 
 type MultiResult = SearchMultiResult['results'][number];
 
@@ -111,6 +111,29 @@ describe('toSearchCommandItems', () => {
 
   it('returns an empty list while no data has loaded', () => {
     expect(toSearchCommandItems(undefined)).toEqual([]);
+  });
+});
+
+describe('getSubmitHref', () => {
+  const items = toSearchCommandItems(multiResult([movie(), movie({ id: 2 })]));
+  const seeAll = '/search?q=matrix';
+
+  it('opens the selected row when results are fresh', () => {
+    expect(getSubmitHref(items, 1, true, seeAll, true)).toBe('/movie/2');
+  });
+
+  // Regression: with keepPreviousData, Enter during the debounce/fetch of a
+  // new query used to open a row from the previous query's stale results.
+  it('goes to the full search page instead of a stale row', () => {
+    expect(getSubmitHref(items, 0, false, seeAll, true)).toBe(seeAll);
+  });
+
+  it('goes to the full search page when there are no rows yet', () => {
+    expect(getSubmitHref([], 0, true, seeAll, true)).toBe(seeAll);
+  });
+
+  it('does nothing when the input is empty', () => {
+    expect(getSubmitHref([], 0, true, '/search?q=', false)).toBeNull();
   });
 });
 
