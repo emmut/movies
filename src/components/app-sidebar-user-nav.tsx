@@ -1,14 +1,19 @@
 import { getSession } from '@/lib/auth-server';
 
 import { NavLink } from './nav-link';
-import { Skeleton } from './ui/skeleton';
 import { SidebarMenuItem } from './ui/sidebar';
+import { Skeleton } from './ui/skeleton';
 
 const userNavItems = [
   {
     href: '/watchlist',
     label: 'Watchlist',
     icon: 'star' as const,
+  },
+  {
+    href: '/watched',
+    label: 'Watched',
+    icon: 'eye' as const,
   },
   {
     href: '/lists',
@@ -36,6 +41,7 @@ export async function UserNav() {
 function UserNavGhost() {
   return (
     <>
+      <NavGhostItem />
       <NavGhostItem />
       <NavGhostItem />
     </>

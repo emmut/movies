@@ -1,3 +1,3 @@
 import { resourceCollectionTable } from '@/db/schema/resource-collection';
 
-export const watchlist = resourceCollectionTable('watchlist');
+export const watched = resourceCollectionTable('watched');

@@ -17,6 +17,16 @@ export function revalidateUserWatchlistCache(
   revalidateTag(CACHE_TAGS.private.watchlistCount(userId, resourceType), 'max');
 }
 
+export function revalidateUserWatchedCache(
+  userId: string,
+  resourceType: string,
+  resourceId: number,
+) {
+  revalidateTag(CACHE_TAGS.private.watchedItem(userId, resourceType, resourceId), 'max');
+  revalidateTag(CACHE_TAGS.private.watchedList(userId, resourceType), 'max');
+  revalidateTag(CACHE_TAGS.private.watchedCount(userId, resourceType), 'max');
+}
+
 export function revalidateUserListCache(userId: string, listId?: string) {
   revalidateTag(CACHE_TAGS.private.lists(userId), 'max');
 

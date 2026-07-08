@@ -37,6 +37,16 @@ describe('CACHE_TAGS private', () => {
     expect(CACHE_TAGS.private.listStatus('u1', 'tv', 8)).toBe('private:user:u1:list-status:tv:8');
   });
 
+  it('builds watched tags with resource scope', () => {
+    expect(CACHE_TAGS.private.watchedItem('u1', 'movie', 5)).toBe(
+      'private:user:u1:watched:movie:5',
+    );
+    expect(CACHE_TAGS.private.watchedList('u1', 'tv')).toBe('private:user:u1:watched-list:tv');
+    expect(CACHE_TAGS.private.watchedCount('u1', 'movie')).toBe(
+      'private:user:u1:watched-count:movie',
+    );
+  });
+
   it('separates a user’s tags from another user’s', () => {
     expect(CACHE_TAGS.private.lists('a')).not.toBe(CACHE_TAGS.private.lists('b'));
   });

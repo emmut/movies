@@ -6,6 +6,7 @@ import { anonymous } from 'better-auth/plugins';
 import { eq } from 'drizzle-orm';
 
 import * as schema from '@/db/schema/auth';
+import { watched } from '@/db/schema/watched';
 import { watchlist } from '@/db/schema/watchlist';
 import { env } from '@/env';
 import { db } from '@/lib/db';
@@ -41,28 +42,30 @@ export const auth = betterAuth({
     anonymous({
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         try {
-          const anonymousUserWatchlist = await db
-            .select()
-            .from(watchlist)
-            .where(eq(watchlist.userId, anonymousUser.user.id));
-
-          if (anonymousUserWatchlist.length === 0) {
-            return;
-          }
-
-          // Transfer watchlist items from anonymous user to linked account
+          // Transfer watchlist and watched items from anonymous user to linked account
           // Duplicates are handled by unique constraint on (userId, resourceId, resourceType)
-          await db
-            .insert(watchlist)
-            .values(
-              anonymousUserWatchlist.map(({ resourceId, resourceType }) => ({
-                id: crypto.randomUUID(),
-                resourceId,
-                resourceType,
-                userId: newUser.user.id,
-              })),
-            )
-            .onConflictDoNothing();
+          for (const table of [watchlist, watched]) {
+            const anonymousUserRows = await db
+              .select()
+              .from(table)
+              .where(eq(table.userId, anonymousUser.user.id));
+
+            if (anonymousUserRows.length === 0) {
+              continue;
+            }
+
+            await db
+              .insert(table)
+              .values(
+                anonymousUserRows.map(({ resourceId, resourceType }) => ({
+                  id: crypto.randomUUID(),
+                  resourceId,
+                  resourceType,
+                  userId: newUser.user.id,
+                })),
+              )
+              .onConflictDoNothing();
+          }
         } catch (error) {
           console.error('Failed to link your account:', error);
         }

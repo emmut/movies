@@ -1,25 +1,16 @@
 'use server';
 
-import { and, count, eq } from 'drizzle-orm';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import { watchlist } from '@/db/schema/watchlist';
 import { getUser } from '@/lib/auth-server';
 import { CACHE_TAGS } from '@/lib/cache-tags';
-import { db } from '@/lib/db';
-import { buildProxyImageUrls } from '@/lib/imgproxy-url';
-import { getMovieDetails } from '@/lib/movies';
-import { pageSchema, resourceIdSchema, resourceTypeSchema } from '@/lib/validations';
-import { MovieDetails } from '@/types/movie';
-import type { ProxyImageUrls } from '@/types/proxy-image';
-import { TvDetails } from '@/types/tv-show';
-
-import { ITEMS_PER_PAGE } from './config';
-import { getTvShowDetails } from './tv-shows';
-
-type ResourceDetailsWithImage = (MovieDetails | TvDetails) & {
-  posterImageUrls?: ProxyImageUrls;
-};
+import {
+  countCollectionRows,
+  getAuthedCollectionPage,
+  hasCollectionRow,
+} from '@/lib/resource-collection';
+import { resourceIdSchema } from '@/lib/validations';
 
 /**
  * Checks if a specific resource is present in the authenticated user's watchlist.
@@ -48,23 +39,8 @@ async function getCachedWatchlistMembership(
   cacheLife('privateShort');
 
   try {
-    const validatedResourceId = resourceIdSchema.parse({
-      resourceId,
-      resourceType,
-    });
-
-    const result = await db
-      .select()
-      .from(watchlist)
-      .where(
-        and(
-          eq(watchlist.userId, userId),
-          eq(watchlist.resourceId, validatedResourceId.resourceId),
-          eq(watchlist.resourceType, validatedResourceId.resourceType),
-        ),
-      );
-
-    return result.length > 0;
+    const validated = resourceIdSchema.parse({ resourceId, resourceType });
+    return await hasCollectionRow(watchlist, userId, validated.resourceId, validated.resourceType);
   } catch (error) {
     console.error('Error checking watchlist:', error);
     return false;
@@ -76,105 +52,13 @@ async function getCachedWatchlistMembership(
  *
  * @param resourceType - The type of resource to include ('movie' or 'tv').
  * @param page - The page number (1-based).
- * @param itemsPerPage - The number of items per page.
  * @returns An object containing the paginated watchlist items and pagination metadata.
  */
 export async function getWatchlistWithResourceDetailsPaginated(
   resourceType: 'movie' | 'tv',
   page: number = 1,
 ) {
-  if (!resourceTypeSchema.safeParse(resourceType).success || !pageSchema.safeParse(page).success) {
-    throw new Error('Invalid resource type or page number');
-  }
-
-  const user = await getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-
-  try {
-    const totalCountResult = await db
-      .select({ count: count() })
-      .from(watchlist)
-      .where(and(eq(watchlist.userId, user.id), eq(watchlist.resourceType, resourceType)));
-
-    const totalItems = totalCountResult[0]?.count || 0;
-    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-
-    if (totalItems === 0) {
-      return {
-        items: [],
-        totalItems: 0,
-        totalPages: 0,
-        currentPage: page,
-        itemsPerPage: ITEMS_PER_PAGE,
-      };
-    }
-
-    const offset = (page - 1) * ITEMS_PER_PAGE;
-    const paginatedWatchlist = await db
-      .select()
-      .from(watchlist)
-      .where(and(eq(watchlist.userId, user.id), eq(watchlist.resourceType, resourceType)))
-      .limit(ITEMS_PER_PAGE)
-      .offset(offset);
-
-    const resourcesWithDetails = await Promise.allSettled(
-      paginatedWatchlist.map(async (item) => {
-        let resourceDetails: ResourceDetailsWithImage | null = null;
-        if (resourceType === 'movie') {
-          const movieDetails = await getMovieDetails(item.resourceId);
-          resourceDetails = {
-            ...movieDetails,
-            posterImageUrls: buildProxyImageUrls(movieDetails.poster_path, {
-              width: 500,
-              fill: true,
-            }),
-          };
-        } else if (resourceType === 'tv') {
-          const tvDetails = await getTvShowDetails(item.resourceId);
-          resourceDetails = {
-            ...tvDetails,
-            posterImageUrls: buildProxyImageUrls(tvDetails.poster_path, {
-              width: 500,
-              fill: true,
-            }),
-          };
-        }
-
-        if (!resourceDetails) {
-          return null;
-        }
-
-        return {
-          ...item,
-          resource: resourceDetails,
-        };
-      }),
-    );
-
-    const items = resourcesWithDetails
-      .filter((result) => result.status === 'fulfilled')
-      .map((result) => result.value)
-      .filter((item) => item !== null);
-
-    return {
-      items,
-      totalItems,
-      totalPages,
-      currentPage: page,
-      itemsPerPage: ITEMS_PER_PAGE,
-    };
-  } catch (error) {
-    console.error('Error fetching paginated watchlist:', error);
-    return {
-      items: [],
-      totalItems: 0,
-      totalPages: 0,
-      currentPage: page,
-      itemsPerPage: ITEMS_PER_PAGE,
-    };
-  }
+  return await getAuthedCollectionPage(watchlist, resourceType, page, 'watchlist');
 }
 
 /**
@@ -199,12 +83,7 @@ async function getCachedWatchlistCount(userId: string, resourceType: string) {
   cacheLife('privateShort');
 
   try {
-    const result = await db
-      .select({ count: count() })
-      .from(watchlist)
-      .where(and(eq(watchlist.userId, userId), eq(watchlist.resourceType, resourceType)));
-
-    return result[0]?.count || 0;
+    return await countCollectionRows(watchlist, userId, resourceType);
   } catch (error) {
     console.error('Error counting watchlist items:', error);
     return 0;

@@ -2,6 +2,7 @@ import { User } from 'better-auth';
 
 import Badge from './badge';
 import { ListButton } from './list-button';
+import { WatchedButton } from './watched-button';
 import { WatchlistButton } from './watchlist-button';
 
 type ItemHeaderProps = {
@@ -9,6 +10,7 @@ type ItemHeaderProps = {
   tagline: string;
   itemId: number;
   inWatchlist: boolean;
+  isWatched: boolean;
   userId?: User['id'];
   resourceType: 'movie' | 'tv';
 };
@@ -18,6 +20,7 @@ export default function ItemHeader({
   tagline,
   itemId,
   inWatchlist,
+  isWatched,
   userId,
   resourceType,
 }: ItemHeaderProps) {
@@ -39,6 +42,13 @@ export default function ItemHeader({
               resourceType={resourceType}
               isInWatchlist={inWatchlist}
               userId={userId}
+            />
+            <WatchedButton
+              resourceId={itemId}
+              resourceType={resourceType}
+              isWatched={isWatched}
+              userId={userId}
+              className="mr-auto"
             />
             <ListButton
               mediaId={itemId}

@@ -1,5 +1,5 @@
+import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ITEMS_PER_PAGE } from '@/lib/config';
 
 /**
  * Loading skeleton for the list details page.
@@ -38,13 +38,7 @@ export default function ListDetailsLoading() {
       </div>
 
       {/* Items grid */}
-      <div className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4">
-        {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
-          <div key={i} className="space-y-2">
-            <Skeleton className="aspect-2/3 w-full rounded-lg" />
-          </div>
-        ))}
-      </div>
+      <PosterSkeletonGrid />
 
       {/* Pagination controls placeholder */}
       <div className="mt-8 flex justify-center">
