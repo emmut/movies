@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { SearchMultiResult } from '@/lib/search';
 
-import { getSubmitHref, moveSelection, toSearchCommandItems } from './search-command-items';
+import {
+  buildSeeAllHref,
+  getSubmitHref,
+  moveSelection,
+  toSearchCommandItems,
+} from './search-command-items';
 
 type MultiResult = SearchMultiResult['results'][number];
 
@@ -111,6 +116,22 @@ describe('toSearchCommandItems', () => {
 
   it('returns an empty list while no data has loaded', () => {
     expect(toSearchCommandItems(undefined)).toEqual([]);
+  });
+});
+
+describe('buildSeeAllHref', () => {
+  it('defaults to the all tab', () => {
+    expect(buildSeeAllHref('heat')).toBe('/search?q=heat&mediaType=all');
+  });
+
+  it('preselects the tab for a media-type keyword', () => {
+    expect(buildSeeAllHref('heat movie')).toBe('/search?q=heat%20movie&mediaType=movie');
+    expect(buildSeeAllHref('the office tv show')).toBe(
+      '/search?q=the%20office%20tv%20show&mediaType=tv',
+    );
+    expect(buildSeeAllHref('brad pitt person')).toBe(
+      '/search?q=brad%20pitt%20person&mediaType=person',
+    );
   });
 });
 

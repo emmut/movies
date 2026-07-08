@@ -241,6 +241,27 @@ describe('getSearchMulti with a trailing year', () => {
     ]);
   });
 
+  it('narrows to the movie endpoint for a media-type keyword with a year', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 949, popularity: 30 }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+
+    const result = await getSearchMulti('heat movie 1995');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(mockedFetch).toHaveBeenCalledWith(
+      '/search/movie',
+      expect.objectContaining({
+        searchParams: expect.objectContaining({ query: 'heat', primary_release_year: 1995 }),
+      }),
+    );
+    expect(result.results).toEqual([
+      { id: 949, popularity: 30, media_type: 'movie', _poster: true },
+    ]);
+  });
+
   it('falls back to a plain multi search when all year-path searches are empty', async () => {
     mockedFetch.mockImplementation((path: string) => {
       if (path === '/search/multi') {
@@ -262,5 +283,115 @@ describe('getSearchMulti with a trailing year', () => {
       }),
     );
     expect(result.results).toEqual([{ id: 7, media_type: 'movie', _poster: true }]);
+  });
+});
+
+describe('getSearchMulti with a media-type keyword', () => {
+  it('narrows to the tv endpoint for tv keywords', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 2316, popularity: 100 }],
+      total_pages: 2,
+      total_results: 25,
+    } as never);
+
+    const result = await getSearchMulti('the office tv show');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(mockedFetch).toHaveBeenCalledWith(
+      '/search/tv',
+      expect.objectContaining({
+        searchParams: expect.objectContaining({
+          query: 'the office',
+          first_air_date_year: undefined,
+        }),
+      }),
+    );
+    expect(result).toEqual({
+      results: [{ id: 2316, popularity: 100, media_type: 'tv', _poster: true }],
+      totalPages: 2,
+    });
+  });
+
+  it('narrows to the person endpoint for person keywords', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 287, popularity: 80 }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+
+    const result = await getSearchMulti('brad pitt person');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(mockedFetch).toHaveBeenCalledWith(
+      '/search/person',
+      expect.objectContaining({ searchParams: expect.objectContaining({ query: 'brad pitt' }) }),
+    );
+    expect(result.results).toEqual([
+      { id: 287, popularity: 80, media_type: 'person', _profile: true },
+    ]);
+  });
+
+  it('falls back to a plain multi search when the narrowed search is empty', async () => {
+    mockedFetch.mockImplementation((path: string) => {
+      if (path === '/search/multi') {
+        return Promise.resolve({
+          results: [{ id: 9, media_type: 'movie' }],
+          total_pages: 1,
+        });
+      }
+      return Promise.resolve({ results: [], total_pages: 1, total_results: 0 });
+    });
+
+    const result = await getSearchMulti('village movi');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(2);
+    expect(mockedFetch).toHaveBeenCalledWith(
+      '/search/multi',
+      expect.objectContaining({
+        searchParams: expect.objectContaining({ query: 'village movi' }),
+      }),
+    );
+    expect(result.results).toEqual([{ id: 9, media_type: 'movie', _poster: true }]);
+  });
+});
+
+describe('media-type keywords on single-type searches', () => {
+  it('strips the keyword on the movie search', async () => {
+    mockedFetch.mockResolvedValue({ results: [{ id: 949 }], total_pages: 1, total_results: 1 } as never);
+
+    await getSearchMovies('heat movie');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(mockedFetch).toHaveBeenCalledWith(
+      '/search/movie',
+      expect.objectContaining({ searchParams: expect.objectContaining({ query: 'heat' }) }),
+    );
+  });
+
+  it('strips the keyword and year on the person search', async () => {
+    mockedFetch.mockResolvedValue({ results: [{ id: 287 }], total_pages: 1, total_results: 1 } as never);
+
+    await getSearchPersons('brad pitt person 1995');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(mockedFetch).toHaveBeenCalledWith(
+      '/search/person',
+      expect.objectContaining({ searchParams: expect.objectContaining({ query: 'brad pitt' }) }),
+    );
+  });
+
+  it('retries the person search with the raw query when stripping finds nothing', async () => {
+    mockedFetch
+      .mockResolvedValueOnce({ results: [], total_pages: 1, total_results: 0 } as never)
+      .mockResolvedValueOnce({ results: [{ id: 5 }], total_pages: 1, total_results: 1 } as never);
+
+    const result = await getSearchPersons('mr person');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(2);
+    expect(mockedFetch).toHaveBeenLastCalledWith(
+      '/search/person',
+      expect.objectContaining({ searchParams: expect.objectContaining({ query: 'mr person' }) }),
+    );
+    expect(result.persons).toEqual([{ id: 5, _profile: true }]);
   });
 });

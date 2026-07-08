@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { parseSearchQuery } from './parse-search-query';
 
-describe('parseSearchQuery', () => {
+describe('parseSearchQuery years', () => {
   it('extracts a trailing year', () => {
     expect(parseSearchQuery('heat 1995')).toEqual({ title: 'heat', year: 1995 });
   });
@@ -54,5 +54,90 @@ describe('parseSearchQuery', () => {
 
   it('handles an empty query', () => {
     expect(parseSearchQuery('')).toEqual({ title: '' });
+  });
+});
+
+describe('parseSearchQuery media types', () => {
+  it('extracts a trailing movie keyword', () => {
+    expect(parseSearchQuery('heat movie')).toEqual({ title: 'heat', mediaType: 'movie' });
+  });
+
+  it('matches fuzzy movie variants', () => {
+    expect(parseSearchQuery('heat movi')).toEqual({ title: 'heat', mediaType: 'movie' });
+    expect(parseSearchQuery('heat movies')).toEqual({ title: 'heat', mediaType: 'movie' });
+  });
+
+  it('is case-insensitive', () => {
+    expect(parseSearchQuery('Heat MOVIE')).toEqual({ title: 'Heat', mediaType: 'movie' });
+  });
+
+  it('extracts tv and its variants', () => {
+    expect(parseSearchQuery('the office tv')).toEqual({ title: 'the office', mediaType: 'tv' });
+    expect(parseSearchQuery('the office tvshow')).toEqual({
+      title: 'the office',
+      mediaType: 'tv',
+    });
+    expect(parseSearchQuery('the office tv-show')).toEqual({
+      title: 'the office',
+      mediaType: 'tv',
+    });
+  });
+
+  it('extracts two-token tv suffixes', () => {
+    expect(parseSearchQuery('the office tv show')).toEqual({
+      title: 'the office',
+      mediaType: 'tv',
+    });
+    expect(parseSearchQuery('the office tv series')).toEqual({
+      title: 'the office',
+      mediaType: 'tv',
+    });
+  });
+
+  it('extracts person keywords', () => {
+    expect(parseSearchQuery('brad pitt person')).toEqual({
+      title: 'brad pitt',
+      mediaType: 'person',
+    });
+    expect(parseSearchQuery('brad pitt persons')).toEqual({
+      title: 'brad pitt',
+      mediaType: 'person',
+    });
+  });
+
+  it('combines a year and a media type in either order', () => {
+    expect(parseSearchQuery('heat 1995 movie')).toEqual({
+      title: 'heat',
+      year: 1995,
+      mediaType: 'movie',
+    });
+    expect(parseSearchQuery('heat movie 1995')).toEqual({
+      title: 'heat',
+      year: 1995,
+      mediaType: 'movie',
+    });
+    expect(parseSearchQuery('the office tv 2005')).toEqual({
+      title: 'the office',
+      year: 2005,
+      mediaType: 'tv',
+    });
+  });
+
+  it('keeps a keyword-only query as the title', () => {
+    expect(parseSearchQuery('movie')).toEqual({ title: 'movie' });
+    expect(parseSearchQuery('tv show')).toEqual({ title: 'tv show' });
+  });
+
+  it('does not treat ambiguous title words as keywords', () => {
+    expect(parseSearchQuery('the truman show')).toEqual({ title: 'the truman show' });
+    expect(parseSearchQuery('ordinary people')).toEqual({ title: 'ordinary people' });
+    expect(parseSearchQuery('this is not a film')).toEqual({ title: 'this is not a film' });
+  });
+
+  it('strips at most one media-type keyword', () => {
+    expect(parseSearchQuery('heat movie movie')).toEqual({
+      title: 'heat movie',
+      mediaType: 'movie',
+    });
   });
 });

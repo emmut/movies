@@ -1,3 +1,4 @@
+import { parseSearchQuery } from '@/lib/parse-search-query';
 import type { SearchMultiResult } from '@/lib/search';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import type { ProxyImageUrls } from '@/types/proxy-image';
@@ -81,6 +82,15 @@ export function toSearchCommandItems(
     .map(toSearchCommandItem)
     .filter((item): item is SearchCommandItem => item !== null)
     .slice(0, limit);
+}
+
+/**
+ * Builds the "see all results" link for a palette query. A media-type keyword
+ * in the query ("heat movie") preselects the matching tab on /search.
+ */
+export function buildSeeAllHref(query: string): string {
+  const mediaType = parseSearchQuery(query).mediaType ?? 'all';
+  return `/search?q=${encodeURIComponent(query)}&mediaType=${mediaType}`;
 }
 
 /**

@@ -16,6 +16,7 @@ import { useSearchShortcut } from '@/hooks/use-search-shortcut';
 import { cn } from '@/lib/utils';
 
 import {
+  buildSeeAllHref,
   getSubmitHref,
   moveSelection,
   SearchCommandItem,
@@ -207,7 +208,7 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
   const items = toSearchCommandItems(data, RESULT_LIMIT);
   const clampedIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));
   const trimmedQuery = query.trim();
-  const seeAllHref = `/search?q=${encodeURIComponent(trimmedQuery)}`;
+  const seeAllHref = buildSeeAllHref(trimmedQuery);
   // While the debounce or fetch is behind the input, `items` still shows the
   // previous query's rows; Enter must not navigate to one of those.
   const resultsAreFresh = trimmedQuery === debouncedQuery && !isPlaceholderData;

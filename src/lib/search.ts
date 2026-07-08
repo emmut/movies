@@ -4,7 +4,7 @@ import { Movie, MultiSearchResponse, SearchedMovieResponse } from '@/types/movie
 import { SearchedPerson, SearchedPersonResponse } from '@/types/person';
 import { SearchedTvResponse, TvShow } from '@/types/tv-show';
 
-import { parseSearchQuery } from './parse-search-query';
+import { ParsedSearchQuery, parseSearchQuery } from './parse-search-query';
 import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
 
 async function fetchMoviesBySearchQuery(query: string, page: string, year?: number) {
@@ -90,13 +90,133 @@ export type SearchMultiResult = {
   totalPages: number;
 };
 
+function hasQueryFilters(parsed: ParsedSearchQuery) {
+  return parsed.year !== undefined || parsed.mediaType !== undefined;
+}
+
+async function searchMultiMovies(
+  title: string,
+  page: string,
+  year?: number,
+): Promise<SearchMultiResult | null> {
+  const { movies, totalPages, totalResults } = await fetchMoviesBySearchQuery(title, page, year);
+
+  if (totalResults === 0) {
+    return null;
+  }
+
+  return {
+    results: movies.map((movie) => addPosterImageUrls({ ...movie, media_type: 'movie' as const })),
+    totalPages,
+  };
+}
+
+async function searchMultiTvShows(
+  title: string,
+  page: string,
+  year?: number,
+): Promise<SearchMultiResult | null> {
+  const { tvShows, totalPages, totalResults } = await fetchTvShowsBySearchQuery(title, page, year);
+
+  if (totalResults === 0) {
+    return null;
+  }
+
+  return {
+    results: tvShows.map((tvShow) => addPosterImageUrls({ ...tvShow, media_type: 'tv' as const })),
+    totalPages,
+  };
+}
+
+async function searchMultiPersons(title: string, page: string): Promise<SearchMultiResult | null> {
+  const { persons, totalPages, totalResults } = await fetchPersonsBySearchQuery(title, page);
+
+  if (totalResults === 0) {
+    return null;
+  }
+
+  return {
+    results: persons.map((person) =>
+      addProfileImageUrls({ ...person, media_type: 'person' as const }),
+    ),
+    totalPages,
+  };
+}
+
+async function searchMultiByType(
+  parsed: ParsedSearchQuery,
+  page: string,
+): Promise<SearchMultiResult | null> {
+  if (parsed.mediaType === 'movie') {
+    return searchMultiMovies(parsed.title, page, parsed.year);
+  }
+
+  if (parsed.mediaType === 'tv') {
+    return searchMultiTvShows(parsed.title, page, parsed.year);
+  }
+
+  return searchMultiPersons(parsed.title, page);
+}
+
+async function searchMultiYearFanout(
+  title: string,
+  page: string,
+  year: number,
+): Promise<SearchMultiResult | null> {
+  const [movieResults, tvResults, personResults] = await Promise.all([
+    fetchMoviesBySearchQuery(title, page, year),
+    fetchTvShowsBySearchQuery(title, page, year),
+    fetchPersonsBySearchQuery(title, page),
+  ]);
+
+  const totalResults =
+    movieResults.totalResults + tvResults.totalResults + personResults.totalResults;
+
+  if (totalResults === 0) {
+    return null;
+  }
+
+  const merged = [
+    ...movieResults.movies.map((movie) =>
+      addPosterImageUrls({ ...movie, media_type: 'movie' as const }),
+    ),
+    ...tvResults.tvShows.map((tvShow) =>
+      addPosterImageUrls({ ...tvShow, media_type: 'tv' as const }),
+    ),
+    ...personResults.persons.map((person) =>
+      addProfileImageUrls({ ...person, media_type: 'person' as const }),
+    ),
+  ].sort((a, b) => b.popularity - a.popularity);
+
+  return {
+    results: merged,
+    totalPages: Math.max(movieResults.totalPages, tvResults.totalPages, personResults.totalPages),
+  };
+}
+
+async function searchMultiFiltered(
+  parsed: ParsedSearchQuery,
+  page: string,
+): Promise<SearchMultiResult | null> {
+  if (parsed.mediaType !== undefined) {
+    return searchMultiByType(parsed, page);
+  }
+
+  if (parsed.year !== undefined) {
+    return searchMultiYearFanout(parsed.title, page, parsed.year);
+  }
+
+  return null;
+}
+
 /**
  * Fetches search movies data for use with React Query.
  * Can be called on both server and client (via server actions).
  *
  * A trailing year in the query (e.g. "heat 1995") is used as a release-year
- * filter; when the filtered search has no matches at all, the raw query is
- * retried unfiltered so misparsed titles still return results.
+ * filter, and a trailing media-type keyword (e.g. "heat movie") is stripped
+ * from the title. When the filtered search has no matches at all, the raw
+ * query is retried unfiltered so misparsed titles still return results.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
@@ -106,10 +226,10 @@ export async function getSearchMovies(
   query: string,
   page: number = 1,
 ): Promise<SearchMoviesResult> {
-  const { title, year } = parseSearchQuery(query);
+  const parsed = parseSearchQuery(query);
 
-  if (year !== undefined) {
-    const filtered = await fetchMoviesBySearchQuery(title, String(page), year);
+  if (hasQueryFilters(parsed)) {
+    const filtered = await fetchMoviesBySearchQuery(parsed.title, String(page), parsed.year);
     if (filtered.totalResults > 0) {
       return { movies: filtered.movies.map(addPosterImageUrls), totalPages: filtered.totalPages };
     }
@@ -124,8 +244,9 @@ export async function getSearchMovies(
  * Can be called on both server and client (via server actions).
  *
  * A trailing year in the query (e.g. "the office 2005") is used as a
- * first-air-date filter; when the filtered search has no matches at all, the
- * raw query is retried unfiltered.
+ * first-air-date filter, and a trailing media-type keyword is stripped from
+ * the title. When the filtered search has no matches at all, the raw query is
+ * retried unfiltered.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
@@ -135,10 +256,10 @@ export async function getSearchTvShows(
   query: string,
   page: number = 1,
 ): Promise<SearchTvShowsResult> {
-  const { title, year } = parseSearchQuery(query);
+  const parsed = parseSearchQuery(query);
 
-  if (year !== undefined) {
-    const filtered = await fetchTvShowsBySearchQuery(title, String(page), year);
+  if (hasQueryFilters(parsed)) {
+    const filtered = await fetchTvShowsBySearchQuery(parsed.title, String(page), parsed.year);
     if (filtered.totalResults > 0) {
       return {
         tvShows: filtered.tvShows.map(addPosterImageUrls),
@@ -155,6 +276,10 @@ export async function getSearchTvShows(
  * Fetches search persons data for use with React Query.
  * Can be called on both server and client (via server actions).
  *
+ * Trailing year and media-type tokens (e.g. "brad pitt person") are stripped
+ * from the title before searching; persons have no year filter. When the
+ * stripped search has no matches at all, the raw query is retried.
+ *
  * @param query - The search query string
  * @param page - The page number to fetch
  * @returns Object containing persons array and total pages
@@ -163,6 +288,18 @@ export async function getSearchPersons(
   query: string,
   page: number = 1,
 ): Promise<SearchPersonsResult> {
+  const parsed = parseSearchQuery(query);
+
+  if (hasQueryFilters(parsed)) {
+    const filtered = await fetchPersonsBySearchQuery(parsed.title, String(page));
+    if (filtered.totalResults > 0) {
+      return {
+        persons: filtered.persons.map(addProfileImageUrls),
+        totalPages: filtered.totalPages,
+      };
+    }
+  }
+
   const { persons, totalPages } = await fetchPersonsBySearchQuery(query, String(page));
   return { persons: persons.map(addProfileImageUrls), totalPages };
 }
@@ -171,52 +308,24 @@ export async function getSearchPersons(
  * Fetches multi search data for use with React Query.
  * Can be called on both server and client (via server actions).
  *
- * TMDB's multi endpoint has no year parameter, so when the query ends in a
- * year (e.g. "heat 1995") the movie and TV endpoints are searched in parallel
- * with the year filter — plus the person endpoint with the year-stripped title,
- * so people are not lost to the filter (e.g. "brad pitt 1995") — and merged by
- * popularity. When all of that yields nothing, the raw query falls through to
- * a plain multi search.
+ * A trailing media-type keyword ("heat movie", "the office tv show",
+ * "brad pitt person") narrows the search to that endpoint. Otherwise, when the
+ * query ends in a year (e.g. "heat 1995") — TMDB's multi endpoint has no year
+ * parameter — the movie and TV endpoints are searched in parallel with the
+ * year filter, plus the person endpoint with the year-stripped title so people
+ * are not lost to the filter, and merged by popularity. When all of that
+ * yields nothing, the raw query falls through to a plain multi search.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
  * @returns Object containing mixed results array and total pages
  */
 export async function getSearchMulti(query: string, page: number = 1): Promise<SearchMultiResult> {
-  const { title, year } = parseSearchQuery(query);
+  const parsed = parseSearchQuery(query);
+  const filtered = await searchMultiFiltered(parsed, String(page));
 
-  if (year !== undefined) {
-    const [movieResults, tvResults, personResults] = await Promise.all([
-      fetchMoviesBySearchQuery(title, String(page), year),
-      fetchTvShowsBySearchQuery(title, String(page), year),
-      fetchPersonsBySearchQuery(title, String(page)),
-    ]);
-
-    const totalResults =
-      movieResults.totalResults + tvResults.totalResults + personResults.totalResults;
-
-    if (totalResults > 0) {
-      const merged = [
-        ...movieResults.movies.map((movie) =>
-          addPosterImageUrls({ ...movie, media_type: 'movie' as const }),
-        ),
-        ...tvResults.tvShows.map((tvShow) =>
-          addPosterImageUrls({ ...tvShow, media_type: 'tv' as const }),
-        ),
-        ...personResults.persons.map((person) =>
-          addProfileImageUrls({ ...person, media_type: 'person' as const }),
-        ),
-      ].sort((a, b) => b.popularity - a.popularity);
-
-      return {
-        results: merged,
-        totalPages: Math.max(
-          movieResults.totalPages,
-          tvResults.totalPages,
-          personResults.totalPages,
-        ),
-      };
-    }
+  if (filtered) {
+    return filtered;
   }
 
   const { results, totalPages } = await fetchMultiSearchQuery(query, String(page));
