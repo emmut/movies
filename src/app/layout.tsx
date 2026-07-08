@@ -1,11 +1,12 @@
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { ReactNode, Suspense } from 'react';
+import { ReactNode } from 'react';
 import { Toaster } from 'sonner';
 
 import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
+import { SearchCommand } from '@/components/search-command';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { inter } from '@/fonts';
@@ -13,7 +14,6 @@ import { PostHogClientProvider } from '@/providers/posthog';
 import { QueryProvider } from '@/providers/query-provider';
 
 import './globals.css';
-import { Search } from './search';
 
 export const metadata = {
   title: 'Movies',
@@ -44,9 +44,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
                     <SidebarTrigger className="-ml-1" />
                     <Separator orientation="vertical" className="h-4" />
-                    <Suspense>
-                      <Search />
-                    </Suspense>
+                    <SearchCommand />
                   </header>
                   <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6">{children}</div>
                   <Footer />
