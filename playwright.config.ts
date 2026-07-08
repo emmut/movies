@@ -12,6 +12,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
+  // Retries absorb flakes; a test that fails all of them is a real break, so
+  // stop the run instead of burning CI minutes on the remaining tests.
+  maxFailures: process.env.CI ? 1 : 0,
   reporter: process.env.CI
     ? [['github'], ['list'], ['html', { open: 'never' }]]
     : [['list'], ['html', { open: 'never' }]],
