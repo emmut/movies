@@ -3,16 +3,18 @@
 import { Search as SearchIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { KeyboardEvent, useCallback, useState } from 'react';
 
 import Badge from '@/components/badge';
 import ClientImage from '@/components/client-image';
 import Spinner from '@/components/spinner';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Kbd } from '@/components/ui/kbd';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useSearchMulti } from '@/hooks/use-search-query';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
+import { useShortcutLabel } from '@/hooks/use-shortcut-label';
 import { cn } from '@/lib/utils';
 
 import {
@@ -51,22 +53,28 @@ type SearchCommandRowProps = {
   onHover: () => void;
 };
 
+// The list container scrolls (max-h + overflow); attached as the row's ref
+// only while it is the active row, so React calls it exactly when the
+// selection lands on the row. block: 'nearest' is a no-op for rows already in
+// view, so mouse-hover selection never causes scroll jumps.
+function scrollActiveRowIntoView(element: HTMLAnchorElement | null) {
+  element?.scrollIntoView({ block: 'nearest' });
+}
+
+function SearchCommandRowText({ item }: { item: SearchCommandItem }) {
+  return (
+    <div className="min-w-0 flex-1">
+      <div className="truncate text-sm font-medium">{item.title}</div>
+      {item.subtitle && <div className="text-xs text-muted-foreground">{item.subtitle}</div>}
+    </div>
+  );
+}
+
 function SearchCommandRow({ item, isActive, onSelect, onHover }: SearchCommandRowProps) {
-  const linkRef = useRef<HTMLAnchorElement>(null);
-
-  // The list container scrolls (max-h + overflow); keep the keyboard-selected
-  // row visible. block: 'nearest' is a no-op for rows already in view, so
-  // mouse-hover selection never causes scroll jumps.
-  useEffect(() => {
-    if (isActive) {
-      linkRef.current?.scrollIntoView({ block: 'nearest' });
-    }
-  }, [isActive]);
-
   return (
     <li>
       <Link
-        ref={linkRef}
+        ref={isActive ? scrollActiveRowIntoView : undefined}
         href={item.href}
         aria-current={isActive || undefined}
         className={cn(
@@ -82,10 +90,7 @@ function SearchCommandRow({ item, isActive, onSelect, onHover }: SearchCommandRo
         <div className="h-14 w-9 shrink-0 overflow-hidden rounded bg-zinc-800">
           <SearchCommandThumb item={item} />
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-medium">{item.title}</div>
-          {item.subtitle && <div className="text-xs text-muted-foreground">{item.subtitle}</div>}
-        </div>
+        <SearchCommandRowText item={item} />
         <Badge variant={item.badgeVariant}>{item.badge}</Badge>
       </Link>
     </li>
@@ -109,12 +114,16 @@ function SearchCommandBody({
   onSelect,
   onHover,
 }: SearchCommandBodyProps) {
+  const seeAllShortcut = useShortcutLabel('↵');
+
   if (!query) {
     return (
       <p className="px-2 py-6 text-center text-sm text-muted-foreground">
         Type to search movies, TV shows, and people.
         <br />
-        Tip: add a year to narrow it down — &ldquo;heat 1995&rdquo;
+        Narrow with a year or type — &ldquo;heat 1995&rdquo;, &ldquo;office tv&rdquo;
+        <br />
+        <Kbd>↵</Kbd> opens the selected result · <Kbd>{seeAllShortcut}</Kbd> searches everything
       </p>
     );
   }
@@ -165,7 +174,7 @@ function SearchCommandInput({ query, isFetching, onChange, onKeyDown }: SearchCo
         type="search"
         aria-label="Search for movies, TV shows, or people"
         placeholder="Search movies, TV shows, people..."
-        className="h-12 rounded-none border-0 pl-9 shadow-none focus-visible:ring-0"
+        className="h-12 rounded-none border-0 pl-9 shadow-none focus-visible:ring-0 [&::-webkit-search-cancel-button]:appearance-none"
         spellCheck={false}
         autoComplete="off"
         autoCorrect="off"
@@ -186,6 +195,8 @@ type SearchCommandFooterProps = {
 };
 
 function SearchCommandFooter({ itemCount, href, query, onNavigate }: SearchCommandFooterProps) {
+  const seeAllShortcut = useShortcutLabel('↵');
+
   if (!query || itemCount === 0) {
     return null;
   }
@@ -200,7 +211,7 @@ function SearchCommandFooter({ itemCount, href, query, onNavigate }: SearchComma
           onNavigate(href);
         }}
       >
-        See all results for &ldquo;{query}&rdquo;
+        See all results for &ldquo;{query}&rdquo; <Kbd className="ml-1">{seeAllShortcut}</Kbd>
       </Link>
     </div>
   );
@@ -225,8 +236,9 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
   // previous query's rows; Enter must not navigate to one of those.
   const resultsAreFresh = trimmedQuery === debouncedQuery && !isPlaceholderData;
 
-  function submit() {
-    const href = getSubmitHref(items, clampedIndex, resultsAreFresh, seeAllHref, !!trimmedQuery);
+  function submit(forceSeeAll: boolean) {
+    const canOpenRow = resultsAreFresh && !forceSeeAll;
+    const href = getSubmitHref(items, clampedIndex, canOpenRow, seeAllHref, !!trimmedQuery);
     if (href) {
       onNavigate(href);
     }
@@ -235,7 +247,8 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
   function onInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       event.preventDefault();
-      submit();
+      // ⌘/Ctrl+Enter always goes to the full results page, even with a row selected.
+      submit(event.metaKey || event.ctrlKey);
       return;
     }
 
@@ -289,6 +302,7 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
 export function SearchCommand() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const openShortcut = useShortcutLabel('K');
 
   useSearchShortcut(useCallback(() => setOpen(true), []));
 
@@ -306,7 +320,7 @@ export function SearchCommand() {
       >
         <SearchIcon className="h-4 w-4" />
         <span className="flex-1 text-left">Search...</span>
-        <kbd className="rounded border bg-muted px-1.5 py-0.5 font-sans text-xs">⌘K</kbd>
+        <Kbd>{openShortcut}</Kbd>
       </button>
 
       <Dialog open={open} onOpenChange={(nextOpen) => setOpen(nextOpen)}>

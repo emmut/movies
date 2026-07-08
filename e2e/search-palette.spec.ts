@@ -28,8 +28,8 @@ test('palette keeps the keyboard-selected row in view while arrowing', async ({ 
   const list = page.getByLabel('Search results');
   await expect(list.locator('li').first()).toBeVisible({ timeout: 15_000 });
 
-  // Walk the selection to the last row, then wrap and walk back down; the
-  // active row must stay visible the whole way.
+  // The first row starts selected; walk the selection to the last row, then
+  // wrap back to the top. The active row must stay visible the whole way.
   const rowCount = await list.locator('li').count();
   const active = list.locator('a[aria-current="true"]');
 

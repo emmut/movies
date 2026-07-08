@@ -143,6 +143,11 @@ describe('getSubmitHref', () => {
     expect(getSubmitHref(items, 1, true, seeAll, true)).toBe('/movie/2');
   });
 
+  // ⌘/Ctrl+Enter passes canOpenRow=false to force the full search page.
+  it('goes to the full search page when row-opening is suppressed', () => {
+    expect(getSubmitHref(items, 1, false, seeAll, true)).toBe(seeAll);
+  });
+
   // Regression: with keepPreviousData, Enter during the debounce/fetch of a
   // new query used to open a row from the previous query's stale results.
   it('goes to the full search page instead of a stale row', () => {
