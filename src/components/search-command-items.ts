@@ -1,4 +1,4 @@
-import { SearchMultiResult } from '@/lib/search';
+import type { SearchMultiResult } from '@/lib/search';
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 
