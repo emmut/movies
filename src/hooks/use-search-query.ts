@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@/lib/query-keys';
 import {
@@ -18,6 +18,11 @@ type UseSearchParams = {
   query: string;
   page: number;
   enabled?: boolean;
+};
+
+type UseSearchMultiParams = UseSearchParams & {
+  /** Keep showing the previous results while a new query is fetching (used by the command palette). */
+  keepPrevious?: boolean;
 };
 
 /**
@@ -75,11 +80,17 @@ export function useSearchPersons({ query, page, enabled = true }: UseSearchParam
  * @param params - Parameters for the search query
  * @returns Query result with data, loading state, and error state
  */
-export function useSearchMulti({ query, page, enabled = true }: UseSearchParams) {
+export function useSearchMulti({
+  query,
+  page,
+  enabled = true,
+  keepPrevious = false,
+}: UseSearchMultiParams) {
   return useQuery<SearchMultiResult>({
     queryKey: queryKeys.search.multi(query, page),
     queryFn: () => getSearchMulti(query, page),
     enabled: query.length > 0 && enabled,
     staleTime: 60 * 1000, // 1 minute
+    placeholderData: keepPrevious ? keepPreviousData : undefined,
   });
 }

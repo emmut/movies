@@ -59,6 +59,15 @@ test.describe('logged-in watchlist and lists', () => {
 
     // A second click while the action is pending must not double-toggle: the
     // button disables during the transition, so the result is a single add.
+    // Slow server actions down so the pending window deterministically outlasts
+    // the second click — on a fast server the add can commit before the click
+    // dispatches, turning it into a legitimate remove and flaking the test.
+    await page.route('**', async (route) => {
+      if (route.request().method() === 'POST') {
+        await new Promise((resolve) => setTimeout(resolve, 1_500));
+      }
+      await route.continue();
+    });
     await addButton.click();
     await removeButton.click({ timeout: 1_000, force: true }).catch(() => {
       // Expected: the button is disabled while the server action is pending.
