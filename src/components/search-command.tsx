@@ -3,7 +3,7 @@
 import { Search as SearchIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { KeyboardEvent, useCallback, useState } from 'react';
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import Badge from '@/components/badge';
 import ClientImage from '@/components/client-image';
@@ -52,9 +52,21 @@ type SearchCommandRowProps = {
 };
 
 function SearchCommandRow({ item, isActive, onSelect, onHover }: SearchCommandRowProps) {
+  const linkRef = useRef<HTMLAnchorElement>(null);
+
+  // The list container scrolls (max-h + overflow); keep the keyboard-selected
+  // row visible. block: 'nearest' is a no-op for rows already in view, so
+  // mouse-hover selection never causes scroll jumps.
+  useEffect(() => {
+    if (isActive) {
+      linkRef.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [isActive]);
+
   return (
     <li>
       <Link
+        ref={linkRef}
         href={item.href}
         aria-current={isActive || undefined}
         className={cn(
