@@ -21,7 +21,7 @@ function isEditableTarget(target: unknown) {
  * `/` when the user is not typing in a form field.
  */
 export function shouldOpenSearch(event: ShortcutEvent) {
-  if (event.key === 'k') {
+  if (event.key.toLowerCase() === 'k') {
     return event.metaKey || event.ctrlKey;
   }
 
