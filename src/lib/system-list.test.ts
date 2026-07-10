@@ -6,12 +6,7 @@ import { db } from '@/lib/db';
 
 import { chain } from '@/test/db-chain';
 
-import {
-  getOrCreateSystemListId,
-  getSystemListId,
-  removeSystemListRow,
-  toggleSystemListRow,
-} from './system-list';
+import { getOrCreateSystemListId, getSystemListId, toggleSystemListRow } from './system-list';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -107,28 +102,5 @@ describe('toggleSystemListRow', () => {
     await expect(toggleSystemListRow('user-1', 'watchlist', 5, 'movie')).resolves.toBe(
       'unchanged',
     );
-  });
-});
-
-describe('removeSystemListRow', () => {
-  it('returns false without deleting when the list does not exist', async () => {
-    vi.mocked(db.select).mockReturnValue(chain([]));
-
-    await expect(removeSystemListRow('user-1', 'watchlist', 5, 'movie')).resolves.toBe(false);
-    expect(db.delete).not.toHaveBeenCalled();
-  });
-
-  it('returns true when a row was removed', async () => {
-    vi.mocked(db.select).mockReturnValue(chain([{ id: 'list-1' }]));
-    vi.mocked(db.delete).mockReturnValue(chain([{ id: 'row-1' }]));
-
-    await expect(removeSystemListRow('user-1', 'watchlist', 5, 'movie')).resolves.toBe(true);
-  });
-
-  it('returns false when the row was absent', async () => {
-    vi.mocked(db.select).mockReturnValue(chain([{ id: 'list-1' }]));
-    vi.mocked(db.delete).mockReturnValue(chain([]));
-
-    await expect(removeSystemListRow('user-1', 'watched', 5, 'tv')).resolves.toBe(false);
   });
 });

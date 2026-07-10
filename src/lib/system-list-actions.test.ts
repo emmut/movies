@@ -5,12 +5,11 @@ vi.mock('@/lib/cache-invalidation', () => ({ revalidateUserSystemListCache: vi.f
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 vi.mock('@/lib/system-list', () => ({
   toggleSystemListRow: vi.fn(),
-  removeSystemListRow: vi.fn(),
 }));
 
 import { requireUser } from '@/lib/auth-server';
 import { revalidateUserSystemListCache } from '@/lib/cache-invalidation';
-import { removeSystemListRow, toggleSystemListRow } from '@/lib/system-list';
+import { toggleSystemListRow } from '@/lib/system-list';
 import { revalidatePath } from 'next/cache';
 
 import { toggleSystemListItem } from './system-list-actions';
@@ -19,7 +18,6 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(requireUser).mockResolvedValue({ id: 'user-1' } as never);
   vi.mocked(toggleSystemListRow).mockResolvedValue('added');
-  vi.mocked(removeSystemListRow).mockResolvedValue(false);
 });
 
 describe('toggleSystemListItem', () => {
@@ -44,15 +42,8 @@ describe('toggleSystemListItem', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/watchlist');
   });
 
-  it('does not touch the watchlist when toggling watchlist items', async () => {
-    await toggleSystemListItem({ listType: 'watchlist', resourceId: 5, resourceType: 'movie' });
-
-    expect(removeSystemListRow).not.toHaveBeenCalled();
-  });
-
-  it('removes a freshly watched item from the watchlist', async () => {
+  it('leaves the watchlist untouched when marking watched', async () => {
     vi.mocked(toggleSystemListRow).mockResolvedValue('added');
-    vi.mocked(removeSystemListRow).mockResolvedValue(true);
 
     const result = await toggleSystemListItem({
       listType: 'watched',
@@ -61,31 +52,12 @@ describe('toggleSystemListItem', () => {
     });
 
     expect(result).toEqual({ success: true, action: 'added' });
-    expect(removeSystemListRow).toHaveBeenCalledWith('user-1', 'watchlist', 5, 'tv');
-    // Both the watched and the watchlist caches must refresh.
-    expect(revalidateUserSystemListCache).toHaveBeenCalledWith('user-1', 'watched', 'tv', 5);
-    expect(revalidateUserSystemListCache).toHaveBeenCalledWith('user-1', 'watchlist', 'tv', 5);
-    expect(revalidatePath).toHaveBeenCalledWith('/watchlist');
-    expect(revalidatePath).toHaveBeenCalledWith('/watched');
-  });
-
-  it('skips watchlist revalidation when the watched item was not on the watchlist', async () => {
-    vi.mocked(toggleSystemListRow).mockResolvedValue('added');
-    vi.mocked(removeSystemListRow).mockResolvedValue(false);
-
-    await toggleSystemListItem({ listType: 'watched', resourceId: 5, resourceType: 'movie' });
-
-    expect(removeSystemListRow).toHaveBeenCalledTimes(1);
+    expect(toggleSystemListRow).toHaveBeenCalledWith('user-1', 'watched', 5, 'tv');
+    // Only the watched caches refresh; the lists are independent.
     expect(revalidateUserSystemListCache).toHaveBeenCalledTimes(1);
+    expect(revalidateUserSystemListCache).toHaveBeenCalledWith('user-1', 'watched', 'tv', 5);
+    expect(revalidatePath).toHaveBeenCalledWith('/watched');
     expect(revalidatePath).not.toHaveBeenCalledWith('/watchlist');
-  });
-
-  it('does not remove from the watchlist when un-marking watched', async () => {
-    vi.mocked(toggleSystemListRow).mockResolvedValue('removed');
-
-    await toggleSystemListItem({ listType: 'watched', resourceId: 5, resourceType: 'movie' });
-
-    expect(removeSystemListRow).not.toHaveBeenCalled();
   });
 
   it('rejects invalid input before touching the database', async () => {

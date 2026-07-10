@@ -107,31 +107,6 @@ export async function toggleSystemListRow(
   return inserted.length > 0 ? 'added' : 'unchanged';
 }
 
-/**
- * Removes a row from the user's system list if present.
- *
- * @returns `true` if a row was removed; `false` if the list doesn't exist or
- * the row was absent.
- */
-export async function removeSystemListRow(
-  userId: string,
-  listType: SystemListType,
-  resourceId: number,
-  resourceType: string,
-): Promise<boolean> {
-  const listId = await getSystemListId(userId, listType);
-  if (listId === null) {
-    return false;
-  }
-
-  const removed = await db
-    .delete(listItems)
-    .where(systemListRowFilter(listId, resourceId, resourceType))
-    .returning({ id: listItems.id });
-
-  return removed.length > 0;
-}
-
 function systemListRowFilter(listId: string, resourceId: number, resourceType: string) {
   return and(
     eq(listItems.listId, listId),

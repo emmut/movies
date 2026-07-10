@@ -121,20 +121,17 @@ test.describe('logged-in watchlist and lists', () => {
     );
   });
 
-  test('marks a movie as watched and clears it from the watchlist', async ({ page }) => {
+  test('marks a movie as watched independently of the watchlist', async ({ page }) => {
     await signInAnonymously(page, MOVIE_PATH);
 
-    // Save it for later first, so the watched toggle has something to clear.
+    // Save it for later first, to prove the two lists stay independent.
     await page.getByRole('button', { name: /add to watchlist/i }).click();
     await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeEnabled();
 
-    // Mark it watched: the button flips and the watchlist entry disappears.
+    // Mark it watched: the button flips, the watchlist entry stays.
     await page.getByRole('button', { name: /^mark as watched$/i }).click();
     await expect(page.getByRole('button', { name: /mark as not watched/i })).toBeEnabled();
-    // The watchlist removal is a server-side effect; reload for the
-    // server-rendered button state rather than racing the RSC refresh.
-    await page.reload();
-    await expect(page.getByRole('button', { name: /add to watchlist/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeVisible();
 
     // The movie shows up on the watched page.
     await page.goto('/watched');
@@ -142,9 +139,10 @@ test.describe('logged-in watchlist and lists', () => {
     await expect(page.getByText(/1 movie watched/i)).toBeVisible();
     await expect(page.locator(`a[href="${MOVIE_PATH}"]`).first()).toBeVisible();
 
-    // And the watchlist is empty again.
+    // And it is still on the watchlist.
     await page.goto('/watchlist');
-    await expect(page.getByRole('heading', { name: /your watchlist is empty/i })).toBeVisible();
+    await expect(page.getByText(/1 movie saved/i)).toBeVisible();
+    await expect(page.locator(`a[href="${MOVIE_PATH}"]`).first()).toBeVisible();
 
     // Un-mark it from the detail page and confirm the watched page empties.
     await page.goto(MOVIE_PATH);

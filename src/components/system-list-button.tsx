@@ -126,10 +126,7 @@ export function SystemListButton({
   const queryClient = useQueryClient();
   const { isPending, localIsActive, handleToggle } = usePendingToggle(isActive, async () => {
     await toggleSystemListItem({ listType, resourceId, resourceType });
-    // Marking watched also removes from the watchlist server-side, so refresh
-    // both system lists rather than tracking which one changed.
-    void queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
-    void queryClient.invalidateQueries({ queryKey: queryKeys.watched.all });
+    void queryClient.invalidateQueries({ queryKey: queryKeys[listType].all });
   });
 
   if (!userId) {

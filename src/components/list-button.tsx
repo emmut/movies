@@ -1,8 +1,8 @@
 'use client';
 
 import { type Query, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, List, ListPlus, Star } from 'lucide-react';
-import { useState } from 'react';
+import { Check, CircleCheck, Eye, List, ListPlus, Star } from 'lucide-react';
+import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 
 import { CreateListDialog } from '@/components/create-list-dialog';
@@ -26,6 +26,7 @@ import { queryKeys } from '@/lib/query-keys';
 import { getErrorMessage } from '@/lib/utils';
 import { toggleSystemListItem } from '@/lib/system-list-actions';
 import { isResourceInSystemList } from '@/lib/system-list-queries';
+import type { SystemListType } from '@/lib/validations';
 
 interface ListButtonProps {
   mediaId: number;
@@ -45,16 +46,51 @@ function listDetailsPredicate(listId: string) {
   return (query: Query) => query.queryKey[2] === listId;
 }
 
-function WatchlistMenuItem({
-  isInWatchlist,
+const SYSTEM_LIST_MENU_COPY: Record<
+  SystemListType,
+  {
+    activeIcon: ReactNode;
+    inactiveIcon: ReactNode;
+    activeLabel: string;
+    inactiveLabel: string;
+    addedToast: string;
+    removedToast: string;
+    errorToast: string;
+  }
+> = {
+  watchlist: {
+    activeIcon: <Star className="h-4 w-4 fill-current" />,
+    inactiveIcon: <Star className="h-4 w-4" />,
+    activeLabel: 'Remove from watchlist',
+    inactiveLabel: 'Add to watchlist',
+    addedToast: 'Added to watchlist',
+    removedToast: 'Removed from watchlist',
+    errorToast: 'Failed to update watchlist',
+  },
+  watched: {
+    activeIcon: <CircleCheck className="h-4 w-4" />,
+    inactiveIcon: <Eye className="h-4 w-4" />,
+    activeLabel: 'Mark as not watched',
+    inactiveLabel: 'Mark as watched',
+    addedToast: 'Marked as watched',
+    removedToast: 'Removed from watched',
+    errorToast: 'Failed to update watched',
+  },
+};
+
+function SystemListMenuItem({
+  listType,
+  isActive,
   disabled,
   onToggle,
 }: {
-  isInWatchlist: boolean;
+  listType: SystemListType;
+  isActive: boolean;
   disabled: boolean;
   onToggle: () => void;
 }) {
-  const label = isInWatchlist ? 'Remove from watchlist' : 'Add to watchlist';
+  const copy = SYSTEM_LIST_MENU_COPY[listType];
+  const label = isActive ? copy.activeLabel : copy.inactiveLabel;
   return (
     <DropdownMenuItem
       onClick={onToggle}
@@ -63,7 +99,7 @@ function WatchlistMenuItem({
       title={label}
     >
       <span className="flex flex-1 items-center gap-2">
-        <Star className={`h-4 w-4 ${isInWatchlist ? 'fill-current' : ''}`} />
+        {isActive ? copy.activeIcon : copy.inactiveIcon}
         <span>{label}</span>
       </span>
     </DropdownMenuItem>
@@ -126,6 +162,21 @@ function ListMenuItems({
   ));
 }
 
+function useSystemListStatus(
+  listType: SystemListType,
+  mediaId: number,
+  mediaType: string,
+  { enabled }: { enabled: boolean },
+) {
+  const { data = false } = useQuery({
+    queryKey: queryKeys[listType].status(mediaId, mediaType),
+    queryFn: () => isResourceInSystemList(listType, mediaId, mediaType),
+    staleTime: 30_000,
+    enabled,
+  });
+  return data;
+}
+
 function ListButtonInner({
   mediaId,
   mediaType,
@@ -143,11 +194,12 @@ function ListButtonInner({
     enabled: isOpen,
   });
 
-  const { data: isInWatchlist = false } = useQuery({
-    queryKey: queryKeys.watchlist.status(mediaId, mediaType),
-    queryFn: () => isResourceInSystemList('watchlist', mediaId, mediaType),
-    staleTime: 30_000,
-    enabled: isOpen && showWatchlist,
+  const systemItemsEnabled = isOpen && showWatchlist;
+  const isInWatchlist = useSystemListStatus('watchlist', mediaId, mediaType, {
+    enabled: systemItemsEnabled,
+  });
+  const isWatched = useSystemListStatus('watched', mediaId, mediaType, {
+    enabled: systemItemsEnabled,
   });
 
 
@@ -174,27 +226,28 @@ function ListButtonInner({
     }
   }
 
-  async function handleToggleWatchlist() {
-    const previous =
-      queryClient.getQueryData<boolean>(queryKeys.watchlist.status(mediaId, mediaType)) ?? false;
-    queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), !previous);
+  async function handleToggleSystemList(listType: SystemListType) {
+    const copy = SYSTEM_LIST_MENU_COPY[listType];
+    const statusKey = queryKeys[listType].status(mediaId, mediaType);
+    const previous = queryClient.getQueryData<boolean>(statusKey) ?? false;
+    queryClient.setQueryData(statusKey, !previous);
     setIsPending(true);
     try {
       const result = await toggleSystemListItem({
-        listType: 'watchlist',
+        listType,
         resourceId: mediaId,
         resourceType: mediaType,
       });
       // 'added' and 'unchanged' both mean the row is present (the latter when a
       // concurrent insert won the race); only 'removed' clears it. From the
       // user's view the end state is identical, so both show "Added".
-      const inWatchlist = result.action !== 'removed';
-      queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), inWatchlist);
-      toast.success(inWatchlist ? 'Added to watchlist' : 'Removed from watchlist');
-      queryClient.invalidateQueries({ queryKey: queryKeys.watchlist.all });
+      const isInList = result.action !== 'removed';
+      queryClient.setQueryData(statusKey, isInList);
+      toast.success(isInList ? copy.addedToast : copy.removedToast);
+      queryClient.invalidateQueries({ queryKey: queryKeys[listType].all });
     } catch (error) {
-      queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), previous);
-      toast.error(getErrorMessage(error, 'Failed to update watchlist'));
+      queryClient.setQueryData(statusKey, previous);
+      toast.error(getErrorMessage(error, copy.errorToast));
     } finally {
       setIsPending(false);
     }
@@ -223,10 +276,17 @@ function ListButtonInner({
         <DropdownMenuContent align="end" className="min-w-52">
           {showWatchlist && (
             <>
-              <WatchlistMenuItem
-                isInWatchlist={isInWatchlist}
+              <SystemListMenuItem
+                listType="watchlist"
+                isActive={isInWatchlist}
                 disabled={isPending}
-                onToggle={handleToggleWatchlist}
+                onToggle={() => handleToggleSystemList('watchlist')}
+              />
+              <SystemListMenuItem
+                listType="watched"
+                isActive={isWatched}
+                disabled={isPending}
+                onToggle={() => handleToggleSystemList('watched')}
               />
               <DropdownMenuSeparator />
             </>
