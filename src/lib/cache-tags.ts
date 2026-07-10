@@ -92,6 +92,15 @@ export const CACHE_TAGS = {
     watchlistCount(userId: string, resourceType: string) {
       return `private:user:${userId}:watchlist-count:${resourceType}`;
     },
+    watchedItem(userId: string, resourceType: string, resourceId: number) {
+      return `private:user:${userId}:watched:${resourceType}:${resourceId}`;
+    },
+    watchedList(userId: string, resourceType: string) {
+      return `private:user:${userId}:watched-list:${resourceType}`;
+    },
+    watchedCount(userId: string, resourceType: string) {
+      return `private:user:${userId}:watched-count:${resourceType}`;
+    },
     lists(userId: string) {
       return `private:user:${userId}:lists`;
     },

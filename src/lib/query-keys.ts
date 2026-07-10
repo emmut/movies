@@ -36,6 +36,16 @@ export const queryKeys = {
     status: (resourceId: number, resourceType: string) =>
       [...queryKeys.watchlist.all, 'status', resourceId, resourceType] as const,
   },
+  watched: {
+    all: ['watched'] as const,
+    lists: () => [...queryKeys.watched.all, 'list'] as const,
+    list: (mediaType: 'movie' | 'tv', page: number) =>
+      [...queryKeys.watched.lists(), mediaType, page] as const,
+    counts: () => [...queryKeys.watched.all, 'counts'] as const,
+    count: (mediaType: 'movie' | 'tv') => [...queryKeys.watched.counts(), mediaType] as const,
+    status: (resourceId: number, resourceType: string) =>
+      [...queryKeys.watched.all, 'status', resourceId, resourceType] as const,
+  },
   lists: {
     all: ['lists'] as const,
     details: () => [...queryKeys.lists.all, 'detail'] as const,

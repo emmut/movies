@@ -13,7 +13,7 @@ export const lists = pgTable(
     name: text('name').notNull(),
     description: text('description'),
     emoji: text('emoji').notNull().default('📝'),
-    type: text('type', { enum: ['custom', 'watchlist'] })
+    type: text('type', { enum: ['custom', 'watchlist', 'watched'] })
       .notNull()
       .default('custom'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -27,6 +27,9 @@ export const lists = pgTable(
     uniqueIndex('lists_user_watchlist_unique')
       .on(table.userId)
       .where(sql`${table.type} = 'watchlist'`),
+    uniqueIndex('lists_user_watched_unique')
+      .on(table.userId)
+      .where(sql`${table.type} = 'watched'`),
   ],
 );
 

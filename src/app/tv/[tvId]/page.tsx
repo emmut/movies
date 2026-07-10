@@ -18,6 +18,7 @@ import {
 } from '@/lib/tv-shows';
 import { getUserRegion } from '@/lib/user-actions';
 import { Imgproxy } from '@/components/image-proxy';
+import { isResourceWatched } from '@/lib/watched';
 import { isResourceInWatchlist } from '@/lib/watchlist';
 import { Calendar, Star, Tv, Users } from 'lucide-react';
 import { headers } from 'next/headers';
@@ -46,7 +47,11 @@ export default async function TvShowPage(props: TvShowPageProps) {
 
   const user = await getUser();
   const userRegion = await getUserRegion();
-  const inWatchlist = user ? await isResourceInWatchlist(tvId, RESOURCE_TYPE) : false;
+  // Both membership checks short-circuit to false for anonymous visitors.
+  const [inWatchlist, watched] = await Promise.all([
+    isResourceInWatchlist(tvId, RESOURCE_TYPE),
+    isResourceWatched(tvId, RESOURCE_TYPE),
+  ]);
 
   const [tvShow, credits, watchProviders, imdbId] = await Promise.all([
     getTvShowDetails(tvId),
@@ -111,6 +116,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
             tagline={tagline}
             itemId={tvId}
             inWatchlist={inWatchlist}
+            isWatched={watched}
             userId={user?.id}
             resourceType={RESOURCE_TYPE}
           />
