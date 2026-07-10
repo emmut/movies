@@ -1,16 +1,22 @@
-import { defineRailway, github, image, preserve, project, service } from "railway/iac";
+import { defineRailway, github, image, postgres, preserve, project, service } from "railway/iac";
 
-export default defineRailway(() => {
+export default defineRailway((ctx) => {
+  const prod = ctx.isEnvironment("production");
+
+  // PR/preview environments get their own Postgres; production keeps the external DB.
+  const db = prod ? null : postgres("postgres");
+
   const movies = service("movies", {
-    source: github("emmut/movies"),
+    // In PR environments the service tracks the PR branch — leave source unmanaged there.
+    ...(prod ? { source: github("emmut/movies") } : {}),
     build: "",
     replicas: 1,
     deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1000000000 } }, sleepApplication: true },
-    domains: ["movies.emmut.space"],
+    domains: prod ? ["movies.emmut.space"] : [],
     env: {
       BETTER_AUTH_SECRET: preserve(),
       BETTER_AUTH_TRUSTED_ORIGIN: preserve(),
-      DATABASE_URL: preserve(),
+      DATABASE_URL: db ? db.env.DATABASE_URL : preserve(),
       DISCORD_CLIENT_ID: preserve(),
       DISCORD_CLIENT_SECRET: preserve(),
       GITHUB_CLIENT_ID: preserve(),
@@ -30,7 +36,7 @@ export default defineRailway(() => {
     source: image("darthsim/imgproxy:v3.18.2"),
     healthcheck: "/health",
     replicas: 1,
-    domains: ["cdn.emmut.space"],
+    domains: prod ? ["cdn.emmut.space"] : [],
     networking: { privateNetworkEndpoint: "imgproxy-hrto" },
     env: {
       IMGPROXY_KEY: preserve(),
@@ -42,6 +48,6 @@ export default defineRailway(() => {
   });
 
   return project("movies", {
-    resources: [movies, imgproxyHRto],
+    resources: db ? [movies, imgproxyHRto, db] : [movies, imgproxyHRto],
   });
 });
