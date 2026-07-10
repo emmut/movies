@@ -11,6 +11,11 @@ const userNavItems = [
     icon: 'star' as const,
   },
   {
+    href: '/watched',
+    label: 'Watched',
+    icon: 'eye' as const,
+  },
+  {
     href: '/lists',
     label: 'Lists',
     icon: 'list' as const,
@@ -36,6 +41,7 @@ export async function UserNav() {
 function UserNavGhost() {
   return (
     <>
+      <NavGhostItem />
       <NavGhostItem />
       <NavGhostItem />
     </>

@@ -17,7 +17,7 @@ import {
 
 type PaginationControls = {
   totalPages: number;
-  pageType?: 'discover' | 'search' | 'trailers' | 'watchlist' | 'lists';
+  pageType?: 'discover' | 'search' | 'trailers' | 'watchlist' | 'watched' | 'lists';
 };
 
 // Generate page numbers with ellipsis logic (mobile-first)

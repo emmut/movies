@@ -20,7 +20,14 @@ import { db } from '@/lib/db';
 
 import { chain } from '@/test/db-chain';
 
-import { addToList, createList, deleteList, removeFromList, updateList } from './lists';
+import {
+  addToList,
+  createList,
+  deleteList,
+  getOwnedCustomList,
+  removeFromList,
+  updateList,
+} from './lists';
 
 const UUID = '123e4567-e89b-12d3-a456-426614174000';
 
@@ -96,6 +103,23 @@ describe('ownership enforcement', () => {
     setOwnedCount(1);
     await updateList(UUID, 'name');
     expect(db.update).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getOwnedCustomList', () => {
+  it('returns the list when it is an owned custom list', async () => {
+    vi.mocked(db.select).mockReturnValue(chain([{ id: UUID }]));
+    await expect(getOwnedCustomList(UUID)).resolves.toEqual({ id: UUID });
+  });
+
+  it('returns null when the list is missing, foreign, or a system list', async () => {
+    vi.mocked(db.select).mockReturnValue(chain([]));
+    await expect(getOwnedCustomList(UUID)).resolves.toBeNull();
+  });
+
+  it('returns null for a non-uuid id without querying', async () => {
+    await expect(getOwnedCustomList('not-a-uuid')).resolves.toBeNull();
+    expect(db.select).not.toHaveBeenCalled();
   });
 });
 

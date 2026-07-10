@@ -92,6 +92,15 @@ export const CACHE_TAGS = {
     watchlistCount(userId: string, resourceType: string) {
       return `private:user:${userId}:watchlist-count:${resourceType}`;
     },
+    watchedItem(userId: string, resourceType: string, resourceId: number) {
+      return `private:user:${userId}:watched:${resourceType}:${resourceId}`;
+    },
+    watchedList(userId: string, resourceType: string) {
+      return `private:user:${userId}:watched-list:${resourceType}`;
+    },
+    watchedCount(userId: string, resourceType: string) {
+      return `private:user:${userId}:watched-count:${resourceType}`;
+    },
     lists(userId: string) {
       return `private:user:${userId}:lists`;
     },
@@ -101,5 +110,23 @@ export const CACHE_TAGS = {
     listStatus(userId: string, resourceType: string, resourceId: number) {
       return `private:user:${userId}:list-status:${resourceType}:${resourceId}`;
     },
+  },
+} as const;
+
+/**
+ * The private tag trio (membership item, per-type list, per-type count) for
+ * each system list, so callers can tag and revalidate by list type without
+ * duplicating the mapping.
+ */
+export const SYSTEM_LIST_CACHE_TAGS = {
+  watchlist: {
+    item: CACHE_TAGS.private.watchlistItem,
+    list: CACHE_TAGS.private.watchlistList,
+    count: CACHE_TAGS.private.watchlistCount,
+  },
+  watched: {
+    item: CACHE_TAGS.private.watchedItem,
+    list: CACHE_TAGS.private.watchedList,
+    count: CACHE_TAGS.private.watchedCount,
   },
 } as const;

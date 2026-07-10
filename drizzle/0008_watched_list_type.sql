@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "lists_user_watched_unique" ON "lists" USING btree ("user_id") WHERE "lists"."type" = 'watched';

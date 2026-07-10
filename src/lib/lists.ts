@@ -39,24 +39,51 @@ export interface LocalList {
   }>;
 }
 
-export interface LocalListWithStatus extends LocalList {
-  hasItem: boolean;
+const CUSTOM_LIST_TYPE = 'custom' as const;
+
+/**
+ * Scopes every lists query to the user's custom lists, excluding system lists
+ * like the watchlist (which has its own UI and must never surface here).
+ */
+function ownedCustomListsFilter(userId: string) {
+  return and(eq(lists.userId, userId), eq(lists.type, CUSTOM_LIST_TYPE));
 }
 
 /**
- * Asserts that a list exists and belongs to the given user.
+ * Asserts that a custom list exists and belongs to the given user.
  *
- * @throws {Error} 'List not found' when the list does not exist or is owned by another user.
+ * @throws {Error} 'List not found' when the list does not exist, is owned by
+ * another user, or is a system list (e.g. the watchlist).
  */
-async function assertListOwnership(listId: string, userId: string) {
+async function assertCustomListOwnership(listId: string, userId: string) {
   const [{ count: ownedCount }] = await db
     .select({ count: sql`count(*)`.mapWith(Number) })
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, userId)));
+    .where(and(eq(lists.id, listId), ownedCustomListsFilter(userId)));
 
   if (ownedCount === 0) {
     throw new Error('List not found');
   }
+}
+
+/**
+ * Returns the custom list with the given id if it exists and is owned by the
+ * authenticated user; `null` otherwise (including for system lists).
+ */
+export async function getOwnedCustomList(listId: string): Promise<{ id: string } | null> {
+  const user = await requireUser();
+
+  if (!listIdSchema.safeParse(listId).success) {
+    return null;
+  }
+
+  const result = await db
+    .select({ id: lists.id })
+    .from(lists)
+    .where(and(eq(lists.id, listId), ownedCustomListsFilter(user.id)))
+    .limit(1);
+
+  return result[0] ?? null;
 }
 
 export async function getUserListCount() {
@@ -74,7 +101,7 @@ async function getCachedUserListCount(userId: string) {
     const count = await db
       .select({ count: sql`count(*)`.mapWith(Number) })
       .from(lists)
-      .where(eq(lists.userId, userId));
+      .where(ownedCustomListsFilter(userId));
 
     return count[0].count;
   } catch (error) {
@@ -101,7 +128,7 @@ export async function getUserListsPaginated(page: number = 1) {
     const totalCountResult = await db
       .select({ count: count() })
       .from(lists)
-      .where(eq(lists.userId, user.id));
+      .where(ownedCustomListsFilter(user.id));
 
     const totalItems = totalCountResult[0]?.count ?? 0;
     const totalPages = Math.ceil(totalItems / LISTS_PER_PAGE);
@@ -130,7 +157,7 @@ export async function getUserListsPaginated(page: number = 1) {
       })
       .from(lists)
       .leftJoin(listItems, eq(lists.id, listItems.listId))
-      .where(eq(lists.userId, user.id))
+      .where(ownedCustomListsFilter(user.id))
       .groupBy(lists.id)
       .orderBy(desc(lists.updatedAt))
       .limit(LISTS_PER_PAGE)
@@ -164,7 +191,7 @@ export async function getUserListsPaginated(page: number = 1) {
  * @param itemsPerPage - The number of items per page.
  * @returns An object containing the list details, paginated items, and pagination metadata.
  */
-export async function getListDetailsPaginated(listId: string, page: number = 1) {
+async function getListDetailsPaginated(listId: string, page: number = 1) {
   const user = await requireUser();
 
   if (!listIdSchema.safeParse(listId).success) {
@@ -178,7 +205,7 @@ export async function getListDetailsPaginated(listId: string, page: number = 1) 
   const listResult = await db
     .select()
     .from(lists)
-    .where(and(eq(lists.id, listId), eq(lists.userId, user.id)));
+    .where(and(eq(lists.id, listId), ownedCustomListsFilter(user.id)));
 
   if (listResult.length === 0) {
     throw new Error('List not found');
@@ -339,7 +366,7 @@ export async function addToList(
     resourceType: mediaType,
   });
 
-  await assertListOwnership(validatedData.listId, user.id);
+  await assertCustomListOwnership(validatedData.listId, user.id);
 
   try {
     await db.insert(listItems).values({
@@ -375,7 +402,7 @@ export async function removeFromList(
     resourceType: mediaType,
   });
 
-  await assertListOwnership(validatedData.listId, user.id);
+  await assertCustomListOwnership(validatedData.listId, user.id);
 
   await db
     .delete(listItems)
@@ -401,7 +428,7 @@ export async function deleteList(listId: string) {
     throw new Error('Invalid list ID');
   }
 
-  await assertListOwnership(listId, user.id);
+  await assertCustomListOwnership(listId, user.id);
 
   await db.delete(lists).where(eq(lists.id, listId));
 
@@ -425,7 +452,7 @@ export async function updateList(
     emoji,
   });
 
-  await assertListOwnership(validatedData.listId, user.id);
+  await assertCustomListOwnership(validatedData.listId, user.id);
 
   await db
     .update(lists)
@@ -486,7 +513,7 @@ async function getCachedUserListsWithStatus(
       })
       .from(lists)
       .leftJoin(listItems, eq(lists.id, listItems.listId))
-      .where(eq(lists.userId, userId))
+      .where(ownedCustomListsFilter(userId))
       .groupBy(
         lists.id,
         lists.name,

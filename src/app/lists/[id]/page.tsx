@@ -1,12 +1,22 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import { getUser } from '@/lib/auth-server';
-import { getListDetailsWithResources } from '@/lib/lists';
+import { getListDetailsWithResources, getOwnedCustomList } from '@/lib/lists';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
 
 import { ListDetailsContent } from './list-details-content';
+
+// Covers nonexistent, foreign, and system lists (e.g. the watchlist) —
+// without this, prefetchQuery swallows the throw and the client renders a
+// skeleton forever.
+async function assertOwnedCustomList(listId: string) {
+  const list = await getOwnedCustomList(listId);
+  if (!list) {
+    notFound();
+  }
+}
 
 export default async function ListDetailsPage({
   params,
@@ -24,6 +34,8 @@ export default async function ListDetailsPage({
   const { id } = await params;
   const { page: pageParam } = await searchParams;
   const page = Number(pageParam ?? '1');
+
+  await assertOwnedCustomList(id);
 
   // Prefetch list details with React Query for client-side caching
   const queryClient = getQueryClient();

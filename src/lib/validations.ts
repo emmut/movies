@@ -23,6 +23,14 @@ export const resourceIdNumberSchema = z
 export const resourceTypeSchema = z.enum(['movie', 'tv']);
 
 /**
+ * Per-user singleton lists managed by the app rather than the user
+ * (`lists.type` values other than 'custom').
+ */
+export const systemListTypeSchema = z.enum(['watchlist', 'watched']);
+
+export type SystemListType = z.infer<typeof systemListTypeSchema>;
+
+/**
  * Schema for movie page route parameters
  */
 export const resourcePageParamsSchema = z.object({
