@@ -1,8 +1,15 @@
+/// <reference types="node" />
 import { execSync } from "node:child_process";
-import { defineRailway, github, image, postgres, preserve, project, service } from "railway/iac";
+import { defineRailway, github, image, postgres, preserve, project, service, volume } from "railway/iac";
 
 function currentGitBranch() {
-  return execSync("git branch --show-current", { encoding: "utf8" }).trim();
+  // CI checks out a detached HEAD, so it must provide the PR branch explicitly.
+  const branch =
+    process.env.RAILWAY_IAC_BRANCH ?? execSync("git branch --show-current", { encoding: "utf8" }).trim();
+  if (!branch) {
+    throw new Error("Cannot resolve the PR branch: set RAILWAY_IAC_BRANCH or run from a branch checkout.");
+  }
+  return branch;
 }
 
 export default defineRailway((ctx) => {
@@ -52,7 +59,11 @@ export default defineRailway((ctx) => {
     },
   });
 
+  // Railway provisions this volume for the managed Postgres; declare it so
+  // plans don't try to delete it.
+  const dbVolume = db ? volume("postgres-volume") : null;
+
   return project("movies", {
-    resources: db ? [movies, imgproxyHRto, db] : [movies, imgproxyHRto],
+    resources: db ? [movies, imgproxyHRto, db, dbVolume!] : [movies, imgproxyHRto],
   });
 });
