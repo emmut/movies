@@ -38,8 +38,10 @@ export default defineRailway((ctx) => {
   const movies = service("movies", {
     // PR environments track their PR branch; plan/apply for them must run from that branch's checkout.
     source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
-    // The PR database starts empty — push the schema before each deploy.
-    ...(prod ? {} : { preDeploy: "pnpm db:push --force" }),
+    // Runs before each deploy; a non-zero exit aborts the deploy and keeps the
+    // old version live. Prod applies committed migrations; the PR database
+    // starts empty so it just gets the schema pushed.
+    preDeploy: prod ? "pnpm db:migrate" : "pnpm db:push --force",
     deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1000000000 } }, sleepApplication: true },
     domains: prod ? [APP_DOMAIN] : [],
     env: {
