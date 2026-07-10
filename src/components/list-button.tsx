@@ -24,8 +24,8 @@ import {
 } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 import { getErrorMessage } from '@/lib/utils';
-import { isResourceInWatchlist } from '@/lib/watchlist';
-import { toggleWatchlist } from '@/lib/watchlist-actions';
+import { toggleSystemListItem } from '@/lib/system-list-actions';
+import { isResourceInSystemList } from '@/lib/system-list-queries';
 
 interface ListButtonProps {
   mediaId: number;
@@ -145,7 +145,7 @@ function ListButtonInner({
 
   const { data: isInWatchlist = false } = useQuery({
     queryKey: queryKeys.watchlist.status(mediaId, mediaType),
-    queryFn: () => isResourceInWatchlist(mediaId, mediaType),
+    queryFn: () => isResourceInSystemList('watchlist', mediaId, mediaType),
     staleTime: 30_000,
     enabled: isOpen && showWatchlist,
   });
@@ -180,7 +180,11 @@ function ListButtonInner({
     queryClient.setQueryData(queryKeys.watchlist.status(mediaId, mediaType), !previous);
     setIsPending(true);
     try {
-      const result = await toggleWatchlist({ resourceId: mediaId, resourceType: mediaType });
+      const result = await toggleSystemListItem({
+        listType: 'watchlist',
+        resourceId: mediaId,
+        resourceType: mediaType,
+      });
       // 'added' and 'unchanged' both mean the row is present (the latter when a
       // concurrent insert won the race); only 'removed' clears it. From the
       // user's view the end state is identical, so both show "Added".

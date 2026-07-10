@@ -18,8 +18,7 @@ import {
 import { getUserRegion } from '@/lib/user-actions';
 import { Imgproxy } from '@/components/image-proxy';
 import { formatCurrency, formatRuntime } from '@/lib/utils';
-import { isResourceWatched } from '@/lib/watched';
-import { isResourceInWatchlist } from '@/lib/watchlist';
+import { getSystemListMemberships } from '@/lib/system-list-queries';
 import { Calendar, Clock, DollarSign, Star, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
@@ -48,11 +47,7 @@ export default async function MoviePage(props: MoviePageProps) {
 
   const user = await getUser();
   const userRegion = await getUserRegion();
-  // Both membership checks short-circuit to false for anonymous visitors.
-  const [inWatchlist, watched] = await Promise.all([
-    isResourceInWatchlist(movieId, RESOURCE_TYPE),
-    isResourceWatched(movieId, RESOURCE_TYPE),
-  ]);
+  const { inWatchlist, watched } = await getSystemListMemberships(movieId, RESOURCE_TYPE);
 
   const [movie, credits, watchProviders] = await Promise.all([
     getMovieDetails(movieId),

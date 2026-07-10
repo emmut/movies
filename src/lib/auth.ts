@@ -9,7 +9,7 @@ import * as schema from '@/db/schema/auth';
 import { listItems, lists } from '@/db/schema/lists';
 import { env } from '@/env';
 import { db } from '@/lib/db';
-import { getOrCreateWatchlistListId, WATCHLIST_LIST_TYPE } from '@/lib/watchlist-list';
+import { getOrCreateSystemListId } from '@/lib/system-list';
 
 export const auth = betterAuth({
   baseURL: env.NEXT_PUBLIC_BASE_URL,
@@ -52,7 +52,7 @@ export const auth = betterAuth({
             .where(
               and(
                 eq(lists.userId, anonymousUser.user.id),
-                eq(lists.type, WATCHLIST_LIST_TYPE),
+                eq(lists.type, 'watchlist'),
               ),
             );
 
@@ -62,7 +62,7 @@ export const auth = betterAuth({
 
           // Transfer watchlist items from anonymous user to linked account
           // Duplicates are handled by unique constraint on (listId, resourceId, resourceType)
-          const targetListId = await getOrCreateWatchlistListId(newUser.user.id);
+          const targetListId = await getOrCreateSystemListId(newUser.user.id, 'watchlist');
           await db
             .insert(listItems)
             .values(

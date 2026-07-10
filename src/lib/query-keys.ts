@@ -13,6 +13,23 @@ type DiscoverParams = {
   withRuntimeLte?: number;
 };
 
+// Key factory shared by the system lists (watchlist, watched) so both expose
+// the same hierarchy under their own root.
+function systemListKeys<Root extends string>(root: Root) {
+  const all = [root] as const;
+  const lists = () => [...all, 'list'] as const;
+  const counts = () => [...all, 'counts'] as const;
+  return {
+    all,
+    lists,
+    list: (mediaType: 'movie' | 'tv', page: number) => [...lists(), mediaType, page] as const,
+    counts,
+    count: (mediaType: 'movie' | 'tv') => [...counts(), mediaType] as const,
+    status: (resourceId: number, resourceType: string) =>
+      [...all, 'status', resourceId, resourceType] as const,
+  };
+}
+
 export const queryKeys = {
   user: {
     all: ['user'] as const,
@@ -26,26 +43,8 @@ export const queryKeys = {
     list: (category: string, region: string) =>
       [...queryKeys.home.lists(), category, region] as const,
   },
-  watchlist: {
-    all: ['watchlist'] as const,
-    lists: () => [...queryKeys.watchlist.all, 'list'] as const,
-    list: (mediaType: 'movie' | 'tv', page: number) =>
-      [...queryKeys.watchlist.lists(), mediaType, page] as const,
-    counts: () => [...queryKeys.watchlist.all, 'counts'] as const,
-    count: (mediaType: 'movie' | 'tv') => [...queryKeys.watchlist.counts(), mediaType] as const,
-    status: (resourceId: number, resourceType: string) =>
-      [...queryKeys.watchlist.all, 'status', resourceId, resourceType] as const,
-  },
-  watched: {
-    all: ['watched'] as const,
-    lists: () => [...queryKeys.watched.all, 'list'] as const,
-    list: (mediaType: 'movie' | 'tv', page: number) =>
-      [...queryKeys.watched.lists(), mediaType, page] as const,
-    counts: () => [...queryKeys.watched.all, 'counts'] as const,
-    count: (mediaType: 'movie' | 'tv') => [...queryKeys.watched.counts(), mediaType] as const,
-    status: (resourceId: number, resourceType: string) =>
-      [...queryKeys.watched.all, 'status', resourceId, resourceType] as const,
-  },
+  watchlist: systemListKeys('watchlist'),
+  watched: systemListKeys('watched'),
   lists: {
     all: ['lists'] as const,
     details: () => [...queryKeys.lists.all, 'detail'] as const,

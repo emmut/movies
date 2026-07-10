@@ -2,8 +2,7 @@ import { User } from 'better-auth';
 
 import Badge from './badge';
 import { ListButton } from './list-button';
-import { WatchedButton } from './watched-button';
-import { WatchlistButton } from './watchlist-button';
+import { SystemListButton } from './system-list-button';
 
 type ItemHeaderProps = {
   title: string;
@@ -37,16 +36,18 @@ export default function ItemHeader({
             )}
           </div>
           <div className="flex w-full justify-between gap-2 sm:w-max @2xl/title:justify-end">
-            <WatchlistButton
+            <SystemListButton
+              listType="watchlist"
               resourceId={itemId}
               resourceType={resourceType}
-              isInWatchlist={inWatchlist}
+              isActive={inWatchlist}
               userId={userId}
             />
-            <WatchedButton
+            <SystemListButton
+              listType="watched"
               resourceId={itemId}
               resourceType={resourceType}
-              isWatched={isWatched}
+              isActive={isWatched}
               userId={userId}
               className="mr-auto"
             />
