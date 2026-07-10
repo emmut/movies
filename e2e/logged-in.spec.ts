@@ -121,6 +121,42 @@ test.describe('logged-in watchlist and lists', () => {
     );
   });
 
+  test('marks a movie as watched and clears it from the watchlist', async ({ page }) => {
+    await signInAnonymously(page, MOVIE_PATH);
+
+    // Save it for later first, so the watched toggle has something to clear.
+    await page.getByRole('button', { name: /add to watchlist/i }).click();
+    await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeEnabled();
+
+    // Mark it watched: the button flips and the watchlist entry disappears.
+    await page.getByRole('button', { name: /^mark as watched$/i }).click();
+    await expect(page.getByRole('button', { name: /mark as not watched/i })).toBeEnabled();
+    // The watchlist removal is a server-side effect; reload for the
+    // server-rendered button state rather than racing the RSC refresh.
+    await page.reload();
+    await expect(page.getByRole('button', { name: /add to watchlist/i })).toBeVisible();
+
+    // The movie shows up on the watched page.
+    await page.goto('/watched');
+    await expect(page.getByRole('heading', { name: /^watched$/i })).toBeVisible();
+    await expect(page.getByText(/1 movie watched/i)).toBeVisible();
+    await expect(page.locator(`a[href="${MOVIE_PATH}"]`).first()).toBeVisible();
+
+    // And the watchlist is empty again.
+    await page.goto('/watchlist');
+    await expect(page.getByRole('heading', { name: /your watchlist is empty/i })).toBeVisible();
+
+    // Un-mark it from the detail page and confirm the watched page empties.
+    await page.goto(MOVIE_PATH);
+    await page.getByRole('button', { name: /mark as not watched/i }).click();
+    await expect(page.getByRole('button', { name: /^mark as watched$/i })).toBeEnabled();
+
+    await page.goto('/watched');
+    await expect(
+      page.getByRole('heading', { name: /you haven't watched anything yet/i }),
+    ).toBeVisible();
+  });
+
   test('keeps the watchlist system list out of the lists UI', async ({ page }) => {
     await signInAnonymously(page, MOVIE_PATH);
 
@@ -130,8 +166,11 @@ test.describe('logged-in watchlist and lists', () => {
 
     // The lists page must not surface it: still the empty state, no card.
     await page.goto('/lists');
-    await expect(page.getByRole('heading', { name: /no lists yet/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /watchlist/i })).toHaveCount(0);
+    await expect(
+      page.getByRole('heading', { name: /you haven't created any lists yet/i }),
+    ).toBeVisible();
+    // Scope to the page content: the sidebar nav always has a Watchlist link.
+    await expect(page.getByRole('main').getByRole('link', { name: /watchlist/i })).toHaveCount(0);
 
     // Neither must the add-to-list dropdown on a detail page.
     await page.goto(MOVIE_PATH);
