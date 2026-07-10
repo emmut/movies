@@ -5,7 +5,7 @@ import type { ProxyImageUrls } from '@/types/proxy-image';
 import { User } from 'lucide-react';
 import Link from 'next/link';
 import Badge from './badge';
-import { ListButton } from './list-button';
+import { QuickAddButton } from './quick-add-button';
 import { RemoveFromListButton } from './remove-from-list-button';
 
 type PersonCardProps = {
@@ -94,7 +94,7 @@ export default function PersonCard({
 
       {showListButton && userId && (
         <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
-          <ListButton mediaId={person.id} mediaType="person" userId={userId} />
+          <QuickAddButton mediaId={person.id} mediaType="person" userId={userId} />
         </div>
       )}
 

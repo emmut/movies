@@ -6,7 +6,7 @@ import { TvDetails, TvShow } from '@/types/tv-show';
 import { Star } from 'lucide-react';
 import Link from 'next/link';
 import Badge from './badge';
-import { ListButton } from './list-button';
+import { QuickAddButton } from './quick-add-button';
 import { RemoveFromListButton } from './remove-from-list-button';
 
 type ItemCardProps = {
@@ -116,7 +116,7 @@ export default function ItemCard({
 
       {showListButton && (
         <div className="absolute top-2 right-2 transition-opacity">
-          <ListButton mediaId={item.id} mediaType={type} userId={userId} />
+          <QuickAddButton mediaId={item.id} mediaType={type} userId={userId} />
         </div>
       )}
 

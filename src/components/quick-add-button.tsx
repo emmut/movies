@@ -28,7 +28,7 @@ import { toggleSystemListItem } from '@/lib/system-list-actions';
 import { isResourceInSystemList } from '@/lib/system-list-queries';
 import type { SystemListType } from '@/lib/validations';
 
-interface ListButtonProps {
+interface QuickAddButtonProps {
   mediaId: number;
   mediaType: 'movie' | 'tv' | 'person';
   userId?: string;
@@ -177,11 +177,11 @@ function useSystemListStatus(
   return data;
 }
 
-function ListButtonInner({
+function QuickAddButtonInner({
   mediaId,
   mediaType,
   showWatchlist = true,
-}: Omit<ListButtonProps, 'userId'>) {
+}: Omit<QuickAddButtonProps, 'userId'>) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
@@ -267,7 +267,7 @@ function ListButtonInner({
               variant="glass"
               size="icon"
               disabled={isPending}
-              aria-label={showWatchlist ? 'Add to list or watchlist' : 'Add to list'}
+              aria-label={showWatchlist ? 'Quick add' : 'Add to list'}
             />
           }
         >
@@ -321,20 +321,20 @@ function ListButtonInner({
 // Fallback for cards rendered from prerendered (cached) lists that have no
 // server-provided userId: resolve the signed-in user from the client session.
 // Only this path subscribes to the session, so server-id callers stay cheap.
-function SessionListButton(props: Omit<ListButtonProps, 'userId'>) {
+function SessionQuickAddButton(props: Omit<QuickAddButtonProps, 'userId'>) {
   const { data: session } = useSession();
 
   if (!session?.user?.id) {
     return null;
   }
 
-  return <ListButtonInner {...props} />;
+  return <QuickAddButtonInner {...props} />;
 }
 
-export function ListButton({ userId, ...props }: ListButtonProps) {
+export function QuickAddButton({ userId, ...props }: QuickAddButtonProps) {
   if (userId) {
-    return <ListButtonInner {...props} />;
+    return <QuickAddButtonInner {...props} />;
   }
 
-  return <SessionListButton {...props} />;
+  return <SessionQuickAddButton {...props} />;
 }

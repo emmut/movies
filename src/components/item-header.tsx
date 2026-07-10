@@ -1,7 +1,7 @@
 import { User } from 'better-auth';
 
 import Badge from './badge';
-import { ListButton } from './list-button';
+import { QuickAddButton } from './quick-add-button';
 import { SystemListButton } from './system-list-button';
 
 type ItemHeaderProps = {
@@ -51,7 +51,7 @@ export default function ItemHeader({
               userId={userId}
               className="mr-auto"
             />
-            <ListButton
+            <QuickAddButton
               mediaId={itemId}
               mediaType={resourceType}
               userId={userId}

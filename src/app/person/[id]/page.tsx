@@ -2,7 +2,7 @@ import Badge from '@/components/badge';
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import ItemCard from '@/components/item-card';
-import { ListButton } from '@/components/list-button';
+import { QuickAddButton } from '@/components/quick-add-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
@@ -138,7 +138,7 @@ export default async function PersonPage(props: PersonPageProps) {
             <div className="flex w-full items-center justify-between gap-2">
               <Badge variant="blue">Person</Badge>
               {user && (
-                <ListButton
+                <QuickAddButton
                   mediaId={personId}
                   mediaType="person"
                   userId={user.id}
