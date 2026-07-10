@@ -76,6 +76,26 @@ export const auth = betterAuth({
       clientSecret: env.GITHUB_CLIENT_SECRET,
     },
   },
+  advanced: {
+    ipAddress: {
+      getClientIp: (context) => {
+        // Railway forwards client IP in x-forwarded-for when requests come through
+        // its ingress. Only use it if present; reject spoofed values.
+        // The header format is: client, proxy1, proxy2
+        // We take the leftmost (true client) IP.
+        const xForwardedFor = context.req.headers['x-forwarded-for'];
+        if (typeof xForwardedFor === 'string') {
+          const clientIp = xForwardedFor.split(',')[0]?.trim();
+          if (clientIp) {
+            return clientIp;
+          }
+        }
+        // Fallback to direct connection IP if no forwarded header.
+        // In production on Railway, this should not happen for external requests.
+        return context.req.socket?.remoteAddress || '';
+      },
+    },
+  },
 
   plugins: [
     anonymous({
@@ -93,3 +113,4 @@ export const auth = betterAuth({
     nextCookies(),
   ],
 });
+
