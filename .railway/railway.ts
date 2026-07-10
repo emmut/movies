@@ -1,4 +1,9 @@
+import { execSync } from "node:child_process";
 import { defineRailway, github, image, postgres, preserve, project, service } from "railway/iac";
+
+function currentGitBranch() {
+  return execSync("git branch --show-current", { encoding: "utf8" }).trim();
+}
 
 export default defineRailway((ctx) => {
   const prod = ctx.isEnvironment("production");
@@ -7,8 +12,8 @@ export default defineRailway((ctx) => {
   const db = prod ? null : postgres("postgres");
 
   const movies = service("movies", {
-    // In PR environments the service tracks the PR branch — leave source unmanaged there.
-    ...(prod ? { source: github("emmut/movies") } : {}),
+    // PR environments track their PR branch; plan/apply for them must run from that branch's checkout.
+    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
     build: "",
     replicas: 1,
     deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1000000000 } }, sleepApplication: true },
