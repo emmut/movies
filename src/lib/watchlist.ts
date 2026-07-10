@@ -1,15 +1,16 @@
 'use server';
 
-import { and, count, eq } from 'drizzle-orm';
+import { and, count, desc, eq } from 'drizzle-orm';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { watchlist } from '@/db/schema/watchlist';
+import { listItems, lists } from '@/db/schema/lists';
 import { getUser } from '@/lib/auth-server';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { getMovieDetails } from '@/lib/movies';
 import { pageSchema, resourceIdSchema, resourceTypeSchema } from '@/lib/validations';
+import { WATCHLIST_LIST_TYPE } from '@/lib/watchlist-list';
 import { MovieDetails } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 import { TvDetails } from '@/types/tv-show';
@@ -20,6 +21,14 @@ import { getTvShowDetails } from './tv-shows';
 type ResourceDetailsWithImage = (MovieDetails | TvDetails) & {
   posterImageUrls?: ProxyImageUrls;
 };
+
+/**
+ * Filters list_items joined with lists down to the user's watchlist system
+ * list. Use with a `listItems` innerJoin on `lists`.
+ */
+function watchlistItemsFilter(userId: string) {
+  return and(eq(lists.userId, userId), eq(lists.type, WATCHLIST_LIST_TYPE));
+}
 
 /**
  * Checks if a specific resource is present in the authenticated user's watchlist.
@@ -54,15 +63,17 @@ async function getCachedWatchlistMembership(
     });
 
     const result = await db
-      .select()
-      .from(watchlist)
+      .select({ id: listItems.id })
+      .from(listItems)
+      .innerJoin(lists, eq(listItems.listId, lists.id))
       .where(
         and(
-          eq(watchlist.userId, userId),
-          eq(watchlist.resourceId, validatedResourceId.resourceId),
-          eq(watchlist.resourceType, validatedResourceId.resourceType),
+          watchlistItemsFilter(userId),
+          eq(listItems.resourceId, validatedResourceId.resourceId),
+          eq(listItems.resourceType, validatedResourceId.resourceType),
         ),
-      );
+      )
+      .limit(1);
 
     return result.length > 0;
   } catch (error) {
@@ -95,8 +106,9 @@ export async function getWatchlistWithResourceDetailsPaginated(
   try {
     const totalCountResult = await db
       .select({ count: count() })
-      .from(watchlist)
-      .where(and(eq(watchlist.userId, user.id), eq(watchlist.resourceType, resourceType)));
+      .from(listItems)
+      .innerJoin(lists, eq(listItems.listId, lists.id))
+      .where(and(watchlistItemsFilter(user.id), eq(listItems.resourceType, resourceType)));
 
     const totalItems = totalCountResult[0]?.count || 0;
     const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
@@ -113,9 +125,16 @@ export async function getWatchlistWithResourceDetailsPaginated(
 
     const offset = (page - 1) * ITEMS_PER_PAGE;
     const paginatedWatchlist = await db
-      .select()
-      .from(watchlist)
-      .where(and(eq(watchlist.userId, user.id), eq(watchlist.resourceType, resourceType)))
+      .select({
+        id: listItems.id,
+        resourceId: listItems.resourceId,
+        resourceType: listItems.resourceType,
+        createdAt: listItems.createdAt,
+      })
+      .from(listItems)
+      .innerJoin(lists, eq(listItems.listId, lists.id))
+      .where(and(watchlistItemsFilter(user.id), eq(listItems.resourceType, resourceType)))
+      .orderBy(desc(listItems.createdAt))
       .limit(ITEMS_PER_PAGE)
       .offset(offset);
 
@@ -201,8 +220,9 @@ async function getCachedWatchlistCount(userId: string, resourceType: string) {
   try {
     const result = await db
       .select({ count: count() })
-      .from(watchlist)
-      .where(and(eq(watchlist.userId, userId), eq(watchlist.resourceType, resourceType)));
+      .from(listItems)
+      .innerJoin(lists, eq(listItems.listId, lists.id))
+      .where(and(watchlistItemsFilter(userId), eq(listItems.resourceType, resourceType)));
 
     return result[0]?.count || 0;
   } catch (error) {

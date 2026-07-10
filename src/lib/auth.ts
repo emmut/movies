@@ -3,12 +3,13 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
 import { anonymous } from 'better-auth/plugins';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
 import * as schema from '@/db/schema/auth';
-import { watchlist } from '@/db/schema/watchlist';
+import { listItems, lists } from '@/db/schema/lists';
 import { env } from '@/env';
 import { db } from '@/lib/db';
+import { getOrCreateWatchlistListId, WATCHLIST_LIST_TYPE } from '@/lib/watchlist-list';
 
 export const auth = betterAuth({
   baseURL: env.NEXT_PUBLIC_BASE_URL,
@@ -42,24 +43,34 @@ export const auth = betterAuth({
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         try {
           const anonymousUserWatchlist = await db
-            .select()
-            .from(watchlist)
-            .where(eq(watchlist.userId, anonymousUser.user.id));
+            .select({
+              resourceId: listItems.resourceId,
+              resourceType: listItems.resourceType,
+            })
+            .from(listItems)
+            .innerJoin(lists, eq(listItems.listId, lists.id))
+            .where(
+              and(
+                eq(lists.userId, anonymousUser.user.id),
+                eq(lists.type, WATCHLIST_LIST_TYPE),
+              ),
+            );
 
           if (anonymousUserWatchlist.length === 0) {
             return;
           }
 
           // Transfer watchlist items from anonymous user to linked account
-          // Duplicates are handled by unique constraint on (userId, resourceId, resourceType)
+          // Duplicates are handled by unique constraint on (listId, resourceId, resourceType)
+          const targetListId = await getOrCreateWatchlistListId(newUser.user.id);
           await db
-            .insert(watchlist)
+            .insert(listItems)
             .values(
               anonymousUserWatchlist.map(({ resourceId, resourceType }) => ({
                 id: crypto.randomUUID(),
                 resourceId,
                 resourceType,
-                userId: newUser.user.id,
+                listId: targetListId,
               })),
             )
             .onConflictDoNothing();

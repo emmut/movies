@@ -1,21 +1,34 @@
-import { integer, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { integer, pgTable, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core';
 
 import { user } from '@/db/schema/auth';
 
-export const lists = pgTable('lists', {
-  id: text('id').primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  description: text('description'),
-  emoji: text('emoji').notNull().default('📝'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at')
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
-});
+export const lists = pgTable(
+  'lists',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description'),
+    emoji: text('emoji').notNull().default('📝'),
+    type: text('type', { enum: ['custom', 'watchlist'] })
+      .notNull()
+      .default('custom'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    // System lists exist at most once per user; custom lists are unlimited.
+    uniqueIndex('lists_user_watchlist_unique')
+      .on(table.userId)
+      .where(sql`${table.type} = 'watchlist'`),
+  ],
+);
 
 export const listItems = pgTable(
   'list_items',

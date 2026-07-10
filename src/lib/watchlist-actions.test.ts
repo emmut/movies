@@ -4,10 +4,15 @@ vi.mock('@/lib/db', () => ({ db: { delete: vi.fn(), insert: vi.fn() } }));
 vi.mock('@/lib/auth-server', () => ({ requireUser: vi.fn() }));
 vi.mock('@/lib/cache-invalidation', () => ({ revalidateUserWatchlistCache: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
+vi.mock('@/lib/watchlist-list', () => ({
+  getWatchlistListId: vi.fn(),
+  getOrCreateWatchlistListId: vi.fn(),
+}));
 
 import { requireUser } from '@/lib/auth-server';
 import { revalidateUserWatchlistCache } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
+import { getOrCreateWatchlistListId, getWatchlistListId } from '@/lib/watchlist-list';
 import { revalidatePath } from 'next/cache';
 
 import { chain } from '@/test/db-chain';
@@ -17,6 +22,9 @@ import { toggleWatchlist } from './watchlist-actions';
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(requireUser).mockResolvedValue({ id: 'user-1' } as never);
+  // Default: the user already has a watchlist list.
+  vi.mocked(getWatchlistListId).mockResolvedValue('list-1');
+  vi.mocked(getOrCreateWatchlistListId).mockResolvedValue('list-1');
   // Default: insert returns the new row (the common, uncontended path).
   vi.mocked(db.insert).mockReturnValue(chain([{ id: 'row-1' }]));
 });
@@ -38,6 +46,19 @@ describe('toggleWatchlist', () => {
     const result = await toggleWatchlist({ resourceId: 5, resourceType: 'tv' });
 
     expect(result).toEqual({ success: true, action: 'added' });
+    expect(db.insert).toHaveBeenCalledTimes(1);
+    // The list already existed; no need to create it.
+    expect(getOrCreateWatchlistListId).not.toHaveBeenCalled();
+  });
+
+  it('creates the watchlist list on first add, skipping the delete', async () => {
+    vi.mocked(getWatchlistListId).mockResolvedValue(null);
+
+    const result = await toggleWatchlist({ resourceId: 5, resourceType: 'movie' });
+
+    expect(result).toEqual({ success: true, action: 'added' });
+    expect(db.delete).not.toHaveBeenCalled();
+    expect(getOrCreateWatchlistListId).toHaveBeenCalledWith('user-1');
     expect(db.insert).toHaveBeenCalledTimes(1);
   });
 

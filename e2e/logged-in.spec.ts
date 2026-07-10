@@ -121,6 +121,25 @@ test.describe('logged-in watchlist and lists', () => {
     );
   });
 
+  test('keeps the watchlist system list out of the lists UI', async ({ page }) => {
+    await signInAnonymously(page, MOVIE_PATH);
+
+    // Adding to the watchlist lazily creates the backing system list.
+    await page.getByRole('button', { name: /add to watchlist/i }).click();
+    await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeEnabled();
+
+    // The lists page must not surface it: still the empty state, no card.
+    await page.goto('/lists');
+    await expect(page.getByRole('heading', { name: /no lists yet/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /watchlist/i })).toHaveCount(0);
+
+    // Neither must the add-to-list dropdown on a detail page.
+    await page.goto(MOVIE_PATH);
+    await page.getByRole('button', { name: 'Add to list', exact: true }).click();
+    await expect(page.getByText('No lists yet')).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: /watchlist/i })).toHaveCount(0);
+  });
+
   test('toggles the watchlist from a card list dropdown', async ({ page }) => {
     await signInAnonymously(page, MOVIE_PATH);
 
