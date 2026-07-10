@@ -40,8 +40,11 @@ jobs:
         run: |
           # Railway creates the PR environment asynchronously after the PR opens.
           for i in $(seq 1 20); do
-            if railway link --project movies --environment "$RAILWAY_ENVIRONMENT"; then
-              exit 0
+            out=$(railway link --project movies --environment "$RAILWAY_ENVIRONMENT" 2>&1) && exit 0
+            echo "$out"
+            if echo "$out" | grep -qi "unauthorized"; then
+              echo "RAILWAY_API_TOKEN is invalid or lacks access — not retrying" >&2
+              exit 1
             fi
             echo "Environment $RAILWAY_ENVIRONMENT not ready yet, retrying in 15s…"
             sleep 15
