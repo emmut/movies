@@ -19,13 +19,13 @@ jobs:
       RAILWAY_IAC_BRANCH: ${{ github.head_ref }}
       RAILWAY_ENVIRONMENT: movies-pr-${{ github.event.number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: package.json
           cache: pnpm
