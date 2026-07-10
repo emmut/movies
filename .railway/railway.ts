@@ -3,7 +3,7 @@ import { execSync } from "node:child_process";
 import { defineRailway, github, image, postgres, preserve, project, service, volume } from "railway/iac";
 
 function currentGitBranch() {
-  // CI checks out a detached HEAD, so it must provide the PR branch explicitly.
+  // On a detached HEAD there is no current branch — provide it via RAILWAY_IAC_BRANCH instead.
   const branch =
     process.env.RAILWAY_IAC_BRANCH ?? execSync("git branch --show-current", { encoding: "utf8" }).trim();
   if (!branch) {
@@ -21,8 +21,6 @@ export default defineRailway((ctx) => {
   const movies = service("movies", {
     // PR environments track their PR branch; plan/apply for them must run from that branch's checkout.
     source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
-    build: "",
-    replicas: 1,
     deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1000000000 } }, sleepApplication: true },
     domains: prod ? ["movies.emmut.space"] : [],
     env: {
@@ -47,7 +45,6 @@ export default defineRailway((ctx) => {
   const imgproxyHRto = service("imgproxy-HRto", {
     source: image("darthsim/imgproxy:v3.18.2"),
     healthcheck: "/health",
-    replicas: 1,
     domains: prod ? ["cdn.emmut.space"] : [],
     networking: { privateNetworkEndpoint: "imgproxy-hrto" },
     env: {
@@ -61,7 +58,16 @@ export default defineRailway((ctx) => {
 
   // Railway provisions this volume for the managed Postgres; declare it so
   // plans don't try to delete it.
-  const dbVolume = db ? volume("postgres-volume") : null;
+  // These values must match what Railway provisions with the managed Postgres,
+  // otherwise plans show drift or try to shrink/delete the volume.
+  const dbVolume = db
+    ? volume("postgres-volume", {
+        region: "europe-west4-drams3a",
+        sizeMB: 5000,
+        allowOnlineResize: true,
+        alerts: { usage: { "80": {}, "95": {}, "100": {} } },
+      })
+    : null;
 
   return project("movies", {
     resources: db ? [movies, imgproxyHRto, db, dbVolume!] : [movies, imgproxyHRto],
