@@ -191,8 +191,8 @@ test.describe('logged-in watchlist and lists', () => {
     const card = page.locator(`a[href="${MOVIE_PATH}"]`).first();
     await expect(card).toBeVisible();
 
-    // Open the card's list dropdown and use its watchlist toggle to remove it.
-    await page.getByRole('button', { name: /add to list or watchlist/i }).click();
+    // Open the card's quick-add dropdown and use its watchlist toggle to remove it.
+    await page.getByRole('button', { name: /^quick add$/i }).click();
     await page.getByRole('menuitem', { name: /remove from watchlist/i }).click();
     // The success toast fires after the server action commits.
     await expect(page.getByText('Removed from watchlist')).toBeVisible();
