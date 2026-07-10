@@ -39,12 +39,14 @@ export interface LocalList {
   }>;
 }
 
+const CUSTOM_LIST_TYPE = 'custom' as const;
+
 /**
  * Scopes every lists query to the user's custom lists, excluding system lists
  * like the watchlist (which has its own UI and must never surface here).
  */
 function ownedCustomListsFilter(userId: string) {
-  return and(eq(lists.userId, userId), eq(lists.type, 'custom'));
+  return and(eq(lists.userId, userId), eq(lists.type, CUSTOM_LIST_TYPE));
 }
 
 /**

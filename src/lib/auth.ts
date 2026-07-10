@@ -10,6 +10,45 @@ import { listItems, lists } from '@/db/schema/lists';
 import { env } from '@/env';
 import { db } from '@/lib/db';
 import { getOrCreateSystemListId } from '@/lib/system-list';
+import { type SystemListType, systemListTypeSchema } from '@/lib/validations';
+
+/**
+ * Copies the anonymous user's system list items (watchlist, watched, …) into
+ * the linked account's list of the same type, creating it if missing.
+ * Duplicates are handled by the unique constraint on
+ * (listId, resourceId, resourceType).
+ */
+async function transferSystemListItems(
+  anonymousUserId: string,
+  newUserId: string,
+  listType: SystemListType,
+) {
+  const anonymousItems = await db
+    .select({
+      resourceId: listItems.resourceId,
+      resourceType: listItems.resourceType,
+    })
+    .from(listItems)
+    .innerJoin(lists, eq(listItems.listId, lists.id))
+    .where(and(eq(lists.userId, anonymousUserId), eq(lists.type, listType)));
+
+  if (anonymousItems.length === 0) {
+    return;
+  }
+
+  const targetListId = await getOrCreateSystemListId(newUserId, listType);
+  await db
+    .insert(listItems)
+    .values(
+      anonymousItems.map(({ resourceId, resourceType }) => ({
+        id: crypto.randomUUID(),
+        resourceId,
+        resourceType,
+        listId: targetListId,
+      })),
+    )
+    .onConflictDoNothing();
+}
 
 export const auth = betterAuth({
   baseURL: env.NEXT_PUBLIC_BASE_URL,
@@ -42,38 +81,9 @@ export const auth = betterAuth({
     anonymous({
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         try {
-          const anonymousUserWatchlist = await db
-            .select({
-              resourceId: listItems.resourceId,
-              resourceType: listItems.resourceType,
-            })
-            .from(listItems)
-            .innerJoin(lists, eq(listItems.listId, lists.id))
-            .where(
-              and(
-                eq(lists.userId, anonymousUser.user.id),
-                eq(lists.type, 'watchlist'),
-              ),
-            );
-
-          if (anonymousUserWatchlist.length === 0) {
-            return;
+          for (const listType of systemListTypeSchema.options) {
+            await transferSystemListItems(anonymousUser.user.id, newUser.user.id, listType);
           }
-
-          // Transfer watchlist items from anonymous user to linked account
-          // Duplicates are handled by unique constraint on (listId, resourceId, resourceType)
-          const targetListId = await getOrCreateSystemListId(newUser.user.id, 'watchlist');
-          await db
-            .insert(listItems)
-            .values(
-              anonymousUserWatchlist.map(({ resourceId, resourceType }) => ({
-                id: crypto.randomUUID(),
-                resourceId,
-                resourceType,
-                listId: targetListId,
-              })),
-            )
-            .onConflictDoNothing();
         } catch (error) {
           console.error('Failed to link your account:', error);
         }
