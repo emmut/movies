@@ -76,6 +76,12 @@ export const auth = betterAuth({
       clientSecret: env.GITHUB_CLIENT_SECRET,
     },
   },
+  advanced: {
+    ipAddress: {
+      ipAddressHeaders: ['x-forwarded-for'],
+      trustedProxies: ['0.0.0.0/0'],
+    },
+  },
 
   plugins: [
     anonymous({
@@ -93,3 +99,4 @@ export const auth = betterAuth({
     nextCookies(),
   ],
 });
+
