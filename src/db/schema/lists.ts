@@ -16,6 +16,9 @@ export const lists = pgTable(
     type: text('type', { enum: ['custom', 'watchlist', 'watched'] })
       .notNull()
       .default('custom'),
+    // 1-based manual sort order within a user's custom lists; renumbered on
+    // every move, so values stay distinct per user.
+    position: integer('position').notNull().default(0),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()

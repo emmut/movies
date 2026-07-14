@@ -6,6 +6,7 @@ import {
   listItemSchema,
   mediaIdSchema,
   mediaTypeSchema,
+  moveListSchema,
   pageSchema,
   resourceIdNumberSchema,
   resourceIdSchema,
@@ -26,11 +27,21 @@ describe('resourceIdSchema', () => {
   });
 
   it('rejects non-positive, fractional, and out-of-enum values', () => {
-    expect(resourceIdSchema.safeParse({ resourceId: 0, resourceType: 'movie' }).success).toBe(false);
-    expect(resourceIdSchema.safeParse({ resourceId: -1, resourceType: 'movie' }).success).toBe(false);
-    expect(resourceIdSchema.safeParse({ resourceId: 1.5, resourceType: 'movie' }).success).toBe(false);
-    expect(resourceIdSchema.safeParse({ resourceId: 1, resourceType: 'person' }).success).toBe(false);
-    expect(resourceIdSchema.safeParse({ resourceId: '1', resourceType: 'movie' }).success).toBe(false);
+    expect(resourceIdSchema.safeParse({ resourceId: 0, resourceType: 'movie' }).success).toBe(
+      false,
+    );
+    expect(resourceIdSchema.safeParse({ resourceId: -1, resourceType: 'movie' }).success).toBe(
+      false,
+    );
+    expect(resourceIdSchema.safeParse({ resourceId: 1.5, resourceType: 'movie' }).success).toBe(
+      false,
+    );
+    expect(resourceIdSchema.safeParse({ resourceId: 1, resourceType: 'person' }).success).toBe(
+      false,
+    );
+    expect(resourceIdSchema.safeParse({ resourceId: '1', resourceType: 'movie' }).success).toBe(
+      false,
+    );
   });
 });
 
@@ -104,16 +115,35 @@ describe('updateListSchema', () => {
 describe('listItemSchema', () => {
   it('accepts movie, tv, and person resources with a uuid list', () => {
     for (const resourceType of ['movie', 'tv', 'person'] as const) {
-      expect(
-        listItemSchema.safeParse({ listId: UUID, resourceId: 1, resourceType }).success,
-      ).toBe(true);
+      expect(listItemSchema.safeParse({ listId: UUID, resourceId: 1, resourceType }).success).toBe(
+        true,
+      );
     }
   });
 
   it('rejects bad uuid, non-positive id, and unknown type', () => {
-    expect(listItemSchema.safeParse({ listId: 'x', resourceId: 1, resourceType: 'movie' }).success).toBe(false);
-    expect(listItemSchema.safeParse({ listId: UUID, resourceId: 0, resourceType: 'movie' }).success).toBe(false);
-    expect(listItemSchema.safeParse({ listId: UUID, resourceId: 1, resourceType: 'book' }).success).toBe(false);
+    expect(
+      listItemSchema.safeParse({ listId: 'x', resourceId: 1, resourceType: 'movie' }).success,
+    ).toBe(false);
+    expect(
+      listItemSchema.safeParse({ listId: UUID, resourceId: 0, resourceType: 'movie' }).success,
+    ).toBe(false);
+    expect(
+      listItemSchema.safeParse({ listId: UUID, resourceId: 1, resourceType: 'book' }).success,
+    ).toBe(false);
+  });
+});
+
+describe('moveListSchema', () => {
+  it('accepts a uuid with a non-negative integer position', () => {
+    expect(moveListSchema.safeParse({ listId: UUID, position: 0 }).success).toBe(true);
+    expect(moveListSchema.safeParse({ listId: UUID, position: 7 }).success).toBe(true);
+  });
+
+  it('rejects bad uuid, negative, and fractional positions', () => {
+    expect(moveListSchema.safeParse({ listId: 'not-a-uuid', position: 0 }).success).toBe(false);
+    expect(moveListSchema.safeParse({ listId: UUID, position: -1 }).success).toBe(false);
+    expect(moveListSchema.safeParse({ listId: UUID, position: 1.5 }).success).toBe(false);
   });
 });
 

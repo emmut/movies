@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/db', () => ({
-  db: { select: vi.fn(), insert: vi.fn(), update: vi.fn(), delete: vi.fn() },
+  db: { select: vi.fn(), insert: vi.fn(), update: vi.fn(), delete: vi.fn(), execute: vi.fn() },
 }));
 vi.mock('@/lib/auth-server', () => ({ requireUser: vi.fn() }));
 vi.mock('@/lib/cache-invalidation', () => ({
@@ -17,7 +17,6 @@ vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
 
 import { requireUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-
 import { chain } from '@/test/db-chain';
 
 import {
@@ -25,6 +24,7 @@ import {
   createList,
   deleteList,
   getOwnedCustomList,
+  moveList,
   removeFromList,
   updateList,
 } from './lists';
@@ -42,6 +42,7 @@ beforeEach(() => {
   vi.mocked(db.insert).mockReturnValue(chain(undefined));
   vi.mocked(db.update).mockReturnValue(chain(undefined));
   vi.mocked(db.delete).mockReturnValue(chain(undefined));
+  vi.mocked(db.execute).mockResolvedValue(undefined as never);
 });
 
 describe('createList', () => {
@@ -103,6 +104,32 @@ describe('ownership enforcement', () => {
     setOwnedCount(1);
     await updateList(UUID, 'name');
     expect(db.update).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('moveList', () => {
+  const OTHER_UUID = '223e4567-e89b-12d3-a456-426614174000';
+
+  it('persists the new order in a single statement when the list is owned', async () => {
+    vi.mocked(db.select).mockReturnValue(chain([{ id: OTHER_UUID }, { id: UUID }]));
+    await moveList(UUID, 0);
+    expect(db.execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('throws when the list is not among the user’s custom lists', async () => {
+    vi.mocked(db.select).mockReturnValue(chain([{ id: OTHER_UUID }]));
+    await expect(moveList(UUID, 0)).rejects.toThrow('List not found');
+    expect(db.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-uuid list id without querying', async () => {
+    await expect(moveList('nope', 0)).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
+  });
+
+  it('rejects a negative position without querying', async () => {
+    await expect(moveList(UUID, -1)).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
   });
 });
 

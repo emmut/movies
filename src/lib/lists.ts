@@ -1,6 +1,6 @@
 'use server';
 
-import { and, count, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
 import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -10,12 +10,14 @@ import { revalidateUserListCache, revalidateUserListStatusCache } from '@/lib/ca
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
+import { moveIdToIndex } from '@/lib/list-order';
 import {
   createListSchema,
   listIdSchema,
   listItemSchema,
   mediaIdSchema,
   mediaTypeSchema,
+  moveListSchema,
   pageSchema,
   removeListItemSchema,
   updateListSchema,
@@ -47,6 +49,15 @@ const CUSTOM_LIST_TYPE = 'custom' as const;
  */
 function ownedCustomListsFilter(userId: string) {
   return and(eq(lists.userId, userId), eq(lists.type, CUSTOM_LIST_TYPE));
+}
+
+/**
+ * Canonical sort for a user's custom lists: the manual `position` first, with
+ * newest-first as a tiebreak for rows that predate manual ordering (all 0).
+ * Every query that renders lists must use this so reordering stays coherent.
+ */
+function manualListOrder() {
+  return [asc(lists.position), desc(lists.createdAt)];
 }
 
 /**
@@ -159,7 +170,7 @@ export async function getUserListsPaginated(page: number = 1) {
       .leftJoin(listItems, eq(lists.id, listItems.listId))
       .where(ownedCustomListsFilter(user.id))
       .groupBy(lists.id)
-      .orderBy(desc(lists.updatedAt))
+      .orderBy(...manualListOrder())
       .limit(LISTS_PER_PAGE)
       .offset(offset);
 
@@ -344,6 +355,8 @@ export async function createList(name: string, description: string = '', emoji: 
     name: validatedData.name,
     description: validatedData.description,
     emoji: validatedData.emoji,
+    // Append to the end of the user's manual ordering.
+    position: sql`coalesce((select max(${lists.position}) + 1 from ${lists} where ${lists.userId} = ${user.id} and ${lists.type} = ${CUSTOM_LIST_TYPE}), 1)`,
   });
 
   revalidateUserListCache(user.id, listId);
@@ -470,6 +483,54 @@ export async function updateList(
   revalidatePath('/lists');
 }
 
+/**
+ * Rewrites the manual ordering of a user's custom lists in one statement,
+ * assigning 1-based positions from the given id order.
+ */
+async function persistListOrder(userId: string, orderedIds: string[]) {
+  await db.execute(sql`
+    update ${lists}
+    set position = ord.position
+    from unnest(${sql.param(orderedIds)}::text[]) with ordinality as ord(id, position)
+    where ${lists.id} = ord.id and ${lists.userId} = ${userId}
+  `);
+}
+
+/**
+ * Moves a custom list to a new spot in the user's manual ordering.
+ *
+ * @param listId - The list to move.
+ * @param position - Target 0-based index across all of the user's custom
+ * lists (not just the current page); clamped to the valid range.
+ */
+export async function moveList(listId: string, position: number) {
+  const user = await requireUser();
+
+  const validatedData = moveListSchema.parse({ listId, position });
+
+  const orderedRows = await db
+    .select({ id: lists.id })
+    .from(lists)
+    .where(ownedCustomListsFilter(user.id))
+    .orderBy(...manualListOrder());
+
+  const orderedIds = moveIdToIndex(
+    orderedRows.map((row) => row.id),
+    validatedData.listId,
+    validatedData.position,
+  );
+
+  if (orderedIds === null) {
+    throw new Error('List not found');
+  }
+
+  await persistListOrder(user.id, orderedIds);
+
+  revalidateUserListCache(user.id);
+
+  revalidatePath('/lists');
+}
+
 export async function getUserListsWithStatus(
   mediaId: number,
   mediaType: 'movie' | 'tv' | 'person',
@@ -522,7 +583,7 @@ async function getCachedUserListsWithStatus(
         lists.createdAt,
         lists.updatedAt,
       )
-      .orderBy(desc(lists.updatedAt));
+      .orderBy(...manualListOrder());
 
     return listsWithStatusAndCounts;
   } catch (error) {

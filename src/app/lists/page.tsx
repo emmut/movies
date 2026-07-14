@@ -78,7 +78,11 @@ export default async function ListsPage(props: ListsPageProps) {
       ) : (
         <div id="content-container">
           <ScrollOnPageChange page={page} />
-          <ListsGrid lists={lists} />
+          <ListsGrid
+            lists={lists}
+            offset={(paginatedData.currentPage - 1) * paginatedData.itemsPerPage}
+            totalCount={paginatedData.totalItems}
+          />
           {totalPages > 1 && <PaginationControls totalPages={totalPages} pageType="lists" />}
         </div>
       )}
