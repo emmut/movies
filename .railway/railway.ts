@@ -93,33 +93,33 @@ export default defineRailway((ctx) => {
   });
 
   // Daily cron that ingests IMDb's ratings dataset into the imdb_ratings
-  // table. Prod-only: preview databases just show the card as hidden, and a
-  // dev can run `pnpm ingest:imdb` manually when needed. IMDb refreshes the
-  // datasets early UTC, so run shortly after.
-  const imdbIngest = prod
-    ? service("imdb-ingest", {
-        source: github("emmut/movies"),
-        // The cron only needs dependencies + tsx; Railpack's default
-        // `pnpm run build` would run `next build`, which fails env validation
-        // since this service only has DATABASE_URL.
-        build: { buildCommand: "echo 'skipping app build — cron runs tsx directly'" },
-        deploy: {
-          startCommand: "pnpm tsx scripts/ingest-imdb-ratings.ts",
-          cronSchedule: "30 5 * * *",
-          restartPolicyType: "NEVER",
-          // Streaming ingest with 5k-row batches and a single pg connection —
-          // stays well under half a GB and one core.
-          limitOverride: { containers: { cpu: 1, memoryBytes: 500000000 } },
-        },
-        env: {
-          DATABASE_URL: preserve(),
-        },
-      })
-    : null;
+  // table. Declared in every environment: PR environments fork production
+  // including this service, and deleting it there cancelled the forked
+  // deployment mid-flight, which Railway reported as a failed PR check.
+  // Previews ingest into their own postgres instead (and get real IMDb data);
+  // IMDb refreshes the datasets early UTC, so run shortly after.
+  const imdbIngest = service("imdb-ingest", {
+    source: github("emmut/movies"),
+    // The cron only needs dependencies + tsx; Railpack's default
+    // `pnpm run build` would run `next build`, which fails env validation
+    // since this service only has DATABASE_URL.
+    build: { buildCommand: "echo 'skipping app build — cron runs tsx directly'" },
+    deploy: {
+      startCommand: "pnpm tsx scripts/ingest-imdb-ratings.ts",
+      cronSchedule: "30 5 * * *",
+      restartPolicyType: "NEVER",
+      // Streaming ingest with 5k-row batches and a single pg connection —
+      // stays well under half a GB and one core.
+      limitOverride: { containers: { cpu: 1, memoryBytes: 500000000 } },
+    },
+    env: {
+      // Production ingests into the external DB; previews into their forked
+      // postgres-db.
+      DATABASE_URL: prod ? preserve() : db.env.DATABASE_URL,
+    },
+  });
 
   return project("movies", {
-    // imdbIngest exists only in prod; filter the inactive entry out instead of
-    // asserting with `!`.
-    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest].filter((r) => r !== null),
+    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest],
   });
 });
