@@ -53,11 +53,13 @@ export default async function TvShowPage(props: TvShowPageProps) {
   const userRegion = await getUserRegion();
   const { inWatchlist, watched } = await getSystemListMemberships(tvId, RESOURCE_TYPE);
 
-  const [tvShow, credits, watchProviders, imdbId, certification] = await Promise.all([
+  const imdbIdPromise = getTvShowImdbId(tvId);
+  const [tvShow, credits, watchProviders, imdbId, imdbRating, certification] = await Promise.all([
     getTvShowDetails(tvId),
     getTvShowCredits(tvId),
     getTvShowWatchProviders(tvId),
-    getTvShowImdbId(tvId),
+    imdbIdPromise,
+    imdbIdPromise.then(getImdbRating),
     getMediaCertification(RESOURCE_TYPE, tvId, userRegion),
   ]);
 
@@ -81,7 +83,6 @@ export default async function TvShowPage(props: TvShowPageProps) {
     created_by,
   } = tvShow;
   const score = Math.ceil(tvShow.vote_average * 10) / 10;
-  const imdbRating = await getImdbRating(imdbId);
 
   return (
     <div className="min-h-screen">

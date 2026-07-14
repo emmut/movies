@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-import { parseRatingRecord, upsertRatingsBatch } from './imdb-ingest';
+import { deleteStaleRatings, parseRatingRecord, upsertRatingsBatch } from './imdb-ingest';
 
 describe('parseRatingRecord', () => {
   it('parses a valid record', () => {
@@ -34,6 +34,12 @@ describe('parseRatingRecord', () => {
   it('rejects a missing tconst', () => {
     expect(parseRatingRecord({ averageRating: '9.3', numVotes: '10' })).toBeNull();
   });
+
+  it('rejects a negative vote count', () => {
+    expect(
+      parseRatingRecord({ tconst: 'tt0111161', averageRating: '9.3', numVotes: '-5' }),
+    ).toBeNull();
+  });
 });
 
 describe('upsertRatingsBatch', () => {
@@ -63,5 +69,18 @@ describe('upsertRatingsBatch', () => {
         set: expect.objectContaining({ rating: expect.anything(), numVotes: expect.anything() }),
       }),
     );
+  });
+});
+
+describe('deleteStaleRatings', () => {
+  it('deletes rows past the grace period and returns the count', async () => {
+    const returning = vi.fn().mockResolvedValue([{ imdbId: 'tt0000001' }, { imdbId: 'tt0000002' }]);
+    const where = vi.fn().mockReturnValue({ returning });
+    const del = vi.fn().mockReturnValue({ where });
+    const database = { delete: del } as unknown as NodePgDatabase;
+
+    await expect(deleteStaleRatings(database)).resolves.toBe(2);
+    expect(del).toHaveBeenCalledTimes(1);
+    expect(where).toHaveBeenCalledTimes(1);
   });
 });

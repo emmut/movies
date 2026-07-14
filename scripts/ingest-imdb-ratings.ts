@@ -23,6 +23,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 
 import { env } from './env';
 import {
+  deleteStaleRatings,
   parseRatingRecord,
   upsertRatingsBatch,
   type ImdbRatingRow,
@@ -117,6 +118,11 @@ async function main() {
     await pipeline(gunzipped, parser, ratingTransform);
   } finally {
     clearTimeout(timeout);
+  }
+
+  const stale = await deleteStaleRatings(db);
+  if (stale > 0) {
+    console.log(`🧹 Pruned ${stale.toLocaleString('en-US')} ratings gone from the dataset`);
   }
 
   process.exit(0);

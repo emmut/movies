@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { lt, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import { imdbRatings } from '@/db/schema/imdb-ratings';
@@ -22,7 +22,7 @@ function parseFiniteNumber(value: string | undefined) {
 
 function parseVoteCount(value: string | undefined) {
   const parsed = parseFiniteNumber(value);
-  return parsed !== null && Number.isInteger(parsed) ? parsed : null;
+  return parsed !== null && Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
 /**
@@ -63,4 +63,21 @@ export async function upsertRatingsBatch(database: NodePgDatabase, rows: ImdbRat
         updatedAt: sql`now()`,
       },
     });
+}
+
+/**
+ * Deletes ratings that stopped appearing in the daily dataset — titles IMDb
+ * has removed would otherwise keep their last-ingested rating forever. The
+ * grace period is generous next to the daily cadence, so a few failed runs
+ * never cause a purge of live data.
+ *
+ * @param database - The drizzle database handle to write through.
+ * @returns The number of deleted rows.
+ */
+export async function deleteStaleRatings(database: NodePgDatabase) {
+  const deleted = await database
+    .delete(imdbRatings)
+    .where(lt(imdbRatings.updatedAt, sql`now() - interval '7 days'`))
+    .returning({ imdbId: imdbRatings.imdbId });
+  return deleted.length;
 }
