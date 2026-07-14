@@ -1,3 +1,6 @@
+// TODO: convert to a server-only module — these are read-only fetchers, and
+// 'use server' exposes them as publicly callable actions. Fix repo-wide
+// (movies.ts/tv-shows.ts share the pattern) in a follow-up PR after this merges.
 'use server';
 
 import { cacheLife, cacheTag } from 'next/cache';
