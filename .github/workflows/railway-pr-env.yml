@@ -52,7 +52,15 @@ jobs:
           echo "Environment $RAILWAY_ENVIRONMENT never appeared" >&2
           exit 1
 
-      - name: Apply Railway config
+      - name: Apply Railway config to PR environment
         # --yes only auto-confirms additive changes; destructive plans still fail
         # without --confirm-destructive, which we deliberately never pass here.
         run: railway config apply --yes
+
+      - name: Apply Railway config to production
+        env:
+          RAILWAY_IAC_BRANCH: main
+          RAILWAY_ENVIRONMENT: production
+        run: |
+          railway link --project movies --environment "$RAILWAY_ENVIRONMENT"
+          railway config apply --yes
