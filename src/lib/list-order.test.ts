@@ -1,6 +1,24 @@
 import { describe, expect, it } from 'vitest';
 
-import { moveIdToIndex } from './list-order';
+import { moveIdToIndex, sameIdOrder } from './list-order';
+
+describe('sameIdOrder', () => {
+  it('is true for identical sequences', () => {
+    expect(sameIdOrder(['a', 'b'], ['a', 'b'])).toBe(true);
+  });
+
+  it('is true for two empty sequences', () => {
+    expect(sameIdOrder([], [])).toBe(true);
+  });
+
+  it('is false when the order differs', () => {
+    expect(sameIdOrder(['a', 'b'], ['b', 'a'])).toBe(false);
+  });
+
+  it('is false when the lengths differ', () => {
+    expect(sameIdOrder(['a'], ['a', 'b'])).toBe(false);
+  });
+});
 
 describe('moveIdToIndex', () => {
   it('moves an id forward', () => {

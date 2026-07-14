@@ -1,4 +1,13 @@
 /**
+ * Whether both id sequences are identical. Used by optimistic reordering to
+ * decide if a refreshed server order can replace the local order without
+ * visibly moving anything.
+ */
+export function sameIdOrder(a: string[], b: string[]) {
+  return a.length === b.length && a.every((id, index) => id === b[index]);
+}
+
+/**
  * Returns a copy of `orderedIds` with `id` moved to `toIndex`, clamping the
  * index to the array bounds. Returns `null` when `id` is not present.
  */

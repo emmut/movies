@@ -4,6 +4,7 @@ import { and, eq, sql } from 'drizzle-orm';
 
 import { listItems, lists } from '@/db/schema/lists';
 import { db } from '@/lib/db';
+import { listItemOrderingScope, withOrderingLock } from '@/lib/ordering-lock';
 import type { SystemListType } from '@/lib/validations';
 
 // Internal names for the per-user singleton system lists; never shown in the
@@ -93,18 +94,22 @@ export async function toggleSystemListRow(
     return 'removed';
   }
 
-  const inserted = await db
-    .insert(listItems)
-    .values({
-      id: crypto.randomUUID(),
-      listId,
-      resourceId,
-      resourceType,
-      // Append to the end of the list's manual ordering for this resource type.
-      position: sql`coalesce((select max(${listItems.position}) + 1 from ${listItems} where ${listItems.listId} = ${listId} and ${listItems.resourceType} = ${resourceType}), 1)`,
-    })
-    .onConflictDoNothing()
-    .returning({ id: listItems.id });
+  // Locked so concurrent adds can't read the same max(position) and append to
+  // the same slot.
+  const inserted = await withOrderingLock(listItemOrderingScope(listId), async (tx) => {
+    return await tx
+      .insert(listItems)
+      .values({
+        id: crypto.randomUUID(),
+        listId,
+        resourceId,
+        resourceType,
+        // Append to the end of the list's manual ordering for this resource type.
+        position: sql`coalesce((select max(${listItems.position}) + 1 from ${listItems} where ${listItems.listId} = ${listId} and ${listItems.resourceType} = ${resourceType}), 1)`,
+      })
+      .onConflictDoNothing()
+      .returning({ id: listItems.id });
+  });
 
   return inserted.length > 0 ? 'added' : 'unchanged';
 }

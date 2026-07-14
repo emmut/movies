@@ -16,6 +16,12 @@ import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { moveIdToIndex } from '@/lib/list-order';
 import {
+  listItemOrderingScope,
+  listOrderingScope,
+  withOrderingLock,
+  type OrderingTx,
+} from '@/lib/ordering-lock';
+import {
   createListSchema,
   listIdSchema,
   listItemSchema,
@@ -373,14 +379,18 @@ export async function createList(name: string, description: string = '', emoji: 
 
   const listId = crypto.randomUUID();
 
-  await db.insert(lists).values({
-    id: listId,
-    userId: user.id,
-    name: validatedData.name,
-    description: validatedData.description,
-    emoji: validatedData.emoji,
-    // Append to the end of the user's manual ordering.
-    position: sql`coalesce((select max(${lists.position}) + 1 from ${lists} where ${lists.userId} = ${user.id} and ${lists.type} = ${CUSTOM_LIST_TYPE}), 1)`,
+  // Locked so concurrent creates can't read the same max(position) and append
+  // to the same slot.
+  await withOrderingLock(listOrderingScope(user.id), async (tx) => {
+    await tx.insert(lists).values({
+      id: listId,
+      userId: user.id,
+      name: validatedData.name,
+      description: validatedData.description,
+      emoji: validatedData.emoji,
+      // Append to the end of the user's manual ordering.
+      position: sql`coalesce((select max(${lists.position}) + 1 from ${lists} where ${lists.userId} = ${user.id} and ${lists.type} = ${CUSTOM_LIST_TYPE}), 1)`,
+    });
   });
 
   revalidateUserListCache(user.id, listId);
@@ -406,13 +416,17 @@ export async function addToList(
   await assertCustomListOwnership(validatedData.listId, user.id);
 
   try {
-    await db.insert(listItems).values({
-      id: crypto.randomUUID(),
-      listId: validatedData.listId,
-      resourceId: validatedData.resourceId,
-      resourceType: validatedData.resourceType,
-      // Append to the end of the list's manual ordering.
-      position: sql`coalesce((select max(${listItems.position}) + 1 from ${listItems} where ${listItems.listId} = ${validatedData.listId}), 1)`,
+    // Locked so concurrent adds can't read the same max(position) and append
+    // to the same slot.
+    await withOrderingLock(listItemOrderingScope(validatedData.listId), async (tx) => {
+      await tx.insert(listItems).values({
+        id: crypto.randomUUID(),
+        listId: validatedData.listId,
+        resourceId: validatedData.resourceId,
+        resourceType: validatedData.resourceType,
+        // Append to the end of the list's manual ordering.
+        position: sql`coalesce((select max(${listItems.position}) + 1 from ${listItems} where ${listItems.listId} = ${validatedData.listId}), 1)`,
+      });
     });
   } catch (error) {
     if (error instanceof Error && error.message.includes('unique')) {
@@ -513,8 +527,8 @@ export async function updateList(
  * Rewrites the manual ordering of a user's custom lists in one statement,
  * assigning 1-based positions from the given id order.
  */
-async function persistListOrder(userId: string, orderedIds: string[]) {
-  await db.execute(sql`
+async function persistListOrder(tx: OrderingTx, userId: string, orderedIds: string[]) {
+  await tx.execute(sql`
     update ${lists}
     set position = ord.position
     from unnest(${sql.param(orderedIds)}::text[]) with ordinality as ord(id, position)
@@ -534,23 +548,27 @@ export async function moveList(listId: string, position: number) {
 
   const validatedData = moveListSchema.parse({ listId, position });
 
-  const orderedRows = await db
-    .select({ id: lists.id })
-    .from(lists)
-    .where(ownedCustomListsFilter(user.id))
-    .orderBy(...manualListOrder());
+  // The current order is read and rewritten under one lock so a concurrent
+  // move can't compute from a stale snapshot and overwrite this one.
+  await withOrderingLock(listOrderingScope(user.id), async (tx) => {
+    const orderedRows = await tx
+      .select({ id: lists.id })
+      .from(lists)
+      .where(ownedCustomListsFilter(user.id))
+      .orderBy(...manualListOrder());
 
-  const orderedIds = moveIdToIndex(
-    orderedRows.map((row) => row.id),
-    validatedData.listId,
-    validatedData.position,
-  );
+    const orderedIds = moveIdToIndex(
+      orderedRows.map((row) => row.id),
+      validatedData.listId,
+      validatedData.position,
+    );
 
-  if (orderedIds === null) {
-    throw new Error('List not found');
-  }
+    if (orderedIds === null) {
+      throw new Error('List not found');
+    }
 
-  await persistListOrder(user.id, orderedIds);
+    await persistListOrder(tx, user.id, orderedIds);
+  });
 
   revalidateUserListCache(user.id);
 
@@ -561,8 +579,8 @@ export async function moveList(listId: string, position: number) {
  * Rewrites the manual ordering of a list's items in one statement, assigning
  * 1-based positions from the given id order.
  */
-async function persistListItemOrder(listId: string, orderedIds: string[]) {
-  await db.execute(sql`
+async function persistListItemOrder(tx: OrderingTx, listId: string, orderedIds: string[]) {
+  await tx.execute(sql`
     update ${listItems}
     set position = ord.position
     from unnest(${sql.param(orderedIds)}::text[]) with ordinality as ord(id, position)
@@ -608,23 +626,27 @@ export async function moveListItem(
     ? and(eq(listItems.listId, listId), eq(listItems.resourceType, validatedData.resourceType))
     : eq(listItems.listId, listId);
 
-  const orderedRows = await db
-    .select({ id: listItems.id })
-    .from(listItems)
-    .where(orderWhere)
-    .orderBy(...itemManualOrder());
+  // The current order is read and rewritten under one lock so a concurrent
+  // move can't compute from a stale snapshot and overwrite this one.
+  await withOrderingLock(listItemOrderingScope(listId), async (tx) => {
+    const orderedRows = await tx
+      .select({ id: listItems.id })
+      .from(listItems)
+      .where(orderWhere)
+      .orderBy(...itemManualOrder());
 
-  const orderedIds = moveIdToIndex(
-    orderedRows.map((row) => row.id),
-    validatedData.itemId,
-    validatedData.position,
-  );
+    const orderedIds = moveIdToIndex(
+      orderedRows.map((row) => row.id),
+      validatedData.itemId,
+      validatedData.position,
+    );
 
-  if (orderedIds === null) {
-    throw new Error('Item not found');
-  }
+    if (orderedIds === null) {
+      throw new Error('Item not found');
+    }
 
-  await persistListItemOrder(listId, orderedIds);
+    await persistListItemOrder(tx, listId, orderedIds);
+  });
 
   if (listType === 'custom') {
     revalidateUserListCache(user.id, listId);

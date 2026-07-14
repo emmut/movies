@@ -23,6 +23,7 @@ import { EditListDialog } from '@/components/edit-list-dialog';
 import { ReorderControls } from '@/components/reorder-controls';
 import { Button } from '@/components/ui/button';
 import { LocalList, moveList } from '@/lib/lists';
+import { sameIdOrder } from '@/lib/list-order';
 import { useReorderSensors } from '@/hooks/use-reorder-sensors';
 import { queryKeys } from '@/lib/query-keys';
 import { cn } from '@/lib/utils';
@@ -50,10 +51,22 @@ function useReorderableLists(lists: LocalList[], offset: number) {
   const [prevLists, setPrevLists] = useState(lists);
 
   // Render-time reset when the server-rendered prop changes — the React-docs
-  // replacement for syncing props into state with an effect.
+  // replacement for syncing props into state with an effect. While a move is
+  // in flight, a refresh carrying the pre-move order must not clobber the
+  // optimistic order (it would snap back until the next refresh); adopt it
+  // only once idle, or immediately when it already agrees with the local
+  // order (fresh data, nothing moves).
   if (prevLists !== lists) {
     setPrevLists(lists);
-    setLocalLists(lists);
+    if (
+      !isPending ||
+      sameIdOrder(
+        lists.map((list) => list.id),
+        localLists.map((list) => list.id),
+      )
+    ) {
+      setLocalLists(lists);
+    }
   }
 
   async function commitMove(listId: string, toLocalIndex: number, previous: LocalList[]) {

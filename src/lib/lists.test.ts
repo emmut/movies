@@ -15,6 +15,16 @@ vi.mock('next/cache', () => ({
   cacheTag: vi.fn(),
 }));
 vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
+// Run the locked callback against the db mock directly; the real lock needs a
+// live transaction and is covered by ordering-lock.test.ts.
+vi.mock('@/lib/ordering-lock', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/ordering-lock')>();
+  const { db } = await import('@/lib/db');
+  return {
+    ...actual,
+    withOrderingLock: vi.fn((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
+  };
+});
 
 import { requireUser } from '@/lib/auth-server';
 import {
@@ -22,6 +32,7 @@ import {
   revalidateUserSystemListPageCache,
 } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
+import { withOrderingLock } from '@/lib/ordering-lock';
 import { chain } from '@/test/db-chain';
 
 import {
@@ -59,6 +70,11 @@ describe('createList', () => {
     expect(db.insert).toHaveBeenCalledTimes(1);
   });
 
+  it('appends under the user’s list-ordering lock so concurrent creates serialize', async () => {
+    await createList('My faves');
+    expect(withOrderingLock).toHaveBeenCalledWith('lists:user-1', expect.any(Function));
+  });
+
   it('rejects an empty name without inserting', async () => {
     await expect(createList('')).rejects.toThrow();
     expect(db.insert).not.toHaveBeenCalled();
@@ -80,6 +96,7 @@ describe('ownership enforcement', () => {
     setOwnedCount(1);
     await addToList(UUID, 1, 'movie');
     expect(db.insert).toHaveBeenCalledTimes(1);
+    expect(withOrderingLock).toHaveBeenCalledWith(`list-items:${UUID}`, expect.any(Function));
   });
 
   it('removeFromList throws when the list is not owned', async () => {
@@ -120,6 +137,7 @@ describe('moveList', () => {
     vi.mocked(db.select).mockReturnValue(chain([{ id: OTHER_UUID }, { id: UUID }]));
     await moveList(UUID, 0);
     expect(db.execute).toHaveBeenCalledTimes(1);
+    expect(withOrderingLock).toHaveBeenCalledWith('lists:user-1', expect.any(Function));
   });
 
   it('throws when the list is not among the user’s custom lists', async () => {
@@ -151,6 +169,7 @@ describe('moveListItem', () => {
     );
     await moveListItem(UUID, 0);
     expect(db.execute).toHaveBeenCalledTimes(1);
+    expect(withOrderingLock).toHaveBeenCalledWith(`list-items:${UUID}`, expect.any(Function));
   });
 
   it('throws when the item is not among the user’s custom lists', async () => {

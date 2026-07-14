@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { arrayMove } from '@dnd-kit/sortable';
 import { toast } from 'sonner';
 
+import { sameIdOrder } from '@/lib/list-order';
+
 type ReorderableItem = { listItemId: string };
 
 /**
@@ -12,7 +14,9 @@ type ReorderableItem = { listItemId: string };
  * Keeps a local copy of `items` that is swapped immediately on a move, then
  * persisted through `commit`. If `commit` rejects, the local copy is rolled
  * back. The server-rendered `items` prop resets the local copy whenever it
- * changes identity (i.e. after a refetch), replacing effect-based sync.
+ * changes identity (i.e. after a refetch), replacing effect-based sync —
+ * except while a move is pending, when a stale refresh is ignored rather
+ * than allowed to undo the optimistic order.
  *
  * @param items - The current page's items, each carrying a `listItemId`.
  * @param offset - 0-based index of the first item in `items` within the full
@@ -29,10 +33,22 @@ export function useReorderableItems<T extends ReorderableItem>(
   const [prevItems, setPrevItems] = useState(items);
 
   // Render-time reset when the server-rendered prop changes — the React-docs
-  // replacement for syncing props into state with an effect.
+  // replacement for syncing props into state with an effect. While a move is
+  // in flight, a refresh carrying the pre-move order must not clobber the
+  // optimistic order (it would snap back until the next refresh); adopt it
+  // only once idle, or immediately when it already agrees with the local
+  // order (fresh data, nothing moves).
   if (prevItems !== items) {
     setPrevItems(items);
-    setLocalItems(items);
+    if (
+      !isPending ||
+      sameIdOrder(
+        items.map((item) => item.listItemId),
+        localItems.map((item) => item.listItemId),
+      )
+    ) {
+      setLocalItems(items);
+    }
   }
 
   async function commitMove(itemId: string, toLocalIndex: number, previous: T[]) {
