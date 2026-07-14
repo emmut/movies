@@ -54,9 +54,12 @@ jobs:
           exit 1
 
       - name: Apply Railway config
-        # --yes only auto-confirms additive changes; destructive plans still fail
-        # without --confirm-destructive, which we deliberately never pass here.
-        run: railway config apply --yes
+        # PR environments are ephemeral forks of production, so they start with
+        # prod-only services (imdb-ingest) that the config must delete — the
+        # first apply in every new PR environment is inherently destructive.
+        # Destructive applies are fine here: nothing in a PR environment is
+        # worth protecting. Production keeps the guardrail below.
+        run: railway config apply --yes --confirm-destructive
 
   apply-prod:
     name: Apply infra to production
