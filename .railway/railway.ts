@@ -39,9 +39,12 @@ export default defineRailway((ctx) => {
     // PR environments track their PR branch; plan/apply for them must run from that branch's checkout.
     source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
     // Runs before each deploy; a non-zero exit aborts the deploy and keeps the
-    // old version live. Prod applies committed migrations; the PR database
-    // starts empty so it just gets the schema pushed.
-    preDeploy: prod ? "pnpm db:migrate" : "pnpm db:push --force",
+    // old version live. Both environments apply committed migrations — PR
+    // databases start empty and the chain builds them from scratch. Never use
+    // `db:push --force` here: headless drizzle-kit push crashes mid-apply in
+    // its prompt renderer while the deploy still reports success, leaving a
+    // partial schema and an empty migration journal behind.
+    preDeploy: "pnpm db:migrate",
     deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1000000000 } }, sleepApplication: true },
     domains: prod ? [APP_DOMAIN] : [],
     env: {
