@@ -40,6 +40,12 @@ export const CACHE_TAGS = {
       similar(movieId: number) {
         return `public:movie:${movieId}:similar`;
       },
+      reviews(movieId: number) {
+        return `public:movie:${movieId}:reviews`;
+      },
+      certifications(movieId: number) {
+        return `public:movie:${movieId}:certifications`;
+      },
     },
     tv: {
       details(tvId: number) {
@@ -62,6 +68,17 @@ export const CACHE_TAGS = {
       },
       imdbId(tvId: number) {
         return `public:tv:${tvId}:imdb-id`;
+      },
+      reviews(tvId: number) {
+        return `public:tv:${tvId}:reviews`;
+      },
+      certifications(tvId: number) {
+        return `public:tv:${tvId}:certifications`;
+      },
+    },
+    imdb: {
+      rating(imdbId: string) {
+        return `public:imdb:${imdbId}:rating`;
       },
     },
     person: {

@@ -20,6 +20,11 @@ describe('CACHE_TAGS public', () => {
     expect(CACHE_TAGS.public.movie.details(42)).toBe('public:movie:42:details');
     expect(CACHE_TAGS.public.tv.imdbId(7)).toBe('public:tv:7:imdb-id');
     expect(CACHE_TAGS.public.person.movieCredits(9)).toBe('public:person:9:movie-credits');
+    expect(CACHE_TAGS.public.imdb.rating('tt0111161')).toBe('public:imdb:tt0111161:rating');
+    expect(CACHE_TAGS.public.movie.reviews(42)).toBe('public:movie:42:reviews');
+    expect(CACHE_TAGS.public.movie.certifications(42)).toBe('public:movie:42:certifications');
+    expect(CACHE_TAGS.public.tv.reviews(7)).toBe('public:tv:7:reviews');
+    expect(CACHE_TAGS.public.tv.certifications(7)).toBe('public:tv:7:certifications');
   });
 });
 

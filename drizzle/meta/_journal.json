@@ -64,6 +64,13 @@
       "when": 1783677165610,
       "tag": "0008_watched_list_type",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784031078410,
+      "tag": "0009_imdb_ratings",
+      "breakpoints": true
     }
   ]
 }

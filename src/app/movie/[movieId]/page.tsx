@@ -1,13 +1,17 @@
 import { ExternalLinks } from '@/components/external-links';
+import { RatingsCard } from '@/components/ratings-card';
 import { GoBack } from '@/components/go-back';
 import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
+import { ReviewsSection } from '@/components/reviews-section';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
+import { formatCertification } from '@/lib/certifications';
+import { getMediaCertification } from '@/lib/media-info';
 import {
   getMovieCredits,
   getMovieDetails,
@@ -15,11 +19,12 @@ import {
   getMovieSimilar,
   getMovieWatchProviders,
 } from '@/lib/movies';
+import { getImdbRating } from '@/lib/imdb';
 import { getUserRegion } from '@/lib/user-actions';
 import { Imgproxy } from '@/components/image-proxy';
 import { formatCurrency, formatRuntime } from '@/lib/utils';
 import { getSystemListMemberships } from '@/lib/system-list-queries';
-import { Calendar, Clock, DollarSign, Star, Users } from 'lucide-react';
+import { Calendar, Clock, DollarSign, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 
@@ -49,10 +54,11 @@ export default async function MoviePage(props: MoviePageProps) {
   const userRegion = await getUserRegion();
   const { inWatchlist, watched } = await getSystemListMemberships(movieId, RESOURCE_TYPE);
 
-  const [movie, credits, watchProviders] = await Promise.all([
+  const [movie, credits, watchProviders, certification] = await Promise.all([
     getMovieDetails(movieId),
     getMovieCredits(movieId),
     getMovieWatchProviders(movieId),
+    getMediaCertification(RESOURCE_TYPE, movieId, userRegion),
   ]);
 
   const {
@@ -72,6 +78,7 @@ export default async function MoviePage(props: MoviePageProps) {
     original_title,
   } = movie;
   const score = Math.ceil(movie.vote_average * 10) / 10;
+  const imdbRating = await getImdbRating(movie.imdb_id);
 
   const directors = credits.crew.filter((person) => person.job === 'Director');
   const writers = credits.crew.filter(
@@ -120,34 +127,30 @@ export default async function MoviePage(props: MoviePageProps) {
             isWatched={watched}
             userId={user?.id}
             resourceType={RESOURCE_TYPE}
+            certification={formatCertification(certification, userRegion)}
           />
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="rounded-lg bg-zinc-900 p-4 text-center">
-              <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
-              <div className="text-2xl font-bold">{score}</div>
-              <div className="text-sm text-zinc-400">Rating</div>
-              <div className="text-xs text-zinc-500">({movie.vote_count} votes)</div>
-            </div>
+            <RatingsCard score={score} voteCount={movie.vote_count} imdbRating={imdbRating} />
 
             {runtime > 0 && (
-              <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-                <Clock className="mx-auto mb-2 h-6 w-6 text-blue-500" />
+              <div className="rounded-lg bg-zinc-900 p-5">
+                <Clock className="mb-3 h-5 w-5 text-blue-500" />
                 <div className="text-2xl font-bold">{formatRuntime(runtime)}</div>
                 <div className="text-sm text-zinc-400">Runtime</div>
               </div>
             )}
 
-            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-              <Calendar className="mx-auto mb-2 h-6 w-6 text-green-500" />
+            <div className="rounded-lg bg-zinc-900 p-5">
+              <Calendar className="mb-3 h-5 w-5 text-green-500" />
               <div className="text-2xl font-bold">
                 {release_date ? release_date.split('-')[0] : 'N/A'}
               </div>
               <div className="text-sm text-zinc-400">Released</div>
             </div>
 
-            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-              <Users className="mx-auto mb-2 h-6 w-6 text-purple-500" />
+            <div className="rounded-lg bg-zinc-900 p-5">
+              <Users className="mb-3 h-5 w-5 text-purple-500" />
               <div className="text-2xl font-bold">{Math.round(movie.popularity)}</div>
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
@@ -348,9 +351,12 @@ export default async function MoviePage(props: MoviePageProps) {
           <OtherContent
             id={movieId}
             type="movie"
+            userId={user?.id}
             getSimilar={(id) => getMovieSimilar(id, userRegion)}
             getRecommendations={(id) => getMovieRecommendations(id, userRegion)}
           />
+
+          <ReviewsSection mediaType="movie" mediaId={movieId} />
 
           <ExternalLinks
             imdbId={movie.imdb_id}

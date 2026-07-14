@@ -1,7 +1,6 @@
 'use client';
 
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
-import { Suspense } from 'react';
 
 import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
@@ -114,18 +113,16 @@ function DiscoverResults({
       id="content-container"
       className="@8xl:grid-cols-5 mt-7 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4"
     >
-      <Suspense>
-        <DiscoverGrid
-          currentGenreId={genreId}
-          currentPage={page}
-          mediaType={mediaType}
-          sortBy={sortBy}
-          watchProviders={watchProviders}
-          watchRegion={watchRegion}
-          runtimeLte={runtimeLte}
-          userId={userId}
-        />
-      </Suspense>
+      <DiscoverGrid
+        currentGenreId={genreId}
+        currentPage={page}
+        mediaType={mediaType}
+        sortBy={sortBy}
+        watchProviders={watchProviders}
+        watchRegion={watchRegion}
+        runtimeLte={runtimeLte}
+        userId={userId}
+      />
     </div>
   );
 }

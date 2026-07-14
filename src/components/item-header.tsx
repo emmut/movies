@@ -12,7 +12,20 @@ type ItemHeaderProps = {
   isWatched: boolean;
   userId?: User['id'];
   resourceType: 'movie' | 'tv';
+  certification?: string | null;
 };
+
+type HeaderBadgesProps = Pick<ItemHeaderProps, 'resourceType' | 'certification'>;
+
+function HeaderBadges({ resourceType, certification }: HeaderBadgesProps) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {resourceType === 'movie' && <Badge variant="yellow">Movie</Badge>}
+      {resourceType === 'tv' && <Badge variant="red">TV</Badge>}
+      {certification && <Badge variant="blue">Rated {certification}</Badge>}
+    </div>
+  );
+}
 
 export default function ItemHeader({
   title,
@@ -22,6 +35,7 @@ export default function ItemHeader({
   isWatched,
   userId,
   resourceType,
+  certification,
 }: ItemHeaderProps) {
   return (
     <div className="flex flex-col items-start gap-3">
@@ -60,8 +74,7 @@ export default function ItemHeader({
           </div>
         </div>
       </div>
-      {resourceType === 'movie' && <Badge variant="yellow">Movie</Badge>}
-      {resourceType === 'tv' && <Badge variant="red">TV</Badge>}
+      <HeaderBadges resourceType={resourceType} certification={certification} />
     </div>
   );
 }

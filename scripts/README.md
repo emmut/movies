@@ -1,5 +1,17 @@
 # Scripts
 
+## Ingest IMDb Ratings
+
+Downloads IMDb's [non-commercial ratings dataset](https://developer.imdb.com/non-commercial-datasets/) (`title.ratings.tsv.gz`, ~1.5M rows) and upserts it into the `imdb_ratings` table. Detail pages join on it to show IMDb ratings.
+
+### Usage
+
+```bash
+pnpm ingest:imdb
+```
+
+Needs `DATABASE_URL` (from `.env` locally). Runs daily in production as the `imdb-ingest` Railway cron service (05:30 UTC, shortly after IMDb refreshes the datasets). The dataset is licensed for personal, non-commercial use only.
+
 ## List Watch Providers
 
 Script to list all available watch providers from TMDB API.
