@@ -1,3 +1,7 @@
+// The single client-callable entry point for discover queries; the underlying
+// fetchers in movies.ts/tv-shows.ts are server-only.
+'use server';
+
 import { fetchDiscoverMovies } from '@/lib/movies';
 import { fetchDiscoverTvShows } from '@/lib/tv-shows';
 import type { Movie } from '@/types/movie';

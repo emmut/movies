@@ -1,4 +1,4 @@
-'use server';
+import 'server-only';
 
 import { cacheLife, cacheTag } from 'next/cache';
 
