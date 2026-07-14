@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { signInAnonymously } from './helpers';
+import { keyboardMoveRight, signInAnonymously } from './helpers';
 
 // Three stable TMDB movie ids with distinct titles, so the watchlist renders a
 // deterministic, reorderable set of cards.
@@ -16,9 +16,14 @@ async function addToWatchlist(page: Page, movieId: number) {
   await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeEnabled();
 }
 
-/** The item card titles in DOM order within the list grid. */
+/**
+ * The visible item card titles in DOM order within the list grid. Next.js
+ * keeps previously visited segments mounted but hidden (`display: none`), so
+ * an unscoped `#content-container h3` can also match cards from a cached
+ * page after client-side navigation.
+ */
 function itemTitles(page: Page) {
-  return page.locator('#content-container h3');
+  return page.locator('#content-container h3:visible');
 }
 
 test.describe('reordering the watchlist', () => {
@@ -58,10 +63,6 @@ test.describe('reordering the watchlist', () => {
   });
 
   test('reorders items via keyboard drag-and-drop on the drag handle', async ({ page }) => {
-    // A narrow viewport forces the single-column grid so ArrowDown always
-    // means "one position later" regardless of responsive breakpoints.
-    await page.setViewportSize({ width: 500, height: 900 });
-
     await signInAnonymously(page, '/watchlist');
 
     for (const movie of MOVIES) {
@@ -73,12 +74,16 @@ test.describe('reordering the watchlist', () => {
 
     await expect(itemTitles(page)).toHaveText(['Inception', 'The Matrix', 'Interstellar']);
 
-    // Lift Inception with Space, move it one slot down, drop it with Space.
+    // Lift Inception with Space, move it one slot later, drop it with Space.
+    // ArrowRight targets the next card in the row-major grid at every
+    // breakpoint (the grid is never single-column, so ArrowDown would jump a
+    // whole row), and keyboardMoveRight waits for the move to commit before
+    // the drop.
     const handle = page.getByRole('button', { name: 'Reorder Inception' });
     await handle.focus();
     await page.keyboard.press('Space');
     await expect(handle).toHaveAttribute('aria-pressed', 'true');
-    await page.keyboard.press('ArrowDown');
+    await keyboardMoveRight(page, 'The Matrix');
     await page.keyboard.press('Space');
     await expect(handle).not.toHaveAttribute('aria-pressed', 'true');
 

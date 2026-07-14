@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { signInAnonymously } from './helpers';
+import { keyboardMoveRight, signInAnonymously } from './helpers';
 
 // Three stable TMDB movie ids with distinct titles, so the list renders a
 // deterministic, reorderable set of cards.
@@ -24,9 +24,14 @@ async function addToCustomList(page: Page, moviePath: string, listName: string) 
   await expect(page.getByText(`Added to "${listName}"`)).toBeVisible();
 }
 
-/** The item card titles in DOM order within the list details grid. */
+/**
+ * The visible item card titles in DOM order within the list details grid.
+ * Next.js keeps previously visited segments mounted but hidden
+ * (`display: none`), so an unscoped `#content-container h3` also matches the
+ * cached /lists page's card titles after client-side navigation.
+ */
 function itemTitles(page: Page) {
-  return page.locator('#content-container h3');
+  return page.locator('#content-container h3:visible');
 }
 
 test.describe('reordering list items', () => {
@@ -89,10 +94,6 @@ test.describe('reordering list items', () => {
   });
 
   test('reorders items via keyboard drag-and-drop on the drag handle', async ({ page }) => {
-    // A narrow viewport forces the single-column grid so ArrowDown always
-    // means "one position later" regardless of responsive breakpoints.
-    await page.setViewportSize({ width: 500, height: 900 });
-
     await signInAnonymously(page, '/lists');
     await page.goto('/lists');
 
@@ -111,14 +112,17 @@ test.describe('reordering list items', () => {
       'Interstellar',
     ]);
 
-    // Lift Inception with Space, move it one slot down, drop it with Space.
-    // dnd-kit reflects the lifted state via aria-pressed on the handle, which
-    // makes each step observable instead of racing raw key presses.
+    // Lift Inception with Space, move it one slot later, drop it with Space.
+    // ArrowRight targets the next card in the row-major grid at every
+    // breakpoint (the grid is never single-column, so ArrowDown would jump a
+    // whole row). dnd-kit reflects the lifted state via aria-pressed on the
+    // handle, and keyboardMoveRight waits for the move to commit, so each
+    // step is observable instead of racing raw key presses.
     const handle = page.getByRole('button', { name: 'Reorder Inception' });
     await handle.focus();
     await page.keyboard.press('Space');
     await expect(handle).toHaveAttribute('aria-pressed', 'true');
-    await page.keyboard.press('ArrowDown');
+    await keyboardMoveRight(page, 'The Matrix');
     await page.keyboard.press('Space');
     await expect(handle).not.toHaveAttribute('aria-pressed', 'true');
 

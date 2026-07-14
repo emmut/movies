@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { signInAnonymously } from './helpers';
+import { keyboardMoveRight, signInAnonymously } from './helpers';
 
 // End-to-end coverage for manual list reordering on /lists, through both
 // mechanisms: the explicit move up/down buttons and dnd-kit's keyboard
@@ -13,9 +13,13 @@ async function createList(page: Page, name: string) {
   await expect(page.getByRole('link', { name: new RegExp(name, 'i') })).toBeVisible();
 }
 
-/** The list card titles in DOM order. */
+/**
+ * The visible list card titles in DOM order. Next.js keeps previously visited
+ * segments mounted but hidden (`display: none`), so an unscoped
+ * `#content-container h3` can also match cards from a cached page.
+ */
 function cardTitles(page: Page) {
-  return page.locator('#content-container h3');
+  return page.locator('#content-container h3:visible');
 }
 
 test.describe('reordering lists', () => {
@@ -54,10 +58,6 @@ test.describe('reordering lists', () => {
   });
 
   test('reorders via keyboard drag-and-drop on the drag handle', async ({ page }) => {
-    // A narrow viewport forces the single-column grid so ArrowDown always
-    // means "one position later" regardless of responsive breakpoints.
-    await page.setViewportSize({ width: 500, height: 900 });
-
     await signInAnonymously(page, '/lists');
     await page.goto('/lists');
 
@@ -67,14 +67,17 @@ test.describe('reordering lists', () => {
 
     await page.getByRole('button', { name: /reorder lists/i }).click();
 
-    // Lift Alpha with Space, move it one slot down, drop it with Space.
-    // dnd-kit reflects the lifted state via aria-pressed on the handle, which
-    // makes each step observable instead of racing raw key presses.
+    // Lift Alpha with Space, move it one slot later, drop it with Space.
+    // ArrowRight targets the next card in the row-major grid at every
+    // breakpoint (ArrowDown would jump a whole row, or nothing on the last
+    // row). dnd-kit reflects the lifted state via aria-pressed on the handle,
+    // and keyboardMoveRight waits for the move to commit, so each step is
+    // observable instead of racing raw key presses.
     const handle = page.getByRole('button', { name: 'Reorder Alpha One' });
     await handle.focus();
     await page.keyboard.press('Space');
     await expect(handle).toHaveAttribute('aria-pressed', 'true');
-    await page.keyboard.press('ArrowDown');
+    await keyboardMoveRight(page, 'Bravo Two');
     await page.keyboard.press('Space');
     await expect(handle).not.toHaveAttribute('aria-pressed', 'true');
 
