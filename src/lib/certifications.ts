@@ -10,8 +10,21 @@ export type Certification = {
 
 function movieCertForRegion(results: MovieReleaseDatesResult[], region: string) {
   const entry = results.find((result) => result.iso_3166_1 === region);
-  const release = entry?.release_dates.find((date) => date.certification !== '');
-  return release ? { value: release.certification, region } : null;
+  if (!entry) {
+    return null;
+  }
+  // Prefer theatrical releases (types 2 and 3) over digital/physical/other.
+  const theatrical = entry.release_dates.find(
+    (date) => date.certification !== '' && (date.type === 2 || date.type === 3),
+  );
+  if (theatrical) {
+    return { value: theatrical.certification, region };
+  }
+  const any = entry.release_dates.find((date) => date.certification !== '');
+  if (any) {
+    return { value: any.certification, region };
+  }
+  return null;
 }
 
 /**
@@ -31,7 +44,10 @@ export function pickMovieCertification(
 
 function tvCertForRegion(results: TvContentRatingsResult[], region: string) {
   const rating = results.find((result) => result.iso_3166_1 === region)?.rating;
-  return rating ? { value: rating, region } : null;
+  if (rating) {
+    return { value: rating, region };
+  }
+  return null;
 }
 
 /**

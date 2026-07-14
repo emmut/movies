@@ -36,6 +36,19 @@ describe('pickMovieCertification', () => {
   it('returns null when neither region is rated', () => {
     expect(pickMovieCertification([], 'SE')).toBeNull();
   });
+
+  it('prefers theatrical release over digital when both have certifications', () => {
+    const results = [
+      {
+        iso_3166_1: 'SE',
+        release_dates: [
+          { certification: '15', iso_639_1: '', release_date: '2024-01-01', type: 4 },
+          { certification: '11', iso_639_1: '', release_date: '2024-01-10', type: 3 },
+        ],
+      },
+    ];
+    expect(pickMovieCertification(results, 'SE')).toEqual({ value: '11', region: 'SE' });
+  });
 });
 
 describe('pickTvCertification', () => {
