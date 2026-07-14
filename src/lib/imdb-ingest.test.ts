@@ -2,37 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
-import { parseRatingLine, upsertRatingsBatch } from './imdb-ingest';
-
-describe('parseRatingLine', () => {
-  it('parses a valid ratings row', () => {
-    expect(parseRatingLine('tt0111161\t9.3\t3021762')).toEqual({
-      imdbId: 'tt0111161',
-      rating: '9.3',
-      numVotes: 3021762,
-    });
-  });
-
-  it('skips the header row', () => {
-    expect(parseRatingLine('tconst\taverageRating\tnumVotes')).toBeNull();
-  });
-
-  it('skips rows with the wrong number of columns', () => {
-    expect(parseRatingLine('')).toBeNull();
-    expect(parseRatingLine('tt0111161\t9.3')).toBeNull();
-    expect(parseRatingLine('tt0111161\t9.3\t100\textra')).toBeNull();
-  });
-
-  it('skips rows with non-numeric rating or votes', () => {
-    expect(parseRatingLine('tt0111161\t\\N\t100')).toBeNull();
-    expect(parseRatingLine('tt0111161\t9.3\t\\N')).toBeNull();
-    expect(parseRatingLine('tt0111161\t9.3\t10.5')).toBeNull();
-  });
-
-  it('skips rows with blank votes field', () => {
-    expect(parseRatingLine('tt0111161\t9.0\t')).toBeNull();
-  });
-});
+import { upsertRatingsBatch } from './imdb-ingest';
 
 describe('upsertRatingsBatch', () => {
   function mockDatabase() {

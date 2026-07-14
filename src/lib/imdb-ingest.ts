@@ -13,31 +13,6 @@ export type ImdbRatingRow = {
 };
 
 /**
- * Parses one line of IMDb's title.ratings.tsv into an insertable row.
- *
- * Format: `tconst\taverageRating\tnumVotes`. Returns null for the header and
- * malformed lines (the header's "averageRating" fails the numeric check, so it
- * needs no special case).
- *
- * @param line - A single line from the TSV file.
- * @returns The parsed row, or null when the line should be skipped.
- */
-export function parseRatingLine(line: string): ImdbRatingRow | null {
-  const parts = line.split('\t');
-  if (parts.length !== 3) {
-    return null;
-  }
-
-  const [imdbId, rating, votes] = parts;
-  if (votes === '' || !Number.isFinite(Number(rating)) || !Number.isInteger(Number(votes))) {
-    return null;
-  }
-  const numVotes = Number(votes);
-
-  return { imdbId, rating, numVotes };
-}
-
-/**
  * Upserts a batch of IMDb rating rows, refreshing rating, vote count, and
  * updated_at for rows that already exist.
  *

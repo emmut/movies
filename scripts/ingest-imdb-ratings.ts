@@ -7,51 +7,29 @@
  * Usage:
  *   pnpm ingest:imdb
  *
- * Runs daily on Railway as the imdb-ingest cron service. Only DATABASE_URL is
- * required, so the script builds its own pool instead of importing @/lib/db
- * (whose @/env schema demands the full app secret set).
+ * Runs daily on Railway as the imdb-ingest cron service.
  *
  * Data: https://developer.imdb.com/non-commercial-datasets/ — licensed for
  * personal, non-commercial use only.
  */
 
-import { createInterface } from 'node:readline';
+import { Transform, type TransformCallback } from 'node:stream';
 import { Readable } from 'node:stream';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
+import { pipeline } from 'node:stream/promises';
 import { createGunzip } from 'node:zlib';
+import { parse } from 'csv-parse';
 import { drizzle } from 'drizzle-orm/node-postgres';
 
-import { parseRatingLine, upsertRatingsBatch, type ImdbRatingRow } from '@/lib/imdb-ingest';
+import { env } from './env';
+import { upsertRatingsBatch, type ImdbRatingRow } from '@/lib/imdb-ingest';
 
 const DATASET_URL = 'https://datasets.imdbws.com/title.ratings.tsv.gz';
 const BATCH_SIZE = 5_000;
 const PROGRESS_INTERVAL = 250_000;
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 
-function createDb() {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error('DATABASE_URL is required');
-  }
-  return drizzle({ connection: { connectionString, max: 1 } });
-}
-
-async function openDatasetStream() {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
-  try {
-    const response = await fetch(DATASET_URL, { signal: controller.signal });
-    if (!response.ok || !response.body) {
-      throw new Error(
-        `Failed downloading ${DATASET_URL}: ${response.status} ${response.statusText}`,
-      );
-    }
-    // fetch types the body as a DOM ReadableStream; Readable.fromWeb wants Node's.
-    return Readable.fromWeb(response.body as NodeReadableStream<Uint8Array>).pipe(createGunzip());
-  } finally {
-    clearTimeout(timeout);
-  }
-}
+const db = drizzle({ connection: { connectionString: env.DATABASE_URL, max: 1 } });
 
 function logProgress(total: number) {
   if (total % PROGRESS_INTERVAL === 0) {
@@ -59,33 +37,93 @@ function logProgress(total: number) {
   }
 }
 
-async function main() {
-  console.log(`📥 Downloading ${DATASET_URL}...`);
-  const db = createDb();
-  const lines = createInterface({ input: await openDatasetStream(), crlfDelay: Infinity });
+function parseNumericFields(record: Record<string, string>): ImdbRatingRow | null {
+  const { tconst, averageRating, numVotes } = record;
+  const numVotesParsed = Number(numVotes);
+  if (!tconst || !Number.isFinite(Number(averageRating)) || !Number.isInteger(numVotesParsed)) {
+    return null;
+  }
+  return { imdbId: tconst, rating: averageRating, numVotes: numVotesParsed };
+}
 
+function createRatingTransform() {
   let batch: ImdbRatingRow[] = [];
   let total = 0;
 
-  for await (const line of lines) {
-    const row = parseRatingLine(line);
-    if (!row) {
-      continue;
-    }
-
-    batch.push(row);
-    if (batch.length >= BATCH_SIZE) {
-      await upsertRatingsBatch(db, batch);
-      total += batch.length;
-      batch = [];
-      logProgress(total);
+  async function flushBatch(callback: TransformCallback) {
+    try {
+      if (batch.length > 0) {
+        await upsertRatingsBatch(db, batch);
+        total += batch.length;
+        batch = [];
+      }
+      callback();
+    } catch (error) {
+      callback(error instanceof Error ? error : new Error(String(error)));
     }
   }
 
-  await upsertRatingsBatch(db, batch);
-  total += batch.length;
+  return new Transform({
+    objectMode: true,
+    async transform(record: Record<string, string>, _encoding, callback) {
+      const row = parseNumericFields(record);
+      if (!row) {
+        callback();
+        return;
+      }
 
-  console.log(`✅ Done: ${total.toLocaleString('en-US')} ratings upserted`);
+      batch.push(row);
+
+      if (batch.length >= BATCH_SIZE) {
+        logProgress(total);
+        await flushBatch(callback);
+        return;
+      }
+
+      callback();
+    },
+    async flush(callback) {
+      await flushBatch(callback);
+      console.log(`✅ Done: ${total.toLocaleString('en-US')} ratings upserted`);
+    },
+  });
+}
+
+async function main() {
+  console.log(`📥 Downloading ${DATASET_URL}...`);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(DATASET_URL, { signal: controller.signal });
+    if (!response.ok || !response.body) {
+      throw new Error(
+        `Failed downloading ${DATASET_URL}: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const nodeStream = Readable.fromWeb(
+      response.body as NodeReadableStream<Uint8Array>,
+    );
+
+    const gunzipped = nodeStream.pipe(createGunzip());
+
+    const parser = parse({
+      delimiter: '\t',
+      columns: true,
+      relax_column_count: true,
+      skip_empty_lines: true,
+      trim: true,
+    });
+
+    const ratingTransform = createRatingTransform();
+
+    await pipeline(gunzipped, parser, ratingTransform);
+  } finally {
+    clearTimeout(timeout);
+  }
+
   process.exit(0);
 }
 
