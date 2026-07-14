@@ -39,8 +39,9 @@ A web app for exploring movies and TV shows and keeping track of what you watch,
 ```bash
 pnpm install
 cp .env.example .env   # fill in secrets — src/env.ts is the source of truth
-pnpm dev               # boots local Postgres + imgproxy via Docker, then next dev
-pnpm db:push           # apply the schema once the database is up
+pnpm dev:docker:up     # start local Postgres + imgproxy via Docker
+pnpm db:push           # apply the schema
+pnpm dev               # dev server (starts the Docker services if needed)
 ```
 
 Open [http://localhost:3000](http://localhost:3000). See [CONTRIBUTING.md](./CONTRIBUTING.md) for prerequisites, environment details, and conventions.
