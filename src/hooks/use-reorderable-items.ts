@@ -63,6 +63,12 @@ export function useReorderableItems<T extends ReorderableItem>(
     }
   }
 
+  /**
+   * Optimistically moves an item to `toLocalIndex` (an index within this
+   * page; -1 or length mean "onto the adjacent page" and are clamped locally
+   * while the unclamped index is committed so the server applies the real
+   * cross-page move).
+   */
   function move(itemId: string, toLocalIndex: number) {
     const fromLocalIndex = localItems.findIndex((item) => item.listItemId === itemId);
     if (isPending || fromLocalIndex === -1 || toLocalIndex === fromLocalIndex) {
@@ -70,7 +76,7 @@ export function useReorderableItems<T extends ReorderableItem>(
     }
     const clampedIndex = Math.max(0, Math.min(toLocalIndex, localItems.length - 1));
     setLocalItems(arrayMove(localItems, fromLocalIndex, clampedIndex));
-    void commitMove(itemId, clampedIndex, localItems);
+    void commitMove(itemId, toLocalIndex, localItems);
   }
 
   return { localItems, isPending, move };
