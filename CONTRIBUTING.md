@@ -14,6 +14,7 @@ A Next.js (App Router) movies app in TypeScript, backed by PostgreSQL/Drizzle an
 2. Copy the environment template and fill it in — `src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
 3. Apply the schema to your database: `pnpm db:push`.
 4. Start the dev server: `pnpm dev`.
+5. Optional: populate IMDb ratings with `pnpm ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.
 
 `pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
 

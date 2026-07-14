@@ -28,6 +28,16 @@ export function formatCurrency(amount: number, withSymbol = true) {
   }).format(amount);
 }
 
+/**
+ * Formats a count in compact notation for tight UI spots, e.g. 30755 → "30.8K"
+ * and 3206008 → "3.2M".
+ */
+export function formatCompactNumber(value: number) {
+  return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(
+    value,
+  );
+}
+
 export function formatRuntime(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;

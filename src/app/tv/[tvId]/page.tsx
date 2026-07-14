@@ -1,13 +1,17 @@
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
+import { RatingsCard } from '@/components/ratings-card';
 import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
+import { ReviewsSection } from '@/components/reviews-section';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
+import { formatCertification } from '@/lib/certifications';
+import { getMediaCertification } from '@/lib/media-info';
 import {
   getTvShowCredits,
   getTvShowDetails,
@@ -16,10 +20,11 @@ import {
   getTvShowSimilar,
   getTvShowWatchProviders,
 } from '@/lib/tv-shows';
+import { getImdbRating } from '@/lib/imdb';
 import { getUserRegion } from '@/lib/user-actions';
 import { Imgproxy } from '@/components/image-proxy';
 import { getSystemListMemberships } from '@/lib/system-list-queries';
-import { Calendar, Star, Tv, Users } from 'lucide-react';
+import { Calendar, Tv, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 
@@ -48,11 +53,14 @@ export default async function TvShowPage(props: TvShowPageProps) {
   const userRegion = await getUserRegion();
   const { inWatchlist, watched } = await getSystemListMemberships(tvId, RESOURCE_TYPE);
 
-  const [tvShow, credits, watchProviders, imdbId] = await Promise.all([
+  const imdbIdPromise = getTvShowImdbId(tvId);
+  const [tvShow, credits, watchProviders, imdbId, imdbRating, certification] = await Promise.all([
     getTvShowDetails(tvId),
     getTvShowCredits(tvId),
     getTvShowWatchProviders(tvId),
-    getTvShowImdbId(tvId),
+    imdbIdPromise,
+    imdbIdPromise.then(getImdbRating),
+    getMediaCertification(RESOURCE_TYPE, tvId, userRegion),
   ]);
 
   const {
@@ -114,32 +122,28 @@ export default async function TvShowPage(props: TvShowPageProps) {
             isWatched={watched}
             userId={user?.id}
             resourceType={RESOURCE_TYPE}
+            certification={formatCertification(certification, userRegion)}
           />
 
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="rounded-lg bg-zinc-900 p-4 text-center">
-              <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
-              <div className="text-2xl font-bold">{score}</div>
-              <div className="text-sm text-zinc-400">Rating</div>
-              <div className="text-xs text-zinc-500">({tvShow.vote_count} votes)</div>
-            </div>
+            <RatingsCard score={score} voteCount={tvShow.vote_count} imdbRating={imdbRating} />
 
-            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-              <Tv className="mx-auto mb-2 h-6 w-6 text-blue-500" />
+            <div className="rounded-lg bg-zinc-900 p-5">
+              <Tv className="mb-3 h-5 w-5 text-blue-500" />
               <div className="text-2xl font-bold">{number_of_seasons}</div>
               <div className="text-sm text-zinc-400">Seasons</div>
             </div>
 
-            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-              <Calendar className="mx-auto mb-2 h-6 w-6 text-green-500" />
+            <div className="rounded-lg bg-zinc-900 p-5">
+              <Calendar className="mb-3 h-5 w-5 text-green-500" />
               <div className="text-2xl font-bold">
                 {first_air_date ? first_air_date.split('-')[0] : 'N/A'}
               </div>
               <div className="text-sm text-zinc-400">First Aired</div>
             </div>
 
-            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-              <Users className="mx-auto mb-2 h-6 w-6 text-purple-500" />
+            <div className="rounded-lg bg-zinc-900 p-5">
+              <Users className="mb-3 h-5 w-5 text-purple-500" />
               <div className="text-2xl font-bold">{Math.round(tvShow.popularity)}</div>
               <div className="text-sm text-zinc-400">Popularity</div>
             </div>
@@ -313,9 +317,12 @@ export default async function TvShowPage(props: TvShowPageProps) {
           <OtherContent
             id={tvId}
             type="tv"
+            userId={user?.id}
             getSimilar={(id) => getTvShowSimilar(id, userRegion)}
             getRecommendations={(id) => getTvShowRecommendations(id, userRegion)}
           />
+
+          <ReviewsSection mediaType="tv" mediaId={tvId} />
 
           <ExternalLinks tmdbId={tvId} homepage={homepage} mediaType="tv" imdbId={imdbId} />
         </div>

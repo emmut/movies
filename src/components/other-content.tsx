@@ -9,6 +9,10 @@ import { TvShow } from '@/types/tv-show';
 type OtherContentProps = {
   id: number;
   type: 'movie' | 'tv';
+  // Detail pages are request-rendered and already know the user; passing the
+  // id here lets cards render their quick-add button on the server instead of
+  // falling back to the client-session path meant for prerendered lists.
+  userId?: string;
   getSimilar: (id: number) => Promise<(Movie | TvShow)[]>;
   getRecommendations: (id: number) => Promise<(Movie | TvShow)[]>;
 };
@@ -16,8 +20,9 @@ type OtherContentProps = {
 async function SimilarContent({
   id,
   type,
+  userId,
   getSimilar,
-}: Pick<OtherContentProps, 'id' | 'type' | 'getSimilar'>) {
+}: Pick<OtherContentProps, 'id' | 'type' | 'userId' | 'getSimilar'>) {
   const similar = await getSimilar(id);
 
   if (similar.length === 0) {
@@ -35,7 +40,7 @@ async function SimilarContent({
 
       <ItemSlider>
         {similar.map((item) => (
-          <ItemCard key={item.id} resource={item} type={type} className="w-48" />
+          <ItemCard key={item.id} resource={item} type={type} userId={userId} className="w-48" />
         ))}
       </ItemSlider>
     </div>
@@ -45,8 +50,9 @@ async function SimilarContent({
 async function RecommendationsContent({
   id,
   type,
+  userId,
   getRecommendations,
-}: Pick<OtherContentProps, 'id' | 'type' | 'getRecommendations'>) {
+}: Pick<OtherContentProps, 'id' | 'type' | 'userId' | 'getRecommendations'>) {
   const recommendations = await getRecommendations(id);
 
   if (recommendations.length === 0) {
@@ -62,7 +68,7 @@ async function RecommendationsContent({
 
       <ItemSlider>
         {recommendations.map((item) => (
-          <ItemCard key={item.id} resource={item} type={type} className="w-48" />
+          <ItemCard key={item.id} resource={item} type={type} userId={userId} className="w-48" />
         ))}
       </ItemSlider>
     </div>
@@ -85,15 +91,26 @@ function OtherContentSkeleton() {
   );
 }
 
-export function OtherContent({ id, type, getSimilar, getRecommendations }: OtherContentProps) {
+export function OtherContent({
+  id,
+  type,
+  userId,
+  getSimilar,
+  getRecommendations,
+}: OtherContentProps) {
   return (
     <div className="flex flex-col">
       <Suspense fallback={<OtherContentSkeleton />}>
-        <SimilarContent id={id} type={type} getSimilar={getSimilar} />
+        <SimilarContent id={id} type={type} userId={userId} getSimilar={getSimilar} />
       </Suspense>
 
       <Suspense fallback={<OtherContentSkeleton />}>
-        <RecommendationsContent id={id} type={type} getRecommendations={getRecommendations} />
+        <RecommendationsContent
+          id={id}
+          type={type}
+          userId={userId}
+          getRecommendations={getRecommendations}
+        />
       </Suspense>
     </div>
   );
