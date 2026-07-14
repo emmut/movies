@@ -1,0 +1,55 @@
+diff --git a/dist/iac/index.js b/dist/iac/index.js
+index 6b602cf39512b97157a3e21b3fec5c41b9c4ed05..1650527c623e48f5eeb29886cf8b5f577581ba40 100644
+--- a/dist/iac/index.js
++++ b/dist/iac/index.js
+@@ -239,9 +239,11 @@ function databaseRegion(database2) {
+   return regions[0]?.[0];
+ }
+ function databaseDeploy(database2, requiredMountPath) {
++  const { multiRegionConfig, ...deployRest } = database2.deploy ?? {};
+   return {
+     requiredMountPath,
+-    ...database2.deploy?.multiRegionConfig ? { multiRegionConfig: database2.deploy.multiRegionConfig } : {}
++    ...deployRest,
++    ...multiRegionConfig ? { multiRegionConfig } : {}
+   };
+ }
+ function databaseToEnvironmentConfig(database2, options) {
+@@ -1326,7 +1328,12 @@ function database(name, engine, options) {
+     output,
+     defaultMountPath: options.defaultMountPath,
+     source: image(options.image),
+-    ...options.region ? { deploy: { multiRegionConfig: { [options.region]: { numReplicas: 1 } } } } : {}
++    ...options.deploy || options.region ? {
++      deploy: {
++        ...options.deploy ?? {},
++        ...options.region ? { multiRegionConfig: { [options.region]: { numReplicas: 1 } } } : {}
++      }
++    } : {}
+   };
+   return withVariableRefs(node);
+ }
+diff --git a/dist/index-qc8SqGnG.d.cts b/dist/index-qc8SqGnG.d.cts
+index 9123cd403d2d49888269ac76602f319aeb0d059c..b27bb6c3c7a9604504e920be33f06b8b14d2db0b 100644
+--- a/dist/index-qc8SqGnG.d.cts
++++ b/dist/index-qc8SqGnG.d.cts
+@@ -620,6 +620,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
+ }): ReferencableServiceNode<RailwayProvidedVariable | Extract<keyof Env, string>>;
+ interface DatabaseConfig {
+     region?: string;
++    deploy?: DeployConfig;
+ }
+ declare function postgres(name: string, config?: DatabaseConfig): ReferencableDatabaseNode<"postgres">;
+ declare function mysql(name: string, config?: DatabaseConfig): ReferencableDatabaseNode<"mysql">;
+diff --git a/dist/index-qc8SqGnG.d.ts b/dist/index-qc8SqGnG.d.ts
+index 9123cd403d2d49888269ac76602f319aeb0d059c..b27bb6c3c7a9604504e920be33f06b8b14d2db0b 100644
+--- a/dist/index-qc8SqGnG.d.ts
++++ b/dist/index-qc8SqGnG.d.ts
+@@ -620,6 +620,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
+ }): ReferencableServiceNode<RailwayProvidedVariable | Extract<keyof Env, string>>;
+ interface DatabaseConfig {
+     region?: string;
++    deploy?: DeployConfig;
+ }
+ declare function postgres(name: string, config?: DatabaseConfig): ReferencableDatabaseNode<"postgres">;
+ declare function mysql(name: string, config?: DatabaseConfig): ReferencableDatabaseNode<"mysql">;
