@@ -1,8 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/db', () => ({ db: { select: vi.fn(), insert: vi.fn(), delete: vi.fn() } }));
+// Run the locked callback against the db mock directly; the real lock needs a
+// live transaction and is covered by ordering-lock.test.ts.
+vi.mock('@/lib/ordering-lock', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/ordering-lock')>();
+  const { db } = await import('@/lib/db');
+  return {
+    ...actual,
+    withOrderingLock: vi.fn((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
+  };
+});
 
 import { db } from '@/lib/db';
+import { withOrderingLock } from '@/lib/ordering-lock';
 
 import { chain } from '@/test/db-chain';
 
@@ -74,6 +85,7 @@ describe('toggleSystemListRow', () => {
 
     await expect(toggleSystemListRow('user-1', 'watchlist', 5, 'movie')).resolves.toBe('removed');
     expect(db.insert).not.toHaveBeenCalled();
+    expect(withOrderingLock).not.toHaveBeenCalled();
   });
 
   it('returns "added" when nothing was deleted and the insert landed', async () => {
@@ -81,6 +93,7 @@ describe('toggleSystemListRow', () => {
     vi.mocked(db.insert).mockReturnValue(chain([{ id: 'row-1' }]));
 
     await expect(toggleSystemListRow('user-1', 'watched', 5, 'tv')).resolves.toBe('added');
+    expect(withOrderingLock).toHaveBeenCalledWith('list-items:list-1', expect.any(Function));
   });
 
   it('creates the list lazily on first toggle', async () => {

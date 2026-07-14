@@ -38,4 +38,14 @@ describe('getImdbRating', () => {
     vi.mocked(db.select).mockReturnValue(chain([]));
     await expect(getImdbRating('tt9999999')).resolves.toBeNull();
   });
+
+  it('degrades to null instead of throwing when the query fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.mocked(db.select).mockImplementation(() => {
+      throw new Error('relation "imdb_ratings" does not exist');
+    });
+    await expect(getImdbRating('tt0111161')).resolves.toBeNull();
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
 });

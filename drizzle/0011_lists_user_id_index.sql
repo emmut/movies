@@ -1,0 +1,1 @@
+CREATE INDEX "lists_userId_idx" ON "lists" USING btree ("user_id");

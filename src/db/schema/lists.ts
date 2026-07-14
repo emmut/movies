@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { integer, pgTable, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core';
+import { index, integer, pgTable, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core';
 
 import { user } from '@/db/schema/auth';
 
@@ -16,6 +16,9 @@ export const lists = pgTable(
     type: text('type', { enum: ['custom', 'watchlist', 'watched'] })
       .notNull()
       .default('custom'),
+    // 1-based manual sort order within a user's custom lists; renumbered on
+    // every move, so values stay distinct per user.
+    position: integer('position').notNull().default(0),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at')
       .defaultNow()
@@ -23,6 +26,9 @@ export const lists = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    // Every lists query is scoped to one user (pagination, reorder reads, the
+    // max(position) append subquery, the user-delete cascade).
+    index('lists_userId_idx').on(table.userId),
     // System lists exist at most once per user; custom lists are unlimited.
     uniqueIndex('lists_user_watchlist_unique')
       .on(table.userId)
@@ -42,6 +48,9 @@ export const listItems = pgTable(
       .references(() => lists.id, { onDelete: 'cascade' }),
     resourceId: integer('resource_id').notNull(),
     resourceType: text('resource_type').notNull(),
+    // 1-based manual sort order within a list; renumbered on every move, so
+    // values stay distinct per list.
+    position: integer('position').notNull().default(0),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [unique().on(table.listId, table.resourceId, table.resourceType)],

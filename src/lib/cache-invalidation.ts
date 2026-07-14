@@ -36,3 +36,20 @@ export function revalidateUserListStatusCache(
 ) {
   revalidateTag(CACHE_TAGS.private.listStatus(userId, resourceType, resourceId), 'max');
 }
+
+/**
+ * Revalidates the per-media-type list and count tags for a system list
+ * (watchlist, watched) so the list page re-renders after a reorder. The item
+ * membership tag is intentionally left alone — reordering never changes
+ * membership, so detail-page buttons stay valid.
+ */
+export function revalidateUserSystemListPageCache(
+  userId: string,
+  listType: SystemListType,
+) {
+  const tags = SYSTEM_LIST_CACHE_TAGS[listType];
+  for (const resourceType of ['movie', 'tv'] as const) {
+    revalidateTag(tags.list(userId, resourceType), 'max');
+    revalidateTag(tags.count(userId, resourceType), 'max');
+  }
+}

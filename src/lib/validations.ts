@@ -97,6 +97,27 @@ export const removeListItemSchema = listItemSchema;
 
 export type RemoveListItemData = z.infer<typeof removeListItemSchema>;
 
+/**
+ * Schema for moving a list to a new spot in the user's manual ordering.
+ * `position` is the target 0-based index across all of the user's custom lists.
+ */
+export const moveListSchema = z.object({
+  listId: z.uuid('Invalid list ID'),
+  position: z.number().int().min(0, 'Position must be 0 or greater'),
+});
+
+/**
+ * Schema for moving a list item to a new spot within its list's manual
+ * ordering. `position` is the target 0-based index across all items in the
+ * list. `resourceType` optionally scopes the reorder to one media type
+ * (system lists render one type at a time).
+ */
+export const moveListItemSchema = z.object({
+  itemId: z.uuid('Invalid item ID'),
+  position: z.number().int().min(0, 'Position must be 0 or greater'),
+  resourceType: z.enum(['movie', 'tv', 'person']).optional(),
+});
+
 export const mediaIdSchema = z.number().int().min(1);
 export const mediaTypeSchema = z.enum(['movie', 'tv', 'person']);
 

@@ -71,6 +71,20 @@
       "when": 1784031078410,
       "tag": "0009_imdb_ratings",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784045414689,
+      "tag": "0010_add_manual_positions",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784047182660,
+      "tag": "0011_lists_user_id_index",
+      "breakpoints": true
     }
   ]
 }

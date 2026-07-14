@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/db', () => ({
-  db: { select: vi.fn(), insert: vi.fn(), update: vi.fn(), delete: vi.fn() },
+  db: { select: vi.fn(), insert: vi.fn(), update: vi.fn(), delete: vi.fn(), execute: vi.fn() },
 }));
 vi.mock('@/lib/auth-server', () => ({ requireUser: vi.fn() }));
 vi.mock('@/lib/cache-invalidation', () => ({
   revalidateUserListCache: vi.fn(),
   revalidateUserListStatusCache: vi.fn(),
+  revalidateUserSystemListPageCache: vi.fn(),
 }));
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
@@ -14,10 +15,24 @@ vi.mock('next/cache', () => ({
   cacheTag: vi.fn(),
 }));
 vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
+// Run the locked callback against the db mock directly; the real lock needs a
+// live transaction and is covered by ordering-lock.test.ts.
+vi.mock('@/lib/ordering-lock', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/ordering-lock')>();
+  const { db } = await import('@/lib/db');
+  return {
+    ...actual,
+    withOrderingLock: vi.fn((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
+  };
+});
 
 import { requireUser } from '@/lib/auth-server';
+import {
+  revalidateUserListCache,
+  revalidateUserSystemListPageCache,
+} from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
-
+import { withOrderingLock } from '@/lib/ordering-lock';
 import { chain } from '@/test/db-chain';
 
 import {
@@ -25,6 +40,8 @@ import {
   createList,
   deleteList,
   getOwnedCustomList,
+  moveListItem,
+  moveList,
   removeFromList,
   updateList,
 } from './lists';
@@ -42,6 +59,7 @@ beforeEach(() => {
   vi.mocked(db.insert).mockReturnValue(chain(undefined));
   vi.mocked(db.update).mockReturnValue(chain(undefined));
   vi.mocked(db.delete).mockReturnValue(chain(undefined));
+  vi.mocked(db.execute).mockResolvedValue(undefined as never);
 });
 
 describe('createList', () => {
@@ -50,6 +68,11 @@ describe('createList', () => {
     expect(result.success).toBe(true);
     expect(result.listId).toMatch(/^[0-9a-f-]{36}$/);
     expect(db.insert).toHaveBeenCalledTimes(1);
+  });
+
+  it('appends under the user’s list-ordering lock so concurrent creates serialize', async () => {
+    await createList('My faves');
+    expect(withOrderingLock).toHaveBeenCalledWith('lists:user-1', expect.any(Function));
   });
 
   it('rejects an empty name without inserting', async () => {
@@ -73,6 +96,7 @@ describe('ownership enforcement', () => {
     setOwnedCount(1);
     await addToList(UUID, 1, 'movie');
     expect(db.insert).toHaveBeenCalledTimes(1);
+    expect(withOrderingLock).toHaveBeenCalledWith(`list-items:${UUID}`, expect.any(Function));
   });
 
   it('removeFromList throws when the list is not owned', async () => {
@@ -103,6 +127,77 @@ describe('ownership enforcement', () => {
     setOwnedCount(1);
     await updateList(UUID, 'name');
     expect(db.update).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('moveList', () => {
+  const OTHER_UUID = '223e4567-e89b-12d3-a456-426614174000';
+
+  it('persists the new order in a single statement when the list is owned', async () => {
+    vi.mocked(db.select).mockReturnValue(chain([{ id: OTHER_UUID }, { id: UUID }]));
+    await moveList(UUID, 0);
+    expect(db.execute).toHaveBeenCalledTimes(1);
+    expect(withOrderingLock).toHaveBeenCalledWith('lists:user-1', expect.any(Function));
+  });
+
+  it('throws when the list is not among the user’s custom lists', async () => {
+    vi.mocked(db.select).mockReturnValue(chain([{ id: OTHER_UUID }]));
+    await expect(moveList(UUID, 0)).rejects.toThrow('List not found');
+    expect(db.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-uuid list id without querying', async () => {
+    await expect(moveList('nope', 0)).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
+  });
+
+  it('rejects a negative position without querying', async () => {
+    await expect(moveList(UUID, -1)).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
+  });
+});
+
+describe('moveListItem', () => {
+  const OTHER_UUID = '223e4567-e89b-12d3-a456-426614174000';
+
+  it('persists the new order in a single statement when the item is owned', async () => {
+    vi.mocked(db.select).mockReturnValue(
+      chain([
+        { id: OTHER_UUID, listId: UUID, listType: 'custom' },
+        { id: UUID, listId: UUID, listType: 'custom' },
+      ]),
+    );
+    await moveListItem(UUID, 0);
+    expect(db.execute).toHaveBeenCalledTimes(1);
+    expect(withOrderingLock).toHaveBeenCalledWith(`list-items:${UUID}`, expect.any(Function));
+  });
+
+  it('throws when the item is not among the user’s custom lists', async () => {
+    vi.mocked(db.select).mockReturnValue(chain([]));
+    await expect(moveListItem(UUID, 0)).rejects.toThrow('Item not found');
+    expect(db.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-uuid item id without querying', async () => {
+    await expect(moveListItem('nope', 0)).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
+  });
+
+  it('rejects a negative position without querying', async () => {
+    await expect(moveListItem(UUID, -1)).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
+  });
+
+  it('revalidates the system list cache (not the custom cache) for a system list item', async () => {
+    vi.mocked(db.select).mockReturnValue(
+      chain([
+        { id: UUID, listId: UUID, listType: 'watchlist' },
+        { id: UUID, listId: UUID, listType: 'watchlist' },
+      ]),
+    );
+    await moveListItem(UUID, 0, 'movie');
+    expect(revalidateUserSystemListPageCache).toHaveBeenCalledWith('user-1', 'watchlist');
+    expect(revalidateUserListCache).not.toHaveBeenCalled();
   });
 });
 

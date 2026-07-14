@@ -1,6 +1,6 @@
 'use server';
 
-import { and, count, desc, eq, SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, SQL } from 'drizzle-orm';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import { listItems, lists } from '@/db/schema/lists';
@@ -23,17 +23,21 @@ import { TvDetails } from '@/types/tv-show';
 import { ITEMS_PER_PAGE } from './config';
 import { getTvShowDetails } from './tv-shows';
 
-type ResourceDetailsWithImage = (MovieDetails | TvDetails) & {
+type SystemListItemFields<T extends 'movie' | 'tv'> = {
+  resourceType: T;
+  /** The list_items row id — what the reorder actions operate on. */
+  listItemId: string;
   posterImageUrls?: ProxyImageUrls;
 };
 
-const DETAILS_FETCHERS: Record<
-  'movie' | 'tv',
-  (resourceId: number) => Promise<MovieDetails | TvDetails>
-> = {
-  movie: getMovieDetails,
-  tv: getTvShowDetails,
-};
+/**
+ * A grid-ready system-list entry: TMDB details with the `resourceType`
+ * discriminant paired to the matching details type, so consumers need no
+ * casts.
+ */
+export type SystemListItem =
+  | (MovieDetails & SystemListItemFields<'movie'>)
+  | (TvDetails & SystemListItemFields<'tv'>);
 
 /**
  * Filters list_items joined with lists down to the user's system list of the
@@ -178,7 +182,7 @@ async function queryPageWithResourceDetails(
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
     .where(filter)
-    .orderBy(desc(listItems.createdAt))
+    .orderBy(asc(listItems.position), desc(listItems.createdAt))
     .limit(ITEMS_PER_PAGE)
     .offset((page - 1) * ITEMS_PER_PAGE);
 
@@ -199,23 +203,35 @@ type SystemListItemRow = {
 };
 
 /**
+ * Fetches TMDB details for one row and shapes it for the list grid. Fetched
+ * per branch so the `resourceType` literal stays paired with the matching
+ * details type.
+ */
+async function fetchListItem(
+  row: SystemListItemRow,
+  resourceType: 'movie' | 'tv',
+): Promise<SystemListItem> {
+  if (resourceType === 'movie') {
+    const details = await getMovieDetails(row.resourceId);
+    return { ...details, resourceType, listItemId: row.id, posterImageUrls: posterUrls(details) };
+  }
+  const details = await getTvShowDetails(row.resourceId);
+  return { ...details, resourceType, listItemId: row.id, posterImageUrls: posterUrls(details) };
+}
+
+function posterUrls(details: MovieDetails | TvDetails) {
+  return buildProxyImageUrls(details.poster_path, { width: 500, fill: true });
+}
+
+/**
  * Attaches TMDB details and proxied poster urls to each row. Rows whose
  * details fetch fails are dropped rather than failing the page.
  */
-async function hydrateResourceDetails(rows: SystemListItemRow[], resourceType: 'movie' | 'tv') {
-  const settled = await Promise.allSettled(
-    rows.map(async (row) => {
-      const details = await DETAILS_FETCHERS[resourceType](row.resourceId);
-      const resource: ResourceDetailsWithImage = {
-        ...details,
-        posterImageUrls: buildProxyImageUrls(details.poster_path, {
-          width: 500,
-          fill: true,
-        }),
-      };
-      return { ...row, resource };
-    }),
-  );
+async function hydrateResourceDetails(
+  rows: SystemListItemRow[],
+  resourceType: 'movie' | 'tv',
+): Promise<SystemListItem[]> {
+  const settled = await Promise.allSettled(rows.map((row) => fetchListItem(row, resourceType)));
 
   return settled
     .filter((result) => result.status === 'fulfilled')
@@ -224,7 +240,7 @@ async function hydrateResourceDetails(rows: SystemListItemRow[], resourceType: '
 
 function emptyPage(page: number) {
   return {
-    items: [] as Awaited<ReturnType<typeof hydrateResourceDetails>>,
+    items: [] as SystemListItem[],
     totalItems: 0,
     totalPages: 0,
     currentPage: page,
