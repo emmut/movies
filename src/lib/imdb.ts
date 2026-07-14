@@ -46,5 +46,13 @@ export async function getImdbRating(imdbId: string | null | undefined) {
   if (!imdbId) {
     return null;
   }
-  return fetchImdbRating(imdbId);
+  // Ratings are optional everywhere they render (the card is hidden), so a
+  // failed lookup must not take the page down with it. Caught out here rather
+  // than inside fetchImdbRating so the error result is never cached.
+  try {
+    return await fetchImdbRating(imdbId);
+  } catch (error) {
+    console.error(`Error fetching IMDb rating for ${imdbId}:`, error);
+    return null;
+  }
 }
