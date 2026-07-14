@@ -29,10 +29,10 @@ export function parseRatingLine(line: string): ImdbRatingRow | null {
   }
 
   const [imdbId, rating, votes] = parts;
-  const numVotes = Number(votes);
-  if (!Number.isFinite(Number(rating)) || !Number.isInteger(numVotes)) {
+  if (votes === '' || !Number.isFinite(Number(rating)) || !Number.isInteger(Number(votes))) {
     return null;
   }
+  const numVotes = Number(votes);
 
   return { imdbId, rating, numVotes };
 }

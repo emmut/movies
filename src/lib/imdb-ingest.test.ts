@@ -28,6 +28,10 @@ describe('parseRatingLine', () => {
     expect(parseRatingLine('tt0111161\t9.3\t\\N')).toBeNull();
     expect(parseRatingLine('tt0111161\t9.3\t10.5')).toBeNull();
   });
+
+  it('skips rows with blank votes field', () => {
+    expect(parseRatingLine('tt0111161\t9.0\t')).toBeNull();
+  });
 });
 
 describe('upsertRatingsBatch', () => {
