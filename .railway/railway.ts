@@ -67,22 +67,19 @@ export default defineRailway((ctx) => {
   });
 
   // Daily cron that ingests IMDb's ratings dataset into the imdb_ratings
-  // table. Prod-only: preview databases just show the card as hidden, and a
-  // dev can run `pnpm ingest:imdb` manually when needed. IMDb refreshes the
-  // datasets early UTC, so run shortly after.
-  const imdbIngest = prod
-    ? service("imdb-ingest", {
-        source: github("emmut/movies"),
-        deploy: {
-          startCommand: "pnpm tsx scripts/ingest-imdb-ratings.ts",
-          cronSchedule: "30 5 * * *",
-          restartPolicyType: "NEVER",
-        },
-        env: {
-          DATABASE_URL: preserve(),
-        },
-      })
-    : null;
+  // table. Runs in both prod and PR environments so preview databases stay
+  // populated. IMDb refreshes the datasets early UTC, so run shortly after.
+  const imdbIngest = service("imdb-ingest", {
+    source: github("emmut/movies"),
+    deploy: {
+      startCommand: "pnpm tsx scripts/ingest-imdb-ratings.ts",
+      cronSchedule: "30 5 * * *",
+      restartPolicyType: "NEVER",
+    },
+    env: {
+      DATABASE_URL: db ? db.env.DATABASE_URL : preserve(),
+    },
+  });
 
   // Railway provisions this volume for the managed Postgres; declare it so
   // plans don't try to delete it.
@@ -98,8 +95,7 @@ export default defineRailway((ctx) => {
     : null;
 
   return project("movies", {
-    // db/dbVolume exist only in previews, imdbIngest only in prod; filter the
-    // inactive ones out instead of asserting with `!`.
-    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest].filter((r) => r !== null),
+    // db/dbVolume exist only in previews; filter them out instead of asserting with `!`.
+    resources: [movies, imgproxyHRto, imdbIngest, db, dbVolume].filter((r) => r !== null),
   });
 });
