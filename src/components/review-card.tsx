@@ -12,6 +12,12 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' });
 
 const CONTENT_CLASS = 'text-sm leading-relaxed whitespace-pre-line text-zinc-300';
 
+function formatDate(dateString: string) {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return null;
+  return dateFormatter.format(date);
+}
+
 /**
  * A single TMDb user review: author, optional star rating, date, and content.
  *
@@ -32,7 +38,7 @@ export function ReviewCard({ review, clamped = false }: ReviewCardProps) {
           </span>
         )}
         <span className="text-xs text-zinc-500">
-          {dateFormatter.format(new Date(review.created_at))}
+          {formatDate(review.created_at)}
         </span>
       </div>
       {clamped ? (
