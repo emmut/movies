@@ -46,7 +46,7 @@ export const env = createEnv({
     MOVIE_DB_ACCESS_TOKEN: process.env.MOVIE_DB_ACCESS_TOKEN,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_TRUSTED_ORIGIN: process.env.BETTER_AUTH_TRUSTED_ORIGIN,
-    DATABASE_URL: process.env.DATABASE_URL || "postgresql://localhost:5432/build-placeholder",
+    DATABASE_URL: process.env.DATABASE_URL,
     DB_POOL_MAX: process.env.DB_POOL_MAX,
     AUTH_RATE_LIMIT_DISABLED: process.env.AUTH_RATE_LIMIT_DISABLED,
     DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
