@@ -73,10 +73,17 @@ export default defineRailway((ctx) => {
   const imdbIngest = prod
     ? service("imdb-ingest", {
         source: github("emmut/movies"),
+        // The cron only needs dependencies + tsx; Railpack's default
+        // `pnpm run build` would run `next build`, which fails env validation
+        // since this service only has DATABASE_URL.
+        build: { buildCommand: "echo 'skipping app build — cron runs tsx directly'" },
         deploy: {
           startCommand: "pnpm tsx scripts/ingest-imdb-ratings.ts",
           cronSchedule: "30 5 * * *",
           restartPolicyType: "NEVER",
+          // Streaming ingest with 5k-row batches and a single pg connection —
+          // stays well under half a GB and one core.
+          limitOverride: { containers: { cpu: 1, memoryBytes: 500000000 } },
         },
         env: {
           DATABASE_URL: preserve(),
