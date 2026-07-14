@@ -3,17 +3,18 @@ name: Railway infra
 on:
   pull_request:
     branches: [main]
+  push:
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  apply:
+  apply-pr:
     name: Apply infra to PR environment
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    # Fork PRs have no access to secrets.
-    if: github.event.pull_request.head.repo.full_name == github.repository
     env:
       RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
       RAILWAY_IAC_BRANCH: ${{ github.head_ref }}
@@ -52,15 +53,40 @@ jobs:
           echo "Environment $RAILWAY_ENVIRONMENT never appeared" >&2
           exit 1
 
-      - name: Apply Railway config to PR environment
+      - name: Apply Railway config
         # --yes only auto-confirms additive changes; destructive plans still fail
         # without --confirm-destructive, which we deliberately never pass here.
         run: railway config apply --yes
 
-      - name: Apply Railway config to production
-        env:
-          RAILWAY_IAC_BRANCH: main
-          RAILWAY_ENVIRONMENT: production
+  apply-prod:
+    name: Apply infra to production
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+      RAILWAY_IAC_BRANCH: main
+      RAILWAY_ENVIRONMENT: production
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Apply Railway config
+        # --yes only auto-confirms additive changes; destructive plans still fail
+        # without --confirm-destructive, which we deliberately never pass here.
         run: |
           railway link --project movies --environment "$RAILWAY_ENVIRONMENT"
           railway config apply --yes
