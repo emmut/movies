@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { integer, pgTable, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core';
+import { index, integer, pgTable, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core';
 
 import { user } from '@/db/schema/auth';
 
@@ -26,6 +26,9 @@ export const lists = pgTable(
       .$onUpdate(() => new Date()),
   },
   (table) => [
+    // Every lists query is scoped to one user (pagination, reorder reads, the
+    // max(position) append subquery, the user-delete cascade).
+    index('lists_userId_idx').on(table.userId),
     // System lists exist at most once per user; custom lists are unlimited.
     uniqueIndex('lists_user_watchlist_unique')
       .on(table.userId)
