@@ -1,8 +1,8 @@
 import { QueryClient } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { queryKeys } from './query-keys';
 import { invalidateUserPreferenceQueries } from './query-invalidation';
+import { queryKeys } from './query-keys';
 
 const regionKey = queryKeys.user.region();
 const watchProvidersKey = queryKeys.user.watchProviders('SE');

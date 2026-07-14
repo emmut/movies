@@ -42,3 +42,6 @@ next-env.d.ts
 /test-results
 /blob-report
 /playwright/.cache
+
+# local opencode config
+opencode.json

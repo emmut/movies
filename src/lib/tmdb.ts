@@ -1,5 +1,4 @@
 import 'server-only';
-
 import { env } from '@/env';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 

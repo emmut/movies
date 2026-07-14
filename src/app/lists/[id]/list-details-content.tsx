@@ -89,7 +89,7 @@ function ListDetailsSkeleton() {
         <Skeleton className="mb-4 h-10 w-64" />
         <Skeleton className="h-6 w-96" />
       </div>
-      <div className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
         {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="aspect-2/3 w-full" />

@@ -1,16 +1,7 @@
 'use client';
 
-import {
-  closestCenter,
-  DndContext,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  rectSortingStrategy,
-  SortableContext,
-  useSortable,
-} from '@dnd-kit/sortable';
+import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, rectSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useQueryClient } from '@tanstack/react-query';
 import { Check, Edit, GripVertical, Trash2 } from 'lucide-react';
@@ -22,9 +13,9 @@ import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
 import { ReorderControls } from '@/components/reorder-controls';
 import { Button } from '@/components/ui/button';
-import { LocalList, moveList } from '@/lib/lists';
-import { sameIdOrder } from '@/lib/list-order';
 import { useReorderSensors } from '@/hooks/use-reorder-sensors';
+import { sameIdOrder } from '@/lib/list-order';
+import { LocalList, moveList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 import { cn } from '@/lib/utils';
 

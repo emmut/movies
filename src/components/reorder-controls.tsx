@@ -1,7 +1,7 @@
 'use client';
 
-import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react';
 import type { DraggableAttributes } from '@dnd-kit/core';
+import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 

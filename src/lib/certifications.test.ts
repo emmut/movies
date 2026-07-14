@@ -27,7 +27,10 @@ describe('pickMovieCertification', () => {
 
   it('falls back to US when the region entry only has empty certifications', () => {
     const results = [
-      { iso_3166_1: 'SE', release_dates: [{ certification: '', iso_639_1: '', release_date: '', type: 1 }] },
+      {
+        iso_3166_1: 'SE',
+        release_dates: [{ certification: '', iso_639_1: '', release_date: '', type: 1 }],
+      },
       ...movieResults.slice(1),
     ];
     expect(pickMovieCertification(results, 'SE')).toEqual({ value: 'R', region: 'US' });

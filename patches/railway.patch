@@ -1,8 +1,8 @@
 diff --git a/dist/iac/index.js b/dist/iac/index.js
-index 6b602cf39512b97157a3e21b3fec5c41b9c4ed05..1650527c623e48f5eeb29886cf8b5f577581ba40 100644
+index 1da0354260f9effb214b75270cff3c59008add16..320e75b74142e3f5ef53eef528a1803f75fd90fd 100644
 --- a/dist/iac/index.js
 +++ b/dist/iac/index.js
-@@ -239,9 +239,11 @@ function databaseRegion(database2) {
+@@ -252,9 +252,11 @@ function databaseRegion(database2) {
    return regions[0]?.[0];
  }
  function databaseDeploy(database2, requiredMountPath) {
@@ -15,7 +15,7 @@ index 6b602cf39512b97157a3e21b3fec5c41b9c4ed05..1650527c623e48f5eeb29886cf8b5f57
    };
  }
  function databaseToEnvironmentConfig(database2, options) {
-@@ -1326,7 +1328,12 @@ function database(name, engine, options) {
+@@ -1398,7 +1400,12 @@ function database(name, engine, options) {
      output,
      defaultMountPath: options.defaultMountPath,
      source: image(options.image),
@@ -29,11 +29,11 @@ index 6b602cf39512b97157a3e21b3fec5c41b9c4ed05..1650527c623e48f5eeb29886cf8b5f57
    };
    return withVariableRefs(node);
  }
-diff --git a/dist/index-qc8SqGnG.d.cts b/dist/index-qc8SqGnG.d.cts
-index 9123cd403d2d49888269ac76602f319aeb0d059c..b27bb6c3c7a9604504e920be33f06b8b14d2db0b 100644
---- a/dist/index-qc8SqGnG.d.cts
-+++ b/dist/index-qc8SqGnG.d.cts
-@@ -620,6 +620,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
+diff --git a/dist/index-Da_sOsQE.d.cts b/dist/index-Da_sOsQE.d.cts
+index 39da49b6dcaa8ee913e482ed3572d9ed519b6eca..6840be0da09ad93a6b314ccd0c2b572c4303f6b7 100644
+--- a/dist/index-Da_sOsQE.d.cts
++++ b/dist/index-Da_sOsQE.d.cts
+@@ -624,6 +624,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
  }): ReferencableServiceNode<RailwayProvidedVariable | Extract<keyof Env, string>>;
  interface DatabaseConfig {
      region?: string;
@@ -41,11 +41,11 @@ index 9123cd403d2d49888269ac76602f319aeb0d059c..b27bb6c3c7a9604504e920be33f06b8b
  }
  declare function postgres(name: string, config?: DatabaseConfig): ReferencableDatabaseNode<"postgres">;
  declare function mysql(name: string, config?: DatabaseConfig): ReferencableDatabaseNode<"mysql">;
-diff --git a/dist/index-qc8SqGnG.d.ts b/dist/index-qc8SqGnG.d.ts
-index 9123cd403d2d49888269ac76602f319aeb0d059c..b27bb6c3c7a9604504e920be33f06b8b14d2db0b 100644
---- a/dist/index-qc8SqGnG.d.ts
-+++ b/dist/index-qc8SqGnG.d.ts
-@@ -620,6 +620,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
+diff --git a/dist/index-Da_sOsQE.d.ts b/dist/index-Da_sOsQE.d.ts
+index 39da49b6dcaa8ee913e482ed3572d9ed519b6eca..6840be0da09ad93a6b314ccd0c2b572c4303f6b7 100644
+--- a/dist/index-Da_sOsQE.d.ts
++++ b/dist/index-Da_sOsQE.d.ts
+@@ -624,6 +624,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
  }): ReferencableServiceNode<RailwayProvidedVariable | Extract<keyof Env, string>>;
  interface DatabaseConfig {
      region?: string;

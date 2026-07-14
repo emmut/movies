@@ -7,10 +7,9 @@ vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 import { revalidateTag } from 'next/cache';
 
 import { CACHE_TAGS } from './cache-tags';
+import { revalidateGenresCache, validateGenreForMediaType } from './media-actions';
 import { fetchAvailableGenres } from './movies';
 import { fetchAvailableTvGenres } from './tv-shows';
-
-import { revalidateGenresCache, validateGenreForMediaType } from './media-actions';
 
 beforeEach(() => {
   vi.clearAllMocks();

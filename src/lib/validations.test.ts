@@ -164,9 +164,7 @@ describe('moveListItemSchema', () => {
   });
 
   it('rejects bad uuid, negative, and fractional positions', () => {
-    expect(moveListItemSchema.safeParse({ itemId: 'not-a-uuid', position: 0 }).success).toBe(
-      false,
-    );
+    expect(moveListItemSchema.safeParse({ itemId: 'not-a-uuid', position: 0 }).success).toBe(false);
     expect(moveListItemSchema.safeParse({ itemId: UUID, position: -1 }).success).toBe(false);
     expect(moveListItemSchema.safeParse({ itemId: UUID, position: 1.5 }).success).toBe(false);
   });

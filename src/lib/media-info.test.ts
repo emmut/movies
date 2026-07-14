@@ -8,9 +8,8 @@ vi.mock('next/cache', () => ({
   cacheTag: vi.fn(),
 }));
 
-import { tmdbFetch } from './tmdb';
-
 import { getMediaCertification, getMediaReviews } from './media-info';
+import { tmdbFetch } from './tmdb';
 
 const mockedFetch = vi.mocked(tmdbFetch);
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useDiscoverMedia } from '@/hooks/use-discover-query';
+
 import ItemGrid from './item-grid';
 
 type DiscoverGridProps = {
@@ -61,7 +62,7 @@ export default function DiscoverGrid({
   }
 
   if (!data || data.results.length === 0) {
-    return <div className="text-muted-foreground col-span-full text-center">No results found.</div>;
+    return <div className="col-span-full text-center text-muted-foreground">No results found.</div>;
   }
 
   return <ItemGrid resources={data.results} type={mediaType} userId={userId} />;

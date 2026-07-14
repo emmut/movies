@@ -6,9 +6,8 @@ vi.mock('./tmdb', () => ({
   addProfileImageUrls: vi.fn((item: object) => ({ ...item, _profile: true })),
 }));
 
-import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
-
 import { getSearchMovies, getSearchMulti, getSearchPersons, getSearchTvShows } from './search';
+import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
 
 const mockedFetch = vi.mocked(tmdbFetch);
 
@@ -34,7 +33,9 @@ describe('getSearchMovies', () => {
     // Page coerced to a string for the TMDB query.
     expect(mockedFetch).toHaveBeenCalledWith(
       '/search/movie',
-      expect.objectContaining({ searchParams: expect.objectContaining({ query: 'matrix', page: '2' }) }),
+      expect.objectContaining({
+        searchParams: expect.objectContaining({ query: 'matrix', page: '2' }),
+      }),
     );
     expect(addPosterImageUrls).toHaveBeenCalledTimes(2);
   });
@@ -49,7 +50,11 @@ describe('getSearchMovies', () => {
   });
 
   it('uses a trailing year as a release-year filter', async () => {
-    mockedFetch.mockResolvedValue({ results: [{ id: 949 }], total_pages: 1, total_results: 1 } as never);
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 949 }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
 
     const result = await getSearchMovies('heat 1995');
 
@@ -100,7 +105,11 @@ describe('getSearchMovies', () => {
 
 describe('getSearchTvShows', () => {
   it('uses a trailing year as a first-air-date filter', async () => {
-    mockedFetch.mockResolvedValue({ results: [{ id: 2316 }], total_pages: 1, total_results: 1 } as never);
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 2316 }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
 
     const result = await getSearchTvShows('the office 2005');
 
@@ -125,7 +134,10 @@ describe('getSearchTvShows', () => {
     expect(mockedFetch).toHaveBeenLastCalledWith(
       '/search/tv',
       expect.objectContaining({
-        searchParams: expect.objectContaining({ query: 'lost 1999', first_air_date_year: undefined }),
+        searchParams: expect.objectContaining({
+          query: 'lost 1999',
+          first_air_date_year: undefined,
+        }),
       }),
     );
     expect(result).toEqual({ tvShows: [{ id: 8, _poster: true }], totalPages: 2 });
@@ -357,7 +369,11 @@ describe('getSearchMulti with a media-type keyword', () => {
 
 describe('media-type keywords on single-type searches', () => {
   it('strips the keyword on the movie search', async () => {
-    mockedFetch.mockResolvedValue({ results: [{ id: 949 }], total_pages: 1, total_results: 1 } as never);
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 949 }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
 
     await getSearchMovies('heat movie');
 
@@ -369,7 +385,11 @@ describe('media-type keywords on single-type searches', () => {
   });
 
   it('strips the keyword and year on the person search', async () => {
-    mockedFetch.mockResolvedValue({ results: [{ id: 287 }], total_pages: 1, total_results: 1 } as never);
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 287 }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
 
     await getSearchPersons('brad pitt person 1995');
 

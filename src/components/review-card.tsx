@@ -37,9 +37,7 @@ export function ReviewCard({ review, clamped = false }: ReviewCardProps) {
             {review.author_details.rating}/10
           </span>
         )}
-        <span className="text-xs text-zinc-500">
-          {formatDate(review.created_at)}
-        </span>
+        <span className="text-xs text-zinc-500">{formatDate(review.created_at)}</span>
       </div>
       {clamped ? (
         <ExpandableText text={review.content} className={CONTENT_CLASS} />

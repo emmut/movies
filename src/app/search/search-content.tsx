@@ -45,7 +45,7 @@ export function SearchContent({ userId }: SearchContentProps) {
       </div>
 
       <div
-        className="@8xl:grid-cols-5 mt-8 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4"
+        className="mt-8 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
         id="content-container"
       >
         <SearchResults

@@ -20,7 +20,9 @@ describe('buildDiscoverSearchParams', () => {
   });
 
   it('includes the genre filter only when genreId is non-zero', () => {
-    expect(buildDiscoverSearchParams({ genreId: 28, page: 2, sortBy: 'vote_average.desc' })).toMatchObject({
+    expect(
+      buildDiscoverSearchParams({ genreId: 28, page: 2, sortBy: 'vote_average.desc' }),
+    ).toMatchObject({
       page: 2,
       sort_by: 'vote_average.desc',
       with_genres: 28,
@@ -56,8 +58,8 @@ describe('buildDiscoverSearchParams', () => {
       'with_runtime.gte': MIN_RUNTIME_FILTER_MINUTES,
     });
 
-    expect(buildDiscoverSearchParams({ genreId: 0, page: 1, withRuntimeLte: 0 })).not.toHaveProperty(
-      'with_runtime.lte',
-    );
+    expect(
+      buildDiscoverSearchParams({ genreId: 0, page: 1, withRuntimeLte: 0 }),
+    ).not.toHaveProperty('with_runtime.lte');
   });
 });

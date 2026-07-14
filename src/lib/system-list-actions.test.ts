@@ -7,10 +7,11 @@ vi.mock('@/lib/system-list', () => ({
   toggleSystemListRow: vi.fn(),
 }));
 
+import { revalidatePath } from 'next/cache';
+
 import { requireUser } from '@/lib/auth-server';
 import { revalidateUserSystemListCache } from '@/lib/cache-invalidation';
 import { toggleSystemListRow } from '@/lib/system-list';
-import { revalidatePath } from 'next/cache';
 
 import { toggleSystemListItem } from './system-list-actions';
 
@@ -65,7 +66,11 @@ describe('toggleSystemListItem', () => {
       toggleSystemListItem({ listType: 'watchlist', resourceId: 0, resourceType: 'movie' }),
     ).rejects.toThrow();
     await expect(
-      toggleSystemListItem({ listType: 'favorites' as never, resourceId: 1, resourceType: 'movie' }),
+      toggleSystemListItem({
+        listType: 'favorites' as never,
+        resourceId: 1,
+        resourceType: 'movie',
+      }),
     ).rejects.toThrow();
     expect(toggleSystemListRow).not.toHaveBeenCalled();
   });

@@ -1,4 +1,5 @@
 import { Imgproxy } from '@/components/image-proxy';
+
 import { Skeleton } from './ui/skeleton';
 
 type PosterProps = {

@@ -111,7 +111,7 @@ function DiscoverResults({
   return (
     <div
       id="content-container"
-      className="@8xl:grid-cols-5 mt-7 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4"
+      className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
     >
       <DiscoverGrid
         currentGenreId={genreId}

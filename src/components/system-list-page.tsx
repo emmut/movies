@@ -1,10 +1,7 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { redirect } from 'next/navigation';
 
-import {
-  SYSTEM_LIST_QUERY_TIMES,
-  SystemListContent,
-} from '@/components/system-list-content';
+import { SYSTEM_LIST_QUERY_TIMES, SystemListContent } from '@/components/system-list-content';
 import { getUser } from '@/lib/auth-server';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';

@@ -1,5 +1,4 @@
 import 'server-only';
-
 import { and, eq, sql } from 'drizzle-orm';
 
 import { listItems, lists } from '@/db/schema/lists';
