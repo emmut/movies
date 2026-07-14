@@ -140,7 +140,7 @@ importers:
         specifier: ^4.6.1
         version: 4.6.1(oxlint@1.73.0(oxlint-tsgolint@0.24.0))(tailwindcss@4.3.2)(typescript@6.0.3)
       fallow:
-        specifier: ^3.4.2
+        specifier: 3.4.2
         version: 3.4.2
       oxfmt:
         specifier: ^0.57.0
