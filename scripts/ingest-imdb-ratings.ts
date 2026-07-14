@@ -16,7 +16,7 @@
  */
 
 import { createInterface } from 'node:readline';
-import { Readable, pipeline } from 'node:stream';
+import { Readable } from 'node:stream';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
 import { drizzle } from 'drizzle-orm/node-postgres';
