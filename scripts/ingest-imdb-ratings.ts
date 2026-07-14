@@ -16,7 +16,7 @@
  */
 
 import { createInterface } from 'node:readline';
-import { Readable } from 'node:stream';
+import { Readable, pipeline } from 'node:stream';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
 import { drizzle } from 'drizzle-orm/node-postgres';
@@ -26,6 +26,7 @@ import { parseRatingLine, upsertRatingsBatch, type ImdbRatingRow } from '@/lib/i
 const DATASET_URL = 'https://datasets.imdbws.com/title.ratings.tsv.gz';
 const BATCH_SIZE = 5_000;
 const PROGRESS_INTERVAL = 250_000;
+const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 
 function createDb() {
   const connectionString = process.env.DATABASE_URL;
@@ -36,12 +37,20 @@ function createDb() {
 }
 
 async function openDatasetStream() {
-  const response = await fetch(DATASET_URL);
-  if (!response.ok || !response.body) {
-    throw new Error(`Failed downloading ${DATASET_URL}: ${response.status} ${response.statusText}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+  try {
+    const response = await fetch(DATASET_URL, { signal: controller.signal });
+    if (!response.ok || !response.body) {
+      throw new Error(
+        `Failed downloading ${DATASET_URL}: ${response.status} ${response.statusText}`,
+      );
+    }
+    // fetch types the body as a DOM ReadableStream; Readable.fromWeb wants Node's.
+    return Readable.fromWeb(response.body as NodeReadableStream<Uint8Array>).pipe(createGunzip());
+  } finally {
+    clearTimeout(timeout);
   }
-  // fetch types the body as a DOM ReadableStream; Readable.fromWeb wants Node's.
-  return Readable.fromWeb(response.body as NodeReadableStream<Uint8Array>).pipe(createGunzip());
 }
 
 function logProgress(total: number) {
