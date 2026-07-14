@@ -1,6 +1,6 @@
 {
-  "id": "9ddca2ab-a4ed-44a0-bcdf-c0590a1b6844",
-  "prevId": "c08539cf-fba3-4664-9590-f640f2d23b7a",
+  "id": "aa07a19c-e801-484d-9abb-cee67d2f4138",
+  "prevId": "0ab0e821-5598-4b0b-be7a-f41192a0772e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -490,6 +490,44 @@
           "with": {}
         }
       },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.imdb_ratings": {
+      "name": "imdb_ratings",
+      "schema": "",
+      "columns": {
+        "imdb_id": {
+          "name": "imdb_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "rating": {
+          "name": "rating",
+          "type": "numeric(3, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "num_votes": {
+          "name": "num_votes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

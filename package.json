@@ -26,7 +26,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "seed": "tsx --env-file=.env scripts/seed-watchlist-and-lists.ts"
+    "seed": "tsx --env-file=.env scripts/seed-watchlist-and-lists.ts",
+    "ingest:imdb": "tsx --env-file-if-exists=.env scripts/ingest-imdb-ratings.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -44,6 +45,7 @@
     "better-auth": "^1.6.23",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-parse": "^7.0.1",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.23.0",
     "next": "16.2.10",

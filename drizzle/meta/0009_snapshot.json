@@ -1,5 +1,5 @@
 {
-  "id": "c08539cf-fba3-4664-9590-f640f2d23b7a",
+  "id": "0ab0e821-5598-4b0b-be7a-f41192a0772e",
   "prevId": "68a153ff-8507-4358-8ee7-32d1cadc917b",
   "version": "7",
   "dialect": "postgresql",
@@ -497,6 +497,44 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.imdb_ratings": {
+      "name": "imdb_ratings",
+      "schema": "",
+      "columns": {
+        "imdb_id": {
+          "name": "imdb_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "rating": {
+          "name": "rating",
+          "type": "numeric(3, 1)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "num_votes": {
+          "name": "num_votes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.list_items": {
       "name": "list_items",
       "schema": "",
@@ -606,13 +644,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'custom'"
-        },
-        "position": {
-          "name": "position",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
         },
         "created_at": {
           "name": "created_at",
