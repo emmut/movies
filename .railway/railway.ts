@@ -5,6 +5,10 @@ import { defineRailway, github, image, postgres, preserve, project, service, vol
 const APP_DOMAIN = "movies.emmut.space";
 const CDN_DOMAIN = "cdn.emmut.space";
 
+// Railway sizes memory in decimal bytes (1 GB = 1_000_000_000).
+const MB_IN_BYTES = 1_000_000;
+const GB_IN_BYTES = 1_000 * MB_IN_BYTES;
+
 function currentGitBranch() {
   // On a detached HEAD there is no current branch — provide it via RAILWAY_IAC_BRANCH instead.
   const branch =
@@ -22,7 +26,7 @@ export default defineRailway((ctx) => {
   // plans don't try to delete it or shrink it.
   const dbVolume = volume("postgres-db-volume", {
     region: "europe-west4-drams3a",
-    sizeMB: 5000,
+    sizeMB: 5_000,
     allowOnlineResize: true,
     alerts: { usage: { "80": {}, "95": {}, "100": {} } },
   });
@@ -39,7 +43,7 @@ export default defineRailway((ctx) => {
       // Sleeps when idle (a connection wakes it), so the unused prod instance
       // and quiet previews cost next to nothing.
       sleepApplication: true,
-      limitOverride: { containers: { cpu: 1, memoryBytes: 500000000 } },
+      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
     },
   });
 
@@ -67,7 +71,7 @@ export default defineRailway((ctx) => {
     // its prompt renderer while the deploy still reports success, leaving a
     // partial schema and an empty migration journal behind.
     preDeploy: "pnpm db:migrate",
-    deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1000000000 } }, sleepApplication: true },
+    deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
     domains: prod ? [APP_DOMAIN] : [],
     env: {
       BETTER_AUTH_SECRET: preserve(),
@@ -110,7 +114,7 @@ export default defineRailway((ctx) => {
       restartPolicyType: "NEVER",
       // Streaming ingest with 5k-row batches and a single pg connection —
       // stays well under half a GB and one core.
-      limitOverride: { containers: { cpu: 1, memoryBytes: 500000000 } },
+      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
     },
     env: {
       // Production ingests into the external DB; previews into their forked
