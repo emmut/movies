@@ -1,20 +1,27 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Check, GripVertical } from 'lucide-react';
 import Link from 'next/link';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { useMemo, useState } from 'react';
 
-import ItemCard from '@/components/item-card';
+import { ListItemsGrid } from '@/components/list-items-grid';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import SectionTitle from '@/components/section-title';
+import { Button } from '@/components/ui/button';
+import { useReorderableItems } from '@/hooks/use-reorderable-items';
 import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
+import { ITEMS_PER_PAGE } from '@/lib/config';
+import { moveListItem } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 import {
   getSystemListCount,
   getSystemListWithResourceDetailsPaginated,
 } from '@/lib/system-list-queries';
+import type { ListItem } from '@/app/lists/[id]/list-details-content';
 import type { SystemListType } from '@/lib/validations';
 import { MovieDetails } from '@/types/movie';
 import { TvDetails } from '@/types/tv-show';
@@ -118,6 +125,38 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
   const totalItems = totalMovies + totalTvShows;
   const { items, totalPages } = paginatedData ?? EMPTY_RESULT;
 
+  const [isEditing, setIsEditing] = useState(false);
+  const queryClient = useQueryClient();
+
+  const offset = (page - 1) * ITEMS_PER_PAGE;
+  const totalForMedia = mediaType === 'movie' ? totalMovies : totalTvShows;
+
+  // Map raw rows to the ListItem shape the reorder grid expects.
+  const mappedItems = useMemo(
+    () =>
+      items.map(
+        (item) =>
+          ({
+            ...(item.resource as MovieDetails | TvDetails),
+            resourceType: item.resourceType as 'movie' | 'tv',
+            listItemId: item.id,
+          }) as ListItem,
+      ),
+    [items],
+  );
+
+  const { localItems, isPending, move } = useReorderableItems(
+    mappedItems,
+    offset,
+    async (itemId, globalIndex) => {
+      await moveListItem(itemId, globalIndex, mediaType);
+      // Fire-and-forget: awaiting ties pending to unrelated refetches.
+      queryClient.invalidateQueries({ queryKey: queryKeys[listType].all });
+    },
+  );
+
+  const gridItems = isEditing ? localItems : mappedItems;
+
   return (
     <div className="@container w-full">
       <SystemListHeader
@@ -125,6 +164,8 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
         mediaType={mediaType}
         totalMovies={totalMovies}
         totalTvShows={totalTvShows}
+        isEditing={isEditing}
+        onToggleEditing={() => setIsEditing((value) => !value)}
       />
 
       <SystemListBody
@@ -133,8 +174,13 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
         userId={userId}
         isLoading={isLoading}
         isAllEmpty={totalItems === 0}
-        items={items}
+        items={gridItems}
         totalPages={totalPages}
+        itemCount={totalForMedia}
+        offset={offset}
+        isEditing={isEditing}
+        isPending={isPending}
+        onMove={move}
       />
     </div>
   );
@@ -145,11 +191,15 @@ function SystemListHeader({
   mediaType,
   totalMovies,
   totalTvShows,
+  isEditing,
+  onToggleEditing,
 }: {
   listType: SystemListType;
   mediaType: 'movie' | 'tv';
   totalMovies: number;
   totalTvShows: number;
+  isEditing: boolean;
+  onToggleEditing: () => void;
 }) {
   const totalItems = totalMovies + totalTvShows;
   const mediaTypeCount = mediaType === 'movie' ? totalMovies : totalTvShows;
@@ -171,9 +221,43 @@ function SystemListHeader({
           )}
         </div>
 
-        <MediaTypeSelector currentMediaType={mediaType} />
+        <div className="flex items-center gap-2">
+          {totalItems > 0 && (
+            <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
+          )}
+          <MediaTypeSelector currentMediaType={mediaType} />
+        </div>
       </div>
     </div>
+  );
+}
+
+function ReorderButton({
+  isEditing,
+  onToggleEditing,
+}: {
+  isEditing: boolean;
+  onToggleEditing: () => void;
+}) {
+  return (
+    <Button
+      variant={isEditing ? 'default' : 'secondary'}
+      size="sm"
+      onClick={onToggleEditing}
+      aria-pressed={isEditing}
+    >
+      {isEditing ? (
+        <>
+          <Check className="h-4 w-4" />
+          Done
+        </>
+      ) : (
+        <>
+          <GripVertical className="h-4 w-4" />
+          Reorder items
+        </>
+      )}
+    </Button>
   );
 }
 
@@ -189,14 +273,24 @@ function SystemListBody({
   isAllEmpty,
   items,
   totalPages,
+  itemCount,
+  offset,
+  isEditing,
+  isPending,
+  onMove,
 }: {
   listType: SystemListType;
   mediaType: 'movie' | 'tv';
   userId?: string;
   isLoading: boolean;
   isAllEmpty: boolean;
-  items: SystemListItem[];
+  items: ListItem[];
   totalPages: number;
+  itemCount: number;
+  offset: number;
+  isEditing: boolean;
+  isPending: boolean;
+  onMove: (id: string, toIndex: number) => void;
 }) {
   if (isLoading) {
     return <PosterSkeletonGrid />;
@@ -208,22 +302,15 @@ function SystemListBody({
 
   return (
     <>
-      <div
-        id="content-container"
-        className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4"
-      >
-        {items.map((item) => {
-          const resourceType = item.resourceType as 'movie' | 'tv';
-          return (
-            <ItemCard
-              key={`${resourceType}-${item.id}`}
-              resource={item.resource as MovieDetails | TvDetails}
-              type={resourceType}
-              userId={userId}
-            />
-          );
-        })}
-      </div>
+      <ListItemsGrid
+        items={items}
+        offset={offset}
+        itemCount={itemCount}
+        isPending={isPending}
+        editing={isEditing}
+        onMove={onMove}
+        userId={userId}
+      />
 
       {totalPages > 1 && <PaginationControls totalPages={totalPages} pageType={listType} />}
     </>

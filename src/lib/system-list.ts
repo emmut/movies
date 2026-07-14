@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import { listItems, lists } from '@/db/schema/lists';
 import { db } from '@/lib/db';
@@ -100,6 +100,8 @@ export async function toggleSystemListRow(
       listId,
       resourceId,
       resourceType,
+      // Append to the end of the list's manual ordering for this resource type.
+      position: sql`coalesce((select max(${listItems.position}) + 1 from ${listItems} where ${listItems.listId} = ${listId} and ${listItems.resourceType} = ${resourceType}), 1)`,
     })
     .onConflictDoNothing()
     .returning({ id: listItems.id });

@@ -6,6 +6,7 @@ import {
   listItemSchema,
   mediaIdSchema,
   mediaTypeSchema,
+  moveListItemSchema,
   moveListSchema,
   pageSchema,
   resourceIdNumberSchema,
@@ -144,6 +145,21 @@ describe('moveListSchema', () => {
     expect(moveListSchema.safeParse({ listId: 'not-a-uuid', position: 0 }).success).toBe(false);
     expect(moveListSchema.safeParse({ listId: UUID, position: -1 }).success).toBe(false);
     expect(moveListSchema.safeParse({ listId: UUID, position: 1.5 }).success).toBe(false);
+  });
+});
+
+describe('moveListItemSchema', () => {
+  it('accepts a uuid with a non-negative integer position', () => {
+    expect(moveListItemSchema.safeParse({ itemId: UUID, position: 0 }).success).toBe(true);
+    expect(moveListItemSchema.safeParse({ itemId: UUID, position: 7 }).success).toBe(true);
+  });
+
+  it('rejects bad uuid, negative, and fractional positions', () => {
+    expect(moveListItemSchema.safeParse({ itemId: 'not-a-uuid', position: 0 }).success).toBe(
+      false,
+    );
+    expect(moveListItemSchema.safeParse({ itemId: UUID, position: -1 }).success).toBe(false);
+    expect(moveListItemSchema.safeParse({ itemId: UUID, position: 1.5 }).success).toBe(false);
   });
 });
 

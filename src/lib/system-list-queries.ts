@@ -1,6 +1,6 @@
 'use server';
 
-import { and, count, desc, eq, SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, SQL } from 'drizzle-orm';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import { listItems, lists } from '@/db/schema/lists';
@@ -178,7 +178,7 @@ async function queryPageWithResourceDetails(
     .from(listItems)
     .innerJoin(lists, eq(listItems.listId, lists.id))
     .where(filter)
-    .orderBy(desc(listItems.createdAt))
+    .orderBy(asc(listItems.position), desc(listItems.createdAt))
     .limit(ITEMS_PER_PAGE)
     .offset((page - 1) * ITEMS_PER_PAGE);
 

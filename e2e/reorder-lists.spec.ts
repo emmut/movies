@@ -29,6 +29,8 @@ test.describe('reordering lists', () => {
     await createList(page, 'Charlie Three');
     await expect(cardTitles(page)).toHaveText(['Alpha One', 'Bravo Two', 'Charlie Three']);
 
+    await page.getByRole('button', { name: /reorder lists/i }).click();
+
     // Boundary buttons are disabled.
     await expect(page.getByRole('button', { name: 'Move Alpha One up' })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Move Charlie Three down' })).toBeDisabled();
@@ -41,6 +43,7 @@ test.describe('reordering lists', () => {
     // buttons must be enabled again (no wedged pending state).
     await expect(page.getByRole('button', { name: 'Move Charlie Three up' })).toBeEnabled();
     await page.reload();
+    await page.getByRole('button', { name: /reorder lists/i }).click();
     await expect(cardTitles(page)).toHaveText(['Alpha One', 'Charlie Three', 'Bravo Two']);
 
     // And back down to the end.
@@ -61,6 +64,8 @@ test.describe('reordering lists', () => {
     await createList(page, 'Alpha One');
     await createList(page, 'Bravo Two');
     await expect(cardTitles(page)).toHaveText(['Alpha One', 'Bravo Two']);
+
+    await page.getByRole('button', { name: /reorder lists/i }).click();
 
     // Lift Alpha with Space, move it one slot down, drop it with Space.
     // dnd-kit reflects the lifted state via aria-pressed on the handle, which

@@ -45,6 +45,9 @@ export const listItems = pgTable(
       .references(() => lists.id, { onDelete: 'cascade' }),
     resourceId: integer('resource_id').notNull(),
     resourceType: text('resource_type').notNull(),
+    // 1-based manual sort order within a list; renumbered on every move, so
+    // values stay distinct per list.
+    position: integer('position').notNull().default(0),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [unique().on(table.listId, table.resourceId, table.resourceType)],

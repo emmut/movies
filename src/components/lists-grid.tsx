@@ -4,29 +4,26 @@ import {
   closestCenter,
   DndContext,
   DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
 } from '@dnd-kit/core';
 import {
   arrayMove,
   rectSortingStrategy,
   SortableContext,
-  sortableKeyboardCoordinates,
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowUp, Edit, GripVertical, Trash2 } from 'lucide-react';
+import { Check, Edit, GripVertical, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
+import { ReorderControls } from '@/components/reorder-controls';
 import { Button } from '@/components/ui/button';
 import { LocalList, moveList } from '@/lib/lists';
+import { useReorderSensors } from '@/hooks/use-reorder-sensors';
 import { queryKeys } from '@/lib/query-keys';
 import { cn } from '@/lib/utils';
 
@@ -123,6 +120,7 @@ interface SortableListCardProps {
   isFirst: boolean;
   isLast: boolean;
   disabled: boolean;
+  editing: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
 }
@@ -132,6 +130,7 @@ function SortableListCard({
   isFirst,
   isLast,
   disabled,
+  editing,
   onMoveUp,
   onMoveDown,
 }: SortableListCardProps) {
@@ -146,75 +145,54 @@ function SortableListCard({
       className={cn(
         'group/list relative rounded-lg focus-within:ring-2 focus-within:ring-blue-400 focus-within:ring-offset-2 focus-within:ring-offset-black',
         isDragging && 'z-10 opacity-80 shadow-lg',
+        editing && 'ring-2 ring-blue-400/50 ring-offset-2 ring-offset-black',
       )}
     >
       <ListCardLink list={list} />
-      <div className="absolute top-2 left-2 flex gap-1 opacity-0 transition-opacity duration-200 group-focus-within/list:opacity-100 group-hover/list:opacity-100">
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-8 w-8"
-          aria-label={`Move ${list.name} up`}
-          disabled={disabled || isFirst}
-          onClick={onMoveUp}
-        >
-          <ArrowUp className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-8 w-8"
-          aria-label={`Move ${list.name} down`}
-          disabled={disabled || isLast}
-          onClick={onMoveDown}
-        >
-          <ArrowDown className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          className="h-8 w-8 cursor-grab touch-none active:cursor-grabbing"
-          aria-label={`Reorder ${list.name}`}
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="h-4 w-4" />
-        </Button>
-      </div>
-      <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity duration-200 group-focus-within/list:opacity-100 group-hover/list:opacity-100">
-        <EditListDialog
-          listId={list.id}
-          listName={list.name}
-          listDescription={list.description}
-          listEmoji={list.emoji}
-        >
-          <Button variant="secondary" size="icon" className="h-8 w-8">
-            <Edit className="h-4 w-4" />
-          </Button>
-        </EditListDialog>
-        <DeleteListButton
-          listId={list.id}
-          listName={list.name}
-          itemCount={list.itemCount}
-          redirectAfterDelete={false}
-        >
-          <Button variant="destructive" size="icon" className="h-8 w-8">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </DeleteListButton>
-      </div>
+
+      {editing ? (
+        <ReorderControls
+          name={list.name}
+          isFirst={isFirst}
+          isLast={isLast}
+          disabled={disabled}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          handleAttributes={attributes}
+          handleListeners={listeners}
+        />
+      ) : (
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity duration-200 group-focus-within/list:opacity-100 group-hover/list:opacity-100">
+          <EditListDialog
+            listId={list.id}
+            listName={list.name}
+            listDescription={list.description}
+            listEmoji={list.emoji}
+          >
+            <Button variant="secondary" size="icon" className="h-8 w-8">
+              <Edit className="h-4 w-4" />
+            </Button>
+          </EditListDialog>
+          <DeleteListButton
+            listId={list.id}
+            listName={list.name}
+            itemCount={list.itemCount}
+            redirectAfterDelete={false}
+          >
+            <Button variant="destructive" size="icon" className="h-8 w-8">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </DeleteListButton>
+        </div>
+      )}
     </div>
   );
 }
 
 export function ListsGrid({ lists, offset, totalCount }: ListsGridProps) {
   const { localLists, isPending, move } = useReorderableLists(lists, offset);
-  const sensors = useSensors(
-    // The distance constraint keeps plain clicks on the handle from starting
-    // a drag; keyboard reordering follows the standard lift/move/drop pattern.
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
+  const [isEditing, setIsEditing] = useState(false);
+  const sensors = useReorderSensors();
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -240,22 +218,46 @@ export function ListsGrid({ lists, offset, totalCount }: ListsGridProps) {
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={localLists.map((list) => list.id)} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4">
-          {localLists.map((list, index) => (
-            <SortableListCard
-              key={list.id}
-              list={list}
-              isFirst={offset + index === 0}
-              isLast={offset + index === totalCount - 1}
-              disabled={isPending}
-              onMoveUp={() => move(list.id, index - 1)}
-              onMoveDown={() => move(list.id, index + 1)}
-            />
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+    <div>
+      <div className="mb-4 flex items-center justify-end">
+        <Button
+          variant={isEditing ? 'default' : 'secondary'}
+          size="sm"
+          onClick={() => setIsEditing((value) => !value)}
+          aria-pressed={isEditing}
+        >
+          {isEditing ? (
+            <>
+              <Check className="h-4 w-4" />
+              Done
+            </>
+          ) : (
+            <>
+              <GripVertical className="h-4 w-4" />
+              Reorder lists
+            </>
+          )}
+        </Button>
+      </div>
+
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={localLists.map((list) => list.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4">
+            {localLists.map((list, index) => (
+              <SortableListCard
+                key={list.id}
+                list={list}
+                isFirst={offset + index === 0}
+                isLast={offset + index === totalCount - 1}
+                disabled={isPending}
+                editing={isEditing}
+                onMoveUp={() => move(list.id, index - 1)}
+                onMoveDown={() => move(list.id, index + 1)}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </div>
   );
 }

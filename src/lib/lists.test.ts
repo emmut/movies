@@ -7,6 +7,7 @@ vi.mock('@/lib/auth-server', () => ({ requireUser: vi.fn() }));
 vi.mock('@/lib/cache-invalidation', () => ({
   revalidateUserListCache: vi.fn(),
   revalidateUserListStatusCache: vi.fn(),
+  revalidateUserSystemListPageCache: vi.fn(),
 }));
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
@@ -16,6 +17,10 @@ vi.mock('next/cache', () => ({
 vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
 
 import { requireUser } from '@/lib/auth-server';
+import {
+  revalidateUserListCache,
+  revalidateUserSystemListPageCache,
+} from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
 import { chain } from '@/test/db-chain';
 
@@ -24,6 +29,7 @@ import {
   createList,
   deleteList,
   getOwnedCustomList,
+  moveListItem,
   moveList,
   removeFromList,
   updateList,
@@ -130,6 +136,49 @@ describe('moveList', () => {
   it('rejects a negative position without querying', async () => {
     await expect(moveList(UUID, -1)).rejects.toThrow();
     expect(db.select).not.toHaveBeenCalled();
+  });
+});
+
+describe('moveListItem', () => {
+  const OTHER_UUID = '223e4567-e89b-12d3-a456-426614174000';
+
+  it('persists the new order in a single statement when the item is owned', async () => {
+    vi.mocked(db.select).mockReturnValue(
+      chain([
+        { id: OTHER_UUID, listId: UUID, listType: 'custom' },
+        { id: UUID, listId: UUID, listType: 'custom' },
+      ]),
+    );
+    await moveListItem(UUID, 0);
+    expect(db.execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('throws when the item is not among the user’s custom lists', async () => {
+    vi.mocked(db.select).mockReturnValue(chain([]));
+    await expect(moveListItem(UUID, 0)).rejects.toThrow('Item not found');
+    expect(db.execute).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-uuid item id without querying', async () => {
+    await expect(moveListItem('nope', 0)).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
+  });
+
+  it('rejects a negative position without querying', async () => {
+    await expect(moveListItem(UUID, -1)).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
+  });
+
+  it('revalidates the system list cache (not the custom cache) for a system list item', async () => {
+    vi.mocked(db.select).mockReturnValue(
+      chain([
+        { id: UUID, listId: UUID, listType: 'watchlist' },
+        { id: UUID, listId: UUID, listType: 'watchlist' },
+      ]),
+    );
+    await moveListItem(UUID, 0, 'movie');
+    expect(revalidateUserSystemListPageCache).toHaveBeenCalledWith('user-1', 'watchlist');
+    expect(revalidateUserListCache).not.toHaveBeenCalled();
   });
 });
 

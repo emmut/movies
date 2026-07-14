@@ -106,6 +106,16 @@ export const moveListSchema = z.object({
   position: z.number().int().min(0, 'Position must be 0 or greater'),
 });
 
+/**
+ * Schema for moving a list item to a new spot within its list's manual
+ * ordering. `position` is the target 0-based index across all items in the
+ * list.
+ */
+export const moveListItemSchema = z.object({
+  itemId: z.uuid('Invalid item ID'),
+  position: z.number().int().min(0, 'Position must be 0 or greater'),
+});
+
 export const mediaIdSchema = z.number().int().min(1);
 export const mediaTypeSchema = z.enum(['movie', 'tv', 'person']);
 
