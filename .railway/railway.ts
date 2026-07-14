@@ -18,15 +18,30 @@ function currentGitBranch() {
 export default defineRailway((ctx) => {
   const prod = ctx.isEnvironment("production");
 
-  // Declared in every environment (production included, where it sits unused
-  // and asleep) because Railway IaC seeds database credentials only when the
-  // service is new project-wide: PR environments fork production, so prod must
-  // hold a fully-configured instance for preview databases to inherit. The
-  // name is postgres-db (not postgres) because the original hollow "postgres"
-  // service still exists project-level for older PR environments; delete it
-  // once those PRs close. Production keeps the external DB — see the movies
-  // service's DATABASE_URL below.
-  const db = postgres("postgres-db");
+  // Railway provisions this volume with the managed Postgres; declare it so
+  // plans don't try to delete it or shrink it.
+  const dbVolume = volume("postgres-db-volume", {
+    region: "europe-west4-drams3a",
+    sizeMB: 5000,
+    allowOnlineResize: true,
+    alerts: { usage: { "80": {}, "95": {}, "100": {} } },
+  });
+
+  // Managed Postgres for preview databases, declared in every environment
+  // (production included, where it sits unused and asleep — the app there
+  // keeps the external DB) so PR environments fork a fully-configured
+  // instance. The deploy options rely on patches/railway.patch: upstream
+  // drops deploy config for database nodes, which would otherwise unset
+  // these on every apply. The old hollow "postgres" service still exists
+  // project-level for older PR environments; delete it once those PRs close.
+  const db = postgres("postgres-db", {
+    deploy: {
+      // Sleeps when idle (a connection wakes it), so the unused prod instance
+      // and quiet previews cost next to nothing.
+      sleepApplication: true,
+      limitOverride: { containers: { cpu: 1, memoryBytes: 500000000 } },
+    },
+  });
 
   const imgproxyHRto = service("imgproxy-HRto", {
     source: image("darthsim/imgproxy:v3.18.2"),
@@ -101,16 +116,6 @@ export default defineRailway((ctx) => {
         },
       })
     : null;
-
-  // Railway provisions this volume with the managed Postgres; declare it so
-  // plans don't try to delete it or shrink it. The `<db name>-volume` naming
-  // pairs it with the postgres-db service.
-  const dbVolume = volume("postgres-db-volume", {
-    region: "europe-west4-drams3a",
-    sizeMB: 5000,
-    allowOnlineResize: true,
-    alerts: { usage: { "80": {}, "95": {}, "100": {} } },
-  });
 
   return project("movies", {
     // imdbIngest exists only in prod; filter the inactive entry out instead of

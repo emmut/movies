@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  railway: 3e00584f75cd5ea161492b22760882fe70893834901cc439f49b6a12cf580fed
+
 importers:
 
   .:
@@ -146,7 +149,7 @@ importers:
         version: 0.24.0
       railway:
         specifier: ^3.5.2
-        version: 3.5.2
+        version: 3.5.2(patch_hash=3e00584f75cd5ea161492b22760882fe70893834901cc439f49b6a12cf580fed)
       shadcn:
         specifier: ^4.13.0
         version: 4.13.0(typescript@6.0.3)
@@ -6759,7 +6762,7 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  railway@3.5.2:
+  railway@3.5.2(patch_hash=3e00584f75cd5ea161492b22760882fe70893834901cc439f49b6a12cf580fed):
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.14.2)
       graphql: 16.14.2
