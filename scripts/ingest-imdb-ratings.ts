@@ -22,7 +22,11 @@ import { parse } from 'csv-parse';
 import { drizzle } from 'drizzle-orm/node-postgres';
 
 import { env } from './env';
-import { upsertRatingsBatch, type ImdbRatingRow } from '@/lib/imdb-ingest';
+import {
+  parseRatingRecord,
+  upsertRatingsBatch,
+  type ImdbRatingRow,
+} from '@/lib/imdb-ingest';
 
 const DATASET_URL = 'https://datasets.imdbws.com/title.ratings.tsv.gz';
 const BATCH_SIZE = 5_000;
@@ -35,15 +39,6 @@ function logProgress(total: number) {
   if (total % PROGRESS_INTERVAL === 0) {
     console.log(`   • ${total.toLocaleString('en-US')} ratings upserted`);
   }
-}
-
-function parseNumericFields(record: Record<string, string>): ImdbRatingRow | null {
-  const { tconst, averageRating, numVotes } = record;
-  const numVotesParsed = Number(numVotes);
-  if (!tconst || !Number.isFinite(Number(averageRating)) || !Number.isInteger(numVotesParsed)) {
-    return null;
-  }
-  return { imdbId: tconst, rating: averageRating, numVotes: numVotesParsed };
 }
 
 function createRatingTransform() {
@@ -66,7 +61,7 @@ function createRatingTransform() {
   return new Transform({
     objectMode: true,
     async transform(record: Record<string, string>, _encoding, callback) {
-      const row = parseNumericFields(record);
+      const row = parseRatingRecord(record);
       if (!row) {
         callback();
         return;
