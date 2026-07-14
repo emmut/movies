@@ -9,7 +9,6 @@ vi.mock('next/cache', () => ({
 }));
 
 import { db } from '@/lib/db';
-
 import { chain } from '@/test/db-chain';
 
 import { getImdbRating } from './imdb';

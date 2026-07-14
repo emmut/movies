@@ -1,3 +1,5 @@
+import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+
 import { getUser } from '@/lib/auth-server';
 import { getDiscoverMedia } from '@/lib/discover-client';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
@@ -7,7 +9,7 @@ import { queryKeys } from '@/lib/query-keys';
 import { fetchAvailableTvGenres } from '@/lib/tv-shows';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
-import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+
 import { DiscoverContent } from './discover-content';
 
 type DiscoverWithGenreParams = {

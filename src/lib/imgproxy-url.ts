@@ -1,5 +1,4 @@
 import 'server-only';
-
 import { generateImageUrl, type IGenerateImageUrl } from '@imgproxy/imgproxy-node';
 
 import { env } from '@/env';

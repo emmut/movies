@@ -233,9 +233,7 @@ async function hydrateResourceDetails(
 ): Promise<SystemListItem[]> {
   const settled = await Promise.allSettled(rows.map((row) => fetchListItem(row, resourceType)));
 
-  return settled
-    .filter((result) => result.status === 'fulfilled')
-    .map((result) => result.value);
+  return settled.filter((result) => result.status === 'fulfilled').map((result) => result.value);
 }
 
 function emptyPage(page: number) {
@@ -281,7 +279,9 @@ async function getCachedSystemListCount(
       .select({ count: count() })
       .from(listItems)
       .innerJoin(lists, eq(listItems.listId, lists.id))
-      .where(and(systemListItemsFilter(userId, listType), eq(listItems.resourceType, resourceType)));
+      .where(
+        and(systemListItemsFilter(userId, listType), eq(listItems.resourceType, resourceType)),
+      );
 
     return result[0]?.count || 0;
   } catch (error) {

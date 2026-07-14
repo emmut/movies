@@ -10,8 +10,7 @@ const tx = { execute: vi.fn() };
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(db.transaction).mockImplementation(((fn: (tx: unknown) => unknown) =>
-    fn(tx)) as never);
+  vi.mocked(db.transaction).mockImplementation(((fn: (tx: unknown) => unknown) => fn(tx)) as never);
 });
 
 describe('withOrderingLock', () => {

@@ -1,5 +1,4 @@
 import 'server-only';
-
 import { cacheLife, cacheTag } from 'next/cache';
 
 import { DEFAULT_REGION } from '@/lib/regions';
@@ -76,7 +75,14 @@ export async function fetchDiscoverMovies(
   cacheLife('minutes');
 
   const searchParams = {
-    ...buildDiscoverSearchParams({ genreId, page, sortBy, watchProviders, watchRegion, withRuntimeLte }),
+    ...buildDiscoverSearchParams({
+      genreId,
+      page,
+      sortBy,
+      watchProviders,
+      watchRegion,
+      withRuntimeLte,
+    }),
     include_video: 'false',
   };
 
@@ -85,7 +91,10 @@ export async function fetchDiscoverMovies(
     errorMessage: 'Error loading discover movies',
   });
 
-  return { movies: movies.results.map(addPosterImageUrls), totalPages: Math.min(movies.total_pages, 500) };
+  return {
+    movies: movies.results.map(addPosterImageUrls),
+    totalPages: Math.min(movies.total_pages, 500),
+  };
 }
 
 /**

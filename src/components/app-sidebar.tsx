@@ -4,7 +4,6 @@ import type * as React from 'react';
 
 import Brand from '@/components/brand';
 import { NavLink } from '@/components/nav-link';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +13,7 @@ import {
   SidebarMenu,
   SidebarRail,
 } from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   {

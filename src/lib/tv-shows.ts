@@ -1,5 +1,4 @@
 import 'server-only';
-
 import { cacheLife, cacheTag } from 'next/cache';
 
 import type { GenreResponse } from '@/types/genre';
@@ -118,7 +117,10 @@ export async function fetchDiscoverTvShows(
     errorMessage: 'Error loading discover tv shows',
   });
 
-  return { tvShows: tvShows.results.map(addPosterImageUrls), totalPages: Math.min(tvShows.total_pages, 500) };
+  return {
+    tvShows: tvShows.results.map(addPosterImageUrls),
+    totalPages: Math.min(tvShows.total_pages, 500),
+  };
 }
 
 /**

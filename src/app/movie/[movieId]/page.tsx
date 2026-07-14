@@ -1,16 +1,22 @@
+import { Calendar, Clock, DollarSign, Users } from 'lucide-react';
+import { headers } from 'next/headers';
+import Link from 'next/link';
+
 import { ExternalLinks } from '@/components/external-links';
-import { RatingsCard } from '@/components/ratings-card';
 import { GoBack } from '@/components/go-back';
+import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
 import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
+import { RatingsCard } from '@/components/ratings-card';
 import { ReviewsSection } from '@/components/reviews-section';
 import { StreamingProviders } from '@/components/streaming-providers';
 import { TrailerContent } from '@/components/trailer-content';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
 import { formatCertification } from '@/lib/certifications';
+import { getImdbRating } from '@/lib/imdb';
 import { getMediaCertification } from '@/lib/media-info';
 import {
   getMovieCredits,
@@ -19,14 +25,9 @@ import {
   getMovieSimilar,
   getMovieWatchProviders,
 } from '@/lib/movies';
-import { getImdbRating } from '@/lib/imdb';
-import { getUserRegion } from '@/lib/user-actions';
-import { Imgproxy } from '@/components/image-proxy';
-import { formatCurrency, formatRuntime } from '@/lib/utils';
 import { getSystemListMemberships } from '@/lib/system-list-queries';
-import { Calendar, Clock, DollarSign, Users } from 'lucide-react';
-import { headers } from 'next/headers';
-import Link from 'next/link';
+import { getUserRegion } from '@/lib/user-actions';
+import { formatCurrency, formatRuntime } from '@/lib/utils';
 
 type MoviePageProps = {
   params: Promise<{

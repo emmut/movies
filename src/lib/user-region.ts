@@ -1,5 +1,4 @@
 import 'server-only';
-
 import { DEFAULT_REGION } from './regions';
 import { getUserRegion } from './user-actions';
 

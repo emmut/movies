@@ -4,11 +4,11 @@ import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
 import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import type { ReactNode } from 'react';
 
-import ItemCard from '@/components/item-card';
-import { SortableItemCard } from '@/components/sortable-item-card';
-import PersonCard from '@/components/person-card';
-import { useReorderSensors } from '@/hooks/use-reorder-sensors';
 import type { ListItem } from '@/app/lists/[id]/list-details-content';
+import ItemCard from '@/components/item-card';
+import PersonCard from '@/components/person-card';
+import { SortableItemCard } from '@/components/sortable-item-card';
+import { useReorderSensors } from '@/hooks/use-reorder-sensors';
 
 interface ListItemsGridProps {
   items: ListItem[];
@@ -76,18 +76,18 @@ export function ListItemsGrid({
     if (!over || active.id === over.id) {
       return;
     }
-    onMove(String(active.id), items.findIndex((item) => item.listItemId === over.id));
+    onMove(
+      String(active.id),
+      items.findIndex((item) => item.listItemId === over.id),
+    );
   }
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext
-        items={items.map((item) => item.listItemId)}
-        strategy={rectSortingStrategy}
-      >
+      <SortableContext items={items.map((item) => item.listItemId)} strategy={rectSortingStrategy}>
         <div
           id="content-container"
-          className="@8xl:grid-cols-5 grid grid-cols-2 gap-4 @3xl:grid-cols-4"
+          className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
         >
           {items.map((item, index) => (
             <SortableItemCard

@@ -86,11 +86,7 @@ export function DeleteListButton({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleDelete}
-            disabled={isLoading}
-            variant="destructive"
-          >
+          <AlertDialogAction onClick={handleDelete} disabled={isLoading} variant="destructive">
             {isLoading ? 'Deleting...' : 'Delete List'}
           </AlertDialogAction>
         </AlertDialogFooter>

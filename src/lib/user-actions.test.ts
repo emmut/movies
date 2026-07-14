@@ -15,11 +15,11 @@ vi.mock('next/cache', () => ({
 // module never reaches a real fetch.
 vi.mock('./tmdb', () => ({ tmdbFetch: vi.fn() }));
 
+import { revalidatePath } from 'next/cache';
+
 import { getSession } from '@/lib/auth-server';
 import { revalidateUserPreferenceCache } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
-import { revalidatePath } from 'next/cache';
-
 import { chain } from '@/test/db-chain';
 
 import { setUserWatchProviders, updateUserRegion } from './user-actions';

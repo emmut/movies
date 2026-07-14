@@ -1,5 +1,4 @@
 import 'server-only';
-
 import { cacheLife, cacheTag } from 'next/cache';
 
 import type { MovieReleaseDatesResponse, TvContentRatingsResponse } from '@/types/certification';

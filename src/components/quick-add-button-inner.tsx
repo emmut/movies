@@ -22,9 +22,9 @@ import {
   type UserListsWithStatus,
 } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
-import { getErrorMessage } from '@/lib/utils';
 import { toggleSystemListItem } from '@/lib/system-list-actions';
 import { isResourceInSystemList } from '@/lib/system-list-queries';
+import { getErrorMessage } from '@/lib/utils';
 import type { SystemListType } from '@/lib/validations';
 
 export interface QuickAddButtonProps {
@@ -200,7 +200,6 @@ export function QuickAddButtonInner({
   const isWatched = useSystemListStatus('watched', mediaId, mediaType, {
     enabled: systemItemsEnabled,
   });
-
 
   async function handleToggleList(listId: string, hasItem: boolean) {
     const listName = findListName(lists, listId);

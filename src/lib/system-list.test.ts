@@ -14,7 +14,6 @@ vi.mock('@/lib/ordering-lock', async (importOriginal) => {
 
 import { db } from '@/lib/db';
 import { withOrderingLock } from '@/lib/ordering-lock';
-
 import { chain } from '@/test/db-chain';
 
 import { getOrCreateSystemListId, getSystemListId, toggleSystemListRow } from './system-list';
@@ -112,8 +111,6 @@ describe('toggleSystemListRow', () => {
     // Insert was suppressed by the conflict: no row returned.
     vi.mocked(db.insert).mockReturnValue(chain([]));
 
-    await expect(toggleSystemListRow('user-1', 'watchlist', 5, 'movie')).resolves.toBe(
-      'unchanged',
-    );
+    await expect(toggleSystemListRow('user-1', 'watchlist', 5, 'movie')).resolves.toBe('unchanged');
   });
 });

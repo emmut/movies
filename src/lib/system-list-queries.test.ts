@@ -11,7 +11,6 @@ import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
 import { getTvShowDetails } from '@/lib/tv-shows';
-
 import { chain } from '@/test/db-chain';
 
 import {
