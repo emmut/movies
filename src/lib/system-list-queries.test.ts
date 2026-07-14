@@ -144,9 +144,10 @@ describe('getSystemListWithResourceDetailsPaginated', () => {
     expect(result.totalItems).toBe(1);
     expect(result.items).toHaveLength(1);
     expect(result.items[0]).toMatchObject({
-      id: 'item-1',
+      id: 5,
+      listItemId: 'item-1',
       resourceType: 'movie',
-      resource: { id: 5, posterImageUrls: { src: 'proxied' } },
+      posterImageUrls: { src: 'proxied' },
     });
   });
 
@@ -167,7 +168,7 @@ describe('getSystemListWithResourceDetailsPaginated', () => {
 
     expect(result.totalItems).toBe(2);
     expect(result.items).toHaveLength(1);
-    expect(result.items[0].id).toBe('item-1');
+    expect(result.items[0].listItemId).toBe('item-1');
   });
 
   it('returns an empty page when the query fails', async () => {

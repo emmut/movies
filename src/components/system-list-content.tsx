@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, GripVertical } from 'lucide-react';
 import Link from 'next/link';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 
 import { ListItemsGrid } from '@/components/list-items-grid';
 import MediaTypeSelector from '@/components/media-type-selector';
@@ -20,11 +20,9 @@ import { queryKeys } from '@/lib/query-keys';
 import {
   getSystemListCount,
   getSystemListWithResourceDetailsPaginated,
+  type SystemListItem,
 } from '@/lib/system-list-queries';
-import type { ListItem } from '@/app/lists/[id]/list-details-content';
 import type { SystemListType } from '@/lib/validations';
-import { MovieDetails } from '@/types/movie';
-import { TvDetails } from '@/types/tv-show';
 
 const CONTENT_COPY: Record<
   SystemListType,
@@ -131,22 +129,8 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
   const offset = (page - 1) * ITEMS_PER_PAGE;
   const totalForMedia = mediaType === 'movie' ? totalMovies : totalTvShows;
 
-  // Map raw rows to the ListItem shape the reorder grid expects.
-  const mappedItems = useMemo(
-    () =>
-      items.map(
-        (item) =>
-          ({
-            ...(item.resource as MovieDetails | TvDetails),
-            resourceType: item.resourceType as 'movie' | 'tv',
-            listItemId: item.id,
-          }) as ListItem,
-      ),
-    [items],
-  );
-
   const { localItems, isPending, move } = useReorderableItems(
-    mappedItems,
+    items,
     offset,
     async (itemId, globalIndex) => {
       await moveListItem(itemId, globalIndex, mediaType);
@@ -259,10 +243,6 @@ function ReorderButton({
   );
 }
 
-type SystemListItem = NonNullable<
-  Awaited<ReturnType<typeof getSystemListWithResourceDetailsPaginated>>
->['items'][number];
-
 function SystemListBody({
   listType,
   mediaType,
@@ -282,7 +262,7 @@ function SystemListBody({
   userId?: string;
   isLoading: boolean;
   isAllEmpty: boolean;
-  items: ListItem[];
+  items: SystemListItem[];
   totalPages: number;
   itemCount: number;
   offset: number;
