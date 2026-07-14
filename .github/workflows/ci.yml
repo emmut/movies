@@ -106,8 +106,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Sync database schema
-        run: pnpm db:push --force
+      # Run the real migration chain (not db:push) so a broken migration fails
+      # the PR here instead of a pre-deploy, and e2e exercises the schema that
+      # migrations actually produce.
+      - name: Apply database migrations
+        run: pnpm db:migrate
 
       - name: Install Playwright browser
         run: pnpm e2e:install
