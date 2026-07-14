@@ -32,6 +32,7 @@ const nextConfig: NextConfig = {
       expire: 60 * 5, // 5 minutes
     },
   },
+  allowedDevOrigins: ["movies.localhost", "*.movies.localhost"]
 };
 
 export default nextConfig;

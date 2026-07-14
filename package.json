@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm run dev:docker:up && next dev",
+    "dev": "pnpm run dev:docker:up && portless movies next dev",
     "dev:docker:up": "docker compose -f docker-compose.dev.yml up -d",
     "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
     "build": "pnpm lint && next build",
@@ -72,6 +72,7 @@
     "oxfmt": "^0.57.0",
     "oxlint": "^1.72.0",
     "oxlint-tsgolint": "^0.24.0",
+    "portless": "^0.15.1",
     "railway": "^3.5.2",
     "shadcn": "^4.13.0",
     "tsx": "^4.23.0",
