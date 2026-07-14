@@ -1,4 +1,4 @@
-name: Railway PR environment
+name: Railway infra
 
 on:
   pull_request:
