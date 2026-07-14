@@ -54,7 +54,7 @@ export function useReorderableItems<T extends ReorderableItem>(
     }
     const clampedIndex = Math.max(0, Math.min(toLocalIndex, localItems.length - 1));
     setLocalItems(arrayMove(localItems, fromLocalIndex, clampedIndex));
-    void commitMove(itemId, toLocalIndex, localItems);
+    void commitMove(itemId, clampedIndex, localItems);
   }
 
   return { localItems, isPending, move };

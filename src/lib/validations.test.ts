@@ -154,6 +154,15 @@ describe('moveListItemSchema', () => {
     expect(moveListItemSchema.safeParse({ itemId: UUID, position: 7 }).success).toBe(true);
   });
 
+  it('accepts a known resource type and rejects an unknown one', () => {
+    expect(
+      moveListItemSchema.safeParse({ itemId: UUID, position: 0, resourceType: 'movie' }).success,
+    ).toBe(true);
+    expect(
+      moveListItemSchema.safeParse({ itemId: UUID, position: 0, resourceType: 'album' }).success,
+    ).toBe(false);
+  });
+
   it('rejects bad uuid, negative, and fractional positions', () => {
     expect(moveListItemSchema.safeParse({ itemId: 'not-a-uuid', position: 0 }).success).toBe(
       false,

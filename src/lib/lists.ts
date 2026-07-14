@@ -581,10 +581,14 @@ async function persistListItemOrder(listId: string, orderedIds: string[]) {
  *   which render one media type at a time). Omit for custom lists, which
  *   reorder every item in the list regardless of type.
  */
-export async function moveListItem(itemId: string, position: number, resourceType?: string) {
+export async function moveListItem(
+  itemId: string,
+  position: number,
+  resourceType?: 'movie' | 'tv' | 'person',
+) {
   const user = await requireUser();
 
-  const validatedData = moveListItemSchema.parse({ itemId, position });
+  const validatedData = moveListItemSchema.parse({ itemId, position, resourceType });
 
   const itemRows = await db
     .select({ listId: listItems.listId, listType: lists.type })
@@ -600,8 +604,8 @@ export async function moveListItem(itemId: string, position: number, resourceTyp
   const listId = itemRows[0].listId;
   const listType = itemRows[0].listType;
 
-  const orderWhere = resourceType
-    ? and(eq(listItems.listId, listId), eq(listItems.resourceType, resourceType))
+  const orderWhere = validatedData.resourceType
+    ? and(eq(listItems.listId, listId), eq(listItems.resourceType, validatedData.resourceType))
     : eq(listItems.listId, listId);
 
   const orderedRows = await db

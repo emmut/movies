@@ -155,8 +155,6 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
     },
   );
 
-  const gridItems = isEditing ? localItems : mappedItems;
-
   return (
     <div className="@container w-full">
       <SystemListHeader
@@ -174,7 +172,7 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
         userId={userId}
         isLoading={isLoading}
         isAllEmpty={totalItems === 0}
-        items={gridItems}
+        items={localItems}
         totalPages={totalPages}
         itemCount={totalForMedia}
         offset={offset}
