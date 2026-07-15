@@ -1,3 +1,4 @@
+import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LISTS_PER_PAGE } from '@/lib/config';
 
@@ -16,7 +17,7 @@ export default function ListsLoading() {
       {/* Header section */}
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <Skeleton className="h-8 w-32" />
+          <SectionTitle>My Lists</SectionTitle>
           <Skeleton className="h-9 w-28" />
         </div>
 
