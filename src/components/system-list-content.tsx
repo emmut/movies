@@ -13,7 +13,6 @@ import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import SectionTitle from '@/components/section-title';
 import { Button } from '@/components/ui/button';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { ITEMS_PER_PAGE } from '@/lib/config';
 import { moveListItem } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
@@ -99,8 +98,6 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
 
   const mediaType = urlState.mediaType as 'movie' | 'tv';
   const page = urlState.page;
-
-  useScrollOnPageChange(page);
 
   const { data: paginatedData, isLoading } = useQuery({
     queryKey: queryKeys[listType].list(mediaType, page),

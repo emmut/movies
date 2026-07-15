@@ -4,6 +4,8 @@ import clsx from 'clsx';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
+import { scrollToContent } from '@/lib/scroll-to-content';
+
 import { Input } from './ui/input';
 import {
   Pagination,
@@ -19,6 +21,13 @@ type PaginationControls = {
   totalPages: number;
   pageType?: 'discover' | 'search' | 'trailers' | 'watchlist' | 'watched' | 'lists';
 };
+
+// A modifier or non-primary click opens the link in a new tab/window, so the
+// current tab isn't navigating and its scroll position should stay put.
+function opensInNewTab(event: React.MouseEvent) {
+  const modifierPressed = [event.metaKey, event.ctrlKey, event.shiftKey, event.altKey].some(Boolean);
+  return event.defaultPrevented || event.button !== 0 || modifierPressed;
+}
 
 // Generate page numbers with ellipsis logic (mobile-first)
 function generatePageNumbers(currentPage: number, totalPages: number) {
@@ -91,6 +100,12 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     return `?${params.toString()}`;
   }
 
+  function handleNavigationClick(event: React.MouseEvent) {
+    if (!opensInNewTab(event)) {
+      scrollToContent();
+    }
+  }
+
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
 
   return (
@@ -102,6 +117,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               <PaginationItem>
                 <PaginationPrevious
                   href={buildPageHref(currentPageNumber - 1)}
+                  onClick={handleNavigationClick}
                   className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -118,6 +134,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
                       href={buildPageHref(pageNumber)}
+                      onClick={handleNavigationClick}
                       isActive={pageNumber === currentPageNumber}
                       className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
                     >
@@ -130,6 +147,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               <PaginationItem>
                 <PaginationNext
                   href={buildPageHref(currentPageNumber + 1)}
+                  onClick={handleNavigationClick}
                   className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -158,6 +176,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   if (e.key === 'Enter') {
                     const value = Number((e.target as HTMLInputElement).value);
                     if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
+                      scrollToContent();
                       router.push(buildPageHref(value));
                       (e.target as HTMLInputElement).value = '';
                     }
@@ -166,6 +185,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 onBlur={(e) => {
                   const value = Number(e.target.value);
                   if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
+                    scrollToContent();
                     router.push(buildPageHref(value));
                   }
                   e.target.value = '';
