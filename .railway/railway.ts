@@ -50,6 +50,13 @@ export default defineRailway((ctx) => {
   const imgproxyHRto = service("imgproxy-HRto", {
     source: image("darthsim/imgproxy:v3.18.2"),
     healthcheck: "/health",
+    deploy: {
+      // Resizes images only on demand — sleep when idle (an image request
+      // wakes it) instead of running around the clock. Resizing TMDB posters
+      // is light work, so cap it at one core and half a GB.
+      sleepApplication: true,
+      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+    },
     domains: prod ? [CDN_DOMAIN] : [],
     networking: { privateNetworkEndpoint: "imgproxy-hrto" },
     env: {
