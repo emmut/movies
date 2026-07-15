@@ -151,37 +151,39 @@ export default async function PersonPage(props: PersonPageProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="rounded-lg bg-zinc-900 p-4 text-center">
-              <Star className="mx-auto mb-2 h-6 w-6 text-yellow-500" />
-              <div className="text-2xl font-bold">{Math.round(person.popularity)}</div>
-              <div className="text-sm text-zinc-400">Popularity</div>
-            </div>
-
-            <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-              <Users className="mx-auto mb-2 h-6 w-6 text-purple-500" />
-              <div className="text-2xl font-bold">{totalCredits}</div>
-              <div className="text-sm text-zinc-400">Credits</div>
-            </div>
-
-            {birthYear && (
-              <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-                <Calendar className="mx-auto mb-2 h-6 w-6 text-green-500" />
-                <div className="text-2xl font-bold">{birthYear}</div>
-                <div className="text-sm text-zinc-400">Born</div>
-                {age && <div className="text-xs text-zinc-500">({age} years old)</div>}
+          <div className="@container">
+            <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4">
+              <div className="rounded-lg bg-zinc-900 p-5">
+                <Star className="mb-3 h-5 w-5 text-yellow-500" />
+                <div className="text-2xl font-bold">{Math.round(person.popularity)}</div>
+                <div className="text-sm text-zinc-400">Popularity</div>
               </div>
-            )}
 
-            {place_of_birth && (
-              <div className="flex flex-col items-center justify-center rounded-lg bg-zinc-900 p-4 text-center">
-                <MapPin className="mx-auto mb-2 h-6 w-6 text-blue-500" />
-                <div className="text-center text-sm leading-tight font-bold">
-                  {place_of_birth.split(', ').slice(-1)[0]}
+              <div className="rounded-lg bg-zinc-900 p-5">
+                <Users className="mb-3 h-5 w-5 text-purple-500" />
+                <div className="text-2xl font-bold">{totalCredits}</div>
+                <div className="text-sm text-zinc-400">Credits</div>
+              </div>
+
+              {birthYear && (
+                <div className="rounded-lg bg-zinc-900 p-5">
+                  <Calendar className="mb-3 h-5 w-5 text-green-500" />
+                  <div className="text-2xl font-bold">{birthYear}</div>
+                  <div className="text-sm text-zinc-400">Born</div>
+                  {age && <div className="text-xs text-zinc-500">({age} years old)</div>}
                 </div>
-                <div className="text-sm text-zinc-400">Origin</div>
-              </div>
-            )}
+              )}
+
+              {place_of_birth && (
+                <div className="rounded-lg bg-zinc-900 p-5">
+                  <MapPin className="mb-3 h-5 w-5 text-blue-500" />
+                  <div className="text-sm leading-tight font-bold">
+                    {place_of_birth.split(', ').slice(-1)[0]}
+                  </div>
+                  <div className="text-sm text-zinc-400">Origin</div>
+                </div>
+              )}
+            </div>
           </div>
 
           {biography && (

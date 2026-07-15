@@ -114,7 +114,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <Poster poster_path={poster_path} title={name} />
 
-        <div className="space-y-6 lg:col-span-8">
+        <div className="@container space-y-6 lg:col-span-8">
           <ItemHeader
             title={name}
             tagline={tagline}
@@ -126,7 +126,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
             certification={formatCertification(certification, userRegion)}
           />
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4">
             <RatingsCard score={score} voteCount={tvShow.vote_count} imdbRating={imdbRating} />
 
             <div className="rounded-lg bg-zinc-900 p-5">

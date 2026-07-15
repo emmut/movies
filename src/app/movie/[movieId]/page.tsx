@@ -119,7 +119,7 @@ export default async function MoviePage(props: MoviePageProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <Poster poster_path={poster_path} title={title} />
 
-        <div className="space-y-6 lg:col-span-8">
+        <div className="@container space-y-6 lg:col-span-8">
           <ItemHeader
             title={title}
             tagline={tagline}
@@ -131,7 +131,7 @@ export default async function MoviePage(props: MoviePageProps) {
             certification={formatCertification(certification, userRegion)}
           />
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4">
             <RatingsCard score={score} voteCount={movie.vote_count} imdbRating={imdbRating} />
 
             {runtime > 0 && (
