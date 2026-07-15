@@ -16,7 +16,7 @@ export default function LoadingPerson() {
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
-          <Skeleton className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg shadow-2xl sm:mx-0" />
+          <Skeleton className="aspect-2/3 w-full max-w-64 rounded-lg shadow-2xl lg:max-w-full" />
         </div>
 
         <div className="space-y-4 lg:col-span-8">

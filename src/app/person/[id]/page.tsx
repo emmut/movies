@@ -114,14 +114,16 @@ export default async function PersonPage(props: PersonPageProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <div className="lg:col-span-4">
           {profile_path ? (
-            <Imgproxy
-              className="mx-auto aspect-2/3 w-full max-w-xs rounded-lg border shadow-2xl sm:mx-0"
-              src={profile_path}
-              alt={`Profile image of ${name}`}
-              width={500}
-              height={750}
-              priority
-            />
+            <div className="max-w-64 lg:max-w-full">
+              <Imgproxy
+                className="aspect-2/3 w-full rounded-lg border shadow-2xl"
+                src={profile_path}
+                alt={`Profile image of ${name}`}
+                width={500}
+                height={750}
+                priority
+              />
+            </div>
           ) : (
             <div className="mx-auto flex aspect-2/3 w-full max-w-md items-center justify-center rounded-lg bg-zinc-800 shadow-2xl">
               <div className="text-center text-zinc-400">
