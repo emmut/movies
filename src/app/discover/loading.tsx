@@ -1,32 +1,31 @@
+import Pill from '@/components/pill';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ITEMS_PER_PAGE } from '@/lib/config';
 
-// Widths approximating each of the 19 movie/TV genre pills TMDB returns (in
-// order: Action, Adventure, Animation, Comedy, Crime, Documentary, Drama,
-// Family, Fantasy, History, Horror, Music, Mystery, Romance, Science Fiction,
-// TV Movie, Thriller, War, Western), so the toolbar wraps to the same height as
-// the real one.
-const GENRE_PILL_WIDTHS = [
-  'w-16',
-  'w-24',
-  'w-24',
-  'w-20',
-  'w-16',
-  'w-28',
-  'w-16',
-  'w-16',
-  'w-20',
-  'w-20',
-  'w-16',
-  'w-16',
-  'w-20',
-  'w-24',
-  'w-32',
-  'w-24',
-  'w-20',
-  'w-12',
-  'w-24',
+// The default (movie) genre set TMDB returns, in order. Rendering the real
+// pill labels via the skeleton variant gives the exact same widths and height
+// as the loaded toolbar, so the pills don't shift when content arrives.
+const MOVIE_GENRES = [
+  'Action',
+  'Adventure',
+  'Animation',
+  'Comedy',
+  'Crime',
+  'Documentary',
+  'Drama',
+  'Family',
+  'Fantasy',
+  'History',
+  'Horror',
+  'Music',
+  'Mystery',
+  'Romance',
+  'Science Fiction',
+  'TV Movie',
+  'Thriller',
+  'War',
+  'Western',
 ];
 
 /**
@@ -34,7 +33,8 @@ const GENRE_PILL_WIDTHS = [
  *
  * Mirrors the discover shell — title, genre + media-type toolbar, filter row,
  * and the results grid — so the layout stays put when the real (React Query)
- * content renders in. The static title is rendered for real to avoid a flash.
+ * content renders in. The static title and genre pills are rendered for real
+ * (pills use the skeleton variant) to avoid a flash or shift.
  */
 export default function DiscoverLoading() {
   return (
@@ -46,8 +46,10 @@ export default function DiscoverLoading() {
       {/* Genre pills + media-type selector */}
       <div className="@container relative mt-4 flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
         <div className="flex flex-1 flex-wrap gap-2 pt-3">
-          {GENRE_PILL_WIDTHS.map((width, i) => (
-            <Skeleton key={i} className={`h-9 rounded-full ${width}`} />
+          {MOVIE_GENRES.map((name) => (
+            <Pill key={name} variant="skeleton">
+              {name}
+            </Pill>
           ))}
         </div>
         {/* Media-type selector — a two-segment toggle */}
