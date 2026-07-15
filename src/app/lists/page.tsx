@@ -5,7 +5,6 @@ import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
 import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
-import { ScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { getUser } from '@/lib/auth-server';
 import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
 
@@ -76,8 +75,7 @@ export default async function ListsPage(props: ListsPageProps) {
           </Link>
         </div>
       ) : (
-        <div id="content-container">
-          <ScrollOnPageChange page={page} />
+        <div id="content-container" className="scroll-m-5">
           <ListsGrid
             lists={lists}
             offset={(paginatedData.currentPage - 1) * paginatedData.itemsPerPage}

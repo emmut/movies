@@ -8,7 +8,6 @@ import { GenreNavigationClient } from '@/components/genre-navigation-client';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import type { Genre } from '@/types/genre';
 import { WatchProvider } from '@/types/watch-provider';
@@ -141,8 +140,6 @@ export function DiscoverContent({
   const { page, genreId, mediaType, sortBy, watchProviders, watchRegion, runtimeLte } =
     useDiscoverViewState(userRegion);
   const genres = mediaType === 'movie' ? movieGenres : tvGenres;
-
-  useScrollOnPageChange(page, genreId);
 
   return (
     <div className="@container w-full">

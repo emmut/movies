@@ -87,7 +87,7 @@ export function ListItemsGrid({
       <SortableContext items={items.map((item) => item.listItemId)} strategy={rectSortingStrategy}>
         <div
           id="content-container"
-          className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
+          className="grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
         >
           {items.map((item, index) => (
             <SortableItemCard

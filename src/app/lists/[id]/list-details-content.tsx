@@ -14,7 +14,6 @@ import SectionTitle from '@/components/section-title';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
-import { useScrollOnPageChange } from '@/hooks/use-scroll-on-page-change';
 import { ITEMS_PER_PAGE } from '@/lib/config';
 import { moveListItem } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
@@ -65,8 +64,6 @@ export function ListDetailsContent({
   );
 
   const page = urlState.page;
-
-  useScrollOnPageChange(page);
 
   const { data: list, isLoading } = useQuery({
     queryKey: queryKeys.lists.detail(listId, page),
