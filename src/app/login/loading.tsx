@@ -1,4 +1,3 @@
-import { ScrollToTop } from '@/components/scroll-to-top';
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
@@ -11,7 +10,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function LoginLoading() {
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <ScrollToTop />
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
           <Skeleton className="mb-4 h-12 w-12 rounded-full" />

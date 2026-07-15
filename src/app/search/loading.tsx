@@ -1,5 +1,4 @@
 import ItemGrid from '@/components/item-grid';
-import { ScrollToTop } from '@/components/scroll-to-top';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -12,13 +11,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function Loading() {
   return (
     <div className="@container w-full">
-      <ScrollToTop />
       <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
         <Skeleton className="h-10 w-36 rounded-md" />
       </div>
 
-      <div className="mt-8 grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
+      <div className="mt-8 grid max-h-[45vh] grid-cols-2 gap-4 overflow-hidden @3xl:grid-cols-4 @8xl:grid-cols-5">
         <ItemGrid.Skeletons className="w-full" />
       </div>
     </div>

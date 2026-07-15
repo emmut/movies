@@ -1,5 +1,4 @@
 import Pill from '@/components/pill';
-import { ScrollToTop } from '@/components/scroll-to-top';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ITEMS_PER_PAGE } from '@/lib/config';
@@ -40,7 +39,6 @@ const MOVIE_GENRES = [
 export default function DiscoverLoading() {
   return (
     <div className="@container w-full">
-      <ScrollToTop />
       <div className="flex items-center gap-4">
         <SectionTitle>Discover</SectionTitle>
       </div>
@@ -71,20 +69,15 @@ export default function DiscoverLoading() {
         ))}
       </div>
 
-      {/* Results grid */}
-      <div className="mt-7 grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
+      {/* Results grid — capped in height and clipped so the whole skeleton
+          stays close to one viewport. A tall skeleton keeps the previous
+          route's scroll offset on a client navigation (Next only resets scroll
+          once real content arrives), which shows the skeleton "chopped off"; a
+          short one lets the browser clamp the scroll back to the top. */}
+      <div className="mt-7 grid max-h-[45vh] grid-cols-2 gap-4 overflow-hidden @3xl:grid-cols-4 @8xl:grid-cols-5">
         {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
           <Skeleton key={i} className="aspect-2/3 w-full rounded-lg" />
         ))}
-      </div>
-
-      {/* Pagination */}
-      <div className="mt-8 flex justify-center">
-        <div className="flex items-center gap-2">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-9 w-9" />
-          ))}
-        </div>
       </div>
     </div>
   );

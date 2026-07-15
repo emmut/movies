@@ -1,5 +1,4 @@
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
-import { ScrollToTop } from '@/components/scroll-to-top';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -17,7 +16,6 @@ type SystemListLoadingProps = {
 export function SystemListLoading({ title }: SystemListLoadingProps) {
   return (
     <div className="@container w-full">
-      <ScrollToTop />
       <div className="mb-8">
         <div className="mb-4 flex items-center gap-4">
           <SectionTitle>{title}</SectionTitle>

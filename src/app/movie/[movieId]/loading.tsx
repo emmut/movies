@@ -1,11 +1,9 @@
 import Poster from '@/components/poster';
-import { ScrollToTop } from '@/components/scroll-to-top';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LoadingMovies() {
   return (
     <>
-      <ScrollToTop />
       <div className="mb-6">
         <Skeleton className="h-10 w-24" />
       </div>

@@ -1,6 +1,5 @@
 import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
-import { ScrollToTop } from '@/components/scroll-to-top';
 import { ItemSlider } from '@/components/ui/item-slider';
 
 import { HOME_SECTIONS, MediaSectionHeader, TrendingHeader } from './sections';
@@ -15,7 +14,6 @@ import { HOME_SECTIONS, MediaSectionHeader, TrendingHeader } from './sections';
 export default function Loading() {
   return (
     <div className="space-y-8">
-      <ScrollToTop />
       <section className="space-y-4">
         <TrendingHeader />
 

@@ -1,4 +1,3 @@
-import { ScrollToTop } from '@/components/scroll-to-top';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -12,7 +11,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function SettingsLoading() {
   return (
     <div className="space-y-6">
-      <ScrollToTop />
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground">Manage your personal settings</p>
