@@ -9,6 +9,9 @@ test('search palette opens from the header and shows results', async ({ page }) 
 
   const input = page.getByRole('searchbox', { name: /search for movies/i });
   await expect(input).toBeVisible();
+  // The input is focused on open (within the tap gesture) so you can type
+  // immediately — on iOS this is what raises the keyboard without a second tap.
+  await expect(input).toBeFocused();
   await input.fill('star');
 
   const rows = page.getByLabel('Search results').locator('li');
