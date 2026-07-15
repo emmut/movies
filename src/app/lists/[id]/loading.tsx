@@ -1,4 +1,5 @@
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
+import { ScrollToTop } from '@/components/scroll-to-top';
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
@@ -13,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function ListDetailsLoading() {
   return (
     <div className="@container w-full">
+      <ScrollToTop />
       {/* Header section */}
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">

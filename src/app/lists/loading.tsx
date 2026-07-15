@@ -1,3 +1,4 @@
+import { ScrollToTop } from '@/components/scroll-to-top';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LISTS_PER_PAGE } from '@/lib/config';
@@ -14,6 +15,7 @@ import { LISTS_PER_PAGE } from '@/lib/config';
 export default function ListsLoading() {
   return (
     <div className="@container w-full">
+      <ScrollToTop />
       {/* Header section */}
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">

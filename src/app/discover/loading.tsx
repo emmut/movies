@@ -1,4 +1,5 @@
 import Pill from '@/components/pill';
+import { ScrollToTop } from '@/components/scroll-to-top';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ITEMS_PER_PAGE } from '@/lib/config';
@@ -39,6 +40,7 @@ const MOVIE_GENRES = [
 export default function DiscoverLoading() {
   return (
     <div className="@container w-full">
+      <ScrollToTop />
       <div className="flex items-center gap-4">
         <SectionTitle>Discover</SectionTitle>
       </div>
