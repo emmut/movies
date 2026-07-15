@@ -2,14 +2,20 @@ import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
 import { ItemSlider } from '@/components/ui/item-slider';
 
+import { HOME_SECTIONS, MediaSectionHeader, TrendingHeader } from './sections';
+
+/**
+ * Loading skeleton for the homepage.
+ *
+ * Renders the exact same shell as the page — real section headings in the same
+ * order, with skeleton sliders in place of the async media rows — so the layout
+ * doesn't shift when the real content streams in.
+ */
 export default function Loading() {
   return (
     <div className="space-y-8">
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="h-8 w-48 animate-pulse rounded-md bg-neutral-50/10 lg:h-9 lg:w-56"></div>
-          <div className="hidden h-5 w-32 animate-pulse rounded-md bg-neutral-50/10 sm:block"></div>
-        </div>
+        <TrendingHeader />
 
         <div className="grid gap-4 lg:grid-cols-2">
           <Trending.Skeleton />
@@ -17,38 +23,15 @@ export default function Loading() {
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="h-7 w-36 animate-pulse rounded-md bg-neutral-50/10 lg:h-8 lg:w-40"></div>
-          <div className="hidden h-5 w-28 animate-pulse rounded-md bg-neutral-50/10 sm:block"></div>
-        </div>
+      {HOME_SECTIONS.map((section) => (
+        <section key={section.heading} className="space-y-4">
+          <MediaSectionHeader heading={section.heading} caption={section.caption} />
 
-        <ItemSlider>
-          <ItemGrid.Skeletons />
-        </ItemSlider>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-50/10 lg:h-8 lg:w-36"></div>
-          <div className="hidden h-5 w-32 animate-pulse rounded-md bg-neutral-50/10 sm:block"></div>
-        </div>
-
-        <ItemSlider>
-          <ItemGrid.Skeletons />
-        </ItemSlider>
-      </section>
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="h-7 w-28 animate-pulse rounded-md bg-neutral-50/10 lg:h-8 lg:w-32"></div>
-          <div className="hidden h-5 w-28 animate-pulse rounded-md bg-neutral-50/10 sm:block"></div>
-        </div>
-
-        <ItemSlider>
-          <ItemGrid.Skeletons />
-        </ItemSlider>
-      </section>
+          <ItemSlider>
+            <ItemGrid.Skeletons />
+          </ItemSlider>
+        </section>
+      ))}
     </div>
   );
 }

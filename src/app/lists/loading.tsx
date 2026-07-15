@@ -1,3 +1,4 @@
+import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LISTS_PER_PAGE } from '@/lib/config';
 
@@ -16,7 +17,7 @@ export default function ListsLoading() {
       {/* Header section */}
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-          <Skeleton className="h-8 w-32" />
+          <SectionTitle>My Lists</SectionTitle>
           <Skeleton className="h-9 w-28" />
         </div>
 
@@ -28,8 +29,10 @@ export default function ListsLoading() {
         </div>
       </div>
 
-      {/* Lists grid */}
-      <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4">
+      {/* Lists grid — capped so the skeleton stays close to one viewport (see
+          PosterSkeletonGrid for why a short skeleton avoids the chopped-off
+          scroll on client navigation). */}
+      <div className="grid max-h-[55vh] grid-cols-1 gap-4 overflow-hidden @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4">
         {Array.from({ length: LISTS_PER_PAGE }).map((_, i) => (
           <div
             key={i}

@@ -3,7 +3,8 @@
 import { Search as SearchIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { KeyboardEvent, useCallback, useState } from 'react';
+import { KeyboardEvent, RefObject, useCallback, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 
 import Badge from '@/components/badge';
 import ClientImage from '@/components/client-image';
@@ -160,17 +161,25 @@ function SearchCommandBody({
 }
 
 type SearchCommandInputProps = {
+  inputRef: RefObject<HTMLInputElement | null>;
   query: string;
   isFetching: boolean;
   onChange: (value: string) => void;
   onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
 };
 
-function SearchCommandInput({ query, isFetching, onChange, onKeyDown }: SearchCommandInputProps) {
+function SearchCommandInput({
+  inputRef,
+  query,
+  isFetching,
+  onChange,
+  onKeyDown,
+}: SearchCommandInputProps) {
   return (
     <div className="relative border-b">
       <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input
+        ref={inputRef}
         type="search"
         aria-label="Search for movies, TV shows, or people"
         placeholder="Search movies, TV shows, people..."
@@ -217,7 +226,12 @@ function SearchCommandFooter({ itemCount, href, query, onNavigate }: SearchComma
   );
 }
 
-function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void }) {
+type SearchCommandPanelProps = {
+  inputRef: RefObject<HTMLInputElement | null>;
+  onNavigate: (href: string) => void;
+};
+
+function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -267,6 +281,7 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
   return (
     <>
       <SearchCommandInput
+        inputRef={inputRef}
         query={query}
         isFetching={isFetching}
         onChange={onQueryChange}
@@ -310,9 +325,19 @@ function SearchCommandPanel({ onNavigate }: { onNavigate: (href: string) => void
 export function SearchCommand() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const openShortcut = useShortcutLabel('K');
 
-  useSearchShortcut(useCallback(() => setOpen(true), []));
+  // Mount the dialog synchronously and focus the input within the opening
+  // gesture. iOS Safari only raises the keyboard for a focus() that happens
+  // inside the user interaction; the dialog's own (deferred) autofocus is
+  // ignored there, which left the field needing a second tap.
+  const openSearch = useCallback(() => {
+    flushSync(() => setOpen(true));
+    inputRef.current?.focus();
+  }, []);
+
+  useSearchShortcut(openSearch);
 
   function navigate(href: string) {
     setOpen(false);
@@ -323,7 +348,7 @@ export function SearchCommand() {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={openSearch}
         className="flex h-9 max-w-md flex-1 items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm text-muted-foreground transition-colors hover:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <SearchIcon className="h-4 w-4" />
@@ -337,7 +362,7 @@ export function SearchCommand() {
           className="top-24 translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg"
         >
           <DialogTitle className="sr-only">Search</DialogTitle>
-          <SearchCommandPanel onNavigate={navigate} />
+          <SearchCommandPanel inputRef={inputRef} onNavigate={navigate} />
         </DialogContent>
       </Dialog>
     </>
