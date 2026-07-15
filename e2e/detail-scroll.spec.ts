@@ -26,6 +26,12 @@ import { MOVIE_PATH } from './helpers';
  * @param urlPattern - Expected destination URL.
  */
 async function expectNavigationLandsAtTop(page: Page, linkSelector: string, urlPattern: RegExp) {
+  // The source page's own level-1 heading, if it has one (the discover page's
+  // title is an <h2>, the movie page's is an <h1>). Used below to tell the
+  // destination content apart from the still-visible source route mid-transition.
+  const h1 = page.getByRole('heading', { level: 1 });
+  const sourceHeading = (await h1.count()) > 0 ? (await h1.first().textContent())?.trim() : undefined;
+
   // Drop to the bottom so we navigate away from a scrolled-down position.
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
@@ -37,9 +43,15 @@ async function expectNavigationLandsAtTop(page: Page, linkSelector: string, urlP
   await link.click();
 
   await page.waitForURL(urlPattern);
-  // The skeleton renders only <Skeleton> divs; a visible <h1> means the real
-  // content has replaced it.
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+  // Wait for the destination's own content before measuring scroll. A generic
+  // heading check would pass early: the source route can stay visible while the
+  // destination streams, and its heading (or the skeleton) would satisfy it, so
+  // we'd sample the scroll position before the destination settled. The
+  // destination's <h1> carries the title; when the source has its own <h1> we
+  // exclude its text so we don't match the still-visible source heading.
+  const destinationHeading = sourceHeading ? h1.filter({ hasNotText: sourceHeading }) : h1;
+  await expect(destinationHeading.first()).toBeVisible();
 
   // Once the real content is in, the viewport should be at the top.
   await expect
