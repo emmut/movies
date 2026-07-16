@@ -1,17 +1,17 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, GripVertical } from 'lucide-react';
 import Link from 'next/link';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 
 import { ListItemsGrid } from '@/components/list-items-grid';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
+import { ReorderButton } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
-import { Button } from '@/components/ui/button';
+import WatchProviderFilter from '@/components/watch-provider-filter';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
 import { moveListItem } from '@/lib/lists';
@@ -22,6 +22,8 @@ import {
   type SystemListItem,
 } from '@/lib/system-list-queries';
 import type { SystemListType } from '@/lib/validations';
+import { activeWatchProviderFilter } from '@/lib/watch-provider-search-params';
+import type { WatchProvider } from '@/types/watch-provider';
 
 const CONTENT_COPY: Record<
   SystemListType,
@@ -78,6 +80,8 @@ const EMPTY_RESULT: { items: SystemListItem[]; totalPages: number } = {
 type SystemListContentProps = {
   listType: SystemListType;
   userId?: string;
+  watchProviders: WatchProvider[];
+  userRegion: string;
 };
 
 /**
@@ -85,11 +89,18 @@ type SystemListContentProps = {
  * React Query. Uses nuqs to manage URL state, which automatically triggers
  * React Query refetches.
  */
-export function SystemListContent({ listType, userId }: SystemListContentProps) {
+export function SystemListContent({
+  listType,
+  userId,
+  watchProviders,
+  userRegion,
+}: SystemListContentProps) {
   const [urlState] = useQueryStates(
     {
       mediaType: parseAsString.withDefault('movie'),
       page: parseAsInteger.withDefault(1),
+      with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
+      watch_region: parseAsString.withDefault(userRegion),
     },
     {
       history: 'push',
@@ -99,9 +110,24 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
   const mediaType = urlState.mediaType as 'movie' | 'tv';
   const page = urlState.page;
 
+  // Normalized exactly like the server shell computes them, so the query key
+  // matches the prefetch after hydration.
+  const { activeProviders, activeRegion } = activeWatchProviderFilter(
+    urlState.with_watch_providers,
+    urlState.watch_region,
+  );
+  const isProviderFiltered = activeProviders !== undefined;
+
   const { data: paginatedData, isLoading } = useQuery({
-    queryKey: queryKeys[listType].list(mediaType, page),
-    queryFn: () => getSystemListWithResourceDetailsPaginated(listType, mediaType, page),
+    queryKey: queryKeys[listType].list(mediaType, page, activeProviders, activeRegion),
+    queryFn: () =>
+      getSystemListWithResourceDetailsPaginated(
+        listType,
+        mediaType,
+        page,
+        activeProviders,
+        activeRegion,
+      ),
     ...SYSTEM_LIST_QUERY_TIMES,
   });
 
@@ -145,6 +171,9 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
         totalTvShows={totalTvShows}
         isEditing={isEditing}
         onToggleEditing={() => setIsEditing((value) => !value)}
+        watchProviders={watchProviders}
+        userRegion={userRegion}
+        isProviderFiltered={isProviderFiltered}
       />
 
       <SystemListBody
@@ -153,11 +182,12 @@ export function SystemListContent({ listType, userId }: SystemListContentProps) 
         userId={userId}
         isLoading={isLoading}
         isAllEmpty={totalItems === 0}
+        isProviderFiltered={isProviderFiltered}
         items={localItems}
         totalPages={totalPages}
         itemCount={totalForMedia}
         offset={offset}
-        isEditing={isEditing}
+        isEditing={isEditing && !isProviderFiltered}
         isPending={isPending}
         onMove={move}
       />
@@ -172,6 +202,9 @@ function SystemListHeader({
   totalTvShows,
   isEditing,
   onToggleEditing,
+  watchProviders,
+  userRegion,
+  isProviderFiltered,
 }: {
   listType: SystemListType;
   mediaType: 'movie' | 'tv';
@@ -179,9 +212,11 @@ function SystemListHeader({
   totalTvShows: number;
   isEditing: boolean;
   onToggleEditing: () => void;
+  watchProviders: WatchProvider[];
+  userRegion: string;
+  isProviderFiltered: boolean;
 }) {
   const totalItems = totalMovies + totalTvShows;
-  const mediaTypeCount = mediaType === 'movie' ? totalMovies : totalTvShows;
 
   return (
     <div className="mb-8">
@@ -189,54 +224,53 @@ function SystemListHeader({
         <SectionTitle>{CONTENT_COPY[listType].title}</SectionTitle>
       </div>
 
-      <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
-        <div className="flex items-center gap-2">
-          <p className="text-zinc-400">
-            {formatCount(mediaTypeCount, MEDIA_META[mediaType].countNoun)}{' '}
-            {CONTENT_COPY[listType].countNoun}
-          </p>
-          {totalItems > 0 && (
-            <span className="text-zinc-500">• Total: {formatCount(totalItems, 'item')}</span>
-          )}
-        </div>
+      <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-end @2xl:justify-between">
+        <SystemListCounts
+          listType={listType}
+          mediaType={mediaType}
+          totalMovies={totalMovies}
+          totalTvShows={totalTvShows}
+        />
 
-        <div className="flex items-center gap-2">
-          {totalItems > 0 && (
+        <div className="flex flex-wrap items-end gap-2">
+          {/* Reordering a provider-filtered view is disabled: the visible rows
+              are a non-contiguous slice, so page offsets no longer map to
+              positions in the full manual order. */}
+          {totalItems > 0 && !isProviderFiltered && (
             <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
           )}
           <MediaTypeSelector currentMediaType={mediaType} />
+          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} />
         </div>
       </div>
     </div>
   );
 }
 
-function ReorderButton({
-  isEditing,
-  onToggleEditing,
+function SystemListCounts({
+  listType,
+  mediaType,
+  totalMovies,
+  totalTvShows,
 }: {
-  isEditing: boolean;
-  onToggleEditing: () => void;
+  listType: SystemListType;
+  mediaType: 'movie' | 'tv';
+  totalMovies: number;
+  totalTvShows: number;
 }) {
+  const totalItems = totalMovies + totalTvShows;
+  const mediaTypeCount = mediaType === 'movie' ? totalMovies : totalTvShows;
+
   return (
-    <Button
-      variant={isEditing ? 'default' : 'secondary'}
-      size="sm"
-      onClick={onToggleEditing}
-      aria-pressed={isEditing}
-    >
-      {isEditing ? (
-        <>
-          <Check className="h-4 w-4" />
-          Done
-        </>
-      ) : (
-        <>
-          <GripVertical className="h-4 w-4" />
-          Reorder items
-        </>
+    <div className="flex items-center gap-2">
+      <p className="text-zinc-400">
+        {formatCount(mediaTypeCount, MEDIA_META[mediaType].countNoun)}{' '}
+        {CONTENT_COPY[listType].countNoun}
+      </p>
+      {totalItems > 0 && (
+        <span className="text-zinc-500">• Total: {formatCount(totalItems, 'item')}</span>
       )}
-    </Button>
+    </div>
   );
 }
 
@@ -246,6 +280,7 @@ function SystemListBody({
   userId,
   isLoading,
   isAllEmpty,
+  isProviderFiltered,
   items,
   totalPages,
   itemCount,
@@ -259,6 +294,7 @@ function SystemListBody({
   userId?: string;
   isLoading: boolean;
   isAllEmpty: boolean;
+  isProviderFiltered: boolean;
   items: SystemListItem[];
   totalPages: number;
   itemCount: number;
@@ -272,7 +308,14 @@ function SystemListBody({
   }
 
   if (items.length === 0) {
-    return <EmptyState listType={listType} mediaType={mediaType} isAllEmpty={isAllEmpty} />;
+    return (
+      <EmptyState
+        listType={listType}
+        mediaType={mediaType}
+        isAllEmpty={isAllEmpty}
+        isProviderFiltered={isProviderFiltered}
+      />
+    );
   }
 
   return (
@@ -292,27 +335,47 @@ function SystemListBody({
   );
 }
 
+function emptyStateCopy(
+  listType: SystemListType,
+  mediaType: 'movie' | 'tv',
+  isAllEmpty: boolean,
+  isProviderFiltered: boolean,
+) {
+  const copy = CONTENT_COPY[listType];
+  const meta = MEDIA_META[mediaType];
+
+  if (isProviderFiltered) {
+    return {
+      title: `No ${meta.label} on the selected watch providers`,
+      hint: 'Try other watch providers or clear the filter to see everything',
+    };
+  }
+
+  return {
+    title: isAllEmpty ? copy.emptyTitleAll : copy.emptyTitleMedia(meta.label),
+    hint: isAllEmpty ? copy.emptyHintAll(meta.label) : copy.emptyHintMedia(meta.label),
+  };
+}
+
 function EmptyState({
   listType,
   mediaType,
   isAllEmpty,
+  isProviderFiltered,
 }: {
   listType: SystemListType;
   mediaType: 'movie' | 'tv';
   isAllEmpty: boolean;
+  isProviderFiltered: boolean;
 }) {
-  const copy = CONTENT_COPY[listType];
   const meta = MEDIA_META[mediaType];
+  const { title, hint } = emptyStateCopy(listType, mediaType, isAllEmpty, isProviderFiltered);
 
   return (
     <div className="py-12 text-center">
       <div className="mb-4 text-6xl opacity-50">{meta.emoji}</div>
-      <h2 className="mb-2 text-xl font-semibold">
-        {isAllEmpty ? copy.emptyTitleAll : copy.emptyTitleMedia(meta.label)}
-      </h2>
-      <p className="mb-6 text-zinc-400">
-        {isAllEmpty ? copy.emptyHintAll(meta.label) : copy.emptyHintMedia(meta.label)}
-      </p>
+      <h2 className="mb-2 text-xl font-semibold">{title}</h2>
+      <p className="mb-6 text-zinc-400">{hint}</p>
       <Link
         href={`/discover?mediaType=${mediaType}`}
         className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"

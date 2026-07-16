@@ -15,6 +15,7 @@ import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { moveIdToIndex } from '@/lib/list-order';
+import { paginate } from '@/lib/paginate';
 import {
   listItemOrderingScope,
   listOrderingScope,
@@ -33,7 +34,12 @@ import {
   removeListItemSchema,
   SystemListType,
   updateListSchema,
+  WatchProviderFilter,
 } from '@/lib/validations';
+import {
+  filterRowsByWatchProviders,
+  parseWatchProviderFilter,
+} from '@/lib/watch-provider-availability';
 
 import { ITEMS_PER_PAGE, LISTS_PER_PAGE } from './config';
 
@@ -224,9 +230,25 @@ export async function getUserListsPaginated(page: number = 1) {
  * @param itemsPerPage - The number of items per page.
  * @returns An object containing the list details, paginated items, and pagination metadata.
  */
-async function getListDetailsPaginated(listId: string, page: number = 1) {
+async function getListDetailsPaginated(
+  listId: string,
+  page: number = 1,
+  providerFilter: WatchProviderFilter | null = null,
+) {
   const user = await requireUser();
 
+  validateListDetailsParams(listId, page);
+
+  const list = await fetchOwnedCustomListRow(listId, user.id);
+
+  if (providerFilter) {
+    return await queryProviderFilteredListPage(list, page, providerFilter);
+  }
+
+  return await queryUnfilteredListPage(list, page);
+}
+
+function validateListDetailsParams(listId: string, page: number) {
   if (!listIdSchema.safeParse(listId).success) {
     redirect('/lists');
   }
@@ -234,30 +256,32 @@ async function getListDetailsPaginated(listId: string, page: number = 1) {
   if (!pageSchema.safeParse(page).success) {
     redirect(`/lists/${listId}`);
   }
+}
 
+/** @throws {Error} 'List not found' unless the list is an owned custom list. */
+async function fetchOwnedCustomListRow(listId: string, userId: string) {
   const listResult = await db
     .select()
     .from(lists)
-    .where(and(eq(lists.id, listId), ownedCustomListsFilter(user.id)));
+    .where(and(eq(lists.id, listId), ownedCustomListsFilter(userId)));
 
   if (listResult.length === 0) {
     throw new Error('List not found');
   }
 
-  const list = listResult[0];
+  return listResult[0];
+}
 
+async function queryUnfilteredListPage(list: typeof lists.$inferSelect, page: number) {
   const totalCountResult = await db
     .select({ count: count() })
     .from(listItems)
-    .where(eq(listItems.listId, listId));
+    .where(eq(listItems.listId, list.id));
 
   // Safely coerce count to number, handling BigInt/string/null cases
   const totalItems = Number(totalCountResult[0]?.count) || 0;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-
-  // Parse and clamp page to valid range
-  const parsedPage = parseInt(String(page), 10) || 1;
-  const currentPage = Math.max(1, Math.min(parsedPage, totalPages || 1));
+  const currentPage = Math.max(1, Math.min(page, totalPages || 1));
 
   if (totalItems === 0) {
     return {
@@ -276,7 +300,7 @@ async function getListDetailsPaginated(listId: string, page: number = 1) {
   const items = await db
     .select()
     .from(listItems)
-    .where(eq(listItems.listId, listId))
+    .where(eq(listItems.listId, list.id))
     .orderBy(...itemManualOrder())
     .limit(ITEMS_PER_PAGE)
     .offset(offset);
@@ -293,15 +317,55 @@ async function getListDetailsPaginated(listId: string, page: number = 1) {
 }
 
 /**
+ * Stream-provider-filtered page of a custom list: availability lives in TMDB
+ * rather than the database, so every item is loaded, filtered by
+ * streamability (person items never match), and paginated in memory.
+ * `itemCount` stays the unfiltered total so headers and delete confirmations
+ * keep describing the whole list, while the pagination metadata reflects the
+ * filtered set.
+ */
+async function queryProviderFilteredListPage(
+  list: typeof lists.$inferSelect,
+  page: number,
+  providerFilter: WatchProviderFilter,
+) {
+  const allRows = await db
+    .select()
+    .from(listItems)
+    .where(eq(listItems.listId, list.id))
+    .orderBy(...itemManualOrder());
+
+  const matching = await filterRowsByWatchProviders(allRows, providerFilter);
+  const { pageItems, ...pagination } = paginate(matching, page, ITEMS_PER_PAGE);
+
+  return {
+    ...list,
+    items: pageItems,
+    itemCount: allRows.length,
+    ...pagination,
+  };
+}
+
+/**
  * Fetches list details with all resource details populated.
  * Helper function to avoid code duplication.
+ *
+ * @param watchProviders - When non-empty, only items streamable on any of
+ * these TMDB provider ids (in `watchRegion`) are returned.
+ * @param watchRegion - The region used for the provider availability check.
  */
-export async function getListDetailsWithResources(listId: string, page: number = 1) {
+export async function getListDetailsWithResources(
+  listId: string,
+  page: number = 1,
+  watchProviders?: number[],
+  watchRegion?: string,
+) {
   const { getMovieDetails } = await import('@/lib/movies');
   const { getTvShowDetails } = await import('@/lib/tv-shows');
   const { getPersonDetails } = await import('@/lib/persons');
 
-  const paginatedList = await getListDetailsPaginated(listId, page);
+  const providerFilter = parseWatchProviderFilter(watchProviders, watchRegion);
+  const paginatedList = await getListDetailsPaginated(listId, page, providerFilter);
 
   // Fetch details for paginated items only
   const movieItems = paginatedList.items?.filter((item) => item.resourceType === 'movie') || [];

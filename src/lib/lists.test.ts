@@ -15,6 +15,13 @@ vi.mock('next/cache', () => ({
   cacheTag: vi.fn(),
 }));
 vi.mock('next/navigation', () => ({ redirect: vi.fn() }));
+vi.mock('@/lib/movies', () => ({ getMovieDetails: vi.fn(), getMovieWatchProviders: vi.fn() }));
+vi.mock('@/lib/tv-shows', () => ({
+  getTvShowDetails: vi.fn(),
+  getTvShowWatchProviders: vi.fn(),
+}));
+vi.mock('@/lib/persons', () => ({ getPersonDetails: vi.fn() }));
+vi.mock('@/lib/imgproxy-url', () => ({ buildProxyImageUrls: vi.fn(() => undefined) }));
 // Run the locked callback against the db mock directly; the real lock needs a
 // live transaction and is covered by ordering-lock.test.ts.
 vi.mock('@/lib/ordering-lock', async (importOriginal) => {
@@ -32,13 +39,16 @@ import {
   revalidateUserSystemListPageCache,
 } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
+import { getMovieDetails, getMovieWatchProviders } from '@/lib/movies';
 import { withOrderingLock } from '@/lib/ordering-lock';
+import { getPersonDetails } from '@/lib/persons';
 import { chain } from '@/test/db-chain';
 
 import {
   addToList,
   createList,
   deleteList,
+  getListDetailsWithResources,
   getOwnedCustomList,
   moveListItem,
   moveList,
@@ -198,6 +208,79 @@ describe('moveListItem', () => {
     await moveListItem(UUID, 0, 'movie');
     expect(revalidateUserSystemListPageCache).toHaveBeenCalledWith('user-1', 'watchlist');
     expect(revalidateUserListCache).not.toHaveBeenCalled();
+  });
+});
+
+describe('getListDetailsWithResources with a provider filter', () => {
+  const list = {
+    id: UUID,
+    userId: 'user-1',
+    type: 'custom',
+    name: 'My list',
+    description: null,
+    emoji: '📝',
+    position: 1,
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+  };
+
+  const itemRows = [
+    { id: 'item-1', listId: UUID, resourceId: 1, resourceType: 'movie', position: 1, createdAt: new Date(0) },
+    { id: 'item-2', listId: UUID, resourceId: 2, resourceType: 'movie', position: 2, createdAt: new Date(0) },
+    { id: 'item-3', listId: UUID, resourceId: 3, resourceType: 'person', position: 3, createdAt: new Date(0) },
+  ];
+
+  beforeEach(() => {
+    vi.mocked(getMovieDetails).mockImplementation(
+      async (movieId: number) => ({ id: movieId, poster_path: null }) as never,
+    );
+    // Movie 1 streams on provider 8 in SE; movie 2 streams nowhere.
+    vi.mocked(getMovieWatchProviders).mockImplementation(async (movieId: number) => ({
+      results:
+        movieId === 1
+          ? {
+              SE: {
+                link: 'https://tmdb',
+                flatrate: [
+                  { provider_id: 8, provider_name: 'Netflix', logo_path: '/n.png', display_priority: 1 },
+                ],
+              },
+            }
+          : {},
+    }));
+  });
+
+  it('keeps only streamable items while itemCount stays the unfiltered total', async () => {
+    vi.mocked(db.select)
+      .mockReturnValueOnce(chain([list]))
+      .mockReturnValueOnce(chain(itemRows));
+
+    const result = await getListDetailsWithResources(UUID, 1, [8], 'SE');
+
+    expect(result.allItems.map((item) => item.id)).toEqual([1]);
+    expect(result.totalItems).toBe(1);
+    expect(result.totalPages).toBe(1);
+    expect(result.itemCount).toBe(3);
+    // Person rows never match a stream-provider filter, so no person lookup runs.
+    expect(getPersonDetails).not.toHaveBeenCalled();
+  });
+
+  it('returns an empty page but a non-zero itemCount when nothing matches', async () => {
+    vi.mocked(db.select)
+      .mockReturnValueOnce(chain([list]))
+      .mockReturnValueOnce(chain(itemRows));
+
+    const result = await getListDetailsWithResources(UUID, 1, [999], 'SE');
+
+    expect(result.allItems).toEqual([]);
+    expect(result.totalItems).toBe(0);
+    expect(result.totalPages).toBe(0);
+    expect(result.itemCount).toBe(3);
+  });
+
+  it('rejects an unknown watch region before querying', async () => {
+    await expect(getListDetailsWithResources(UUID, 1, [8], 'XX')).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
   });
 });
 

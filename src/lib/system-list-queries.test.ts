@@ -3,13 +3,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@/lib/db', () => ({ db: { select: vi.fn() } }));
 vi.mock('@/lib/auth-server', () => ({ getUser: vi.fn() }));
 vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
-vi.mock('@/lib/movies', () => ({ getMovieDetails: vi.fn() }));
-vi.mock('@/lib/tv-shows', () => ({ getTvShowDetails: vi.fn() }));
+vi.mock('@/lib/movies', () => ({ getMovieDetails: vi.fn(), getMovieWatchProviders: vi.fn() }));
+vi.mock('@/lib/tv-shows', () => ({
+  getTvShowDetails: vi.fn(),
+  getTvShowWatchProviders: vi.fn(),
+}));
 vi.mock('@/lib/imgproxy-url', () => ({ buildProxyImageUrls: vi.fn(() => ({ src: 'proxied' })) }));
 
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { getMovieDetails } from '@/lib/movies';
+import { getMovieDetails, getMovieWatchProviders } from '@/lib/movies';
 import { getTvShowDetails } from '@/lib/tv-shows';
 import { chain } from '@/test/db-chain';
 
@@ -179,5 +182,86 @@ describe('getSystemListWithResourceDetailsPaginated', () => {
 
     expect(result.items).toEqual([]);
     expect(result.totalItems).toBe(0);
+  });
+});
+
+describe('getSystemListWithResourceDetailsPaginated with a provider filter', () => {
+  const rows = [
+    { id: 'item-1', resourceId: 1, resourceType: 'movie', createdAt: new Date(0) },
+    { id: 'item-2', resourceId: 2, resourceType: 'movie', createdAt: new Date(1) },
+  ];
+
+  beforeEach(() => {
+    vi.mocked(getMovieDetails).mockImplementation(
+      async (movieId: number) => ({ id: movieId, poster_path: null }) as never,
+    );
+    // Movie 1 streams on provider 8 in SE; movie 2 streams nowhere.
+    vi.mocked(getMovieWatchProviders).mockImplementation(async (movieId: number) => ({
+      results:
+        movieId === 1
+          ? {
+              SE: {
+                link: 'https://tmdb',
+                flatrate: [
+                  { provider_id: 8, provider_name: 'Netflix', logo_path: '/n.png', display_priority: 1 },
+                ],
+              },
+            }
+          : {},
+    }));
+  });
+
+  it('returns only items streamable on the selected providers', async () => {
+    vi.mocked(db.select).mockReturnValue(chain(rows));
+
+    const result = await getSystemListWithResourceDetailsPaginated(
+      'watchlist',
+      'movie',
+      1,
+      [8],
+      'SE',
+    );
+
+    expect(result.items.map((item) => item.id)).toEqual([1]);
+    expect(result.totalItems).toBe(1);
+    expect(result.totalPages).toBe(1);
+    // The filtered path paginates in memory: one row query, no count query.
+    expect(db.select).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns an empty page when nothing matches the filter', async () => {
+    vi.mocked(db.select).mockReturnValue(chain(rows));
+
+    const result = await getSystemListWithResourceDetailsPaginated(
+      'watched',
+      'movie',
+      1,
+      [999],
+      'SE',
+    );
+
+    expect(result.items).toEqual([]);
+    expect(result.totalItems).toBe(0);
+    expect(result.totalPages).toBe(0);
+    expect(getMovieDetails).not.toHaveBeenCalled();
+  });
+
+  it('skips availability lookups when the filter is empty', async () => {
+    vi.mocked(db.select)
+      .mockReturnValueOnce(chain([{ count: 2 }]))
+      .mockReturnValueOnce(chain(rows));
+
+    const result = await getSystemListWithResourceDetailsPaginated('watchlist', 'movie', 1, []);
+
+    expect(result.totalItems).toBe(2);
+    expect(result.items).toHaveLength(2);
+    expect(getMovieWatchProviders).not.toHaveBeenCalled();
+  });
+
+  it('rejects an unknown watch region before querying', async () => {
+    await expect(
+      getSystemListWithResourceDetailsPaginated('watchlist', 'movie', 1, [8], 'XX'),
+    ).rejects.toThrow();
+    expect(db.select).not.toHaveBeenCalled();
   });
 });
