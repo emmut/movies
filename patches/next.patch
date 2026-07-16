@@ -1,0 +1,80 @@
+diff --git a/dist/client/components/layout-router.js b/dist/client/components/layout-router.js
+index 06b68cc92862992b485d8f3edf0a937e0af2847a..0f13c2f8dec60ce74434e6c75da6490d7e3222c2 100644
+--- a/dist/client/components/layout-router.js
++++ b/dist/client/components/layout-router.js
+@@ -145,12 +145,13 @@ class InnerScrollAndFocusHandlerOld extends _react.default.Component {
+             // Verify if the element is a HTMLElement and if we want to consider it for scroll behavior.
+             // If the element is skipped, try to select the next sibling and try again.
+             while(!(domNode instanceof HTMLElement) || shouldSkipElement(domNode)){
+-                if (process.env.NODE_ENV !== 'production') {
+-                    if (domNode.parentElement?.localName === 'head') {
+-                    // We enter this state when metadata was rendered as part of the page or via Next.js.
+-                    // This is always a bug in Next.js and caused by React hoisting metadata.
+-                    // Fixed with `experimental.appNewScrollHandler`
+-                    }
++                // PATCHED(movies): React hoisted the segment's first node (e.g. a
++                // stylesheet <link>) into <head>; the sibling walk would die there
++                // and the navigation would silently keep its scroll offset.
++                // Restart the walk from <body> so route changes still scroll.
++                if (domNode.parentElement?.localName === 'head') {
++                    domNode = document.body;
++                    continue;
+                 }
+                 // No siblings found that match the criteria are found, so handle scroll higher up in the tree instead.
+                 if (domNode.nextElementSibling === null) {
+@@ -170,8 +171,13 @@ class InnerScrollAndFocusHandlerOld extends _react.default.Component {
+                 // and it won't change during this function.
+                 const htmlElement = document.documentElement;
+                 const viewportHeight = htmlElement.clientHeight;
+-                // If the element's top edge is already in the viewport, exit early.
+-                if (topOfElementInViewport(domNode, viewportHeight)) {
++                // PATCHED(movies): only skip scrolling when the page is already at
++                // the top. When a short loading skeleton is barely taller than the
++                // viewport, the browser clamps the retained scroll offset to a few
++                // dozen pixels, which leaves the segment's top edge visible; the
++                // stock early-exit then treated that as "no scroll needed" and the
++                // navigation stayed scrolled down forever (screen-size dependent).
++                if (window.scrollY === 0 && topOfElementInViewport(domNode, viewportHeight)) {
+                     return;
+                 }
+                 // Otherwise, try scrolling go the top of the document to be backward compatible with pages
+diff --git a/dist/esm/client/components/layout-router.js b/dist/esm/client/components/layout-router.js
+index 25e44ba48e03b6ae3eb6de3ddacfdcc8f43f185d..a86edc932d359615b462e4c38e401a3cf023cbf2 100644
+--- a/dist/esm/client/components/layout-router.js
++++ b/dist/esm/client/components/layout-router.js
+@@ -118,12 +118,13 @@ class InnerScrollAndFocusHandlerOld extends React.Component {
+             // Verify if the element is a HTMLElement and if we want to consider it for scroll behavior.
+             // If the element is skipped, try to select the next sibling and try again.
+             while(!(domNode instanceof HTMLElement) || shouldSkipElement(domNode)){
+-                if (process.env.NODE_ENV !== 'production') {
+-                    if (domNode.parentElement?.localName === 'head') {
+-                    // We enter this state when metadata was rendered as part of the page or via Next.js.
+-                    // This is always a bug in Next.js and caused by React hoisting metadata.
+-                    // Fixed with `experimental.appNewScrollHandler`
+-                    }
++                // PATCHED(movies): React hoisted the segment's first node (e.g. a
++                // stylesheet <link>) into <head>; the sibling walk would die there
++                // and the navigation would silently keep its scroll offset.
++                // Restart the walk from <body> so route changes still scroll.
++                if (domNode.parentElement?.localName === 'head') {
++                    domNode = document.body;
++                    continue;
+                 }
+                 // No siblings found that match the criteria are found, so handle scroll higher up in the tree instead.
+                 if (domNode.nextElementSibling === null) {
+@@ -143,8 +144,13 @@ class InnerScrollAndFocusHandlerOld extends React.Component {
+                 // and it won't change during this function.
+                 const htmlElement = document.documentElement;
+                 const viewportHeight = htmlElement.clientHeight;
+-                // If the element's top edge is already in the viewport, exit early.
+-                if (topOfElementInViewport(domNode, viewportHeight)) {
++                // PATCHED(movies): only skip scrolling when the page is already at
++                // the top. When a short loading skeleton is barely taller than the
++                // viewport, the browser clamps the retained scroll offset to a few
++                // dozen pixels, which leaves the segment's top edge visible; the
++                // stock early-exit then treated that as "no scroll needed" and the
++                // navigation stayed scrolled down forever (screen-size dependent).
++                if (window.scrollY === 0 && topOfElementInViewport(domNode, viewportHeight)) {
+                     return;
+                 }
+                 // Otherwise, try scrolling go the top of the document to be backward compatible with pages

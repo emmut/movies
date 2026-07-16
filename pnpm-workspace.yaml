@@ -5,6 +5,7 @@ allowBuilds:
   protobufjs: true
   sharp: true
 patchedDependencies:
+  next: patches/next.patch
   railway: patches/railway.patch
 
 overrides:
