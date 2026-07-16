@@ -122,12 +122,12 @@ describe('matchesWatchProviders', () => {
     expect(getTvShowWatchProviders).not.toHaveBeenCalled();
   });
 
-  it('treats a failed provider lookup as not matching', async () => {
+  it('propagates a failed provider lookup instead of reporting unavailable', async () => {
     vi.mocked(getMovieWatchProviders).mockRejectedValue(new Error('TMDB down'));
 
     await expect(
       matchesWatchProviders({ resourceType: 'movie', resourceId: 1 }, filter),
-    ).resolves.toBe(false);
+    ).rejects.toThrow('TMDB down');
   });
 });
 
@@ -151,5 +151,29 @@ describe('filterRowsByWatchProviders', () => {
       { resourceId: 1, resourceType: 'movie' },
       { resourceId: 3, resourceType: 'movie' },
     ]);
+  });
+
+  it('bounds concurrent lookups while still filtering every row', async () => {
+    let inFlight = 0;
+    let maxInFlight = 0;
+    vi.mocked(getMovieWatchProviders).mockImplementation(async (movieId: number) => {
+      inFlight++;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await Promise.resolve();
+      inFlight--;
+      return {
+        results: movieId % 2 === 1 ? { SE: { link: 'https://tmdb', flatrate: [offer(8)] } } : {},
+      };
+    });
+
+    const rows = Array.from({ length: 25 }, (_, i) => ({
+      resourceId: i + 1,
+      resourceType: 'movie',
+    }));
+
+    const result = await filterRowsByWatchProviders(rows, { providerIds: [8], region: 'SE' });
+
+    expect(result).toHaveLength(13);
+    expect(maxInFlight).toBeLessThanOrEqual(10);
   });
 });

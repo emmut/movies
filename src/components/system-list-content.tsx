@@ -232,15 +232,15 @@ function SystemListHeader({
           totalTvShows={totalTvShows}
         />
 
-        <div className="flex flex-wrap items-end gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Reordering a provider-filtered view is disabled: the visible rows
               are a non-contiguous slice, so page offsets no longer map to
               positions in the full manual order. */}
           {totalItems > 0 && !isProviderFiltered && (
             <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
           )}
+          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
           <MediaTypeSelector currentMediaType={mediaType} />
-          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} />
         </div>
       </div>
     </div>

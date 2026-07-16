@@ -263,13 +263,14 @@ function ListDetailsHeader({
     <div className="mb-8">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <SectionTitle>{listName}</SectionTitle>
-        <div className="flex flex-wrap items-end gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Reordering a provider-filtered view is disabled: the visible rows
               are a non-contiguous slice, so page offsets no longer map to
               positions in the full manual order. */}
           {itemCount > 0 && !isProviderFiltered && (
             <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
           )}
+          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
           <EditListDialog
             listId={listId}
             listName={listName}
@@ -282,7 +283,6 @@ function ListDetailsHeader({
             itemCount={itemCount}
             redirectAfterDelete={true}
           />
-          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} />
         </div>
       </div>
     </div>

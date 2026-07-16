@@ -47,30 +47,44 @@ async function fetchRegionProviders(resourceType: 'movie' | 'tv', resourceId: nu
 
 /**
  * Whether a list item can be streamed on any of the filter's providers in the
- * filter's region. Person rows and failed provider lookups never match.
+ * filter's region. Person rows never match. A failed provider lookup throws
+ * (after tmdbFetch's own retries) instead of silently reporting the title as
+ * unavailable, so an outage can't render a populated list as "no matches".
  */
 export async function matchesWatchProviders(row: ListItemResource, filter: WatchProviderFilter) {
   if (row.resourceType !== 'movie' && row.resourceType !== 'tv') {
     return false;
   }
 
-  try {
-    const regionProviders = await fetchRegionProviders(row.resourceType, row.resourceId, filter.region);
-    return streamableProviderIds(regionProviders).some((id) => filter.providerIds.includes(id));
-  } catch {
-    return false;
-  }
+  const regionProviders = await fetchRegionProviders(
+    row.resourceType,
+    row.resourceId,
+    filter.region,
+  );
+  return streamableProviderIds(regionProviders).some((id) => filter.providerIds.includes(id));
 }
+
+// Caps concurrent TMDB availability lookups so a large list with a cold cache
+// doesn't fire hundreds of requests at once (tmdbFetch retries but has no
+// concurrency limit of its own).
+const MAX_CONCURRENT_LOOKUPS = 10;
 
 /**
  * Keeps the rows streamable on any of the filter's providers, preserving the
- * input order. Availability lookups run in parallel and are cached for days,
- * so filtering a whole list stays cheap.
+ * input order. Lookups run in bounded batches and are cached for days, so
+ * filtering a whole list stays cheap on a warm cache.
  */
 export async function filterRowsByWatchProviders<T extends ListItemResource>(
   rows: T[],
   filter: WatchProviderFilter,
 ): Promise<T[]> {
-  const matches = await Promise.all(rows.map((row) => matchesWatchProviders(row, filter)));
+  // ponytail: batch barrier, not a work pool — swap in a pool if list sizes
+  // make the slowest-in-batch stalls matter.
+  const matches: boolean[] = [];
+  for (let i = 0; i < rows.length; i += MAX_CONCURRENT_LOOKUPS) {
+    const batch = rows.slice(i, i + MAX_CONCURRENT_LOOKUPS);
+    matches.push(...(await Promise.all(batch.map((row) => matchesWatchProviders(row, filter)))));
+  }
+
   return rows.filter((_, index) => matches[index]);
 }
