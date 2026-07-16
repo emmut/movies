@@ -110,7 +110,12 @@ export default defineRailway((ctx) => {
   // Previews ingest into their own postgres instead (and get real IMDb data);
   // IMDb refreshes the datasets early UTC, so run shortly after.
   const imdbIngest = service("imdb-ingest", {
-    source: github("emmut/movies"),
+    // Track the PR branch in previews, same as the movies service. Left on the
+    // default branch, a PR environment first deploys imdb-ingest at the PR
+    // commit and then the infra apply redeploys it at main, cancelling the
+    // first — and Railway reports that cancelled deployment as a failed PR
+    // check. Pinning the branch keeps the single deployment green.
+    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
     // The cron only needs dependencies + tsx; Railpack's default
     // `pnpm run build` would run `next build`, which fails env validation
     // since this service only has DATABASE_URL.
