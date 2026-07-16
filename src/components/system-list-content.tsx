@@ -225,19 +225,20 @@ function SystemListHeader({
   const totalItems = totalMovies + totalTvShows;
 
   return (
-    <div className="mb-8">
-      <div className="mb-4 flex items-center gap-4">
-        <SectionTitle>{CONTENT_COPY[listType].title}</SectionTitle>
-      </div>
-
-      <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-end @2xl:justify-between">
+    <div className="mb-8 space-y-4">
+      <div>
+        <div className="mb-2 flex items-center gap-4">
+          <SectionTitle>{CONTENT_COPY[listType].title}</SectionTitle>
+        </div>
         <SystemListCounts
           listType={listType}
           mediaType={mediaType}
           totalMovies={totalMovies}
           totalTvShows={totalTvShows}
         />
+      </div>
 
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           {/* Reordering a provider-filtered view is disabled: the visible rows
               are a non-contiguous slice, so page offsets no longer map to
@@ -246,8 +247,9 @@ function SystemListHeader({
             <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
           )}
           <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
-          <MediaTypeSelector currentMediaType={mediaType} />
         </div>
+
+        <MediaTypeSelector currentMediaType={mediaType} />
       </div>
     </div>
   );
