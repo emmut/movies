@@ -21,6 +21,51 @@ function Money({ amount }: { amount: number }) {
   );
 }
 
+/** A text fact, hidden when the value is empty unless a fallback is given. */
+function TextFact({
+  label,
+  value,
+  fallback,
+}: {
+  label: string;
+  value: string | undefined;
+  fallback?: string;
+}) {
+  const text = value || fallback;
+  if (!text) {
+    return null;
+  }
+  return (
+    <Fact label={label}>
+      <p>{text}</p>
+    </Fact>
+  );
+}
+
+/** A monetary fact, hidden when the amount is null. */
+function MoneyFact({ label, amount }: { label: string; amount: number | null }) {
+  if (amount === null) {
+    return null;
+  }
+  return (
+    <Fact label={label}>
+      <Money amount={amount} />
+    </Fact>
+  );
+}
+
+function positiveOrNull(amount: number): number | null {
+  return amount > 0 ? amount : null;
+}
+
+/** Profit is only meaningful when both budget and revenue are reported. */
+function profitOf(budget: number, revenue: number): number | null {
+  if (budget <= 0 || revenue <= 0) {
+    return null;
+  }
+  return revenue - budget;
+}
+
 /**
  * The two-column grid of a movie's factual details (status, languages,
  * financials). Presentational; kept out of the page so the page stays under the
@@ -28,49 +73,21 @@ function Money({ amount }: { amount: number }) {
  */
 export function MovieFacts({ movie }: { movie: MovieDetails }) {
   const { status, original_title, release_date, spoken_languages, budget, revenue } = movie;
+  const languages = spoken_languages.map((lang) => lang.english_name).join(', ');
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <div className="space-y-4">
-        <Fact label="Status">
-          <p>{status || 'Unknown'}</p>
-        </Fact>
-
-        {original_title && (
-          <Fact label="Original Title">
-            <p>{original_title}</p>
-          </Fact>
-        )}
-
-        <Fact label="Release Date">
-          <p>{release_date || 'Not available'}</p>
-        </Fact>
-
-        {spoken_languages.length > 0 && (
-          <Fact label="Languages">
-            <p>{spoken_languages.map((lang) => lang.english_name).join(', ')}</p>
-          </Fact>
-        )}
+        <TextFact label="Status" value={status} fallback="Unknown" />
+        <TextFact label="Original Title" value={original_title} />
+        <TextFact label="Release Date" value={release_date} fallback="Not available" />
+        <TextFact label="Languages" value={languages} />
       </div>
 
       <div className="space-y-4">
-        {budget > 0 && (
-          <Fact label="Budget">
-            <Money amount={budget} />
-          </Fact>
-        )}
-
-        {revenue > 0 && (
-          <Fact label="Revenue">
-            <Money amount={revenue} />
-          </Fact>
-        )}
-
-        {revenue > 0 && budget > 0 && (
-          <Fact label="Profit">
-            <Money amount={revenue - budget} />
-          </Fact>
-        )}
+        <MoneyFact label="Budget" amount={positiveOrNull(budget)} />
+        <MoneyFact label="Revenue" amount={positiveOrNull(revenue)} />
+        <MoneyFact label="Profit" amount={profitOf(budget, revenue)} />
       </div>
     </div>
   );
