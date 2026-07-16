@@ -21,11 +21,19 @@ const RETRY_BASE_MS = 250;
 // request for ~30s before returning a 504) aborts quickly and either retries or
 // falls back, instead of stalling the page render on a single slow endpoint.
 const REQUEST_TIMEOUT_MS = 6000;
-// Longest upstream-specified rate-limit window (Retry-After) we'll wait out. A
-// window longer than this can't be ridden out within our attempt budget, so we
-// surface the 429 immediately and let the caller degrade rather than fire more
-// requests inside the still-open window (which only adds load and still fails).
-const MAX_RETRY_AFTER_MS = 2000;
+// Longest upstream-specified rate-limit window (Retry-After) we'll wait out,
+// aligned with REQUEST_TIMEOUT_MS: a render already tolerates that long on a
+// single attempt, so common short windows (Retry-After: 3–5) are worth riding
+// out instead of failing the page. Anything longer can't be ridden out within
+// a render, so we surface the 429 immediately and let the caller degrade
+// rather than fire more requests inside the still-open window (which only
+// adds load and still fails).
+const MAX_RETRY_AFTER_MS = REQUEST_TIMEOUT_MS;
+// Total budget for one fetch including retry waits. Per-attempt caps alone
+// still stack: three 6s attempts plus two 6s Retry-After waits is ~30s, enough
+// to hit the deployment's request deadline instead of rendering a degraded
+// page. Once a retry wait would cross this deadline we surface what we have.
+const RETRY_BUDGET_MS = 2 * REQUEST_TIMEOUT_MS;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -65,7 +73,12 @@ function isTimeout(error: unknown) {
   return error instanceof DOMException && error.name === 'TimeoutError';
 }
 
-async function fetchWithRetry(url: URL, init: RequestInit, attempt = 1): Promise<Response> {
+async function fetchWithRetry(
+  url: URL,
+  init: RequestInit,
+  attempt = 1,
+  deadline = Date.now() + RETRY_BUDGET_MS,
+): Promise<Response> {
   let backoffMs = RETRY_BASE_MS * attempt;
 
   try {
@@ -85,17 +98,20 @@ async function fetchWithRetry(url: URL, init: RequestInit, attempt = 1): Promise
       }
       backoffMs = retryAfter;
     }
+    if (Date.now() + backoffMs > deadline) {
+      return res;
+    }
   } catch (error) {
     // A timeout means the upstream is hanging (TMDb's CloudFront can sit on a
     // request for ~30s). Retrying just stacks more waiting, so fail fast and let
     // the caller degrade; only fast transient errors are worth another attempt.
-    if (isTimeout(error) || attempt >= MAX_ATTEMPTS) {
+    if (isTimeout(error) || attempt >= MAX_ATTEMPTS || Date.now() + backoffMs > deadline) {
       throw error;
     }
   }
 
   await sleep(backoffMs);
-  return fetchWithRetry(url, init, attempt + 1);
+  return fetchWithRetry(url, init, attempt + 1, deadline);
 }
 
 /**
