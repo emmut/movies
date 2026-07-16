@@ -3,7 +3,7 @@
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { useState } from 'react';
+import { ComponentProps, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { DEFAULT_REGION } from '@/lib/regions';
+import { cn } from '@/lib/utils';
 import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFilterProps {
@@ -27,10 +28,20 @@ interface WatchProviderFilterProps {
   compact?: boolean;
 }
 
+// Both triggers spread rest props (and ref) into Button: PopoverTrigger's
+// `render` clones the element with the trigger props (onClick, aria-*), and
+// dropping them leaves a button that never opens the popover.
+type TriggerProps = { selectedCount: number } & ComponentProps<typeof Button>;
+
 /** Discover's filter-panel trigger: labeled, full-width field. */
-function PanelTrigger({ selectedCount }: { selectedCount: number }) {
+function PanelTrigger({ selectedCount, className, ...props }: TriggerProps) {
   return (
-    <Button variant="outline" className="w-full justify-between" id="watch-providers">
+    <Button
+      {...props}
+      variant="outline"
+      className={cn('w-full justify-between', className)}
+      id="watch-providers"
+    >
       <Filter className="mr-2 h-4 w-4" />
       {selectedCount > 0
         ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
@@ -40,9 +51,9 @@ function PanelTrigger({ selectedCount }: { selectedCount: number }) {
 }
 
 /** List-header trigger: compact button with a count badge when active. */
-function CompactTrigger({ selectedCount }: { selectedCount: number }) {
+function CompactTrigger({ selectedCount, ...props }: TriggerProps) {
   return (
-    <Button variant="outline" size="sm">
+    <Button {...props} variant="outline" size="sm">
       <Filter className="h-4 w-4" />
       Providers
       {selectedCount > 0 && (
