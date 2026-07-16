@@ -88,6 +88,39 @@ test('navigating into a person page from a scrolled position lands at the top', 
   await expectNavigationLandsAtTop(page, page.locator('a[href^="/person/"]').last(), /\/person\/\d+/);
 });
 
+test.describe('clamp-window viewport', () => {
+  // Regression for the screen-size-dependent variant: when the destination's
+  // loading skeleton is only a few dozen px taller than the viewport, the
+  // browser clamps the retained scroll offset to less than the segment's
+  // document offset (~80px of header + padding), the segment's top edge stays
+  // visible, and Next's stock scroll handler early-exited without scrolling —
+  // fossilizing the offset once the real content streamed in (fixed in
+  // patches/next.patch). At 1480x864 the person skeleton (926px) leaves
+  // exactly 62px of clamped scroll. Needs streaming latency to reproduce, so
+  // the connection is throttled; an instant response commits URL, skeleton,
+  // and content together and the bug window never opens.
+  test.use({ viewport: { width: 1480, height: 864 } });
+
+  test('navigating into a person page lands at the top when the skeleton barely exceeds the viewport', async ({
+    page,
+  }) => {
+    // Stable long-lived show whose cast links to person pages.
+    await page.goto('/tv/555');
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+    const client = await page.context().newCDPSession(page);
+    await client.send('Network.enable');
+    await client.send('Network.emulateNetworkConditions', {
+      offline: false,
+      latency: 150,
+      downloadThroughput: (2000 * 1024) / 8,
+      uploadThroughput: 1024 * 1024,
+    });
+
+    await expectNavigationLandsAtTop(page, page.locator('a[href^="/person/"]').last(), /\/person\/\d+/);
+  });
+});
+
 test.describe('narrow viewport', () => {
   // At desktop size the person skeleton happens to fit in one viewport, so the
   // browser clamps scroll to the top even without the skeleton's height cap and
