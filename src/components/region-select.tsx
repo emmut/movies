@@ -16,6 +16,16 @@ import { Dot } from './ui/dot';
 
 const regionCodes = regions.map((r) => r.code);
 
+/** Whether a region has any streaming, rental, or purchase options. */
+function hasProviders(providers: RegionWatchProviders | undefined): boolean {
+  if (!providers) {
+    return false;
+  }
+  return [providers.flatrate, providers.rent, providers.buy].some(
+    (services) => (services?.length ?? 0) > 0,
+  );
+}
+
 type RegionSelectProps = {
   defaultValue: RegionCode;
   allRegionProviders: Partial<Record<RegionCode, RegionWatchProviders>>;
@@ -29,13 +39,7 @@ function RegionSelectItem({
   allRegionProviders: Partial<Record<RegionCode, RegionWatchProviders>>;
 }) {
   const { name, code } = regionOption;
-  const currentRegionProviders = allRegionProviders[code];
-  const streamingServices = currentRegionProviders?.flatrate ?? [];
-  const rentalServices = currentRegionProviders?.rent ?? [];
-  const purchaseServices = currentRegionProviders?.buy ?? [];
-
-  const currentRegionHasServices =
-    streamingServices.length > 0 || rentalServices.length > 0 || purchaseServices.length > 0;
+  const currentRegionHasServices = hasProviders(allRegionProviders[code]);
 
   return (
     <SelectItem key={code} value={code} className="group">
