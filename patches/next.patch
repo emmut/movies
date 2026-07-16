@@ -1,0 +1,48 @@
+diff --git a/dist/client/components/layout-router.js b/dist/client/components/layout-router.js
+index 06b68cc92862992b485d8f3edf0a937e0af2847a..472e9060b10c681b4e4842200a5825bd5ba39de9 100644
+--- a/dist/client/components/layout-router.js
++++ b/dist/client/components/layout-router.js
+@@ -145,12 +145,13 @@ class InnerScrollAndFocusHandlerOld extends _react.default.Component {
+             // Verify if the element is a HTMLElement and if we want to consider it for scroll behavior.
+             // If the element is skipped, try to select the next sibling and try again.
+             while(!(domNode instanceof HTMLElement) || shouldSkipElement(domNode)){
+-                if (process.env.NODE_ENV !== 'production') {
+-                    if (domNode.parentElement?.localName === 'head') {
+-                    // We enter this state when metadata was rendered as part of the page or via Next.js.
+-                    // This is always a bug in Next.js and caused by React hoisting metadata.
+-                    // Fixed with `experimental.appNewScrollHandler`
+-                    }
++                // PATCHED(movies): React hoisted the segment's first node (e.g. a
++                // stylesheet <link>) into <head>; the sibling walk would die there
++                // and the navigation would silently keep its scroll offset.
++                // Restart the walk from <body> so route changes still scroll.
++                if (domNode.parentElement?.localName === 'head') {
++                    domNode = document.body;
++                    continue;
+                 }
+                 // No siblings found that match the criteria are found, so handle scroll higher up in the tree instead.
+                 if (domNode.nextElementSibling === null) {
+diff --git a/dist/esm/client/components/layout-router.js b/dist/esm/client/components/layout-router.js
+index 25e44ba48e03b6ae3eb6de3ddacfdcc8f43f185d..4e47eb1cad22667039b0f5d11b0634079d9a0423 100644
+--- a/dist/esm/client/components/layout-router.js
++++ b/dist/esm/client/components/layout-router.js
+@@ -118,12 +118,13 @@ class InnerScrollAndFocusHandlerOld extends React.Component {
+             // Verify if the element is a HTMLElement and if we want to consider it for scroll behavior.
+             // If the element is skipped, try to select the next sibling and try again.
+             while(!(domNode instanceof HTMLElement) || shouldSkipElement(domNode)){
+-                if (process.env.NODE_ENV !== 'production') {
+-                    if (domNode.parentElement?.localName === 'head') {
+-                    // We enter this state when metadata was rendered as part of the page or via Next.js.
+-                    // This is always a bug in Next.js and caused by React hoisting metadata.
+-                    // Fixed with `experimental.appNewScrollHandler`
+-                    }
++                // PATCHED(movies): React hoisted the segment's first node (e.g. a
++                // stylesheet <link>) into <head>; the sibling walk would die there
++                // and the navigation would silently keep its scroll offset.
++                // Restart the walk from <body> so route changes still scroll.
++                if (domNode.parentElement?.localName === 'head') {
++                    domNode = document.body;
++                    continue;
+                 }
+                 // No siblings found that match the criteria are found, so handle scroll higher up in the tree instead.
+                 if (domNode.nextElementSibling === null) {
