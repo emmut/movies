@@ -21,9 +21,31 @@ const RETRY_BASE_MS = 250;
 // request for ~30s before returning a 504) aborts quickly and either retries or
 // falls back, instead of stalling the page render on a single slow endpoint.
 const REQUEST_TIMEOUT_MS = 6000;
+// Longest upstream-specified rate-limit window (Retry-After) we'll wait out. A
+// window longer than this can't be ridden out within our attempt budget, so we
+// surface the 429 immediately and let the caller degrade rather than fire more
+// requests inside the still-open window (which only adds load and still fails).
+const MAX_RETRY_AFTER_MS = 2000;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Parses a `Retry-After` header (delta-seconds or an HTTP date) into a delay in
+ * milliseconds, or null when it is absent or unparseable.
+ */
+function retryAfterMs(res: Response): number | null {
+  const header = res.headers.get('retry-after');
+  if (!header) {
+    return null;
+  }
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) {
+    return Math.max(0, seconds * 1000);
+  }
+  const date = Date.parse(header);
+  return Number.isNaN(date) ? null : Math.max(0, date - Date.now());
 }
 
 /**
@@ -44,11 +66,24 @@ function isTimeout(error: unknown) {
 }
 
 async function fetchWithRetry(url: URL, init: RequestInit, attempt = 1): Promise<Response> {
+  let backoffMs = RETRY_BASE_MS * attempt;
+
   try {
     // Fresh timeout signal per attempt.
     const res = await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
     if (isFinalResponse(res, attempt)) {
       return res;
+    }
+    // Honor an upstream Retry-After (429/503) instead of our own backoff:
+    // retrying before the window closes just wastes an attempt inside it and
+    // adds load. If the window is longer than we're willing to block, surface
+    // the response now and let the caller degrade rather than retry into a wall.
+    const retryAfter = retryAfterMs(res);
+    if (retryAfter !== null) {
+      if (retryAfter > MAX_RETRY_AFTER_MS) {
+        return res;
+      }
+      backoffMs = retryAfter;
     }
   } catch (error) {
     // A timeout means the upstream is hanging (TMDb's CloudFront can sit on a
@@ -59,7 +94,7 @@ async function fetchWithRetry(url: URL, init: RequestInit, attempt = 1): Promise
     }
   }
 
-  await sleep(RETRY_BASE_MS * attempt);
+  await sleep(backoffMs);
   return fetchWithRetry(url, init, attempt + 1);
 }
 

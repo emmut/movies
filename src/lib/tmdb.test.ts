@@ -16,10 +16,11 @@ vi.mock('@/lib/imgproxy-url', () => ({
 
 import { addPosterImageUrls, addProfileImageUrls, optional, tmdbFetch } from './tmdb';
 
-function jsonResponse(body: unknown, status = 200) {
+function jsonResponse(body: unknown, status = 200, headers: Record<string, string> = {}) {
   return {
     ok: status >= 200 && status < 300,
     status,
+    headers: new Headers(headers),
     json: async () => body,
   } as Response;
 }
@@ -115,6 +116,28 @@ describe('tmdbFetch', () => {
 
     await expect(withTimersFlushed(tmdbFetch('/person/1'))).rejects.toThrow('ECONNRESET');
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('honors a Retry-After within the cap and retries once the window closes', async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(null, 429, { 'retry-after': '1' }))
+      .mockResolvedValueOnce(jsonResponse({ id: 8 }));
+
+    const result = await withTimersFlushed(tmdbFetch<{ id: number }>('/movie/8'));
+
+    expect(result).toEqual({ id: 8 });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('fails fast on a 429 whose Retry-After exceeds the cap (no extra requests)', async () => {
+    fetchMock.mockResolvedValue(jsonResponse(null, 429, { 'retry-after': '30' }));
+
+    await expect(
+      withTimersFlushed(tmdbFetch('/movie/1', { errorMessage: 'Rate limited' })),
+    ).rejects.toThrow('Rate limited');
+    // A window longer than we'll wait must not burn the remaining attempts
+    // inside it — one request, then surface for the caller to degrade.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('fails fast on a timeout without retrying (a hung upstream should degrade)', async () => {
