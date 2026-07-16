@@ -13,7 +13,6 @@ import {
   SidebarMenu,
   SidebarRail,
 } from '@/components/ui/sidebar';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   {
@@ -32,34 +31,6 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   userNav?: React.ReactNode;
   userFooter?: React.ReactNode;
 };
-
-// Named export rather than an `AppSidebar.Ghost` static: this is a 'use client'
-// module, and runtime property assignments don't survive the client-reference
-// proxy that server components (AppSidebarWrapper) import through.
-export function AppSidebarGhost() {
-  return (
-    <Sidebar>
-      <SidebarHeader>
-        <Skeleton className="h-8 w-32" />
-      </SidebarHeader>
-      <SidebarContent className="p-1">
-        <nav aria-label="Main">
-          <SidebarMenu>
-            <SidebarGroupContent className="flex flex-col gap-1">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </SidebarGroupContent>
-          </SidebarMenu>
-        </nav>
-      </SidebarContent>
-      <SidebarRail />
-      <SidebarFooter>
-        <Skeleton className="h-12 w-full" />
-      </SidebarFooter>
-    </Sidebar>
-  );
-}
 
 export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
   return (

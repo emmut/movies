@@ -1,24 +1,22 @@
 import { Suspense } from 'react';
 
-import { AppSidebar, AppSidebarGhost } from './app-sidebar';
+import { AppSidebar } from './app-sidebar';
 import { UserFooter } from './app-sidebar-user-footer';
 import { UserNav } from './app-sidebar-user-nav';
 
-export async function AppSidebarWrapper() {
+export function AppSidebarWrapper() {
   return (
-    <Suspense fallback={<AppSidebarGhost />}>
-      <AppSidebar
-        userNav={
-          <Suspense fallback={<UserNav.Ghost />}>
-            <UserNav />
-          </Suspense>
-        }
-        userFooter={
-          <Suspense fallback={<UserFooter.Ghost />}>
-            <UserFooter />
-          </Suspense>
-        }
-      />
-    </Suspense>
+    <AppSidebar
+      userNav={
+        <Suspense fallback={<UserNav.Ghost />}>
+          <UserNav />
+        </Suspense>
+      }
+      userFooter={
+        <Suspense fallback={<UserFooter.Ghost />}>
+          <UserFooter />
+        </Suspense>
+      }
+    />
   );
 }
