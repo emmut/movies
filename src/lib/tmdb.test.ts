@@ -119,8 +119,9 @@ describe('tmdbFetch', () => {
   });
 
   it('honors a Retry-After within the cap and retries once the window closes', async () => {
+    // 3s is TMDb's common short window; it must be waited out, not failed.
     fetchMock
-      .mockResolvedValueOnce(jsonResponse(null, 429, { 'retry-after': '1' }))
+      .mockResolvedValueOnce(jsonResponse(null, 429, { 'retry-after': '3' }))
       .mockResolvedValueOnce(jsonResponse({ id: 8 }));
 
     const result = await withTimersFlushed(tmdbFetch<{ id: number }>('/movie/8'));

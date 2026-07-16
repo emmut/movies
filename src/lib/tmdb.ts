@@ -21,11 +21,14 @@ const RETRY_BASE_MS = 250;
 // request for ~30s before returning a 504) aborts quickly and either retries or
 // falls back, instead of stalling the page render on a single slow endpoint.
 const REQUEST_TIMEOUT_MS = 6000;
-// Longest upstream-specified rate-limit window (Retry-After) we'll wait out. A
-// window longer than this can't be ridden out within our attempt budget, so we
-// surface the 429 immediately and let the caller degrade rather than fire more
-// requests inside the still-open window (which only adds load and still fails).
-const MAX_RETRY_AFTER_MS = 2000;
+// Longest upstream-specified rate-limit window (Retry-After) we'll wait out,
+// aligned with REQUEST_TIMEOUT_MS: a render already tolerates that long on a
+// single attempt, so common short windows (Retry-After: 3–5) are worth riding
+// out instead of failing the page. Anything longer can't be ridden out within
+// a render, so we surface the 429 immediately and let the caller degrade
+// rather than fire more requests inside the still-open window (which only
+// adds load and still fails).
+const MAX_RETRY_AFTER_MS = REQUEST_TIMEOUT_MS;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
