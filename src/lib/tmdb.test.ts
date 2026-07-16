@@ -141,6 +141,38 @@ describe('tmdbFetch', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it('stops retrying once slow attempts plus Retry-After waits exhaust the time budget', async () => {
+    // Each attempt takes ~6s to come back 429 with a 6s window. Unbounded, the
+    // loop would spend ~30s (3 slow attempts + two 6s waits); the budget must
+    // surface the failure after the second attempt instead.
+    fetchMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => resolve(jsonResponse(null, 429, { 'retry-after': '6' })), 5900);
+        }),
+    );
+
+    const start = Date.now();
+    await expect(
+      withTimersFlushed(tmdbFetch('/movie/1', { errorMessage: 'Rate limited' })),
+    ).rejects.toThrow('Rate limited');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    // Fake timers drive Date.now, so this measures the simulated wall clock.
+    expect(Date.now() - start).toBeLessThan(20_000);
+  });
+
+  it('stops retrying a slow network error once the time budget is spent', async () => {
+    fetchMock.mockImplementation(
+      () =>
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('ECONNRESET')), 6000);
+        }),
+    );
+
+    await expect(withTimersFlushed(tmdbFetch('/movie/1'))).rejects.toThrow('ECONNRESET');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('fails fast on a timeout without retrying (a hung upstream should degrade)', async () => {
     fetchMock.mockRejectedValue(
       new DOMException('The operation timed out.', 'TimeoutError'),
