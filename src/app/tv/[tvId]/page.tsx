@@ -50,18 +50,24 @@ export default async function TvShowPage(props: TvShowPageProps) {
   const headersList = await headers();
   const referer = headersList.get('referer');
 
-  const user = await getUser();
-  const userRegion = await getUserRegion();
-  const { inWatchlist, watched } = await getSystemListMemberships(tvId, RESOURCE_TYPE);
+  // User state and core show data have no interdependencies, so fetch them
+  // together: a cold DB connection then gets paid once for the whole page
+  // rather than once per sequential await.
+  const [user, userRegion, { inWatchlist, watched }, tvShow, credits, watchProviders, imdbId] =
+    await Promise.all([
+      getUser(),
+      getUserRegion(),
+      getSystemListMemberships(tvId, RESOURCE_TYPE),
+      getTvShowDetails(tvId),
+      getTvShowCredits(tvId),
+      getTvShowWatchProviders(tvId),
+      getTvShowImdbId(tvId),
+    ]);
 
-  const imdbIdPromise = getTvShowImdbId(tvId);
-  const [tvShow, credits, watchProviders, imdbId, imdbRating, certification] = await Promise.all([
-    getTvShowDetails(tvId),
-    getTvShowCredits(tvId),
-    getTvShowWatchProviders(tvId),
-    imdbIdPromise,
-    imdbIdPromise.then(getImdbRating),
+  // These depend on results above (region / imdb id), so resolve them together.
+  const [certification, imdbRating] = await Promise.all([
     getMediaCertification(RESOURCE_TYPE, tvId, userRegion),
+    getImdbRating(imdbId),
   ]);
 
   const {

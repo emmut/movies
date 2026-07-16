@@ -51,7 +51,10 @@ async function expectNavigationLandsAtTop(page: Page, linkSelector: string, urlP
   // destination's <h1> carries the title; when the source has its own <h1> we
   // exclude its text so we don't match the still-visible source heading.
   const destinationHeading = sourceHeading ? h1.filter({ hasNotText: sourceHeading }) : h1;
-  await expect(destinationHeading.first()).toBeVisible();
+  // Detail pages stream in behind a loading.tsx skeleton once their server
+  // component resolves; on a cold server that can take longer than the default
+  // 5s assertion timeout, so give the heading the same headroom as the link.
+  await expect(destinationHeading.first()).toBeVisible({ timeout: 15_000 });
 
   // Once the real content is in, the viewport should be at the top.
   await expect

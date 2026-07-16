@@ -51,15 +51,23 @@ export default async function MoviePage(props: MoviePageProps) {
   const headersList = await headers();
   const referer = headersList.get('referer');
 
-  const user = await getUser();
-  const userRegion = await getUserRegion();
-  const { inWatchlist, watched } = await getSystemListMemberships(movieId, RESOURCE_TYPE);
+  // User state and core movie data have no interdependencies, so fetch them
+  // together: a cold DB connection then gets paid once for the whole page
+  // rather than once per sequential await.
+  const [user, userRegion, { inWatchlist, watched }, movie, credits, watchProviders] =
+    await Promise.all([
+      getUser(),
+      getUserRegion(),
+      getSystemListMemberships(movieId, RESOURCE_TYPE),
+      getMovieDetails(movieId),
+      getMovieCredits(movieId),
+      getMovieWatchProviders(movieId),
+    ]);
 
-  const [movie, credits, watchProviders, certification] = await Promise.all([
-    getMovieDetails(movieId),
-    getMovieCredits(movieId),
-    getMovieWatchProviders(movieId),
+  // These depend on results above (region / imdb id), so resolve them together.
+  const [certification, imdbRating] = await Promise.all([
     getMediaCertification(RESOURCE_TYPE, movieId, userRegion),
+    getImdbRating(movie.imdb_id),
   ]);
 
   const {
@@ -79,7 +87,6 @@ export default async function MoviePage(props: MoviePageProps) {
     original_title,
   } = movie;
   const score = Math.ceil(movie.vote_average * 10) / 10;
-  const imdbRating = await getImdbRating(movie.imdb_id);
 
   const directors = credits.crew.filter((person) => person.job === 'Director');
   const writers = credits.crew.filter(
