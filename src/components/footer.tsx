@@ -2,7 +2,9 @@ import Image from 'next/image';
 
 function Footer() {
   return (
-    <footer className="mt-auto pt-16">
+    // Solid background (plus `relative` to lift it in paint order) so page
+    // content streaming in mid-transition never shows through the footer.
+    <footer className="relative mt-auto bg-background pt-16">
       <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 border-t border-zinc-800/60 px-4 pt-10 pb-10 text-center">
         <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
           <Image

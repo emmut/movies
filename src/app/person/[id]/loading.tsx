@@ -4,11 +4,13 @@ import { Skeleton } from '@/components/ui/skeleton';
  * Displays a compact loading skeleton for the person detail page.
  *
  * Mirrors the above-the-fold layout of the person page (go-back control, profile
- * image, name, stats, and biography intro) while staying short enough to avoid
- * shifting the scroll position when the real content replaces it.
+ * image, name, stats, and biography intro).
  */
 export default function LoadingPerson() {
   return (
+    // Rendered full-height, no clipping: landing at the top after a scrolled
+    // client-side navigation is the scroll handler's job (see next.config.ts),
+    // guarded by e2e/detail-scroll.spec.ts.
     <div>
       <div className="mb-6">
         <Skeleton className="h-10 w-24" />

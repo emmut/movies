@@ -87,3 +87,19 @@ test('navigating into a person page from a scrolled position lands at the top', 
 
   await expectNavigationLandsAtTop(page, page.locator('a[href^="/person/"]').last(), /\/person\/\d+/);
 });
+
+test.describe('narrow viewport', () => {
+  // At desktop size the person skeleton happens to fit in one viewport, so the
+  // browser clamps scroll to the top even without the skeleton's height cap and
+  // the test above can't regress. In the single-column mobile layout the
+  // uncapped skeleton is taller than the viewport, which is where an incoming
+  // navigation actually retained its scroll offset.
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('navigating into a person page lands at the top on a small screen', async ({ page }) => {
+    await page.goto(MOVIE_PATH);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+
+    await expectNavigationLandsAtTop(page, page.locator('a[href^="/person/"]').last(), /\/person\/\d+/);
+  });
+});
