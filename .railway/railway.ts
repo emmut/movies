@@ -73,11 +73,14 @@ export default defineRailway((ctx) => {
     source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
     // Runs before each deploy; a non-zero exit aborts the deploy and keeps the
     // old version live. Both environments apply committed migrations — PR
-    // databases start empty and the chain builds them from scratch. Never use
-    // `db:push --force` here: headless drizzle-kit push crashes mid-apply in
-    // its prompt renderer while the deploy still reports success, leaving a
-    // partial schema and an empty migration journal behind.
-    preDeploy: "pnpm db:migrate",
+    // databases start empty and the chain builds them from scratch. The
+    // wrapper polls the DB before migrating: sleeping preview databases drop
+    // the very connection that wakes them, and drizzle-kit's single connect
+    // attempt would fail the deploy. Never use `db:push --force` here:
+    // headless drizzle-kit push crashes mid-apply in its prompt renderer
+    // while the deploy still reports success, leaving a partial schema and
+    // an empty migration journal behind.
+    preDeploy: "pnpm db:migrate:railway",
     deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
     domains: prod ? [APP_DOMAIN] : [],
     env: {
