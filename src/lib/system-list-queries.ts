@@ -158,6 +158,11 @@ export async function getSystemListWithResourceDetailsPaginated(
     return await queryPageWithResourceDetails(user.id, listType, resourceType, page, providerFilter);
   } catch (error) {
     console.error(`Error fetching paginated ${listType}:`, error);
+    // With a provider filter active, an empty page reads as "nothing matches
+    // your providers" — a lie during an outage. Let the client show an error.
+    if (providerFilter) {
+      throw error;
+    }
     return emptyPage(page);
   }
 }

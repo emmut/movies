@@ -7,6 +7,7 @@ import { useState } from 'react';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
+import { ListErrorState } from '@/components/list-error-state';
 import { ListItemsGrid } from '@/components/list-items-grid';
 import { PaginationControls } from '@/components/pagination-controls';
 import { ReorderButton } from '@/components/reorder-button';
@@ -86,12 +87,22 @@ export function ListDetailsContent({
   );
   const isProviderFiltered = activeProviders !== undefined;
 
-  const { data: list, isLoading } = useQuery({
+  const {
+    data: list,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: queryKeys.lists.detail(listId, page, activeProviders, activeRegion),
     queryFn: () => fetchListDetailsAction(listId, page, activeProviders, activeRegion),
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
+
+  // Without this, a failed fetch (e.g. a provider availability outage) leaves
+  // the skeleton up forever.
+  if (isError) {
+    return <ListErrorState />;
+  }
 
   if (isLoading || !list) {
     return <ListDetailsSkeleton />;
@@ -261,8 +272,19 @@ function ListDetailsHeader({
 }: ListDetailsHeaderProps) {
   return (
     <div className="mb-8 space-y-4">
+      <SectionTitle>{listName}</SectionTitle>
+
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <SectionTitle>{listName}</SectionTitle>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Reordering a provider-filtered view is disabled: the visible rows
+              are a non-contiguous slice, so page offsets no longer map to
+              positions in the full manual order. */}
+          {itemCount > 0 && !isProviderFiltered && (
+            <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
+          )}
+          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
+        </div>
+
         <div className="flex items-center gap-2">
           <EditListDialog
             listId={listId}
@@ -277,16 +299,6 @@ function ListDetailsHeader({
             redirectAfterDelete={true}
           />
         </div>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Reordering a provider-filtered view is disabled: the visible rows
-            are a non-contiguous slice, so page offsets no longer map to
-            positions in the full manual order. */}
-        {itemCount > 0 && !isProviderFiltered && (
-          <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
-        )}
-        <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
       </div>
     </div>
   );

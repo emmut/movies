@@ -264,4 +264,14 @@ describe('getSystemListWithResourceDetailsPaginated with a provider filter', () 
     ).rejects.toThrow();
     expect(db.select).not.toHaveBeenCalled();
   });
+
+  it('propagates availability-lookup failures instead of returning an empty page', async () => {
+    vi.mocked(db.select).mockReturnValue(chain(rows));
+    vi.mocked(getMovieWatchProviders).mockRejectedValue(new Error('TMDB down'));
+
+    // An empty page here would render as "no titles match your providers".
+    await expect(
+      getSystemListWithResourceDetailsPaginated('watchlist', 'movie', 1, [8], 'SE'),
+    ).rejects.toThrow('TMDB down');
+  });
 });

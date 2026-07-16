@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 
+import { ListErrorState } from '@/components/list-error-state';
 import { ListItemsGrid } from '@/components/list-items-grid';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
@@ -118,7 +119,11 @@ export function SystemListContent({
   );
   const isProviderFiltered = activeProviders !== undefined;
 
-  const { data: paginatedData, isLoading } = useQuery({
+  const {
+    data: paginatedData,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: queryKeys[listType].list(mediaType, page, activeProviders, activeRegion),
     queryFn: () =>
       getSystemListWithResourceDetailsPaginated(
@@ -181,6 +186,7 @@ export function SystemListContent({
         mediaType={mediaType}
         userId={userId}
         isLoading={isLoading}
+        isError={isError}
         isAllEmpty={totalItems === 0}
         isProviderFiltered={isProviderFiltered}
         items={localItems}
@@ -279,6 +285,7 @@ function SystemListBody({
   mediaType,
   userId,
   isLoading,
+  isError,
   isAllEmpty,
   isProviderFiltered,
   items,
@@ -293,6 +300,7 @@ function SystemListBody({
   mediaType: 'movie' | 'tv';
   userId?: string;
   isLoading: boolean;
+  isError: boolean;
   isAllEmpty: boolean;
   isProviderFiltered: boolean;
   items: SystemListItem[];
@@ -305,6 +313,10 @@ function SystemListBody({
 }) {
   if (isLoading) {
     return <PosterSkeletonGrid />;
+  }
+
+  if (isError) {
+    return <ListErrorState />;
   }
 
   if (items.length === 0) {
@@ -330,9 +342,17 @@ function SystemListBody({
         userId={userId}
       />
 
-      {totalPages > 1 && <PaginationControls totalPages={totalPages} pageType={listType} />}
+      <ListPagination totalPages={totalPages} pageType={listType} />
     </>
   );
+}
+
+function ListPagination({ totalPages, pageType }: { totalPages: number; pageType: SystemListType }) {
+  if (totalPages <= 1) {
+    return null;
+  }
+
+  return <PaginationControls totalPages={totalPages} pageType={pageType} />;
 }
 
 function emptyStateCopy(
