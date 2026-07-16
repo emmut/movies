@@ -1,7 +1,7 @@
 import Pill from '@/components/pill';
+import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ITEMS_PER_PAGE } from '@/lib/config';
 
 // The default (movie) genre set TMDB returns, in order. Rendering the real
 // pill labels via the skeleton variant gives the exact same widths and height
@@ -69,15 +69,8 @@ export default function DiscoverLoading() {
         ))}
       </div>
 
-      {/* Results grid — capped in height and clipped so the whole skeleton
-          stays close to one viewport. A tall skeleton keeps the previous
-          route's scroll offset on a client navigation (Next only resets scroll
-          once real content arrives), which shows the skeleton "chopped off"; a
-          short one lets the browser clamp the scroll back to the top. */}
-      <div className="mt-7 grid max-h-[45vh] grid-cols-2 gap-4 overflow-hidden @3xl:grid-cols-4 @8xl:grid-cols-5">
-        {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
-          <Skeleton key={i} className="aspect-2/3 w-full rounded-lg" />
-        ))}
+      <div className="mt-7">
+        <PosterSkeletonGrid />
       </div>
     </div>
   );
