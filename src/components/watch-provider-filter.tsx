@@ -131,7 +131,7 @@ export default function WatchProviderFilter({
         }
       />
         <PopoverContent
-          align="end"
+          align={compact ? 'start' : 'end'}
           side="bottom"
           sideOffset={10}
           className="max-h-[60dvh] overflow-auto"

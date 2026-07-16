@@ -279,10 +279,10 @@ function ListDetailsHeader({
           {/* Reordering a provider-filtered view is disabled: the visible rows
               are a non-contiguous slice, so page offsets no longer map to
               positions in the full manual order. */}
+          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
           {itemCount > 0 && !isProviderFiltered && (
             <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
           )}
-          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
         </div>
 
         <div className="flex items-center gap-2">
