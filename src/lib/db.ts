@@ -17,8 +17,9 @@ function createDb() {
       idleTimeoutMillis: 5 * 60_000,
       keepAlive: true,
       // Fail a stuck connection attempt in bounded time instead of hanging the
-      // request indefinitely; must stay above the DB's cold-wake latency.
-      connectionTimeoutMillis: 30_000,
+      // request indefinitely. Kept comfortably above the observed ~30s cold-wake
+      // so a legitimate wake still completes rather than tripping the deadline.
+      connectionTimeoutMillis: 60_000,
       // Cap connections PER instance. Serverless/scale-to-zero spins up many
       // instances, each with its own pool; total = max × instances must stay
       // under the database connection limit. Front the DB with a pooler
