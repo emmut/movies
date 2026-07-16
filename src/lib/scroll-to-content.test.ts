@@ -82,7 +82,7 @@ describe('scrollToContent', () => {
     vi.advanceTimersByTime(100);
 
     expect(scrollIntoView).toHaveBeenCalledTimes(2);
-    expect(scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'auto', block: 'start' });
+    expect(scrollIntoView).toHaveBeenLastCalledWith({ behavior: 'instant', block: 'start' });
   });
 
   it('waits for scrolling to go quiet before correcting', () => {

@@ -50,7 +50,9 @@ export function scrollToContent() {
     clearTimeout(settleTimer);
     settleTimer = setTimeout(() => {
       if (Math.abs(offsetFromTarget()) > ON_TARGET_TOLERANCE) {
-        scrollToTarget('auto');
+        // `'instant'`, not `'auto'`: stay instant even under a global CSS
+        // `scroll-behavior: smooth`, so the correction never animates a bounce.
+        scrollToTarget('instant');
       }
     }, SETTLE_MS);
   }
