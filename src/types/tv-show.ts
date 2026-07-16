@@ -61,9 +61,10 @@ export type Crew = {
 };
 
 export type TvWatchProviders = {
-  results: {
+  // TMDb omits regions that have no providers, so every region is optional.
+  results: Partial<{
     [region in RegionCode]: RegionWatchProviders;
-  };
+  }>;
 };
 
 export type TvShow = {

@@ -17,6 +17,10 @@ type TmdbFetchOptions = {
 const RETRYABLE_STATUS = new Set([408, 429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
 const RETRY_BASE_MS = 250;
+// Cap each attempt so a hung upstream (TMDb behind CloudFront can sit on a
+// request for ~30s before returning a 504) aborts quickly and either retries or
+// falls back, instead of stalling the page render on a single slow endpoint.
+const REQUEST_TIMEOUT_MS = 6000;
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -35,14 +39,22 @@ function isFinalResponse(res: Response, attempt: number) {
  * errors and retryable statuses). Returns the last response even if not OK; the
  * caller decides how to surface a non-OK status.
  */
+function isTimeout(error: unknown) {
+  return error instanceof DOMException && error.name === 'TimeoutError';
+}
+
 async function fetchWithRetry(url: URL, init: RequestInit, attempt = 1): Promise<Response> {
   try {
-    const res = await fetch(url, init);
+    // Fresh timeout signal per attempt.
+    const res = await fetch(url, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
     if (isFinalResponse(res, attempt)) {
       return res;
     }
   } catch (error) {
-    if (attempt >= MAX_ATTEMPTS) {
+    // A timeout means the upstream is hanging (TMDb's CloudFront can sit on a
+    // request for ~30s). Retrying just stacks more waiting, so fail fast and let
+    // the caller degrade; only fast transient errors are worth another attempt.
+    if (isTimeout(error) || attempt >= MAX_ATTEMPTS) {
       throw error;
     }
   }
@@ -85,6 +97,22 @@ export async function tmdbFetch<T>(
   }
 
   return (await res.json()) as T;
+}
+
+/**
+ * Degrades an optional TMDb fetch to `fallback` when it fails, so a single
+ * flaky endpoint (a transient 504, an exhausted retry) hides one section
+ * instead of crashing the whole page. Apply it at the call site — outside the
+ * `use cache` fetcher — so the failure is never cached and the next request
+ * retries.
+ */
+export async function optional<T>(promise: Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await promise;
+  } catch (error) {
+    console.error('Optional TMDb fetch failed; rendering fallback:', error);
+    return fallback;
+  }
 }
 
 export function addPosterImageUrls<T extends { poster_path: string | null }>(item: T) {

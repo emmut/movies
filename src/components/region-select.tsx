@@ -18,7 +18,7 @@ const regionCodes = regions.map((r) => r.code);
 
 type RegionSelectProps = {
   defaultValue: RegionCode;
-  allRegionProviders: Record<RegionCode, RegionWatchProviders>;
+  allRegionProviders: Partial<Record<RegionCode, RegionWatchProviders>>;
 };
 
 function RegionSelectItem({
@@ -26,7 +26,7 @@ function RegionSelectItem({
   allRegionProviders,
 }: {
   regionOption: Region;
-  allRegionProviders: Record<RegionCode, RegionWatchProviders>;
+  allRegionProviders: Partial<Record<RegionCode, RegionWatchProviders>>;
 }) {
   const { name, code } = regionOption;
   const currentRegionProviders = allRegionProviders[code];

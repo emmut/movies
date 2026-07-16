@@ -1,7 +1,9 @@
 import Link from 'next/link';
 
 import { ReviewCard } from '@/components/review-card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getMediaReviews } from '@/lib/media-info';
+import { optional } from '@/lib/tmdb';
 
 type ReviewsSectionProps = {
   mediaType: 'movie' | 'tv';
@@ -19,7 +21,13 @@ const MAX_REVIEWS = 3;
  * @param mediaId - The TMDb ID of the title.
  */
 export async function ReviewsSection({ mediaType, mediaId }: ReviewsSectionProps) {
-  const { reviews, totalResults } = await getMediaReviews(mediaType, mediaId);
+  // Reviews are a non-essential section — a flaky TMDb response must degrade to
+  // "no reviews" rather than take the whole detail page down with it.
+  const { reviews, totalResults } = await optional(getMediaReviews(mediaType, mediaId), {
+    reviews: [],
+    totalResults: 0,
+    totalPages: 0,
+  });
 
   if (reviews.length === 0) {
     return null;
@@ -43,6 +51,20 @@ export async function ReviewsSection({ mediaType, mediaId }: ReviewsSectionProps
           View all {totalResults} reviews
         </Link>
       )}
+    </div>
+  );
+}
+
+/** Placeholder shown while {@link ReviewsSection} streams in. */
+export function ReviewsSectionSkeleton() {
+  return (
+    <div>
+      <Skeleton className="mb-4 h-7 w-40" />
+      <div className="space-y-4">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <Skeleton key={index} className="h-28 w-full rounded-lg" />
+        ))}
+      </div>
     </div>
   );
 }

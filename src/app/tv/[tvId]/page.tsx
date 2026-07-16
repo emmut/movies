@@ -1,7 +1,9 @@
 import { Calendar, Tv, Users } from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
+import { CastSliderSkeleton } from '@/components/cast-slider';
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import { Imgproxy } from '@/components/image-proxy';
@@ -10,22 +12,21 @@ import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
 import { RatingsCard } from '@/components/ratings-card';
-import { ReviewsSection } from '@/components/reviews-section';
-import { StreamingProviders } from '@/components/streaming-providers';
+import { ReviewsSection, ReviewsSectionSkeleton } from '@/components/reviews-section';
+import { StreamingSection, StreamingSectionSkeleton } from '@/components/streaming-section';
 import { TrailerContent } from '@/components/trailer-content';
-import { ItemSlider } from '@/components/ui/item-slider';
+import { TvCast } from '@/components/tv-cast';
 import { getUser } from '@/lib/auth-server';
 import { formatCertification } from '@/lib/certifications';
 import { getImdbRating } from '@/lib/imdb';
 import { getMediaCertification } from '@/lib/media-info';
 import { getSystemListMemberships } from '@/lib/system-list-queries';
+import { optional } from '@/lib/tmdb';
 import {
-  getTvShowCredits,
   getTvShowDetails,
   getTvShowImdbId,
   getTvShowRecommendations,
   getTvShowSimilar,
-  getTvShowWatchProviders,
 } from '@/lib/tv-shows';
 import { getUserRegion } from '@/lib/user-actions';
 
@@ -50,23 +51,21 @@ export default async function TvShowPage(props: TvShowPageProps) {
   const headersList = await headers();
   const referer = headersList.get('referer');
 
-  // User state and core show data have no interdependencies, so fetch them
-  // together: a cold DB connection then gets paid once for the whole page
-  // rather than once per sequential await.
-  const [user, userRegion, { inWatchlist, watched }, tvShow, credits, watchProviders, imdbId] =
-    await Promise.all([
-      getUser(),
-      getUserRegion(),
-      getSystemListMemberships(tvId, RESOURCE_TYPE),
-      getTvShowDetails(tvId),
-      getTvShowCredits(tvId),
-      getTvShowWatchProviders(tvId),
-      getTvShowImdbId(tvId),
-    ]);
+  // Above-the-fold data only: user state plus core show details, batched so a
+  // cold DB connection is paid once. Supporting sections (cast, providers,
+  // reviews) fetch inside their own Suspense boundaries below so a slow or
+  // failed TMDb endpoint streams in or degrades instead of blocking the shell.
+  const [user, userRegion, { inWatchlist, watched }, tvShow, imdbId] = await Promise.all([
+    getUser(),
+    getUserRegion(),
+    getSystemListMemberships(tvId, RESOURCE_TYPE),
+    getTvShowDetails(tvId),
+    getTvShowImdbId(tvId),
+  ]);
 
   // These depend on results above (region / imdb id), so resolve them together.
   const [certification, imdbRating] = await Promise.all([
-    getMediaCertification(RESOURCE_TYPE, tvId, userRegion),
+    optional(getMediaCertification(RESOURCE_TYPE, tvId, userRegion), null),
     getImdbRating(imdbId),
   ]);
 
@@ -279,57 +278,25 @@ export default async function TvShowPage(props: TvShowPageProps) {
             </div>
           )}
 
-          {credits.cast.length > 0 && (
-            <div>
-              <h2 className="mb-4 text-xl font-semibold">Cast</h2>
-              <ItemSlider>
-                {credits.cast.map((person) => (
-                  <Link
-                    key={person.credit_id}
-                    href={`/person/${person.id}`}
-                    className="w-32 shrink-0 snap-center transition-transform hover:scale-105"
-                  >
-                    <div className="mb-2 aspect-2/3 overflow-hidden rounded-lg bg-zinc-800">
-                      {person.profile_path ? (
-                        <Imgproxy
-                          src={person.profile_path}
-                          alt={person.name}
-                          width={185}
-                          height={278}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-zinc-400">
-                          <Users className="h-8 w-8" />
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="line-clamp-2 text-sm font-medium hover:text-white">
-                      {person.name}
-                    </h3>
-                    <p className="line-clamp-2 text-xs text-zinc-400">{person.character}</p>
-                  </Link>
-                ))}
-              </ItemSlider>
-            </div>
-          )}
+          <Suspense fallback={<CastSliderSkeleton />}>
+            <TvCast tvId={tvId} />
+          </Suspense>
 
-          <StreamingProviders
-            watchProviders={watchProviders}
-            resourceId={tvId}
-            resourceType="tv"
-            userRegion={userRegion}
-          />
+          <Suspense fallback={<StreamingSectionSkeleton />}>
+            <StreamingSection resourceId={tvId} resourceType="tv" userRegion={userRegion} />
+          </Suspense>
 
           <OtherContent
             id={tvId}
             type="tv"
             userId={user?.id}
-            getSimilar={(id) => getTvShowSimilar(id, userRegion)}
-            getRecommendations={(id) => getTvShowRecommendations(id, userRegion)}
+            getSimilar={(id) => optional(getTvShowSimilar(id, userRegion), [])}
+            getRecommendations={(id) => optional(getTvShowRecommendations(id, userRegion), [])}
           />
 
-          <ReviewsSection mediaType="tv" mediaId={tvId} />
+          <Suspense fallback={<ReviewsSectionSkeleton />}>
+            <ReviewsSection mediaType="tv" mediaId={tvId} />
+          </Suspense>
 
           <ExternalLinks tmdbId={tvId} homepage={homepage} mediaType="tv" imdbId={imdbId} />
         </div>

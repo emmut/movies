@@ -14,7 +14,7 @@ vi.mock('@/lib/imgproxy-url', () => ({
   buildProxyImageUrls: vi.fn(() => ({ src: 'proxied', srcSet: 'proxied 1x' })),
 }));
 
-import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
+import { addPosterImageUrls, addProfileImageUrls, optional, tmdbFetch } from './tmdb';
 
 function jsonResponse(body: unknown, status = 200) {
   return {
@@ -117,6 +117,15 @@ describe('tmdbFetch', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
+  it('fails fast on a timeout without retrying (a hung upstream should degrade)', async () => {
+    fetchMock.mockRejectedValue(
+      new DOMException('The operation timed out.', 'TimeoutError'),
+    );
+
+    await expect(withTimersFlushed(tmdbFetch('/movie/1'))).rejects.toThrow('timed out');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('does not retry a non-retryable status and throws a default message', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse(null, 404));
 
@@ -124,6 +133,24 @@ describe('tmdbFetch', () => {
       'TMDb request failed: /movie/0 (404)',
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('optional', () => {
+  it('resolves to the fetched value when the promise succeeds', async () => {
+    await expect(optional(Promise.resolve({ reviews: ['a'] }), { reviews: [] })).resolves.toEqual({
+      reviews: ['a'],
+    });
+  });
+
+  it('degrades to the fallback when the promise rejects', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const fallback = { reviews: [] as string[] };
+
+    await expect(optional(Promise.reject(new Error('504')), fallback)).resolves.toBe(fallback);
+    expect(errorSpy).toHaveBeenCalled();
+
+    errorSpy.mockRestore();
   });
 });
 

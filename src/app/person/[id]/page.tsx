@@ -10,6 +10,7 @@ import { QuickAddButton } from '@/components/quick-add-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
+import { optional } from '@/lib/tmdb';
 import { deduplicateAndSortByPopularity } from '@/lib/utils';
 
 type PersonPageProps = {
@@ -33,8 +34,11 @@ export default async function PersonPage(props: PersonPageProps) {
   const user = await getUser();
   const [person, movieCredits, tvCredits] = await Promise.all([
     getPersonDetails(personId),
-    getPersonMovieCredits(personId),
-    getPersonTvCredits(personId),
+    // Filmography sliders are supporting sections; a transient TMDb failure
+    // should hide them, not fail the page. Details stays uncaught — without it
+    // there is no page to render.
+    optional(getPersonMovieCredits(personId), { id: personId, cast: [], crew: [] }),
+    optional(getPersonTvCredits(personId), { id: personId, cast: [], crew: [] }),
   ]);
 
   const {
