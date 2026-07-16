@@ -5,7 +5,18 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm tsc:*)",
       "Bash(pnpm lint:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm fallow *)",
+      "Bash(git fetch *)",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr edit *)"
     ]
   }
 }
