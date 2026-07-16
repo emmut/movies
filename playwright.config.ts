@@ -22,7 +22,22 @@ export default defineConfig({
     baseURL,
     trace: 'on-first-retry',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+      // The pagination-scroll regression only reproduces on mobile WebKit; it
+      // runs under the mobile-safari project below, not here.
+      testIgnore: /discover-pagination-scroll\.spec\.ts/,
+    },
+    {
+      // WebKit (the Safari engine) on an iPhone viewport, scoped to the mobile
+      // Safari scroll regression.
+      name: 'mobile-safari',
+      use: { ...devices['iPhone 13'] },
+      testMatch: /discover-pagination-scroll\.spec\.ts/,
+    },
+  ],
   // Build + start the real app unless we were pointed at an external URL.
   webServer: useManagedServer
     ? {
