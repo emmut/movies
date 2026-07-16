@@ -1,6 +1,7 @@
 import { z } from 'zod/v4';
 
 import { EMOJI_OPTIONS } from '@/lib/config';
+import { isValidRegionCode } from '@/lib/regions';
 
 /**
  * Validates that a movieId is a valid string that can be converted to a positive integer.
@@ -123,3 +124,14 @@ export const mediaTypeSchema = z.enum(['movie', 'tv', 'person']);
 
 export const listIdSchema = z.uuid('Invalid list ID');
 export const pageSchema = z.number().int().min(1);
+
+/**
+ * Schema for the optional stream-provider filter on list pages: at least one
+ * TMDB provider id plus the region whose availability should be checked.
+ */
+export const watchProviderFilterSchema = z.object({
+  providerIds: z.array(z.number().int().min(1)).min(1),
+  region: z.string().refine(isValidRegionCode, 'Invalid region code'),
+});
+
+export type WatchProviderFilter = z.infer<typeof watchProviderFilterSchema>;

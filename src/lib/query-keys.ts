@@ -22,7 +22,12 @@ function systemListKeys<Root extends string>(root: Root) {
   return {
     all,
     lists,
-    list: (mediaType: 'movie' | 'tv', page: number) => [...lists(), mediaType, page] as const,
+    list: (
+      mediaType: 'movie' | 'tv',
+      page: number,
+      watchProviders?: number[],
+      watchRegion?: string,
+    ) => [...lists(), mediaType, page, watchProviders, watchRegion] as const,
     counts,
     count: (mediaType: 'movie' | 'tv') => [...counts(), mediaType] as const,
     status: (resourceId: number, resourceType: string) =>
@@ -48,7 +53,8 @@ export const queryKeys = {
   lists: {
     all: ['lists'] as const,
     details: () => [...queryKeys.lists.all, 'detail'] as const,
-    detail: (listId: string, page: number) => [...queryKeys.lists.details(), listId, page] as const,
+    detail: (listId: string, page: number, watchProviders?: number[], watchRegion?: string) =>
+      [...queryKeys.lists.details(), listId, page, watchProviders, watchRegion] as const,
     withStatus: (mediaId: number, mediaType: string) =>
       [...queryKeys.lists.all, 'withStatus', mediaId, mediaType] as const,
   },

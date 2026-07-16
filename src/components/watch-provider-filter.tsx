@@ -3,7 +3,7 @@
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { useState } from 'react';
+import { ComponentProps, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -15,11 +15,54 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { DEFAULT_REGION } from '@/lib/regions';
+import { cn } from '@/lib/utils';
 import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFilterProps {
   providers: WatchProvider[];
   userRegion: string;
+  /**
+   * Renders a small labelless trigger that sits inline with `size="sm"`
+   * header buttons (list pages) instead of the labeled panel field (discover).
+   */
+  compact?: boolean;
+}
+
+// Both triggers spread rest props (and ref) into Button: PopoverTrigger's
+// `render` clones the element with the trigger props (onClick, aria-*), and
+// dropping them leaves a button that never opens the popover.
+type TriggerProps = { selectedCount: number } & ComponentProps<typeof Button>;
+
+/** Discover's filter-panel trigger: labeled, full-width field. */
+function PanelTrigger({ selectedCount, className, ...props }: TriggerProps) {
+  return (
+    <Button
+      {...props}
+      variant="outline"
+      className={cn('w-full justify-between', className)}
+      id="watch-providers"
+    >
+      <Filter className="mr-2 h-4 w-4" />
+      {selectedCount > 0
+        ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
+        : 'Select watch providers'}
+    </Button>
+  );
+}
+
+/** List-header trigger: compact button with a count badge when active. */
+function CompactTrigger({ selectedCount, ...props }: TriggerProps) {
+  return (
+    <Button {...props} variant="outline" size="sm">
+      <Filter className="h-4 w-4" />
+      Providers
+      {selectedCount > 0 && (
+        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+          {selectedCount}
+        </span>
+      )}
+    </Button>
+  );
 }
 
 /**
@@ -29,7 +72,11 @@ interface WatchProviderFilterProps {
  * Uses OR logic - shows content available on ANY of the selected providers.
  * The selected providers are applied to URL query parameters for filtering results.
  */
-export default function WatchProviderFilter({ providers, userRegion }: WatchProviderFilterProps) {
+export default function WatchProviderFilter({
+  providers,
+  userRegion,
+  compact = false,
+}: WatchProviderFilterProps) {
   const [{ with_watch_providers }, setParams] = useQueryStates({
     with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
     watch_region: parseAsString.withDefault(DEFAULT_REGION),
@@ -72,24 +119,19 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
 
   const selectedCount = selectedProviders.length;
 
-  return (
-    <div className="min-w-54">
-      <Label htmlFor="watch-providers" className="mb-2 flex justify-end @3xl:self-end">
-        Watch Providers
-      </Label>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger
-          render={
-            <Button variant="outline" className="w-full justify-between" id="watch-providers">
-              <Filter className="mr-2 h-4 w-4" />
-              {selectedCount > 0
-                ? `${selectedCount} provider${selectedCount === 1 ? '' : 's'} selected`
-                : 'Select watch providers'}
-            </Button>
-          }
-        />
+  const popover = (
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger
+        render={
+          compact ? (
+            <CompactTrigger selectedCount={selectedCount} />
+          ) : (
+            <PanelTrigger selectedCount={selectedCount} />
+          )
+        }
+      />
         <PopoverContent
-          align="end"
+          align={compact ? 'start' : 'end'}
           side="bottom"
           sideOffset={10}
           className="max-h-[60dvh] overflow-auto"
@@ -151,7 +193,19 @@ export default function WatchProviderFilter({ providers, userRegion }: WatchProv
             )}
           </div>
         </PopoverContent>
-      </Popover>
+    </Popover>
+  );
+
+  if (compact) {
+    return popover;
+  }
+
+  return (
+    <div className="min-w-54">
+      <Label htmlFor="watch-providers" className="mb-2 flex justify-end @3xl:self-end">
+        Watch Providers
+      </Label>
+      {popover}
     </div>
   );
 }

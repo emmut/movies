@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_REGION } from './regions';
 import {
+  activeWatchProviderFilter,
   getWatchProvidersString,
   loadWatchProviderSearchParams,
   parseAsPipeSeparatedArrayOfIntegers,
 } from './watch-provider-search-params';
 
 describe('loadWatchProviderSearchParams', () => {
-  it('defaults to empty providers and the default region', () => {
+  it('defaults to empty providers and no pinned region', () => {
+    // watch_region intentionally has no default: callers fall back to the
+    // user's stored region when the URL does not pin one.
     expect(loadWatchProviderSearchParams({})).toEqual({
       with_watch_providers: [],
-      watch_region: DEFAULT_REGION,
+      watch_region: null,
     });
   });
 
@@ -21,6 +23,22 @@ describe('loadWatchProviderSearchParams', () => {
     ).toEqual({
       with_watch_providers: [8, 337],
       watch_region: 'US',
+    });
+  });
+});
+
+describe('activeWatchProviderFilter', () => {
+  it('is inactive (both members undefined) while no providers are selected', () => {
+    expect(activeWatchProviderFilter([], 'SE')).toEqual({
+      activeProviders: undefined,
+      activeRegion: undefined,
+    });
+  });
+
+  it('returns the providers and region once providers are selected', () => {
+    expect(activeWatchProviderFilter([8, 337], 'US')).toEqual({
+      activeProviders: [8, 337],
+      activeRegion: 'US',
     });
   });
 });

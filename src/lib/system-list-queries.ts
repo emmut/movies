@@ -9,13 +9,19 @@ import { SYSTEM_LIST_CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { getMovieDetails } from '@/lib/movies';
+import { paginate } from '@/lib/paginate';
 import {
   pageSchema,
   resourceIdSchema,
   resourceTypeSchema,
   SystemListType,
   systemListTypeSchema,
+  WatchProviderFilter,
 } from '@/lib/validations';
+import {
+  filterRowsByWatchProviders,
+  parseWatchProviderFilter,
+} from '@/lib/watch-provider-availability';
 import { MovieDetails } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 import { TvDetails } from '@/types/tv-show';
@@ -125,17 +131,23 @@ export async function getSystemListMemberships(resourceId: number, resourceType:
  * @param listType - The system list to read ('watchlist' or 'watched').
  * @param resourceType - The type of resource to include ('movie' or 'tv').
  * @param page - The page number (1-based).
+ * @param watchProviders - When non-empty, only items streamable on any of
+ * these TMDB provider ids (in `watchRegion`) are returned.
+ * @param watchRegion - The region used for the provider availability check.
  * @returns An object containing the paginated items and pagination metadata.
  */
 export async function getSystemListWithResourceDetailsPaginated(
   listType: SystemListType,
   resourceType: 'movie' | 'tv',
   page: number = 1,
+  watchProviders?: number[],
+  watchRegion?: string,
 ) {
   if (!resourceTypeSchema.safeParse(resourceType).success || !pageSchema.safeParse(page).success) {
     throw new Error('Invalid resource type or page number');
   }
   systemListTypeSchema.parse(listType);
+  const providerFilter = parseWatchProviderFilter(watchProviders, watchRegion);
 
   const user = await getUser();
   if (!user) {
@@ -143,9 +155,14 @@ export async function getSystemListWithResourceDetailsPaginated(
   }
 
   try {
-    return await queryPageWithResourceDetails(user.id, listType, resourceType, page);
+    return await queryPageWithResourceDetails(user.id, listType, resourceType, page, providerFilter);
   } catch (error) {
     console.error(`Error fetching paginated ${listType}:`, error);
+    // With a provider filter active, an empty page reads as "nothing matches
+    // your providers" — a lie during an outage. Let the client show an error.
+    if (providerFilter) {
+      throw error;
+    }
     return emptyPage(page);
   }
 }
@@ -155,11 +172,16 @@ async function queryPageWithResourceDetails(
   listType: SystemListType,
   resourceType: 'movie' | 'tv',
   page: number,
+  providerFilter: WatchProviderFilter | null,
 ) {
   const filter = and(
     systemListItemsFilter(userId, listType),
     eq(listItems.resourceType, resourceType),
   );
+
+  if (providerFilter) {
+    return await queryProviderFilteredPage(filter, resourceType, page, providerFilter);
+  }
 
   const totalCountResult = await db
     .select({ count: count() })
@@ -172,17 +194,7 @@ async function queryPageWithResourceDetails(
     return emptyPage(page);
   }
 
-  const rows = await db
-    .select({
-      id: listItems.id,
-      resourceId: listItems.resourceId,
-      resourceType: listItems.resourceType,
-      createdAt: listItems.createdAt,
-    })
-    .from(listItems)
-    .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(filter)
-    .orderBy(asc(listItems.position), desc(listItems.createdAt))
+  const rows = await selectSystemListRows(filter)
     .limit(ITEMS_PER_PAGE)
     .offset((page - 1) * ITEMS_PER_PAGE);
 
@@ -192,6 +204,46 @@ async function queryPageWithResourceDetails(
     totalPages: Math.ceil(totalItems / ITEMS_PER_PAGE),
     currentPage: page,
     itemsPerPage: ITEMS_PER_PAGE,
+  };
+}
+
+function selectSystemListRows(filter: SQL | undefined) {
+  return db
+    .select({
+      id: listItems.id,
+      resourceId: listItems.resourceId,
+      resourceType: listItems.resourceType,
+      createdAt: listItems.createdAt,
+    })
+    .from(listItems)
+    .innerJoin(lists, eq(listItems.listId, lists.id))
+    .where(filter)
+    .orderBy(asc(listItems.position), desc(listItems.createdAt));
+}
+
+/**
+ * Stream-provider-filtered page: availability lives in TMDB rather than the
+ * database, so every row is loaded, filtered by streamability, and paginated
+ * in memory. Pagination metadata reflects the filtered set.
+ */
+async function queryProviderFilteredPage(
+  filter: SQL | undefined,
+  resourceType: 'movie' | 'tv',
+  page: number,
+  providerFilter: WatchProviderFilter,
+) {
+  const rows = await selectSystemListRows(filter);
+  const matching = await filterRowsByWatchProviders(rows, providerFilter);
+
+  if (matching.length === 0) {
+    return emptyPage(page);
+  }
+
+  const { pageItems, ...pagination } = paginate(matching, page, ITEMS_PER_PAGE);
+
+  return {
+    items: await hydrateResourceDetails(pageItems, resourceType),
+    ...pagination,
   };
 }
 
