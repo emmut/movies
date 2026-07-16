@@ -24,6 +24,7 @@
     "db": "drizzle-kit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:migrate:railway": "tsx --env-file-if-exists=.env scripts/migrate-with-db-wait.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "seed": "tsx --env-file=.env scripts/seed-watchlist-and-lists.ts",

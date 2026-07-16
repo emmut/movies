@@ -102,9 +102,10 @@ export type MovieCredits = {
 };
 
 export type MovieWatchProviders = {
-  results: {
+  // TMDb omits regions that have no providers, so every region is optional.
+  results: Partial<{
     [region in RegionCode]: RegionWatchProviders;
-  };
+  }>;
 };
 
 export type SearchedMovieResponse = {

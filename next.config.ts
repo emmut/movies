@@ -7,6 +7,12 @@ env;
 const nextConfig: NextConfig = {
   reactCompiler: true,
   cacheComponents: true,
+  experimental: {
+    // The legacy scroll handler chokes on head-hoisted preload links and can
+    // leave client-side navigations into detail routes scrolled partway down
+    // (guarded by e2e/detail-scroll.spec.ts; reproduces only in prod builds).
+    appNewScrollHandler: true,
+  },
   async headers() {
     return [
       {

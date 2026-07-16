@@ -3,7 +3,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LoadingTvShows() {
   return (
-    <>
+    // Clip to under one viewport so a client-side navigation from a scrolled
+    // position can't retain its offset: a short skeleton document lets the
+    // browser clamp scroll back to the top before the real content streams in.
+    // Guarded by e2e/detail-scroll.spec.ts.
+    <div className="max-h-[80dvh] overflow-hidden">
       <div className="mb-6">
         <Skeleton className="h-10 w-24" />
       </div>
@@ -50,6 +54,6 @@ export default function LoadingTvShows() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
