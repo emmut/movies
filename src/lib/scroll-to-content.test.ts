@@ -125,6 +125,19 @@ describe('scrollToContent', () => {
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
+  it('cancels a queued correction when the user takes over before it fires', () => {
+    const scrollIntoView = vi.fn();
+    const { fire } = stubEnv({ scrollIntoView, top: 300 });
+
+    scrollToContent();
+    fire('scroll'); // queues the settle correction
+    vi.advanceTimersByTime(50); // ...before its deadline
+    fire('keydown'); // user takes over
+    vi.advanceTimersByTime(100); // settle deadline passes
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
   it('stops guarding after the guard window elapses', () => {
     const scrollIntoView = vi.fn();
     const { fire, listenerCount } = stubEnv({ scrollIntoView, top: 300 });

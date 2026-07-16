@@ -49,6 +49,10 @@ export function scrollToContent() {
   function onScroll() {
     clearTimeout(settleTimer);
     settleTimer = setTimeout(() => {
+      // Bail if the guard ended (user took over, or a newer click) after this
+      // callback was queued but before it fired — else we'd yank a scroll the
+      // user now owns.
+      if (signal.aborted) return;
       if (Math.abs(offsetFromTarget()) > ON_TARGET_TOLERANCE) {
         // `'instant'`, not `'auto'`: stay instant even under a global CSS
         // `scroll-behavior: smooth`, so the correction never animates a bounce.
