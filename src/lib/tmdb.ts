@@ -11,6 +11,46 @@ type TmdbFetchOptions = {
   errorMessage?: string;
 };
 
+// Transient upstream failures we retry rather than fail the page on: request
+// timeout, rate limiting, and gateway/server errors. A single blip (common when
+// CI hammers the API during a build) shouldn't tank a whole detail page.
+const RETRYABLE_STATUS = new Set([408, 429, 500, 502, 503, 504]);
+const MAX_ATTEMPTS = 3;
+const RETRY_BASE_MS = 250;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Whether this response is final — either usable or a non-retryable failure, or
+ * we've exhausted our attempts and must surface whatever we got.
+ */
+function isFinalResponse(res: Response, attempt: number) {
+  return res.ok || !RETRYABLE_STATUS.has(res.status) || attempt >= MAX_ATTEMPTS;
+}
+
+/**
+ * Fetches with a small backoff retry on transient upstream failures (network
+ * errors and retryable statuses). Returns the last response even if not OK; the
+ * caller decides how to surface a non-OK status.
+ */
+async function fetchWithRetry(url: URL, init: RequestInit, attempt = 1): Promise<Response> {
+  try {
+    const res = await fetch(url, init);
+    if (isFinalResponse(res, attempt)) {
+      return res;
+    }
+  } catch (error) {
+    if (attempt >= MAX_ATTEMPTS) {
+      throw error;
+    }
+  }
+
+  await sleep(RETRY_BASE_MS * attempt);
+  return fetchWithRetry(url, init, attempt + 1);
+}
+
 /**
  * Fetches a TMDb API endpoint with authorization and JSON parsing.
  *
@@ -33,7 +73,7 @@ export async function tmdbFetch<T>(
     }
   }
 
-  const res = await fetch(url, {
+  const res = await fetchWithRetry(url, {
     headers: {
       authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
       accept: 'application/json',
