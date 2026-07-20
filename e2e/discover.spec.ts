@@ -212,8 +212,7 @@ test.describe('filters', () => {
     await page.getByRole('button', { name: '2', exact: true }).click();
     await waitForDiscoverUrl(page, /page=2/);
 
-    // The #content fragment scrolls the results into view, then is tidied out
-    // of the address bar once WebKit's late-scroll window has passed.
+    // Paginating scrolls imperatively; the URL never carries a fragment.
     await expect
       .poll(() => page.evaluate(() => window.location.hash), { timeout: 5_000 })
       .toBe('');

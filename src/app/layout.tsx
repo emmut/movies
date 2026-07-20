@@ -34,7 +34,7 @@ export const metadata: Metadata = {
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark scroll-smooth">
+    <html lang="en" className="dark">
       <body className={clsx([inter.className])}>
         <QueryProvider>
           <NuqsAdapter>

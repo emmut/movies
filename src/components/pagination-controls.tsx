@@ -2,7 +2,6 @@
 
 import clsx from 'clsx';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 import { Input } from './ui/input';
@@ -15,11 +14,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from './ui/pagination';
-
-// How long the #content fragment stays in the URL after paginating. Must
-// outlast WebKit's late self-scroll (~300ms after pushState), with margin for
-// slow devices — the window the removed scroll guard defended.
-const HASH_CLEANUP_MS = 1200;
 
 type PaginationControls = {
   totalPages: number;
@@ -91,31 +85,32 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
 
-  // The #content fragment makes the browser scroll the results into
-  // view after navigation — native, authoritative on WebKit, and honours the
-  // container's scroll-margin. No imperative scroll to race the soft-nav.
   function buildPageHref(page: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', String(page));
-    return `?${params.toString()}#content`;
+    return `?${params.toString()}`;
   }
 
-  // Tidy the fragment out of the address bar once it has done its job. WebKit
-  // keeps re-asserting its own scroll for a few hundred ms after the soft
-  // navigation's pushState, so the fragment must stay in the URL until that
-  // window has passed (same margin as the old scroll guard). replaceState
-  // never scrolls, so the cleanup can't disturb the settled position.
-  useEffect(() => {
-    if (window.location.hash !== '#content') return;
-    const timer = setTimeout(() => {
-      window.history.replaceState(
-        window.history.state,
-        '',
-        window.location.pathname + window.location.search,
-      );
-    }, HASH_CLEANUP_MS);
-    return () => clearTimeout(timer);
-  }, [currentPageNumber]);
+  // Scrolls the results into view; scroll-m-5 on #content leaves the gap.
+  // Wired via the links' onNavigate, which only fires on a real SPA
+  // navigation — modifier/middle clicks open a new tab and never scroll.
+  //
+  // WebKit fires its own scroll ~300ms after the soft navigation's pushState,
+  // clobbering ours, so re-assert once after that window if we drifted off
+  // target. ponytail: a scroll from the user inside that window gets yanked
+  // back too; bring back the full input-aware guard if that ever bites.
+  function scrollToContent() {
+    document.getElementById('content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => {
+      // Re-query: the element clicked past may have been swapped for a
+      // skeleton or the next page's content by now. 20 = the scroll-m-5 gap;
+      // anything past a small tolerance is a scroll we didn't ask for.
+      const el = document.getElementById('content');
+      if (el && Math.abs(el.getBoundingClientRect().top - 20) > 24) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 600);
+  }
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
 
@@ -128,6 +123,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               <PaginationItem>
                 <PaginationPrevious
                   href={buildPageHref(currentPageNumber - 1)}
+                  onNavigate={scrollToContent}
                   className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -144,6 +140,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
                       href={buildPageHref(pageNumber)}
+                      onNavigate={scrollToContent}
                       isActive={pageNumber === currentPageNumber}
                       className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
                     >
@@ -156,6 +153,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               <PaginationItem>
                 <PaginationNext
                   href={buildPageHref(currentPageNumber + 1)}
+                  onNavigate={scrollToContent}
                   className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -184,6 +182,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   if (e.key === 'Enter') {
                     const value = Number((e.target as HTMLInputElement).value);
                     if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
+                      scrollToContent();
                       router.push(buildPageHref(value));
                       (e.target as HTMLInputElement).value = '';
                     }
@@ -192,6 +191,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 onBlur={(e) => {
                   const value = Number(e.target.value);
                   if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
+                    scrollToContent();
                     router.push(buildPageHref(value));
                   }
                   e.target.value = '';

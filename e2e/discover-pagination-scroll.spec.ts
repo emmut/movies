@@ -75,7 +75,11 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
 
   // Navigate away from a scrolled-down position, as a user at the bottom-of-page
   // pagination controls would.
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  // behavior:'instant' so the precondition below never reads a mid-animation
+  // position, regardless of any smooth-scrolling CSS.
+  await page.evaluate(() =>
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }),
+  );
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(containerTop);
 
   // Click Next, then wait past the loading skeletons until page 2's cards have
