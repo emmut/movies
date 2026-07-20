@@ -41,7 +41,7 @@ export async function ReviewsPageContent({ mediaType, mediaId, page }: ReviewsPa
   ]);
 
   return (
-    <div className="mx-auto min-h-screen max-w-3xl">
+    <div id="content-container" className="mx-auto min-h-screen max-w-3xl scroll-m-5">
       <Link
         href={`/${mediaType}/${mediaId}`}
         className="mb-6 inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"

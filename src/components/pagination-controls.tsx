@@ -104,7 +104,8 @@ export function PaginationControls({ totalPages }: PaginationControls) {
             <PaginationContent className="gap-1 sm:gap-2">
               <PaginationItem>
                 <PaginationPrevious
-                  href={buildPageHref(currentPageNumber - 1)}                  className={clsx(
+                  href={buildPageHref(currentPageNumber - 1)}
+                  className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
                   )}
@@ -131,7 +132,8 @@ export function PaginationControls({ totalPages }: PaginationControls) {
 
               <PaginationItem>
                 <PaginationNext
-                  href={buildPageHref(currentPageNumber + 1)}                  className={clsx(
+                  href={buildPageHref(currentPageNumber + 1)}
+                  className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
                   )}
