@@ -43,18 +43,20 @@ function RegionSelectItem({
 
   return (
     <SelectItem key={code} value={code} className="group">
-      {currentRegionHasServices && (
-        <>
-          <Dot
-            size={2}
-            className="hidden group-focus-within:flex group-hover:flex"
-            animated={true}
-          />
-          <Dot size={2} className="group-focus-within:hidden group-hover:hidden" />
-        </>
-      )}
+      <div className="flex items-center justify-center gap-1">
+        {currentRegionHasServices && (
+          <>
+            <Dot
+              size={2}
+              className="hidden group-focus-within:flex group-hover:flex"
+              animated={true}
+            />
+            <Dot size={2} className="group-focus-within:hidden group-hover:hidden" />
+          </>
+        )}
 
-      <span className="whitespace-nowrap">{name}</span>
+        <span className="whitespace-nowrap">{name}</span>
+      </div>
     </SelectItem>
   );
 }
