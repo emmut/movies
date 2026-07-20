@@ -155,7 +155,13 @@ function Sidebar({
   variant?: 'sidebar' | 'floating' | 'inset';
   collapsible?: 'offcanvas' | 'icon' | 'none';
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const { state, openMobile, setOpenMobile } = useSidebar();
+  // Own hook call, not context: this component streams in behind a Suspense
+  // boundary and hydrates after the provider already knows the real viewport.
+  // useSyncExternalStore's server snapshot only applies to the component
+  // whose hydration render reads it, so read it here to match the server's
+  // desktop markup, then re-render into the mobile Sheet.
+  const isMobile = useIsMobile();
 
   if (collapsible === 'none') {
     return (
