@@ -95,21 +95,16 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   // Wired via the links' onNavigate, which only fires on a real SPA
   // navigation — modifier/middle clicks open a new tab and never scroll.
   //
-  // WebKit fires its own scroll ~300ms after the soft navigation's pushState,
-  // clobbering ours, so re-assert once after that window if we drifted off
-  // target. ponytail: a scroll from the user inside that window gets yanked
-  // back too; bring back the full input-aware guard if that ever bites.
+  // Instant on purpose. A smooth scroll is still animating when the shorter
+  // loading skeleton swaps in, and the collapsed document height clamps the
+  // scroll and strands the animation short of its target — on both engines.
+  // (The "WebKit fires its own scroll after pushState" this code used to
+  // re-assert against was this same clamp; instrumented WebKit shows no
+  // browser-initiated scroll at all.) Instant lands before any swap can move
+  // the ground, so no re-assert is needed either. 'instant', not 'auto':
+  // html has scroll-smooth, which 'auto' would obey.
   function scrollToContent() {
-    document.getElementById('content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => {
-      // Re-query: the element clicked past may have been swapped for a
-      // skeleton or the next page's content by now. 20 = the scroll-m-5 gap;
-      // anything past a small tolerance is a scroll we didn't ask for.
-      const el = document.getElementById('content');
-      if (el && Math.abs(el.getBoundingClientRect().top - 20) > 24) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 600);
+    document.getElementById('content')?.scrollIntoView({ behavior: 'instant', block: 'start' });
   }
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
