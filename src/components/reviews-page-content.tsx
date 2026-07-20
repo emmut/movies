@@ -78,7 +78,10 @@ export async function ReviewsPageContent({ mediaType, mediaId, page }: ReviewsPa
  */
 export function ReviewsPageSkeleton() {
   return (
-    <div id="content" className="mx-auto min-h-screen max-w-3xl scroll-m-5">
+    // h-screen + overflow-clip: cards are sized like real reviews, so the
+    // tail card overflows the viewport — clip it instead of letting the
+    // stack squish or grow the document past the scroll target.
+    <div id="content" className="mx-auto h-screen max-w-3xl overflow-clip scroll-m-5">
       <Skeleton className="mb-6 h-5 w-40" />
 
       <h1 className="mb-1 text-3xl font-bold">Reviews</h1>
@@ -91,9 +94,11 @@ export function ReviewsPageSkeleton() {
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-4 w-16" />
             </div>
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
+            {Array.from({ length: 7 }).map((_, line) => (
+              <Skeleton key={line} className="h-4 w-full" />
+            ))}
             <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-4 w-24" />
           </div>
         ))}
       </div>
