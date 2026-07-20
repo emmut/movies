@@ -26,7 +26,7 @@ async function expectDiscoverShell(page: Page) {
   // The trigger's accessible name comes from its associated label ("Watch
   // Providers"); "Select watch providers" is only its visible value text.
   await expect(page.getByRole('button', { name: /^watch providers$/i })).toBeVisible();
-  await expect(page.locator('#content-container')).toBeVisible();
+  await expect(page.locator('#content')).toBeVisible();
 }
 
 async function selectOption(page: Page, label: string, option: string) {
@@ -41,7 +41,7 @@ async function waitForDiscoverUrl(page: Page, matcher: RegExp) {
 // Waits for the results region to settle into either a populated grid or a
 // graceful empty state, without asserting on specific (volatile) TMDB titles.
 async function expectResultsSettled(page: Page, mediaType: 'movie' | 'tv') {
-  const container = page.locator('#content-container');
+  const container = page.locator('#content');
   const cards = container.locator(`a[href^="/${mediaType}/"]`);
   const emptyState = container.getByText(/no .*(found|was found)/i);
 
@@ -79,7 +79,7 @@ test.describe('discover page shell', () => {
     const skipLink = page.getByRole('link', { name: /skip to content/i });
     await skipLink.focus();
     await skipLink.press('Enter');
-    await waitForDiscoverUrl(page, /#content-container$/);
+    await waitForDiscoverUrl(page, /#content$/);
   });
 });
 
@@ -211,6 +211,12 @@ test.describe('filters', () => {
 
     await page.getByRole('button', { name: '2', exact: true }).click();
     await waitForDiscoverUrl(page, /page=2/);
+
+    // The #content fragment scrolls the results into view, then is tidied out
+    // of the address bar once WebKit's late-scroll window has passed.
+    await expect
+      .poll(() => page.evaluate(() => window.location.hash), { timeout: 5_000 })
+      .toBe('');
   });
 
   test('resets pagination to page 1 when a filter changes', async ({ page }) => {

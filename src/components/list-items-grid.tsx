@@ -86,7 +86,7 @@ export function ListItemsGrid({
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={items.map((item) => item.listItemId)} strategy={rectSortingStrategy}>
         <div
-          id="content-container"
+          id="content"
           className="grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
         >
           {items.map((item, index) => (

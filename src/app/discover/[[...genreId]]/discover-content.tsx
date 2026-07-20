@@ -66,7 +66,7 @@ function DiscoverHeader() {
   return (
     <div className="flex items-center gap-4">
       <SectionTitle>Discover</SectionTitle>
-      <SkipToElement elementId="content-container">Skip to content</SkipToElement>
+      <SkipToElement elementId="content">Skip to content</SkipToElement>
     </div>
   );
 }
@@ -109,7 +109,7 @@ function DiscoverResults({
 }: DiscoverResultsProps) {
   return (
     <div
-      id="content-container"
+      id="content"
       className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
     >
       <DiscoverGrid

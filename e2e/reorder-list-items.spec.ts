@@ -27,11 +27,11 @@ async function addToCustomList(page: Page, moviePath: string, listName: string) 
 /**
  * The visible item card titles in DOM order within the list details grid.
  * Next.js keeps previously visited segments mounted but hidden
- * (`display: none`), so an unscoped `#content-container h3` also matches the
+ * (`display: none`), so an unscoped `#content h3` also matches the
  * cached /lists page's card titles after client-side navigation.
  */
 function itemTitles(page: Page) {
-  return page.locator('#content-container h3:visible');
+  return page.locator('#content h3:visible');
 }
 
 test.describe('reordering list items', () => {

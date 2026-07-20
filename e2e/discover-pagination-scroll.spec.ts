@@ -11,10 +11,10 @@ import { expect, type Page, test } from '@playwright/test';
 // results swap lands mid-scroll, the timing that lost the scroll.
 //
 // Invariant: after paginating from a scrolled-down position, the viewport
-// settles at the top of `#content-container` (its first item, minus the
+// settles at the top of `#content` (its first item, minus the
 // `scroll-m-5` gap), not at the page top.
 
-const SCROLL_MARGIN = 20; // scroll-m-5 on #content-container (1.25rem)
+const SCROLL_MARGIN = 20; // scroll-m-5 on #content (1.25rem)
 
 /**
  * Polls `window.scrollY` until it holds steady, so we measure where the scroll
@@ -42,7 +42,7 @@ async function settledScrollY(page: Page): Promise<number> {
 function firstCardHref(page: Page): Promise<string> {
   return page.evaluate(
     () =>
-      document.querySelector('#content-container a[href^="/movie/"]')?.getAttribute('href') ?? '',
+      document.querySelector('#content a[href^="/movie/"]')?.getAttribute('href') ?? '',
   );
 }
 
@@ -58,14 +58,14 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
   });
 
   await page.goto('/discover');
-  const container = page.locator('#content-container');
+  const container = page.locator('#content');
   const firstCard = container.locator('a[href^="/movie/"]').first();
   await expect(firstCard).toBeVisible({ timeout: 20_000 });
 
   // The results container's offset is stable across pages, so capture it while
   // resting at the top: this is where "the top of the results" lives.
   const containerTop = await page.evaluate(() => {
-    const el = document.querySelector('#content-container')!;
+    const el = document.querySelector('#content')!;
     return Math.round(el.getBoundingClientRect().top + window.scrollY);
   });
 

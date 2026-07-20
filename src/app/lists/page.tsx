@@ -75,7 +75,7 @@ export default async function ListsPage(props: ListsPageProps) {
           </Link>
         </div>
       ) : (
-        <div id="content-container" className="scroll-m-5">
+        <div id="content" className="scroll-m-5">
           <ListsGrid
             lists={lists}
             offset={(paginatedData.currentPage - 1) * paginatedData.itemsPerPage}

@@ -16,10 +16,10 @@ async function createList(page: Page, name: string) {
 /**
  * The visible list card titles in DOM order. Next.js keeps previously visited
  * segments mounted but hidden (`display: none`), so an unscoped
- * `#content-container h3` can also match cards from a cached page.
+ * `#content h3` can also match cards from a cached page.
  */
 function cardTitles(page: Page) {
-  return page.locator('#content-container h3:visible');
+  return page.locator('#content h3:visible');
 }
 
 test.describe('reordering lists', () => {

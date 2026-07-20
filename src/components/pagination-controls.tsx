@@ -2,6 +2,7 @@
 
 import clsx from 'clsx';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 
 import { Input } from './ui/input';
@@ -14,6 +15,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from './ui/pagination';
+
+// How long the #content fragment stays in the URL after paginating. Must
+// outlast WebKit's late self-scroll (~300ms after pushState), with margin for
+// slow devices — the window the removed scroll guard defended.
+const HASH_CLEANUP_MS = 1200;
 
 type PaginationControls = {
   totalPages: number;
@@ -85,14 +91,31 @@ export function PaginationControls({ totalPages }: PaginationControls) {
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
 
-  // The #content-container fragment makes the browser scroll the results into
+  // The #content fragment makes the browser scroll the results into
   // view after navigation — native, authoritative on WebKit, and honours the
   // container's scroll-margin. No imperative scroll to race the soft-nav.
   function buildPageHref(page: number) {
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', String(page));
-    return `?${params.toString()}#content-container`;
+    return `?${params.toString()}#content`;
   }
+
+  // Tidy the fragment out of the address bar once it has done its job. WebKit
+  // keeps re-asserting its own scroll for a few hundred ms after the soft
+  // navigation's pushState, so the fragment must stay in the URL until that
+  // window has passed (same margin as the old scroll guard). replaceState
+  // never scrolls, so the cleanup can't disturb the settled position.
+  useEffect(() => {
+    if (window.location.hash !== '#content') return;
+    const timer = setTimeout(() => {
+      window.history.replaceState(
+        window.history.state,
+        '',
+        window.location.pathname + window.location.search,
+      );
+    }, HASH_CLEANUP_MS);
+    return () => clearTimeout(timer);
+  }, [currentPageNumber]);
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
 
