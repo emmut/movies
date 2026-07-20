@@ -20,8 +20,6 @@ type PaginationControls = {
   pageType?: 'discover' | 'search' | 'trailers' | 'watchlist' | 'watched' | 'lists';
 };
 
-let scrollLoopHandle = 0;
-
 // Generate page numbers with ellipsis logic (mobile-first)
 function generatePageNumbers(currentPage: number, totalPages: number) {
   const pages: (number | 'ellipsis')[] = [];
@@ -93,45 +91,25 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     return `?${params.toString()}`;
   }
 
-  // Smoothly scrolls the results into view; 20 = the scroll-m-5 gap on
-  // #content. Wired via the links' onNavigate, which only fires on a real SPA
+  // Scrolls the results into view; scroll-m-5 on #content leaves the gap.
+  // Wired via the links' onNavigate, which only fires on a real SPA
   // navigation — modifier/middle clicks open a new tab and never scroll.
   //
-  // Hand-rolled instead of scrollIntoView({behavior:'smooth'}): the native
-  // animation aims at a fixed coordinate, so when the shorter loading
-  // skeleton swaps in mid-flight the collapsed document clamps the scroll and
-  // strands the animation off target. This loop re-reads #content every frame
-  // (the skeletons carry the id too), so swaps, clamps, and WebKit's own
-  // scroll ~300ms after the soft navigation's pushState all get eased over in
-  // one continuous motion — no separate re-assert step. ponytail: a scroll
-  // from the user inside the 900ms window gets pulled back too; bring back
-  // the input-aware guard if that ever bites.
+  // WebKit fires its own scroll ~300ms after the soft navigation's pushState,
+  // clobbering ours, so re-assert once after that window if we drifted off
+  // target. ponytail: a scroll from the user inside that window gets yanked
+  // back too; bring back the full input-aware guard if that ever bites.
   function scrollToContent() {
-    const start = performance.now();
-    let last = start;
-    function step(now: number) {
+    document.getElementById('content')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => {
+      // Re-query: the element clicked past may have been swapped for a
+      // skeleton or the next page's content by now. 20 = the scroll-m-5 gap;
+      // anything past a small tolerance is a scroll we didn't ask for.
       const el = document.getElementById('content');
-      if (el) {
-        const remaining = el.getBoundingClientRect().top - 20;
-        // Ease out: cover ~25% of the remaining distance per 60fps frame,
-        // time-normalized so high-refresh displays don't scroll faster. Fast
-        // enough to settle from any page height well inside the window.
-        // 'instant' matters — html has scroll-smooth, and an 'auto' scrollBy
-        // would spawn a competing native animation every frame.
-        const rate = 1 - Math.pow(0.75, (now - last) / 16.7);
-        if (Math.abs(remaining) > 1) {
-          window.scrollBy({ top: remaining * rate, behavior: 'instant' });
-        }
+      if (el && Math.abs(el.getBoundingClientRect().top - 20) > 24) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
-      last = now;
-      if (now - start < 900) {
-        scrollLoopHandle = requestAnimationFrame(step);
-      }
-    }
-    // Rapid pagination clicks: replace the running loop instead of stacking
-    // loops whose steps would compound.
-    cancelAnimationFrame(scrollLoopHandle);
-    scrollLoopHandle = requestAnimationFrame(step);
+    }, 600);
   }
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
