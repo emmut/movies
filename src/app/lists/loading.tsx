@@ -30,8 +30,13 @@ export default function ListsLoading() {
       </div>
 
       {/* Lists grid — full-height, no clipping: the scroll handler (see
-          next.config.ts) resets scroll on client navigation. */}
-      <div className="grid grid-cols-1 gap-4 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4">
+          next.config.ts) resets scroll on client navigation. id="content"
+          mirrors the loaded page so the pagination scroll re-assert has a
+          target mid-load. */}
+      <div
+        id="content"
+        className="grid grid-cols-1 gap-4 scroll-m-5 @md:grid-cols-2 @3xl:grid-cols-3 @5xl:grid-cols-4"
+      >
         {Array.from({ length: LISTS_PER_PAGE }).map((_, i) => (
           <div
             key={i}

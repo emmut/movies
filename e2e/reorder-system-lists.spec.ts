@@ -19,11 +19,11 @@ async function addToWatchlist(page: Page, movieId: number) {
 /**
  * The visible item card titles in DOM order within the list grid. Next.js
  * keeps previously visited segments mounted but hidden (`display: none`), so
- * an unscoped `#content-container h3` can also match cards from a cached
+ * an unscoped `#content h3` can also match cards from a cached
  * page after client-side navigation.
  */
 function itemTitles(page: Page) {
-  return page.locator('#content-container h3:visible');
+  return page.locator('#content h3:visible');
 }
 
 test.describe('reordering the watchlist', () => {

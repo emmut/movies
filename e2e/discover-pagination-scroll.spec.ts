@@ -11,10 +11,10 @@ import { expect, type Page, test } from '@playwright/test';
 // results swap lands mid-scroll, the timing that lost the scroll.
 //
 // Invariant: after paginating from a scrolled-down position, the viewport
-// settles at the top of `#content-container` (its first item, minus the
+// settles at the top of `#content` (its first item, minus the
 // `scroll-m-5` gap), not at the page top.
 
-const SCROLL_MARGIN = 20; // scroll-m-5 on #content-container (1.25rem)
+const SCROLL_MARGIN = 20; // scroll-m-5 on #content (1.25rem)
 
 /**
  * Polls `window.scrollY` until it holds steady, so we measure where the scroll
@@ -42,7 +42,7 @@ async function settledScrollY(page: Page): Promise<number> {
 function firstCardHref(page: Page): Promise<string> {
   return page.evaluate(
     () =>
-      document.querySelector('#content-container a[href^="/movie/"]')?.getAttribute('href') ?? '',
+      document.querySelector('#content a[href^="/movie/"]')?.getAttribute('href') ?? '',
   );
 }
 
@@ -58,14 +58,14 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
   });
 
   await page.goto('/discover');
-  const container = page.locator('#content-container');
+  const container = page.locator('#content');
   const firstCard = container.locator('a[href^="/movie/"]').first();
   await expect(firstCard).toBeVisible({ timeout: 20_000 });
 
   // The results container's offset is stable across pages, so capture it while
   // resting at the top: this is where "the top of the results" lives.
   const containerTop = await page.evaluate(() => {
-    const el = document.querySelector('#content-container')!;
+    const el = document.querySelector('#content')!;
     return Math.round(el.getBoundingClientRect().top + window.scrollY);
   });
 
@@ -75,7 +75,11 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
 
   // Navigate away from a scrolled-down position, as a user at the bottom-of-page
   // pagination controls would.
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  // behavior:'instant' so the precondition below never reads a mid-animation
+  // position, regardless of any smooth-scrolling CSS.
+  await page.evaluate(() =>
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }),
+  );
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(containerTop);
 
   // Click Next, then wait past the loading skeletons until page 2's cards have

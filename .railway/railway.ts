@@ -48,15 +48,23 @@ export default defineRailway((ctx) => {
   });
 
   const imgproxyHRto = service("imgproxy-HRto", {
-    source: image("darthsim/imgproxy:v3.18.2"),
+    // Railway auto-updates the image to new minor versions nightly (02–06).
+    source: image("darthsim/imgproxy:v3.31.4", {
+      autoUpdates: {
+        type: "minor",
+        schedule: [0, 1, 2, 3, 4, 5, 6].map((day) => ({ day, startHour: 2, endHour: 6 })),
+      },
+    }),
     healthcheck: "/health",
     deploy: {
       // Resizes images only on demand — sleep when idle (an image request
-      // wakes it) instead of running around the clock. Resizing TMDB posters
-      // is light work, so cap it at one core and half a GB.
+      // wakes it) instead of running around the clock. Concurrent avif encodes
+      // of TMDB originals spike past half a GB, so give it a full GB.
       sleepApplication: true,
-      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+      limitOverride: { containers: { cpu: 1, memoryBytes: 1 * GB_IN_BYTES } },
     },
+    // Pin next to the users (and the DB volume region).
+    replicas: { "europe-west4": 1 },
     domains: prod ? [CDN_DOMAIN] : [],
     networking: { privateNetworkEndpoint: "imgproxy-hrto" },
     env: {
