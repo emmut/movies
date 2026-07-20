@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
 import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
@@ -8,6 +9,8 @@ import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
 import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
 
+import ListsLoading from './loading';
+
 type ListsPageProps = {
   searchParams: Promise<{
     page?: string;
@@ -15,14 +18,25 @@ type ListsPageProps = {
 };
 
 export default async function ListsPage(props: ListsPageProps) {
+  const searchParams = await props.searchParams;
+  const page = Number(searchParams.page ?? '1');
+
+  // Keyed by page so paginating re-suspends into the skeleton instead of
+  // keeping the previous page's lists on screen while the next one loads
+  // (loading.tsx only shows on segment entry, not on searchParams changes).
+  return (
+    <Suspense key={page} fallback={<ListsLoading />}>
+      <ListsPageContent page={page} />
+    </Suspense>
+  );
+}
+
+async function ListsPageContent({ page }: { page: number }) {
   const user = await getUser();
 
   if (!user) {
     redirect('/login');
   }
-
-  const searchParams = await props.searchParams;
-  const page = Number(searchParams.page ?? '1');
 
   const [paginatedData, totalListsCount] = await Promise.all([
     getUserListsPaginated(page),

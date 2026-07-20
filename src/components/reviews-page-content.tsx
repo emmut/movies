@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { PaginationControls } from '@/components/pagination-controls';
 import { ReviewCard } from '@/components/review-card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getMediaReviews } from '@/lib/media-info';
 import { getMovieDetails } from '@/lib/movies';
 import { getTvShowDetails } from '@/lib/tv-shows';
@@ -66,6 +67,36 @@ export async function ReviewsPageContent({ mediaType, mediaId, page }: ReviewsPa
       )}
 
       <PaginationControls totalPages={totalPages} />
+    </div>
+  );
+}
+
+/**
+ * Loading skeleton mirroring {@link ReviewsPageContent}; used both as the
+ * route's initial fallback and, keyed by page, while paginating. Carries
+ * `id="content"` so the pagination scroll has a target mid-load.
+ */
+export function ReviewsPageSkeleton() {
+  return (
+    <div id="content" className="mx-auto min-h-screen max-w-3xl scroll-m-5">
+      <Skeleton className="mb-6 h-5 w-40" />
+
+      <h1 className="mb-1 text-3xl font-bold">Reviews</h1>
+      <Skeleton className="mb-6 h-4 w-56" />
+
+      <div className="space-y-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="space-y-2 rounded-lg bg-zinc-900 p-4">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
