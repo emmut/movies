@@ -13,8 +13,14 @@
 
 type ScheduledScroll = {
   pathname: string;
-  page: string | null;
+  search: string;
 };
+
+function normalizedSearch(url: URL) {
+  const params = new URLSearchParams(url.search);
+  params.sort();
+  return params.toString();
+}
 
 let scheduled: ScheduledScroll | null = null;
 
@@ -27,7 +33,7 @@ export function scheduleScrollToContent(href: string) {
   const destination = new URL(href, window.location.href);
   scheduled = {
     pathname: destination.pathname,
-    page: destination.searchParams.get('page'),
+    search: normalizedSearch(destination),
   };
 }
 
@@ -43,8 +49,7 @@ export function scrollToContentIfScheduled() {
 
   const location = new URL(window.location.href);
   const atDestination =
-    location.pathname === scheduled.pathname &&
-    location.searchParams.get('page') === scheduled.page;
+    location.pathname === scheduled.pathname && normalizedSearch(location) === scheduled.search;
   if (!atDestination) {
     // The scheduled navigation never landed — drop it so it can't scroll an
     // unrelated page later.

@@ -70,6 +70,36 @@ describe('scrollToContentIfScheduled', () => {
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
+  it('does not scroll when a superseding query state lands on the same page number', () => {
+    stubBrowser({ url: 'http://app.test/discover?page=2', contentElement: null });
+    scheduleScrollToContent('?page=1');
+
+    // A filter change also resolves to a page-1 result set on the same
+    // pathname — that is a different destination, not the scheduled one.
+    const scrollIntoView = vi.fn();
+    stubBrowser({
+      url: 'http://app.test/discover?page=1&sort_by=vote_average.desc',
+      contentElement: { scrollIntoView },
+    });
+    scrollToContentIfScheduled();
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('matches the destination regardless of query parameter order', () => {
+    const scrollIntoView = vi.fn();
+    stubBrowser({ url: 'http://app.test/discover?mediaType=tv&page=1', contentElement: null });
+    scheduleScrollToContent('?mediaType=tv&page=2');
+
+    stubBrowser({
+      url: 'http://app.test/discover?page=2&mediaType=tv',
+      contentElement: { scrollIntoView },
+    });
+    scrollToContentIfScheduled();
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
   it('drops an abandoned schedule instead of scrolling an unrelated page', () => {
     stubBrowser({ url: 'http://app.test/discover', contentElement: null });
     scheduleScrollToContent('?page=3');
