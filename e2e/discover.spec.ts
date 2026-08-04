@@ -198,6 +198,38 @@ test.describe('genre navigation', () => {
   });
 });
 
+test.describe('sidebar navigation', () => {
+  test('returning through the nav menu resets discover; browser back restores it', async ({
+    page,
+  }) => {
+    await page.goto(discoverUrl({ mediaType: 'tv', page: '2' }));
+    await expectDiscoverShell(page);
+    await waitForDiscoverUrl(page, /page=2/);
+    await expectResultsSettled(page, 'tv');
+
+    const nav = page.getByRole('navigation', { name: 'Main' });
+    await nav.getByRole('link', { name: 'Home' }).click();
+    await page.waitForURL((url) => url.pathname === '/');
+
+    // A fresh menu navigation must not resurrect the previous view: bare URL,
+    // movies mode, page 1.
+    await nav.getByRole('link', { name: 'Discover' }).click();
+    await waitForDiscoverUrl(page, /\/discover$/);
+    await expect(page.getByRole('button', { name: /^movies$/i })).toHaveClass(/bg-white/);
+    await expectResultsSettled(page, 'movie');
+    await expect(page.locator('[data-slot="pagination-link"][data-active="true"]')).toHaveText(
+      '1',
+    );
+
+    // Browser history is the opposite contract: going back must restore the
+    // previously visited discover view, page number included.
+    await page.goBack(); // home
+    await page.goBack(); // discover?mediaType=tv&page=2
+    await waitForDiscoverUrl(page, /mediaType=tv/);
+    await waitForDiscoverUrl(page, /page=2/);
+  });
+});
+
 test.describe('filters', () => {
   test('updates sort, runtime, and pagination query state', async ({ page }) => {
     await page.goto('/discover');
