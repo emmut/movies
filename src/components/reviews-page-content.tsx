@@ -42,7 +42,7 @@ export async function ReviewsPageContent({ mediaType, mediaId, page }: ReviewsPa
   ]);
 
   return (
-    <div id="content" className="mx-auto min-h-screen max-w-3xl scroll-m-5">
+    <div className="mx-auto min-h-screen max-w-3xl">
       <Link
         href={`/${mediaType}/${mediaId}`}
         className="mb-6 inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white"
@@ -56,15 +56,17 @@ export async function ReviewsPageContent({ mediaType, mediaId, page }: ReviewsPa
         {totalResults} reviews of {title} from TMDb
       </p>
 
-      {reviews.length === 0 ? (
-        <p className="text-zinc-400">No reviews on this page.</p>
-      ) : (
-        <div className="space-y-4">
-          {reviews.map((review) => (
-            <ReviewCard key={review.id} review={review} />
-          ))}
-        </div>
-      )}
+      <div id="content" className="scroll-m-5">
+        {reviews.length === 0 ? (
+          <p className="text-zinc-400">No reviews on this page.</p>
+        ) : (
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
+          </div>
+        )}
+      </div>
 
       <PaginationControls totalPages={totalPages} />
     </div>
@@ -73,15 +75,11 @@ export async function ReviewsPageContent({ mediaType, mediaId, page }: ReviewsPa
 
 /**
  * Loading skeleton mirroring {@link ReviewsPageContent}; used both as the
- * route's initial fallback and, keyed by page, while paginating. Carries
- * `id="content"` so the pagination scroll has a target mid-load.
+ * route's initial fallback and, keyed by page, while paginating.
  */
 export function ReviewsPageSkeleton() {
   return (
-    // h-screen + overflow-clip: cards are sized like real reviews, so the
-    // tail card overflows the viewport — clip it instead of letting the
-    // stack squish or grow the document past the scroll target.
-    <div id="content" className="mx-auto h-screen max-w-3xl overflow-clip scroll-m-5">
+    <div className="mx-auto min-h-screen max-w-3xl">
       <Skeleton className="mb-6 h-5 w-40" />
 
       <h1 className="mb-1 text-3xl font-bold">Reviews</h1>

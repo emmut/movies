@@ -198,7 +198,7 @@ function ListDetailsView({
       />
 
       {list.itemCount > 0 && list.totalPages > 1 && (
-        <PaginationControls totalPages={list.totalPages} pageType="lists" />
+        <PaginationControls totalPages={list.totalPages} />
       )}
     </div>
   );

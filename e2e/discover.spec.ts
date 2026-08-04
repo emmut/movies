@@ -198,6 +198,58 @@ test.describe('genre navigation', () => {
   });
 });
 
+test.describe('sidebar navigation', () => {
+  test('returning through the nav menu resets discover; browser back restores it', async ({
+    page,
+  }) => {
+    const activePageNumber = page.locator('[data-slot="pagination-link"][data-active="true"]');
+
+    await page.goto('/discover');
+    await expectDiscoverShell(page);
+    await expectResultsSettled(page, 'movie');
+
+    // Reach the tv/comedy/page-2 view by clicking, not by deep link, so the
+    // round trip below starts from the same router state a real user's
+    // session is in: the media-type toggle and genre pill are shallow nuqs
+    // updates, pagination is a real navigation — the mix is what
+    // historically left stale state behind.
+    await page.getByRole('button', { name: /^tv shows$/i }).click();
+    await waitForDiscoverUrl(page, /mediaType=tv/);
+    await page.getByRole('button', { name: /^comedy$/i }).click();
+    await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
+    await page.getByRole('button', { name: /go to next page/i }).click();
+    await waitForDiscoverUrl(page, /page=2/);
+    await expect(activePageNumber).toHaveText('2', { timeout: 15_000 });
+
+    const nav = page.getByRole('navigation', { name: 'Main' });
+    await nav.getByRole('link', { name: 'Home' }).click();
+    await page.waitForURL((url) => url.pathname === '/');
+
+    // A fresh menu navigation must not resurrect the previous view: the URL
+    // is exactly /discover (no params), movies mode is back, no genre is
+    // selected, and pagination is back on page 1.
+    await nav.getByRole('link', { name: 'Discover' }).click();
+    await waitForDiscoverUrl(page, /\/discover$/);
+    await expect(page.getByRole('button', { name: /^movies$/i })).toHaveClass(/bg-white/, {
+      timeout: 15_000,
+    });
+    await expect(
+      page.getByRole('button', { name: /^comedy$/i }).locator('[data-active="true"]'),
+    ).toHaveCount(0);
+    await expectResultsSettled(page, 'movie');
+    await expect(activePageNumber).toHaveText('1', { timeout: 15_000 });
+
+    // Browser history is the opposite contract: going back must restore the
+    // previously visited discover view — media type, genre, and page number.
+    await page.goBack(); // home
+    await page.goBack(); // /discover?mediaType=tv&genreId=35&page=2
+    await waitForDiscoverUrl(page, /mediaType=tv/);
+    await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
+    await waitForDiscoverUrl(page, /page=2/);
+    await expect(activePageNumber).toHaveText('2', { timeout: 15_000 });
+  });
+});
+
 test.describe('filters', () => {
   test('updates sort, runtime, and pagination query state', async ({ page }) => {
     await page.goto('/discover');

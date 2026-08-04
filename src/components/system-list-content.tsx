@@ -344,17 +344,17 @@ function SystemListBody({
         userId={userId}
       />
 
-      <ListPagination totalPages={totalPages} pageType={listType} />
+      <ListPagination totalPages={totalPages} />
     </>
   );
 }
 
-function ListPagination({ totalPages, pageType }: { totalPages: number; pageType: SystemListType }) {
+function ListPagination({ totalPages }: { totalPages: number }) {
   if (totalPages <= 1) {
     return null;
   }
 
-  return <PaginationControls totalPages={totalPages} pageType={pageType} />;
+  return <PaginationControls totalPages={totalPages} />;
 }
 
 function emptyStateCopy(

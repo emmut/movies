@@ -1,14 +1,14 @@
 import { expect, type Page, test } from '@playwright/test';
 
-// Regression (mobile Safari): tapping a pagination link left the viewport
-// partway up the page instead of at the top of the results. Paginating is a
-// soft navigation, and WebKit fires its own scroll a few hundred ms after the
-// `pushState`, clobbering the scroll fired on the click.
+// Paginating scrolls to the top of the results: the click schedules the
+// scroll and PaginationControls performs it once the new page is on screen
+// (see src/lib/scroll-to-content.ts), so the skeleton → results swap can't
+// move the ground under it.
 //
 // This runs under the `mobile-safari` project (WebKit + an iPhone viewport) —
-// the engine and form factor where the bug reproduces; Chromium does not
-// exhibit it. The discover data is deliberately delayed so the skeleton →
-// results swap lands mid-scroll, the timing that lost the scroll.
+// the engine and form factor where click-time scrolling historically lost the
+// scroll. The discover data is deliberately delayed so the swap happens well
+// after the click, the timing that used to break.
 //
 // Invariant: after paginating from a scrolled-down position, the viewport
 // settles at the top of `#content` (its first item, minus the
