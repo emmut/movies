@@ -2,7 +2,10 @@
 
 import clsx from 'clsx';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { parseAsInteger, useQueryStates } from 'nuqs';
+import { useEffect } from 'react';
+
+import { scheduleScrollToContent, scrollToContentIfScheduled } from '@/lib/scroll-to-content';
 
 import { Input } from './ui/input';
 import {
@@ -15,9 +18,8 @@ import {
   PaginationPrevious,
 } from './ui/pagination';
 
-type PaginationControls = {
+type PaginationControlsProps = {
   totalPages: number;
-  pageType?: 'discover' | 'search' | 'trailers' | 'watchlist' | 'watched' | 'lists';
 };
 
 // Generate page numbers with ellipsis logic (mobile-first)
@@ -67,23 +69,22 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
   return pages;
 }
 
-export function PaginationControls({ totalPages }: PaginationControls) {
+export function PaginationControls({ totalPages }: PaginationControlsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [urlState] = useQueryStates(
-    {
-      page: parseAsInteger.withDefault(1),
-      q: parseAsString,
-      mediaType: parseAsString,
-    },
-    {
-      history: 'push',
-    },
-  );
+  const [{ page: currentPageNumber }] = useQueryStates({
+    page: parseAsInteger.withDefault(1),
+  });
 
-  const currentPageNumber = urlState.page;
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
+
+  // A pagination click schedules the scroll (via the links' onNavigate, which
+  // skips modifier/middle clicks that open a new tab); it runs here once the
+  // new page is on screen — when this instance re-renders with the new page
+  // number, or when a fresh instance mounts after a `<Suspense key={page}>`
+  // boundary swapped the tree during the navigation.
+  useEffect(scrollToContentIfScheduled, [currentPageNumber]);
 
   function buildPageHref(page: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -91,20 +92,11 @@ export function PaginationControls({ totalPages }: PaginationControls) {
     return `?${params.toString()}`;
   }
 
-  // Scrolls the results into view; scroll-m-5 on #content leaves the gap.
-  // Wired via the links' onNavigate, which only fires on a real SPA
-  // navigation — modifier/middle clicks open a new tab and never scroll.
-  //
-  // Instant on purpose. A smooth scroll is still animating when the shorter
-  // loading skeleton swaps in, and the collapsed document height clamps the
-  // scroll and strands the animation short of its target — on both engines.
-  // (The "WebKit fires its own scroll after pushState" this code used to
-  // re-assert against was this same clamp; instrumented WebKit shows no
-  // browser-initiated scroll at all.) Instant lands before any swap can move
-  // the ground, so no re-assert is needed either. 'instant', not 'auto':
-  // html has scroll-smooth, which 'auto' would obey.
-  function scrollToContent() {
-    document.getElementById('content')?.scrollIntoView({ behavior: 'instant', block: 'start' });
+  function jumpToPage(value: number) {
+    if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
+      scheduleScrollToContent();
+      router.push(buildPageHref(value));
+    }
   }
 
   const pageNumbers = generatePageNumbers(currentPageNumber, totalPages);
@@ -118,7 +110,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               <PaginationItem>
                 <PaginationPrevious
                   href={buildPageHref(currentPageNumber - 1)}
-                  onNavigate={scrollToContent}
+                  onNavigate={scheduleScrollToContent}
                   className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -135,7 +127,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
                       href={buildPageHref(pageNumber)}
-                      onNavigate={scrollToContent}
+                      onNavigate={scheduleScrollToContent}
                       isActive={pageNumber === currentPageNumber}
                       className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
                     >
@@ -148,7 +140,7 @@ export function PaginationControls({ totalPages }: PaginationControls) {
               <PaginationItem>
                 <PaginationNext
                   href={buildPageHref(currentPageNumber + 1)}
-                  onNavigate={scrollToContent}
+                  onNavigate={scheduleScrollToContent}
                   className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -175,20 +167,13 @@ export function PaginationControls({ totalPages }: PaginationControls) {
                 className="h-8 w-16 appearance-none text-center text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    const value = Number((e.target as HTMLInputElement).value);
-                    if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
-                      scrollToContent();
-                      router.push(buildPageHref(value));
-                      (e.target as HTMLInputElement).value = '';
-                    }
+                    const input = e.target as HTMLInputElement;
+                    jumpToPage(Number(input.value));
+                    input.value = '';
                   }
                 }}
                 onBlur={(e) => {
-                  const value = Number(e.target.value);
-                  if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
-                    scrollToContent();
-                    router.push(buildPageHref(value));
-                  }
+                  jumpToPage(Number(e.target.value));
                   e.target.value = '';
                 }}
               />

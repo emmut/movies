@@ -95,7 +95,7 @@ async function ListsPageContent({ page }: { page: number }) {
             offset={(paginatedData.currentPage - 1) * paginatedData.itemsPerPage}
             totalCount={paginatedData.totalItems}
           />
-          {totalPages > 1 && <PaginationControls totalPages={totalPages} pageType="lists" />}
+          {totalPages > 1 && <PaginationControls totalPages={totalPages} />}
         </div>
       )}
     </div>
