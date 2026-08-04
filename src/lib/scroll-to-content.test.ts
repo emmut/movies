@@ -11,8 +11,9 @@ function stubDocument(contentElement: { scrollIntoView: () => void } | null) {
 }
 
 afterEach(function resetModuleState() {
-  // Drain any schedule left behind so tests stay independent.
-  stubDocument(null);
+  // Drain any schedule left behind so tests stay independent. The schedule
+  // only clears when a target exists, so drain against a stub element.
+  stubDocument({ scrollIntoView: vi.fn() });
   scrollToContentIfScheduled();
   vi.unstubAllGlobals();
 });
@@ -47,11 +48,16 @@ describe('scrollToContentIfScheduled', () => {
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
-  it('tolerates a missing #content element', () => {
+  it('keeps the schedule while #content is missing and scrolls once it mounts', () => {
     stubDocument(null);
 
     scheduleScrollToContent();
-
     expect(scrollToContentIfScheduled).not.toThrow();
+
+    const scrollIntoView = vi.fn();
+    stubDocument({ scrollIntoView });
+    scrollToContentIfScheduled();
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 });

@@ -23,6 +23,15 @@ export function scrollToContentIfScheduled() {
   if (!scrollScheduled) {
     return;
   }
+
+  const results = document.getElementById('content');
+  if (!results) {
+    // No results anchor on screen yet (it can mount in a later commit than
+    // the pagination controls) — keep the schedule so that render can still
+    // trigger the scroll.
+    return;
+  }
+
   scrollScheduled = false;
-  document.getElementById('content')?.scrollIntoView();
+  results.scrollIntoView();
 }
