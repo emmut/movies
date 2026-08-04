@@ -208,8 +208,12 @@ test.describe('sidebar navigation', () => {
     await expectDiscoverShell(page);
     await expectResultsSettled(page, 'movie');
 
-    // Paginate by clicking, not by deep link, so the round trip below starts
-    // from the same router state a real user's session is in.
+    // Reach the tv/page-2 view by clicking, not by deep link, so the round
+    // trip below starts from the same router state a real user's session is
+    // in: the media-type toggle is a shallow nuqs update, pagination is a
+    // real navigation — the mix is what historically left stale state behind.
+    await page.getByRole('button', { name: /^tv shows$/i }).click();
+    await waitForDiscoverUrl(page, /mediaType=tv/);
     await page.getByRole('button', { name: /go to next page/i }).click();
     await waitForDiscoverUrl(page, /page=2/);
     await expect(activePageNumber).toHaveText('2', { timeout: 15_000 });
@@ -219,9 +223,13 @@ test.describe('sidebar navigation', () => {
     await page.waitForURL((url) => url.pathname === '/');
 
     // A fresh menu navigation must not resurrect the previous view: the URL
-    // is exactly /discover (no params) and pagination is back on page 1.
+    // is exactly /discover (no params), movies mode is back, and pagination
+    // is back on page 1.
     await nav.getByRole('link', { name: 'Discover' }).click();
     await waitForDiscoverUrl(page, /\/discover$/);
+    await expect(page.getByRole('button', { name: /^movies$/i })).toHaveClass(/bg-white/, {
+      timeout: 15_000,
+    });
     await expectResultsSettled(page, 'movie');
     await expect(activePageNumber).toHaveText('1', { timeout: 15_000 });
 

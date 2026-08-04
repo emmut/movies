@@ -129,7 +129,13 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
                       href={buildPageHref(pageNumber)}
-                      onNavigate={() => scheduleScrollToContent(buildPageHref(pageNumber))}
+                      // The active page's link is a no-op navigation; never
+                      // schedule a scroll for the page already on screen.
+                      onNavigate={
+                        pageNumber === currentPageNumber
+                          ? undefined
+                          : () => scheduleScrollToContent(buildPageHref(pageNumber))
+                      }
                       isActive={pageNumber === currentPageNumber}
                       className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
                     >
