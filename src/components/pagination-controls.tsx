@@ -79,11 +79,12 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
 
-  // A pagination click schedules the scroll (via the links' onNavigate, which
-  // skips modifier/middle clicks that open a new tab); it runs here once the
-  // new page is on screen — when this instance re-renders with the new page
-  // number, or when a fresh instance mounts after a `<Suspense key={page}>`
-  // boundary swapped the tree during the navigation.
+  // A pagination click schedules a scroll to the clicked destination (via the
+  // links' onNavigate, which skips modifier/middle clicks that open a new
+  // tab); it runs here once the new page is on screen — when this instance
+  // re-renders with the new page number, or when a fresh instance mounts
+  // after a `<Suspense key={page}>` boundary swapped the tree during the
+  // navigation.
   useEffect(scrollToContentIfScheduled, [currentPageNumber]);
 
   function buildPageHref(page: number) {
@@ -94,8 +95,9 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
 
   function jumpToPage(value: number) {
     if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
-      scheduleScrollToContent();
-      router.push(buildPageHref(value));
+      const href = buildPageHref(value);
+      scheduleScrollToContent(href);
+      router.push(href);
     }
   }
 
@@ -110,7 +112,7 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
               <PaginationItem>
                 <PaginationPrevious
                   href={buildPageHref(currentPageNumber - 1)}
-                  onNavigate={scheduleScrollToContent}
+                  onNavigate={() => scheduleScrollToContent(buildPageHref(currentPageNumber - 1))}
                   className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
@@ -127,7 +129,7 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
                   <PaginationItem key={pageNumber}>
                     <PaginationLink
                       href={buildPageHref(pageNumber)}
-                      onNavigate={scheduleScrollToContent}
+                      onNavigate={() => scheduleScrollToContent(buildPageHref(pageNumber))}
                       isActive={pageNumber === currentPageNumber}
                       className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
                     >
@@ -140,7 +142,7 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
               <PaginationItem>
                 <PaginationNext
                   href={buildPageHref(currentPageNumber + 1)}
-                  onNavigate={scheduleScrollToContent}
+                  onNavigate={() => scheduleScrollToContent(buildPageHref(currentPageNumber + 1))}
                   className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
                     'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
