@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Suspense } from 'react';
 
 import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
@@ -9,29 +8,23 @@ import SectionTitle from '@/components/section-title';
 import { getUser } from '@/lib/auth-server';
 import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
 
-import ListsLoading from './loading';
-
 type ListsPageProps = {
   searchParams: Promise<{
     page?: string;
   }>;
 };
 
+// loading.tsx is the page's only Suspense boundary. An extra
+// `<Suspense key={page}>` at the page root used to re-suspend into the same
+// skeleton while paginating, but nesting a second boundary with an identical
+// fallback inside the prerendered shell intermittently broke React's
+// streamed-boundary reveal on load ("insertBefore … contains the parent"),
+// leaving /lists permanently blank. Paginating now keeps the previous page's
+// lists on screen until the next page streams in.
 export default async function ListsPage(props: ListsPageProps) {
   const searchParams = await props.searchParams;
   const page = Number(searchParams.page ?? '1');
 
-  // Keyed by page so paginating re-suspends into the skeleton instead of
-  // keeping the previous page's lists on screen while the next one loads
-  // (loading.tsx only shows on segment entry, not on searchParams changes).
-  return (
-    <Suspense key={page} fallback={<ListsLoading />}>
-      <ListsPageContent page={page} />
-    </Suspense>
-  );
-}
-
-async function ListsPageContent({ page }: { page: number }) {
   const user = await getUser();
 
   if (!user) {
