@@ -33,5 +33,8 @@ export function scrollToContentIfScheduled() {
   }
 
   scrollScheduled = false;
-  results.scrollIntoView();
+  // Smooth is safe here: the scroll runs after the new page has rendered, so
+  // no skeleton swap can move the target mid-animation (which is what forced
+  // the old click-time implementation to scroll instantly).
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
