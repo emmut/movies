@@ -10,7 +10,7 @@ overrides:
 
 patchedDependencies:
   next: 205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd
-  railway: ae82e735058108483939c04fb4af5e1f5feb6180ff6d056d5a6dd6db99a63f98
+  railway: ed607b2e4609756ce8e2bdc676e4cbc3f7c012127f5fcdd2afaf4c94c83d77c9
 
 importers:
 
@@ -153,8 +153,8 @@ importers:
         specifier: ^7.0.2001
         version: 7.0.2001
       railway:
-        specifier: ^3.5.6
-        version: 3.5.6(patch_hash=ae82e735058108483939c04fb4af5e1f5feb6180ff6d056d5a6dd6db99a63f98)
+        specifier: ^3.8.1
+        version: 3.8.1(patch_hash=ed607b2e4609756ce8e2bdc676e4cbc3f7c012127f5fcdd2afaf4c94c83d77c9)
       shadcn:
         specifier: ^4.16.1
         version: 4.16.1(typescript@7.0.2)
@@ -3273,8 +3273,8 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  railway@3.5.6:
-    resolution: {integrity: sha512-ZcVnAQR4Zo0wY03nRIIGyb4RzyAZncYGItAqSRASFmlPV/Q8WSRc461vvzIwYPN/ZpfPHI98ztap6xkKsa9NbQ==}
+  railway@3.8.1:
+    resolution: {integrity: sha512-Rjxa0RM2e2G2l4po6PCI0+f2dltNV4MkmaZY0mGtFwCKMrvotb5hvd08Vsmy3MXGLRBsnR4bpno1xmrjFRd9zA==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -6326,7 +6326,7 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  railway@3.5.6(patch_hash=ae82e735058108483939c04fb4af5e1f5feb6180ff6d056d5a6dd6db99a63f98):
+  railway@3.8.1(patch_hash=ed607b2e4609756ce8e2bdc676e4cbc3f7c012127f5fcdd2afaf4c94c83d77c9):
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.14.2)
       graphql: 16.14.2

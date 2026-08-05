@@ -78,7 +78,7 @@
     "oxfmt": "^0.62.0",
     "oxlint": "^1.77.0",
     "oxlint-tsgolint": "^7.0.2001",
-    "railway": "^3.5.6",
+    "railway": "^3.8.1",
     "shadcn": "^4.16.1",
     "tsx": "^4.23.5",
     "typescript": "7.0.2",
