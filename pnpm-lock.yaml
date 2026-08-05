@@ -10,7 +10,7 @@ overrides:
 
 patchedDependencies:
   next: 205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd
-  railway: ed607b2e4609756ce8e2bdc676e4cbc3f7c012127f5fcdd2afaf4c94c83d77c9
+  railway: 0f3d72bbdb2772bde49470dd601b59070f7653a846b2bf20f306adbace603670
 
 importers:
 
@@ -154,7 +154,7 @@ importers:
         version: 7.0.2001
       railway:
         specifier: ^3.8.1
-        version: 3.8.1(patch_hash=ed607b2e4609756ce8e2bdc676e4cbc3f7c012127f5fcdd2afaf4c94c83d77c9)
+        version: 3.8.1(patch_hash=0f3d72bbdb2772bde49470dd601b59070f7653a846b2bf20f306adbace603670)
       shadcn:
         specifier: ^4.16.1
         version: 4.16.1(typescript@7.0.2)
@@ -6316,7 +6316,7 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  railway@3.8.1(patch_hash=ed607b2e4609756ce8e2bdc676e4cbc3f7c012127f5fcdd2afaf4c94c83d77c9):
+  railway@3.8.1(patch_hash=0f3d72bbdb2772bde49470dd601b59070f7653a846b2bf20f306adbace603670):
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.14.2)
       graphql: 16.14.2

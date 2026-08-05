@@ -1,21 +1,27 @@
 diff --git a/dist/iac/index.js b/dist/iac/index.js
-index f28c48d91c8a6df5719a697cddd88af5fb905feb..8c7bf2bb7538fdc6e09c2026b15b5352dbd62c66 100644
+index f28c48d91c8a6df5719a697cddd88af5fb905feb..c6deadb522d37518c3d3f11aad3fd8c13c78e6e9 100644
 --- a/dist/iac/index.js
 +++ b/dist/iac/index.js
-@@ -273,9 +273,11 @@ function databaseRegion(database2) {
+@@ -273,9 +273,17 @@ function databaseRegion(database2) {
    return regions[0]?.[0];
  }
  function databaseDeploy(database2, requiredMountPath) {
-+  const { multiRegionConfig, ...deployRest } = database2.deploy ?? {};
++  // PATCHED(movies): forward the caller's deploy config, which upstream drops.
++  // `requiredMountPath` stays engine-owned and is applied after the spread:
++  // the image fixes the data directory (the volume mount and PGDATA are both
++  // hardcoded to it), so a caller-supplied path would only desync the deploy
++  // from the mount. `multiRegionConfig` keeps upstream's omit-when-empty shape.
++  const { multiRegionConfig, requiredMountPath: engineOwnedMountPath, ...deployRest } = database2.deploy ?? {};
++  void engineOwnedMountPath;
    return {
++    ...deployRest,
      requiredMountPath,
 -    ...database2.deploy?.multiRegionConfig ? { multiRegionConfig: database2.deploy.multiRegionConfig } : {}
-+    ...deployRest,
 +    ...multiRegionConfig ? { multiRegionConfig } : {}
    };
  }
  function databaseToEnvironmentConfig(database2, options) {
-@@ -1476,7 +1478,12 @@ function database(name, engine, options) {
+@@ -1476,7 +1484,12 @@ function database(name, engine, options) {
      output,
      defaultMountPath: options.defaultMountPath,
      source: image(options.image),
