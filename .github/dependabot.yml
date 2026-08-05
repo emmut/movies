@@ -9,3 +9,13 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "monthly"
+
+  # Workflow action refs. Without this, `uses:` majors are never proposed and go
+  # stale silently until something breaks — which is exactly how the Fallow
+  # action sat on @v2 until the CLI it installs dropped the extra binaries its
+  # bundled verifier still expected. Keeping the refs moving makes a required
+  # wrapper bump show up as a PR instead of a red CI run.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
