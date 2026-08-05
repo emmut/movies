@@ -21,7 +21,7 @@ importers:
         version: 1.7.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@better-auth/passkey':
         specifier: ^1.6.25
-        version: 1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-auth@1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10))(better-call@1.3.7(zod@4.4.3))(nanostores@1.4.2)
+        version: 1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-auth@1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10))(better-call@1.3.7(zod@4.4.3))(nanostores@1.4.2)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -50,11 +50,11 @@ importers:
         specifier: ^5.101.4
         version: 5.101.4(react@19.2.8)
       babel-plugin-react-compiler:
-        specifier: 19.1.0-rc.3
-        version: 19.1.0-rc.3
+        specifier: 1.0.0
+        version: 1.0.0
       better-auth:
         specifier: ^1.6.25
-        version: 1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10)
+        version: 1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -66,16 +66,16 @@ importers:
         version: 7.0.2
       drizzle-orm:
         specifier: ^0.45.2
-        version: 0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0)
+        version: 0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0)
       lucide-react:
         specifier: ^1.28.0
         version: 1.28.0(react@19.2.8)
       next:
         specifier: 16.3.0
-        version: 16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       nuqs:
         specifier: ^2.9.4
-        version: 2.9.4(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
+        version: 2.9.4(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
       pg:
         specifier: ^8.22.0
         version: 8.22.0
@@ -117,8 +117,8 @@ importers:
         specifier: ^5.101.4
         version: 5.101.4(@tanstack/react-query@5.101.4(react@19.2.8))(react@19.2.8)
       '@types/better-sqlite3':
-        specifier: ^7.6.13
-        version: 7.6.13
+        specifier: ^9.6.0
+        version: 9.6.0
       '@types/node':
         specifier: ^24.13.3
         version: 24.13.3
@@ -141,8 +141,8 @@ importers:
         specifier: ^4.7.0
         version: 4.7.0(oxlint@1.77.0(oxlint-tsgolint@7.0.2001))(tailwindcss@4.3.3)(typescript@7.0.2)
       fallow:
-        specifier: 3.4.2
-        version: 3.4.2
+        specifier: 3.14.0
+        version: 3.14.0
       oxfmt:
         specifier: ^0.62.0
         version: 0.62.0
@@ -240,16 +240,8 @@ packages:
     resolution: {integrity: sha512-brcMGQaVzIeUb+6/bs1Av0f8YuNNjKY2JyvfRCsFuFsdKccEQ5Ges2y74D74NZ1Rz8lKJ9ksJkfqwQFJ/iNEyQ==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helper-string-parser@7.27.1':
-    resolution: {integrity: sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA==}
-    engines: {node: '>=6.9.0'}
-
   '@babel/helper-string-parser@7.29.7':
     resolution: {integrity: sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/helper-validator-identifier@7.28.5':
-    resolution: {integrity: sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q==}
     engines: {node: '>=6.9.0'}
 
   '@babel/helper-validator-identifier@7.29.7':
@@ -309,10 +301,6 @@ packages:
 
   '@babel/traverse@7.29.8':
     resolution: {integrity: sha512-I5z7H3bf/41ktsNVLtpN0wAa336HkqIHQ5BuPLEhTkt1jVSyZpeNKIzTgEWmlxjdg81R0IgUCcaE+Ok3NvrfZg==}
-    engines: {node: '>=6.9.0'}
-
-  '@babel/types@7.29.0':
-    resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
 
   '@babel/types@7.29.7':
@@ -655,43 +643,43 @@ packages:
     resolution: {integrity: sha512-iPmijIAq4hlIJB86PYmY/fcZORHtjphSqICDbwuw32A/JmkhZQ/K/6TjHE03zqf3n5yABpVcbRAMG8Mi9ojy8g==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  '@fallow-cli/darwin-arm64@3.4.2':
-    resolution: {integrity: sha512-6DFe/JzATrNrnZyIKXNcxl1/nfQm5yqg3kVomww6aoEL+v6/Jm955J8pdSBsc69G59EGoAcsvxcz3uj66kp+rw==}
+  '@fallow-cli/darwin-arm64@3.14.0':
+    resolution: {integrity: sha512-seaix3OqADcq90PkPOOPrN8Jl7QZDGjFziHA85Ikp+lGSHVjJ2IMyGh/QKLhvi9Q6Ha3Y//F0+PFFGNd0Gi4mw==}
     cpu: [arm64]
     os: [darwin]
 
-  '@fallow-cli/darwin-x64@3.4.2':
-    resolution: {integrity: sha512-6sILz44YD73x+tXl/w664L4T+KjAUNT9gIj19OqfLkyuRAPtpAJon/V4DU9pzMPPPYF13P1CMDy4QsTkHRhEZA==}
+  '@fallow-cli/darwin-x64@3.14.0':
+    resolution: {integrity: sha512-qgYZHHTFobuJCtON7aVe/tXCUjiF/9nKT4tNLVfUPH4Qe9KwieO4rAuknDOnxkjzsWPO4MfHyCbcVdslf4JMnw==}
     cpu: [x64]
     os: [darwin]
 
-  '@fallow-cli/linux-arm64-gnu@3.4.2':
-    resolution: {integrity: sha512-sMIMJcOU/WvtZuF7M3GyTOUmS1tFBy2KGsx5SDowcv8uCXZbbd4YRZr1yVsC+qpimzOmtLt0zTKs3G3R/wR7RA==}
+  '@fallow-cli/linux-arm64-gnu@3.14.0':
+    resolution: {integrity: sha512-FwmIG391lMViBXh1cAvOcwQxbI2sLjEYkugFauVbmntjuJt6xVxQXAxjybdFXSL/jjfFnbAzPKy9oHlhq3sA6A==}
     cpu: [arm64]
     os: [linux]
 
-  '@fallow-cli/linux-arm64-musl@3.4.2':
-    resolution: {integrity: sha512-38GbTbpVbwbplCeFgKLx8uIYMlGtqSSfKk+ZUyXX4E6JoXCLyFzz11AJjNRg+QSP/fobD7jk0Z++gILvljPczw==}
+  '@fallow-cli/linux-arm64-musl@3.14.0':
+    resolution: {integrity: sha512-x4R9aNT2kIoSHRIZ5s2MZ+swyb3uutV6SSYCwWhPSE5UI/oCEYWNWiYS7uKMLM0cTuMPVcsm2qMTd4iYA3ACLw==}
     cpu: [arm64]
     os: [linux]
 
-  '@fallow-cli/linux-x64-gnu@3.4.2':
-    resolution: {integrity: sha512-d7IGOZbn9tf2EcICPt+XLQXWaPfzo62gHqlQyAXLimay8PvaVDKXGeNjMJBXJCceKAU+zeBdIdbyea9pFOuSWg==}
+  '@fallow-cli/linux-x64-gnu@3.14.0':
+    resolution: {integrity: sha512-8kBxy9FkwKjiH1C19T0nSkmbtldwVyWLQWajIqvyHE0x4rurHhve7RQrwEDPzNMFu7OgYCMU1nXr/AMIJ6Kg9w==}
     cpu: [x64]
     os: [linux]
 
-  '@fallow-cli/linux-x64-musl@3.4.2':
-    resolution: {integrity: sha512-98TG142inap3rNA0DdsLJ/VPXAeQ+yXZjXQtGQ2R3JTTGP/eIDBpPv0CKgciusKRo54xeweYkHtSfVNHo3Werg==}
+  '@fallow-cli/linux-x64-musl@3.14.0':
+    resolution: {integrity: sha512-9TAdXSpYvk9WkKy2GR8T/PHbq7QCTO/SYUmiZ+EAJUMzXBvSfnpj8cCGQpeAD000Nb+o7rL94lIAPJMAqMKO3Q==}
     cpu: [x64]
     os: [linux]
 
-  '@fallow-cli/win32-arm64-msvc@3.4.2':
-    resolution: {integrity: sha512-5U7fmUdgC2S1Exsv4IbG9VMuzOIS2E9TS594qOeiYfVTx12bqFnqoxC9+gX3ThkVQdekkXaJeGZqJC3StGJ/kQ==}
+  '@fallow-cli/win32-arm64-msvc@3.14.0':
+    resolution: {integrity: sha512-xc495cracyJL+0UKwcqNhofIz2K5XiJbb+YFhxrbSrrbm+EVDnQKpCOzzOJYbm7RPxF6XOxJpATn7ciBy7Rqrw==}
     cpu: [arm64]
     os: [win32]
 
-  '@fallow-cli/win32-x64-msvc@3.4.2':
-    resolution: {integrity: sha512-qfUhAmvLIdfPyGSO3F9SIJOWTYRAqboApIe73gpR/CFIFsq3CPT3ovEMlFzw8YosaC7zwymxTOq5Vslx38Gd9A==}
+  '@fallow-cli/win32-x64-msvc@3.14.0':
+    resolution: {integrity: sha512-ihyCZ5GMoYGnzlPP6b5pZBBcGZhDHDW2u1YEGkZEuf3pbW6E45U7Hhf213cE2CCheScXOirK6AKWnLM/Qj4c2A==}
     cpu: [x64]
     os: [win32]
 
@@ -1615,8 +1603,8 @@ packages:
   '@tybys/wasm-util@0.10.3':
     resolution: {integrity: sha512-F3fo1MYrRJYL3zER0OUOmkutjr1Vp23m7OsSgp7nq4SP6OqX6C/56XFIPAl5bt3zaBRjmW7SGz3u/6LwFpYcOg==}
 
-  '@types/better-sqlite3@7.6.13':
-    resolution: {integrity: sha512-NMv9ASNARoKksWtsq/SHakpYAYnhBrQgGD8zkLYk/jaK8jUGn08CfEdTRgYhMypUQAfzSP8W6gNLe0q19/t4VA==}
+  '@types/better-sqlite3@9.6.0':
+    resolution: {integrity: sha512-ZEEwBSgMu7GYJOynoagg5X9JbxfL6dTJDsgViJIqh67jV44kyOr9RXfmFjLK5rzC4MWssP06t9hu/JwGDnUbCg==}
 
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
@@ -1871,8 +1859,8 @@ packages:
     resolution: {integrity: sha512-Xcz9l0z7y9yQ9rdDaxlmaI4uJHf/T8g9hOEzJcsEqX2SjCj4J20uK7+ldkDHMbpJDK76wF7xEIgxc/vSlsfw5w==}
     engines: {node: '>=10.12.0'}
 
-  babel-plugin-react-compiler@19.1.0-rc.3:
-    resolution: {integrity: sha512-mjRn69WuTz4adL0bXGx8Rsyk1086zFJeKmes6aK0xPuK3aaXmDJdLHqwKKMrpm6KAI1MCoUK72d2VeqQbu8YIA==}
+  babel-plugin-react-compiler@1.0.0:
+    resolution: {integrity: sha512-Ixm8tFfoKKIPYdCCKYTsqv+Fd4IJ0DQqMyEimo+pxUOMUR9cVPlwTrFt9Avu+3cb6Zp3mAzl+t1MrG2fxxKsxw==}
 
   balanced-match@4.0.4:
     resolution: {integrity: sha512-BLrgEcRTwX2o6gGxGOCNyMvGSp35YofuYzw9h1IMTRmKqttAZZVU67bdb9Pr2vUHA8+j3i2tJfjO6C6+4myGTA==}
@@ -2379,8 +2367,13 @@ packages:
     resolution: {integrity: sha512-hIS4idWWai69NezIdRt2xFVofaF4j+6INOpJlVOLDO8zXGpUVEVzIYk12UUi2JzjEzWL3IOAxcTubgz9Po0yXw==}
     engines: {node: '>= 18'}
 
-  fallow@3.4.2:
-    resolution: {integrity: sha512-ufxwwtszht6bODr3rTZfD3FV94qIkSGIykKrtogWxayGAcmCnjTN1iH+58NjKsbPKOTKeNR1sFrOnIP8/Odz+g==}
+  fallow-type-aware@3.14.0:
+    resolution: {integrity: sha512-D8+bNELjmoVV2dKpmHplQ1YzuheHltmZKaOVJ//hx7h8vFNyp5H3hcJV8rR26ofBU51z9K5eyA7FpgP3hebjwg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  fallow@3.14.0:
+    resolution: {integrity: sha512-hse+sChmWkrffLiZDPGdNSyiLybVEhgoiYCIYgqLwdYhfTCO+f2PS1g+gMhGAJdLlYpZ75tFwRoMBFmZjN3Q6g==}
     engines: {node: '>=22'}
     hasBin: true
 
@@ -3898,11 +3891,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/helper-string-parser@7.27.1': {}
-
   '@babel/helper-string-parser@7.29.7': {}
-
-  '@babel/helper-validator-identifier@7.28.5': {}
 
   '@babel/helper-validator-identifier@7.29.7': {}
 
@@ -3977,11 +3966,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@babel/types@7.29.0':
-    dependencies:
-      '@babel/helper-string-parser': 7.27.1
-      '@babel/helper-validator-identifier': 7.28.5
-
   '@babel/types@7.29.7':
     dependencies:
       '@babel/helper-string-parser': 7.29.7
@@ -4029,12 +4013,12 @@ snapshots:
       nanostores: 1.4.2
       zod: 4.4.3
 
-  '@better-auth/drizzle-adapter@1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))':
+  '@better-auth/drizzle-adapter@1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))':
     dependencies:
       '@better-auth/core': 1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2)
       '@better-auth/utils': 0.4.2
     optionalDependencies:
-      drizzle-orm: 0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0)
+      drizzle-orm: 0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0)
 
   '@better-auth/kysely-adapter@1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(kysely@0.29.4)':
     dependencies:
@@ -4053,14 +4037,14 @@ snapshots:
       '@better-auth/core': 1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2)
       '@better-auth/utils': 0.4.2
 
-  '@better-auth/passkey@1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-auth@1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10))(better-call@1.3.7(zod@4.4.3))(nanostores@1.4.2)':
+  '@better-auth/passkey@1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-auth@1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10))(better-call@1.3.7(zod@4.4.3))(nanostores@1.4.2)':
     dependencies:
       '@better-auth/core': 1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2)
       '@better-auth/utils': 0.4.2
       '@better-fetch/fetch': 1.3.1
       '@simplewebauthn/browser': 13.3.0
       '@simplewebauthn/server': 13.3.2
-      better-auth: 1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10)
+      better-auth: 1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10)
       better-call: 1.3.7(zod@4.4.3)
       nanostores: 1.4.2
       zod: 4.4.3
@@ -4244,28 +4228,28 @@ snapshots:
       mdn-data: 2.29.0
       source-map-js: 1.2.1
 
-  '@fallow-cli/darwin-arm64@3.4.2':
+  '@fallow-cli/darwin-arm64@3.14.0':
     optional: true
 
-  '@fallow-cli/darwin-x64@3.4.2':
+  '@fallow-cli/darwin-x64@3.14.0':
     optional: true
 
-  '@fallow-cli/linux-arm64-gnu@3.4.2':
+  '@fallow-cli/linux-arm64-gnu@3.14.0':
     optional: true
 
-  '@fallow-cli/linux-arm64-musl@3.4.2':
+  '@fallow-cli/linux-arm64-musl@3.14.0':
     optional: true
 
-  '@fallow-cli/linux-x64-gnu@3.4.2':
+  '@fallow-cli/linux-x64-gnu@3.14.0':
     optional: true
 
-  '@fallow-cli/linux-x64-musl@3.4.2':
+  '@fallow-cli/linux-x64-musl@3.14.0':
     optional: true
 
-  '@fallow-cli/win32-arm64-msvc@3.4.2':
+  '@fallow-cli/win32-arm64-msvc@3.14.0':
     optional: true
 
-  '@fallow-cli/win32-x64-msvc@3.4.2':
+  '@fallow-cli/win32-x64-msvc@3.14.0':
     optional: true
 
   '@floating-ui/core@1.8.0':
@@ -4940,7 +4924,7 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@types/better-sqlite3@7.6.13':
+  '@types/better-sqlite3@9.6.0':
     dependencies:
       '@types/node': 24.13.3
 
@@ -5147,18 +5131,18 @@ snapshots:
 
   atomically@1.7.0: {}
 
-  babel-plugin-react-compiler@19.1.0-rc.3:
+  babel-plugin-react-compiler@1.0.0:
     dependencies:
-      '@babel/types': 7.29.0
+      '@babel/types': 7.29.8
 
   balanced-match@4.0.4: {}
 
   baseline-browser-mapping@2.11.12: {}
 
-  better-auth@1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10):
+  better-auth@1.6.25(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(pg@8.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@4.1.10):
     dependencies:
       '@better-auth/core': 1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2)
-      '@better-auth/drizzle-adapter': 1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))
+      '@better-auth/drizzle-adapter': 1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0))
       '@better-auth/kysely-adapter': 1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)(kysely@0.29.4)
       '@better-auth/memory-adapter': 1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)
       '@better-auth/mongo-adapter': 1.6.25(@better-auth/core@1.6.25(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.3.7(zod@4.4.3))(jose@6.2.8)(kysely@0.29.4)(nanostores@1.4.2))(@better-auth/utils@0.4.2)
@@ -5176,8 +5160,8 @@ snapshots:
       zod: 4.4.3
     optionalDependencies:
       drizzle-kit: 0.31.10
-      drizzle-orm: 0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0)
-      next: 16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      drizzle-orm: 0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0)
+      next: 16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       pg: 8.22.0
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
@@ -5383,9 +5367,9 @@ snapshots:
       esbuild: 0.28.1
       tsx: 4.23.5
 
-  drizzle-orm@0.45.2(@types/better-sqlite3@7.6.13)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0):
+  drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.20.3)(kysely@0.29.4)(pg@8.22.0):
     optionalDependencies:
-      '@types/better-sqlite3': 7.6.13
+      '@types/better-sqlite3': 9.6.0
       '@types/pg': 8.20.3
       kysely: 0.29.4
       pg: 8.22.0
@@ -5564,18 +5548,24 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  fallow@3.4.2:
+  fallow-type-aware@3.14.0:
+    dependencies:
+      typescript: 7.0.2
+    optional: true
+
+  fallow@3.14.0:
     dependencies:
       detect-libc: 2.1.2
     optionalDependencies:
-      '@fallow-cli/darwin-arm64': 3.4.2
-      '@fallow-cli/darwin-x64': 3.4.2
-      '@fallow-cli/linux-arm64-gnu': 3.4.2
-      '@fallow-cli/linux-arm64-musl': 3.4.2
-      '@fallow-cli/linux-x64-gnu': 3.4.2
-      '@fallow-cli/linux-x64-musl': 3.4.2
-      '@fallow-cli/win32-arm64-msvc': 3.4.2
-      '@fallow-cli/win32-x64-msvc': 3.4.2
+      '@fallow-cli/darwin-arm64': 3.14.0
+      '@fallow-cli/darwin-x64': 3.14.0
+      '@fallow-cli/linux-arm64-gnu': 3.14.0
+      '@fallow-cli/linux-arm64-musl': 3.14.0
+      '@fallow-cli/linux-x64-gnu': 3.14.0
+      '@fallow-cli/linux-x64-musl': 3.14.0
+      '@fallow-cli/win32-arm64-msvc': 3.14.0
+      '@fallow-cli/win32-x64-msvc': 3.14.0
+      fallow-type-aware: 3.14.0
 
   fast-deep-equal@3.1.3: {}
 
@@ -6004,7 +5994,7 @@ snapshots:
 
   negotiator@1.0.0: {}
 
-  next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+  next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:
       '@next/env': 16.3.0
       '@swc/helpers': 0.5.15
@@ -6024,7 +6014,7 @@ snapshots:
       '@next/swc-win32-arm64-msvc': 16.3.0
       '@next/swc-win32-x64-msvc': 16.3.0
       '@playwright/test': 1.62.1
-      babel-plugin-react-compiler: 19.1.0-rc.3
+      babel-plugin-react-compiler: 1.0.0
       sharp: 0.35.3(@types/node@24.13.3)
     transitivePeerDependencies:
       - '@babel/core'
@@ -6042,12 +6032,12 @@ snapshots:
       path-key: 4.0.0
       unicorn-magic: 0.3.0
 
-  nuqs@2.9.4(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8):
+  nuqs@2.9.4(next@16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8):
     dependencies:
       '@standard-schema/spec': 1.1.0
       react: 19.2.8
     optionalDependencies:
-      next: 16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@19.1.0-rc.3)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      next: 16.3.0(patch_hash=205408f04066bd847a62246cb89479f9c1223552b6190568858af37e153420cd)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
 
   object-assign@4.1.1: {}
 
