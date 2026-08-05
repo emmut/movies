@@ -136,7 +136,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Fallow
-        uses: fallow-rs/fallow@v2
+        uses: fallow-rs/fallow@v3
         with:
           command: audit
           gate: new-only
