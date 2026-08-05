@@ -1,5 +1,4 @@
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 
 import Badge from '@/components/badge';
 import { ExternalLinks } from '@/components/external-links';
@@ -9,7 +8,7 @@ import ItemCard from '@/components/item-card';
 import { QuickAddButton } from '@/components/quick-add-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
-import { getBackHref } from '@/lib/back-href';
+import { getBackHrefFromHeaders } from '@/lib/back-href-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
 import { optional } from '@/lib/tmdb';
 import { deduplicateAndSortByPopularity } from '@/lib/utils';
@@ -29,8 +28,7 @@ type PersonPageProps = {
 export default async function PersonPage(props: PersonPageProps) {
   const params = await props.params;
   const personId = Number(params.id);
-  const headersList = await headers();
-  const backHref = getBackHref(headersList.get('referer'), headersList.get('host'));
+  const backHref = await getBackHrefFromHeaders();
 
   const user = await getUser();
   const [person, movieCredits, tvCredits] = await Promise.all([

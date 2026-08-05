@@ -9,10 +9,11 @@ const DEFAULT_BACK_HREF = '/discover';
  * broke after login redirects and repeated searches.
  *
  * @param referer - The raw `referer` request header, if any.
- * @param host - The request's `host` header; a referer from another host is
+ * @param hosts - Host names this app is served as: the `host` header and, when
+ *   behind a proxy, `x-forwarded-host`. A referer matching none of them is
  *   ignored so we never mirror foreign URLs into navigation.
  */
-export function getBackHref(referer: string | null, host: string | null): string {
+export function getBackHref(referer: string | null, hosts: Array<string | null>): string {
   if (!referer) {
     return DEFAULT_BACK_HREF;
   }
@@ -24,7 +25,10 @@ export function getBackHref(referer: string | null, host: string | null): string
     return DEFAULT_BACK_HREF;
   }
 
-  if (host === null || url.host !== host) {
+  // Behind a proxy the `host` header can be the internal hostname while the
+  // referer carries the public one — matching either keeps the back target
+  // (and its search params) from being dropped for every navigation.
+  if (!hosts.includes(url.host)) {
     return DEFAULT_BACK_HREF;
   }
 

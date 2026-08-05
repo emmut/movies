@@ -1,5 +1,4 @@
 import { Calendar, Clock, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -18,7 +17,7 @@ import { ReviewsSection, ReviewsSectionSkeleton } from '@/components/reviews-sec
 import { StreamingSection, StreamingSectionSkeleton } from '@/components/streaming-section';
 import { TrailerContent } from '@/components/trailer-content';
 import { getUser } from '@/lib/auth-server';
-import { getBackHref } from '@/lib/back-href';
+import { getBackHrefFromHeaders } from '@/lib/back-href-server';
 import { formatCertification } from '@/lib/certifications';
 import { getImdbRating } from '@/lib/imdb';
 import { getMediaCertification } from '@/lib/media-info';
@@ -47,8 +46,7 @@ const RESOURCE_TYPE = 'movie';
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
   const movieId = Number(params.movieId);
-  const headersList = await headers();
-  const backHref = getBackHref(headersList.get('referer'), headersList.get('host'));
+  const backHref = await getBackHrefFromHeaders();
 
   // Above-the-fold data only: user state plus core movie details, batched so a
   // cold DB connection is paid once. Supporting sections (credits, providers,

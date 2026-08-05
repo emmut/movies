@@ -1,5 +1,4 @@
 import { Calendar, Tv, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -17,7 +16,7 @@ import { StreamingSection, StreamingSectionSkeleton } from '@/components/streami
 import { TrailerContent } from '@/components/trailer-content';
 import { TvCast } from '@/components/tv-cast';
 import { getUser } from '@/lib/auth-server';
-import { getBackHref } from '@/lib/back-href';
+import { getBackHrefFromHeaders } from '@/lib/back-href-server';
 import { formatCertification } from '@/lib/certifications';
 import { getImdbRating } from '@/lib/imdb';
 import { getMediaCertification } from '@/lib/media-info';
@@ -49,8 +48,7 @@ const RESOURCE_TYPE = 'tv';
 export default async function TvShowPage(props: TvShowPageProps) {
   const params = await props.params;
   const tvId = Number(params.tvId);
-  const headersList = await headers();
-  const backHref = getBackHref(headersList.get('referer'), headersList.get('host'));
+  const backHref = await getBackHrefFromHeaders();
 
   // Above-the-fold data only: user state plus core show details, batched so a
   // cold DB connection is paid once. Supporting sections (cast, providers,
