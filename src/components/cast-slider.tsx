@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import { Users } from 'lucide-react';
 
-import { BackTargetLink } from '@/components/back-target-link';
 import { Imgproxy } from '@/components/image-proxy';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,7 +29,7 @@ export function CastSlider({ cast }: { cast: CastSliderMember[] }) {
       <h2 className="mb-4 text-xl font-semibold">Cast</h2>
       <ItemSlider>
         {cast.map((person) => (
-          <BackTargetLink
+          <Link
             key={person.credit_id}
             href={`/person/${person.id}`}
             className="w-32 shrink-0 transition-transform hover:scale-105"
@@ -51,7 +51,7 @@ export function CastSlider({ cast }: { cast: CastSliderMember[] }) {
             </div>
             <h3 className="line-clamp-2 text-sm font-medium hover:text-white">{person.name}</h3>
             <p className="line-clamp-2 text-xs text-zinc-400">{person.character}</p>
-          </BackTargetLink>
+          </Link>
         ))}
       </ItemSlider>
     </div>

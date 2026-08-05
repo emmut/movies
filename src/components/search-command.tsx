@@ -16,7 +16,6 @@ import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useSearchMulti } from '@/hooks/use-search-query';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
 import { useShortcutLabel } from '@/hooks/use-shortcut-label';
-import { saveBackTarget } from '@/lib/back-target';
 import { cn } from '@/lib/utils';
 
 import {
@@ -341,7 +340,6 @@ export function SearchCommand() {
   useSearchShortcut(openSearch);
 
   function navigate(href: string) {
-    saveBackTarget(href);
     setOpen(false);
     router.push(href);
   }

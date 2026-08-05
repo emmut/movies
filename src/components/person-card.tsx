@@ -1,6 +1,6 @@
 import { User } from 'lucide-react';
+import Link from 'next/link';
 
-import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
 import { cn, formatImageUrl } from '@/lib/utils';
 import { PersonDetails, SearchedPerson } from '@/types/person';
@@ -52,7 +52,7 @@ export default function PersonCard({
         className,
       )}
     >
-      <BackTargetLink href={href}>
+      <Link href={href}>
         <div className="relative h-full w-full">
           {person.profile_path ? (
             <ClientImage
@@ -92,7 +92,7 @@ export default function PersonCard({
             <Badge variant="blue">Person</Badge>
           </div>
         </div>
-      </BackTargetLink>
+      </Link>
 
       {showListButton && userId && (
         <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">

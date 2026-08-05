@@ -1,4 +1,5 @@
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
+import { headers } from 'next/headers';
 
 import Badge from '@/components/badge';
 import { ExternalLinks } from '@/components/external-links';
@@ -8,6 +9,7 @@ import ItemCard from '@/components/item-card';
 import { QuickAddButton } from '@/components/quick-add-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
+import { getBackHref } from '@/lib/back-href';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
 import { optional } from '@/lib/tmdb';
 import { deduplicateAndSortByPopularity } from '@/lib/utils';
@@ -27,6 +29,8 @@ type PersonPageProps = {
 export default async function PersonPage(props: PersonPageProps) {
   const params = await props.params;
   const personId = Number(params.id);
+  const headersList = await headers();
+  const backHref = getBackHref(headersList.get('referer'), headersList.get('host'));
 
   const user = await getUser();
   const [person, movieCredits, tvCredits] = await Promise.all([
@@ -109,7 +113,7 @@ export default async function PersonPage(props: PersonPageProps) {
   return (
     <div className="min-h-screen">
       <div className="mb-6">
-        <GoBack />
+        <GoBack href={backHref} />
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
