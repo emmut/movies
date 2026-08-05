@@ -1,5 +1,4 @@
 import { Calendar, Tv, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -48,8 +47,6 @@ const RESOURCE_TYPE = 'tv';
 export default async function TvShowPage(props: TvShowPageProps) {
   const params = await props.params;
   const tvId = Number(params.tvId);
-  const headersList = await headers();
-  const referer = headersList.get('referer');
 
   // Above-the-fold data only: user state plus core show details, batched so a
   // cold DB connection is paid once. Supporting sections (cast, providers,
@@ -93,7 +90,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
   return (
     <div className="min-h-screen">
       <div className="mb-6">
-        <GoBack referer={referer} />
+        <GoBack />
       </div>
 
       {backdrop_path && (

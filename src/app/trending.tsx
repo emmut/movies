@@ -1,5 +1,4 @@
-import Link from 'next/link';
-
+import { BackTargetLink } from '@/components/back-target-link';
 import Badge from '@/components/badge';
 import { Imgproxy } from '@/components/image-proxy';
 import { fetchTrendingMovies } from '@/lib/movies';
@@ -37,7 +36,7 @@ async function Trending({ index, type }: TrendingCardProp) {
   const borderColor = type === 'movie' ? 'hover:border-yellow-300' : 'hover:border-red-500';
 
   return (
-    <Link
+    <BackTargetLink
       href={href}
       className={`group relative h-52 overflow-hidden rounded-xl border ${borderColor} transition-all hover:scale-[1.02] focus:scale-[1.02] focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none lg:h-72 lg:flex-1`}
     >
@@ -69,7 +68,7 @@ async function Trending({ index, type }: TrendingCardProp) {
         </div>
         {releaseDate && <p className="text-sm">{formatDateYear(releaseDate)}</p>}
       </div>
-    </Link>
+    </BackTargetLink>
   );
 }
 

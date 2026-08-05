@@ -1,31 +1,27 @@
 'use client';
 
 import { ChevronLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
-import { useIsClient } from '@/hooks/use-is-client';
+import { getBackTarget } from '@/lib/back-target';
 
 import { Button } from './ui/button';
 
-type GoBackProps = {
-  referer: string | null;
-};
-
-export function GoBack({ referer }: GoBackProps) {
+/**
+ * Deterministic back button for detail pages. Navigates to the URL recorded
+ * when the user clicked into this page (search with its query, discover with
+ * its filters, another detail page) instead of relying on the `referer` header
+ * or browser history — both of which break after login redirects or repeated
+ * searches. Falls back to /discover when nothing was recorded.
+ */
+export function GoBack() {
   const router = useRouter();
-  const isClient = useIsClient();
-
-  const useDynamicBackButton =
-    isClient && referer ? referer.includes(window.location.origin) : false;
+  const pathname = usePathname();
 
   return (
     <Button
       onClick={() => {
-        if (useDynamicBackButton) {
-          router.back();
-        } else {
-          router.push('/discover');
-        }
+        router.push(getBackTarget(pathname) ?? '/discover');
       }}
       className="inline-flex items-center gap-2 p-0 text-zinc-400 transition-colors hover:text-white"
       variant="link"

@@ -1,5 +1,4 @@
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 
 import Badge from '@/components/badge';
 import { ExternalLinks } from '@/components/external-links';
@@ -28,8 +27,6 @@ type PersonPageProps = {
 export default async function PersonPage(props: PersonPageProps) {
   const params = await props.params;
   const personId = Number(params.id);
-  const headersList = await headers();
-  const referer = headersList.get('referer');
 
   const user = await getUser();
   const [person, movieCredits, tvCredits] = await Promise.all([
@@ -112,7 +109,7 @@ export default async function PersonPage(props: PersonPageProps) {
   return (
     <div className="min-h-screen">
       <div className="mb-6">
-        <GoBack referer={referer} />
+        <GoBack />
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
