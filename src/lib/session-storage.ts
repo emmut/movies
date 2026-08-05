@@ -10,7 +10,7 @@
 
 const SESSION_STORAGE_EVENT = 'session-storage-change';
 
-export function readSessionStorageValue(key: string): string | null {
+export function readSessionStorageValue(key: string) {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -22,7 +22,7 @@ export function readSessionStorageValue(key: string): string | null {
   }
 }
 
-export function writeSessionStorageValue(key: string, value: string): void {
+export function writeSessionStorageValue(key: string, value: string) {
   if (typeof window === 'undefined') {
     return;
   }
@@ -37,7 +37,7 @@ export function writeSessionStorageValue(key: string, value: string): void {
 }
 
 /** Subscribe to storage changes; returns the unsubscribe cleanup. */
-export function subscribeToSessionStorage(onChange: () => void): () => void {
+export function subscribeToSessionStorage(onChange: () => void) {
   window.addEventListener(SESSION_STORAGE_EVENT, onChange);
   window.addEventListener('storage', onChange);
 

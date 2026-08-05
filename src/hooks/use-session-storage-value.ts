@@ -10,7 +10,7 @@ import { readSessionStorageValue, subscribeToSessionStorage } from '@/lib/sessio
  * `null` on the server, when the key is absent, and when storage is
  * unavailable, so server and client HTML stay consistent through hydration.
  */
-export function useSessionStorageValue(key: string): string | null {
+export function useSessionStorageValue(key: string) {
   return useSyncExternalStore(
     subscribeToSessionStorage,
     () => readSessionStorageValue(key),

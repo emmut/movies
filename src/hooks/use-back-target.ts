@@ -11,7 +11,7 @@ const DEFAULT_BACK_HREF = '/discover';
  * as reactive state: /discover until hydration and for direct visits, the
  * validated stored URL once the client store is readable.
  */
-export function useBackTarget(): string {
+export function useBackTarget() {
   const pathname = usePathname();
   const stored = useSessionStorageValue(backTargetKey(pathname));
 

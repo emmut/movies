@@ -21,7 +21,7 @@ function hrefToPathname(href: string) {
 }
 
 /** The storage key holding the back target for the page at {@link href}. */
-export function backTargetKey(href: string): string {
+export function backTargetKey(href: string) {
   return KEY_PREFIX + hrefToPathname(href);
 }
 
@@ -30,7 +30,7 @@ export function backTargetKey(href: string): string {
  * {@link target}, or the current URL (pathname + search) when omitted. Call
  * this when a navigation to a detail page starts.
  */
-export function saveBackTarget(href: string, target?: string): void {
+export function saveBackTarget(href: string, target?: string) {
   if (typeof window === 'undefined') {
     return;
   }
@@ -46,7 +46,7 @@ export function saveBackTarget(href: string, target?: string): void {
  * query for known in-app routes, `null` for anything else — absolute URLs,
  * protocol-relative URLs, unknown routes.
  */
-export function sanitizeBackHref(candidate: unknown): string | null {
+export function sanitizeBackHref(candidate: unknown) {
   if (typeof candidate !== 'string' || !candidate.startsWith('/') || candidate.startsWith('//')) {
     return null;
   }
