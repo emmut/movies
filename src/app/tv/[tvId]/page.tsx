@@ -16,8 +16,6 @@ import { StreamingSection, StreamingSectionSkeleton } from '@/components/streami
 import { TrailerContent } from '@/components/trailer-content';
 import { TvCast } from '@/components/tv-cast';
 import { getUser } from '@/lib/auth-server';
-import { sanitizeBackHref } from '@/lib/back-href';
-import { getBackHrefFromHeaders } from '@/lib/back-href-server';
 import { formatCertification } from '@/lib/certifications';
 import { getImdbRating } from '@/lib/imdb';
 import { getMediaCertification } from '@/lib/media-info';
@@ -35,9 +33,6 @@ type TvShowPageProps = {
   params: Promise<{
     tvId: string;
   }>;
-  searchParams: Promise<{
-    from?: string;
-  }>;
 };
 
 const RESOURCE_TYPE = 'tv';
@@ -52,10 +47,6 @@ const RESOURCE_TYPE = 'tv';
 export default async function TvShowPage(props: TvShowPageProps) {
   const params = await props.params;
   const tvId = Number(params.tvId);
-  const searchParams = await props.searchParams;
-  // The quick-search palette carries its results URL in `from`; prefer it —
-  // the referer of a palette navigation is just the page it was opened on.
-  const backHref = sanitizeBackHref(searchParams.from) ?? (await getBackHrefFromHeaders());
 
   // Above-the-fold data only: user state plus core show details, batched so a
   // cold DB connection is paid once. Supporting sections (cast, providers,
@@ -99,7 +90,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
   return (
     <div className="min-h-screen">
       <div className="mb-6">
-        <GoBack href={backHref} />
+        <GoBack />
       </div>
 
       {backdrop_path && (

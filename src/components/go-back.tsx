@@ -3,19 +3,20 @@
 import { ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { useBackTarget } from '@/hooks/use-back-target';
+
 import { Button } from './ui/button';
 
-type GoBackProps = {
-  href: string;
-};
-
 /**
- * Back button for detail pages. Always pushes the given href — resolved
- * server-side from the referer via `getBackHref` — instead of walking browser
- * history, so the target stays predictable.
+ * Deterministic back button for detail pages. Navigates to the URL recorded
+ * when the user clicked into this page (search with its query, discover with
+ * its filters, another detail page) instead of walking browser history —
+ * which broke after login redirects and repeated searches. Falls back to
+ * /discover when nothing was recorded.
  */
-export function GoBack({ href }: GoBackProps) {
+export function GoBack() {
   const router = useRouter();
+  const href = useBackTarget();
 
   return (
     <Button
