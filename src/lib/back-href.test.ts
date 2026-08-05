@@ -85,6 +85,15 @@ describe('sanitizeBackHref', () => {
     expect(sanitizeBackHref('//evil.example/search')).toBeNull();
   });
 
+  it('rejects backslash authority smuggling and origin escapes', () => {
+    // The URL parser treats `\` like `/`: these parse with an external
+    // authority (and the second one with a protocol-relative pathname) even
+    // though they start with a single slash.
+    expect(sanitizeBackHref('/\\evil.example')).toBeNull();
+    expect(sanitizeBackHref('/\\a//evil.example')).toBeNull();
+    expect(sanitizeBackHref('/\\/evil.example')).toBeNull();
+  });
+
   it('rejects unknown routes and non-string values', () => {
     expect(sanitizeBackHref('/login')).toBeNull();
     expect(sanitizeBackHref('/settings')).toBeNull();

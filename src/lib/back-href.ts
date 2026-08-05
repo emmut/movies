@@ -31,6 +31,16 @@ export function sanitizeBackHref(candidate: unknown): string | null {
     return null;
   }
 
+  const path = url.pathname + url.search;
+
+  // The URL parser treats `\` like `/`, so `/\evil.com/…` smuggles in an
+  // authority despite starting with a single slash. Reject anything that
+  // escaped the dummy origin, and never return a protocol-relative path —
+  // router.push would leave the site with either.
+  if (url.origin !== 'http://internal' || path.startsWith('//')) {
+    return null;
+  }
+
   const section = url.pathname.split('/')[1];
 
   switch (section) {
@@ -47,7 +57,7 @@ export function sanitizeBackHref(candidate: unknown): string | null {
     case 'movie':
     case 'tv':
     case 'person':
-      return url.pathname + url.search;
+      return path;
     default:
       return null;
   }
