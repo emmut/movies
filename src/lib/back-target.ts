@@ -42,6 +42,15 @@ export function saveBackTarget(href: string, target?: string) {
 }
 
 /**
+ * Placeholder base for parsing app-relative paths with the `URL` constructor,
+ * which refuses to parse a bare `/path` without one. Never requested and
+ * independent of where the app is deployed — it exists only in memory during
+ * parsing. A candidate that is a pure path keeps this origin after parsing,
+ * so any other origin on the result means the candidate smuggled in a host.
+ */
+const PARSE_BASE_ORIGIN = 'http://internal';
+
+/**
  * Validates an app-relative path as a back target. Returns the pathname +
  * query for known in-app routes, `null` for anything else — absolute URLs,
  * protocol-relative URLs, unknown routes.
@@ -53,7 +62,7 @@ export function sanitizeBackHref(candidate: unknown) {
 
   let url: URL;
   try {
-    url = new URL(candidate, 'http://internal');
+    url = new URL(candidate, PARSE_BASE_ORIGIN);
   } catch {
     return null;
   }
@@ -62,9 +71,9 @@ export function sanitizeBackHref(candidate: unknown) {
 
   // The URL parser treats `\` like `/`, so `/\evil.com/…` smuggles in an
   // authority despite starting with a single slash. Reject anything that
-  // escaped the dummy origin, and never return a protocol-relative path —
-  // router.push would leave the site with either.
-  if (url.origin !== 'http://internal' || path.startsWith('//')) {
+  // escaped the placeholder origin, and never return a protocol-relative
+  // path — router.push would leave the site with either.
+  if (url.origin !== PARSE_BASE_ORIGIN || path.startsWith('//')) {
     return null;
   }
 
