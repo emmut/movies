@@ -2,6 +2,7 @@ import { Calendar, Tv, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
+import { BackTargetLink } from '@/components/back-target-link';
 import { CastSliderSkeleton } from '@/components/cast-slider';
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
@@ -248,7 +249,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <h2 className="mb-4 text-xl font-semibold">Created By</h2>
               <div className="flex flex-wrap gap-4">
                 {created_by.map((creator) => (
-                  <Link
+                  <BackTargetLink
                     key={creator.credit_id}
                     href={`/person/${creator.id}`}
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
@@ -269,7 +270,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                       </div>
                     )}
                     <span className="font-medium hover:text-white">{creator.name}</span>
-                  </Link>
+                  </BackTargetLink>
                 ))}
               </div>
             </div>
