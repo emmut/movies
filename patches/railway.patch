@@ -1,21 +1,27 @@
 diff --git a/dist/iac/index.js b/dist/iac/index.js
-index 1da0354260f9effb214b75270cff3c59008add16..320e75b74142e3f5ef53eef528a1803f75fd90fd 100644
+index f28c48d91c8a6df5719a697cddd88af5fb905feb..c6deadb522d37518c3d3f11aad3fd8c13c78e6e9 100644
 --- a/dist/iac/index.js
 +++ b/dist/iac/index.js
-@@ -252,9 +252,11 @@ function databaseRegion(database2) {
+@@ -273,9 +273,17 @@ function databaseRegion(database2) {
    return regions[0]?.[0];
  }
  function databaseDeploy(database2, requiredMountPath) {
-+  const { multiRegionConfig, ...deployRest } = database2.deploy ?? {};
++  // PATCHED(movies): forward the caller's deploy config, which upstream drops.
++  // `requiredMountPath` stays engine-owned and is applied after the spread:
++  // the image fixes the data directory (the volume mount and PGDATA are both
++  // hardcoded to it), so a caller-supplied path would only desync the deploy
++  // from the mount. `multiRegionConfig` keeps upstream's omit-when-empty shape.
++  const { multiRegionConfig, requiredMountPath: engineOwnedMountPath, ...deployRest } = database2.deploy ?? {};
++  void engineOwnedMountPath;
    return {
++    ...deployRest,
      requiredMountPath,
 -    ...database2.deploy?.multiRegionConfig ? { multiRegionConfig: database2.deploy.multiRegionConfig } : {}
-+    ...deployRest,
 +    ...multiRegionConfig ? { multiRegionConfig } : {}
    };
  }
  function databaseToEnvironmentConfig(database2, options) {
-@@ -1398,7 +1400,12 @@ function database(name, engine, options) {
+@@ -1476,7 +1484,12 @@ function database(name, engine, options) {
      output,
      defaultMountPath: options.defaultMountPath,
      source: image(options.image),
@@ -29,11 +35,11 @@ index 1da0354260f9effb214b75270cff3c59008add16..320e75b74142e3f5ef53eef528a1803f
    };
    return withVariableRefs(node);
  }
-diff --git a/dist/index-Da_sOsQE.d.cts b/dist/index-Da_sOsQE.d.cts
-index 39da49b6dcaa8ee913e482ed3572d9ed519b6eca..6840be0da09ad93a6b314ccd0c2b572c4303f6b7 100644
---- a/dist/index-Da_sOsQE.d.cts
-+++ b/dist/index-Da_sOsQE.d.cts
-@@ -624,6 +624,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
+diff --git a/dist/index-F4_q1IqR.d.cts b/dist/index-F4_q1IqR.d.cts
+index c6676ef5526e8502378fd680319dab04fa9942d4..ac9b124927d8586071c9e700db08c4dfce01aefc 100644
+--- a/dist/index-F4_q1IqR.d.cts
++++ b/dist/index-F4_q1IqR.d.cts
+@@ -632,6 +632,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
  }): ReferencableServiceNode<RailwayProvidedVariable | Extract<keyof Env, string>>;
  interface DatabaseConfig {
      region?: string;
@@ -41,11 +47,11 @@ index 39da49b6dcaa8ee913e482ed3572d9ed519b6eca..6840be0da09ad93a6b314ccd0c2b572c
  }
  declare function postgres(name: string, config?: DatabaseConfig): ReferencableDatabaseNode<"postgres">;
  declare function mysql(name: string, config?: DatabaseConfig): ReferencableDatabaseNode<"mysql">;
-diff --git a/dist/index-Da_sOsQE.d.ts b/dist/index-Da_sOsQE.d.ts
-index 39da49b6dcaa8ee913e482ed3572d9ed519b6eca..6840be0da09ad93a6b314ccd0c2b572c4303f6b7 100644
---- a/dist/index-Da_sOsQE.d.ts
-+++ b/dist/index-Da_sOsQE.d.ts
-@@ -624,6 +624,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
+diff --git a/dist/index-F4_q1IqR.d.ts b/dist/index-F4_q1IqR.d.ts
+index c6676ef5526e8502378fd680319dab04fa9942d4..ac9b124927d8586071c9e700db08c4dfce01aefc 100644
+--- a/dist/index-F4_q1IqR.d.ts
++++ b/dist/index-F4_q1IqR.d.ts
+@@ -632,6 +632,7 @@ declare function fn<const Env extends Record<string, string | VariableConfig | V
  }): ReferencableServiceNode<RailwayProvidedVariable | Extract<keyof Env, string>>;
  interface DatabaseConfig {
      region?: string;

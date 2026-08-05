@@ -135,8 +135,15 @@ jobs:
           # Full history so audit can resolve the merge-base for changed files.
           fetch-depth: 0
 
+      # Two versions are in play here. This ref selects only the wrapper code,
+      # including the verifier that checks the CLI's signed binaries; the CLI
+      # itself comes from the exact `fallow` pin in package.json (`version` is
+      # deliberately omitted, so CI scans with the same build as local runs — a
+      # range would be re-resolved here and could drift from the lockfile).
+      # The two must stay contract-compatible: when a fallow major changes what
+      # the wrapper expects, this major has to move with it.
       - name: Run Fallow
-        uses: fallow-rs/fallow@v2
+        uses: fallow-rs/fallow@v3
         with:
           command: audit
           gate: new-only
