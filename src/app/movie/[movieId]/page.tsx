@@ -17,6 +17,7 @@ import { ReviewsSection, ReviewsSectionSkeleton } from '@/components/reviews-sec
 import { StreamingSection, StreamingSectionSkeleton } from '@/components/streaming-section';
 import { TrailerContent } from '@/components/trailer-content';
 import { getUser } from '@/lib/auth-server';
+import { sanitizeBackHref } from '@/lib/back-href';
 import { getBackHrefFromHeaders } from '@/lib/back-href-server';
 import { formatCertification } from '@/lib/certifications';
 import { getImdbRating } from '@/lib/imdb';
@@ -30,6 +31,9 @@ import { formatRuntime } from '@/lib/utils';
 type MoviePageProps = {
   params: Promise<{
     movieId: string;
+  }>;
+  searchParams: Promise<{
+    from?: string;
   }>;
 };
 
@@ -46,7 +50,10 @@ const RESOURCE_TYPE = 'movie';
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
   const movieId = Number(params.movieId);
-  const backHref = await getBackHrefFromHeaders();
+  const searchParams = await props.searchParams;
+  // The quick-search palette carries its results URL in `from`; prefer it —
+  // the referer of a palette navigation is just the page it was opened on.
+  const backHref = sanitizeBackHref(searchParams.from) ?? (await getBackHrefFromHeaders());
 
   // Above-the-fold data only: user state plus core movie details, batched so a
   // cold DB connection is paid once. Supporting sections (credits, providers,

@@ -1,6 +1,59 @@
 const DEFAULT_BACK_HREF = '/discover';
 
 /**
+ * Query param a detail page reads to override the referer-based back target.
+ * Used when the referer doesn't reflect the navigation the user actually made
+ * — e.g. the quick-search palette, where the referer is whatever page the
+ * palette was opened on rather than the search itself.
+ */
+const BACK_HREF_PARAM = 'from';
+
+/** Appends the back-target override param to an in-app href. */
+export function withBackHref(href: string, backHref: string): string {
+  const separator = href.includes('?') ? '&' : '?';
+  return `${href}${separator}${BACK_HREF_PARAM}=${encodeURIComponent(backHref)}`;
+}
+
+/**
+ * Validates an app-relative path (e.g. a `from` query param) as a back
+ * target. Returns the pathname + query for known in-app routes, `null` for
+ * anything else — absolute URLs, protocol-relative URLs, unknown routes.
+ */
+export function sanitizeBackHref(candidate: unknown): string | null {
+  if (typeof candidate !== 'string' || !candidate.startsWith('/') || candidate.startsWith('//')) {
+    return null;
+  }
+
+  let url: URL;
+  try {
+    url = new URL(candidate, 'http://internal');
+  } catch {
+    return null;
+  }
+
+  const section = url.pathname.split('/')[1];
+
+  switch (section) {
+    // Home and list pages: return with their full query string (search text,
+    // discover filters, pagination) intact.
+    case '':
+    case 'search':
+    case 'discover':
+    case 'watchlist':
+    case 'watched':
+    case 'lists':
+    // Detail pages: cast and recommendation navigation returns to the page
+    // the user came from.
+    case 'movie':
+    case 'tv':
+    case 'person':
+      return url.pathname + url.search;
+    default:
+      return null;
+  }
+}
+
+/**
  * Resolves the detail-page back button target from the request's `referer`
  * header. Known in-app origins map to an explicit href — search keeps its
  * query, discover keeps its filters — and everything else (no referer,
@@ -32,26 +85,7 @@ export function getBackHref(referer: string | null, hosts: Array<string | null>)
     return DEFAULT_BACK_HREF;
   }
 
-  const section = url.pathname.split('/')[1];
-
-  switch (section) {
-    // Home and list pages: return with their full query string (search text,
-    // discover filters, pagination) intact.
-    case '':
-    case 'search':
-    case 'discover':
-    case 'watchlist':
-    case 'watched':
-    case 'lists':
-    // Detail pages: cast and recommendation navigation returns to the page
-    // the user came from.
-    case 'movie':
-    case 'tv':
-    case 'person':
-      return url.pathname + url.search;
-    // Anything else — login, auth callbacks, unknown routes — gets the
-    // static default rather than a guess.
-    default:
-      return DEFAULT_BACK_HREF;
-  }
+  // Anything not on the allowlist — login, auth callbacks, unknown routes —
+  // gets the static default rather than a guess.
+  return sanitizeBackHref(url.pathname + url.search) ?? DEFAULT_BACK_HREF;
 }

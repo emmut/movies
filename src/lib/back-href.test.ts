@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getBackHref } from './back-href';
+import { getBackHref, sanitizeBackHref, withBackHref } from './back-href';
 
 const HOST = 'movies.example.com';
 const HOSTS = [HOST, null];
@@ -69,5 +69,50 @@ describe('getBackHref', () => {
 
   it('defaults to discover for malformed referers', () => {
     expect(getBackHref('not a url', HOSTS)).toBe('/discover');
+  });
+});
+
+describe('sanitizeBackHref', () => {
+  it('accepts known in-app paths with their query intact', () => {
+    expect(sanitizeBackHref('/search?q=batman&mediaType=all')).toBe('/search?q=batman&mediaType=all');
+    expect(sanitizeBackHref('/discover/28?watchProvider=8')).toBe('/discover/28?watchProvider=8');
+    expect(sanitizeBackHref('/movie/603')).toBe('/movie/603');
+    expect(sanitizeBackHref('/')).toBe('/');
+  });
+
+  it('rejects absolute and protocol-relative URLs', () => {
+    expect(sanitizeBackHref('https://evil.example/search?q=x')).toBeNull();
+    expect(sanitizeBackHref('//evil.example/search')).toBeNull();
+  });
+
+  it('rejects unknown routes and non-string values', () => {
+    expect(sanitizeBackHref('/login')).toBeNull();
+    expect(sanitizeBackHref('/settings')).toBeNull();
+    expect(sanitizeBackHref(undefined)).toBeNull();
+    expect(sanitizeBackHref(null)).toBeNull();
+    expect(sanitizeBackHref(['/search?q=a', '/search?q=b'])).toBeNull();
+    expect(sanitizeBackHref('')).toBeNull();
+    expect(sanitizeBackHref('search?q=x')).toBeNull();
+  });
+});
+
+describe('withBackHref', () => {
+  it('appends the back target as an encoded from param', () => {
+    expect(withBackHref('/movie/603', '/search?q=batman&mediaType=all')).toBe(
+      '/movie/603?from=%2Fsearch%3Fq%3Dbatman%26mediaType%3Dall',
+    );
+  });
+
+  it('round-trips through sanitizeBackHref', () => {
+    const href = withBackHref('/tv/1396', '/search?q=the%20wire&mediaType=all');
+    const from = new URL(href, 'http://internal').searchParams.get('from');
+
+    expect(sanitizeBackHref(from)).toBe('/search?q=the%20wire&mediaType=all');
+  });
+
+  it('uses & when the href already has a query string', () => {
+    expect(withBackHref('/movie/603?foo=1', '/search?q=x')).toBe(
+      '/movie/603?foo=1&from=%2Fsearch%3Fq%3Dx',
+    );
   });
 });

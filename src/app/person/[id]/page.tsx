@@ -8,6 +8,7 @@ import ItemCard from '@/components/item-card';
 import { QuickAddButton } from '@/components/quick-add-button';
 import { ItemSlider } from '@/components/ui/item-slider';
 import { getUser } from '@/lib/auth-server';
+import { sanitizeBackHref } from '@/lib/back-href';
 import { getBackHrefFromHeaders } from '@/lib/back-href-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
 import { optional } from '@/lib/tmdb';
@@ -16,6 +17,9 @@ import { deduplicateAndSortByPopularity } from '@/lib/utils';
 type PersonPageProps = {
   params: Promise<{
     id: string;
+  }>;
+  searchParams: Promise<{
+    from?: string;
   }>;
 };
 
@@ -28,7 +32,10 @@ type PersonPageProps = {
 export default async function PersonPage(props: PersonPageProps) {
   const params = await props.params;
   const personId = Number(params.id);
-  const backHref = await getBackHrefFromHeaders();
+  const searchParams = await props.searchParams;
+  // The quick-search palette carries its results URL in `from`; prefer it —
+  // the referer of a palette navigation is just the page it was opened on.
+  const backHref = sanitizeBackHref(searchParams.from) ?? (await getBackHrefFromHeaders());
 
   const user = await getUser();
   const [person, movieCredits, tvCredits] = await Promise.all([

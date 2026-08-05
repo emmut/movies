@@ -16,6 +16,7 @@ import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useSearchMulti } from '@/hooks/use-search-query';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
 import { useShortcutLabel } from '@/hooks/use-shortcut-label';
+import { withBackHref } from '@/lib/back-href';
 import { cn } from '@/lib/utils';
 
 import {
@@ -242,10 +243,17 @@ function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
     keepPrevious: true,
   });
 
-  const items = toSearchCommandItems(data, RESULT_LIMIT);
-  const clampedIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));
   const trimmedQuery = query.trim();
   const seeAllHref = buildSeeAllHref(trimmedQuery);
+  // The referer of a palette navigation is whatever page the palette was
+  // opened on, so detail pages can't derive the search from it. Carry the
+  // full results URL along instead; the detail page prefers it as its back
+  // target.
+  const items = toSearchCommandItems(data, RESULT_LIMIT).map((item) => ({
+    ...item,
+    href: withBackHref(item.href, seeAllHref),
+  }));
+  const clampedIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));
   // While the debounce or fetch is behind the input, `items` still shows the
   // previous query's rows; Enter must not navigate to one of those.
   const resultsAreFresh = trimmedQuery === debouncedQuery && !isPlaceholderData;
