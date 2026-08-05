@@ -1,8 +1,8 @@
 import { Calendar, Tv, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
+import { BackTargetLink } from '@/components/back-target-link';
 import { CastSliderSkeleton } from '@/components/cast-slider';
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
@@ -48,8 +48,6 @@ const RESOURCE_TYPE = 'tv';
 export default async function TvShowPage(props: TvShowPageProps) {
   const params = await props.params;
   const tvId = Number(params.tvId);
-  const headersList = await headers();
-  const referer = headersList.get('referer');
 
   // Above-the-fold data only: user state plus core show details, batched so a
   // cold DB connection is paid once. Supporting sections (cast, providers,
@@ -93,7 +91,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
   return (
     <div className="min-h-screen">
       <div className="mb-6">
-        <GoBack referer={referer} />
+        <GoBack />
       </div>
 
       {backdrop_path && (
@@ -251,7 +249,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
               <h2 className="mb-4 text-xl font-semibold">Created By</h2>
               <div className="flex flex-wrap gap-4">
                 {created_by.map((creator) => (
-                  <Link
+                  <BackTargetLink
                     key={creator.credit_id}
                     href={`/person/${creator.id}`}
                     className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
@@ -272,7 +270,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                       </div>
                     )}
                     <span className="font-medium hover:text-white">{creator.name}</span>
-                  </Link>
+                  </BackTargetLink>
                 ))}
               </div>
             </div>

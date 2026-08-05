@@ -16,6 +16,7 @@ import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useSearchMulti } from '@/hooks/use-search-query';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
 import { useShortcutLabel } from '@/hooks/use-shortcut-label';
+import { saveBackTarget } from '@/lib/back-target';
 import { cn } from '@/lib/utils';
 
 import {
@@ -250,11 +251,21 @@ function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
   // previous query's rows; Enter must not navigate to one of those.
   const resultsAreFresh = trimmedQuery === debouncedQuery && !isPlaceholderData;
 
+  // The palette isn't a page, so a result's destination can't derive the
+  // search from where the navigation happened. Record the full results URL
+  // for the typed query as the destination's back target instead.
+  function navigateFromPalette(href: string) {
+    if (href !== seeAllHref) {
+      saveBackTarget(href, seeAllHref);
+    }
+    onNavigate(href);
+  }
+
   function submit(forceSeeAll: boolean) {
     const canOpenRow = resultsAreFresh && !forceSeeAll;
     const href = getSubmitHref(items, clampedIndex, canOpenRow, seeAllHref, !!trimmedQuery);
     if (href) {
-      onNavigate(href);
+      navigateFromPalette(href);
     }
   }
 
@@ -301,7 +312,7 @@ function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
           isLoading={isLoading}
           items={items}
           activeIndex={clampedIndex}
-          onSelect={onNavigate}
+          onSelect={navigateFromPalette}
           onHover={setActiveIndex}
         />
       </div>

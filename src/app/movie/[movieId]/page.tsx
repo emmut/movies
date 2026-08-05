@@ -1,5 +1,4 @@
 import { Calendar, Clock, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -46,8 +45,6 @@ const RESOURCE_TYPE = 'movie';
 export default async function MoviePage(props: MoviePageProps) {
   const params = await props.params;
   const movieId = Number(params.movieId);
-  const headersList = await headers();
-  const referer = headersList.get('referer');
 
   // Above-the-fold data only: user state plus core movie details, batched so a
   // cold DB connection is paid once. Supporting sections (credits, providers,
@@ -73,7 +70,7 @@ export default async function MoviePage(props: MoviePageProps) {
   return (
     <div className="min-h-screen">
       <div className="mb-6">
-        <GoBack referer={referer} />
+        <GoBack />
       </div>
 
       {backdrop_path && (

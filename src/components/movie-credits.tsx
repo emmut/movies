@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import { Users } from 'lucide-react';
 
+import { BackTargetLink } from '@/components/back-target-link';
 import { CastSlider } from '@/components/cast-slider';
 import { Imgproxy } from '@/components/image-proxy';
 import { getMovieCredits } from '@/lib/movies';
@@ -26,7 +26,7 @@ export async function MovieCredits({ movieId }: { movieId: number }) {
           <h2 className="mb-4 text-xl font-semibold">Directors</h2>
           <div className="flex flex-wrap gap-4">
             {directors.map((director) => (
-              <Link
+              <BackTargetLink
                 key={director.credit_id}
                 href={`/person/${director.id}`}
                 className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
@@ -47,7 +47,7 @@ export async function MovieCredits({ movieId }: { movieId: number }) {
                   </div>
                 )}
                 <span className="font-medium hover:text-white">{director.name}</span>
-              </Link>
+              </BackTargetLink>
             ))}
           </div>
         </div>

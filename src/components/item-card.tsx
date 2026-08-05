@@ -1,6 +1,6 @@
 import { Star } from 'lucide-react';
-import Link from 'next/link';
 
+import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
 import { cn, formatImageUrl } from '@/lib/utils';
 import { Movie, MovieDetails } from '@/types/movie';
@@ -75,7 +75,7 @@ export default function ItemCard({
         className,
       )}
     >
-      <Link href={href}>
+      <BackTargetLink href={href}>
         <div className="relative h-full w-full">
           {item.poster_path ? (
             <ClientImage
@@ -114,7 +114,7 @@ export default function ItemCard({
             </Badge>
           </div>
         </div>
-      </Link>
+      </BackTargetLink>
 
       {showListButton && (
         <div className="absolute top-2 right-2 transition-opacity">

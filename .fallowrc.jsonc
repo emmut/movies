@@ -13,7 +13,10 @@
     // Loading skeletons are mirrored per route by App-Router convention, so
     // sibling loading.tsx files (movie/tv) will always register as clones.
     // Sharing one component would couple routes for no behavioral gain.
-    "ignore": ["src/app/**/loading.tsx"],
+    // The person page's profile-image block mirrors the movie Poster only
+    // structurally (different fallback icon/labels); merging them would
+    // couple the person page to a movie component for no behavioral gain.
+    "ignore": ["src/app/**/loading.tsx", "src/app/person/[id]/page.tsx"],
   },
   "health": {
     // App-Router page components are inherently conditional-JSX-heavy (cyclomatic
