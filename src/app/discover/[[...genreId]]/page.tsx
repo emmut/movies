@@ -101,6 +101,7 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
       <DiscoverContent
         filteredWatchProviders={filteredWatchProviders}
         userRegion={watchRegion}
+        userWatchProviders={userWatchProviders}
         userId={user?.id}
         movieGenres={movieGenres}
         tvGenres={tvGenres}

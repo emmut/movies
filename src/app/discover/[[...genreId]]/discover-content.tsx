@@ -8,7 +8,10 @@ import { GenreNavigationClient } from '@/components/genre-navigation-client';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
-import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
+import {
+  getWatchProvidersString,
+  parseAsPipeSeparatedArrayOfIntegers,
+} from '@/lib/watch-provider-search-params';
 import type { Genre } from '@/types/genre';
 import { WatchProvider } from '@/types/watch-provider';
 
@@ -17,6 +20,7 @@ import Pagination from './pagination';
 type DiscoverContentProps = {
   filteredWatchProviders: WatchProvider[];
   userRegion: string;
+  userWatchProviders: number[];
   movieGenres: Genre[];
   tvGenres: Genre[];
   userId?: string;
@@ -32,7 +36,7 @@ type DiscoverViewState = {
   runtimeLte?: number;
 };
 
-function useDiscoverViewState(userRegion: string): DiscoverViewState {
+function useDiscoverViewState(userRegion: string, userWatchProviders: number[]): DiscoverViewState {
   const [urlState] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
@@ -56,7 +60,13 @@ function useDiscoverViewState(userRegion: string): DiscoverViewState {
     genreId: urlState.genreId,
     mediaType: urlState.mediaType,
     sortBy: urlState.sort_by,
-    watchProviders: urlState.with_watch_providers?.join('|'),
+    // Same fallback the server prefetch applies (URL selection, else the
+    // user's saved providers): a different value here changes the React Query
+    // key, orphans the dehydrated data, and refetches with the wrong filter.
+    watchProviders: getWatchProvidersString(
+      urlState.with_watch_providers ?? [],
+      userWatchProviders,
+    ),
     watchRegion: urlState.watch_region ?? userRegion,
     runtimeLte: urlState.runtimeLte ?? undefined,
   };
@@ -133,12 +143,13 @@ function DiscoverResults({
 export function DiscoverContent({
   filteredWatchProviders,
   userRegion,
+  userWatchProviders,
   movieGenres,
   tvGenres,
   userId,
 }: DiscoverContentProps) {
   const { page, genreId, mediaType, sortBy, watchProviders, watchRegion, runtimeLte } =
-    useDiscoverViewState(userRegion);
+    useDiscoverViewState(userRegion, userWatchProviders);
   const genres = mediaType === 'movie' ? movieGenres : tvGenres;
 
   return (
