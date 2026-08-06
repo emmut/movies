@@ -83,8 +83,8 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
   // links' onNavigate, which skips modifier/middle clicks that open a new
   // tab); it runs here once the new page is on screen — when this instance
   // re-renders with the new page number, or when a fresh instance mounts
-  // after a `<Suspense key={page}>` boundary swapped the tree during the
-  // navigation.
+  // after a loading state (e.g. discover's spinner) swapped the controls out
+  // during the navigation.
   useEffect(scrollToContentIfScheduled, [currentPageNumber]);
 
   function buildPageHref(page: number) {

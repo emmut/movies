@@ -1,11 +1,11 @@
 // Coordinates "paginate, then scroll to the top of the results".
 //
-// The scroll can't happen at click time: the new page renders later (often
-// behind a `<Suspense key={page}>` fallback) and the document height changes
-// under an early scroll. Instead the click schedules the scroll here and
-// PaginationControls performs it in an effect once the new page is on screen.
-// Module state rather than React state: the Suspense swap remounts the
-// controls, which would lose anything stored in the component.
+// The scroll can't happen at click time: the new page renders later and the
+// document height changes under an early scroll. Instead the click schedules
+// the scroll here and PaginationControls performs it in an effect once the
+// new page is on screen. Module state rather than React state: a loading
+// state can swap the controls out during the navigation (e.g. discover's
+// spinner), and a remount would lose anything stored in the component.
 //
 // The schedule is scoped to the navigation's destination so it can't leak: a
 // later render anywhere else (the navigation was abandoned or superseded)
