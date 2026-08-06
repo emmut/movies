@@ -1,8 +1,9 @@
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { Toaster } from 'sonner';
 
+import { BackScrollRestorer } from '@/components/back-scroll-restorer';
 import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
@@ -52,6 +53,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 </SidebarInset>
               </SidebarProvider>
               <LoginToastHandler />
+              {/* usePathname is URL data — needs a boundary under cacheComponents. */}
+              <Suspense fallback={null}>
+                <BackScrollRestorer />
+              </Suspense>
             </PostHogClientProvider>
           </NuqsAdapter>
         </QueryProvider>

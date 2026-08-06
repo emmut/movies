@@ -1,3 +1,4 @@
+import { saveBackScroll } from './back-scroll';
 import { writeSessionStorageValue } from './session-storage';
 
 /**
@@ -33,6 +34,12 @@ export function backTargetKey(href: string) {
 export function saveBackTarget(href: string, target?: string) {
   if (typeof window === 'undefined') {
     return;
+  }
+
+  if (target === undefined) {
+    // The implicit target is the page the user is looking at right now —
+    // record the reading position so the back button can restore it.
+    saveBackScroll();
   }
 
   writeSessionStorageValue(
