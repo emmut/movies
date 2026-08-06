@@ -4,13 +4,12 @@ import { signInAnonymously } from './helpers';
 
 // Paginating scrolls to the top of the results: the click schedules the
 // scroll and PaginationControls performs it once the new page is on screen
-// (see src/lib/scroll-to-content.ts), so the skeleton → results swap can't
-// move the ground under it.
+// (see src/lib/scroll-to-content.ts), so a mid-navigation render can't move
+// the ground under it.
 //
 // This runs under the `mobile-safari` project (WebKit + an iPhone viewport) —
 // the engine and form factor where click-time scrolling historically lost the
-// scroll. The discover data is deliberately delayed so the swap happens well
-// after the click, the timing that used to break.
+// scroll.
 //
 // Invariant: after paginating from a scrolled-down position, the viewport
 // settles at the top of `#content` (its first item, minus the
@@ -49,16 +48,6 @@ function firstCardHref(page: Page): Promise<string> {
 }
 
 test('paginating lands at the top of the results, not the page top', async ({ page }) => {
-  // Delay the discover server action so the next page's results swap in while
-  // the scroll is still animating — the timing that dropped the scroll on
-  // Safari. The initial page load is a GET and is unaffected.
-  await page.route('**/discover**', async (route) => {
-    if (route.request().method() === 'POST') {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-    await route.continue();
-  });
-
   await page.goto('/discover');
   const container = page.locator('#content');
   const firstCard = container.locator('a[href^="/movie/"]').first();

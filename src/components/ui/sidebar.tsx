@@ -133,9 +133,10 @@ function SidebarProvider({
         className={cn(
           // min-h-lvh, not min-h-svh: the shell's height floor must cover the
           // *large* viewport (iOS toolbar collapsed). With an svh floor, a
-          // mid-pagination render with little content shrinks the document
-          // below the visible viewport, Safari clamps the scroll to the top,
-          // and the results scroll then visibly runs from the page top.
+          // mid-navigation render with little content (a loading skeleton)
+          // shrinks the document below the visible viewport, Safari clamps
+          // the scroll to the top, and a scheduled scroll or back-position
+          // restore then visibly runs from the page top.
           'group/sidebar-wrapper flex min-h-lvh w-full has-data-[variant=inset]:bg-sidebar',
           className,
         )}
