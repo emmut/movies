@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  clearBackScroll,
   restoreBackScrollIfScheduled,
   saveBackScroll,
   scheduleBackScrollRestore,
@@ -101,6 +102,22 @@ describe('back scroll restore', () => {
 
     scheduleBackScrollRestore('/discover?page=3');
     moveTo('http://app.test/discover?page=3');
+    restoreBackScrollIfScheduled();
+
+    expect(scrollTo).not.toHaveBeenCalled();
+  });
+
+  it('clearing drops a previously recorded position (explicit back targets)', () => {
+    const { scrollTo } = stubWindow({ url: 'http://app.test/search?q=x', scrollY: 481 });
+
+    saveBackScroll();
+    // The quick-search palette records /search?q=x as an explicit target from
+    // another page — the old reading position must not survive that.
+    moveTo('http://app.test/movie/1');
+    clearBackScroll('/search?q=x');
+
+    expect(scheduleBackScrollRestore('/search?q=x')).toBe(false);
+    moveTo('http://app.test/search?q=x');
     restoreBackScrollIfScheduled();
 
     expect(scrollTo).not.toHaveBeenCalled();

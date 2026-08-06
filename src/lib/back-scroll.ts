@@ -45,6 +45,23 @@ export function saveBackScroll() {
 }
 
 /**
+ * Clears any recorded position for {@link href}. Explicit back targets (the
+ * quick-search palette) point at a page the user is not currently reading —
+ * a position recorded on an earlier visit must not be restored for them.
+ */
+export function clearBackScroll(href: string) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const destination = new URL(href, PARSE_BASE_ORIGIN);
+  writeSessionStorageValue(
+    KEY_PREFIX + identityFrom(destination.pathname, destination.search),
+    '0',
+  );
+}
+
+/**
  * Schedules restoring the recorded position for {@link href}; call right
  * before pushing the back navigation. Returns whether a restore was
  * scheduled — when it was, the caller must push with `scroll: false`, or
