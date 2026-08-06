@@ -39,6 +39,12 @@ async function tryConnect() {
 
 async function main() {
   await waitForDatabase(tryConnect, {
+    // Well past the default 60s: a brand-new PR environment's postgres boots
+    // for the first time here (image pull + volume init), which can outlast
+    // the steady-state ~1-3s sleep wake-up by minutes. A pre-deploy can
+    // afford the wait, and a genuinely broken database still fails the
+    // deploy at the deadline.
+    timeoutMs: 5 * 60_000,
     onRetry(error, attempt) {
       const message = error instanceof Error ? error.message : String(error);
       console.warn(`⏳ Database not ready (attempt ${attempt}): ${message}`);
