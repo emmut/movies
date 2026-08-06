@@ -3,6 +3,8 @@
 import { ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { scheduleBackScrollRestore } from '@/lib/back-scroll';
+
 import { useBackTarget } from '@/hooks/use-back-target';
 
 import { Button } from './ui/button';
@@ -21,7 +23,12 @@ export function GoBack() {
   return (
     <Button
       onClick={() => {
-        router.push(href);
+        // router.push is a forward navigation and never restores scroll;
+        // schedule restoring the recorded reading position instead. When a
+        // restore is pending, Next's own scroll-to-top must stay off or it
+        // overrides the restored position after the destination commits.
+        const willRestore = scheduleBackScrollRestore(href);
+        router.push(href, { scroll: !willRestore });
       }}
       className="inline-flex items-center gap-2 p-0 text-zinc-400 transition-colors hover:text-white"
       variant="link"
