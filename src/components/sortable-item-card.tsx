@@ -44,7 +44,12 @@ export function SortableItemCard({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        'relative',
+        // `isolate` keeps the editing controls' z-20 inside the card, where it
+        // belongs, instead of competing with the sticky header's z-index. The
+        // drag-time z-10 below is on this element rather than a descendant, so
+        // it still lifts the card above the header — which is what you want
+        // while dragging one.
+        'relative isolate',
         isDragging && 'z-10 opacity-80',
         editing && 'rounded-lg ring-2 ring-blue-400/50 ring-offset-2 ring-offset-black',
       )}

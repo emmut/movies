@@ -114,7 +114,11 @@ export function ItemSlider({ children }: ItemSliderProps) {
   }
 
   return (
-    <div className="relative">
+    // `isolate`: the scroll arrows (z-20) and edge fades (z-10) stack above the
+    // track, which is internal to the slider. Without a stacking context here
+    // they compete with the sticky header's z-index and paint over it as the
+    // slider scrolls past.
+    <div className="relative isolate">
       {showLeftArrow && (
         <>
           <button

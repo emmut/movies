@@ -59,20 +59,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                     <Separator orientation="vertical" className="h-4" />
                     <SearchCommand />
                   </header>
-                  {/*
-                    `isolate` so page content can't paint over the sticky
-                    header. Cards decorate themselves with z-index (title
-                    overlays, drag badges) and, without a stacking context here,
-                    those values compete with the header's directly — a card's
-                    z-10 title beat the header's z-10 on DOM order and showed
-                    through it while scrolling. Containing them means content
-                    can use whatever z-index it likes and never escape the page
-                    area. Dialogs and sheets portal to <body>, so they are not
-                    descendants of this element and still overlay the header.
-                  */}
-                  <div className="isolate mx-auto w-full max-w-7xl px-4 py-4 sm:px-6">
-                    {children}
-                  </div>
+                  <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6">{children}</div>
                   <Footer />
                 </SidebarInset>
               </SidebarProvider>
