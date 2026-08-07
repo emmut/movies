@@ -2,8 +2,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 
-import { useIsClient } from '@/hooks/use-is-client';
-import { cn } from '@/lib/utils';
+import { useHasHover } from '@/hooks/use-has-hover';
 
 type ItemSliderProps = {
   children: ReactNode;
@@ -13,7 +12,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
-  const isClient = useIsClient();
+  const hasHover = useHasHover();
   const isDraggingRef = useRef(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
@@ -95,8 +94,6 @@ export function ItemSlider({ children }: ItemSliderProps) {
     setShowRightArrow(container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
   }
 
-  const disableArrows = isClient ? !window.matchMedia('(hover: hover)').matches : false;
-
   useEffect(() => {
     updateArrowVisibility();
   }, []);
@@ -121,37 +118,39 @@ export function ItemSlider({ children }: ItemSliderProps) {
     <div className="relative isolate">
       {showLeftArrow && (
         <>
-          <button
-            onClick={() => scroll('left')}
-            className={cn(
-              'absolute top-1/2 left-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border border-muted-foreground/30 bg-background/80 p-2 transition-all hover:bg-muted/30',
-              { 'opacity-0': disableArrows },
-            )}
-          >
-            <span className="sr-only">Previous slide</span>
-            <ChevronLeft className="h-6 w-6" />
-          </button>
-          <div
-            className={`pointer-events-none absolute inset-y-0 -left-3 z-10 w-10 bg-linear-to-r from-background to-transparent lg:w-30 ${!showLeftArrow ? 'opacity-0' : ''}`}
-          />
+          {/*
+            Unmounted rather than hidden without a pointer: an opacity-0 button
+            still hit-tests and still takes focus, so it swallowed taps where it
+            overlapped the sticky header and put a Tab stop on a control nobody
+            could see. Arrow keys on the track below scroll the slider either
+            way, so touch loses no affordance. The edge fade stays — it is the
+            "more this way" hint, and it is the only one touch gets.
+          */}
+          {hasHover && (
+            <button
+              onClick={() => scroll('left')}
+              className="absolute top-1/2 left-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border border-muted-foreground/30 bg-background/80 p-2 transition-all hover:bg-muted/30"
+            >
+              <span className="sr-only">Previous slide</span>
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          )}
+          <div className="pointer-events-none absolute inset-y-0 -left-3 z-10 w-10 bg-linear-to-r from-background to-transparent lg:w-30" />
         </>
       )}
 
       {showRightArrow && (
         <>
-          <button
-            onClick={() => scroll('right')}
-            className={cn(
-              'absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border border-muted-foreground/30 bg-background/80 p-2 transition-all hover:bg-muted/30',
-              { 'opacity-0': disableArrows },
-            )}
-          >
-            <span className="sr-only">Next slide</span>
-            <ChevronRight className="h-6 w-6" />
-          </button>
-          <div
-            className={`pointer-events-none absolute inset-y-0 -right-3 z-10 w-10 bg-linear-to-l from-background to-transparent lg:w-30 ${!showRightArrow ? 'opacity-0' : ''}`}
-          />
+          {hasHover && (
+            <button
+              onClick={() => scroll('right')}
+              className="absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border border-muted-foreground/30 bg-background/80 p-2 transition-all hover:bg-muted/30"
+            >
+              <span className="sr-only">Next slide</span>
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          )}
+          <div className="pointer-events-none absolute inset-y-0 -right-3 z-10 w-10 bg-linear-to-l from-background to-transparent lg:w-30" />
         </>
       )}
 

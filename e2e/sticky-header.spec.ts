@@ -113,32 +113,37 @@ test('page content scrolls behind the header, never over it', async ({ page }) =
   const overlayTitle = page.locator('a[href^="/movie/"] h2, a[href^="/tv/"] h2').first();
   await expect(overlayTitle).toBeVisible({ timeout: 20_000 });
 
-  // Park an overlay title inside the header's band rather than guessing a
-  // scroll offset — the whole point is what paints where they intersect.
-  const header = page.locator('header');
-  const headerBox = (await header.boundingBox())!;
-  const titleBox = (await overlayTitle.boundingBox())!;
-  await page.evaluate(
-    ([titleTop, headerHeight]) =>
-      window.scrollTo({ top: titleTop - headerHeight / 2, behavior: 'instant' }),
-    [titleBox.y, headerBox.height],
-  );
-  await page.waitForTimeout(100);
+  // Scan the page rather than parking at one offset. Different things cross the
+  // header at different scroll positions — trending titles near the top, the
+  // sliders' arrows and edge fades further down — and hit-testing a single spot
+  // only ever catches whatever happened to be there. `elementFromPoint` also
+  // reports fully transparent elements, so this catches an invisible control
+  // sitting over the header, not just a visible one.
+  const leaks = await page.evaluate(() => {
+    const header = document.querySelector('header')!;
+    const found: { scrollY: number; hit: string }[] = [];
+    const step = Math.round(window.innerHeight / 3);
 
-  // Hit-test across the header: whatever is topmost at each point has to be the
-  // header or something inside it. A leaked overlay reports the card instead.
-  const topmost = await page.evaluate(() => {
-    const el = document.querySelector('header')!;
-    const rect = el.getBoundingClientRect();
-    const y = Math.round(rect.top + rect.height / 2);
-    return [0.15, 0.35, 0.5, 0.65, 0.85].map((fraction) => {
-      const hit = document.elementFromPoint(Math.round(window.innerWidth * fraction), y);
-      if (!hit) return 'nothing';
-      return el.contains(hit) ? 'header' : (hit.tagName.toLowerCase() + '.' + hit.className);
-    });
+    for (let top = 0; top < document.body.scrollHeight; top += step) {
+      window.scrollTo({ top, behavior: 'instant' });
+      const rect = header.getBoundingClientRect();
+      const y = Math.round(rect.top + rect.height / 2);
+
+      for (const fraction of [0.1, 0.3, 0.5, 0.7, 0.9]) {
+        const hit = document.elementFromPoint(Math.round(window.innerWidth * fraction), y);
+        if (hit && !header.contains(hit)) {
+          found.push({
+            scrollY: Math.round(window.scrollY),
+            hit: `${hit.tagName.toLowerCase()}.${String(hit.className).split(' ').slice(0, 3).join('.')}`,
+          });
+        }
+      }
+    }
+
+    return found;
   });
 
-  expect(topmost).toEqual(['header', 'header', 'header', 'header', 'header']);
+  expect(leaks).toEqual([]);
 });
 
 test('the skip link lands the content below the header, not behind it', async ({ page }) => {
