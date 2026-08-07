@@ -156,6 +156,32 @@ test('page content scrolls behind the header, never over it', async ({ page }) =
   expect(leaks).toEqual([]);
 });
 
+test('the page never scrolls horizontally', async ({ page }) => {
+  // Regression from making the header sticky. `SidebarInset` had to move from
+  // `overflow-x: hidden` to `clip` so it stops being a scroll container and the
+  // header sticks to the viewport. But a flex item's `min-width: auto` resolves
+  // to its min-content width *except* on scroll containers, where it resolves
+  // to 0 — so `hidden` had been making the inset shrink correctly for free.
+  // Under `clip` it refused to shrink past its content and pushed the desktop
+  // layout 96px wider than the viewport. `min-w-0` restores it.
+  //
+  // Nothing else here would catch that: the header still pinned, still took
+  // clicks, and nothing painted over it. It was only visible as a horizontal
+  // scrollbar and captions running off the right edge.
+  for (const path of ['/', '/discover']) {
+    await page.goto(path);
+    await expect(page.locator('header')).toBeVisible({ timeout: 20_000 });
+
+    const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+
+    // Sub-pixel rounding can add a stray pixel; anything beyond that is real.
+    expect(scrollWidth, `${path} overflows horizontally`).toBeLessThanOrEqual(clientWidth + 1);
+  }
+});
+
 test('the skip link lands the content below the header, not behind it', async ({ page }) => {
   await page.goto('/discover');
   await expect(page.locator('#content a[href^="/movie/"]').first()).toBeVisible({
