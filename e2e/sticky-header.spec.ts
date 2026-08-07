@@ -122,15 +122,25 @@ test('page content scrolls behind the header, never over it', async ({ page }) =
   const leaks = await page.evaluate(() => {
     const header = document.querySelector('header')!;
     const found: { scrollY: number; hit: string }[] = [];
-    const step = Math.round(window.innerHeight / 3);
+    // Step size decides what this can catch, and the margin is not generous: a
+    // card's title strip is only ~40px tall, so it is inside the header's band
+    // for a correspondingly short run of scroll offsets. Measured against a
+    // deliberately broken build, 100px caught only the slider arrows, 60px
+    // added the year line, and 24px was the first that caught the card title
+    // itself — the element that actually regressed. Keep it small.
+    const STEP = 24;
 
-    for (let top = 0; top < document.body.scrollHeight; top += step) {
+    for (let top = 0; top < document.body.scrollHeight; top += STEP) {
       window.scrollTo({ top, behavior: 'instant' });
       const rect = header.getBoundingClientRect();
       const y = Math.round(rect.top + rect.height / 2);
 
-      for (const fraction of [0.1, 0.3, 0.5, 0.7, 0.9]) {
-        const hit = document.elementFromPoint(Math.round(window.innerWidth * fraction), y);
+      // Sample across the header's own box, not the window's. On desktop the
+      // sidebar occupies the left of the viewport, and it is *supposed* to be
+      // topmost there — it is fixed at z-10 and forms its own stacking context.
+      for (const fraction of [0.05, 0.25, 0.5, 0.75, 0.95]) {
+        const x = Math.round(rect.left + rect.width * fraction);
+        const hit = document.elementFromPoint(x, y);
         if (hit && !header.contains(hit)) {
           found.push({
             scrollY: Math.round(window.scrollY),
