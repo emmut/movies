@@ -102,6 +102,45 @@ test('the sidebar trigger stays clickable once the page is scrolled', async ({ p
   await expect(page.locator('nav').first()).toBeVisible();
 });
 
+test('page content scrolls behind the header, never over it', async ({ page }) => {
+  // Regression: cards decorate themselves with z-index (the trending card's
+  // title overlay is z-10, sortable cards' drag badges z-20). With no stacking
+  // context between them and the header, those competed with the header's own
+  // z-index directly and won on DOM order — titles rendered straight through
+  // the header while scrolling. Home is the page that showed it: its trending
+  // cards sit at the top, so they pass under the header immediately.
+  await page.goto('/');
+  const overlayTitle = page.locator('a[href^="/movie/"] h2, a[href^="/tv/"] h2').first();
+  await expect(overlayTitle).toBeVisible({ timeout: 20_000 });
+
+  // Park an overlay title inside the header's band rather than guessing a
+  // scroll offset — the whole point is what paints where they intersect.
+  const header = page.locator('header');
+  const headerBox = (await header.boundingBox())!;
+  const titleBox = (await overlayTitle.boundingBox())!;
+  await page.evaluate(
+    ([titleTop, headerHeight]) =>
+      window.scrollTo({ top: titleTop - headerHeight / 2, behavior: 'instant' }),
+    [titleBox.y, headerBox.height],
+  );
+  await page.waitForTimeout(100);
+
+  // Hit-test across the header: whatever is topmost at each point has to be the
+  // header or something inside it. A leaked overlay reports the card instead.
+  const topmost = await page.evaluate(() => {
+    const el = document.querySelector('header')!;
+    const rect = el.getBoundingClientRect();
+    const y = Math.round(rect.top + rect.height / 2);
+    return [0.15, 0.35, 0.5, 0.65, 0.85].map((fraction) => {
+      const hit = document.elementFromPoint(Math.round(window.innerWidth * fraction), y);
+      if (!hit) return 'nothing';
+      return el.contains(hit) ? 'header' : (hit.tagName.toLowerCase() + '.' + hit.className);
+    });
+  });
+
+  expect(topmost).toEqual(['header', 'header', 'header', 'header', 'header']);
+});
+
 test('the skip link lands the content below the header, not behind it', async ({ page }) => {
   await page.goto('/discover');
   await expect(page.locator('#content a[href^="/movie/"]').first()).toBeVisible({
