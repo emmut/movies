@@ -10,6 +10,9 @@
 
 @theme {
   --breakpoint-desktop: 1024px;
+  /* Height of the sticky app header in src/app/layout.tsx. Single source for
+     both the header's own height and the scroll-padding below. */
+  --header-height: 4rem;
   --container-8xl: 66rem;
   /*--container-9xl: 75rem;
   --container-10xl: 82.5rem;*/
@@ -191,6 +194,13 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  html {
+    /* The header is sticky, so the top of the scrollport is behind it. Reserve
+       its height here and every scroll into view — anchor jumps (`#content`
+       skip links), `scrollIntoView` after pagination — stops below it instead
+       of behind it. Targets keep their own `scroll-m-*` as the visible gap. */
+    scroll-padding-top: var(--header-height);
   }
   body {
     @apply bg-background text-foreground;

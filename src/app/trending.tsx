@@ -38,7 +38,11 @@ async function Trending({ index, type }: TrendingCardProp) {
   return (
     <BackTargetLink
       href={href}
-      className={`group relative h-52 overflow-hidden rounded-xl border ${borderColor} transition-all hover:scale-[1.02] focus:scale-[1.02] focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none lg:h-72 lg:flex-1`}
+      // `isolate`: the title overlay below stacks above this card's backdrop,
+      // which is a card-internal concern. Without a stacking context here that
+      // z-index competes with the sticky header's and wins on DOM order, so the
+      // title paints through the header as the card scrolls under it.
+      className={`group relative isolate h-52 overflow-hidden rounded-xl border ${borderColor} transition-all hover:scale-[1.02] focus:scale-[1.02] focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none lg:h-72 lg:flex-1`}
     >
       {resource.backdrop_path && (
         <Imgproxy
@@ -74,7 +78,7 @@ async function Trending({ index, type }: TrendingCardProp) {
 
 Trending.Skeleton = function TrendingSkeleton() {
   return (
-    <div className="relative h-52 animate-pulse overflow-hidden rounded-xl bg-neutral-50/10 lg:h-72 lg:flex-1">
+    <div className="relative isolate h-52 animate-pulse overflow-hidden rounded-xl bg-neutral-50/10 lg:h-72 lg:flex-1">
       <div className="absolute right-0 bottom-0 left-0 z-10 flex h-12 flex-col justify-center bg-zinc-950/10 px-3 py-2"></div>
     </div>
   );

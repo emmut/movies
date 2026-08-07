@@ -308,7 +308,20 @@ function SidebarInset({ className, ...props }: React.ComponentProps<'main'>) {
     <main
       data-slot="sidebar-inset"
       className={cn(
-        'relative flex w-full flex-1 flex-col overflow-x-hidden bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
+        // `overflow-x-clip`, not `hidden`: with `hidden` on one axis the other
+        // computes from `visible` to `auto`, which makes this element a scroll
+        // container — and the sticky header in the root layout would then stick
+        // to *this* box (which never scrolls) instead of the viewport, i.e. not
+        // stick at all. `clip` leaves `overflow-y: visible` alone and clips the
+        // same horizontal overflow.
+        //
+        // `min-w-0` is required by that swap. As a flex item this box gets
+        // `min-width: auto`, which resolves to its min-content width — except
+        // on scroll containers, where it resolves to 0. `hidden` made it a
+        // scroll container and so shrank correctly for free; `clip` does not,
+        // so without this it refuses to shrink past its content and pushes the
+        // desktop layout into a horizontal scrollbar.
+        'relative flex w-full min-w-0 flex-1 flex-col overflow-x-clip bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
         className,
       )}
       {...props}
