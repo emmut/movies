@@ -14,8 +14,34 @@ import { signInAnonymously } from './helpers';
 // Invariant: after paginating from a scrolled-down position, the viewport
 // settles at the top of `#content` (its first item, minus the
 // `scroll-m-5` gap), not at the page top.
+//
+// The header is sticky, so the root's `scroll-padding-top` holds `#content`
+// clear of it — the resting offset is that much further up the document than
+// the container's own position. Measured rather than hardcoded so the header
+// and this test can't drift apart.
 
 const SCROLL_MARGIN = 20; // scroll-m-5 on #content (1.25rem)
+
+/** Height of the sticky header, which the root scroll-padding reserves. */
+function headerHeight(page: Page): Promise<number> {
+  return page.evaluate(() =>
+    Math.round(document.querySelector('header')?.getBoundingClientRect().height ?? 0),
+  );
+}
+
+/**
+ * Asserts the settled scroll position rests at the top of the results: below
+ * the sticky header, not yanked to the page top and not left down the page.
+ *
+ * @param finalY - The settled `window.scrollY`.
+ * @param containerTop - `#content`'s document offset, measured at rest.
+ * @param header - The sticky header's height.
+ */
+function expectRestingAtResultsTop(finalY: number, containerTop: number, header: number) {
+  const expectedY = containerTop - header - SCROLL_MARGIN;
+  expect(finalY).toBeGreaterThan(expectedY - 60);
+  expect(finalY).toBeLessThan(expectedY + 60);
+}
 
 /**
  * Polls `window.scrollY` until it holds steady, so we measure where the scroll
@@ -59,6 +85,7 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
     const el = document.querySelector('#content')!;
     return Math.round(el.getBoundingClientRect().top + window.scrollY);
   });
+  const header = await headerHeight(page);
 
   // Remember page 1's first result so we can tell when page 2 has swapped in.
   const firstHrefBefore = await firstCardHref(page);
@@ -92,8 +119,7 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
 
   // Lands on the results (top of the first item, minus the small scroll-margin
   // gap) — not yanked to the page top (the bug) and not left far down the page.
-  expect(finalY).toBeGreaterThan(containerTop - SCROLL_MARGIN - 60);
-  expect(finalY).toBeLessThan(containerTop + 60);
+  expectRestingAtResultsTop(finalY, containerTop, header);
 });
 
 // Users with saved streaming services hit a different data path on a bare
@@ -136,6 +162,7 @@ test('pagination for a user with saved providers stays on the hydrated data', as
     const el = document.querySelector('#content')!;
     return Math.round(el.getBoundingClientRect().top + window.scrollY);
   });
+  const header = await headerHeight(page);
   await page.evaluate(() =>
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }),
   );
@@ -159,6 +186,5 @@ test('pagination for a user with saved providers stays on the hydrated data', as
   // And the scroll invariant holds on this path too: settle at the top of the
   // results, not the page top.
   const finalY = await settledScrollY(page);
-  expect(finalY).toBeGreaterThan(containerTop - SCROLL_MARGIN - 60);
-  expect(finalY).toBeLessThan(containerTop + 60);
+  expectRestingAtResultsTop(finalY, containerTop, header);
 });

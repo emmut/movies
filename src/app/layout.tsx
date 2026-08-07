@@ -43,7 +43,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <SidebarProvider>
                 <AppSidebarWrapper />
                 <SidebarInset>
-                  <header className="px flex h-16 shrink-0 items-center gap-4 border-b px-4">
+                  {/*
+                    Sticky so search stays reachable while scrolling. Needs an
+                    opaque background (content scrolls underneath) and a z-index
+                    above the page but below the sidebar rail (z-20). Its height
+                    is `--header-height`, which globals.css also uses as the
+                    root scroll-padding so anchor jumps and `scrollIntoView`
+                    land below it rather than behind it.
+                  */}
+                  <header className="sticky top-0 z-10 flex h-(--header-height) shrink-0 items-center gap-4 border-b bg-background px-4">
                     <SidebarTrigger className="-ml-1" />
                     <Separator orientation="vertical" className="h-4" />
                     <SearchCommand />

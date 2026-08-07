@@ -32,10 +32,11 @@ export default defineConfig({
     },
     {
       // WebKit (the Safari engine) on an iPhone viewport, scoped to the mobile
-      // Safari scroll regression.
+      // Safari scroll regression and the sticky header (which also runs under
+      // chromium — sticky positioning is where the two engines diverge).
       name: 'mobile-safari',
       use: { ...devices['iPhone 13'] },
-      testMatch: /discover-pagination-scroll\.spec\.ts/,
+      testMatch: /(discover-pagination-scroll|sticky-header)\.spec\.ts/,
     },
   ],
   // Build + start the real app unless we were pointed at an external URL.
