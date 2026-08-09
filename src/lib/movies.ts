@@ -15,6 +15,12 @@ import { TmdbVideoResponse } from '@/types/tmdb-video';
 
 import { CACHE_TAGS } from './cache-tags';
 import { buildDiscoverSearchParams } from './discover-params';
+import {
+  dedupeById,
+  sliceSnapshotPage,
+  snapshotIndexForPage,
+  tmdbPagesForSnapshot,
+} from './discover-snapshot';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
 
 /**
@@ -51,7 +57,54 @@ export async function fetchAvailableGenres() {
 }
 
 /**
+ * Fetches one cached snapshot of consecutive discover pages. Grabbing the
+ * pages in a single cached unit is what keeps pagination consistent: TMDb
+ * re-sorts `/discover` on every request, so pages fetched (and cached) at
+ * different moments can overlap at their boundaries.
+ */
+async function fetchDiscoverMovieSnapshot(
+  genreId: number,
+  snapshotIndex: number,
+  sortBy?: string,
+  watchProviders?: string,
+  watchRegion?: string,
+  withRuntimeLte?: number,
+) {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.discover.movies);
+  cacheLife('days');
+
+  const responses = await Promise.all(
+    tmdbPagesForSnapshot(snapshotIndex).map((page) =>
+      tmdbFetch<MovieResponse>('/discover/movie', {
+        searchParams: {
+          ...buildDiscoverSearchParams({
+            genreId,
+            page,
+            sortBy,
+            watchProviders,
+            watchRegion,
+            withRuntimeLte,
+          }),
+          include_video: 'false',
+        },
+        errorMessage: 'Error loading discover movies',
+      }),
+    ),
+  );
+
+  return {
+    movies: dedupeById(responses.flatMap((response) => response.results)).map(addPosterImageUrls),
+    totalPages: Math.min(responses[0].total_pages, 500),
+  };
+}
+
+/**
  * Fetches movies from TMDb based on discovery criteria such as genre, page, sorting, watch providers, and region.
+ *
+ * Pages are sliced out of cached multi-page snapshots so that adjacent pages
+ * share one TMDb ordering instead of each page re-querying the drifting
+ * `popularity.desc` sort (which repeats or skips titles at page boundaries).
  *
  * @param genreId - The genre ID to filter movies by; use 0 for no genre filter
  * @param page - The page number of results to fetch (default is 1)
@@ -70,30 +123,18 @@ export async function fetchDiscoverMovies(
   watchRegion?: string,
   withRuntimeLte?: number,
 ) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.discover.movies);
-  cacheLife('minutes');
-
-  const searchParams = {
-    ...buildDiscoverSearchParams({
-      genreId,
-      page,
-      sortBy,
-      watchProviders,
-      watchRegion,
-      withRuntimeLte,
-    }),
-    include_video: 'false',
-  };
-
-  const movies = await tmdbFetch<MovieResponse>('/discover/movie', {
-    searchParams,
-    errorMessage: 'Error loading discover movies',
-  });
+  const { movies, totalPages } = await fetchDiscoverMovieSnapshot(
+    genreId,
+    snapshotIndexForPage(page),
+    sortBy,
+    watchProviders,
+    watchRegion,
+    withRuntimeLte,
+  );
 
   return {
-    movies: movies.results.map(addPosterImageUrls),
-    totalPages: Math.min(movies.total_pages, 500),
+    movies: sliceSnapshotPage(movies, page),
+    totalPages,
   };
 }
 

@@ -15,6 +15,12 @@ import {
 
 import { CACHE_TAGS } from './cache-tags';
 import { buildDiscoverSearchParams } from './discover-params';
+import {
+  dedupeById,
+  sliceSnapshotPage,
+  snapshotIndexForPage,
+  tmdbPagesForSnapshot,
+} from './discover-snapshot';
 import { DEFAULT_REGION } from './regions';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
 
@@ -80,6 +86,9 @@ export async function getTvShowWatchProviders(tvId: number) {
  * Retrieves a paginated list of TV shows filtered by genre, sort order, watch providers, and region for the default region.
  *
  * Returns an object containing the list of TV shows and the total number of pages (capped at 500).
+ * Pages are sliced out of cached multi-page snapshots so that adjacent pages
+ * share one TMDb ordering instead of each page re-querying the drifting
+ * `popularity.desc` sort (which repeats or skips titles at page boundaries).
  *
  * @param genreId - The genre ID to filter TV shows by; use 0 to include all genres.
  * @param page - The page number to retrieve (default is 1).
@@ -99,27 +108,58 @@ export async function fetchDiscoverTvShows(
   watchRegion?: string,
   withRuntimeLte?: number,
 ) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.discover.tv);
-  cacheLife('minutes');
-
-  const searchParams = buildDiscoverSearchParams({
+  const { tvShows, totalPages } = await fetchDiscoverTvSnapshot(
     genreId,
-    page,
+    snapshotIndexForPage(page),
     sortBy,
     watchProviders,
     watchRegion,
     withRuntimeLte,
-  });
-
-  const tvShows = await tmdbFetch<TvResponse>('/discover/tv', {
-    searchParams,
-    errorMessage: 'Error loading discover tv shows',
-  });
+  );
 
   return {
-    tvShows: tvShows.results.map(addPosterImageUrls),
-    totalPages: Math.min(tvShows.total_pages, 500),
+    tvShows: sliceSnapshotPage(tvShows, page),
+    totalPages,
+  };
+}
+
+/**
+ * Fetches one cached snapshot of consecutive discover pages. Grabbing the
+ * pages in a single cached unit is what keeps pagination consistent: TMDb
+ * re-sorts `/discover` on every request, so pages fetched (and cached) at
+ * different moments can overlap at their boundaries.
+ */
+async function fetchDiscoverTvSnapshot(
+  genreId: number,
+  snapshotIndex: number,
+  sortBy?: string,
+  watchProviders?: string,
+  watchRegion?: string,
+  withRuntimeLte?: number,
+) {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.discover.tv);
+  cacheLife('days');
+
+  const responses = await Promise.all(
+    tmdbPagesForSnapshot(snapshotIndex).map((page) =>
+      tmdbFetch<TvResponse>('/discover/tv', {
+        searchParams: buildDiscoverSearchParams({
+          genreId,
+          page,
+          sortBy,
+          watchProviders,
+          watchRegion,
+          withRuntimeLte,
+        }),
+        errorMessage: 'Error loading discover tv shows',
+      }),
+    ),
+  );
+
+  return {
+    tvShows: dedupeById(responses.flatMap((response) => response.results)).map(addPosterImageUrls),
+    totalPages: Math.min(responses[0].total_pages, 500),
   };
 }
 
