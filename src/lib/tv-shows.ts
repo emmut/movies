@@ -208,7 +208,7 @@ export async function fetchPopularTvShows(region: string = DEFAULT_REGION) {
 export async function fetchAvailableTvGenres() {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.genres.tv);
-  cacheLife('biweekly');
+  cacheLife('genres');
 
   const tvGenres = await tmdbFetch<GenreResponse>('/genre/tv/list', {
     errorMessage: 'Error loading TV genres',

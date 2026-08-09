@@ -42,7 +42,7 @@ export async function fetchTrendingMovies() {
 export async function fetchAvailableGenres() {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.genres.movies);
-  cacheLife('biweekly');
+  cacheLife('genres');
 
   const movies = await tmdbFetch<GenreResponse>('/genre/movie/list', {
     errorMessage: 'Error loading genres',

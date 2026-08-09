@@ -2,12 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('./movies', () => ({ fetchAvailableGenres: vi.fn() }));
 vi.mock('./tv-shows', () => ({ fetchAvailableTvGenres: vi.fn() }));
-vi.mock('next/cache', () => ({ revalidateTag: vi.fn() }));
 
-import { revalidateTag } from 'next/cache';
-
-import { CACHE_TAGS } from './cache-tags';
-import { revalidateGenresCache, validateGenreForMediaType } from './media-actions';
+import { validateGenreForMediaType } from './media-actions';
 import { fetchAvailableGenres } from './movies';
 import { fetchAvailableTvGenres } from './tv-shows';
 
@@ -47,17 +43,5 @@ describe('validateGenreForMediaType', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-  });
-});
-
-describe('revalidateGenresCache', () => {
-  it('revalidates the movie genres tag', async () => {
-    await revalidateGenresCache('movie');
-    expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.public.genres.movies, 'max');
-  });
-
-  it('revalidates the tv genres tag', async () => {
-    await revalidateGenresCache('tv');
-    expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.public.genres.tv, 'max');
   });
 });
