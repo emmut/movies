@@ -2,7 +2,7 @@
 
 import { Database, Globe } from 'lucide-react';
 
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useHasHover } from '@/hooks/use-has-hover';
 
 type ExternalLinksProps = {
   tmdbId: number;
@@ -27,7 +27,7 @@ export function ExternalLinks({
   homepage,
   mediaType = 'movie',
 }: ExternalLinksProps) {
-  const isMobile = useIsMobile();
+  const hasHover = useHasHover();
   const tmdbUrl = `https://www.themoviedb.org/${mediaType}/${tmdbId}`;
 
   return (
@@ -37,7 +37,7 @@ export function ExternalLinks({
           className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 font-semibold text-black transition-colors hover:bg-yellow-700"
           href={`https://imdb.com/${mediaType === 'person' ? 'name' : 'title'}/${imdbId}`}
           rel="noopener noreferrer"
-          target={isMobile ? undefined : '_blank'}
+          target={hasHover ? '_blank' : undefined }
         >
           IMDb
         </a>
