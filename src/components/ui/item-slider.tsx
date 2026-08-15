@@ -167,7 +167,17 @@ export function ItemSlider({ children }: ItemSliderProps) {
         onDragStart={handleDragStart}
         onScroll={updateArrowVisibility}
         onKeyDown={handleKeyDown}
-        className="relative -mx-3 scrollbar-hide flex w-[calc(100%+0.75rem)] cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing"
+        /*
+          `-mx-3` + `p-3` bleeds the scroll box 0.75rem past the wrapper on both
+          sides so hover scale and focus rings are not clipped, while the
+          padding keeps the items themselves aligned with the page content. The
+          bleed must stay symmetric: those two clip edges are what the
+          `-left-3`/`-right-3` fades are anchored to, and an edge that lands
+          short of its fade shears items off mid-gradient instead of fading them
+          out. No explicit width — `width: auto` already resolves to the
+          wrapper's width plus both margins, so the two can never disagree.
+        */
+        className="relative -mx-3 scrollbar-hide flex cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing"
       >
         {children}
       </div>
