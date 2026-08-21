@@ -26,6 +26,7 @@ async function expectDiscoverShell(page: Page) {
   // The trigger's accessible name comes from its associated label ("Watch
   // Providers"); "Select watch providers" is only its visible value text.
   await expect(page.getByRole('button', { name: /^watch providers$/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^origin country$/i })).toBeVisible();
   await expect(page.locator('#content')).toBeVisible();
 }
 
@@ -313,5 +314,28 @@ test.describe('filters', () => {
     await page.getByRole('button', { name: /clear all/i }).click();
 
     await expect(page).not.toHaveURL(/with_watch_providers=/);
+  });
+
+  test('selects, searches, and clears origin country filters', async ({ page }) => {
+    await page.goto('/discover');
+    await expectDiscoverShell(page);
+
+    const trigger = page.getByRole('button', { name: /^origin country$/i });
+    await trigger.click();
+
+    const popover = page.locator('[data-slot="popover-content"]');
+    await popover.getByRole('button', { name: /^united states$/i }).click();
+    await waitForDiscoverUrl(page, /with_origin_country=US/);
+    await expect(trigger).toContainText(/1 country selected/i);
+
+    // Non-curated countries are one search away.
+    await popover.getByPlaceholder(/search all countries/i).fill('zimb');
+    await popover.getByRole('button', { name: /^zimbabwe$/i }).click();
+    await waitForDiscoverUrl(page, /with_origin_country=US(,|%2C)ZW/);
+    await expect(trigger).toContainText(/2 countries selected/i);
+
+    await page.getByRole('button', { name: /clear all/i }).click();
+
+    await expect(page).not.toHaveURL(/with_origin_country=/);
   });
 });

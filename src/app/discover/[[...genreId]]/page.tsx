@@ -1,6 +1,7 @@
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
 
 import { getUser } from '@/lib/auth-server';
+import { getOriginCountryString } from '@/lib/countries';
 import { getDiscoverMedia } from '@/lib/discover-client';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
 import { fetchAvailableGenres } from '@/lib/movies';
@@ -19,6 +20,7 @@ type DiscoverWithGenreParams = {
     mediaType?: string;
     sort_by?: string;
     with_watch_providers?: string;
+    with_origin_country?: string;
     watch_region?: string;
     runtime?: string;
   }>;
@@ -28,6 +30,7 @@ type DiscoverQueryParams = Awaited<ReturnType<typeof loadDiscoverSearchParams>> 
   watchProviders?: string;
   watchRegion: string;
   withRuntimeLte?: number;
+  withOriginCountry?: string;
 };
 
 function getDiscoverQueryKey({
@@ -38,8 +41,17 @@ function getDiscoverQueryKey({
   watchProviders,
   watchRegion,
   withRuntimeLte,
+  withOriginCountry,
 }: DiscoverQueryParams) {
-  const params = { genreId, page, sortBy, watchProviders, watchRegion, withRuntimeLte };
+  const params = {
+    genreId,
+    page,
+    sortBy,
+    watchProviders,
+    watchRegion,
+    withRuntimeLte,
+    withOriginCountry,
+  };
 
   return mediaType === 'movie'
     ? queryKeys.discover.movies(params)
@@ -58,6 +70,7 @@ async function prefetchDiscoverMedia(queryClient: QueryClient, params: DiscoverQ
         params.watchProviders,
         params.watchRegion,
         params.withRuntimeLte,
+        params.withOriginCountry,
       ),
   });
 }
@@ -94,6 +107,7 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
     watchProviders,
     watchRegion,
     withRuntimeLte: discoverParams.runtime ?? undefined,
+    withOriginCountry: getOriginCountryString(discoverParams.with_origin_country),
   });
 
   return (

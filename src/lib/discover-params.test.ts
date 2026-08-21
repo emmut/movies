@@ -52,6 +52,18 @@ describe('buildDiscoverSearchParams', () => {
     });
   });
 
+  it('applies the origin-country filter only when set', () => {
+    expect(
+      buildDiscoverSearchParams({ genreId: 0, page: 1, withOriginCountry: 'SE|KR' }),
+    ).toMatchObject({
+      with_origin_country: 'SE|KR',
+    });
+
+    expect(buildDiscoverSearchParams({ genreId: 0, page: 1 })).not.toHaveProperty(
+      'with_origin_country',
+    );
+  });
+
   it('applies the runtime filter only for a positive max runtime', () => {
     expect(buildDiscoverSearchParams({ genreId: 0, page: 1, withRuntimeLte: 120 })).toMatchObject({
       'with_runtime.lte': 120,

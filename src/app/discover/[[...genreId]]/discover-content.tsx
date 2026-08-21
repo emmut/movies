@@ -1,6 +1,12 @@
 'use client';
 
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
+import {
+  parseAsArrayOf,
+  parseAsInteger,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryStates,
+} from 'nuqs';
 
 import DiscoverGrid from '@/components/discover-grid';
 import FiltersPanel from '@/components/filters-panel';
@@ -8,6 +14,7 @@ import { GenreNavigationClient } from '@/components/genre-navigation-client';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
+import { getOriginCountryString } from '@/lib/countries';
 import {
   getWatchProvidersString,
   parseAsPipeSeparatedArrayOfIntegers,
@@ -34,6 +41,7 @@ type DiscoverViewState = {
   watchProviders?: string;
   watchRegion: string;
   runtimeLte?: number;
+  originCountry?: string;
 };
 
 function useDiscoverViewState(userRegion: string, userWatchProviders: number[]): DiscoverViewState {
@@ -44,6 +52,7 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
       mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
       sort_by: parseAsString.withDefault('popularity.desc'),
       with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
+      with_origin_country: parseAsArrayOf(parseAsString).withDefault([]),
       watch_region: parseAsString,
       runtimeLte: parseAsInteger,
     },
@@ -69,6 +78,7 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
     ),
     watchRegion: urlState.watch_region ?? userRegion,
     runtimeLte: urlState.runtimeLte ?? undefined,
+    originCountry: getOriginCountryString(urlState.with_origin_country),
   };
 }
 
@@ -115,6 +125,7 @@ function DiscoverResults({
   watchProviders,
   watchRegion,
   runtimeLte,
+  originCountry,
   userId,
 }: DiscoverResultsProps) {
   return (
@@ -130,6 +141,7 @@ function DiscoverResults({
         watchProviders={watchProviders}
         watchRegion={watchRegion}
         runtimeLte={runtimeLte}
+        originCountry={originCountry}
         userId={userId}
       />
     </div>
@@ -148,8 +160,16 @@ export function DiscoverContent({
   tvGenres,
   userId,
 }: DiscoverContentProps) {
-  const { page, genreId, mediaType, sortBy, watchProviders, watchRegion, runtimeLte } =
-    useDiscoverViewState(userRegion, userWatchProviders);
+  const {
+    page,
+    genreId,
+    mediaType,
+    sortBy,
+    watchProviders,
+    watchRegion,
+    runtimeLte,
+    originCountry,
+  } = useDiscoverViewState(userRegion, userWatchProviders);
   const genres = mediaType === 'movie' ? movieGenres : tvGenres;
 
   return (
@@ -178,6 +198,7 @@ export function DiscoverContent({
         watchProviders={watchProviders}
         watchRegion={watchRegion}
         runtimeLte={runtimeLte}
+        originCountry={originCountry}
         userId={userId}
       />
 
@@ -189,6 +210,7 @@ export function DiscoverContent({
         watchProviders={watchProviders}
         watchRegion={watchRegion}
         runtimeLte={runtimeLte}
+        originCountry={originCountry}
       />
     </div>
   );

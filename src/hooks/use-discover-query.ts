@@ -13,6 +13,7 @@ type UseDiscoverMediaParams = {
   watchProviders?: string;
   watchRegion?: string;
   runtimeLte?: number;
+  originCountry?: string;
 };
 
 /**
@@ -30,6 +31,7 @@ export function useDiscoverMedia({
   watchProviders,
   watchRegion,
   runtimeLte,
+  originCountry,
 }: UseDiscoverMediaParams) {
   return useQuery({
     queryKey:
@@ -41,6 +43,7 @@ export function useDiscoverMedia({
             watchProviders,
             watchRegion,
             withRuntimeLte: runtimeLte,
+            withOriginCountry: originCountry,
           })
         : queryKeys.discover.tvShows({
             genreId,
@@ -49,9 +52,19 @@ export function useDiscoverMedia({
             watchProviders,
             watchRegion,
             withRuntimeLte: runtimeLte,
+            withOriginCountry: originCountry,
           }),
     queryFn: () =>
-      getDiscoverMedia(mediaType, genreId, page, sortBy, watchProviders, watchRegion, runtimeLte),
+      getDiscoverMedia(
+        mediaType,
+        genreId,
+        page,
+        sortBy,
+        watchProviders,
+        watchRegion,
+        runtimeLte,
+        originCountry,
+      ),
     staleTime: 60 * 1000, // 1 minute
   });
 }

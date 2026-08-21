@@ -59,6 +59,7 @@ export async function fetchAvailableGenres() {
  * @param watchProviders - Optional pipe-separated list of watch provider IDs
  * @param watchRegion - Optional region code for watch providers
  * @param withRuntimeLte - Optional maximum runtime filter (less than or equal to)
+ * @param withOriginCountry - Optional pipe-separated list of origin country codes
  * @returns An object containing the array of discovered movies and the total number of result pages (capped at 500)
  * @throws Error if the fetch request fails
  */
@@ -69,6 +70,7 @@ export async function fetchDiscoverMovies(
   watchProviders?: string,
   watchRegion?: string,
   withRuntimeLte?: number,
+  withOriginCountry?: string,
 ) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.discover.movies);
@@ -82,6 +84,7 @@ export async function fetchDiscoverMovies(
       watchProviders,
       watchRegion,
       withRuntimeLte,
+      withOriginCountry,
     }),
     include_video: 'false',
   };

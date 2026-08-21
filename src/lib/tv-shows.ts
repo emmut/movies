@@ -87,6 +87,7 @@ export async function getTvShowWatchProviders(tvId: number) {
  * @param watchProviders - Optional watch provider filter.
  * @param watchRegion - Optional region filter for watch providers.
  * @param withRuntimeLte - Optional maximum runtime filter (less than or equal to).
+ * @param withOriginCountry - Optional pipe-separated list of origin country codes.
  * @returns An object with the filtered TV shows and the total number of pages (maximum 500).
  *
  * @throws {Error} If the TV show discovery data cannot be loaded from the API.
@@ -98,6 +99,7 @@ export async function fetchDiscoverTvShows(
   watchProviders?: string,
   watchRegion?: string,
   withRuntimeLte?: number,
+  withOriginCountry?: string,
 ) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.discover.tv);
@@ -110,6 +112,7 @@ export async function fetchDiscoverTvShows(
     watchProviders,
     watchRegion,
     withRuntimeLte,
+    withOriginCountry,
   });
 
   const tvShows = await tmdbFetch<TvResponse>('/discover/tv', {

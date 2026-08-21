@@ -11,6 +11,7 @@ type DiscoverParams = {
   watchProviders?: string;
   watchRegion?: string;
   withRuntimeLte?: number;
+  withOriginCountry?: string;
 };
 
 // Key factory shared by the system lists (watchlist, watched) so both expose
@@ -72,6 +73,7 @@ export const queryKeys = {
         params.watchProviders,
         params.watchRegion,
         params.withRuntimeLte,
+        params.withOriginCountry,
       ] as const,
     tvShows: (params: Omit<DiscoverParams, 'mediaType'>) =>
       [
@@ -83,6 +85,7 @@ export const queryKeys = {
         params.watchProviders,
         params.watchRegion,
         params.withRuntimeLte,
+        params.withOriginCountry,
       ] as const,
   },
   search: {

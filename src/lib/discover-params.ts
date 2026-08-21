@@ -11,6 +11,7 @@ type DiscoverParams = {
   watchProviders?: string;
   watchRegion?: string;
   withRuntimeLte?: number;
+  withOriginCountry?: string;
 };
 
 /**
@@ -26,6 +27,7 @@ export function buildDiscoverSearchParams({
   watchProviders,
   watchRegion,
   withRuntimeLte,
+  withOriginCountry,
 }: DiscoverParams): Record<string, string | number | undefined> {
   const params: Record<string, string | number | undefined> = {
     page,
@@ -35,6 +37,8 @@ export function buildDiscoverSearchParams({
   };
 
   if (genreId !== 0) params.with_genres = genreId;
+
+  if (withOriginCountry) params.with_origin_country = withOriginCountry;
 
   if (watchProviders && watchRegion) {
     params.with_watch_providers = watchProviders;

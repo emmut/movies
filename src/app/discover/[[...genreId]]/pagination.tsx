@@ -12,6 +12,7 @@ type PaginationProps = {
   watchProviders?: string;
   watchRegion?: string;
   runtimeLte?: number;
+  originCountry?: string;
 };
 
 /**
@@ -26,6 +27,7 @@ type PaginationProps = {
  * @param watchProviders - Comma-separated list of watch provider IDs.
  * @param watchRegion - The region code for watch providers.
  * @param runtimeLte - Maximum runtime filter.
+ * @param originCountry - Pipe-separated list of origin country codes.
  * @returns A React element displaying pagination controls for the selected media type.
  */
 export default function Pagination({
@@ -36,6 +38,7 @@ export default function Pagination({
   watchProviders,
   watchRegion,
   runtimeLte,
+  originCountry,
 }: PaginationProps) {
   const { data, isLoading } = useDiscoverMedia({
     mediaType,
@@ -45,6 +48,7 @@ export default function Pagination({
     watchProviders,
     watchRegion,
     runtimeLte,
+    originCountry,
   });
 
   if (isLoading) {
