@@ -10,7 +10,7 @@ type PosterProps = {
 /* Grid items stretch to the full row height, which makes `sticky` a no-op —
    `self-start` keeps the poster its natural height so it can follow the
    scroll. The top offset clears the sticky app header plus the grid gap. */
-const stickyPosterClasses =
+export const stickyPosterClasses =
   'lg:col-span-4 lg:sticky lg:top-[calc(var(--header-height)+(--spacing(8)))] lg:self-start';
 
 function Poster({ poster_path, title }: PosterProps) {

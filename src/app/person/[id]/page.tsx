@@ -1,6 +1,7 @@
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 
 import Badge from '@/components/badge';
+import { stickyPosterClasses } from '@/components/poster';
 import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import { Imgproxy } from '@/components/image-proxy';
@@ -113,7 +114,7 @@ export default async function PersonPage(props: PersonPageProps) {
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-4">
+        <div className={stickyPosterClasses}>
           {profile_path ? (
             <div className="max-w-64 lg:max-w-full">
               <Imgproxy

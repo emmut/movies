@@ -1,3 +1,4 @@
+import { stickyPosterClasses } from '@/components/poster';
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
@@ -17,7 +18,7 @@ export default function LoadingPerson() {
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-4">
+        <div className={stickyPosterClasses}>
           <Skeleton className="aspect-2/3 w-full max-w-64 rounded-lg shadow-2xl lg:max-w-full" />
         </div>
 
