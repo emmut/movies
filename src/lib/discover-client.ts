@@ -26,7 +26,7 @@ type DiscoverTvShowsResult = {
  * Fetches discover movies data for use with React Query.
  * Can be called on both server and client (via server actions).
  *
- * @param genreIds - Genre IDs to filter by (all must match; empty for all genres)
+ * @param genreIds - Genre IDs to filter by (any may match; empty for all genres)
  * @param page - The page number to fetch
  * @param sortBy - Optional sort parameter
  * @param watchProviders - Optional watch provider filter
@@ -59,7 +59,7 @@ async function getDiscoverMovies(
  * Fetches discover TV shows data for use with React Query.
  * Can be called on both server and client (via server actions).
  *
- * @param genreIds - Genre IDs to filter by (all must match; empty for all genres)
+ * @param genreIds - Genre IDs to filter by (any may match; empty for all genres)
  * @param page - The page number to fetch
  * @param sortBy - Optional sort parameter
  * @param watchProviders - Optional watch provider filter
@@ -93,7 +93,7 @@ async function getDiscoverTvShows(
  * Used by React Query hooks for unified data fetching.
  *
  * @param mediaType - Either 'movie' or 'tv'
- * @param genreIds - Genre IDs to filter by (all must match; empty for all genres)
+ * @param genreIds - Genre IDs to filter by (any may match; empty for all genres)
  * @param page - The page number to fetch
  * @param sortBy - Optional sort parameter
  * @param watchProviders - Optional watch provider filter

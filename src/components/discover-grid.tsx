@@ -21,7 +21,7 @@ type DiscoverGridProps = {
  *
  * Fetches data based on the media type and applied filters, then renders a ResourceGrid with the results.
  *
- * @param currentGenreIds - Genre IDs to filter by (all must match).
+ * @param currentGenreIds - Genre IDs to filter by (any may match).
  * @param currentPage - The page number of results to display.
  * @param mediaType - Whether to show movies or TV shows.
  * @param sortBy - The sort order for the results.

@@ -84,7 +84,7 @@ export async function getTvShowWatchProviders(tvId: number) {
  *
  * Returns an object containing the list of TV shows and the total number of pages (capped at 500).
  *
- * @param genreIds - Genre IDs to filter TV shows by (all must match); empty to include all genres.
+ * @param genreIds - Genre IDs to filter TV shows by (any may match); empty to include all genres.
  * @param page - The page number to retrieve (default is 1).
  * @param sortBy - Optional sort order for the TV shows.
  * @param watchProviders - Optional watch provider filter.

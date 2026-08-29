@@ -53,7 +53,7 @@ export async function fetchAvailableGenres() {
 /**
  * Fetches movies from TMDb based on discovery criteria such as genre, page, sorting, watch providers, and region.
  *
- * @param genreIds - Genre IDs to filter movies by (all must match); empty for no genre filter
+ * @param genreIds - Genre IDs to filter movies by (any may match); empty for no genre filter
  * @param page - The page number of results to fetch (default is 1)
  * @param sortBy - Optional sorting criteria (e.g., 'popularity.desc')
  * @param watchProviders - Optional pipe-separated list of watch provider IDs

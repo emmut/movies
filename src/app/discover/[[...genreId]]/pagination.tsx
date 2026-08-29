@@ -21,7 +21,7 @@ type PaginationProps = {
  * Fetches the total number of pages for the selected media type and filters, then displays pagination controls for navigation.
  *
  * @param currentPage - The currently selected page number.
- * @param currentGenreIds - Genre IDs to filter results (all must match).
+ * @param currentGenreIds - Genre IDs to filter results (any may match).
  * @param mediaType - The type of media to paginate, either 'movie' or 'tv'.
  * @param sortBy - The sort order for the results.
  * @param watchProviders - Comma-separated list of watch provider IDs.
