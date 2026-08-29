@@ -16,4 +16,15 @@ END
 WHERE "issuer" IS NULL;--> statement-breakpoint
 
 ALTER TABLE "account" ALTER COLUMN "issuer" SET NOT NULL;--> statement-breakpoint
+
+-- The index below is the only statement here that can fail, and only if two
+-- account rows already share an (issuer, account_id). The whole migration runs
+-- in one transaction, so such a failure rolls back and leaves the database
+-- untouched — but resolving the duplicates needs a human, since rows spanning
+-- two users must be attributed from trusted provider data, never merged by
+-- email. To check before deploying:
+--
+--   SELECT 'local:oauth:' || provider_id AS issuer, account_id,
+--          count(*) AS account_count, count(DISTINCT user_id) AS user_count
+--   FROM account GROUP BY 1, 2 HAVING count(*) > 1;
 CREATE UNIQUE INDEX "account_issuer_accountId_idx" ON "account" USING btree ("issuer","account_id");
