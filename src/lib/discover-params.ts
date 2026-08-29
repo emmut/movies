@@ -42,7 +42,9 @@ export function buildDiscoverSearchParams({
     params.with_genres = genreIds.join('|');
   }
 
-  if (withOriginCountry) params.with_origin_country = withOriginCountry;
+  if (withOriginCountry) {
+    params.with_origin_country = withOriginCountry;
+  }
 
   if (watchProviders && watchRegion) {
     params.with_watch_providers = watchProviders;
