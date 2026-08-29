@@ -28,18 +28,31 @@ export async function signInAnonymously(page: Page, redirectTo = '/') {
  * Moves a lifted dnd-kit sortable card one slot later with ArrowRight, then
  * waits for the move to take effect before returning.
  *
- * The keyboard sensor handles key presses synchronously, but the resulting
- * `over` target and sibling shift transforms only land on the next React
- * commit. Dropping (Space) before that commit makes dnd-kit drop the item in
- * place, so callers must not drop until this resolves. The displaced neighbor
- * sliding left (a negative translate3d) is the observable signal that the
- * move committed.
+ * dnd-kit's KeyboardSensor deliberately attaches its real keydown listener
+ * via a zero-delay `setTimeout` when a drag starts, so the same keypress that
+ * lifted the item (Space) isn't also processed as a move. Because
+ * `aria-pressed` flips synchronously in that same lift, `expect(...).
+ * toHaveAttribute('aria-pressed', 'true')` right after can resolve on its
+ * very first (immediate) poll — without the event loop ever reaching that
+ * `setTimeout`. Sending ArrowRight straight after such a callback-less lift
+ * races the listener attachment: on a slow or busy runner, the keypress can
+ * arrive before the listener exists and gets silently dropped, leaving the
+ * card never displaced. Yielding one macrotask in the page guarantees the
+ * `setTimeout(0)` has already run before the move key goes out.
+ *
+ * The keyboard sensor then handles key presses synchronously, but the
+ * resulting `over` target and sibling shift transforms only land on the next
+ * React commit. Dropping (Space) before that commit makes dnd-kit drop the
+ * item in place, so callers must not drop until this resolves. The displaced
+ * neighbor sliding left (a negative translate3d) is the observable signal
+ * that the move committed.
  *
  * @param page - The Playwright page.
  * @param displacedTitle - Title of the card currently one slot after the
  *   lifted card, which the move shifts left.
  */
 export async function keyboardMoveRight(page: Page, displacedTitle: string) {
+  await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
   await page.keyboard.press('ArrowRight');
   await expect(
     page.locator('div[style*="translate3d"]').filter({ hasText: displacedTitle }),
