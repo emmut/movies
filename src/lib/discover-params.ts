@@ -38,7 +38,9 @@ export function buildDiscoverSearchParams({
   };
 
   // Pipe = OR on TMDb: each extra genre widens the results.
-  if (genreIds.length > 0) params.with_genres = genreIds.join('|');
+  if (genreIds.length > 0) {
+    params.with_genres = genreIds.join('|');
+  }
 
   if (withOriginCountry) params.with_origin_country = withOriginCountry;
 
