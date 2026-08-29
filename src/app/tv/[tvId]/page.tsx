@@ -8,6 +8,7 @@ import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
+import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
@@ -167,6 +168,8 @@ export default async function TvShowPage(props: TvShowPageProps) {
               </div>
             </div>
           )}
+
+          <OriginCountries codes={tvShow.origin_country} mediaType="tv" />
 
           <div>
             <h2 className="mb-3 text-xl font-semibold">Overview</h2>
