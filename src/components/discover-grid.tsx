@@ -12,6 +12,7 @@ type DiscoverGridProps = {
   watchProviders?: string;
   watchRegion?: string;
   runtimeLte?: number;
+  originCountry?: string;
   userId?: string;
 };
 
@@ -27,6 +28,7 @@ type DiscoverGridProps = {
  * @param watchProviders - Comma-separated list of watch provider IDs.
  * @param watchRegion - The region code for watch providers.
  * @param runtimeLte - Maximum runtime filter.
+ * @param originCountry - Pipe-separated list of origin country codes.
  * @param userId - Optional user ID to enable list functionality.
  */
 export default function DiscoverGrid({
@@ -37,6 +39,7 @@ export default function DiscoverGrid({
   watchProviders,
   watchRegion,
   runtimeLte,
+  originCountry,
   userId,
 }: DiscoverGridProps) {
   const { data, isLoading, error } = useDiscoverMedia({
@@ -47,6 +50,7 @@ export default function DiscoverGrid({
     watchProviders,
     watchRegion,
     runtimeLte,
+    originCountry,
   });
 
   if (isLoading) {

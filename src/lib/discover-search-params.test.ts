@@ -10,6 +10,7 @@ describe('loadDiscoverSearchParams', () => {
       mediaType: 'movie',
       sort_by: 'popularity.desc',
       with_watch_providers: [],
+      with_origin_country: [],
       watch_region: null,
       runtime: null,
     });
@@ -23,6 +24,7 @@ describe('loadDiscoverSearchParams', () => {
         mediaType: 'tv',
         sort_by: 'vote_average.desc',
         with_watch_providers: '8,9',
+        with_origin_country: 'SE,KR',
         watch_region: 'US',
         runtime: '120',
       }),
@@ -32,6 +34,7 @@ describe('loadDiscoverSearchParams', () => {
       mediaType: 'tv',
       sort_by: 'vote_average.desc',
       with_watch_providers: [8, 9],
+      with_origin_country: ['SE', 'KR'],
       watch_region: 'US',
       runtime: 120,
     });

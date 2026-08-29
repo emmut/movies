@@ -1,5 +1,6 @@
 import { WatchProvider } from '@/types/watch-provider';
 
+import OriginCountryFilter from './origin-country-filter';
 import RuntimeFilter from './runtime-filter';
 import SortByFilter from './sort-by-filter';
 import WatchProviderFilter from './watch-provider-filter';
@@ -25,6 +26,7 @@ export default function FiltersPanel({ mediaType, watchProviders, userRegion }: 
       <div className="flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between">
         <SortByFilter mediaType={mediaType} />
         <RuntimeFilter className="@3xl:mr-auto" />
+        <OriginCountryFilter />
         <WatchProviderFilter providers={watchProviders} userRegion={userRegion} />
       </div>
     </div>

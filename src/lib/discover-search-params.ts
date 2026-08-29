@@ -12,6 +12,7 @@ export const loadDiscoverSearchParams = createLoader({
   mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
   sort_by: parseAsString.withDefault('popularity.desc'),
   with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
+  with_origin_country: parseAsArrayOf(parseAsString).withDefault([]),
   watch_region: parseAsString,
   runtime: parseAsInteger,
 });
