@@ -37,8 +37,8 @@ export function buildDiscoverSearchParams({
     include_adult: 'false',
   };
 
-  // Comma = AND on TMDb: each extra genre narrows the results.
-  if (genreIds.length > 0) params.with_genres = genreIds.join(',');
+  // Pipe = OR on TMDb: each extra genre widens the results.
+  if (genreIds.length > 0) params.with_genres = genreIds.join('|');
 
   if (withOriginCountry) params.with_origin_country = withOriginCountry;
 

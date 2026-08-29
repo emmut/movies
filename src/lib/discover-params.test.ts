@@ -31,9 +31,9 @@ describe('buildDiscoverSearchParams', () => {
     expect(buildDiscoverSearchParams({ genreIds: [], page: 1 })).not.toHaveProperty('with_genres');
   });
 
-  it('joins multiple genres with a comma (AND semantics)', () => {
+  it('joins multiple genres with a pipe (OR semantics)', () => {
     expect(buildDiscoverSearchParams({ genreIds: [28, 35], page: 1 })).toMatchObject({
-      with_genres: '28,35',
+      with_genres: '28|35',
     });
   });
 
