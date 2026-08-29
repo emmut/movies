@@ -32,6 +32,7 @@ export type MovieDetails = {
   homepage: string;
   id: number;
   imdb_id: string;
+  origin_country: string[];
   original_language: string;
   original_title: string;
   overview: string;
