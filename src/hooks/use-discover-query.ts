@@ -7,7 +7,7 @@ import { queryKeys } from '@/lib/query-keys';
 
 type UseDiscoverMediaParams = {
   mediaType: 'movie' | 'tv';
-  genreId: number;
+  genreIds: number[];
   page: number;
   sortBy?: string;
   watchProviders?: string;
@@ -25,7 +25,7 @@ type UseDiscoverMediaParams = {
  */
 export function useDiscoverMedia({
   mediaType,
-  genreId,
+  genreIds,
   page,
   sortBy,
   watchProviders,
@@ -37,7 +37,7 @@ export function useDiscoverMedia({
     queryKey:
       mediaType === 'movie'
         ? queryKeys.discover.movies({
-            genreId,
+            genreIds,
             page,
             sortBy,
             watchProviders,
@@ -46,7 +46,7 @@ export function useDiscoverMedia({
             withOriginCountry: originCountry,
           })
         : queryKeys.discover.tvShows({
-            genreId,
+            genreIds,
             page,
             sortBy,
             watchProviders,
@@ -57,7 +57,7 @@ export function useDiscoverMedia({
     queryFn: () =>
       getDiscoverMedia(
         mediaType,
-        genreId,
+        genreIds,
         page,
         sortBy,
         watchProviders,

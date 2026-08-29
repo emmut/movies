@@ -6,7 +6,7 @@ describe('loadDiscoverSearchParams', () => {
   it('applies defaults when no params are present', () => {
     expect(loadDiscoverSearchParams({})).toEqual({
       page: 1,
-      genreId: 0,
+      genreIds: [],
       mediaType: 'movie',
       sort_by: 'popularity.desc',
       with_watch_providers: [],
@@ -20,7 +20,7 @@ describe('loadDiscoverSearchParams', () => {
     expect(
       loadDiscoverSearchParams({
         page: '3',
-        genreId: '28',
+        genreId: '28,35',
         mediaType: 'tv',
         sort_by: 'vote_average.desc',
         with_watch_providers: '8,9',
@@ -30,7 +30,7 @@ describe('loadDiscoverSearchParams', () => {
       }),
     ).toEqual({
       page: 3,
-      genreId: 28,
+      genreIds: [28, 35],
       mediaType: 'tv',
       sort_by: 'vote_average.desc',
       with_watch_providers: [8, 9],
@@ -38,6 +38,10 @@ describe('loadDiscoverSearchParams', () => {
       watch_region: 'US',
       runtime: 120,
     });
+  });
+
+  it('parses a legacy single-genre link into a one-element list', () => {
+    expect(loadDiscoverSearchParams({ genreId: '28' }).genreIds).toEqual([28]);
   });
 
   it('falls back to the default media type for values outside the literal set', () => {

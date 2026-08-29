@@ -81,7 +81,7 @@ export async function getTvShowWatchProviders(tvId: number) {
  *
  * Returns an object containing the list of TV shows and the total number of pages (capped at 500).
  *
- * @param genreId - The genre ID to filter TV shows by; use 0 to include all genres.
+ * @param genreIds - Genre IDs to filter TV shows by (all must match); empty to include all genres.
  * @param page - The page number to retrieve (default is 1).
  * @param sortBy - Optional sort order for the TV shows.
  * @param watchProviders - Optional watch provider filter.
@@ -93,7 +93,7 @@ export async function getTvShowWatchProviders(tvId: number) {
  * @throws {Error} If the TV show discovery data cannot be loaded from the API.
  */
 export async function fetchDiscoverTvShows(
-  genreId: number,
+  genreIds: number[],
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
@@ -106,7 +106,7 @@ export async function fetchDiscoverTvShows(
   cacheLife('minutes');
 
   const searchParams = buildDiscoverSearchParams({
-    genreId,
+    genreIds,
     page,
     sortBy,
     watchProviders,

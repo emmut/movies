@@ -1,7 +1,7 @@
 'use client';
 
 import { Film, Tv } from 'lucide-react';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
 
 import type { Genre } from '@/types/genre';
@@ -16,7 +16,7 @@ type MediaTypeSelectorProps = {
 
 type MediaTypeUrlUpdate = {
   mediaType: MediaType;
-  genreId?: number;
+  genreIds?: number[];
   page: '1';
 };
 
@@ -29,20 +29,26 @@ type MediaTypeButtonProps = {
 
 export function getMediaTypeUrlUpdate(
   mediaType: MediaType,
-  currentGenreId: number,
+  currentGenreIds: number[],
   movieGenres?: Genre[],
   tvGenres?: Genre[],
 ): MediaTypeUrlUpdate {
   const targetGenres = mediaType === 'movie' ? movieGenres : tvGenres;
-  if (currentGenreId === 0 || !targetGenres) {
+  if (currentGenreIds.length === 0 || !targetGenres) {
     return { mediaType, page: '1' };
   }
 
-  return {
-    mediaType,
-    genreId: targetGenres.some((genre) => genre.id === currentGenreId) ? undefined : 0,
-    page: '1',
-  };
+  // Keep only genres that exist for the target media type; leaving the URL
+  // untouched when everything survives avoids a needless history entry.
+  const validGenreIds = currentGenreIds.filter((genreId) =>
+    targetGenres.some((genre) => genre.id === genreId),
+  );
+
+  if (validGenreIds.length === currentGenreIds.length) {
+    return { mediaType, page: '1' };
+  }
+
+  return { mediaType, genreIds: validGenreIds, page: '1' };
 }
 
 function MediaTypeButton({ active, label, mediaType, onSelect }: MediaTypeButtonProps) {
@@ -78,10 +84,11 @@ export default function MediaTypeSelector({
   const [urlState, setUrlState] = useQueryStates(
     {
       mediaType: parseAsString.withDefault('movie'),
-      genreId: parseAsInteger.withDefault(0),
+      genreIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       page: parseAsString.withDefault('1'),
     },
     {
+      urlKeys: { genreIds: 'genreId' },
       history: 'push',
     },
   );
@@ -94,7 +101,7 @@ export default function MediaTypeSelector({
       setOptimisticMediaType(mediaType);
     });
 
-    setUrlState(getMediaTypeUrlUpdate(mediaType, urlState.genreId, movieGenres, tvGenres));
+    setUrlState(getMediaTypeUrlUpdate(mediaType, urlState.genreIds, movieGenres, tvGenres));
   }
 
   return (

@@ -53,7 +53,7 @@ export async function fetchAvailableGenres() {
 /**
  * Fetches movies from TMDb based on discovery criteria such as genre, page, sorting, watch providers, and region.
  *
- * @param genreId - The genre ID to filter movies by; use 0 for no genre filter
+ * @param genreIds - Genre IDs to filter movies by (all must match); empty for no genre filter
  * @param page - The page number of results to fetch (default is 1)
  * @param sortBy - Optional sorting criteria (e.g., 'popularity.desc')
  * @param watchProviders - Optional pipe-separated list of watch provider IDs
@@ -64,7 +64,7 @@ export async function fetchAvailableGenres() {
  * @throws Error if the fetch request fails
  */
 export async function fetchDiscoverMovies(
-  genreId: number,
+  genreIds: number[],
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
@@ -78,7 +78,7 @@ export async function fetchDiscoverMovies(
 
   const searchParams = {
     ...buildDiscoverSearchParams({
-      genreId,
+      genreIds,
       page,
       sortBy,
       watchProviders,

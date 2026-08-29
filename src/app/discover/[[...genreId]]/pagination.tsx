@@ -6,7 +6,7 @@ import { useDiscoverMedia } from '@/hooks/use-discover-query';
 
 type PaginationProps = {
   currentPage: number;
-  currentGenreId: number;
+  currentGenreIds: number[];
   mediaType: 'movie' | 'tv';
   sortBy?: string;
   watchProviders?: string;
@@ -21,7 +21,7 @@ type PaginationProps = {
  * Fetches the total number of pages for the selected media type and filters, then displays pagination controls for navigation.
  *
  * @param currentPage - The currently selected page number.
- * @param currentGenreId - The genre identifier to filter results.
+ * @param currentGenreIds - Genre IDs to filter results (all must match).
  * @param mediaType - The type of media to paginate, either 'movie' or 'tv'.
  * @param sortBy - The sort order for the results.
  * @param watchProviders - Comma-separated list of watch provider IDs.
@@ -32,7 +32,7 @@ type PaginationProps = {
  */
 export default function Pagination({
   currentPage,
-  currentGenreId,
+  currentGenreIds,
   mediaType,
   sortBy,
   watchProviders,
@@ -42,7 +42,7 @@ export default function Pagination({
 }: PaginationProps) {
   const { data, isLoading } = useDiscoverMedia({
     mediaType,
-    genreId: currentGenreId,
+    genreIds: currentGenreIds,
     page: currentPage,
     sortBy,
     watchProviders,

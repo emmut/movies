@@ -4,7 +4,7 @@
  */
 
 type DiscoverParams = {
-  genreId: number;
+  genreIds: number[];
   page: number;
   mediaType: 'movie' | 'tv';
   sortBy?: string;
@@ -67,7 +67,7 @@ export const queryKeys = {
       [
         ...queryKeys.discover.lists(),
         'movies',
-        params.genreId,
+        params.genreIds,
         params.page,
         params.sortBy,
         params.watchProviders,
@@ -79,7 +79,7 @@ export const queryKeys = {
       [
         ...queryKeys.discover.lists(),
         'tv',
-        params.genreId,
+        params.genreIds,
         params.page,
         params.sortBy,
         params.watchProviders,
