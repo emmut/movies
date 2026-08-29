@@ -35,7 +35,7 @@ type DiscoverContentProps = {
 
 type DiscoverViewState = {
   page: number;
-  genreId: number;
+  genreIds: number[];
   mediaType: 'movie' | 'tv';
   sortBy: string;
   watchProviders?: string;
@@ -48,7 +48,7 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
   const [urlState] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
-      genreId: parseAsInteger.withDefault(0),
+      genreIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
       sort_by: parseAsString.withDefault('popularity.desc'),
       with_watch_providers: parseAsPipeSeparatedArrayOfIntegers,
@@ -59,6 +59,7 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
     {
       urlKeys: {
         runtimeLte: 'runtime',
+        genreIds: 'genreId',
       },
       history: 'push',
     },
@@ -66,7 +67,7 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
 
   return {
     page: urlState.page,
-    genreId: urlState.genreId,
+    genreIds: urlState.genreIds,
     mediaType: urlState.mediaType,
     sortBy: urlState.sort_by,
     // Same fallback the server prefetch applies (URL selection, else the
@@ -119,7 +120,7 @@ type DiscoverResultsProps = DiscoverViewState & {
 
 function DiscoverResults({
   page,
-  genreId,
+  genreIds,
   mediaType,
   sortBy,
   watchProviders,
@@ -134,7 +135,7 @@ function DiscoverResults({
       className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
     >
       <DiscoverGrid
-        currentGenreId={genreId}
+        currentGenreIds={genreIds}
         currentPage={page}
         mediaType={mediaType}
         sortBy={sortBy}
@@ -162,7 +163,7 @@ export function DiscoverContent({
 }: DiscoverContentProps) {
   const {
     page,
-    genreId,
+    genreIds,
     mediaType,
     sortBy,
     watchProviders,
@@ -192,7 +193,7 @@ export function DiscoverContent({
 
       <DiscoverResults
         page={page}
-        genreId={genreId}
+        genreIds={genreIds}
         mediaType={mediaType}
         sortBy={sortBy}
         watchProviders={watchProviders}
@@ -203,7 +204,7 @@ export function DiscoverContent({
       />
 
       <Pagination
-        currentGenreId={genreId}
+        currentGenreIds={genreIds}
         currentPage={page}
         mediaType={mediaType}
         sortBy={sortBy}

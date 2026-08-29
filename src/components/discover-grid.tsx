@@ -5,7 +5,7 @@ import { useDiscoverMedia } from '@/hooks/use-discover-query';
 import ItemGrid from './item-grid';
 
 type DiscoverGridProps = {
-  currentGenreId: number;
+  currentGenreIds: number[];
   currentPage: number;
   mediaType: 'movie' | 'tv';
   sortBy?: string;
@@ -21,7 +21,7 @@ type DiscoverGridProps = {
  *
  * Fetches data based on the media type and applied filters, then renders a ResourceGrid with the results.
  *
- * @param currentGenreId - The ID of the genre to filter by.
+ * @param currentGenreIds - Genre IDs to filter by (all must match).
  * @param currentPage - The page number of results to display.
  * @param mediaType - Whether to show movies or TV shows.
  * @param sortBy - The sort order for the results.
@@ -32,7 +32,7 @@ type DiscoverGridProps = {
  * @param userId - Optional user ID to enable list functionality.
  */
 export default function DiscoverGrid({
-  currentGenreId,
+  currentGenreIds,
   currentPage,
   mediaType,
   sortBy,
@@ -44,7 +44,7 @@ export default function DiscoverGrid({
 }: DiscoverGridProps) {
   const { data, isLoading, error } = useDiscoverMedia({
     mediaType,
-    genreId: currentGenreId,
+    genreIds: currentGenreIds,
     page: currentPage,
     sortBy,
     watchProviders,

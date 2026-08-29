@@ -1,6 +1,6 @@
 'use client';
 
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
 
 import Pill from './pill';
@@ -10,32 +10,28 @@ type Genre = {
   name: string;
 };
 
+export function toggleGenre(genreIds: number[], genreId: number) {
+  return genreIds.includes(genreId)
+    ? genreIds.filter((id) => id !== genreId)
+    : [...genreIds, genreId];
+}
+
 type GenrePillProps = {
-  currentGenreId?: number | null;
-  genreId: number;
+  active: boolean;
   genreName: string;
-  onOptimisticUpdate: (genreId: number) => void;
-  onClick: () => void;
+  onToggle: () => void;
 };
 
-function GenrePill({
-  currentGenreId,
-  genreId,
-  genreName,
-  onOptimisticUpdate,
-  onClick,
-}: GenrePillProps) {
-  const [isPending, startTransition] = useTransition();
-
-  const active = currentGenreId === genreId || isPending;
+function GenrePill({ active, genreName, onToggle }: GenrePillProps) {
+  // Wrapping the toggle in a transition lets useOptimistic show the new
+  // selection instantly while the route update settles.
+  const [, startTransition] = useTransition();
 
   return (
     <button
+      aria-pressed={active}
       onClick={() => {
-        startTransition(() => {
-          onOptimisticUpdate(genreId);
-          onClick();
-        });
+        startTransition(onToggle);
       }}
     >
       <Pill active={active}>{genreName}</Pill>
@@ -48,22 +44,24 @@ type GenreNavigationClientProps = {
 };
 
 export function GenreNavigationClient({ genres }: GenreNavigationClientProps) {
-  // Read current genre from URL state
-  const [urlState, setUrlState] = useQueryStates({
-    genreId: parseAsInteger.withDefault(0),
-    page: parseAsString.withDefault('1'),
-  });
+  const [urlState, setUrlState] = useQueryStates(
+    {
+      genreIds: parseAsArrayOf(parseAsInteger).withDefault([]),
+      page: parseAsString.withDefault('1'),
+    },
+    {
+      urlKeys: { genreIds: 'genreId' },
+    },
+  );
 
-  const currentGenreId = urlState.genreId;
-  const [optimisticGenreId, setOptimisticGenreId] = useOptimistic(currentGenreId);
+  const currentGenreIds = urlState.genreIds;
+  const [optimisticGenreIds, setOptimisticGenreIds] = useOptimistic(currentGenreIds);
 
-  function handleGenreClick(targetGenreId: number) {
-    // If clicking the same genre, clear it (set to 0)
-    // Otherwise, set the new genre and reset to page 1
-    setUrlState({
-      genreId: currentGenreId === targetGenreId ? 0 : targetGenreId,
-      page: '1',
-    });
+  function handleGenreToggle(genreId: number) {
+    const nextGenreIds = toggleGenre(currentGenreIds, genreId);
+    setOptimisticGenreIds(nextGenreIds);
+    // Empty selection equals the default, so nuqs drops genreId from the URL
+    setUrlState({ genreIds: nextGenreIds, page: '1' });
   }
 
   return (
@@ -72,11 +70,9 @@ export function GenreNavigationClient({ genres }: GenreNavigationClientProps) {
         {genres.map((genre) => (
           <li key={genre.id}>
             <GenrePill
-              currentGenreId={optimisticGenreId}
-              genreId={genre.id}
+              active={optimisticGenreIds.includes(genre.id)}
               genreName={genre.name}
-              onOptimisticUpdate={setOptimisticGenreId}
-              onClick={() => handleGenreClick(genre.id)}
+              onToggle={() => handleGenreToggle(genre.id)}
             />
           </li>
         ))}

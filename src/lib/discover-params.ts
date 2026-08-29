@@ -5,7 +5,7 @@ import { DEFAULT_REGION } from './regions';
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
 type DiscoverParams = {
-  genreId: number;
+  genreIds: number[];
   page: number;
   sortBy?: string;
   watchProviders?: string;
@@ -22,7 +22,7 @@ type DiscoverParams = {
  * is active, in which case results stay unrestricted by provider.
  */
 export function buildDiscoverSearchParams({
-  genreId,
+  genreIds,
   page,
   sortBy,
   watchProviders,
@@ -37,7 +37,8 @@ export function buildDiscoverSearchParams({
     include_adult: 'false',
   };
 
-  if (genreId !== 0) params.with_genres = genreId;
+  // Comma = AND on TMDb: each extra genre narrows the results.
+  if (genreIds.length > 0) params.with_genres = genreIds.join(',');
 
   if (withOriginCountry) params.with_origin_country = withOriginCountry;
 

@@ -26,7 +26,7 @@ type DiscoverTvShowsResult = {
  * Fetches discover movies data for use with React Query.
  * Can be called on both server and client (via server actions).
  *
- * @param genreId - The genre ID to filter by (0 for all genres)
+ * @param genreIds - Genre IDs to filter by (all must match; empty for all genres)
  * @param page - The page number to fetch
  * @param sortBy - Optional sort parameter
  * @param watchProviders - Optional watch provider filter
@@ -36,7 +36,7 @@ type DiscoverTvShowsResult = {
  * @returns Object containing movies array and total pages
  */
 async function getDiscoverMovies(
-  genreId: number,
+  genreIds: number[],
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
@@ -45,7 +45,7 @@ async function getDiscoverMovies(
   withOriginCountry?: string,
 ): Promise<DiscoverMoviesResult> {
   return await fetchDiscoverMovies(
-    genreId,
+    genreIds,
     page,
     sortBy,
     watchProviders,
@@ -59,7 +59,7 @@ async function getDiscoverMovies(
  * Fetches discover TV shows data for use with React Query.
  * Can be called on both server and client (via server actions).
  *
- * @param genreId - The genre ID to filter by (0 for all genres)
+ * @param genreIds - Genre IDs to filter by (all must match; empty for all genres)
  * @param page - The page number to fetch
  * @param sortBy - Optional sort parameter
  * @param watchProviders - Optional watch provider filter
@@ -69,7 +69,7 @@ async function getDiscoverMovies(
  * @returns Object containing TV shows array and total pages
  */
 async function getDiscoverTvShows(
-  genreId: number,
+  genreIds: number[],
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
@@ -78,7 +78,7 @@ async function getDiscoverTvShows(
   withOriginCountry?: string,
 ): Promise<DiscoverTvShowsResult> {
   return await fetchDiscoverTvShows(
-    genreId,
+    genreIds,
     page,
     sortBy,
     watchProviders,
@@ -93,7 +93,7 @@ async function getDiscoverTvShows(
  * Used by React Query hooks for unified data fetching.
  *
  * @param mediaType - Either 'movie' or 'tv'
- * @param genreId - The genre ID to filter by (0 for all genres)
+ * @param genreIds - Genre IDs to filter by (all must match; empty for all genres)
  * @param page - The page number to fetch
  * @param sortBy - Optional sort parameter
  * @param watchProviders - Optional watch provider filter
@@ -104,7 +104,7 @@ async function getDiscoverTvShows(
  */
 export async function getDiscoverMedia(
   mediaType: 'movie' | 'tv',
-  genreId: number,
+  genreIds: number[],
   page: number = 1,
   sortBy?: string,
   watchProviders?: string,
@@ -114,7 +114,7 @@ export async function getDiscoverMedia(
 ): Promise<DiscoverResult> {
   if (mediaType === 'tv') {
     const { tvShows, totalPages } = await getDiscoverTvShows(
-      genreId,
+      genreIds,
       page,
       sortBy,
       watchProviders,
@@ -126,7 +126,7 @@ export async function getDiscoverMedia(
   }
 
   const { movies, totalPages } = await getDiscoverMovies(
-    genreId,
+    genreIds,
     page,
     sortBy,
     watchProviders,

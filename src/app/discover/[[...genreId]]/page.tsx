@@ -35,7 +35,7 @@ type DiscoverQueryParams = Awaited<ReturnType<typeof loadDiscoverSearchParams>> 
 
 function getDiscoverQueryKey({
   mediaType,
-  genreId,
+  genreIds,
   page,
   sort_by: sortBy,
   watchProviders,
@@ -44,7 +44,7 @@ function getDiscoverQueryKey({
   withOriginCountry,
 }: DiscoverQueryParams) {
   const params = {
-    genreId,
+    genreIds,
     page,
     sortBy,
     watchProviders,
@@ -64,7 +64,7 @@ async function prefetchDiscoverMedia(queryClient: QueryClient, params: DiscoverQ
     queryFn: () =>
       getDiscoverMedia(
         params.mediaType,
-        params.genreId,
+        params.genreIds,
         params.page,
         params.sort_by,
         params.watchProviders,
