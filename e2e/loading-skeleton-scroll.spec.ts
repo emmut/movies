@@ -38,11 +38,18 @@ test('the loading skeleton is shown at the top when navigating from a scrolled p
   // drain, so throttling can't start before the shell is cached. An
   // unprefetched shell commits skeleton and content together and the skeleton
   // window never opens.
-  // Exact pathname: the sidebar link prefetches plain /discover (segment
-  // prefetches vary only in query/headers); a genre page's /discover/… must
-  // not satisfy the wait.
+  // Only the sidebar link's plain /discover prefetch may satisfy the wait:
+  // exact pathname (not a genre page's /discover/…) and no query params
+  // beyond Next's own _rsc cache-buster (not a query-parameterized
+  // /discover?genreId=…).
   const discoverPrefetched = page.waitForResponse(
-    (res) => new URL(res.url()).pathname === '/discover',
+    (res) => {
+      const url = new URL(res.url());
+      return (
+        url.pathname === '/discover' &&
+        [...url.searchParams.keys()].every((key) => key === '_rsc')
+      );
+    },
     { timeout: 15_000 },
   );
   await page.goto(MOVIE_PATH);
