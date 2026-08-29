@@ -5,8 +5,8 @@ type ClientImageProps = {
   fallbackSrc: string;
   alt: string;
   className?: string;
-  loading?: 'lazy' | 'eager';
-  fetchPriority?: 'high' | 'low' | 'auto';
+  /** Load eagerly with high priority — for above-the-fold images (LCP). */
+  eager?: boolean;
 };
 
 export default function ClientImage({
@@ -14,8 +14,7 @@ export default function ClientImage({
   fallbackSrc,
   alt,
   className,
-  loading = 'lazy',
-  fetchPriority,
+  eager = false,
 }: ClientImageProps) {
   return (
     <picture>
@@ -25,8 +24,8 @@ export default function ClientImage({
         src={imageUrls?.src ?? fallbackSrc}
         alt={alt}
         className={className}
-        loading={loading}
-        fetchPriority={fetchPriority}
+        loading={eager ? 'eager' : 'lazy'}
+        fetchPriority={eager ? 'high' : undefined}
         decoding="async"
       />
     </picture>

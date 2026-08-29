@@ -1,6 +1,10 @@
 'use client';
 
-import { useLoginToast } from '@/hooks/use-login-toast';
+import dynamic from 'next/dynamic';
+
+// Loaded in its own chunk after hydration: the toast pulls in the whole
+// better-auth client, which must not sit in every route's first-load JS.
+const LoginToastInner = dynamic(() => import('./login-toast-inner'), { ssr: false });
 
 /**
  * Client component that handles login toast notifications.
@@ -10,6 +14,5 @@ import { useLoginToast } from '@/hooks/use-login-toast';
  * the side effect of showing toasts.
  */
 export function LoginToastHandler() {
-  useLoginToast();
-  return null;
+  return <LoginToastInner />;
 }

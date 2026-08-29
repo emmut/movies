@@ -18,6 +18,8 @@ type ItemCardProps = {
   userId?: string;
   showListButton?: boolean;
   listId?: string;
+  /** Load the poster eagerly with high priority — for above-the-fold cards (LCP). */
+  eagerImage?: boolean;
 };
 
 /**
@@ -52,6 +54,7 @@ export default function ItemCard({
   userId,
   showListButton = true,
   listId,
+  eagerImage = false,
 }: ItemCardProps) {
   const posterImageUrls = (item as { posterImageUrls?: ProxyImageUrls }).posterImageUrls;
   const score = Math.ceil(item.vote_average * 10) / 10;
@@ -83,6 +86,7 @@ export default function ItemCard({
               fallbackSrc={resolveImageSrc(item.poster_path, 500)}
               alt={title}
               className="h-full w-full object-cover"
+              eager={eagerImage}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-zinc-800">

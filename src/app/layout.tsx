@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode, Suspense } from 'react';
+import { preconnect } from 'react-dom';
 import { Toaster } from 'sonner';
 
 import { BackScrollRestorer } from '@/components/back-scroll-restorer';
@@ -10,7 +11,9 @@ import { LoginToastHandler } from '@/components/login-toast-handler';
 import { SearchCommand } from '@/components/search-command';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { env } from '@/env';
 import { inter } from '@/fonts';
+import { IMAGE_CDN_URL } from '@/lib/constants';
 import { PostHogClientProvider } from '@/providers/posthog';
 import { QueryProvider } from '@/providers/query-provider';
 
@@ -34,6 +37,11 @@ export const metadata: Metadata = {
  * @param children - The page content to render within the layout.
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
+  // Every page's LCP image comes from one of these third-party origins; warm
+  // up DNS+TLS before the first image request is discovered.
+  preconnect(new URL(env.NEXT_PUBLIC_IMGPROXY_ENDPOINT).origin);
+  preconnect(new URL(IMAGE_CDN_URL).origin);
+
   return (
     <html lang="en" className="dark">
       <body className={clsx([inter.className])}>

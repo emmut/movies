@@ -1,5 +1,3 @@
-import { Suspense } from 'react';
-
 import { getMovieTrailer } from '@/lib/movies';
 import { getTvShowTrailer } from '@/lib/tv-shows';
 
@@ -14,7 +12,7 @@ type TrailerContentProps = {
 /**
  * Asynchronously fetches and displays a trailer button for a movie or TV show.
  *
- * Depending on the provided media type and ID, retrieves the trailer key and renders a `TrailerButton` component within a React `Suspense` boundary. Returns `null` if no trailer is available.
+ * Depending on the provided media type and ID, retrieves the trailer key and renders a `TrailerButton` component. Returns `null` if no trailer is available. Callers wrap it in `Suspense` so the trailer lookup never blocks the page shell.
  *
  * @param mediaType - Specifies whether the media is a 'movie' or 'tv'
  * @param mediaId - The unique identifier for the movie or TV show
@@ -29,9 +27,5 @@ export async function TrailerContent({ mediaType, mediaId, title }: TrailerConte
     return null;
   }
 
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <TrailerButton trailerKey={trailerData} title={title} mediaType={mediaType} />
-    </Suspense>
-  );
+  return <TrailerButton trailerKey={trailerData} title={title} mediaType={mediaType} />;
 }

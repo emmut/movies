@@ -175,7 +175,8 @@ export async function fetchTopRatedMovies(region: string = DEFAULT_REGION) {
 export async function getMovieDetails(movieId: number) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.movie.details(movieId));
-  cacheLife('minutes');
+  // Near-static data, fanned out once per row on list pages — keep it warm.
+  cacheLife('hours');
 
   return await tmdbFetch<MovieDetails>(`/movie/${movieId}`, {
     errorMessage: 'Failed loading movie details',

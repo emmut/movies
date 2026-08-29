@@ -16,6 +16,8 @@ type PersonCardProps = {
   userId?: string;
   showListButton?: boolean;
   listId?: string;
+  /** Load the photo eagerly with high priority — for above-the-fold cards (LCP). */
+  eagerImage?: boolean;
 };
 
 /**
@@ -32,6 +34,7 @@ export default function PersonCard({
   userId,
   listId,
   showListButton = true,
+  eagerImage = false,
 }: PersonCardProps) {
   const profileImageUrls = (person as { profileImageUrls?: ProxyImageUrls }).profileImageUrls;
   const href = `/person/${person.id}`;
@@ -64,6 +67,7 @@ export default function PersonCard({
               }
               alt={person.name}
               className="h-full w-full object-cover"
+              eager={eagerImage}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-zinc-800">

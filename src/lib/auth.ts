@@ -61,6 +61,15 @@ export const auth = betterAuth({
     provider: 'pg',
     schema,
   }),
+  session: {
+    // Serve the session from a short-lived signed cookie so every request
+    // doesn't pay a session+user SELECT before rendering. Sign-out and
+    // account linking refresh the cookie, so staleness is bounded to maxAge.
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes
+    },
+  },
   rateLimit: {
     // Mirrors better-auth's default (on in production only), with an env
     // escape hatch for e2e runs where every sign-in comes from one IP.

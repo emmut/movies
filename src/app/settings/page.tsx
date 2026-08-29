@@ -51,8 +51,8 @@ export default async function SettingsPage(props: SettingsPageProps) {
     redirect('/login');
   }
 
-  const passkeys = user.isAnonymous ? [] : await getUserPasskeys();
-  const [allWatchProviders, userWatchProviders] = await Promise.all([
+  const [passkeys, allWatchProviders, userWatchProviders] = await Promise.all([
+    user.isAnonymous ? [] : getUserPasskeys(),
     getAllWatchProviders(currentRegion),
     getUserWatchProviders(),
   ]);

@@ -65,26 +65,28 @@ export default async function ListDetailsPage({
     userRegion,
   );
 
-  await assertOwnedCustomList(id);
-
   // Prefetch list details with React Query for client-side caching
   const queryClient = getQueryClient();
 
-  await queryClient.prefetchQuery({
-    queryKey: queryKeys.lists.detail(id, page, activeProviders, activeRegion),
-    queryFn: async () => {
-      const result = await getListDetailsWithResources(id, page, activeProviders, activeRegion);
+  const [watchProviders] = await Promise.all([
+    availableWatchProviders,
+    assertOwnedCustomList(id),
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.lists.detail(id, page, activeProviders, activeRegion),
+      queryFn: async () => {
+        const result = await getListDetailsWithResources(id, page, activeProviders, activeRegion);
 
-      // If requested page is beyond the last, canonicalize the URL
-      if (result.totalPages > 0 && page > result.totalPages) {
-        redirect(canonicalListPageUrl(id, result.totalPages, activeProviders, activeRegion));
-      }
+        // If requested page is beyond the last, canonicalize the URL
+        if (result.totalPages > 0 && page > result.totalPages) {
+          redirect(canonicalListPageUrl(id, result.totalPages, activeProviders, activeRegion));
+        }
 
-      return result;
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
-  });
+        return result;
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes
+    }),
+  ]);
 
   // Create a server action to fetch list details
   async function fetchListDetails(
@@ -103,7 +105,7 @@ export default async function ListDetailsPage({
         listId={id}
         userId={user?.id}
         fetchListDetailsAction={fetchListDetails}
-        watchProviders={availableWatchProviders}
+        watchProviders={watchProviders}
         userRegion={userRegion}
       />
     </HydrationBoundary>

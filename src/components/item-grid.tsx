@@ -17,13 +17,23 @@ type ItemGridProps = {
  * @param resources - Array of movies or TV shows to display.
  * @param type - The type of resource ('movie' or 'tv').
  */
+// First row of a grid page is above the fold; load those posters eagerly so
+// the LCP image doesn't wait for the browser's lazy-load scan.
+const EAGER_IMAGE_COUNT = 4;
+
 export function ItemGrid({ resources, type, userId }: ItemGridProps) {
   const resourceName = type === 'movie' ? 'movies' : 'TV shows';
 
   return (
     <>
-      {resources.map((resource) => (
-        <ItemCard key={resource.id} resource={resource} type={type} userId={userId} />
+      {resources.map((resource, index) => (
+        <ItemCard
+          key={resource.id}
+          resource={resource}
+          type={type}
+          userId={userId}
+          eagerImage={index < EAGER_IMAGE_COUNT}
+        />
       ))}
       {resources.length === 0 && (
         <p className="col-span-full text-center">No {resourceName} was found</p>

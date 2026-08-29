@@ -25,9 +25,14 @@ function itemName(item: ListItem) {
   return 'title' in item ? item.title : item.name;
 }
 
+// First row of a list page is above the fold; load those images eagerly so
+// the LCP image doesn't wait for the browser's lazy-load scan.
+const EAGER_IMAGE_COUNT = 4;
+
 function renderItemCard(
   item: ListItem,
   editing: boolean,
+  eagerImage: boolean,
   userId: string | undefined,
   listId?: string,
 ): ReactNode {
@@ -38,6 +43,7 @@ function renderItemCard(
         userId={userId}
         showListButton={!editing}
         listId={editing ? undefined : listId}
+        eagerImage={eagerImage}
         key={`${item.resourceType}-${item.id}`}
       />
     );
@@ -50,6 +56,7 @@ function renderItemCard(
       userId={userId}
       showListButton={!editing}
       listId={editing ? undefined : listId}
+      eagerImage={eagerImage}
       key={`${item.resourceType}-${item.id}`}
     />
   );
@@ -101,7 +108,7 @@ export function ListItemsGrid({
               onMoveUp={() => onMove(item.listItemId, index - 1)}
               onMoveDown={() => onMove(item.listItemId, index + 1)}
             >
-              {renderItemCard(item, editing, userId, listId)}
+              {renderItemCard(item, editing, index < EAGER_IMAGE_COUNT, userId, listId)}
             </SortableItemCard>
           ))}
         </div>

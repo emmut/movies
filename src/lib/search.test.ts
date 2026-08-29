@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
+
 vi.mock('./tmdb', () => ({
   tmdbFetch: vi.fn(),
   addPosterImageUrls: vi.fn((item: object) => ({ ...item, _poster: true })),

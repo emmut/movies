@@ -86,29 +86,32 @@ export default async function DiscoverWithGenrePage(props: DiscoverWithGenrePara
   const searchParams = await props.searchParams;
   const discoverParams = loadDiscoverSearchParams(searchParams);
 
-  const user = await getUser();
-  const userWatchProviders = await getUserWatchProviders();
-  const watchRegion = discoverParams.watch_region ?? (await getUserRegion());
+  const [user, userWatchProviders, userRegion, movieGenres, tvGenres] = await Promise.all([
+    getUser(),
+    getUserWatchProviders(),
+    getUserRegion(),
+    fetchAvailableGenres(),
+    fetchAvailableTvGenres(),
+  ]);
+  const watchRegion = discoverParams.watch_region ?? userRegion;
 
-  const filteredWatchProviders = await getWatchProviders(watchRegion, userWatchProviders);
   const watchProviders = getWatchProvidersString(
     discoverParams.with_watch_providers,
     userWatchProviders,
   );
-  const [movieGenres, tvGenres] = await Promise.all([
-    fetchAvailableGenres(),
-    fetchAvailableTvGenres(),
-  ]);
 
   // Prefetch data on the server for React Query
   const queryClient = getQueryClient();
-  await prefetchDiscoverMedia(queryClient, {
-    ...discoverParams,
-    watchProviders,
-    watchRegion,
-    withRuntimeLte: discoverParams.runtime ?? undefined,
-    withOriginCountry: getOriginCountryString(discoverParams.with_origin_country),
-  });
+  const [filteredWatchProviders] = await Promise.all([
+    getWatchProviders(watchRegion, userWatchProviders),
+    prefetchDiscoverMedia(queryClient, {
+      ...discoverParams,
+      watchProviders,
+      watchRegion,
+      withRuntimeLte: discoverParams.runtime ?? undefined,
+      withOriginCountry: getOriginCountryString(discoverParams.with_origin_country),
+    }),
+  ]);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
