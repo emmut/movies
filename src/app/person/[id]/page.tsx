@@ -113,7 +113,7 @@ export default async function PersonPage(props: PersonPageProps) {
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-4">
+        <div className="lg:sticky lg:col-span-4 lg:self-start lg:top-[calc(var(--header-height)+(--spacing(8)))]">
           {profile_path ? (
             <div className="max-w-64 lg:max-w-full">
               <Imgproxy
