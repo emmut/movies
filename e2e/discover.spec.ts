@@ -324,14 +324,15 @@ test.describe('filters', () => {
     await trigger.click();
 
     const popover = page.locator('[data-slot="popover-content"]');
-    await popover.getByRole('button', { name: /^united states$/i }).click();
-    await waitForDiscoverUrl(page, /with_origin_country=US/);
-    await expect(trigger).toContainText(/1 country selected/i);
+    await popover.getByRole('button', { name: /^sweden$/i }).click();
+    await waitForDiscoverUrl(page, /with_origin_country=SE/);
+    // A single selection shows the country name instead of a count.
+    await expect(trigger).toContainText(/sweden/i);
 
     // Non-curated countries are one search away.
     await popover.getByPlaceholder(/search all countries/i).fill('zimb');
     await popover.getByRole('button', { name: /^zimbabwe$/i }).click();
-    await waitForDiscoverUrl(page, /with_origin_country=US(,|%2C)ZW/);
+    await waitForDiscoverUrl(page, /with_origin_country=SE(,|%2C)ZW/);
     await expect(trigger).toContainText(/2 countries selected/i);
 
     await page.getByRole('button', { name: /clear all/i }).click();

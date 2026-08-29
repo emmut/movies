@@ -64,6 +64,28 @@ describe('buildDiscoverSearchParams', () => {
     );
   });
 
+  it('skips the major-provider fallback when filtering by origin country', () => {
+    const params = buildDiscoverSearchParams({ genreId: 0, page: 1, withOriginCountry: 'IR' });
+    expect(params).not.toHaveProperty('with_watch_providers');
+    expect(params).not.toHaveProperty('watch_region');
+  });
+
+  it('keeps an explicit provider filter alongside the origin-country filter', () => {
+    expect(
+      buildDiscoverSearchParams({
+        genreId: 0,
+        page: 1,
+        withOriginCountry: 'SE',
+        watchProviders: '8',
+        watchRegion: 'SE',
+      }),
+    ).toMatchObject({
+      with_origin_country: 'SE',
+      with_watch_providers: '8',
+      watch_region: 'SE',
+    });
+  });
+
   it('applies the runtime filter only for a positive max runtime', () => {
     expect(buildDiscoverSearchParams({ genreId: 0, page: 1, withRuntimeLte: 120 })).toMatchObject({
       'with_runtime.lte': 120,

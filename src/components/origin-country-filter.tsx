@@ -14,14 +14,25 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { getCountryName, getVisibleOriginCountries } from '@/lib/countries';
+import {
+  getCountryFlag,
+  getCountryName,
+  getVisibleOriginCountries,
+  sanitizeOriginCountryCodes,
+} from '@/lib/countries';
 import { cn } from '@/lib/utils';
+
+function getTriggerLabel(selected: string[]) {
+  if (selected.length === 0) return 'Select origin countries';
+  if (selected.length === 1) return `${getCountryFlag(selected[0])} ${getCountryName(selected[0])}`;
+  return `${selected.length} countries selected`;
+}
 
 // PopoverTrigger's `render` clones the element with the trigger props
 // (onClick, aria-*); dropping them leaves a button that never opens the popover.
-type TriggerProps = { selectedCount: number } & ComponentProps<typeof Button>;
+type TriggerProps = { selected: string[] } & ComponentProps<typeof Button>;
 
-function CountryTrigger({ selectedCount, className, ...props }: TriggerProps) {
+function CountryTrigger({ selected, className, ...props }: TriggerProps) {
   return (
     <Button
       {...props}
@@ -29,10 +40,8 @@ function CountryTrigger({ selectedCount, className, ...props }: TriggerProps) {
       className={cn('w-full justify-between', className)}
       id="origin-country"
     >
-      <Filter className="mr-2 h-4 w-4" />
-      {selectedCount > 0
-        ? `${selectedCount} ${selectedCount === 1 ? 'country' : 'countries'} selected`
-        : 'Select origin countries'}
+      <Filter className="mr-2 h-4 w-4 shrink-0" />
+      <span className="truncate">{getTriggerLabel(selected)}</span>
     </Button>
   );
 }
@@ -46,13 +55,20 @@ function CountryTrigger({ selectedCount, className, ...props }: TriggerProps) {
  * `with_origin_country` URL query parameter.
  */
 export default function OriginCountryFilter() {
-  const [{ with_origin_country: selectedCountries }, setParams] = useQueryStates({
+  const [{ with_origin_country: rawSelection }, setParams] = useQueryStates({
     with_origin_country: parseAsArrayOf(parseAsString).withDefault([]),
     page: parseAsString.withDefault('1'),
   });
+  // Hand-edited URLs can carry unknown or lowercase codes.
+  const selectedCountries = sanitizeOriginCountryCodes(rawSelection);
 
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+
+  function handleOpenChange(open: boolean) {
+    setIsOpen(open);
+    if (!open) setQuery('');
+  }
 
   function updateUrl(codes: string[]) {
     setParams(
@@ -86,8 +102,8 @@ export default function OriginCountryFilter() {
       <Label htmlFor="origin-country" className="mb-2 flex justify-end @3xl:self-end">
         Origin Country
       </Label>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger render={<CountryTrigger selectedCount={selectedCount} />} />
+      <Popover open={isOpen} onOpenChange={handleOpenChange}>
+        <PopoverTrigger render={<CountryTrigger selected={selectedCountries} />} />
         <PopoverContent
           align="end"
           side="bottom"
@@ -124,11 +140,15 @@ export default function OriginCountryFilter() {
                   <button
                     type="button"
                     key={code}
+                    aria-pressed={isSelected}
                     className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
                       isSelected ? 'bg-accent' : ''
                     }`}
                     onClick={() => toggleCountry(code)}
                   >
+                    <span aria-hidden className="text-base leading-none">
+                      {getCountryFlag(code)}
+                    </span>
                     <div className="flex-1 text-left text-sm font-medium">
                       {getCountryName(code)}
                     </div>

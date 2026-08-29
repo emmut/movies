@@ -273,10 +273,36 @@ export const curatedOriginCountries = [
   'HK',
 ];
 
+const originCountrySet = new Set(originCountries);
+
 const countryDisplayNames = new Intl.DisplayNames(['en'], { type: 'region' });
 
 export function getCountryName(code: string) {
-  return countryDisplayNames.of(code) ?? code;
+  try {
+    return countryDisplayNames.of(code) ?? code;
+  } catch {
+    // Intl.DisplayNames.of throws a RangeError on syntactically invalid codes
+    // (hand-edited URLs); fall back to the raw code instead of crashing.
+    return code;
+  }
+}
+
+/** Regional-indicator flag emoji for an ISO 3166-1 alpha-2 code. */
+export function getCountryFlag(code: string) {
+  return String.fromCodePoint(
+    ...[...code.toUpperCase()].map((char) => 0x1f1a5 + char.charCodeAt(0)),
+  );
+}
+
+/**
+ * Normalizes URL-sourced origin-country codes: uppercases, dedupes, and drops
+ * anything not in the known ISO list so hand-edited URLs can neither crash the
+ * UI nor leak garbage into the TMDb query.
+ */
+export function sanitizeOriginCountryCodes(codes: string[]) {
+  return [...new Set(codes.map((code) => code.trim().toUpperCase()))].filter((code) =>
+    originCountrySet.has(code),
+  );
 }
 
 /**
@@ -285,11 +311,26 @@ export function getCountryName(code: string) {
  * and the client hook so their React Query keys can never diverge.
  */
 export function getOriginCountryString(codes: string[]) {
-  return codes.length > 0 ? codes.join('|') : undefined;
+  const sanitized = sanitizeOriginCountryCodes(codes);
+  return sanitized.length > 0 ? sanitized.join('|') : undefined;
 }
 
 function matchesCountryQuery(code: string, query: string) {
-  return code.toLowerCase().includes(query) || getCountryName(code).toLowerCase().includes(query);
+  return code.toLowerCase() === query || getCountryName(code).toLowerCase().includes(query);
+}
+
+/** Name-prefix matches (and exact code matches) first, then alphabetical by name. */
+function rankCountryMatches(query: string) {
+  return originCountries
+    .filter((code) => matchesCountryQuery(code, query))
+    .map((code) => {
+      const name = getCountryName(code).toLowerCase();
+      return { code, name, prefix: name.startsWith(query) || code.toLowerCase() === query };
+    })
+    .sort((a, b) =>
+      a.prefix === b.prefix ? a.name.localeCompare(b.name) : Number(b.prefix) - Number(a.prefix),
+    )
+    .map((match) => match.code);
 }
 
 /**
@@ -300,9 +341,7 @@ function matchesCountryQuery(code: string, query: string) {
  */
 export function getVisibleOriginCountries(query: string, selected: string[]) {
   const trimmed = query.trim().toLowerCase();
-  const base = trimmed
-    ? originCountries.filter((code) => matchesCountryQuery(code, trimmed))
-    : curatedOriginCountries;
-  const pinned = selected.filter((code) => !base.includes(code));
+  const base = trimmed ? rankCountryMatches(trimmed) : curatedOriginCountries;
+  const pinned = sanitizeOriginCountryCodes(selected).filter((code) => !base.includes(code));
   return [...pinned, ...base];
 }
