@@ -33,7 +33,10 @@ export function buildDiscoverSearchParams({
   const params: Record<string, string | number | undefined> = {
     page,
     sort_by: sortBy || 'popularity.desc',
-    region: DEFAULT_REGION,
+    // Follows the caller's region, same fallback as `watch_region` below. Pinning
+    // this to DEFAULT_REGION made discover ignore the signed-in user's region, so
+    // logging in changed nothing about which region TMDb resolved results for.
+    region: watchRegion ?? DEFAULT_REGION,
     include_adult: 'false',
   };
 

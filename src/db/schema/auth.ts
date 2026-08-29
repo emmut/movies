@@ -1,5 +1,13 @@
 import { relations } from 'drizzle-orm';
-import { boolean, index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 
 import { DEFAULT_REGION } from '@/lib/regions';
 
@@ -41,6 +49,12 @@ export const account = pgTable(
   'account',
   {
     id: text('id').primaryKey(),
+    // The identity namespace an account belongs to. better-auth keys OAuth
+    // identities on (issuer, accountId) rather than (providerId, accountId), so
+    // a provider id can't collide with an internal auth method. Providers
+    // without an issuer of their own get a synthetic one:
+    // `local:oauth:<providerId>` for OAuth, `local:<providerId>` otherwise.
+    issuer: text('issuer').notNull(),
     accountId: text('account_id').notNull(),
     providerId: text('provider_id').notNull(),
     userId: text('user_id')
@@ -58,7 +72,11 @@ export const account = pgTable(
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
   },
-  (table) => [index('account_userId_idx').on(table.userId)],
+  (table) => [
+    index('account_userId_idx').on(table.userId),
+    // better-auth's account identity: one row per (issuer, accountId).
+    uniqueIndex('account_issuer_accountId_idx').on(table.issuer, table.accountId),
+  ],
 );
 
 export const verification = pgTable(

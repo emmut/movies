@@ -92,6 +92,13 @@
       "when": 1788033333870,
       "tag": "0012_list_items_page_read_index",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788042133803,
+      "tag": "0013_account_issuer",
+      "breakpoints": true
     }
   ]
 }

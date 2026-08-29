@@ -58,6 +58,23 @@ describe('buildDiscoverSearchParams', () => {
     });
   });
 
+  it('resolves results for the caller region, not the default one', () => {
+    expect(buildDiscoverSearchParams({ genreIds: [], page: 1, watchRegion: 'US' })).toMatchObject({
+      region: 'US',
+    });
+
+    expect(
+      buildDiscoverSearchParams({
+        genreIds: [],
+        page: 1,
+        watchProviders: '8',
+        watchRegion: 'US',
+      }),
+    ).toMatchObject({
+      region: 'US',
+    });
+  });
+
   it('applies the origin-country filter only when set', () => {
     expect(
       buildDiscoverSearchParams({ genreIds: [], page: 1, withOriginCountry: 'SE|KR' }),
