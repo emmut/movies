@@ -14,7 +14,6 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { env } from '@/env';
 import { inter } from '@/fonts';
 import { IMAGE_CDN_URL } from '@/lib/constants';
-import { PostHogClientProvider } from '@/providers/posthog';
 import { QueryProvider } from '@/providers/query-provider';
 
 import './globals.css';
@@ -47,8 +46,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body className={clsx([inter.className])}>
         <QueryProvider>
           <NuqsAdapter>
-            <PostHogClientProvider>
-              <SidebarProvider>
+            <SidebarProvider>
                 <AppSidebarWrapper />
                 <SidebarInset>
                   {/*
@@ -71,12 +69,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <Footer />
                 </SidebarInset>
               </SidebarProvider>
-              <LoginToastHandler />
-              {/* usePathname is URL data — needs a boundary under cacheComponents. */}
-              <Suspense fallback={null}>
-                <BackScrollRestorer />
-              </Suspense>
-            </PostHogClientProvider>
+            <LoginToastHandler />
+            {/* usePathname is URL data — needs a boundary under cacheComponents. */}
+            <Suspense fallback={null}>
+              <BackScrollRestorer />
+            </Suspense>
           </NuqsAdapter>
         </QueryProvider>
         <Toaster position="top-center" richColors />

@@ -56,6 +56,11 @@ export default async function ListDetailsPage({
   const page = Number(search.page ?? '1');
 
   const { with_watch_providers, watch_region } = loadWatchProviderSearchParams(search);
+
+  // Authorization first: nothing below may start work for a list the
+  // requester doesn't own.
+  await assertOwnedCustomList(id);
+
   const { userRegion, availableWatchProviders } = await getWatchProviderFilterContext(watch_region);
 
   // Normalized exactly like the client content computes them, so the
@@ -70,7 +75,6 @@ export default async function ListDetailsPage({
 
   const [watchProviders] = await Promise.all([
     availableWatchProviders,
-    assertOwnedCustomList(id),
     queryClient.prefetchQuery({
       queryKey: queryKeys.lists.detail(id, page, activeProviders, activeRegion),
       queryFn: async () => {
