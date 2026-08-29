@@ -51,18 +51,19 @@ export default async function MoviePage(props: MoviePageProps) {
   // cold DB connection is paid once. Supporting sections (credits, providers,
   // reviews) fetch inside their own Suspense boundaries below so a slow or
   // failed TMDb endpoint streams in or degrades instead of blocking the shell.
-  const [user, userRegion, { inWatchlist, watched }, movie] = await Promise.all([
+  const [user, userRegion, { inWatchlist, watched }, movie, certification] = await Promise.all([
     getUser(),
     getUserRegion(),
     getSystemListMemberships(movieId, RESOURCE_TYPE),
     getMovieDetails(movieId),
+    optional(
+      getUserRegion().then((region) => getMediaCertification(RESOURCE_TYPE, movieId, region)),
+      null,
+    ),
   ]);
 
-  // These depend on results above (region / imdb id), so resolve them together.
-  const [certification, imdbRating] = await Promise.all([
-    optional(getMediaCertification(RESOURCE_TYPE, movieId, userRegion), null),
-    getImdbRating(movie.imdb_id),
-  ]);
+  // Depends on the movie's imdb id; a local primary-key lookup, so cheap.
+  const imdbRating = await getImdbRating(movie.imdb_id);
 
   const { title, release_date, overview, poster_path, backdrop_path, tagline, genres, runtime, homepage } =
     movie;
@@ -135,7 +136,9 @@ export default async function MoviePage(props: MoviePageProps) {
             </div>
           </div>
 
-          <TrailerContent mediaType="movie" mediaId={movieId} title={title} />
+          <Suspense fallback={null}>
+            <TrailerContent mediaType="movie" mediaId={movieId} title={title} />
+          </Suspense>
 
           {genres.length > 0 && (
             <div>

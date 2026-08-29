@@ -56,7 +56,8 @@ export async function SystemListPage({
 
   const queryClient = getQueryClient();
 
-  await Promise.all([
+  const [watchProviders] = await Promise.all([
+    availableWatchProviders,
     queryClient.prefetchQuery({
       queryKey: queryKeys[listType].list(mediaType, page, activeProviders, activeRegion),
       queryFn: () =>
@@ -86,7 +87,7 @@ export async function SystemListPage({
       <SystemListContent
         listType={listType}
         userId={user.id}
-        watchProviders={availableWatchProviders}
+        watchProviders={watchProviders}
         userRegion={userRegion}
       />
     </HydrationBoundary>

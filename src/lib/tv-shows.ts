@@ -29,7 +29,8 @@ import { addPosterImageUrls, tmdbFetch } from './tmdb';
 export async function getTvShowDetails(tvId: number) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.tv.details(tvId));
-  cacheLife('minutes');
+  // Near-static data, fanned out once per row on list pages — keep it warm.
+  cacheLife('hours');
 
   return await tmdbFetch<TvDetails>(`/tv/${tvId}`, {
     errorMessage: 'Failed loading TV show details',
@@ -65,7 +66,9 @@ export async function getTvShowCredits(resourceId: number) {
 export async function getTvShowWatchProviders(tvId: number) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.tv.watchProviders(tvId));
-  cacheLife('minutes');
+  // Same lifetime as the movie equivalent: provider availability changes
+  // rarely, and the provider filter fans this out once per list row.
+  cacheLife('days');
 
   const watchProviders = await tmdbFetch<TvWatchProviders>(`/tv/${tvId}/watch/providers`, {
     errorMessage: 'Failed loading tv watch providers',

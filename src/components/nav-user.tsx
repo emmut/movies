@@ -19,7 +19,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { signOut } from '@/lib/auth-client';
 
 import { UserAvatar } from './user-avatar';
 import { UserInfo } from './user-info';
@@ -46,6 +45,8 @@ export function NavUser({
 
   async function handleLogout() {
     try {
+      // Imported on click so the auth client stays out of the shared bundle.
+      const { signOut } = await import('@/lib/auth-client');
       const { error, data } = await signOut();
 
       if (error) {

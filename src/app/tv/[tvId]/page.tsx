@@ -54,19 +54,21 @@ export default async function TvShowPage(props: TvShowPageProps) {
   // cold DB connection is paid once. Supporting sections (cast, providers,
   // reviews) fetch inside their own Suspense boundaries below so a slow or
   // failed TMDb endpoint streams in or degrades instead of blocking the shell.
-  const [user, userRegion, { inWatchlist, watched }, tvShow, imdbId] = await Promise.all([
-    getUser(),
-    getUserRegion(),
-    getSystemListMemberships(tvId, RESOURCE_TYPE),
-    getTvShowDetails(tvId),
-    getTvShowImdbId(tvId),
-  ]);
+  const [user, userRegion, { inWatchlist, watched }, tvShow, imdbId, certification] =
+    await Promise.all([
+      getUser(),
+      getUserRegion(),
+      getSystemListMemberships(tvId, RESOURCE_TYPE),
+      getTvShowDetails(tvId),
+      getTvShowImdbId(tvId),
+      optional(
+        getUserRegion().then((region) => getMediaCertification(RESOURCE_TYPE, tvId, region)),
+        null,
+      ),
+    ]);
 
-  // These depend on results above (region / imdb id), so resolve them together.
-  const [certification, imdbRating] = await Promise.all([
-    optional(getMediaCertification(RESOURCE_TYPE, tvId, userRegion), null),
-    getImdbRating(imdbId),
-  ]);
+  // Depends on the imdb id; a local primary-key lookup, so cheap.
+  const imdbRating = await getImdbRating(imdbId);
 
   const {
     name,
@@ -154,7 +156,9 @@ export default async function TvShowPage(props: TvShowPageProps) {
             </div>
           </div>
 
-          <TrailerContent mediaType="tv" mediaId={tvId} title={name} />
+          <Suspense fallback={null}>
+            <TrailerContent mediaType="tv" mediaId={tvId} title={name} />
+          </Suspense>
 
           {genres.length > 0 && (
             <div>

@@ -7,6 +7,9 @@ import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/u
  * effective region (URL override, else the user's stored region) and the
  * providers available to pick from in that region. The independent lookups
  * run in parallel.
+ *
+ * `availableWatchProviders` is returned as a promise so the dropdown lookup
+ * runs alongside the caller's data fetches instead of gating them.
  */
 export async function getWatchProviderFilterContext(watchRegionParam: string | null) {
   const [userRegion, userWatchProviders] = await Promise.all([
@@ -14,7 +17,8 @@ export async function getWatchProviderFilterContext(watchRegionParam: string | n
     getUserWatchProviders(),
   ]);
 
-  const availableWatchProviders = await getWatchProviders(userRegion, userWatchProviders);
-
-  return { userRegion, availableWatchProviders };
+  return {
+    userRegion,
+    availableWatchProviders: getWatchProviders(userRegion, userWatchProviders),
+  };
 }

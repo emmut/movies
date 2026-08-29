@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
 import { setUserWatchProviders } from '@/lib/user-actions';
+import { formatImageUrl } from '@/lib/utils';
 import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFormProps {
@@ -102,7 +103,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
                           unoptimized
                           width={40}
                           height={40}
-                          src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
+                          src={formatImageUrl(provider.logo_path, 92)}
                           alt={provider.provider_name}
                           className="h-10 w-10 rounded-md object-contain"
                           onError={() => handleImageError(provider.provider_id)}

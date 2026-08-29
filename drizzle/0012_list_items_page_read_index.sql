@@ -1,0 +1,1 @@
+CREATE INDEX "list_items_list_type_position_idx" ON "list_items" USING btree ("list_id","resource_type","position");

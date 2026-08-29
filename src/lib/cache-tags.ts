@@ -14,6 +14,7 @@ export const CACHE_TAGS = {
       movies: 'public:discover:movies',
       tv: 'public:discover:tv',
     },
+    search: 'public:search',
     genres: {
       movies: 'public:genres:movies',
       tv: 'public:genres:tv',

@@ -23,7 +23,8 @@ describe('getWatchProviderFilterContext', () => {
   it('uses the URL region without reading the stored region', async () => {
     const result = await getWatchProviderFilterContext('US');
 
-    expect(result).toEqual({ userRegion: 'US', availableWatchProviders: [netflix] });
+    expect(result.userRegion).toBe('US');
+    await expect(result.availableWatchProviders).resolves.toEqual([netflix]);
     expect(getUserRegion).not.toHaveBeenCalled();
     expect(getWatchProviders).toHaveBeenCalledWith('US', [8]);
   });

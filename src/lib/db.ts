@@ -20,6 +20,10 @@ function createDb() {
       // request indefinitely. Kept comfortably above the observed ~30s cold-wake
       // so a legitimate wake still completes rather than tripping the deadline.
       connectionTimeoutMillis: 60_000,
+      // Keep at least one connection alive past the idle timeout: pg-pool's
+      // idle reaper only removes clients above `min`, so a quiet period never
+      // empties the pool and the next request skips the cold connect.
+      min: 1,
       // Cap connections PER instance. Serverless/scale-to-zero spins up many
       // instances, each with its own pool; total = max × instances must stay
       // under the database connection limit. Front the DB with a pooler

@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { DEFAULT_REGION } from '@/lib/regions';
-import { cn } from '@/lib/utils';
+import { cn, formatImageUrl } from '@/lib/utils';
 import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFilterProps {
@@ -176,7 +176,7 @@ export default function WatchProviderFilter({
                           unoptimized
                           width={32}
                           height={32}
-                          src={`https://image.tmdb.org/t/p/original${provider.logo_path}`}
+                          src={formatImageUrl(provider.logo_path, 92)}
                           alt={provider.provider_name}
                           className="h-8 w-8 rounded-md object-cover"
                           onError={() => handleImageError(provider.provider_id)}

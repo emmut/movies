@@ -1,13 +1,20 @@
 'use server';
 
+import { cacheLife, cacheTag } from 'next/cache';
+
 import { Movie, MultiSearchResponse, SearchedMovieResponse } from '@/types/movie';
 import { SearchedPerson, SearchedPersonResponse } from '@/types/person';
 import { SearchedTvResponse, TvShow } from '@/types/tv-show';
 
+import { CACHE_TAGS } from './cache-tags';
 import { ParsedSearchQuery, parseSearchQuery } from './parse-search-query';
 import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
 
 async function fetchMoviesBySearchQuery(query: string, page: string, year?: number) {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('hours');
+
   const movies = await tmdbFetch<SearchedMovieResponse>('/search/movie', {
     searchParams: {
       query,
@@ -26,6 +33,10 @@ async function fetchMoviesBySearchQuery(query: string, page: string, year?: numb
 }
 
 async function fetchTvShowsBySearchQuery(query: string, page: string, year?: number) {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('hours');
+
   const tvShows = await tmdbFetch<SearchedTvResponse>('/search/tv', {
     searchParams: {
       query,
@@ -43,6 +54,10 @@ async function fetchTvShowsBySearchQuery(query: string, page: string, year?: num
 }
 
 async function fetchPersonsBySearchQuery(query: string, page: string) {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('hours');
+
   const persons = await tmdbFetch<SearchedPersonResponse>('/search/person', {
     searchParams: {
       query,
@@ -59,6 +74,10 @@ async function fetchPersonsBySearchQuery(query: string, page: string) {
 }
 
 async function fetchMultiSearchQuery(query: string, page: string) {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('hours');
+
   const results = await tmdbFetch<MultiSearchResponse>('/search/multi', {
     searchParams: {
       query,

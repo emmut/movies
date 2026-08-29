@@ -16,7 +16,8 @@ import { tmdbFetch } from './tmdb';
 export async function getPersonDetails(personId: number) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.person.details(personId));
-  cacheLife('minutes');
+  // Near-static data, fanned out once per row on list pages — keep it warm.
+  cacheLife('hours');
 
   return await tmdbFetch<PersonDetails>(`/person/${personId}`, {
     errorMessage: 'Failed loading person details',
