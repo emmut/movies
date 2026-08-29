@@ -32,9 +32,19 @@ declare global {
 test('the loading skeleton is shown at the top when navigating from a scrolled position', async ({
   page,
 }) => {
+  // The sidebar Link prefetches the discover shell during initial load. Wait
+  // for that prefetch directly — a response from the discover route, armed
+  // before the load so it can't be missed — and then for the network to
+  // drain, so throttling can't start before the shell is cached. An
+  // unprefetched shell commits skeleton and content together and the skeleton
+  // window never opens.
+  const discoverPrefetched = page.waitForResponse(
+    (res) => new URL(res.url()).pathname.startsWith('/discover'),
+    { timeout: 15_000 },
+  );
   await page.goto(MOVIE_PATH);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  // Let the sidebar Link prefetch the discover shell before throttling.
+  await discoverPrefetched;
   await page.waitForLoadState('networkidle');
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
