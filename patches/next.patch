@@ -1,5 +1,5 @@
 diff --git a/dist/client/components/layout-router.js b/dist/client/components/layout-router.js
-index 46e87784d63ce67f831b5a8491a58276b49e1cbd..fbdb446da4881de26a24e1ce65025d5bb7f884b4 100644
+index 46e87784d63ce67f831b5a8491a58276b49e1cbd..cf1a3b41f1f613d0b3e94700505c9da0dbffea9c 100644
 --- a/dist/client/components/layout-router.js
 +++ b/dist/client/components/layout-router.js
 @@ -177,12 +177,13 @@ class InnerScrollAndFocusHandlerOld extends _react.default.Component {
@@ -38,8 +38,59 @@ index 46e87784d63ce67f831b5a8491a58276b49e1cbd..fbdb446da4881de26a24e1ce65025d5b
                      return;
                  }
                  // Otherwise, try scrolling go the top of the document to be backward compatible with pages
+@@ -471,6 +477,28 @@ function LoadingBoundaryProvider({ loading, children }) {
+         children: children
+     });
+ }
++// PATCHED(movies): a navigation's scroll intent (scrollRef) is assigned only
++// to the new leaf CacheNode, and that leaf's ScrollAndMaybeFocusHandler lives
++// inside the segment's still-pending RSC payload. While a loading.tsx
++// fallback is on screen no mounted handler owns the intent, so the skeleton
++// keeps the previous scroll offset and the page only jumps to the top when
++// the real content finally commits. Run the same scroll handler over the
++// fallback, wired to the navigation-wide scrollRef, so the scroll happens the
++// moment the skeleton appears. Hash navigations are left alone: their target
++// element only exists in the real content.
++function LoadingFallbackScrollHandler({ children }) {
++    const context = (0, _react.useContext)(_approutercontextsharedruntime.GlobalLayoutRouterContext);
++    if (!context || context.focusAndScrollRef.hashFragment !== null) {
++        return children;
++    }
++    return /*#__PURE__*/ (0, _jsxruntime.jsx)(InnerScrollAndMaybeFocusHandler, {
++        focusAndScrollRef: context.focusAndScrollRef,
++        cacheNode: {
++            scrollRef: context.focusAndScrollRef.scrollRef
++        },
++        children: children
++    });
++}
+ /**
+  * Renders suspense boundary with the provided "loading" property as the fallback.
+  * If no loading property is provided it renders the children without a suspense boundary.
+@@ -486,12 +514,15 @@ function LoadingBoundaryProvider({ loading, children }) {
+         const loadingScripts = loading[2];
+         return /*#__PURE__*/ (0, _jsxruntime.jsx)(_react.Suspense, {
+             name: name,
+-            fallback: /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
+-                children: [
+-                    loadingStyles,
+-                    loadingScripts,
+-                    loadingRsc
+-                ]
++            // PATCHED(movies): see LoadingFallbackScrollHandler above.
++            fallback: /*#__PURE__*/ (0, _jsxruntime.jsx)(LoadingFallbackScrollHandler, {
++                children: /*#__PURE__*/ (0, _jsxruntime.jsxs)(_jsxruntime.Fragment, {
++                    children: [
++                        loadingStyles,
++                        loadingScripts,
++                        loadingRsc
++                    ]
++                })
+             }),
+             children: children
+         });
 diff --git a/dist/esm/client/components/layout-router.js b/dist/esm/client/components/layout-router.js
-index fadc689a52ca23d110fecd0af97a960ab0b5304c..a753dbae1f2397b1a999e949b8c3b5f96c2e1025 100644
+index fadc689a52ca23d110fecd0af97a960ab0b5304c..c79078d71ac68a19e1fa8134fcce157d104eddd3 100644
 --- a/dist/esm/client/components/layout-router.js
 +++ b/dist/esm/client/components/layout-router.js
 @@ -150,12 +150,13 @@ class InnerScrollAndFocusHandlerOld extends React.Component {
@@ -78,3 +129,54 @@ index fadc689a52ca23d110fecd0af97a960ab0b5304c..a753dbae1f2397b1a999e949b8c3b5f9
                      return;
                  }
                  // Otherwise, try scrolling go the top of the document to be backward compatible with pages
+@@ -444,6 +450,28 @@ export function LoadingBoundaryProvider({ loading, children }) {
+         children: children
+     });
+ }
++// PATCHED(movies): a navigation's scroll intent (scrollRef) is assigned only
++// to the new leaf CacheNode, and that leaf's ScrollAndMaybeFocusHandler lives
++// inside the segment's still-pending RSC payload. While a loading.tsx
++// fallback is on screen no mounted handler owns the intent, so the skeleton
++// keeps the previous scroll offset and the page only jumps to the top when
++// the real content finally commits. Run the same scroll handler over the
++// fallback, wired to the navigation-wide scrollRef, so the scroll happens the
++// moment the skeleton appears. Hash navigations are left alone: their target
++// element only exists in the real content.
++function LoadingFallbackScrollHandler({ children }) {
++    const context = useContext(GlobalLayoutRouterContext);
++    if (!context || context.focusAndScrollRef.hashFragment !== null) {
++        return children;
++    }
++    return /*#__PURE__*/ _jsx(InnerScrollAndMaybeFocusHandler, {
++        focusAndScrollRef: context.focusAndScrollRef,
++        cacheNode: {
++            scrollRef: context.focusAndScrollRef.scrollRef
++        },
++        children: children
++    });
++}
+ /**
+  * Renders suspense boundary with the provided "loading" property as the fallback.
+  * If no loading property is provided it renders the children without a suspense boundary.
+@@ -459,12 +487,15 @@ export function LoadingBoundaryProvider({ loading, children }) {
+         const loadingScripts = loading[2];
+         return /*#__PURE__*/ _jsx(Suspense, {
+             name: name,
+-            fallback: /*#__PURE__*/ _jsxs(_Fragment, {
+-                children: [
+-                    loadingStyles,
+-                    loadingScripts,
+-                    loadingRsc
+-                ]
++            // PATCHED(movies): see LoadingFallbackScrollHandler above.
++            fallback: /*#__PURE__*/ _jsx(LoadingFallbackScrollHandler, {
++                children: /*#__PURE__*/ _jsxs(_Fragment, {
++                    children: [
++                        loadingStyles,
++                        loadingScripts,
++                        loadingRsc
++                    ]
++                })
+             }),
+             children: children
+         });
