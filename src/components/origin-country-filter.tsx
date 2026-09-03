@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from 'cn';
 import { Check, Filter } from 'lucide-react';
 import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
 import { ComponentProps, useState } from 'react';
@@ -20,7 +21,6 @@ import {
   getVisibleOriginCountries,
   sanitizeOriginCountryCodes,
 } from '@/lib/countries';
-import { cn } from '@/lib/utils';
 
 function getTriggerLabel(selected: string[]) {
   if (selected.length === 0) return 'Select origin countries';

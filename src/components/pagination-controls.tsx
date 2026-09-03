@@ -1,6 +1,5 @@
 'use client';
-
-import clsx from 'clsx';
+import { clsx } from 'cn';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { parseAsInteger, useQueryStates } from 'nuqs';
 import { useEffect } from 'react';

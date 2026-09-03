@@ -1,8 +1,9 @@
+import { cn } from 'cn';
 import { User } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
-import { cn, formatImageUrl } from '@/lib/utils';
+import { formatImageUrl } from '@/lib/utils';
 import { PersonDetails, SearchedPerson } from '@/types/person';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 

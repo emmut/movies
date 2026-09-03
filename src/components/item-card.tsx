@@ -1,8 +1,9 @@
+import { cn } from 'cn';
 import { Star } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
-import { cn, formatImageUrl } from '@/lib/utils';
+import { formatImageUrl } from '@/lib/utils';
 import { Movie, MovieDetails } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 import { TvDetails, TvShow } from '@/types/tv-show';

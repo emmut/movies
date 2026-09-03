@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from 'cn';
 import { Search as SearchIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -17,7 +18,6 @@ import { useSearchMulti } from '@/hooks/use-search-query';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
 import { useShortcutLabel } from '@/hooks/use-shortcut-label';
 import { saveBackTarget } from '@/lib/back-target';
-import { cn } from '@/lib/utils';
 
 import {
   buildSeeAllHref,

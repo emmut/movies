@@ -1,8 +1,7 @@
 'use client';
 
+import { cn } from 'cn';
 import { useState } from 'react';
-
-import { cn } from '@/lib/utils';
 
 type ExpandableTextProps = {
   text: string;

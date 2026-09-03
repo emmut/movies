@@ -1,5 +1,6 @@
 'use client';
 
+import { cn } from 'cn';
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
@@ -15,7 +16,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { DEFAULT_REGION } from '@/lib/regions';
-import { cn, formatImageUrl } from '@/lib/utils';
+import { formatImageUrl } from '@/lib/utils';
 import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFilterProps {

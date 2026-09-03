@@ -4,6 +4,7 @@ import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, rectSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useQueryClient } from '@tanstack/react-query';
+import { cn } from 'cn';
 import { Check, Edit, GripVertical, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -17,7 +18,6 @@ import { useReorderSensors } from '@/hooks/use-reorder-sensors';
 import { sameIdOrder } from '@/lib/list-order';
 import { LocalList, moveList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
-import { cn } from '@/lib/utils';
 
 interface ListsGridProps {
   lists: LocalList[];

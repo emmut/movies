@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import { clsx } from 'cn';
 
 const sizes = ['size-1', 'size-2', 'size-3', 'size-4', 'size-5', 'size-6'];
 

@@ -1,6 +1,3 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
 import { IMAGE_CDN_URL } from '@/lib/constants';
 
 export function formatDateYear(date: string) {
@@ -12,10 +9,6 @@ export function formatImageUrl(path: string | null, width = 500) {
     return '';
   }
   return `${IMAGE_CDN_URL}w${width}${path}`;
-}
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
 }
 
 export function formatCurrency(amount: number, withSymbol = true) {

@@ -45,7 +45,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "better-auth": "^1.7.2",
     "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
+    "cn": "^0.2.4",
     "csv-parse": "^7.0.2",
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.35.0",
@@ -58,7 +58,6 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "sonner": "^2.0.8",
-    "tailwind-merge": "^3.6.0",
     "tailwindcss": "4.3.3",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^4.5.1"
