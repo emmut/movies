@@ -1,8 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { clsx } from 'cn';
-import { cn } from 'cn';
+import { clsx, cn } from 'cn';
 import { CircleCheck, Eye, Star } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 
