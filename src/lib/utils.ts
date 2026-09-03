@@ -11,8 +11,6 @@ export function formatImageUrl(path: string | null, width = 500) {
   return `${IMAGE_CDN_URL}w${width}${path}`;
 }
 
-export { cn } from 'cn';
-
 export function formatCurrency(amount: number, withSymbol = true) {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

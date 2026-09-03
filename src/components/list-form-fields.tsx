@@ -1,12 +1,12 @@
 'use client';
 
+import { cn } from 'cn';
 import type { ChangeEvent } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { EMOJI_OPTIONS } from '@/lib/config';
-import { cn } from '@/lib/utils';
 
 type ListFormFieldsProps = {
   name: string;

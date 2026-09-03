@@ -1,10 +1,9 @@
 'use client';
 
+import { cn } from 'cn';
 import { Eye, Home, List, Sparkles, Star } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-import { cn } from '@/lib/utils';
 
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from './ui/sidebar';
 

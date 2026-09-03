@@ -2,13 +2,13 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { clsx } from 'cn';
+import { cn } from 'cn';
 import { CircleCheck, Eye, Star } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { queryKeys } from '@/lib/query-keys';
 import { toggleSystemListItem } from '@/lib/system-list-actions';
-import { cn } from '@/lib/utils';
 import type { SystemListType } from '@/lib/validations';
 
 const BUTTON_COPY: Record<

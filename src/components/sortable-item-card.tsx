@@ -2,10 +2,10 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { cn } from 'cn';
 import type { ReactNode } from 'react';
 
 import { ReorderControls } from '@/components/reorder-controls';
-import { cn } from '@/lib/utils';
 
 interface SortableItemCardProps {
   id: string;
