@@ -21,10 +21,13 @@ const nextConfig: NextConfig = {
     ];
   },
   cacheLife: {
-    biweekly: {
+    // Data that essentially never changes (e.g. TMDb genre lists). Served from
+    // cache indefinitely with a monthly background refresh; bust on demand via
+    // the entry's cache tag.
+    nearStatic: {
       stale: 60 * 60 * 24 * 14, // 14 days
-      revalidate: 60 * 60 * 24, // 1 day
-      expire: 60 * 60 * 24 * 14, // 14 days
+      revalidate: 60 * 60 * 24 * 30, // 30 days
+      expire: 60 * 60 * 24 * 365, // 1 year
     },
     privateShort: {
       stale: 60, // 1 minute
