@@ -8,6 +8,7 @@ import { SearchedTvResponse, TvShow } from '@/types/tv-show';
 
 import { CACHE_TAGS } from './cache-tags';
 import { ParsedSearchQuery, parseSearchQuery } from './parse-search-query';
+import { searchIndexResults } from './search-index';
 import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
 
 async function fetchMoviesBySearchQuery(query: string, page: string, year?: number) {
@@ -111,6 +112,66 @@ export type SearchMultiResult = {
 
 function hasQueryFilters(parsed: ParsedSearchQuery) {
   return parsed.year !== undefined || parsed.mediaType !== undefined;
+}
+
+// Fuzzy results are a single ranked page; more than this and the tail is noise.
+const FUZZY_FALLBACK_LIMIT = 20;
+const SUGGESTION_LIMIT = 8;
+
+type FuzzyMediaType = 'movie' | 'tv' | 'person';
+
+/**
+ * Fuzzy-matches the local trigram index (see `search_index`) for queries
+ * TMDB's literal search cannot answer: typos, partial words, swapped word
+ * order. Only on the first page, since it yields one ranked page. The index
+ * is a convenience layer, so a failure (an empty preview database, an
+ * outage) degrades to no extra results rather than failing the search.
+ */
+async function fuzzyResults(
+  title: string,
+  page: string,
+  limit: number,
+  mediaType?: FuzzyMediaType,
+) {
+  if (page !== '1') {
+    return [];
+  }
+  try {
+    return await searchIndexResults(title, { mediaType, limit });
+  } catch (error) {
+    console.error('Fuzzy search index unavailable; skipping:', error);
+    return [];
+  }
+}
+
+function withImageUrls(result: MultiSearchResponse['results'][number]) {
+  if (result.media_type === 'person') {
+    return addProfileImageUrls(result);
+  }
+  if (result.media_type === 'movie' || result.media_type === 'tv') {
+    return addPosterImageUrls(result);
+  }
+  return result;
+}
+
+/**
+ * When TMDB found nothing for one media type, the fuzzy fallback for it;
+ * otherwise the TMDB results untouched.
+ */
+async function fuzzyFallback<T extends { id: number }>(
+  results: T[],
+  totalPages: number,
+  title: string,
+  page: string,
+  mediaType: FuzzyMediaType,
+) {
+  if (results.length > 0) {
+    return { results, totalPages };
+  }
+  const fallback = (await fuzzyResults(title, page, FUZZY_FALLBACK_LIMIT, mediaType)).filter(
+    (result) => result.media_type === mediaType,
+  ) as unknown as T[];
+  return { results: fallback, totalPages: fallback.length > 0 ? 1 : totalPages };
 }
 
 async function searchMultiMovies(
@@ -254,8 +315,15 @@ export async function getSearchMovies(
     }
   }
 
-  const { movies, totalPages } = await fetchMoviesBySearchQuery(query, String(page));
-  return { movies: movies.map(addPosterImageUrls), totalPages };
+  const raw = await fetchMoviesBySearchQuery(query, String(page));
+  const { results, totalPages } = await fuzzyFallback(
+    raw.movies,
+    raw.totalPages,
+    parsed.title,
+    String(page),
+    'movie',
+  );
+  return { movies: results.map(addPosterImageUrls), totalPages };
 }
 
 /**
@@ -287,8 +355,15 @@ export async function getSearchTvShows(
     }
   }
 
-  const { tvShows, totalPages } = await fetchTvShowsBySearchQuery(query, String(page));
-  return { tvShows: tvShows.map(addPosterImageUrls), totalPages };
+  const raw = await fetchTvShowsBySearchQuery(query, String(page));
+  const { results, totalPages } = await fuzzyFallback(
+    raw.tvShows,
+    raw.totalPages,
+    parsed.title,
+    String(page),
+    'tv',
+  );
+  return { tvShows: results.map(addPosterImageUrls), totalPages };
 }
 
 /**
@@ -319,8 +394,15 @@ export async function getSearchPersons(
     }
   }
 
-  const { persons, totalPages } = await fetchPersonsBySearchQuery(query, String(page));
-  return { persons: persons.map(addProfileImageUrls), totalPages };
+  const raw = await fetchPersonsBySearchQuery(query, String(page));
+  const { results, totalPages } = await fuzzyFallback(
+    raw.persons,
+    raw.totalPages,
+    parsed.title,
+    String(page),
+    'person',
+  );
+  return { persons: results.map(addProfileImageUrls), totalPages };
 }
 
 /**
@@ -347,19 +429,38 @@ export async function getSearchMulti(query: string, page: number = 1): Promise<S
     return filtered;
   }
 
-  const { results, totalPages } = await fetchMultiSearchQuery(query, String(page));
-  return {
-    results: results.map((result) => {
-      if (result.media_type === 'person') {
-        return addProfileImageUrls(result);
-      }
+  const raw = await fetchMultiSearchQuery(query, String(page));
+  if (raw.results.length > 0) {
+    return { results: raw.results.map(withImageUrls), totalPages: raw.totalPages };
+  }
 
-      if (result.media_type === 'movie' || result.media_type === 'tv') {
-        return addPosterImageUrls(result);
-      }
+  // TMDB's literal match found nothing: try the fuzzy index (typos, partial
+  // words) with the parsed title, narrowed to a media type when one was given.
+  const fuzzy = await fuzzyResults(
+    parsed.title,
+    String(page),
+    FUZZY_FALLBACK_LIMIT,
+    parsed.mediaType,
+  );
+  return { results: fuzzy.map(withImageUrls), totalPages: fuzzy.length > 0 ? 1 : raw.totalPages };
+}
 
-      return result;
-    }),
-    totalPages,
-  };
+/**
+ * Command-palette suggestions: local-first. The trigram index answers in
+ * milliseconds and tolerates typing in progress and misspellings; TMDB's
+ * search is the fallback when the index has nothing (a query too short to
+ * trigram-match, a database without the index loaded, no match at all).
+ *
+ * @param query - The search query string, as typed.
+ * @returns A single page of mixed results in the multi-search shape.
+ */
+export async function getSearchSuggestions(query: string): Promise<SearchMultiResult> {
+  const parsed = parseSearchQuery(query);
+  const fuzzy = await fuzzyResults(parsed.title, '1', SUGGESTION_LIMIT, parsed.mediaType);
+
+  if (fuzzy.length > 0) {
+    return { results: fuzzy.map(withImageUrls), totalPages: 1 };
+  }
+
+  return await getSearchMulti(query, 1);
 }

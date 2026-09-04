@@ -30,6 +30,7 @@ The most-used scripts — run `pnpm run` for the full list, which is authoritati
 | `pnpm fallow` | Audit changed files (dead code, complexity, duplication). |
 | `pnpm db:push` / `pnpm db:studio` | Apply schema / open Drizzle Studio. |
 | `pnpm sync:titles` | Refresh the local title cache (see `scripts/README.md`). |
+| `pnpm ingest:search` | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
 
 Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` all pass.
 
@@ -46,6 +47,7 @@ Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test
 
 - Anonymous users are supported; their watchlist is migrated onto the account on link/sign-in.
 - List pages answer the stream-provider filter from a local cache of the titles in users' lists (`titles`, `title_availability`), written through on add and refreshed nightly by `scripts/sync-titles.ts`. TMDB stays the source of truth; everything else (discover, search, detail pages) reads TMDB through `'use cache'`. See `docs/title-cache-plan.md` for what the cache is meant to unlock next.
+- Search is TMDB-first with a local fallback: `search_index` holds every TMDB id with its original title (from the daily exports), matched with `pg_trgm` when TMDB's literal search returns nothing and queried first by the command palette. An empty index (fresh database, no ingest yet) just means no fuzzy results.
 - Auth is Better Auth with Discord/GitHub social providers and passkey support.
 - UI primitives are Base UI (`@base-ui/react`) styled in `src/components/ui/`, shadcn-managed via `components.json`.
 
