@@ -163,8 +163,9 @@ export default defineRailway((ctx) => {
     },
     env: {
       DATABASE_URL: prod ? preserve() : db.env.DATABASE_URL,
-      // Set once on the service in Railway; the movies service holds the same token.
-      MOVIE_DB_ACCESS_TOKEN: preserve(),
+      // Reference the movies service's token rather than preserve(): a brand-new
+      // service has nothing to preserve, and the sync exits at startup without it.
+      MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
     },
   });
 
