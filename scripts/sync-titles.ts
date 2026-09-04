@@ -34,6 +34,7 @@ import {
 } from '@/lib/title-sync';
 import { createTmdbFetch } from '@/lib/tmdb-fetch';
 
+import { describeError } from './describe-error';
 import { env } from './env';
 
 // TMDB's unofficial ceiling is ~50 requests/s; a handful in flight keeps a
@@ -123,6 +124,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('❌ Error:', error instanceof Error ? error.message : String(error));
+  console.error('❌ Error:', describeError(error));
   process.exit(1);
 });
