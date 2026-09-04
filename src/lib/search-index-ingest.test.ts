@@ -6,6 +6,8 @@ import {
   exportDates,
   exportFileUrl,
   ingestExportLines,
+  isExportComplete,
+  MIN_EXPORT_ROWS,
   normalizeSearchTitle,
   parseExportLine,
   SEARCH_INDEX_EXPORTS,
@@ -170,14 +172,49 @@ describe('upsertSearchIndexBatch', () => {
   });
 });
 
+describe('isExportComplete', () => {
+  it('accepts a total at or above the media type’s floor', () => {
+    expect(isExportComplete('movie', MIN_EXPORT_ROWS.movie)).toBe(true);
+    expect(isExportComplete('person', MIN_EXPORT_ROWS.person + 1)).toBe(true);
+  });
+
+  it('rejects an empty or truncated export', () => {
+    expect(isExportComplete('movie', 0)).toBe(false);
+    expect(isExportComplete('tv', MIN_EXPORT_ROWS.tv - 1)).toBe(false);
+  });
+
+  it('keeps the floors well under the real export sizes', () => {
+    // Roughly 1M movies, 200k TV series, 3M+ people; a floor near the real
+    // size would fail healthy runs, a floor near zero would not catch a
+    // broken parser.
+    expect(MIN_EXPORT_ROWS.movie).toBeLessThan(900_000);
+    expect(MIN_EXPORT_ROWS.tv).toBeLessThan(180_000);
+    expect(MIN_EXPORT_ROWS.person).toBeLessThan(2_500_000);
+    expect(MIN_EXPORT_ROWS.tv).toBeGreaterThan(10_000);
+  });
+});
+
 describe('deleteStaleSearchIndexRows', () => {
-  it('returns the number of pruned rows', async () => {
+  it('returns the number of pruned rows for the given media type', async () => {
     const returning = vi.fn().mockResolvedValue([{ tmdbId: 1 }, { tmdbId: 2 }]);
     const where = vi.fn().mockReturnValue({ returning });
     const database = { delete: vi.fn().mockReturnValue({ where }) } as unknown as NodePgDatabase;
 
-    await expect(deleteStaleSearchIndexRows(database)).resolves.toBe(2);
+    await expect(deleteStaleSearchIndexRows(database, 'movie')).resolves.toBe(2);
     expect(where).toHaveBeenCalledTimes(1);
+  });
+
+  it('scopes the delete to one media type', async () => {
+    const { PgDialect } = await import('drizzle-orm/pg-core');
+    const where = vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([]) });
+    const database = { delete: vi.fn().mockReturnValue({ where }) } as unknown as NodePgDatabase;
+
+    await deleteStaleSearchIndexRows(database, 'tv');
+
+    const rendered = new PgDialect().sqlToQuery(where.mock.calls[0][0]);
+    expect(rendered.sql).toContain('"search_index"."media_type" = $1');
+    expect(rendered.sql).toContain('"search_index"."updated_at" <');
+    expect(rendered.params).toEqual(['tv']);
   });
 });
 
