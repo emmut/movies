@@ -146,7 +146,29 @@ export default defineRailway((ctx) => {
     },
   });
 
+  // Nightly cron that refreshes the local title cache (titles and their
+  // streaming availability) for every title in a list, and prunes the rest.
+  // Same shape as imdb-ingest; needs the TMDB token on top of the database.
+  // Availability rows go stale after ~20h, so a run every night refreshes all
+  // of them; details only weekly.
+  const titleSync = service("title-sync", {
+    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    build: { buildCommand: "echo 'skipping app build — cron runs tsx directly'" },
+    deploy: {
+      startCommand: "pnpm tsx scripts/sync-titles.ts",
+      cronSchedule: "0 4 * * *",
+      restartPolicyType: "NEVER",
+      // A few TMDB requests in flight and one small pool — far under half a GB.
+      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+    },
+    env: {
+      DATABASE_URL: prod ? preserve() : db.env.DATABASE_URL,
+      // Set once on the service in Railway; the movies service holds the same token.
+      MOVIE_DB_ACCESS_TOKEN: preserve(),
+    },
+  });
+
   return project("movies", {
-    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest],
+    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest, titleSync],
   });
 });

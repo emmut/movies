@@ -1,41 +1,39 @@
 import { describe, expect, it } from 'vitest';
 
-import { paginate } from './paginate';
+import { pageWindow } from './paginate';
 
-describe('paginate', () => {
-  const items = ['a', 'b', 'c', 'd', 'e'];
-
-  it('returns the requested page slice with metadata', () => {
-    expect(paginate(items, 2, 2)).toEqual({
-      pageItems: ['c', 'd'],
+describe('pageWindow', () => {
+  it('returns the page metadata and row offset', () => {
+    expect(pageWindow(5, 2, 2)).toEqual({
       totalItems: 5,
       totalPages: 3,
       currentPage: 2,
       itemsPerPage: 2,
+      offset: 2,
     });
   });
 
   it('clamps past-the-end pages to the last page', () => {
-    const result = paginate(items, 99, 2);
+    const result = pageWindow(5, 99, 2);
 
-    expect(result.pageItems).toEqual(['e']);
     expect(result.currentPage).toBe(3);
+    expect(result.offset).toBe(4);
   });
 
   it('clamps pages below 1 up to the first page', () => {
-    const result = paginate(items, 0, 2);
+    const result = pageWindow(5, 0, 2);
 
-    expect(result.pageItems).toEqual(['a', 'b']);
     expect(result.currentPage).toBe(1);
+    expect(result.offset).toBe(0);
   });
 
-  it('returns an empty first page for an empty set', () => {
-    expect(paginate([], 3, 2)).toEqual({
-      pageItems: [],
+  it('reports no pages and the first page for an empty set', () => {
+    expect(pageWindow(0, 3, 20)).toEqual({
       totalItems: 0,
       totalPages: 0,
       currentPage: 1,
-      itemsPerPage: 2,
+      itemsPerPage: 20,
+      offset: 0,
     });
   });
 });

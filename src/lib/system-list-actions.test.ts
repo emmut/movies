@@ -6,12 +6,14 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 vi.mock('@/lib/system-list', () => ({
   toggleSystemListRow: vi.fn(),
 }));
+vi.mock('@/lib/title-sync-server', () => ({ scheduleTitleSync: vi.fn() }));
 
 import { revalidatePath } from 'next/cache';
 
 import { requireUser } from '@/lib/auth-server';
 import { revalidateUserSystemListCache } from '@/lib/cache-invalidation';
 import { toggleSystemListRow } from '@/lib/system-list';
+import { scheduleTitleSync } from '@/lib/title-sync-server';
 
 import { toggleSystemListItem } from './system-list-actions';
 
@@ -59,6 +61,24 @@ describe('toggleSystemListItem', () => {
     expect(revalidateUserSystemListCache).toHaveBeenCalledWith('user-1', 'watched', 'tv', 5);
     expect(revalidatePath).toHaveBeenCalledWith('/watched');
     expect(revalidatePath).not.toHaveBeenCalledWith('/watchlist');
+  });
+
+  it('writes the title through to the local cache when added', async () => {
+    vi.mocked(toggleSystemListRow).mockResolvedValue('added');
+
+    await toggleSystemListItem({ listType: 'watchlist', resourceId: 7, resourceType: 'tv' });
+
+    expect(scheduleTitleSync).toHaveBeenCalledWith('tv', 7);
+  });
+
+  it('does not sync the title when removed or unchanged', async () => {
+    vi.mocked(toggleSystemListRow).mockResolvedValueOnce('removed');
+    await toggleSystemListItem({ listType: 'watchlist', resourceId: 7, resourceType: 'movie' });
+
+    vi.mocked(toggleSystemListRow).mockResolvedValueOnce('unchanged');
+    await toggleSystemListItem({ listType: 'watched', resourceId: 7, resourceType: 'movie' });
+
+    expect(scheduleTitleSync).not.toHaveBeenCalled();
   });
 
   it('rejects invalid input before touching the database', async () => {

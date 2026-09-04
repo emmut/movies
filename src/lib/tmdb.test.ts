@@ -15,6 +15,7 @@ vi.mock('@/lib/imgproxy-url', () => ({
 }));
 
 import { addPosterImageUrls, addProfileImageUrls, optional, tmdbFetch } from './tmdb';
+import { TmdbRequestError } from './tmdb-fetch';
 
 function jsonResponse(body: unknown, status = 200, headers: Record<string, string> = {}) {
   return {
@@ -70,7 +71,9 @@ describe('tmdbFetch', () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({}));
 
     await withTimersFlushed(
-      tmdbFetch('/search/movie', { searchParams: { query: 'inception', page: 2, year: undefined } }),
+      tmdbFetch('/search/movie', {
+        searchParams: { query: 'inception', page: 2, year: undefined },
+      }),
     );
 
     const [url] = fetchMock.mock.calls[0];
@@ -174,12 +177,20 @@ describe('tmdbFetch', () => {
   });
 
   it('fails fast on a timeout without retrying (a hung upstream should degrade)', async () => {
-    fetchMock.mockRejectedValue(
-      new DOMException('The operation timed out.', 'TimeoutError'),
-    );
+    fetchMock.mockRejectedValue(new DOMException('The operation timed out.', 'TimeoutError'));
 
     await expect(withTimersFlushed(tmdbFetch('/movie/1'))).rejects.toThrow('timed out');
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('exposes the HTTP status on a non-OK response so callers can tell 404 from an outage', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({}, 404));
+
+    const error = await withTimersFlushed(tmdbFetch('/movie/0')).catch((e: unknown) => e);
+
+    expect(error).toBeInstanceOf(TmdbRequestError);
+    expect((error as TmdbRequestError).status).toBe(404);
+    expect((error as TmdbRequestError).name).toBe('TmdbRequestError');
   });
 
   it('does not retry a non-retryable status and throws a default message', async () => {
