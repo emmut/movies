@@ -28,7 +28,7 @@ Watch-provider data comes from JustWatch through TMDB and must be attributed as 
 
 ## Ingest Search Index
 
-Downloads TMDB's [daily id exports](https://developer.themoviedb.org/docs/daily-id-exports) (movies, TV series, people; roughly 4–5M lines in total) and upserts them into the `search_index` table, then prunes ids that stopped appearing. Each line carries only an id, the original title or name, popularity, and the adult flag; adult entries are skipped. Search falls back to this table (pg_trgm fuzzy matching) when TMDB's literal search finds nothing, and the command palette queries it first.
+Downloads TMDB's [daily id exports](https://developer.themoviedb.org/docs/daily-id-exports) (movies, TV series, people; roughly 4–5M lines in total) and upserts them into the `search_index` table, then prunes ids that stopped appearing. Pruning is per media type and only runs when that type's export parsed to a plausible number of rows (see `MIN_EXPORT_ROWS`), so an empty or reformatted export can never wipe the index; the run exits non-zero instead. Each line carries only an id, the original title or name, popularity, and the adult flag; adult entries are skipped. Search falls back to this table (pg_trgm fuzzy matching) when TMDB's literal search finds nothing, and the command palette queries it first.
 
 ### Usage
 

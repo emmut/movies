@@ -26,6 +26,8 @@ import {
   exportDates,
   exportFileUrl,
   ingestExportLines,
+  isExportComplete,
+  MIN_EXPORT_ROWS,
   SEARCH_INDEX_EXPORTS,
   type SearchIndexExport,
 } from '@/lib/search-index-ingest';
@@ -79,22 +81,48 @@ async function ingestExport({ mediaType, file }: SearchIndexExport) {
     console.log(
       `✅ ${mediaType}: ${total.toLocaleString('en-US')} rows upserted, ${skipped.toLocaleString('en-US')} skipped (adult or malformed)`,
     );
+    return total;
   } finally {
     clearTimeout(timeout);
   }
 }
 
-async function main() {
-  for (const exportFile of SEARCH_INDEX_EXPORTS) {
-    await ingestExport(exportFile);
+/**
+ * Prunes stale rows of one media type, but only when its export came back
+ * complete. An empty or unparseable export leaves every existing row
+ * untouched for that day; pruning it would delete the whole type a week
+ * later while the job reported success.
+ */
+async function pruneIfComplete(mediaType: SearchIndexExport['mediaType'], total: number) {
+  if (!isExportComplete(mediaType, total)) {
+    console.error(
+      `⚠️ ${mediaType}: only ${total.toLocaleString('en-US')} rows ingested (expected at least ${MIN_EXPORT_ROWS[mediaType].toLocaleString('en-US')}); skipping the stale-row prune for this type`,
+    );
+    return false;
   }
 
-  const stale = await deleteStaleSearchIndexRows(db);
+  const stale = await deleteStaleSearchIndexRows(db, mediaType);
   if (stale > 0) {
-    console.log(`🧹 Pruned ${stale.toLocaleString('en-US')} rows gone from the exports`);
+    console.log(`🧹 ${mediaType}: pruned ${stale.toLocaleString('en-US')} rows gone from the export`);
+  }
+  return true;
+}
+
+async function main() {
+  let incomplete = 0;
+  for (const exportFile of SEARCH_INDEX_EXPORTS) {
+    const total = await ingestExport(exportFile);
+    if (!(await pruneIfComplete(exportFile.mediaType, total))) {
+      incomplete++;
+    }
   }
 
   await db.$client.end();
+
+  if (incomplete > 0) {
+    console.error(`❌ Done with ${incomplete} incomplete export(s)`);
+    process.exit(1);
+  }
   console.log('✅ Done');
 }
 

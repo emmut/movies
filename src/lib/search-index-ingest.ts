@@ -1,4 +1,4 @@
-import { lt, sql } from 'drizzle-orm';
+import { and, eq, lt, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import { searchIndex } from '@/db/schema/search-index';
@@ -24,6 +24,24 @@ export const SEARCH_INDEX_EXPORTS: readonly SearchIndexExport[] = [
 ];
 
 const EXPORTS_BASE_URL = 'https://files.tmdb.org/p/exports';
+
+/**
+ * Sanity floors for a complete export, well under the real sizes (roughly
+ * 1M movies, 200k TV series, 3M+ people in 2026). An export that parses to
+ * fewer rows than this was truncated, empty, or in a format the parser no
+ * longer understands — and must not drive the stale-row prune, which would
+ * otherwise delete the whole media type a week later.
+ */
+export const MIN_EXPORT_ROWS: Record<SearchIndexMediaType, number> = {
+  movie: 500_000,
+  tv: 100_000,
+  person: 1_000_000,
+};
+
+/** Whether an ingest wrote enough rows for the export to count as complete. */
+export function isExportComplete(mediaType: SearchIndexMediaType, total: number) {
+  return total >= MIN_EXPORT_ROWS[mediaType];
+}
 
 /**
  * Folds a title for trigram matching: Unicode-decomposed with combining
@@ -194,17 +212,27 @@ export async function ingestExportLines(
 }
 
 /**
- * Deletes rows that stopped appearing in the daily exports — ids TMDB has
- * removed would otherwise keep matching forever and 404 on click. The grace
+ * Deletes rows of one media type that stopped appearing in its daily export —
+ * ids TMDB has removed would otherwise keep matching forever and 404 on
+ * click. Scoped to a media type so a bad export for one type never prunes
+ * another; only call it after `isExportComplete` for that type. The grace
  * period is generous next to the daily cadence, so a few failed runs never
  * purge live data.
  *
  * @returns The number of deleted rows.
  */
-export async function deleteStaleSearchIndexRows(database: NodePgDatabase) {
+export async function deleteStaleSearchIndexRows(
+  database: NodePgDatabase,
+  mediaType: SearchIndexMediaType,
+) {
   const deleted = await database
     .delete(searchIndex)
-    .where(lt(searchIndex.updatedAt, sql`now() - interval '7 days'`))
+    .where(
+      and(
+        eq(searchIndex.mediaType, mediaType),
+        lt(searchIndex.updatedAt, sql`now() - interval '7 days'`),
+      ),
+    )
     .returning({ tmdbId: searchIndex.tmdbId });
   return deleted.length;
 }
