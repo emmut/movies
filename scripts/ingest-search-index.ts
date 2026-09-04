@@ -32,6 +32,7 @@ import {
   type SearchIndexExport,
 } from '@/lib/search-index-ingest';
 
+import { describeError } from './describe-error';
 import { env } from './env';
 
 const BATCH_SIZE = 5_000;
@@ -130,6 +131,6 @@ async function main() {
 // ceremony than the seven lines it saves.
 // fallow-ignore-next-line code-duplication
 main().catch((error) => {
-  console.error('❌ Error:', error instanceof Error ? error.message : String(error));
+  console.error('❌ Error:', describeError(error));
   process.exit(1);
 });
