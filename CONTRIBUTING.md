@@ -56,7 +56,7 @@ Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test
 
 ## CI
 
-`.github/workflows/ci.yml` gates PRs targeting `main`:
+`.github/workflows/ci.yml` gates every PR, including stacked PRs whose base is another feature branch:
 
 - **Lint, typecheck & test**.
 - **Fallow audit** — fails only on findings newly introduced relative to the merge-base.

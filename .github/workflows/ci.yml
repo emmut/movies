@@ -3,8 +3,9 @@ name: CI
 on:
   push:
     branches: [main]
+  # Every pull request, whatever its base: a stacked PR targets another
+  # feature branch and would otherwise get no CI and no preview infra.
   pull_request:
-    branches: [main]
 
 # Cancel superseded runs on the same ref.
 concurrency:

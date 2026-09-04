@@ -1,8 +1,9 @@
 name: Railway infra
 
 on:
+  # Every pull request, whatever its base: a stacked PR targets another
+  # feature branch and would otherwise get no CI and no preview infra.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
