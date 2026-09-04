@@ -99,5 +99,6 @@ export const queryKeys = {
       [...queryKeys.search.lists(), 'persons', query, page] as const,
     multi: (query: string, page: number) =>
       [...queryKeys.search.lists(), 'multi', query, page] as const,
+    suggestions: (query: string) => [...queryKeys.search.lists(), 'suggestions', query] as const,
   },
 } as const;

@@ -173,7 +173,27 @@ export default defineRailway((ctx) => {
     },
   });
 
+  // Daily cron that loads TMDB's id exports (movies, TV, people) into the
+  // search_index table for fuzzy search. TMDB publishes the files by 08:00
+  // UTC, so run an hour later. Only needs the database: the exports are
+  // public files, not API calls.
+  const searchIndexIngest = service("search-index-ingest", {
+    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    build: { buildCommand: "echo 'skipping app build — cron runs tsx directly'" },
+    deploy: {
+      startCommand: "pnpm tsx scripts/ingest-search-index.ts",
+      cronSchedule: "0 9 * * *",
+      restartPolicyType: "NEVER",
+      // Streams the gzipped files line by line with 5k-row batches and one
+      // pg connection — same footprint as imdb-ingest.
+      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+    },
+    env: {
+      DATABASE_URL: prod ? preserve() : db.env.DATABASE_URL,
+    },
+  });
+
   return project("movies", {
-    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest, titleSync],
+    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest, titleSync, searchIndexIngest],
   });
 });

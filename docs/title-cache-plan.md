@@ -75,6 +75,49 @@ Rough order; each is independently shippable.
    path and the nightly job cover them. If that ever matters, schedule a
    sync in the migration path too.
 
+## Search
+
+Same principle, different slice. TMDB's `/search` endpoints are literal
+title matches with no typo tolerance and no control over ranking, and there
+is no corpus to embed for semantic queries. TMDB's daily id exports supply
+the slice search needs without crawling: every id with its original title
+and popularity.
+
+Done (PR 2 in this stack):
+
+- `search_index` from the exports, `pg_trgm` GIN index on a folded title,
+  daily `pnpm ingest:search` (Railway `search-index-ingest`).
+- Zero-result fallback: when TMDB returns nothing on page 1, rank the index
+  by trigram or word similarity, a prefix boost, and log popularity, then
+  hydrate the hits from the cached details fetchers.
+- Command palette is local-first, TMDB as fallback (short queries, an empty
+  index, no match).
+
+Next:
+
+1. **Merged results with tuned ranking.** On the full search page, run TMDB
+   and the index in parallel and merge, so a typo still shows the literal
+   matches TMDB has and the index adds what it missed. Weights in
+   `fuzzyScore` are a first guess; tune against real queries once PostHog
+   shows what people type.
+2. **Localized and alternative titles.** The exports carry original titles
+   only, so "Amélie" misses "Le fabuleux destin d'Amélie Poulain". Union in
+   `titles.title` (English titles for everything in a list) and fetch
+   `/alternative_titles` lazily for hits people click, storing them as extra
+   index rows keyed to the same id.
+3. **Ingest cost.** Four to five million upserts a night is fine for
+   Postgres but not free. If it becomes a problem: skip people below a
+   popularity floor, or diff against yesterday's file and upsert only
+   changed lines.
+4. **Semantic search within lists.** Store overviews next to `titles`, embed
+   them, add a `pgvector` column: "that heist one" over your own watchlist
+   is small and clearly within the caching allowance.
+5. **Semantic search over the catalog.** No overviews in the exports, so no
+   corpus to embed. The practical substitute is query expansion: a small
+   language-model call turns a description into candidate titles, which run
+   through the normal search path; cache by normalized query. Check the
+   current API reference before wiring it up.
+
 ## Non-goals
 
 - Mirroring the TMDB catalog. The cache is bounded by what users keep in
