@@ -1,23 +1,23 @@
 import { clsx } from 'cn';
+import { Metadata } from 'next';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode, Suspense } from 'react';
 import { preconnect } from 'react-dom';
 import { Toaster } from 'sonner';
 
-import { BackScrollRestorer } from '@/components/back-scroll-restorer';
 import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
+import { BackScrollRestorer } from '@/components/back-scroll-restorer';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
-import { SearchCommand } from '@/components/search-command';
+import { SearchCommand, SearchCommandFallback } from '@/components/search-command';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { env } from '@/env';
 import { inter } from '@/fonts';
 import { IMAGE_CDN_URL } from '@/lib/constants';
-import { QueryProvider } from '@/providers/query-provider';
 
 import './globals.css';
-import { Metadata } from 'next';
+import { QueryProvider } from '@/providers/query-provider';
 
 export const metadata: Metadata = {
   title: 'Movies',
@@ -47,9 +47,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <QueryProvider>
           <NuqsAdapter>
             <SidebarProvider>
-                <AppSidebarWrapper />
-                <SidebarInset>
-                  {/*
+              <AppSidebarWrapper />
+              <SidebarInset>
+                {/*
                     Sticky so search stays reachable while scrolling. Needs an
                     opaque background, since content scrolls underneath. Its
                     height is `--header-height`, which globals.css also uses as
@@ -60,15 +60,18 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                     z-10`, so it forms its own stacking context and stays above
                     this regardless.
                   */}
-                  <header className="sticky top-0 z-10 flex h-(--header-height) shrink-0 items-center gap-4 border-b bg-background px-4">
-                    <SidebarTrigger className="-ml-1" />
-                    <Separator orientation="vertical" className="h-4" />
+                <header className="sticky top-0 z-10 flex h-(--header-height) shrink-0 items-center gap-4 border-b bg-background px-4">
+                  <SidebarTrigger className="-ml-1" />
+                  <Separator orientation="vertical" className="h-4" />
+                  {/* useSearchParams is URL data — needs a boundary under cacheComponents. */}
+                  <Suspense fallback={<SearchCommandFallback />}>
                     <SearchCommand />
-                  </header>
-                  <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6">{children}</div>
-                  <Footer />
-                </SidebarInset>
-              </SidebarProvider>
+                  </Suspense>
+                </header>
+                <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6">{children}</div>
+                <Footer />
+              </SidebarInset>
+            </SidebarProvider>
             <LoginToastHandler />
             {/* usePathname is URL data — needs a boundary under cacheComponents. */}
             <Suspense fallback={null}>

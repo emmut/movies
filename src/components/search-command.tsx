@@ -3,7 +3,7 @@
 import { cn } from 'cn';
 import { Search as SearchIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { KeyboardEvent, RefObject, useCallback, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
@@ -230,10 +230,11 @@ function SearchCommandFooter({ itemCount, href, query, onNavigate }: SearchComma
 type SearchCommandPanelProps = {
   inputRef: RefObject<HTMLInputElement | null>;
   onNavigate: (href: string) => void;
+  initialQuery: string;
 };
 
-function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
-  const [query, setQuery] = useState('');
+function SearchCommandPanel({ inputRef, onNavigate, initialQuery }: SearchCommandPanelProps) {
+  const [query, setQuery] = useState(initialQuery);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const debouncedQuery = useDebouncedValue(query.trim(), 250);
@@ -332,12 +333,17 @@ function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
  *
  * Opens via click, ⌘K/Ctrl+K, or `/`. Arrow keys move the selection, Enter
  * opens the selected result, and "See all results" deep-links to /search.
+ *
+ * While viewing search results, the current query stays visible both on the
+ * trigger itself and, pre-filled, in the palette it opens.
  */
 export function SearchCommand() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const openShortcut = useShortcutLabel('K');
+  const searchParams = useSearchParams();
+  const currentQuery = searchParams.get('q') ?? '';
 
   // Mount the dialog synchronously and focus the input within the opening
   // gesture. iOS Safari only raises the keyboard for a focus() that happens
@@ -363,7 +369,9 @@ export function SearchCommand() {
         className="flex h-9 max-w-md flex-1 items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm text-muted-foreground transition-colors hover:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <SearchIcon className="h-4 w-4" />
-        <span className="flex-1 text-left">Search...</span>
+        <span className={cn('flex-1 truncate text-left', currentQuery && 'text-foreground')}>
+          {currentQuery || 'Search...'}
+        </span>
         <Kbd>{openShortcut}</Kbd>
       </button>
 
@@ -373,9 +381,31 @@ export function SearchCommand() {
           className="top-24 translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg"
         >
           <DialogTitle className="sr-only">Search</DialogTitle>
-          <SearchCommandPanel inputRef={inputRef} onNavigate={navigate} />
+          <SearchCommandPanel
+            inputRef={inputRef}
+            onNavigate={navigate}
+            initialQuery={currentQuery}
+          />
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+/**
+ * Static stand-in for {@link SearchCommand} rendered while its `useSearchParams()`
+ * read is suspended (`cacheComponents` requires a Suspense boundary around any
+ * dynamic URL read). Keeps the header's layout stable during that gap.
+ */
+export function SearchCommandFallback() {
+  return (
+    <button
+      type="button"
+      disabled
+      className="flex h-9 max-w-md flex-1 items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm text-muted-foreground"
+    >
+      <SearchIcon className="h-4 w-4" />
+      <span className="flex-1 text-left">Search...</span>
+    </button>
   );
 }
