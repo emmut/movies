@@ -25,7 +25,6 @@ import {
   getSubmitHref,
   moveSelection,
   SearchCommandItem,
-  syncPaletteQuery,
   toSearchCommandItems,
 } from './search-command-items';
 
@@ -232,26 +231,18 @@ function SearchCommandFooter({ itemCount, href, query, onNavigate }: SearchComma
 type SearchCommandPanelProps = {
   inputRef: RefObject<HTMLInputElement | null>;
   onNavigate: (href: string) => void;
+  initialQuery: string;
 };
 
-function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
-  // Read through nuqs, not a prop, so this stays live if the URL's `q`
-  // changes from elsewhere (e.g. browser back/forward) while the palette is
-  // open. `query` is a local draft the input types into — it must not write
-  // back to the URL on every keystroke — so it only follows `urlQuery` when
-  // that value itself changes (syncPaletteQuery), checked during render
-  // rather than in an effect, so there's no extra render showing the stale
-  // query first.
-  const [urlQuery] = useQueryState('q', parseAsString.withDefault(''));
-  const [query, setQuery] = useState(urlQuery);
+function SearchCommandPanel({ inputRef, onNavigate, initialQuery }: SearchCommandPanelProps) {
+  // `query` is a local draft the input types into — it must not write back
+  // to the URL on every keystroke, so it starts from `initialQuery` and then
+  // lives independently of it. If the URL's `q` changes from elsewhere (e.g.
+  // browser back/forward) while the palette is open, SearchCommand remounts
+  // this component with a fresh `key`, which resets this state to the new
+  // `initialQuery` — simpler than diffing the two on every render.
+  const [query, setQuery] = useState(initialQuery);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [syncedUrlQuery, setSyncedUrlQuery] = useState(urlQuery);
-  const sync = syncPaletteQuery(urlQuery, syncedUrlQuery);
-  if (sync) {
-    setQuery(sync.query);
-    setActiveIndex(sync.activeIndex);
-    setSyncedUrlQuery(sync.syncedUrlQuery);
-  }
 
   const debouncedQuery = useDebouncedValue(query.trim(), 250);
   const { data, isLoading, isFetching, isPlaceholderData } = useSearchMulti({
@@ -396,7 +387,15 @@ export function SearchCommand() {
           className="top-24 translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg"
         >
           <DialogTitle className="sr-only">Search</DialogTitle>
-          <SearchCommandPanel inputRef={inputRef} onNavigate={navigate} />
+          {/* Keyed on the query so a URL change while open (e.g. browser
+              back/forward) remounts the panel instead of leaving its typed
+              draft stale. */}
+          <SearchCommandPanel
+            key={currentQuery}
+            inputRef={inputRef}
+            onNavigate={navigate}
+            initialQuery={currentQuery}
+          />
         </DialogContent>
       </Dialog>
     </>

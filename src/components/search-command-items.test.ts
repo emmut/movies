@@ -6,7 +6,6 @@ import {
   buildSeeAllHref,
   getSubmitHref,
   moveSelection,
-  syncPaletteQuery,
   toSearchCommandItems,
 } from './search-command-items';
 
@@ -161,30 +160,6 @@ describe('getSubmitHref', () => {
 
   it('does nothing when the input is empty', () => {
     expect(getSubmitHref([], 0, true, '/search?q=', false)).toBeNull();
-  });
-});
-
-describe('syncPaletteQuery', () => {
-  it('does nothing when the URL query has not changed', () => {
-    expect(syncPaletteQuery('heat', 'heat')).toBeNull();
-  });
-
-  // Regression: browser back/forward while the palette stays open used to
-  // leave the draft (and its search) on the previous query.
-  it('resets the draft and selection when the URL query changes', () => {
-    expect(syncPaletteQuery('matrix', 'heat')).toEqual({
-      query: 'matrix',
-      activeIndex: 0,
-      syncedUrlQuery: 'matrix',
-    });
-  });
-
-  it('treats leaving the search page (q cleared) as a change too', () => {
-    expect(syncPaletteQuery('', 'heat')).toEqual({
-      query: '',
-      activeIndex: 0,
-      syncedUrlQuery: '',
-    });
   });
 });
 
