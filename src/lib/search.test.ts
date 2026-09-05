@@ -7,15 +7,29 @@ vi.mock('./tmdb', () => ({
   addPosterImageUrls: vi.fn((item: object) => ({ ...item, _poster: true })),
   addProfileImageUrls: vi.fn((item: object) => ({ ...item, _profile: true })),
 }));
+// The fuzzy index is a fallback; by default it finds nothing so the TMDB
+// paths below behave as before.
+vi.mock('./search-index', () => ({ searchIndexResults: vi.fn() }));
 
-import { getSearchMovies, getSearchMulti, getSearchPersons, getSearchTvShows } from './search';
+import {
+  getSearchMovies,
+  getSearchMulti,
+  getSearchPersons,
+  getSearchSuggestions,
+  getSearchTvShows,
+} from './search';
+import { searchIndexResults } from './search-index';
 import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
 
 const mockedFetch = vi.mocked(tmdbFetch);
+const mockedFuzzy = vi.mocked(searchIndexResults);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockedFuzzy.mockResolvedValue([]);
 });
+
+const NO_RESULTS = { results: [], total_pages: 0, total_results: 0 };
 
 describe('getSearchMovies', () => {
   it('maps poster urls onto every result and surfaces total pages', async () => {
@@ -415,5 +429,147 @@ describe('media-type keywords on single-type searches', () => {
       expect.objectContaining({ searchParams: expect.objectContaining({ query: 'mr person' }) }),
     );
     expect(result.persons).toEqual([{ id: 5, _profile: true }]);
+  });
+});
+
+describe('fuzzy fallback', () => {
+  const fuzzyMovie = { id: 157336, title: 'Interstellar', media_type: 'movie' as const };
+  const fuzzyPerson = { id: 287, name: 'Brad Pitt', media_type: 'person' as const };
+
+  it('getSearchMovies falls back to the index when TMDB finds nothing on page 1', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
+
+    const result = await getSearchMovies('intersteller');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: 'movie', limit: 10 });
+    expect(result.movies).toEqual([{ ...fuzzyMovie, _poster: true }]);
+    expect(result.totalPages).toBe(1);
+  });
+
+  it('passes the parsed title (year and type stripped) to the index', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+
+    await getSearchMovies('intersteller 2014 movie');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', expect.anything());
+  });
+
+  it('does not consult the index when TMDB has results', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1 }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+
+    await getSearchMovies('matrix');
+
+    expect(mockedFuzzy).not.toHaveBeenCalled();
+  });
+
+  it('does not consult the index beyond the first page', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+
+    const result = await getSearchMovies('matrix', 3);
+
+    expect(mockedFuzzy).not.toHaveBeenCalled();
+    expect(result.movies).toEqual([]);
+  });
+
+  it('getSearchTvShows and getSearchPersons fall back with their media type', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([fuzzyPerson as never]);
+
+    await getSearchTvShows('brekaing bad');
+    expect(mockedFuzzy).toHaveBeenLastCalledWith('brekaing bad', { mediaType: 'tv', limit: 10 });
+
+    const persons = await getSearchPersons('brad pit');
+    expect(mockedFuzzy).toHaveBeenLastCalledWith('brad pit', { mediaType: 'person', limit: 10 });
+    expect(persons.persons).toEqual([{ ...fuzzyPerson, _profile: true }]);
+  });
+
+  it('keeps only results of the requested media type', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([fuzzyPerson as never, fuzzyMovie as never]);
+
+    const result = await getSearchMovies('x');
+
+    expect(result.movies).toEqual([{ ...fuzzyMovie, _poster: true }]);
+  });
+
+  it('getSearchMulti falls back to the index with the parsed media type', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([fuzzyMovie as never, fuzzyPerson as never]);
+
+    const result = await getSearchMulti('intersteller');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: undefined, limit: 10 });
+    expect(result.results).toEqual([
+      { ...fuzzyMovie, _poster: true },
+      { ...fuzzyPerson, _profile: true },
+    ]);
+    expect(result.totalPages).toBe(1);
+  });
+
+  it('getSearchMulti reports TMDB’s empty page when the index has nothing either', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+
+    const result = await getSearchMulti('zzzz');
+
+    expect(result.results).toEqual([]);
+    expect(result.totalPages).toBe(0);
+  });
+
+  it('degrades to TMDB’s empty result when the index itself fails', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockRejectedValue(new Error('relation "search_index" does not exist'));
+
+    const result = await getSearchMovies('matrix');
+
+    expect(result.movies).toEqual([]);
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+});
+
+describe('getSearchSuggestions', () => {
+  const fuzzyMovie = { id: 157336, title: 'Interstellar', media_type: 'movie' as const };
+
+  it('answers from TMDB in one request when it has results, never touching the index', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1, media_type: 'movie' }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+
+    const result = await getSearchSuggestions('interst');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(mockedFetch).toHaveBeenCalledWith(
+      '/search/multi',
+      expect.objectContaining({ searchParams: expect.objectContaining({ query: 'interst' }) }),
+    );
+    expect(mockedFuzzy).not.toHaveBeenCalled();
+    expect(result.results).toEqual([{ id: 1, media_type: 'movie', _poster: true }]);
+  });
+
+  it('falls back to a dropdown-sized fuzzy page when TMDB has nothing', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
+
+    const result = await getSearchSuggestions('intersteller');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: undefined, limit: 8 });
+    expect(result).toEqual({ results: [{ ...fuzzyMovie, _poster: true }], totalPages: 1 });
+  });
+
+  it('narrows the fuzzy fallback to a media-type keyword in the query', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
+
+    await getSearchSuggestions('intersteller movie');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: 'movie', limit: 8 });
   });
 });
