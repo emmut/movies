@@ -63,7 +63,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 <header className="sticky top-0 z-10 flex h-(--header-height) shrink-0 items-center gap-4 border-b bg-background px-4">
                   <SidebarTrigger className="-ml-1" />
                   <Separator orientation="vertical" className="h-4" />
-                  {/* useSearchParams is URL data — needs a boundary under cacheComponents. */}
+                  {/* nuqs reads useSearchParams under the hood — needs a boundary under cacheComponents. */}
                   <Suspense fallback={<SearchCommandFallback />}>
                     <SearchCommand />
                   </Suspense>

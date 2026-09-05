@@ -3,7 +3,8 @@
 import { cn } from 'cn';
 import { Search as SearchIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { parseAsString, useQueryState } from 'nuqs';
 import { KeyboardEvent, RefObject, useCallback, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
@@ -230,12 +231,25 @@ function SearchCommandFooter({ itemCount, href, query, onNavigate }: SearchComma
 type SearchCommandPanelProps = {
   inputRef: RefObject<HTMLInputElement | null>;
   onNavigate: (href: string) => void;
-  initialQuery: string;
 };
 
-function SearchCommandPanel({ inputRef, onNavigate, initialQuery }: SearchCommandPanelProps) {
-  const [query, setQuery] = useState(initialQuery);
+function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
+  // Read through nuqs, not a prop, so this stays live if the URL's `q`
+  // changes from elsewhere (e.g. browser back/forward) while the palette is
+  // open. `query` is a local draft the input types into — it must not write
+  // back to the URL on every keystroke — so it only follows `urlQuery` when
+  // that value itself changes, tracked below the React-recommended way
+  // (comparing against last-seen during render) rather than with an effect,
+  // so there's no extra render showing the stale query first.
+  const [urlQuery] = useQueryState('q', parseAsString.withDefault(''));
+  const [query, setQuery] = useState(urlQuery);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [syncedUrlQuery, setSyncedUrlQuery] = useState(urlQuery);
+  if (urlQuery !== syncedUrlQuery) {
+    setSyncedUrlQuery(urlQuery);
+    setQuery(urlQuery);
+    setActiveIndex(0);
+  }
 
   const debouncedQuery = useDebouncedValue(query.trim(), 250);
   const { data, isLoading, isFetching, isPlaceholderData } = useSearchMulti({
@@ -342,8 +356,7 @@ export function SearchCommand() {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const openShortcut = useShortcutLabel('K');
-  const searchParams = useSearchParams();
-  const currentQuery = searchParams.get('q') ?? '';
+  const [currentQuery] = useQueryState('q', parseAsString.withDefault(''));
 
   // Mount the dialog synchronously and focus the input within the opening
   // gesture. iOS Safari only raises the keyboard for a focus() that happens
@@ -381,11 +394,7 @@ export function SearchCommand() {
           className="top-24 translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg"
         >
           <DialogTitle className="sr-only">Search</DialogTitle>
-          <SearchCommandPanel
-            inputRef={inputRef}
-            onNavigate={navigate}
-            initialQuery={currentQuery}
-          />
+          <SearchCommandPanel inputRef={inputRef} onNavigate={navigate} />
         </DialogContent>
       </Dialog>
     </>
@@ -393,7 +402,7 @@ export function SearchCommand() {
 }
 
 /**
- * Static stand-in for {@link SearchCommand} rendered while its `useSearchParams()`
+ * Static stand-in for {@link SearchCommand} rendered while its `useQueryState()`
  * read is suspended (`cacheComponents` requires a Suspense boundary around any
  * dynamic URL read). Keeps the header's layout stable during that gap.
  */
