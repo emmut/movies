@@ -166,6 +166,10 @@ export default defineRailway((ctx) => {
       // Reference the movies service's token rather than preserve(): a brand-new
       // service has nothing to preserve, and the sync exits at startup without it.
       MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
+      // Off outside production: the service exists in every environment (see
+      // imdb-ingest), but a preview should not spend TMDB requests refreshing
+      // its cache. Flip it on a preview by hand when testing the sync there.
+      TITLE_SYNC_ENABLED: prod ? "true" : "false",
     },
   });
 

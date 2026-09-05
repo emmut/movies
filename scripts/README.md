@@ -22,7 +22,7 @@ Refreshes the local title cache — the `titles`, `title_availability`, and `tit
 pnpm sync:titles
 ```
 
-Needs `DATABASE_URL` and `MOVIE_DB_ACCESS_TOKEN` (from `.env` locally). Runs nightly in production as the `title-sync` Railway cron service (04:00 UTC). Titles are also written through when they are added to a list, so a run mostly refreshes stale rows: availability daily, details weekly. A title TMDB has deleted is recorded with an empty availability set so filtered pages stop retrying it. The run exits non-zero if any title failed to sync; failed titles stay stale and are retried the next night.
+Needs `DATABASE_URL`, `MOVIE_DB_ACCESS_TOKEN`, and `TITLE_SYNC_ENABLED=true` (from `.env` locally); without the flag the script exits immediately, which is how preview environments stay quiet. Runs nightly in production as the `title-sync` Railway cron service (04:00 UTC), where the Railway config sets the flag. Titles are also written through when they are added to a list, so a run mostly refreshes stale rows: availability daily, details weekly. A title TMDB has deleted is recorded with an empty availability set so filtered pages stop retrying it. The run exits non-zero if any title failed to sync; failed titles stay stale and are retried the next night.
 
 Watch-provider data comes from JustWatch through TMDB and must be attributed as such wherever it is shown.
 
