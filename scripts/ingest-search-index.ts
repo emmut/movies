@@ -19,7 +19,8 @@ import { createInterface } from 'node:readline';
 import { Readable } from 'node:stream';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
-import { drizzle } from 'drizzle-orm/node-postgres';
+
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import {
   deleteStaleSearchIndexRows,
@@ -32,6 +33,7 @@ import {
   type SearchIndexExport,
 } from '@/lib/search-index-ingest';
 
+import { connectForCron } from './cron-db';
 import { describeError } from './describe-error';
 import { env } from './env';
 
@@ -39,7 +41,10 @@ const BATCH_SIZE = 5_000;
 const PROGRESS_INTERVAL = 250_000;
 const DOWNLOAD_TIMEOUT_MS = 20 * 60 * 1000;
 
-const db = drizzle({ connection: { connectionString: env.DATABASE_URL, max: 1 } });
+if (!env.SEARCH_INDEX_INGEST_ENABLED) {
+  console.log('⏭️ SEARCH_INDEX_INGEST_ENABLED is not set; nothing to do in this environment.');
+  process.exit(0);
+}
 
 /**
  * Opens today's export, falling back to yesterday's when today's is not
@@ -59,7 +64,7 @@ async function openExport(file: SearchIndexExport['file'], signal: AbortSignal) 
   throw new Error(`No export available for ${file} (last response: ${lastStatus})`);
 }
 
-async function ingestExport({ mediaType, file }: SearchIndexExport) {
+async function ingestExport(db: NodePgDatabase, { mediaType, file }: SearchIndexExport) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
 
@@ -94,7 +99,11 @@ async function ingestExport({ mediaType, file }: SearchIndexExport) {
  * untouched for that day; pruning it would delete the whole type a week
  * later while the job reported success.
  */
-async function pruneIfComplete(mediaType: SearchIndexExport['mediaType'], total: number) {
+async function pruneIfComplete(
+  db: NodePgDatabase,
+  mediaType: SearchIndexExport['mediaType'],
+  total: number,
+) {
   if (!isExportComplete(mediaType, total)) {
     console.error(
       `⚠️ ${mediaType}: only ${total.toLocaleString('en-US')} rows ingested (expected at least ${MIN_EXPORT_ROWS[mediaType].toLocaleString('en-US')}); skipping the stale-row prune for this type`,
@@ -104,16 +113,20 @@ async function pruneIfComplete(mediaType: SearchIndexExport['mediaType'], total:
 
   const stale = await deleteStaleSearchIndexRows(db, mediaType);
   if (stale > 0) {
-    console.log(`🧹 ${mediaType}: pruned ${stale.toLocaleString('en-US')} rows gone from the export`);
+    console.log(
+      `🧹 ${mediaType}: pruned ${stale.toLocaleString('en-US')} rows gone from the export`,
+    );
   }
   return true;
 }
 
 async function main() {
+  const db = await connectForCron(env.DATABASE_URL, 1);
+
   let incomplete = 0;
   for (const exportFile of SEARCH_INDEX_EXPORTS) {
-    const total = await ingestExport(exportFile);
-    if (!(await pruneIfComplete(exportFile.mediaType, total))) {
+    const total = await ingestExport(db, exportFile);
+    if (!(await pruneIfComplete(db, exportFile.mediaType, total))) {
       incomplete++;
     }
   }
