@@ -442,7 +442,7 @@ describe('fuzzy fallback', () => {
 
     const result = await getSearchMovies('intersteller');
 
-    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: 'movie', limit: 20 });
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: 'movie', limit: 10 });
     expect(result.movies).toEqual([{ ...fuzzyMovie, _poster: true }]);
     expect(result.totalPages).toBe(1);
   });
@@ -481,10 +481,10 @@ describe('fuzzy fallback', () => {
     mockedFuzzy.mockResolvedValue([fuzzyPerson as never]);
 
     await getSearchTvShows('brekaing bad');
-    expect(mockedFuzzy).toHaveBeenLastCalledWith('brekaing bad', { mediaType: 'tv', limit: 20 });
+    expect(mockedFuzzy).toHaveBeenLastCalledWith('brekaing bad', { mediaType: 'tv', limit: 10 });
 
     const persons = await getSearchPersons('brad pit');
-    expect(mockedFuzzy).toHaveBeenLastCalledWith('brad pit', { mediaType: 'person', limit: 20 });
+    expect(mockedFuzzy).toHaveBeenLastCalledWith('brad pit', { mediaType: 'person', limit: 10 });
     expect(persons.persons).toEqual([{ ...fuzzyPerson, _profile: true }]);
   });
 
@@ -503,7 +503,7 @@ describe('fuzzy fallback', () => {
 
     const result = await getSearchMulti('intersteller');
 
-    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: undefined, limit: 20 });
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: undefined, limit: 10 });
     expect(result.results).toEqual([
       { ...fuzzyMovie, _poster: true },
       { ...fuzzyPerson, _profile: true },
@@ -536,37 +536,40 @@ describe('fuzzy fallback', () => {
 describe('getSearchSuggestions', () => {
   const fuzzyMovie = { id: 157336, title: 'Interstellar', media_type: 'movie' as const };
 
-  it('answers from the index without calling TMDB', async () => {
-    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
-
-    const result = await getSearchSuggestions('interst');
-
-    expect(mockedFuzzy).toHaveBeenCalledWith('interst', { mediaType: undefined, limit: 8 });
-    expect(mockedFetch).not.toHaveBeenCalled();
-    expect(result).toEqual({ results: [{ ...fuzzyMovie, _poster: true }], totalPages: 1 });
-  });
-
-  it('narrows the index to a media-type keyword in the query', async () => {
-    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
-
-    await getSearchSuggestions('interst movie');
-
-    expect(mockedFuzzy).toHaveBeenCalledWith('interst', { mediaType: 'movie', limit: 8 });
-  });
-
-  it('falls back to the TMDB multi search when the index has nothing', async () => {
+  it('answers from TMDB in one request when it has results, never touching the index', async () => {
     mockedFetch.mockResolvedValue({
       results: [{ id: 1, media_type: 'movie' }],
       total_pages: 1,
       total_results: 1,
     } as never);
 
-    const result = await getSearchSuggestions('b');
+    const result = await getSearchSuggestions('interst');
 
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
     expect(mockedFetch).toHaveBeenCalledWith(
       '/search/multi',
-      expect.objectContaining({ searchParams: expect.objectContaining({ query: 'b' }) }),
+      expect.objectContaining({ searchParams: expect.objectContaining({ query: 'interst' }) }),
     );
+    expect(mockedFuzzy).not.toHaveBeenCalled();
     expect(result.results).toEqual([{ id: 1, media_type: 'movie', _poster: true }]);
+  });
+
+  it('falls back to a dropdown-sized fuzzy page when TMDB has nothing', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
+
+    const result = await getSearchSuggestions('intersteller');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: undefined, limit: 8 });
+    expect(result).toEqual({ results: [{ ...fuzzyMovie, _poster: true }], totalPages: 1 });
+  });
+
+  it('narrows the fuzzy fallback to a media-type keyword in the query', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
+
+    await getSearchSuggestions('intersteller movie');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: 'movie', limit: 8 });
   });
 });

@@ -113,6 +113,13 @@
       "when": 1788504522048,
       "tag": "0015_search_index",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1788605669715,
+      "tag": "0016_search_index_gist",
+      "breakpoints": true
     }
   ]
 }

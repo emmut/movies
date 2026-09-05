@@ -114,8 +114,9 @@ function hasQueryFilters(parsed: ParsedSearchQuery) {
   return parsed.year !== undefined || parsed.mediaType !== undefined;
 }
 
-// Fuzzy results are a single ranked page; more than this and the tail is noise.
-const FUZZY_FALLBACK_LIMIT = 20;
+// Fuzzy results are a single ranked page, each hit hydrated with one cached
+// TMDB details call; more than this and the tail is noise paid for in latency.
+const FUZZY_FALLBACK_LIMIT = 10;
 const SUGGESTION_LIMIT = 8;
 
 type FuzzyMediaType = 'movie' | 'tv' | 'person';
@@ -405,23 +406,11 @@ export async function getSearchPersons(
   return { persons: results.map(addProfileImageUrls), totalPages };
 }
 
-/**
- * Fetches multi search data for use with React Query.
- * Can be called on both server and client (via server actions).
- *
- * A trailing media-type keyword ("heat movie", "the office tv show",
- * "brad pitt person") narrows the search to that endpoint. Otherwise, when the
- * query ends in a year (e.g. "heat 1995") — TMDB's multi endpoint has no year
- * parameter — the movie and TV endpoints are searched in parallel with the
- * year filter, plus the person endpoint with the year-stripped title so people
- * are not lost to the filter, and merged by popularity. When all of that
- * yields nothing, the raw query falls through to a plain multi search.
- *
- * @param query - The search query string
- * @param page - The page number to fetch
- * @returns Object containing mixed results array and total pages
- */
-export async function getSearchMulti(query: string, page: number = 1): Promise<SearchMultiResult> {
+async function searchMulti(
+  query: string,
+  page: number,
+  fallbackLimit: number,
+): Promise<SearchMultiResult> {
   const parsed = parseSearchQuery(query);
   const filtered = await searchMultiFiltered(parsed, String(page));
 
@@ -436,31 +425,40 @@ export async function getSearchMulti(query: string, page: number = 1): Promise<S
 
   // TMDB's literal match found nothing: try the fuzzy index (typos, partial
   // words) with the parsed title, narrowed to a media type when one was given.
-  const fuzzy = await fuzzyResults(
-    parsed.title,
-    String(page),
-    FUZZY_FALLBACK_LIMIT,
-    parsed.mediaType,
-  );
+  const fuzzy = await fuzzyResults(parsed.title, String(page), fallbackLimit, parsed.mediaType);
   return { results: fuzzy.map(withImageUrls), totalPages: fuzzy.length > 0 ? 1 : raw.totalPages };
 }
 
 /**
- * Command-palette suggestions: local-first. The trigram index answers in
- * milliseconds and tolerates typing in progress and misspellings; TMDB's
- * search is the fallback when the index has nothing (a query too short to
- * trigram-match, a database without the index loaded, no match at all).
+ * Fetches multi search data for use with React Query.
+ * Can be called on both server and client (via server actions).
+ *
+ * A trailing media-type keyword ("heat movie", "the office tv show",
+ * "brad pitt person") narrows the search to that endpoint. Otherwise, when the
+ * query ends in a year (e.g. "heat 1995") — TMDB's multi endpoint has no year
+ * parameter — the movie and TV endpoints are searched in parallel with the
+ * year filter, plus the person endpoint with the year-stripped title so people
+ * are not lost to the filter, and merged by popularity. When all of that
+ * yields nothing, the raw query falls through to a plain multi search, and
+ * when that is empty too, to the local fuzzy index.
+ *
+ * @param query - The search query string
+ * @param page - The page number to fetch
+ * @returns Object containing mixed results array and total pages
+ */
+export async function getSearchMulti(query: string, page: number = 1): Promise<SearchMultiResult> {
+  return await searchMulti(query, page, FUZZY_FALLBACK_LIMIT);
+}
+
+/**
+ * Command-palette suggestions: the same TMDB-first search as
+ * {@link getSearchMulti}, sized for a dropdown. TMDB answers in one request
+ * with posters included; the fuzzy index only steps in when TMDB has nothing
+ * (a typo, a misspelt name), since each of its hits costs a details lookup.
  *
  * @param query - The search query string, as typed.
  * @returns A single page of mixed results in the multi-search shape.
  */
 export async function getSearchSuggestions(query: string): Promise<SearchMultiResult> {
-  const parsed = parseSearchQuery(query);
-  const fuzzy = await fuzzyResults(parsed.title, '1', SUGGESTION_LIMIT, parsed.mediaType);
-
-  if (fuzzy.length > 0) {
-    return { results: fuzzy.map(withImageUrls), totalPages: 1 };
-  }
-
-  return await getSearchMulti(query, 1);
+  return await searchMulti(query, 1, SUGGESTION_LIMIT);
 }

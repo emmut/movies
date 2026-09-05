@@ -39,7 +39,7 @@ Lists are local: they belong to the app's users (anonymous ones included), not t
 
 What this unlocks next (sorting and filtering lists in SQL, rendering grids without per-row TMDB calls) is written up in [docs/title-cache-plan.md](./docs/title-cache-plan.md).
 
-**Search follows the same idea.** TMDB's search is a literal title match: no typo tolerance, no control over ranking. Rather than crawl the catalog, the app loads TMDB's daily id exports (every id with its original title and popularity, published precisely so integrators don't crawl) into a `search_index` table with a `pg_trgm` index. When TMDB finds nothing, search falls back to trigram matching there, ranked by similarity, prefix match, and popularity; the command palette queries it first and hydrates the top hits from TMDB. The exports carry no metadata beyond titles, so TMDB stays the source for everything shown.
+**Search follows the same idea.** TMDB's search is a literal title match: no typo tolerance, no control over ranking. Rather than crawl the catalog, the app loads TMDB's daily id exports (every id with its original title and popularity, published precisely so integrators don't crawl) into a `search_index` table with a `pg_trgm` index. When TMDB finds nothing, search falls back to a bounded nearest-neighbour trigram query there, re-ranked by similarity, prefix match, and popularity, and hydrates the hits from TMDB. TMDB stays the first hop because it answers in one request with posters included; the index only pays its way on the typo path. The exports carry no metadata beyond titles, so TMDB stays the source for everything shown.
 
 ## Tech stack
 

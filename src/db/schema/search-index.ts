@@ -26,8 +26,13 @@ export const searchIndex = pgTable(
   },
   (table) => [
     primaryKey({ columns: [table.mediaType, table.tmdbId] }),
-    // Serves the trigram operators (%, <%) the fuzzy query filters with.
-    // Requires the pg_trgm extension, created by the same migration.
-    index('search_index_search_title_trgm_idx').using('gin', table.searchTitle.op('gin_trgm_ops')),
+    // GiST rather than GIN: the fuzzy query orders by trigram distance
+    // (`<->`, `<<->`) with a LIMIT, and only GiST can walk that k-nearest-
+    // neighbour order straight from the index. Requires pg_trgm (created by
+    // migration 0015); the wider signature cuts false positives on 4–5M rows.
+    index('search_index_search_title_trgm_idx').using(
+      'gist',
+      table.searchTitle.op('gist_trgm_ops(siglen=64)'),
+    ),
   ],
 );

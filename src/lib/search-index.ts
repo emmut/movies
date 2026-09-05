@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, desc, eq, or, sql } from 'drizzle-orm';
+import { sql, SQL } from 'drizzle-orm';
 
 import { searchIndex } from '@/db/schema/search-index';
 import { db } from '@/lib/db';
@@ -16,6 +16,7 @@ export type SearchIndexHit = {
   mediaType: SearchIndexMediaType;
   title: string;
   popularity: number;
+  similarity: number;
   score: number;
 };
 
@@ -25,70 +26,124 @@ export type SearchIndexOptions = {
   limit: number;
 };
 
-// Trigrams need at least a couple of characters to say anything; a one-letter
-// query would match half the index. Shorter queries go to TMDB as before.
-export const MIN_FUZZY_QUERY_LENGTH = 2;
+// Two characters make one real trigram, which matches half the index equally
+// well. Shorter queries stay with TMDB.
+export const MIN_FUZZY_QUERY_LENGTH = 3;
+
+// Nearest neighbours pulled per distance operator before re-ranking. The GiST
+// index walks in distance order and stops here, so the cost of a query does
+// not depend on how many titles happen to contain it ("the", "man").
+export const CANDIDATE_LIMIT = 40;
+
+// Candidates below this similarity are noise for a nonsense query; matches the
+// pg_trgm default threshold for the `%` operator.
+export const MIN_SIMILARITY = 0.3;
+
+// The index is a convenience layer over TMDB. A database that is slow to
+// answer (a preview instance waking from sleep) must not hold the search
+// hostage; give up and let the caller fall through.
+export const FUZZY_QUERY_TIMEOUT_MS = 1500;
 
 /**
- * How well the folded title matches the folded query: plain trigram
- * similarity for typos and word-order swaps, or word similarity for a query
- * that is a prefix or fragment of the title ("interst" → "interstellar").
+ * Bounded fuzzy search over the index, as one statement.
+ *
+ * Candidate generation is two k-nearest-neighbour scans on the trigram GiST
+ * index: `<->` (trigram distance, for typos and swapped words) and `<<->`
+ * (word-similarity distance, for a query that is a prefix or fragment of the
+ * title, "interst" → "interstellar"). Each returns its closest
+ * `CANDIDATE_LIMIT` rows straight from the index, so the work is bounded even
+ * for a query that appears in a million titles. The union is then re-ranked:
+ * similarity in [0, 1], a flat boost for titles that start with the query
+ * (what someone typing expects first), and a gentle log-popularity term so a
+ * near-miss on a well-known title outranks an exact hit on an obscure one.
+ *
+ * The folded query holds only letters, digits, and spaces, so it is safe in
+ * LIKE without escaping.
  */
-export function fuzzySimilarity(query: string) {
-  return sql`greatest(similarity(${searchIndex.searchTitle}, ${query}::text), word_similarity(${query}::text, ${searchIndex.searchTitle}))`;
+export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOptions): SQL {
+  const typeFilter = mediaType ? sql`where ${searchIndex.mediaType} = ${mediaType}::text` : sql``;
+  const q = sql`${folded}::text`;
+
+  return sql`
+    with candidates as (
+      (
+        select ${searchIndex.tmdbId}, ${searchIndex.mediaType}, ${searchIndex.title},
+               ${searchIndex.searchTitle}, ${searchIndex.popularity}
+        from ${searchIndex} ${typeFilter}
+        order by ${searchIndex.searchTitle} <-> ${q}
+        limit ${CANDIDATE_LIMIT}
+      )
+      union
+      (
+        select ${searchIndex.tmdbId}, ${searchIndex.mediaType}, ${searchIndex.title},
+               ${searchIndex.searchTitle}, ${searchIndex.popularity}
+        from ${searchIndex} ${typeFilter}
+        order by ${q} <<-> ${searchIndex.searchTitle}
+        limit ${CANDIDATE_LIMIT}
+      )
+    ),
+    scored as (
+      select tmdb_id, media_type, title, popularity,
+             greatest(similarity(search_title, ${q}), word_similarity(${q}, search_title)) as similarity,
+             case when search_title like ${`${folded}%`}::text then 0.25 else 0 end as prefix_boost
+      from candidates
+    )
+    select tmdb_id, media_type, title, popularity, similarity,
+           similarity + prefix_boost + 0.05 * ln(1 + popularity) as score
+    from scored
+    where similarity >= ${MIN_SIMILARITY}
+    order by score desc, popularity desc
+    limit ${limit}
+  `;
 }
 
-/**
- * Index-backed predicate: the title is within pg_trgm's similarity threshold
- * of the query, or the query is a close match to a fragment of it. Both
- * operators are served by the GIN trigram index.
- */
-export function fuzzyMatch(query: string) {
-  return or(
-    sql`${searchIndex.searchTitle} % ${query}::text`,
-    sql`${query}::text <% ${searchIndex.searchTitle}`,
-  );
-}
-
-/**
- * Ranking: similarity in [0, 1], a flat boost for titles that start with the
- * query (what a person typing expects to see first), and a gentle popularity
- * term so a near-miss on a well-known title outranks an exact match on an
- * obscure one. The folded query holds only letters, digits, and spaces, so it
- * is safe inside LIKE without escaping.
- */
-export function fuzzyScore(query: string) {
-  return sql<number>`${fuzzySimilarity(query)} + case when ${searchIndex.searchTitle} like ${`${query}%`}::text then 0.25 else 0 end + 0.05 * ln(1 + ${searchIndex.popularity})`;
-}
+type FuzzyRow = {
+  tmdb_id: number;
+  media_type: SearchIndexMediaType;
+  title: string;
+  popularity: number;
+  similarity: number | string;
+  score: number | string;
+};
 
 /**
  * Ranks the local index against a free-text query. Returns nothing for
- * queries too short to trigram-match; callers fall back to TMDB.
+ * queries too short to trigram-match, and nothing (after a warning) when the
+ * database does not answer within {@link FUZZY_QUERY_TIMEOUT_MS}; callers
+ * fall back to TMDB in both cases.
  */
 export async function searchIndexFuzzy(
   query: string,
-  { mediaType, limit }: SearchIndexOptions,
+  options: SearchIndexOptions,
 ): Promise<SearchIndexHit[]> {
   const folded = normalizeSearchTitle(query);
   if (folded.length < MIN_FUZZY_QUERY_LENGTH) {
     return [];
   }
 
-  const score = fuzzyScore(folded);
-  const rows = await db
-    .select({
-      tmdbId: searchIndex.tmdbId,
-      mediaType: searchIndex.mediaType,
-      title: searchIndex.title,
-      popularity: searchIndex.popularity,
-      score,
-    })
-    .from(searchIndex)
-    .where(and(fuzzyMatch(folded), mediaType ? eq(searchIndex.mediaType, mediaType) : undefined))
-    .orderBy(desc(score), desc(searchIndex.popularity))
-    .limit(limit);
+  const result = await withTimeout(db.execute<FuzzyRow>(fuzzyQuery(folded, options)));
+  if (result === null) {
+    console.warn(`Fuzzy search index did not answer within ${FUZZY_QUERY_TIMEOUT_MS}ms; skipping`);
+    return [];
+  }
 
-  return rows.map((row) => ({ ...row, score: Number(row.score) }));
+  return result.rows.map((row) => ({
+    tmdbId: row.tmdb_id,
+    mediaType: row.media_type,
+    title: row.title,
+    popularity: Number(row.popularity),
+    similarity: Number(row.similarity),
+    score: Number(row.score),
+  }));
+}
+
+/** Resolves to `null` if `promise` has not settled within the fuzzy query timeout. */
+function withTimeout<T>(promise: Promise<T>): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), FUZZY_QUERY_TIMEOUT_MS);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 function movieResult(details: MovieDetails): MultiSearchResult {
