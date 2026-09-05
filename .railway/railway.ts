@@ -190,6 +190,9 @@ export default defineRailway((ctx) => {
     },
     env: {
       DATABASE_URL: prod ? preserve() : db.env.DATABASE_URL,
+      // Off outside production, same reasoning as title-sync: a preview should
+      // not load 4–5M rows nightly unless someone is testing search there.
+      SEARCH_INDEX_INGEST_ENABLED: prod ? "true" : "false",
     },
   });
 

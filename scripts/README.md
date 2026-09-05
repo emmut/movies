@@ -36,7 +36,7 @@ Downloads TMDB's [daily id exports](https://developer.themoviedb.org/docs/daily-
 pnpm ingest:search
 ```
 
-Needs `DATABASE_URL` (from `.env` locally) and the `pg_trgm` extension, which migration `0015` creates. Runs daily in production as the `search-index-ingest` Railway cron service (09:00 UTC, after TMDB publishes at 08:00). Without it the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
+Needs `DATABASE_URL` and `SEARCH_INDEX_INGEST_ENABLED=true` (from `.env` locally; without the flag the script exits immediately) plus the `pg_trgm` extension, which migration `0015` creates. Runs daily in production as the `search-index-ingest` Railway cron service (09:00 UTC, after TMDB publishes at 08:00), where the Railway config sets the flag; preview environments leave it off. Without a run the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
 
 ## List Watch Providers
 
