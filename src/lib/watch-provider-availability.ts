@@ -1,15 +1,17 @@
 import 'server-only';
+import { sql, SQL } from 'drizzle-orm';
 
-import { getMovieWatchProviders } from '@/lib/movies';
-import { DEFAULT_REGION, RegionCode } from '@/lib/regions';
-import { getTvShowWatchProviders } from '@/lib/tv-shows';
+import { listItems } from '@/db/schema/lists';
+import { titleAvailability } from '@/db/schema/titles';
+import { db } from '@/lib/db';
+import { DEFAULT_REGION } from '@/lib/regions';
+import {
+  mapWithConcurrency,
+  selectTitlesNeedingAvailability,
+  syncTitleAvailability,
+} from '@/lib/title-sync';
+import { appTitleSource } from '@/lib/title-sync-server';
 import { WatchProviderFilter, watchProviderFilterSchema } from '@/lib/validations';
-import type { RegionWatchProviders } from '@/types/watch-provider';
-
-type ListItemResource = {
-  resourceId: number;
-  resourceType: string;
-};
 
 /**
  * Normalizes the raw stream-provider filter input of a list query. Returns
@@ -30,61 +32,46 @@ export function parseWatchProviderFilter(
   return watchProviderFilterSchema.parse({ providerIds, region: region ?? DEFAULT_REGION });
 }
 
-/** Provider ids a title can be streamed on (flatrate or free) in a region. */
-function streamableProviderIds(regionProviders: RegionWatchProviders | undefined) {
-  const offers = [...(regionProviders?.flatrate ?? []), ...(regionProviders?.free ?? [])];
-  return offers.map((provider) => provider.provider_id);
+/**
+ * SQL predicate on `list_items`: the row's title can be streamed (flatrate or
+ * free) on any of the filter's providers in the filter's region, per the
+ * locally cached availability. Person rows never match — they have no
+ * availability rows. Compose it into a query's `where` alongside the list
+ * scope so counting and paging happen in the database.
+ */
+export function streamableOnProviders(filter: WatchProviderFilter): SQL {
+  return sql`exists (
+    select 1 from ${titleAvailability}
+    where ${titleAvailability.mediaType} = ${listItems.resourceType}
+      and ${titleAvailability.tmdbId} = ${listItems.resourceId}
+      and ${titleAvailability.region} = ${filter.region}
+      and ${titleAvailability.providerId} = any(${sql.param(filter.providerIds)}::integer[])
+      and ${titleAvailability.offerType} in ('flatrate', 'free')
+  )`;
 }
 
-async function fetchRegionProviders(resourceType: 'movie' | 'tv', resourceId: number, region: string) {
-  const providers =
-    resourceType === 'movie'
-      ? await getMovieWatchProviders(resourceId)
-      : await getTvShowWatchProviders(resourceId);
-
-  return providers.results?.[region as RegionCode];
-}
+// Caps concurrent TMDB availability lookups so a large list whose titles were
+// added before the cache existed doesn't fire hundreds of requests at once
+// (tmdbFetch retries but has no concurrency limit of its own).
+const MAX_CONCURRENT_SYNCS = 10;
 
 /**
- * Whether a list item can be streamed on any of the filter's providers in the
- * filter's region. Person rows never match. A failed provider lookup throws
- * (after tmdbFetch's own retries) instead of silently reporting the title as
+ * Makes sure every movie/TV row in `scope` has known availability before a
+ * provider filter runs against it. Titles added through the app are written
+ * through on add, so this normally finds nothing; it catches up on rows that
+ * predate the cache, syncing each once. A failed lookup throws (after
+ * tmdbFetch's own retries) instead of silently treating the title as
  * unavailable, so an outage can't render a populated list as "no matches".
+ *
+ * @param scope - Narrows the `list_items` rows (joined with `lists`) to check.
+ * @returns How many titles had to be synced.
  */
-export async function matchesWatchProviders(row: ListItemResource, filter: WatchProviderFilter) {
-  if (row.resourceType !== 'movie' && row.resourceType !== 'tv') {
-    return false;
-  }
+export async function ensureAvailabilityKnown(scope: SQL | undefined) {
+  const missing = await selectTitlesNeedingAvailability(db, { scope });
 
-  const regionProviders = await fetchRegionProviders(
-    row.resourceType,
-    row.resourceId,
-    filter.region,
+  await mapWithConcurrency(missing, MAX_CONCURRENT_SYNCS, (key) =>
+    syncTitleAvailability(db, appTitleSource, key),
   );
-  return streamableProviderIds(regionProviders).some((id) => filter.providerIds.includes(id));
-}
 
-// Caps concurrent TMDB availability lookups so a large list with a cold cache
-// doesn't fire hundreds of requests at once (tmdbFetch retries but has no
-// concurrency limit of its own).
-const MAX_CONCURRENT_LOOKUPS = 10;
-
-/**
- * Keeps the rows streamable on any of the filter's providers, preserving the
- * input order. Lookups run in bounded batches and are cached for days, so
- * filtering a whole list stays cheap on a warm cache.
- */
-export async function filterRowsByWatchProviders<T extends ListItemResource>(
-  rows: T[],
-  filter: WatchProviderFilter,
-): Promise<T[]> {
-  // ponytail: batch barrier, not a work pool — swap in a pool if list sizes
-  // make the slowest-in-batch stalls matter.
-  const matches: boolean[] = [];
-  for (let i = 0; i < rows.length; i += MAX_CONCURRENT_LOOKUPS) {
-    const batch = rows.slice(i, i + MAX_CONCURRENT_LOOKUPS);
-    matches.push(...(await Promise.all(batch.map((row) => matchesWatchProviders(row, filter)))));
-  }
-
-  return rows.filter((_, index) => matches[index]);
+  return missing.length;
 }
