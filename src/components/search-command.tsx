@@ -25,6 +25,7 @@ import {
   getSubmitHref,
   moveSelection,
   SearchCommandItem,
+  syncPaletteQuery,
   toSearchCommandItems,
 } from './search-command-items';
 
@@ -238,17 +239,18 @@ function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
   // changes from elsewhere (e.g. browser back/forward) while the palette is
   // open. `query` is a local draft the input types into — it must not write
   // back to the URL on every keystroke — so it only follows `urlQuery` when
-  // that value itself changes, tracked below the React-recommended way
-  // (comparing against last-seen during render) rather than with an effect,
-  // so there's no extra render showing the stale query first.
+  // that value itself changes (syncPaletteQuery), checked during render
+  // rather than in an effect, so there's no extra render showing the stale
+  // query first.
   const [urlQuery] = useQueryState('q', parseAsString.withDefault(''));
   const [query, setQuery] = useState(urlQuery);
   const [activeIndex, setActiveIndex] = useState(0);
   const [syncedUrlQuery, setSyncedUrlQuery] = useState(urlQuery);
-  if (urlQuery !== syncedUrlQuery) {
-    setSyncedUrlQuery(urlQuery);
-    setQuery(urlQuery);
-    setActiveIndex(0);
+  const sync = syncPaletteQuery(urlQuery, syncedUrlQuery);
+  if (sync) {
+    setQuery(sync.query);
+    setActiveIndex(sync.activeIndex);
+    setSyncedUrlQuery(sync.syncedUrlQuery);
   }
 
   const debouncedQuery = useDebouncedValue(query.trim(), 250);

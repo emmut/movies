@@ -118,6 +118,31 @@ export function getSubmitHref(
   return hasQuery ? seeAllHref : null;
 }
 
+export type PaletteQuerySync = {
+  query: string;
+  activeIndex: number;
+  syncedUrlQuery: string;
+};
+
+/**
+ * Decides whether the palette's typed draft should be reset to the URL's `q`
+ * value. The draft must not follow the URL on every render (typing doesn't
+ * write to the URL), only when `q` itself changes elsewhere — e.g. browser
+ * back/forward while the palette stays open — which `syncedUrlQuery` (the
+ * last URL value the draft was reset to) detects. Returns `null` when nothing
+ * needs to change, so the caller can skip the state updates entirely.
+ */
+export function syncPaletteQuery(
+  urlQuery: string,
+  syncedUrlQuery: string,
+): PaletteQuerySync | null {
+  if (urlQuery === syncedUrlQuery) {
+    return null;
+  }
+
+  return { query: urlQuery, activeIndex: 0, syncedUrlQuery: urlQuery };
+}
+
 /**
  * Returns the next selected index for a keyboard event, wrapping at both ends.
  * Keys other than ArrowDown/ArrowUp leave the selection unchanged.
