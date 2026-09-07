@@ -9,7 +9,7 @@ import { SYSTEM_LIST_CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { getMovieDetails } from '@/lib/movies';
-import { paginate } from '@/lib/paginate';
+import { pageWindow } from '@/lib/paginate';
 import {
   pageSchema,
   resourceIdSchema,
@@ -19,8 +19,9 @@ import {
   WatchProviderFilter,
 } from '@/lib/validations';
 import {
-  filterRowsByWatchProviders,
+  ensureAvailabilityKnown,
   parseWatchProviderFilter,
+  streamableOnProviders,
 } from '@/lib/watch-provider-availability';
 import { MovieDetails } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
@@ -155,7 +156,13 @@ export async function getSystemListWithResourceDetailsPaginated(
   }
 
   try {
-    return await queryPageWithResourceDetails(user.id, listType, resourceType, page, providerFilter);
+    return await queryPageWithResourceDetails(
+      user.id,
+      listType,
+      resourceType,
+      page,
+      providerFilter,
+    );
   } catch (error) {
     console.error(`Error fetching paginated ${listType}:`, error);
     // With a provider filter active, an empty page reads as "nothing matches
@@ -183,13 +190,7 @@ async function queryPageWithResourceDetails(
     return await queryProviderFilteredPage(filter, resourceType, page, providerFilter);
   }
 
-  const totalCountResult = await db
-    .select({ count: count() })
-    .from(listItems)
-    .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(filter);
-
-  const totalItems = totalCountResult[0]?.count || 0;
+  const totalItems = await countSystemListRows(filter);
   if (totalItems === 0) {
     return emptyPage(page);
   }
@@ -207,6 +208,16 @@ async function queryPageWithResourceDetails(
   };
 }
 
+async function countSystemListRows(filter: SQL | undefined) {
+  const totalCountResult = await db
+    .select({ count: count() })
+    .from(listItems)
+    .innerJoin(lists, eq(listItems.listId, lists.id))
+    .where(filter);
+
+  return totalCountResult[0]?.count || 0;
+}
+
 function selectSystemListRows(filter: SQL | undefined) {
   return db
     .select({
@@ -222,9 +233,11 @@ function selectSystemListRows(filter: SQL | undefined) {
 }
 
 /**
- * Stream-provider-filtered page: availability lives in TMDB rather than the
- * database, so every row is loaded, filtered by streamability, and paginated
- * in memory. Pagination metadata reflects the filtered set.
+ * Stream-provider-filtered page. Availability is cached locally (see
+ * `title_availability`), so the filter is a predicate on the same query as
+ * the unfiltered path and counting and paging stay in the database. Rows
+ * that predate the cache are synced first; pagination metadata reflects the
+ * filtered set, with the page clamped to the last one.
  */
 async function queryProviderFilteredPage(
   filter: SQL | undefined,
@@ -232,17 +245,19 @@ async function queryProviderFilteredPage(
   page: number,
   providerFilter: WatchProviderFilter,
 ) {
-  const rows = await selectSystemListRows(filter);
-  const matching = await filterRowsByWatchProviders(rows, providerFilter);
+  await ensureAvailabilityKnown(filter);
 
-  if (matching.length === 0) {
+  const where = and(filter, streamableOnProviders(providerFilter));
+  const totalItems = await countSystemListRows(where);
+  if (totalItems === 0) {
     return emptyPage(page);
   }
 
-  const { pageItems, ...pagination } = paginate(matching, page, ITEMS_PER_PAGE);
+  const { offset, ...pagination } = pageWindow(totalItems, page, ITEMS_PER_PAGE);
+  const rows = await selectSystemListRows(where).limit(ITEMS_PER_PAGE).offset(offset);
 
   return {
-    items: await hydrateResourceDetails(pageItems, resourceType),
+    items: await hydrateResourceDetails(rows, resourceType),
     ...pagination,
   };
 }

@@ -1,21 +1,27 @@
+import { PgDialect } from 'drizzle-orm/pg-core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/movies', () => ({ getMovieWatchProviders: vi.fn() }));
-vi.mock('@/lib/tv-shows', () => ({ getTvShowWatchProviders: vi.fn() }));
+vi.mock('@/lib/db', () => ({ db: { select: vi.fn() } }));
+vi.mock('@/lib/title-sync-server', () => ({ appTitleSource: { source: 'app' } }));
+vi.mock('@/lib/title-sync', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/title-sync')>();
+  return {
+    ...actual,
+    selectTitlesNeedingAvailability: vi.fn(),
+    syncTitleAvailability: vi.fn(),
+  };
+});
 
-import { getMovieWatchProviders } from '@/lib/movies';
-import { getTvShowWatchProviders } from '@/lib/tv-shows';
-import type { WatchProvider } from '@/types/watch-provider';
+import { sql } from 'drizzle-orm';
+
+import { db } from '@/lib/db';
+import { selectTitlesNeedingAvailability, syncTitleAvailability } from '@/lib/title-sync';
 
 import {
-  filterRowsByWatchProviders,
-  matchesWatchProviders,
+  ensureAvailabilityKnown,
   parseWatchProviderFilter,
+  streamableOnProviders,
 } from './watch-provider-availability';
-
-function offer(id: number): WatchProvider {
-  return { provider_id: id, provider_name: `Provider ${id}`, logo_path: '/logo.png', display_priority: 1 };
-}
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -48,132 +54,89 @@ describe('parseWatchProviderFilter', () => {
   });
 });
 
-describe('matchesWatchProviders', () => {
-  const filter = { providerIds: [8, 337], region: 'SE' };
+describe('streamableOnProviders', () => {
+  function render(filter: { providerIds: number[]; region: string }) {
+    const query = new PgDialect().sqlToQuery(streamableOnProviders(filter));
+    return { sql: query.sql.replace(/\s+/g, ' '), params: query.params };
+  }
 
-  it('matches a movie streamable via flatrate on a selected provider', async () => {
-    vi.mocked(getMovieWatchProviders).mockResolvedValue({
-      results: { SE: { link: 'https://tmdb', flatrate: [offer(8)] } },
-    });
+  it('correlates the availability rows with the outer list_items row', () => {
+    const { sql } = render({ providerIds: [8], region: 'SE' });
 
-    await expect(
-      matchesWatchProviders({ resourceType: 'movie', resourceId: 1 }, filter),
-    ).resolves.toBe(true);
-    expect(getMovieWatchProviders).toHaveBeenCalledWith(1);
+    expect(sql).toContain('exists ( select 1 from "title_availability"');
+    expect(sql).toContain('"title_availability"."media_type" = "list_items"."resource_type"');
+    expect(sql).toContain('"title_availability"."tmdb_id" = "list_items"."resource_id"');
   });
 
-  it('matches a title available for free on a selected provider', async () => {
-    vi.mocked(getMovieWatchProviders).mockResolvedValue({
-      results: { SE: { link: 'https://tmdb', free: [offer(337)] } },
-    });
+  it('binds the region and provider ids as parameters', () => {
+    const { sql, params } = render({ providerIds: [8, 337], region: 'US' });
 
-    await expect(
-      matchesWatchProviders({ resourceType: 'movie', resourceId: 1 }, filter),
-    ).resolves.toBe(true);
+    expect(sql).toContain('"title_availability"."region" = $1');
+    expect(sql).toContain('"title_availability"."provider_id" = any($2::integer[])');
+    expect(params).toEqual(['US', [8, 337]]);
   });
 
-  it('does not match rent- or buy-only availability', async () => {
-    vi.mocked(getMovieWatchProviders).mockResolvedValue({
-      results: { SE: { link: 'https://tmdb', rent: [offer(8)], buy: [offer(337)] } },
-    });
+  it('only counts streaming offers, never rent or buy', () => {
+    const { sql } = render({ providerIds: [8], region: 'SE' });
 
-    await expect(
-      matchesWatchProviders({ resourceType: 'movie', resourceId: 1 }, filter),
-    ).resolves.toBe(false);
-  });
-
-  it('does not match availability in other regions only', async () => {
-    vi.mocked(getMovieWatchProviders).mockResolvedValue({
-      results: { US: { link: 'https://tmdb', flatrate: [offer(8)] } },
-    });
-
-    await expect(
-      matchesWatchProviders({ resourceType: 'movie', resourceId: 1 }, filter),
-    ).resolves.toBe(false);
-  });
-
-  it('does not match providers outside the selected set', async () => {
-    vi.mocked(getMovieWatchProviders).mockResolvedValue({
-      results: { SE: { link: 'https://tmdb', flatrate: [offer(9)] } },
-    });
-
-    await expect(
-      matchesWatchProviders({ resourceType: 'movie', resourceId: 1 }, filter),
-    ).resolves.toBe(false);
-  });
-
-  it('checks TV shows through the TV provider endpoint', async () => {
-    vi.mocked(getTvShowWatchProviders).mockResolvedValue({
-      results: { SE: { link: 'https://tmdb', flatrate: [offer(337)] } },
-    });
-
-    await expect(matchesWatchProviders({ resourceType: 'tv', resourceId: 42 }, filter)).resolves.toBe(
-      true,
-    );
-    expect(getTvShowWatchProviders).toHaveBeenCalledWith(42);
-    expect(getMovieWatchProviders).not.toHaveBeenCalled();
-  });
-
-  it('never matches person rows and skips the lookup', async () => {
-    await expect(
-      matchesWatchProviders({ resourceType: 'person', resourceId: 7 }, filter),
-    ).resolves.toBe(false);
-    expect(getMovieWatchProviders).not.toHaveBeenCalled();
-    expect(getTvShowWatchProviders).not.toHaveBeenCalled();
-  });
-
-  it('propagates a failed provider lookup instead of reporting unavailable', async () => {
-    vi.mocked(getMovieWatchProviders).mockRejectedValue(new Error('TMDB down'));
-
-    await expect(
-      matchesWatchProviders({ resourceType: 'movie', resourceId: 1 }, filter),
-    ).rejects.toThrow('TMDB down');
+    expect(sql).toContain(`"title_availability"."offer_type" in ('flatrate', 'free')`);
+    expect(sql).not.toContain('rent');
   });
 });
 
-describe('filterRowsByWatchProviders', () => {
-  it('keeps only streamable rows, preserving order', async () => {
-    vi.mocked(getMovieWatchProviders).mockImplementation(async (movieId: number) => ({
-      results:
-        movieId % 2 === 1 ? { SE: { link: 'https://tmdb', flatrate: [offer(8)] } } : {},
-    }));
+describe('ensureAvailabilityKnown', () => {
+  const scope = sql`list_id = 'list-1'`;
 
-    const rows = [
-      { resourceId: 1, resourceType: 'movie' },
-      { resourceId: 2, resourceType: 'movie' },
-      { resourceId: 3, resourceType: 'movie' },
-      { resourceId: 4, resourceType: 'person' },
-    ];
+  it('does nothing when every title in scope is already known', async () => {
+    vi.mocked(selectTitlesNeedingAvailability).mockResolvedValue([]);
 
-    const result = await filterRowsByWatchProviders(rows, { providerIds: [8], region: 'SE' });
-
-    expect(result).toEqual([
-      { resourceId: 1, resourceType: 'movie' },
-      { resourceId: 3, resourceType: 'movie' },
-    ]);
+    await expect(ensureAvailabilityKnown(scope)).resolves.toBe(0);
+    expect(selectTitlesNeedingAvailability).toHaveBeenCalledWith(db, { scope });
+    expect(syncTitleAvailability).not.toHaveBeenCalled();
   });
 
-  it('bounds concurrent lookups while still filtering every row', async () => {
+  it('syncs each unknown title through the app source', async () => {
+    const missing = [
+      { mediaType: 'movie' as const, tmdbId: 1 },
+      { mediaType: 'tv' as const, tmdbId: 2 },
+    ];
+    vi.mocked(selectTitlesNeedingAvailability).mockResolvedValue(missing);
+    vi.mocked(syncTitleAvailability).mockResolvedValue('synced');
+
+    await expect(ensureAvailabilityKnown(scope)).resolves.toBe(2);
+    expect(syncTitleAvailability).toHaveBeenCalledTimes(2);
+    expect(syncTitleAvailability).toHaveBeenCalledWith(db, { source: 'app' }, missing[0]);
+    expect(syncTitleAvailability).toHaveBeenCalledWith(db, { source: 'app' }, missing[1]);
+  });
+
+  it('bounds concurrent syncs while still covering every title', async () => {
+    const missing = Array.from({ length: 25 }, (_, i) => ({
+      mediaType: 'movie' as const,
+      tmdbId: i + 1,
+    }));
+    vi.mocked(selectTitlesNeedingAvailability).mockResolvedValue(missing);
+
     let inFlight = 0;
     let maxInFlight = 0;
-    vi.mocked(getMovieWatchProviders).mockImplementation(async (movieId: number) => {
+    vi.mocked(syncTitleAvailability).mockImplementation(async () => {
       inFlight++;
       maxInFlight = Math.max(maxInFlight, inFlight);
       await Promise.resolve();
       inFlight--;
-      return {
-        results: movieId % 2 === 1 ? { SE: { link: 'https://tmdb', flatrate: [offer(8)] } } : {},
-      };
+      return 'synced';
     });
 
-    const rows = Array.from({ length: 25 }, (_, i) => ({
-      resourceId: i + 1,
-      resourceType: 'movie',
-    }));
-
-    const result = await filterRowsByWatchProviders(rows, { providerIds: [8], region: 'SE' });
-
-    expect(result).toHaveLength(13);
+    await expect(ensureAvailabilityKnown(scope)).resolves.toBe(25);
+    expect(syncTitleAvailability).toHaveBeenCalledTimes(25);
     expect(maxInFlight).toBeLessThanOrEqual(10);
+  });
+
+  it('propagates a failed sync instead of treating the title as unavailable', async () => {
+    vi.mocked(selectTitlesNeedingAvailability).mockResolvedValue([
+      { mediaType: 'movie', tmdbId: 1 },
+    ]);
+    vi.mocked(syncTitleAvailability).mockRejectedValue(new Error('TMDB down'));
+
+    await expect(ensureAvailabilityKnown(scope)).rejects.toThrow('TMDB down');
   });
 });

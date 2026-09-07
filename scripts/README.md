@@ -12,6 +12,20 @@ pnpm ingest:imdb
 
 Needs `DATABASE_URL` (from `.env` locally). Runs daily in production as the `imdb-ingest` Railway cron service (05:30 UTC, shortly after IMDb refreshes the datasets). The dataset is licensed for personal, non-commercial use only.
 
+## Sync Titles
+
+Refreshes the local title cache — the `titles`, `title_availability`, and `title_availability_syncs` tables — for every movie and TV show that appears in any list, then prunes titles no list references any more. List pages filter by streaming provider with a SQL predicate against this cache instead of one TMDB request per row.
+
+### Usage
+
+```bash
+pnpm sync:titles
+```
+
+Needs `DATABASE_URL`, `MOVIE_DB_ACCESS_TOKEN`, and `TITLE_SYNC_ENABLED=true` (from `.env` locally); without the flag the script exits immediately, which is how preview environments stay quiet. Runs nightly in production as the `title-sync` Railway cron service (04:00 UTC), where the Railway config sets the flag. Titles are also written through when they are added to a list, so a run mostly refreshes stale rows: availability daily, details weekly. A title TMDB has deleted is recorded with an empty availability set so filtered pages stop retrying it. The run exits non-zero if any title failed to sync; failed titles stay stale and are retried the next night.
+
+Watch-provider data comes from JustWatch through TMDB and must be attributed as such wherever it is shown.
+
 ## List Watch Providers
 
 Script to list all available watch providers from TMDB API.

@@ -9,11 +9,19 @@ vi.mock('@/lib/tv-shows', () => ({
   getTvShowWatchProviders: vi.fn(),
 }));
 vi.mock('@/lib/imgproxy-url', () => ({ buildProxyImageUrls: vi.fn(() => ({ src: 'proxied' })) }));
+vi.mock('@/lib/title-sync-server', () => ({ appTitleSource: {} }));
+// The provider filter itself is a SQL predicate (covered by
+// watch-provider-availability.test.ts); only the lazy sync is stubbed here.
+vi.mock('@/lib/watch-provider-availability', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/watch-provider-availability')>();
+  return { ...actual, ensureAvailabilityKnown: vi.fn() };
+});
 
 import { getUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { getMovieDetails, getMovieWatchProviders } from '@/lib/movies';
+import { getMovieDetails } from '@/lib/movies';
 import { getTvShowDetails } from '@/lib/tv-shows';
+import { ensureAvailabilityKnown } from '@/lib/watch-provider-availability';
 import { chain } from '@/test/db-chain';
 
 import {
@@ -186,33 +194,30 @@ describe('getSystemListWithResourceDetailsPaginated', () => {
 });
 
 describe('getSystemListWithResourceDetailsPaginated with a provider filter', () => {
-  const rows = [
-    { id: 'item-1', resourceId: 1, resourceType: 'movie', createdAt: new Date(0) },
-    { id: 'item-2', resourceId: 2, resourceType: 'movie', createdAt: new Date(1) },
-  ];
+  const streamableRow = {
+    id: 'item-1',
+    resourceId: 1,
+    resourceType: 'movie',
+    createdAt: new Date(0),
+  };
 
   beforeEach(() => {
+    vi.mocked(ensureAvailabilityKnown).mockResolvedValue(0);
     vi.mocked(getMovieDetails).mockImplementation(
       async (movieId: number) => ({ id: movieId, poster_path: null }) as never,
     );
-    // Movie 1 streams on provider 8 in SE; movie 2 streams nowhere.
-    vi.mocked(getMovieWatchProviders).mockImplementation(async (movieId: number) => ({
-      results:
-        movieId === 1
-          ? {
-              SE: {
-                link: 'https://tmdb',
-                flatrate: [
-                  { provider_id: 8, provider_name: 'Netflix', logo_path: '/n.png', display_priority: 1 },
-                ],
-              },
-            }
-          : {},
-    }));
   });
 
-  it('returns only items streamable on the selected providers', async () => {
-    vi.mocked(db.select).mockReturnValue(chain(rows));
+  /** Stubs, in order: the filtered count, then the page rows (skipped when nothing matches). */
+  function stubFilteredQueries(matching: (typeof streamableRow)[]) {
+    const select = vi.mocked(db.select).mockReturnValueOnce(chain([{ count: matching.length }]));
+    if (matching.length > 0) {
+      select.mockReturnValueOnce(chain(matching));
+    }
+  }
+
+  it('pages the SQL-filtered rows', async () => {
+    stubFilteredQueries([streamableRow]);
 
     const result = await getSystemListWithResourceDetailsPaginated(
       'watchlist',
@@ -225,12 +230,20 @@ describe('getSystemListWithResourceDetailsPaginated with a provider filter', () 
     expect(result.items.map((item) => item.id)).toEqual([1]);
     expect(result.totalItems).toBe(1);
     expect(result.totalPages).toBe(1);
-    // The filtered path paginates in memory: one row query, no count query.
-    expect(db.select).toHaveBeenCalledTimes(1);
+    // Count and page query, both filtered in SQL.
+    expect(db.select).toHaveBeenCalledTimes(2);
+  });
+
+  it('syncs titles that predate the cache before filtering', async () => {
+    stubFilteredQueries([streamableRow]);
+
+    await getSystemListWithResourceDetailsPaginated('watchlist', 'movie', 1, [8], 'SE');
+
+    expect(ensureAvailabilityKnown).toHaveBeenCalledTimes(1);
   });
 
   it('returns an empty page when nothing matches the filter', async () => {
-    vi.mocked(db.select).mockReturnValue(chain(rows));
+    stubFilteredQueries([]);
 
     const result = await getSystemListWithResourceDetailsPaginated(
       'watched',
@@ -244,18 +257,33 @@ describe('getSystemListWithResourceDetailsPaginated with a provider filter', () 
     expect(result.totalItems).toBe(0);
     expect(result.totalPages).toBe(0);
     expect(getMovieDetails).not.toHaveBeenCalled();
+    expect(db.select).toHaveBeenCalledTimes(1);
   });
 
-  it('skips availability lookups when the filter is empty', async () => {
+  it('clamps an out-of-range page to the last filtered page', async () => {
+    stubFilteredQueries([streamableRow]);
+
+    const result = await getSystemListWithResourceDetailsPaginated(
+      'watchlist',
+      'movie',
+      7,
+      [8],
+      'SE',
+    );
+
+    expect(result.currentPage).toBe(1);
+  });
+
+  it('skips the availability cache when the filter is empty', async () => {
     vi.mocked(db.select)
-      .mockReturnValueOnce(chain([{ count: 2 }]))
-      .mockReturnValueOnce(chain(rows));
+      .mockReturnValueOnce(chain([{ count: 1 }]))
+      .mockReturnValueOnce(chain([streamableRow]));
 
     const result = await getSystemListWithResourceDetailsPaginated('watchlist', 'movie', 1, []);
 
-    expect(result.totalItems).toBe(2);
-    expect(result.items).toHaveLength(2);
-    expect(getMovieWatchProviders).not.toHaveBeenCalled();
+    expect(result.totalItems).toBe(1);
+    expect(result.items).toHaveLength(1);
+    expect(ensureAvailabilityKnown).not.toHaveBeenCalled();
   });
 
   it('rejects an unknown watch region before querying', async () => {
@@ -265,9 +293,8 @@ describe('getSystemListWithResourceDetailsPaginated with a provider filter', () 
     expect(db.select).not.toHaveBeenCalled();
   });
 
-  it('propagates availability-lookup failures instead of returning an empty page', async () => {
-    vi.mocked(db.select).mockReturnValue(chain(rows));
-    vi.mocked(getMovieWatchProviders).mockRejectedValue(new Error('TMDB down'));
+  it('propagates availability sync failures instead of returning an empty page', async () => {
+    vi.mocked(ensureAvailabilityKnown).mockRejectedValue(new Error('TMDB down'));
 
     // An empty page here would render as "no titles match your providers".
     await expect(

@@ -29,6 +29,7 @@ The most-used scripts — run `pnpm run` for the full list, which is authoritati
 | `pnpm test` | Unit tests. |
 | `pnpm fallow` | Audit changed files (dead code, complexity, duplication). |
 | `pnpm db:push` / `pnpm db:studio` | Apply schema / open Drizzle Studio. |
+| `pnpm sync:titles` | Refresh the local title cache (see `scripts/README.md`). |
 
 Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` all pass.
 
@@ -44,6 +45,7 @@ Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test
 ## Design notes (non-obvious)
 
 - Anonymous users are supported; their watchlist is migrated onto the account on link/sign-in.
+- List pages answer the stream-provider filter from a local cache of the titles in users' lists (`titles`, `title_availability`), written through on add and refreshed nightly by `scripts/sync-titles.ts`. TMDB stays the source of truth; everything else (discover, search, detail pages) reads TMDB through `'use cache'`. See `docs/title-cache-plan.md` for what the cache is meant to unlock next.
 - Auth is Better Auth with Discord/GitHub social providers and passkey support.
 - UI primitives are Base UI (`@base-ui/react`) styled in `src/components/ui/`, shadcn-managed via `components.json`.
 
@@ -54,7 +56,7 @@ Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test
 
 ## CI
 
-`.github/workflows/ci.yml` gates PRs targeting `main`:
+`.github/workflows/ci.yml` gates every PR, including stacked PRs whose base is another feature branch:
 
 - **Lint, typecheck & test**.
 - **Fallow audit** — fails only on findings newly introduced relative to the merge-base.

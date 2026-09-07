@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { requireUser } from '@/lib/auth-server';
 import { revalidateUserSystemListCache } from '@/lib/cache-invalidation';
 import { toggleSystemListRow } from '@/lib/system-list';
+import { scheduleTitleSync } from '@/lib/title-sync-server';
 import { resourceIdSchema, SystemListType, systemListTypeSchema } from '@/lib/validations';
 
 type ToggleSystemListItemParams = {
@@ -51,6 +52,12 @@ export async function toggleSystemListItem({
       validatedResourceId.resourceId,
       validatedResourceId.resourceType,
     );
+
+    if (state === 'added') {
+      // Write the title's details and availability through to the local cache
+      // so the provider filter can answer from SQL without a TMDB round-trip.
+      scheduleTitleSync(validatedResourceId.resourceType, validatedResourceId.resourceId);
+    }
 
     revalidateUserSystemListCache(
       user.id,

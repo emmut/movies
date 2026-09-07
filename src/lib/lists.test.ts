@@ -22,6 +22,16 @@ vi.mock('@/lib/tv-shows', () => ({
 }));
 vi.mock('@/lib/persons', () => ({ getPersonDetails: vi.fn() }));
 vi.mock('@/lib/imgproxy-url', () => ({ buildProxyImageUrls: vi.fn(() => undefined) }));
+vi.mock('@/lib/title-sync-server', () => ({
+  appTitleSource: {},
+  scheduleTitleSync: vi.fn(),
+}));
+// The provider filter itself is a SQL predicate (covered by
+// watch-provider-availability.test.ts); only the lazy sync is stubbed here.
+vi.mock('@/lib/watch-provider-availability', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/watch-provider-availability')>();
+  return { ...actual, ensureAvailabilityKnown: vi.fn() };
+});
 // Run the locked callback against the db mock directly; the real lock needs a
 // live transaction and is covered by ordering-lock.test.ts.
 vi.mock('@/lib/ordering-lock', async (importOriginal) => {
@@ -39,9 +49,11 @@ import {
   revalidateUserSystemListPageCache,
 } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
-import { getMovieDetails, getMovieWatchProviders } from '@/lib/movies';
+import { getMovieDetails } from '@/lib/movies';
 import { withOrderingLock } from '@/lib/ordering-lock';
 import { getPersonDetails } from '@/lib/persons';
+import { scheduleTitleSync } from '@/lib/title-sync-server';
+import { ensureAvailabilityKnown } from '@/lib/watch-provider-availability';
 import { chain } from '@/test/db-chain';
 
 import {
@@ -107,6 +119,21 @@ describe('ownership enforcement', () => {
     await addToList(UUID, 1, 'movie');
     expect(db.insert).toHaveBeenCalledTimes(1);
     expect(withOrderingLock).toHaveBeenCalledWith(`list-items:${UUID}`, expect.any(Function));
+  });
+
+  it('addToList writes the added title through to the local cache', async () => {
+    setOwnedCount(1);
+    await addToList(UUID, 42, 'tv');
+    expect(scheduleTitleSync).toHaveBeenCalledWith('tv', 42);
+  });
+
+  it('addToList does not schedule a sync when the insert fails', async () => {
+    setOwnedCount(1);
+    vi.mocked(db.insert).mockReturnValue({
+      values: () => Promise.reject(new Error('connection lost')),
+    } as never);
+    await expect(addToList(UUID, 1, 'movie')).rejects.toThrow('connection lost');
+    expect(scheduleTitleSync).not.toHaveBeenCalled();
   });
 
   it('removeFromList throws when the list is not owned', async () => {
@@ -224,36 +251,36 @@ describe('getListDetailsWithResources with a provider filter', () => {
     updatedAt: new Date(0),
   };
 
-  const itemRows = [
-    { id: 'item-1', listId: UUID, resourceId: 1, resourceType: 'movie', position: 1, createdAt: new Date(0) },
-    { id: 'item-2', listId: UUID, resourceId: 2, resourceType: 'movie', position: 2, createdAt: new Date(0) },
-    { id: 'item-3', listId: UUID, resourceId: 3, resourceType: 'person', position: 3, createdAt: new Date(0) },
-  ];
+  const streamableRow = {
+    id: 'item-1',
+    listId: UUID,
+    resourceId: 1,
+    resourceType: 'movie',
+    position: 1,
+    createdAt: new Date(0),
+  };
 
   beforeEach(() => {
+    vi.mocked(ensureAvailabilityKnown).mockResolvedValue(0);
     vi.mocked(getMovieDetails).mockImplementation(
       async (movieId: number) => ({ id: movieId, poster_path: null }) as never,
     );
-    // Movie 1 streams on provider 8 in SE; movie 2 streams nowhere.
-    vi.mocked(getMovieWatchProviders).mockImplementation(async (movieId: number) => ({
-      results:
-        movieId === 1
-          ? {
-              SE: {
-                link: 'https://tmdb',
-                flatrate: [
-                  { provider_id: 8, provider_name: 'Netflix', logo_path: '/n.png', display_priority: 1 },
-                ],
-              },
-            }
-          : {},
-    }));
   });
 
-  it('keeps only streamable items while itemCount stays the unfiltered total', async () => {
-    vi.mocked(db.select)
+  /** Stubs, in order: the list row, the unfiltered count, the filtered count, then the page rows. */
+  function stubFilteredQueries(itemCount: number, matching: (typeof streamableRow)[]) {
+    const select = vi
+      .mocked(db.select)
       .mockReturnValueOnce(chain([list]))
-      .mockReturnValueOnce(chain(itemRows));
+      .mockReturnValueOnce(chain([{ count: itemCount }]))
+      .mockReturnValueOnce(chain([{ count: matching.length }]));
+    if (matching.length > 0) {
+      select.mockReturnValueOnce(chain(matching));
+    }
+  }
+
+  it('pages the SQL-filtered rows while itemCount stays the unfiltered total', async () => {
+    stubFilteredQueries(3, [streamableRow]);
 
     const result = await getListDetailsWithResources(UUID, 1, [8], 'SE');
 
@@ -263,12 +290,19 @@ describe('getListDetailsWithResources with a provider filter', () => {
     expect(result.itemCount).toBe(3);
     // Person rows never match a stream-provider filter, so no person lookup runs.
     expect(getPersonDetails).not.toHaveBeenCalled();
+    expect(db.select).toHaveBeenCalledTimes(4);
+  });
+
+  it('syncs titles that predate the cache before filtering', async () => {
+    stubFilteredQueries(3, [streamableRow]);
+
+    await getListDetailsWithResources(UUID, 1, [8], 'SE');
+
+    expect(ensureAvailabilityKnown).toHaveBeenCalledTimes(1);
   });
 
   it('returns an empty page but a non-zero itemCount when nothing matches', async () => {
-    vi.mocked(db.select)
-      .mockReturnValueOnce(chain([list]))
-      .mockReturnValueOnce(chain(itemRows));
+    stubFilteredQueries(3, []);
 
     const result = await getListDetailsWithResources(UUID, 1, [999], 'SE');
 
@@ -276,11 +310,40 @@ describe('getListDetailsWithResources with a provider filter', () => {
     expect(result.totalItems).toBe(0);
     expect(result.totalPages).toBe(0);
     expect(result.itemCount).toBe(3);
+    // No page query when the filtered count is zero.
+    expect(db.select).toHaveBeenCalledTimes(3);
+  });
+
+  it('clamps an out-of-range page to the last filtered page', async () => {
+    stubFilteredQueries(3, [streamableRow]);
+
+    const result = await getListDetailsWithResources(UUID, 9, [8], 'SE');
+
+    expect(result.currentPage).toBe(1);
+  });
+
+  it('propagates an availability sync failure instead of rendering "no matches"', async () => {
+    vi.mocked(db.select).mockReturnValueOnce(chain([list]));
+    vi.mocked(ensureAvailabilityKnown).mockRejectedValue(new Error('TMDB down'));
+
+    await expect(getListDetailsWithResources(UUID, 1, [8], 'SE')).rejects.toThrow('TMDB down');
   });
 
   it('rejects an unknown watch region before querying', async () => {
     await expect(getListDetailsWithResources(UUID, 1, [8], 'XX')).rejects.toThrow();
     expect(db.select).not.toHaveBeenCalled();
+  });
+
+  it('does not touch the availability cache without a filter', async () => {
+    vi.mocked(db.select)
+      .mockReturnValueOnce(chain([list]))
+      .mockReturnValueOnce(chain([{ count: 1 }]))
+      .mockReturnValueOnce(chain([streamableRow]));
+
+    const result = await getListDetailsWithResources(UUID, 1, []);
+
+    expect(result.allItems.map((item) => item.id)).toEqual([1]);
+    expect(ensureAvailabilityKnown).not.toHaveBeenCalled();
   });
 });
 

@@ -1,6 +1,6 @@
 'use server';
 
-import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, sql, SQL } from 'drizzle-orm';
 import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -15,13 +15,14 @@ import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { moveIdToIndex } from '@/lib/list-order';
-import { paginate } from '@/lib/paginate';
 import {
   listItemOrderingScope,
   listOrderingScope,
   withOrderingLock,
   type OrderingTx,
 } from '@/lib/ordering-lock';
+import { pageWindow } from '@/lib/paginate';
+import { scheduleTitleSync } from '@/lib/title-sync-server';
 import {
   createListSchema,
   listIdSchema,
@@ -37,8 +38,9 @@ import {
   WatchProviderFilter,
 } from '@/lib/validations';
 import {
-  filterRowsByWatchProviders,
+  ensureAvailabilityKnown,
   parseWatchProviderFilter,
+  streamableOnProviders,
 } from '@/lib/watch-provider-availability';
 
 import { ITEMS_PER_PAGE, LISTS_PER_PAGE } from './config';
@@ -272,14 +274,16 @@ async function fetchOwnedCustomListRow(listId: string, userId: string) {
   return listResult[0];
 }
 
-async function queryUnfilteredListPage(list: typeof lists.$inferSelect, page: number) {
-  const totalCountResult = await db
-    .select({ count: count() })
-    .from(listItems)
-    .where(eq(listItems.listId, list.id));
+/** Number of `list_items` rows matching `where`, coerced from the driver's count. */
+async function countListItems(where: SQL | undefined) {
+  const totalCountResult = await db.select({ count: count() }).from(listItems).where(where);
 
   // Safely coerce count to number, handling BigInt/string/null cases
-  const totalItems = Number(totalCountResult[0]?.count) || 0;
+  return Number(totalCountResult[0]?.count) || 0;
+}
+
+async function queryUnfilteredListPage(list: typeof lists.$inferSelect, page: number) {
+  const totalItems = await countListItems(eq(listItems.listId, list.id));
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
   const currentPage = Math.max(1, Math.min(page, totalPages || 1));
 
@@ -317,11 +321,12 @@ async function queryUnfilteredListPage(list: typeof lists.$inferSelect, page: nu
 }
 
 /**
- * Stream-provider-filtered page of a custom list: availability lives in TMDB
- * rather than the database, so every item is loaded, filtered by
- * streamability (person items never match), and paginated in memory.
- * `itemCount` stays the unfiltered total so headers and delete confirmations
- * keep describing the whole list, while the pagination metadata reflects the
+ * Stream-provider-filtered page of a custom list. Availability is cached
+ * locally (see `title_availability`), so the filter is a predicate on the
+ * items query and counting and paging stay in the database; person items
+ * never match. Rows that predate the cache are synced first. `itemCount`
+ * stays the unfiltered total so headers and delete confirmations keep
+ * describing the whole list, while the pagination metadata reflects the
  * filtered set.
  */
 async function queryProviderFilteredListPage(
@@ -329,19 +334,29 @@ async function queryProviderFilteredListPage(
   page: number,
   providerFilter: WatchProviderFilter,
 ) {
-  const allRows = await db
-    .select()
-    .from(listItems)
-    .where(eq(listItems.listId, list.id))
-    .orderBy(...itemManualOrder());
+  const scope = eq(listItems.listId, list.id);
+  await ensureAvailabilityKnown(scope);
 
-  const matching = await filterRowsByWatchProviders(allRows, providerFilter);
-  const { pageItems, ...pagination } = paginate(matching, page, ITEMS_PER_PAGE);
+  const where = and(scope, streamableOnProviders(providerFilter));
+  const itemCount = await countListItems(scope);
+  const totalItems = await countListItems(where);
+  const { offset, ...pagination } = pageWindow(totalItems, page, ITEMS_PER_PAGE);
+
+  const items =
+    totalItems === 0
+      ? []
+      : await db
+          .select()
+          .from(listItems)
+          .where(where)
+          .orderBy(...itemManualOrder())
+          .limit(ITEMS_PER_PAGE)
+          .offset(offset);
 
   return {
     ...list,
-    items: pageItems,
-    itemCount: allRows.length,
+    items,
+    itemCount,
     ...pagination,
   };
 }
@@ -498,6 +513,10 @@ export async function addToList(
     }
     throw error;
   }
+
+  // Write the title's details and availability through to the local cache so
+  // the provider filter can answer from SQL without a TMDB round-trip.
+  scheduleTitleSync(validatedData.resourceType, validatedData.resourceId);
 
   revalidateUserListCache(user.id, validatedData.listId);
   revalidateUserListStatusCache(user.id, validatedData.resourceType, validatedData.resourceId);

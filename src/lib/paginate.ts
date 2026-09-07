@@ -1,20 +1,13 @@
 /**
- * Slices a fully materialized item set down to one page. Used by the list
- * queries when the stream-provider filter forces in-memory pagination;
- * `currentPage` is clamped to the last page so an out-of-range request still
- * returns content.
+ * Computes the page metadata and row offset for a database-paginated result
+ * from its total row count. `currentPage` is clamped to the last page so an
+ * out-of-range request still returns content; `offset` is what to pass to the
+ * query's `.offset()`.
  */
-export function paginate<T>(items: T[], page: number, itemsPerPage: number) {
-  const totalItems = items.length;
+export function pageWindow(totalItems: number, page: number, itemsPerPage: number) {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const currentPage = Math.max(1, Math.min(page, totalPages || 1));
   const offset = (currentPage - 1) * itemsPerPage;
 
-  return {
-    pageItems: items.slice(offset, offset + itemsPerPage),
-    totalItems,
-    totalPages,
-    currentPage,
-    itemsPerPage,
-  };
+  return { totalItems, totalPages, currentPage, itemsPerPage, offset };
 }
