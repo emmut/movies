@@ -33,7 +33,7 @@ test.describe('remove from list confirmation', () => {
     await expect(removeButton).toBeVisible();
     await removeButton.click();
 
-    const dialog = page.getByRole('dialog', { name: /remove from list/i });
+    const dialog = page.getByRole('alertdialog', { name: /remove from list/i });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByText('This will remove the item from your list. This action cannot be undone.')).toBeVisible();
 
@@ -71,7 +71,7 @@ test.describe('remove from list confirmation', () => {
     const removeButton = itemCard.locator('..').getByRole('button', { name: /remove from list/i });
     await removeButton.click();
 
-    const dialog = page.getByRole('dialog', { name: /remove from list/i });
+    const dialog = page.getByRole('alertdialog', { name: /remove from list/i });
     await expect(dialog).toBeVisible();
 
     const title = dialog.getByRole('heading', { name: /remove from list/i });
