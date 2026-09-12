@@ -7,6 +7,15 @@ import { MouseEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { removeFromList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -26,6 +35,7 @@ export function RemoveFromListButton({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   async function handleRemove(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault(); // Prevent link navigation when clicking the button
@@ -42,6 +52,7 @@ export function RemoveFromListButton({
       });
 
       router.refresh();
+      setIsOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to remove from list');
     } finally {
@@ -50,15 +61,36 @@ export function RemoveFromListButton({
   }
 
   return (
-    <Button
-      variant="destructive"
-      size="icon"
-      className={className}
-      onClick={handleRemove}
-      disabled={isLoading}
-      aria-label="Remove from list"
-    >
-      <X className="h-4 w-4" />
-    </Button>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger
+        render={
+          <Button
+            variant="destructive"
+            size="icon"
+            className={className}
+            disabled={isLoading}
+            aria-label="Remove from list"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        }
+      />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Remove from list?</DialogTitle>
+          <DialogDescription>
+            This will remove the item from your list. This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={handleRemove} disabled={isLoading}>
+            Remove
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

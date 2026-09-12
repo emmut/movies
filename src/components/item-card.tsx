@@ -121,7 +121,7 @@ export default function ItemCard({
         </div>
       </BackTargetLink>
 
-      {showListButton && (
+      {showListButton && listId === undefined && (
         <div className="absolute top-2 right-2 transition-opacity">
           <QuickAddButton mediaId={item.id} mediaType={type} userId={userId} />
         </div>
