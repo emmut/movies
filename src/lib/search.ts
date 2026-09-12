@@ -2,7 +2,12 @@
 
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { Movie, MultiSearchResponse, SearchedMovieResponse } from '@/types/movie';
+import {
+  Movie,
+  MultiSearchResponse,
+  MultiSearchResult,
+  SearchedMovieResponse,
+} from '@/types/movie';
 import { SearchedPerson, SearchedPersonResponse } from '@/types/person';
 import { SearchedTvResponse, TvShow } from '@/types/tv-show';
 
@@ -161,6 +166,20 @@ type SearchHit = { id: number; media_type?: string } & RankableResult;
 type SearchPage<T> = { results: T[]; totalPages: number };
 
 /**
+ * The index hits a page can receive: one member of the union when narrowed to
+ * a media type (so a movie page gets `Movie`-shaped hits), all of it otherwise.
+ */
+type IndexHit<M extends FuzzyMediaType | undefined> = M extends FuzzyMediaType
+  ? Extract<MultiSearchResult, { media_type: M }>
+  : MultiSearchResult;
+
+function isIndexHitOf<M extends FuzzyMediaType | undefined>(mediaType: M) {
+  return function (hit: MultiSearchResult): hit is IndexHit<M> {
+    return mediaType === undefined || hit.media_type === mediaType;
+  };
+}
+
+/**
  * How the local index takes part in a search.
  *
  * - `merge`: on the first page, the index runs alongside TMDB and its hits
@@ -173,8 +192,10 @@ type SearchPage<T> = { results: T[]; totalPages: number };
  */
 type IndexMode = 'merge' | 'fallback';
 
-type IndexOptions = {
+type IndexOptions<M extends FuzzyMediaType | undefined> = {
   parsed: ParsedSearchQuery;
+  /** Media type of the page; narrows the index and keys deduplication. */
+  mediaType: M;
   page: string;
   limit: number;
   mode: IndexMode;
@@ -185,8 +206,12 @@ type IndexOptions = {
  * and id. Single-type pages carry no `media_type`, so the requested type
  * stands in for it.
  */
-function mergeUnique<T extends SearchHit>(tmdb: T[], hits: T[], mediaType?: FuzzyMediaType): T[] {
-  function keyOf(result: T) {
+function mergeUnique<T extends SearchHit, H extends SearchHit>(
+  tmdb: T[],
+  hits: H[],
+  mediaType?: FuzzyMediaType,
+): (T | H)[] {
+  function keyOf(result: T | H) {
     return `${result.media_type ?? mediaType}:${result.id}`;
   }
   const known = new Set(tmdb.map(keyOf));
@@ -204,21 +229,16 @@ function mergeUnique<T extends SearchHit>(tmdb: T[], hits: T[], mediaType?: Fuzz
  * hits when TMDB found nothing at all. When TMDB is empty the index page
  * stands in for it as a single page.
  */
-async function completeWithIndex<T extends SearchHit>(
+async function completeWithIndex<T extends SearchHit, M extends FuzzyMediaType | undefined>(
   tmdbPage: Promise<SearchPage<T>>,
-  { parsed, page, limit, mode }: IndexOptions,
-): Promise<SearchPage<T>> {
-  const { title, mediaType } = parsed;
+  { parsed, mediaType, page, limit, mode }: IndexOptions<M>,
+): Promise<SearchPage<T | IndexHit<M>>> {
+  const { title } = parsed;
   const merge = mode === 'merge' && parsed.year === undefined;
 
-  function queryIndex() {
-    return fuzzyResults(title, page, limit, mediaType);
-  }
-
-  function ofRequestedType(hits: MultiSearchResponse['results']) {
-    return hits.filter(
-      (hit) => mediaType === undefined || hit.media_type === mediaType,
-    ) as unknown as T[];
+  async function queryIndex() {
+    const hits = await fuzzyResults(title, page, limit, mediaType);
+    return hits.filter(isIndexHitOf(mediaType));
   }
 
   // In merge mode the index query runs alongside TMDB; in fallback mode it
@@ -227,11 +247,11 @@ async function completeWithIndex<T extends SearchHit>(
   const tmdb = await tmdbPage;
 
   if (tmdb.results.length === 0) {
-    const hits = ofRequestedType(await (eager ?? queryIndex()));
+    const hits = await (eager ?? queryIndex());
     return { results: hits, totalPages: hits.length > 0 ? 1 : tmdb.totalPages };
   }
 
-  const hits = eager ? ofRequestedType(await eager) : [];
+  const hits = eager ? await eager : [];
   return {
     results: rankByTitleMatch(title, mergeUnique(tmdb.results, hits, mediaType)),
     totalPages: tmdb.totalPages,
@@ -409,7 +429,8 @@ export async function getSearchMovies(
       return { results: movies, ...rest };
     }),
     {
-      parsed: { ...parsed, mediaType: 'movie' },
+      parsed,
+      mediaType: 'movie',
       page: String(page),
       limit: INDEX_PAGE_LIMIT,
       mode: 'merge',
@@ -443,7 +464,8 @@ export async function getSearchTvShows(
       return { results: tvShows, ...rest };
     }),
     {
-      parsed: { ...parsed, mediaType: 'tv' },
+      parsed,
+      mediaType: 'tv',
       page: String(page),
       limit: INDEX_PAGE_LIMIT,
       mode: 'merge',
@@ -477,7 +499,8 @@ export async function getSearchPersons(
       return { results: persons, ...rest };
     }),
     {
-      parsed: { ...parsed, mediaType: 'person' },
+      parsed,
+      mediaType: 'person',
       page: String(page),
       limit: INDEX_PAGE_LIMIT,
       mode: 'merge',
@@ -495,7 +518,7 @@ async function searchMulti(
   const parsed = parseSearchQuery(query);
   const { results, totalPages } = await completeWithIndex(
     fetchMultiPage(parsed, query, String(page)),
-    { parsed, page: String(page), limit, mode },
+    { parsed, mediaType: parsed.mediaType, page: String(page), limit, mode },
   );
   return { results: results.map(withImageUrls), totalPages };
 }
