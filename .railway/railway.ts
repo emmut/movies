@@ -39,10 +39,10 @@ export default defineRailway((ctx) => {
   // delete it once those PRs close.
   const db = postgres("postgres-db", {
     deploy: {
-      // Previews sleep when idle (a connection wakes them) to cost next to
-      // nothing; production stays awake to avoid cold starts and dropped
-      // wake-up connections on the live app.
-      sleepApplication: !prod,
+      // Sleep when idle everywhere, production included (a connection wakes
+      // it). The migrate wrapper polls the DB before migrating, so deploys
+      // ride out the dropped wake-up connection.
+      sleepApplication: true,
       limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
     },
   });
