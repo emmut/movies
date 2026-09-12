@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import { useSearchMulti } from '@/hooks/use-search-query';
+import { useSearchSuggestions } from '@/hooks/use-search-query';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
 import { useShortcutLabel } from '@/hooks/use-shortcut-label';
 import { saveBackTarget } from '@/lib/back-target';
@@ -237,11 +237,7 @@ function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const debouncedQuery = useDebouncedValue(query.trim(), 250);
-  const { data, isLoading, isFetching, isPlaceholderData } = useSearchMulti({
-    query: debouncedQuery,
-    page: 1,
-    keepPrevious: true,
-  });
+  const { data, isLoading, isFetching, isPlaceholderData } = useSearchSuggestions(debouncedQuery);
 
   const items = toSearchCommandItems(data, RESULT_LIMIT);
   const clampedIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));

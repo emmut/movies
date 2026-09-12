@@ -7,6 +7,7 @@ import {
   getSearchMovies,
   getSearchMulti,
   getSearchPersons,
+  getSearchSuggestions,
   getSearchTvShows,
   SearchMoviesResult,
   SearchMultiResult,
@@ -18,11 +19,6 @@ type UseSearchParams = {
   query: string;
   page: number;
   enabled?: boolean;
-};
-
-type UseSearchMultiParams = UseSearchParams & {
-  /** Keep showing the previous results while a new query is fetching (used by the command palette). */
-  keepPrevious?: boolean;
 };
 
 /**
@@ -80,17 +76,29 @@ export function useSearchPersons({ query, page, enabled = true }: UseSearchParam
  * @param params - Parameters for the search query
  * @returns Query result with data, loading state, and error state
  */
-export function useSearchMulti({
-  query,
-  page,
-  enabled = true,
-  keepPrevious = false,
-}: UseSearchMultiParams) {
+export function useSearchMulti({ query, page, enabled = true }: UseSearchParams) {
   return useQuery<SearchMultiResult>({
     queryKey: queryKeys.search.multi(query, page),
     queryFn: () => getSearchMulti(query, page),
     enabled: query.length > 0 && enabled,
     staleTime: 60 * 1000, // 1 minute
-    placeholderData: keepPrevious ? keepPreviousData : undefined,
+  });
+}
+
+/**
+ * React Query hook for command-palette suggestions: the local fuzzy index
+ * first, TMDB as fallback. Keeps the previous suggestions visible while a new
+ * query is fetching so the list doesn't flicker on every keystroke.
+ *
+ * @param query - The debounced, trimmed query.
+ * @returns Query result with data, loading state, and error state
+ */
+export function useSearchSuggestions(query: string) {
+  return useQuery<SearchMultiResult>({
+    queryKey: queryKeys.search.suggestions(query),
+    queryFn: () => getSearchSuggestions(query),
+    enabled: query.length > 0,
+    staleTime: 60 * 1000, // 1 minute
+    placeholderData: keepPreviousData,
   });
 }

@@ -113,6 +113,11 @@ jobs:
       - name: Apply database migrations
         run: pnpm db:migrate
 
+      - name: Test PostgreSQL fuzzy search
+        run: pnpm test src/lib/search-index.integration.test.ts
+        env:
+          SEARCH_TEST_DATABASE_URL: ${{ env.DATABASE_URL }}
+
       - name: Install Playwright browser
         run: pnpm e2e:install
 

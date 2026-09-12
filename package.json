@@ -29,7 +29,8 @@
     "db:studio": "drizzle-kit studio",
     "seed": "tsx --env-file=.env scripts/seed-watchlist-and-lists.ts",
     "ingest:imdb": "tsx --env-file-if-exists=.env scripts/ingest-imdb-ratings.ts",
-    "sync:titles": "tsx --env-file-if-exists=.env scripts/sync-titles.ts"
+    "sync:titles": "tsx --env-file-if-exists=.env scripts/sync-titles.ts",
+    "ingest:search": "tsx --env-file-if-exists=.env scripts/ingest-search-index.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
