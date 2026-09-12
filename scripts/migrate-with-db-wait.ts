@@ -52,48 +52,12 @@ async function main() {
   });
 
   console.log('✅ Database ready; applying migrations');
-  const beforeMigrations = await db.execute(sql`
-    select hash from "__drizzle_migrations"
-  `);
-  const beforeHashes = new Set(beforeMigrations.rows.map((r) => r.hash as string));
-
   try {
     await migrate(db, { migrationsFolder: './drizzle' });
   } finally {
     await db.$client.end();
   }
   console.log('✅ Migrations applied');
-
-  // Reclaim physical storage only if the column-drop migration (0018) was newly applied
-  const afterMigrations = await db.execute(sql`
-    select hash from "__drizzle_migrations"
-  `);
-  const newMigrations = afterMigrations.rows
-    .map((r) => r.hash as string)
-    .filter((hash) => !beforeHashes.has(hash));
-
-  const COLUMN_DROP_MIGRATION = '0018_woozy_lightspeed';
-  const shouldVacuum = newMigrations.some((hash) => hash.startsWith(COLUMN_DROP_MIGRATION));
-
-  if (shouldVacuum) {
-    console.log('🧹 Running VACUUM FULL on search_index to reclaim storage...');
-    const vacuumDb = drizzle({
-      connection: {
-        connectionString: env.DATABASE_URL,
-        connectionTimeoutMillis: 5_000,
-      },
-    });
-    try {
-      await vacuumDb.execute(sql`VACUUM FULL "search_index"`);
-      console.log('✅ VACUUM FULL completed');
-    } catch (error) {
-      console.warn('⚠️ VACUUM FULL failed (may need manual run):', error instanceof Error ? error.message : String(error));
-    } finally {
-      await vacuumDb.$client.end();
-    }
-  } else {
-    console.log('⏭️ Skipping VACUUM FULL — column-drop migration not newly applied');
-  }
 }
 
 main().catch((error) => {
