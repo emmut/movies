@@ -1,10 +1,33 @@
 import { passkeyClient } from '@better-auth/passkey/client';
 import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
+import { toast } from 'sonner';
 
 import { env } from '@/env';
 
 import { getSafeRedirectUrl } from './utils';
+
+const GREET_KEY = 'pendingGreet';
+
+function markPendingGreet() {
+  try {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem(GREET_KEY, '1');
+    }
+  } catch {
+    // ignore storage errors (e.g. private mode)
+  }
+}
+
+function clearPendingGreet() {
+  try {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(GREET_KEY);
+    }
+  } catch {
+    // ignore
+  }
+}
 
 const authClient = createAuthClient({
   baseURL: env.NEXT_PUBLIC_BASE_URL,
@@ -28,11 +51,20 @@ export async function signInDiscord(redirectUrl: string) {
     const callbackURL = getSafeRedirectUrl(redirectUrl);
     const errorCallbackURL = '/login?error=failed_to_login';
 
-    const data = await authClient.signIn.social({
-      provider: 'discord',
-      callbackURL,
-      errorCallbackURL,
-    });
+    const data = await authClient.signIn.social(
+      {
+        provider: 'discord',
+        callbackURL,
+        errorCallbackURL,
+      },
+      {
+        onRequest: () => markPendingGreet(),
+        onError: () => {
+          clearPendingGreet();
+          toast.error('Failed to sign in with Discord');
+        },
+      },
+    );
 
     return data;
   } catch (error) {
@@ -42,7 +74,7 @@ export async function signInDiscord(redirectUrl: string) {
 }
 
 /**
- * Initiates a Discord sign-in flow for linking an account in user settings.
+  * Initiates a Discord sign-in flow for linking an account in user settings.
  *
  * Redirects the user to Discord for authentication. On success, the user is redirected to the provided safe URL; on failure, to the settings page with an error message.
  *
@@ -88,9 +120,18 @@ export async function addPasskey(name: string = 'My Passkey') {
 
 export async function signInPasskey(email: string, autoFill = false) {
   try {
-    const data = await authClient.signIn.passkey({
-      autoFill,
-    });
+    const data = await authClient.signIn.passkey(
+      {
+        autoFill,
+      },
+      {
+        onRequest: () => markPendingGreet(),
+        onError: () => {
+          clearPendingGreet();
+          toast.error('Failed to sign in with passkey. Please try again.');
+        },
+      },
+    );
 
     if (data?.error) {
       throw data.error;
@@ -114,11 +155,20 @@ export async function signInGitHub(redirectUrl: string) {
     const callbackURL = getSafeRedirectUrl(redirectUrl);
     const errorCallbackURL = '/login?error=failed_to_login';
 
-    const data = await authClient.signIn.social({
-      provider: 'github',
-      callbackURL,
-      errorCallbackURL,
-    });
+    const data = await authClient.signIn.social(
+      {
+        provider: 'github',
+        callbackURL,
+        errorCallbackURL,
+      },
+      {
+        onRequest: () => markPendingGreet(),
+        onError: () => {
+          clearPendingGreet();
+          toast.error('Failed to sign in with GitHub');
+        },
+      },
+    );
 
     if (data?.error) {
       throw data.error;
@@ -161,7 +211,13 @@ export async function signInGitHubSettings(redirectUrl: string) {
 
 export async function signInAnonymous() {
   try {
-    const data = await authClient.signIn.anonymous();
+    const data = await authClient.signIn.anonymous(undefined, {
+      onRequest: () => markPendingGreet(),
+      onError: () => {
+        clearPendingGreet();
+        toast.error('Failed to sign in anonymously');
+      },
+    });
 
     if (data?.error) {
       throw data.error;
