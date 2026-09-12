@@ -58,6 +58,23 @@ async function main() {
     await db.$client.end();
   }
   console.log('✅ Migrations applied');
+
+  // Reclaim physical storage after column drops (VACUUM FULL cannot run inside a transaction)
+  const vacuumDb = drizzle({
+    connection: {
+      connectionString: env.DATABASE_URL,
+      connectionTimeoutMillis: 5_000,
+    },
+  });
+  console.log('🧹 Running VACUUM FULL on search_index to reclaim storage...');
+  try {
+    await vacuumDb.execute(sql`VACUUM FULL "search_index"`);
+    console.log('✅ VACUUM FULL completed');
+  } catch (error) {
+    console.warn('⚠️ VACUUM FULL failed (may need manual run):', error instanceof Error ? error.message : String(error));
+  } finally {
+    await vacuumDb.$client.end();
+  }
 }
 
 main().catch((error) => {
