@@ -2,13 +2,19 @@
 
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { Movie, MultiSearchResponse, SearchedMovieResponse } from '@/types/movie';
+import {
+  Movie,
+  MultiSearchResponse,
+  MultiSearchResult,
+  SearchedMovieResponse,
+} from '@/types/movie';
 import { SearchedPerson, SearchedPersonResponse } from '@/types/person';
 import { SearchedTvResponse, TvShow } from '@/types/tv-show';
 
 import { CACHE_TAGS } from './cache-tags';
 import { ParsedSearchQuery, parseSearchQuery } from './parse-search-query';
 import { searchIndexResults } from './search-index';
+import { RankableResult, rankByTitleMatch } from './search-rank';
 import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
 
 async function fetchMoviesBySearchQuery(query: string, page: string, year?: number) {
@@ -114,9 +120,9 @@ function hasQueryFilters(parsed: ParsedSearchQuery) {
   return parsed.year !== undefined || parsed.mediaType !== undefined;
 }
 
-// Fuzzy results are a single ranked page, each hit hydrated with one cached
-// TMDB details call; more than this and the tail is noise paid for in latency.
-const FUZZY_FALLBACK_LIMIT = 10;
+// The index yields one ranked page, each hit hydrated with one cached TMDB
+// details call; more than this and the tail is noise paid for in latency.
+const INDEX_PAGE_LIMIT = 10;
 const SUGGESTION_LIMIT = 8;
 
 type FuzzyMediaType = 'movie' | 'tv' | 'person';
@@ -155,24 +161,122 @@ function withImageUrls(result: MultiSearchResponse['results'][number]) {
   return result;
 }
 
+type SearchHit = { id: number; media_type?: string } & RankableResult;
+
+type SearchPage<T> = { results: T[]; totalPages: number };
+
 /**
- * When TMDB found nothing for one media type, the fuzzy fallback for it;
- * otherwise the TMDB results untouched.
+ * The index hits a page can receive: one member of the union when narrowed to
+ * a media type (so a movie page gets `Movie`-shaped hits), all of it otherwise.
  */
-async function fuzzyFallback<T extends { id: number }>(
-  results: T[],
-  totalPages: number,
-  title: string,
-  page: string,
-  mediaType: FuzzyMediaType,
-) {
-  if (results.length > 0) {
-    return { results, totalPages };
+type IndexHit<M extends FuzzyMediaType | undefined> = M extends FuzzyMediaType
+  ? Extract<MultiSearchResult, { media_type: M }>
+  : MultiSearchResult;
+
+function isIndexHitOf<M extends FuzzyMediaType | undefined>(mediaType: M) {
+  return function (hit: MultiSearchResult): hit is IndexHit<M> {
+    return mediaType === undefined || hit.media_type === mediaType;
+  };
+}
+
+/**
+ * How the local index takes part in a search.
+ *
+ * - `merge`: on the first page, the index runs alongside TMDB and its hits
+ *   are added to TMDB's page, so a close match TMDB buried on a later page
+ *   (or a typo it cannot match at all) still surfaces at the top. Used by the
+ *   full search page.
+ * - `fallback`: the index is consulted only when TMDB has nothing. Used by
+ *   the command palette, where every keystroke would otherwise pay a database
+ *   round trip plus a details fetch per hit.
+ */
+type IndexMode = 'merge' | 'fallback';
+
+type IndexOptions<M extends FuzzyMediaType | undefined> = {
+  parsed: ParsedSearchQuery;
+  /** Media type of the page; narrows the index and keys deduplication. */
+  mediaType: M;
+  page: string;
+  limit: number;
+  mode: IndexMode;
+};
+
+/**
+ * Appends index hits TMDB's page does not already have, keyed by media type
+ * and id. Single-type pages carry no `media_type`, so the requested type
+ * stands in for it.
+ */
+function mergeUnique<T extends SearchHit, H extends SearchHit>(
+  tmdb: T[],
+  hits: H[],
+  mediaType?: FuzzyMediaType,
+): (T | H)[] {
+  function keyOf(result: T | H) {
+    return `${result.media_type ?? mediaType}:${result.id}`;
   }
-  const fallback = (await fuzzyResults(title, page, FUZZY_FALLBACK_LIMIT, mediaType)).filter(
-    (result) => result.media_type === mediaType,
-  ) as unknown as T[];
-  return { results: fallback, totalPages: fallback.length > 0 ? 1 : totalPages };
+  const known = new Set(tmdb.map(keyOf));
+  return [...tmdb, ...hits.filter((hit) => !known.has(keyOf(hit)))];
+}
+
+/**
+ * Completes a TMDB page with the local index and ranks it (see
+ * {@link rankByTitleMatch}). TMDB orders by a popularity blend, which puts
+ * "Alien: Romulus" above "Alien" for the query "alien"; the re-rank corrects
+ * that without dropping anything. Index hits are ranked on equal terms but
+ * queue behind TMDB's own results within a tier.
+ *
+ * The index has no release-year data, so a year-filtered page only receives
+ * hits when TMDB found nothing at all. When TMDB is empty the index page
+ * stands in for it as a single page.
+ */
+async function completeWithIndex<T extends SearchHit, M extends FuzzyMediaType | undefined>(
+  tmdbPage: Promise<SearchPage<T>>,
+  { parsed, mediaType, page, limit, mode }: IndexOptions<M>,
+): Promise<SearchPage<T | IndexHit<M>>> {
+  const { title } = parsed;
+  const merge = mode === 'merge' && parsed.year === undefined;
+
+  async function queryIndex() {
+    const hits = await fuzzyResults(title, page, limit, mediaType);
+    return hits.filter(isIndexHitOf(mediaType));
+  }
+
+  // In merge mode the index query runs alongside TMDB; in fallback mode it
+  // only runs when TMDB found nothing.
+  const eager = merge ? queryIndex() : undefined;
+  const tmdb = await tmdbPage;
+
+  if (tmdb.results.length === 0) {
+    const hits = await (eager ?? queryIndex());
+    return { results: hits, totalPages: hits.length > 0 ? 1 : tmdb.totalPages };
+  }
+
+  const hits = eager ? await eager : [];
+  return {
+    results: rankByTitleMatch(title, mergeUnique(tmdb.results, hits, mediaType)),
+    totalPages: tmdb.totalPages,
+  };
+}
+
+type TmdbPage<T> = SearchPage<T> & { totalResults: number };
+
+/**
+ * One TMDB page for a single-type search: with the parsed filters first, and
+ * when that has no matches at all, the raw query unfiltered so misparsed
+ * titles still return results.
+ */
+async function fetchSingleTypePage<T>(
+  parsed: ParsedSearchQuery,
+  query: string,
+  fetchPage: (title: string, year?: number) => Promise<TmdbPage<T>>,
+): Promise<SearchPage<T>> {
+  if (hasQueryFilters(parsed)) {
+    const filtered = await fetchPage(parsed.title, parsed.year);
+    if (filtered.totalResults > 0) {
+      return filtered;
+    }
+  }
+  return fetchPage(query);
 }
 
 async function searchMultiMovies(
@@ -187,7 +291,7 @@ async function searchMultiMovies(
   }
 
   return {
-    results: movies.map((movie) => addPosterImageUrls({ ...movie, media_type: 'movie' as const })),
+    results: movies.map((movie) => ({ ...movie, media_type: 'movie' as const })),
     totalPages,
   };
 }
@@ -204,7 +308,7 @@ async function searchMultiTvShows(
   }
 
   return {
-    results: tvShows.map((tvShow) => addPosterImageUrls({ ...tvShow, media_type: 'tv' as const })),
+    results: tvShows.map((tvShow) => ({ ...tvShow, media_type: 'tv' as const })),
     totalPages,
   };
 }
@@ -217,9 +321,7 @@ async function searchMultiPersons(title: string, page: string): Promise<SearchMu
   }
 
   return {
-    results: persons.map((person) =>
-      addProfileImageUrls({ ...person, media_type: 'person' as const }),
-    ),
+    results: persons.map((person) => ({ ...person, media_type: 'person' as const })),
     totalPages,
   };
 }
@@ -258,15 +360,9 @@ async function searchMultiYearFanout(
   }
 
   const merged = [
-    ...movieResults.movies.map((movie) =>
-      addPosterImageUrls({ ...movie, media_type: 'movie' as const }),
-    ),
-    ...tvResults.tvShows.map((tvShow) =>
-      addPosterImageUrls({ ...tvShow, media_type: 'tv' as const }),
-    ),
-    ...personResults.persons.map((person) =>
-      addProfileImageUrls({ ...person, media_type: 'person' as const }),
-    ),
+    ...movieResults.movies.map((movie) => ({ ...movie, media_type: 'movie' as const })),
+    ...tvResults.tvShows.map((tvShow) => ({ ...tvShow, media_type: 'tv' as const })),
+    ...personResults.persons.map((person) => ({ ...person, media_type: 'person' as const })),
   ].sort((a, b) => b.popularity - a.popularity);
 
   return {
@@ -291,13 +387,32 @@ async function searchMultiFiltered(
 }
 
 /**
+ * One TMDB page for the multi search: the filtered path when the query has a
+ * year or media-type keyword and it finds anything, else the raw query on the
+ * plain multi endpoint.
+ */
+async function fetchMultiPage(
+  parsed: ParsedSearchQuery,
+  query: string,
+  page: string,
+): Promise<SearchMultiResult> {
+  const filtered = await searchMultiFiltered(parsed, page);
+  if (filtered) {
+    return filtered;
+  }
+  return fetchMultiSearchQuery(query, page);
+}
+
+/**
  * Fetches search movies data for use with React Query.
  * Can be called on both server and client (via server actions).
  *
  * A trailing year in the query (e.g. "heat 1995") is used as a release-year
  * filter, and a trailing media-type keyword (e.g. "heat movie") is stripped
  * from the title. When the filtered search has no matches at all, the raw
- * query is retried unfiltered so misparsed titles still return results.
+ * query is retried unfiltered so misparsed titles still return results. On
+ * the first page the local fuzzy index is merged in and close title matches
+ * are ranked first.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
@@ -308,21 +423,18 @@ export async function getSearchMovies(
   page: number = 1,
 ): Promise<SearchMoviesResult> {
   const parsed = parseSearchQuery(query);
-
-  if (hasQueryFilters(parsed)) {
-    const filtered = await fetchMoviesBySearchQuery(parsed.title, String(page), parsed.year);
-    if (filtered.totalResults > 0) {
-      return { movies: filtered.movies.map(addPosterImageUrls), totalPages: filtered.totalPages };
-    }
-  }
-
-  const raw = await fetchMoviesBySearchQuery(query, String(page));
-  const { results, totalPages } = await fuzzyFallback(
-    raw.movies,
-    raw.totalPages,
-    parsed.title,
-    String(page),
-    'movie',
+  const { results, totalPages } = await completeWithIndex(
+    fetchSingleTypePage(parsed, query, async (title, year) => {
+      const { movies, ...rest } = await fetchMoviesBySearchQuery(title, String(page), year);
+      return { results: movies, ...rest };
+    }),
+    {
+      parsed,
+      mediaType: 'movie',
+      page: String(page),
+      limit: INDEX_PAGE_LIMIT,
+      mode: 'merge',
+    },
   );
   return { movies: results.map(addPosterImageUrls), totalPages };
 }
@@ -334,7 +446,8 @@ export async function getSearchMovies(
  * A trailing year in the query (e.g. "the office 2005") is used as a
  * first-air-date filter, and a trailing media-type keyword is stripped from
  * the title. When the filtered search has no matches at all, the raw query is
- * retried unfiltered.
+ * retried unfiltered. On the first page the local fuzzy index is merged in
+ * and close title matches are ranked first.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
@@ -345,24 +458,18 @@ export async function getSearchTvShows(
   page: number = 1,
 ): Promise<SearchTvShowsResult> {
   const parsed = parseSearchQuery(query);
-
-  if (hasQueryFilters(parsed)) {
-    const filtered = await fetchTvShowsBySearchQuery(parsed.title, String(page), parsed.year);
-    if (filtered.totalResults > 0) {
-      return {
-        tvShows: filtered.tvShows.map(addPosterImageUrls),
-        totalPages: filtered.totalPages,
-      };
-    }
-  }
-
-  const raw = await fetchTvShowsBySearchQuery(query, String(page));
-  const { results, totalPages } = await fuzzyFallback(
-    raw.tvShows,
-    raw.totalPages,
-    parsed.title,
-    String(page),
-    'tv',
+  const { results, totalPages } = await completeWithIndex(
+    fetchSingleTypePage(parsed, query, async (title, year) => {
+      const { tvShows, ...rest } = await fetchTvShowsBySearchQuery(title, String(page), year);
+      return { results: tvShows, ...rest };
+    }),
+    {
+      parsed,
+      mediaType: 'tv',
+      page: String(page),
+      limit: INDEX_PAGE_LIMIT,
+      mode: 'merge',
+    },
   );
   return { tvShows: results.map(addPosterImageUrls), totalPages };
 }
@@ -373,7 +480,9 @@ export async function getSearchTvShows(
  *
  * Trailing year and media-type tokens (e.g. "brad pitt person") are stripped
  * from the title before searching; persons have no year filter. When the
- * stripped search has no matches at all, the raw query is retried.
+ * stripped search has no matches at all, the raw query is retried. On the
+ * first page the local fuzzy index is merged in and close name matches are
+ * ranked first.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
@@ -384,24 +493,18 @@ export async function getSearchPersons(
   page: number = 1,
 ): Promise<SearchPersonsResult> {
   const parsed = parseSearchQuery(query);
-
-  if (hasQueryFilters(parsed)) {
-    const filtered = await fetchPersonsBySearchQuery(parsed.title, String(page));
-    if (filtered.totalResults > 0) {
-      return {
-        persons: filtered.persons.map(addProfileImageUrls),
-        totalPages: filtered.totalPages,
-      };
-    }
-  }
-
-  const raw = await fetchPersonsBySearchQuery(query, String(page));
-  const { results, totalPages } = await fuzzyFallback(
-    raw.persons,
-    raw.totalPages,
-    parsed.title,
-    String(page),
-    'person',
+  const { results, totalPages } = await completeWithIndex(
+    fetchSingleTypePage(parsed, query, async (title) => {
+      const { persons, ...rest } = await fetchPersonsBySearchQuery(title, String(page));
+      return { results: persons, ...rest };
+    }),
+    {
+      parsed,
+      mediaType: 'person',
+      page: String(page),
+      limit: INDEX_PAGE_LIMIT,
+      mode: 'merge',
+    },
   );
   return { persons: results.map(addProfileImageUrls), totalPages };
 }
@@ -409,24 +512,15 @@ export async function getSearchPersons(
 async function searchMulti(
   query: string,
   page: number,
-  fallbackLimit: number,
+  limit: number,
+  mode: IndexMode,
 ): Promise<SearchMultiResult> {
   const parsed = parseSearchQuery(query);
-  const filtered = await searchMultiFiltered(parsed, String(page));
-
-  if (filtered) {
-    return filtered;
-  }
-
-  const raw = await fetchMultiSearchQuery(query, String(page));
-  if (raw.results.length > 0) {
-    return { results: raw.results.map(withImageUrls), totalPages: raw.totalPages };
-  }
-
-  // TMDB's literal match found nothing: try the fuzzy index (typos, partial
-  // words) with the parsed title, narrowed to a media type when one was given.
-  const fuzzy = await fuzzyResults(parsed.title, String(page), fallbackLimit, parsed.mediaType);
-  return { results: fuzzy.map(withImageUrls), totalPages: fuzzy.length > 0 ? 1 : raw.totalPages };
+  const { results, totalPages } = await completeWithIndex(
+    fetchMultiPage(parsed, query, String(page)),
+    { parsed, mediaType: parsed.mediaType, page: String(page), limit, mode },
+  );
+  return { results: results.map(withImageUrls), totalPages };
 }
 
 /**
@@ -439,15 +533,16 @@ async function searchMulti(
  * parameter — the movie and TV endpoints are searched in parallel with the
  * year filter, plus the person endpoint with the year-stripped title so people
  * are not lost to the filter, and merged by popularity. When all of that
- * yields nothing, the raw query falls through to a plain multi search, and
- * when that is empty too, to the local fuzzy index.
+ * yields nothing, the raw query falls through to a plain multi search. On the
+ * first page the local fuzzy index runs alongside TMDB and its hits are
+ * merged in, and close title matches are ranked first.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
  * @returns Object containing mixed results array and total pages
  */
 export async function getSearchMulti(query: string, page: number = 1): Promise<SearchMultiResult> {
-  return await searchMulti(query, page, FUZZY_FALLBACK_LIMIT);
+  return await searchMulti(query, page, INDEX_PAGE_LIMIT, 'merge');
 }
 
 /**
@@ -460,5 +555,5 @@ export async function getSearchMulti(query: string, page: number = 1): Promise<S
  * @returns A single page of mixed results in the multi-search shape.
  */
 export async function getSearchSuggestions(query: string): Promise<SearchMultiResult> {
-  return await searchMulti(query, 1, SUGGESTION_LIMIT);
+  return await searchMulti(query, 1, SUGGESTION_LIMIT, 'fallback');
 }

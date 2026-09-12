@@ -314,6 +314,193 @@ describe('getSearchMulti with a trailing year', () => {
   });
 });
 
+describe('close title matches rank first', () => {
+  const ALIEN_PAGE = {
+    results: [
+      { id: 1, title: 'Alien: Romulus', popularity: 900 },
+      { id: 2, title: 'Aliens', popularity: 300 },
+      { id: 3, title: 'Alien', popularity: 200 },
+      { id: 4, title: 'Predator', popularity: 100 },
+    ],
+    total_pages: 4,
+    total_results: 80,
+  };
+
+  function ids(results: { id: number }[]) {
+    return results.map((result) => result.id);
+  }
+
+  it('getSearchMovies puts the exact title ahead of TMDB’s popularity order', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+
+    const result = await getSearchMovies('alien');
+
+    expect(ids(result.movies)).toEqual([3, 1, 2, 4]);
+    expect(result.totalPages).toBe(4);
+  });
+
+  it('re-ranks every page, not only the first', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+
+    const result = await getSearchMovies('alien', 3);
+
+    expect(ids(result.movies)).toEqual([3, 1, 2, 4]);
+  });
+
+  it('ranks the year-filtered movie page against the parsed title', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+
+    const result = await getSearchMovies('alien 1979');
+
+    expect(mockedFetch).toHaveBeenCalledTimes(1);
+    expect(ids(result.movies)).toEqual([3, 1, 2, 4]);
+  });
+
+  it('ranks the raw retry against the parsed title, not the raw query', async () => {
+    mockedFetch
+      .mockResolvedValueOnce(NO_RESULTS as never)
+      .mockResolvedValueOnce(ALIEN_PAGE as never);
+
+    const result = await getSearchMovies('alien 2027');
+
+    expect(ids(result.movies)).toEqual([3, 1, 2, 4]);
+  });
+
+  it('getSearchTvShows ranks by name and original_name', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, name: 'Dark Matter', original_name: 'Dark Matter' },
+        { id: 2, name: 'Darkness', original_name: 'Mørke' },
+        { id: 3, name: 'The Dark', original_name: 'Dark' },
+      ],
+      total_pages: 1,
+      total_results: 3,
+    } as never);
+
+    const result = await getSearchTvShows('dark');
+
+    expect(ids(result.tvShows)).toEqual([3, 1, 2]);
+  });
+
+  it('getSearchTvShows ranks the year-filtered page too', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, name: 'Dark Matter' },
+        { id: 2, name: 'Dark' },
+      ],
+      total_pages: 1,
+      total_results: 2,
+    } as never);
+
+    const result = await getSearchTvShows('dark 2017');
+
+    expect(ids(result.tvShows)).toEqual([2, 1]);
+  });
+
+  it('getSearchPersons ranks by name, on both the stripped and raw paths', async () => {
+    const page = {
+      results: [
+        { id: 1, name: 'Brad Pitt' },
+        { id: 2, name: 'Brad' },
+      ],
+      total_pages: 1,
+      total_results: 2,
+    };
+    mockedFetch.mockResolvedValue(page as never);
+
+    expect(ids((await getSearchPersons('brad')).persons)).toEqual([2, 1]);
+    expect(ids((await getSearchPersons('brad person')).persons)).toEqual([2, 1]);
+  });
+
+  it('getSearchMulti ranks the plain multi page against the parsed title', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, media_type: 'movie', title: 'Alien: Romulus' },
+        { id: 2, media_type: 'person', name: 'Alien Ant Farm' },
+        { id: 3, media_type: 'tv', name: 'Alien' },
+        { id: 4, media_type: 'collection', name: 'Alien Collection' },
+      ],
+      total_pages: 1,
+    } as never);
+
+    const result = await getSearchMulti('alien');
+
+    expect(ids(result.results)).toEqual([3, 1, 2, 4]);
+  });
+
+  it('getSearchMulti ranks the media-type-narrowed pages', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+    expect(ids((await getSearchMulti('alien movie')).results)).toEqual([3, 1, 2, 4]);
+
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, name: 'Dark Matter' },
+        { id: 2, name: 'Dark' },
+      ],
+      total_pages: 1,
+      total_results: 2,
+    } as never);
+    expect(ids((await getSearchMulti('dark tv')).results)).toEqual([2, 1]);
+
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, name: 'Brad Pitt' },
+        { id: 2, name: 'Brad' },
+      ],
+      total_pages: 1,
+      total_results: 2,
+    } as never);
+    expect(ids((await getSearchMulti('brad person')).results)).toEqual([2, 1]);
+  });
+
+  it('year fan-out ranks by title match first and popularity within a tier', async () => {
+    mockedFetch.mockImplementation((path: string) => {
+      if (path === '/search/movie') {
+        return Promise.resolve({
+          results: [
+            { id: 1, title: 'Heat Wave', popularity: 90 },
+            { id: 2, title: 'Heat', popularity: 10 },
+          ],
+          total_pages: 1,
+          total_results: 2,
+        });
+      }
+      if (path === '/search/tv') {
+        return Promise.resolve({
+          results: [{ id: 3, name: 'Heat', popularity: 40 }],
+          total_pages: 1,
+          total_results: 1,
+        });
+      }
+      return Promise.resolve({
+        results: [{ id: 4, name: 'Heather Graham', popularity: 99 }],
+        total_pages: 1,
+        total_results: 1,
+      });
+    });
+
+    const result = await getSearchMulti('heat 1995');
+
+    // Exact "Heat" hits first (tv 40 over movie 10 by popularity), then the
+    // word-prefix "Heat Wave", then the prefix-only person.
+    expect(ids(result.results)).toEqual([3, 2, 1, 4]);
+  });
+
+  it('getSearchSuggestions uses the same ranking', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, media_type: 'movie', title: 'Alien: Romulus' },
+        { id: 2, media_type: 'movie', title: 'Alien' },
+      ],
+      total_pages: 1,
+    } as never);
+
+    const result = await getSearchSuggestions('alien');
+
+    expect(ids(result.results)).toEqual([2, 1]);
+  });
+});
+
 describe('getSearchMulti with a media-type keyword', () => {
   it('narrows to the tv endpoint for tv keywords', async () => {
     mockedFetch.mockResolvedValue({
@@ -455,16 +642,26 @@ describe('fuzzy fallback', () => {
     expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', expect.anything());
   });
 
-  it('does not consult the index when TMDB has results', async () => {
+  it('does not consult the index for a year-filtered query when TMDB has results', async () => {
     mockedFetch.mockResolvedValue({
       results: [{ id: 1 }],
       total_pages: 1,
       total_results: 1,
     } as never);
 
-    await getSearchMovies('matrix');
+    await getSearchMovies('matrix 1999');
 
     expect(mockedFuzzy).not.toHaveBeenCalled();
+  });
+
+  it('does consult the index for a year-filtered query when TMDB has nothing', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
+
+    const result = await getSearchMovies('intersteller 2014');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: 'movie', limit: 10 });
+    expect(result.movies).toEqual([{ ...fuzzyMovie, _poster: true }]);
   });
 
   it('does not consult the index beyond the first page', async () => {
@@ -528,6 +725,197 @@ describe('fuzzy fallback', () => {
     const result = await getSearchMovies('matrix');
 
     expect(result.movies).toEqual([]);
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+});
+
+describe('index merged into the first page', () => {
+  const ALIEN_PAGE = {
+    results: [
+      { id: 1, title: 'Alien: Romulus' },
+      { id: 2, title: 'Aliens' },
+    ],
+    total_pages: 5,
+    total_results: 90,
+  };
+  const indexAlien = { id: 348, title: 'Alien', media_type: 'movie' as const };
+  const indexAliens = { id: 2, title: 'Aliens', media_type: 'movie' as const };
+  const indexTv = { id: 70, name: 'Alien Nation', media_type: 'tv' as const };
+
+  function ids(results: { id: number }[]) {
+    return results.map((result) => result.id);
+  }
+
+  it('runs the index alongside TMDB and lifts an exact match TMDB buried on a later page', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+    mockedFuzzy.mockResolvedValue([indexAlien as never]);
+
+    const result = await getSearchMovies('alien');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('alien', { mediaType: 'movie', limit: 10 });
+    expect(ids(result.movies)).toEqual([348, 1, 2]);
+    expect(result.movies[0]).toEqual({ ...indexAlien, _poster: true });
+    // TMDB's paging is kept: the index only adds to page 1.
+    expect(result.totalPages).toBe(5);
+  });
+
+  it('drops index hits TMDB already returned, keyed by media type and id', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+    mockedFuzzy.mockResolvedValue([indexAliens as never, indexAlien as never]);
+
+    const result = await getSearchMovies('alien');
+
+    expect(ids(result.movies)).toEqual([348, 1, 2]);
+    expect(result.movies.filter((movie) => movie.id === 2)).toHaveLength(1);
+  });
+
+  it('queues index hits behind TMDB results within the same tier', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1, title: 'Alien' }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+    mockedFuzzy.mockResolvedValue([indexAlien as never]);
+
+    const result = await getSearchMovies('alien');
+
+    expect(ids(result.movies)).toEqual([1, 348]);
+  });
+
+  it('appends index hits that match no tier (typos) after TMDB’s page', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1, title: 'Interstellar Wars' }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+    mockedFuzzy.mockResolvedValue([
+      { id: 157336, title: 'Interstellar', media_type: 'movie' } as never,
+    ]);
+
+    const result = await getSearchMovies('intersteller');
+
+    expect(ids(result.movies)).toEqual([1, 157336]);
+  });
+
+  it('keeps only hits of the requested media type on single-type pages', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+    mockedFuzzy.mockResolvedValue([indexTv as never, indexAlien as never]);
+
+    const result = await getSearchMovies('alien');
+
+    expect(ids(result.movies)).toEqual([348, 1, 2]);
+  });
+
+  it('does not run the index beyond the first page', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+
+    const result = await getSearchMovies('alien', 2);
+
+    expect(mockedFuzzy).not.toHaveBeenCalled();
+    expect(ids(result.movies)).toEqual([1, 2]);
+  });
+
+  it('leaves a year-filtered page alone when TMDB has results (the index has no year data)', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+    mockedFuzzy.mockResolvedValue([indexAlien as never]);
+
+    const result = await getSearchMovies('alien 1979');
+
+    expect(mockedFuzzy).not.toHaveBeenCalled();
+    expect(ids(result.movies)).toEqual([1, 2]);
+  });
+
+  it('merges with a media-type keyword, narrowed to that type', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+    mockedFuzzy.mockResolvedValue([indexAlien as never]);
+
+    const result = await getSearchMovies('alien movie');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('alien', { mediaType: 'movie', limit: 10 });
+    expect(ids(result.movies)).toEqual([348, 1, 2]);
+  });
+
+  it('getSearchTvShows and getSearchPersons merge with their media type', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1, name: 'Alien Worlds' }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+    mockedFuzzy.mockResolvedValue([indexTv as never, indexAlien as never]);
+
+    const tv = await getSearchTvShows('alien');
+    expect(mockedFuzzy).toHaveBeenLastCalledWith('alien', { mediaType: 'tv', limit: 10 });
+    expect(ids(tv.tvShows)).toEqual([1, 70]);
+
+    const indexPerson = { id: 9, name: 'Brad Pitt', media_type: 'person' as const };
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1, name: 'Brad Pittman' }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+    mockedFuzzy.mockResolvedValue([indexPerson as never]);
+
+    const persons = await getSearchPersons('brad pitt');
+    expect(mockedFuzzy).toHaveBeenLastCalledWith('brad pitt', { mediaType: 'person', limit: 10 });
+    expect(ids(persons.persons)).toEqual([9, 1]);
+  });
+
+  it('getSearchMulti merges mixed hits into the plain multi page', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, media_type: 'movie', title: 'Alien: Romulus' },
+        { id: 348, media_type: 'tv', name: 'Alien Hunters' },
+      ],
+      total_pages: 3,
+    } as never);
+    mockedFuzzy.mockResolvedValue([indexAlien as never, indexTv as never]);
+
+    const result = await getSearchMulti('alien');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('alien', { mediaType: undefined, limit: 10 });
+    // Movie 348 is not the same item as tv 348, so both stay.
+    expect(result.results).toEqual([
+      { ...indexAlien, _poster: true },
+      { id: 1, media_type: 'movie', title: 'Alien: Romulus', _poster: true },
+      { id: 348, media_type: 'tv', name: 'Alien Hunters', _poster: true },
+      { ...indexTv, _poster: true },
+    ]);
+    expect(result.totalPages).toBe(3);
+  });
+
+  it('getSearchMulti merges into a media-type-narrowed page', async () => {
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+    mockedFuzzy.mockResolvedValue([indexAlien as never]);
+
+    const result = await getSearchMulti('alien movie');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('alien', { mediaType: 'movie', limit: 10 });
+    expect(ids(result.results)).toEqual([348, 1, 2]);
+    expect(result.results.every((item) => item.media_type === 'movie')).toBe(true);
+  });
+
+  it('getSearchMulti leaves the year fan-out alone when TMDB has results', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1, title: 'Heat', popularity: 1 }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+    mockedFuzzy.mockResolvedValue([indexAlien as never]);
+
+    await getSearchMulti('heat 1995');
+
+    expect(mockedFuzzy).not.toHaveBeenCalled();
+  });
+
+  it('keeps TMDB’s page when the index fails mid-merge', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockedFetch.mockResolvedValue(ALIEN_PAGE as never);
+    mockedFuzzy.mockRejectedValue(new Error('connection refused'));
+
+    const result = await getSearchMovies('alien');
+
+    expect(ids(result.movies)).toEqual([1, 2]);
     expect(consoleError).toHaveBeenCalled();
     consoleError.mockRestore();
   });
