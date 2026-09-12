@@ -1,50 +1,35 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { useSession } from '@/lib/auth-client';
+import { clearPendingGreet, hasPendingGreet } from '@/lib/pending-greet';
 
 /**
- * Custom hook that shows a welcome toast notification when a user successfully logs in.
- *
- * Uses session state to detect when a user becomes authenticated and shows a toast
- * message only once per session to avoid duplicate notifications.
+ * Client-side better-auth hook without useEffect: reads `useSession` (nanostore
+ * atom) synchronously during render and toasts once when `pendingGreet` was set
+ * via `onRequest` in `src/lib/auth-client.ts` before an OAuth/passkey/anonymous
+ * sign-in completed.
  */
+// fallow-ignore-next-line complexity -- sequential guards clearer than abstraction
 export function useLoginToast() {
   const { data: session, isPending } = useSession();
-  const hasShownToast = useRef(false);
-  const previousSession = useRef(session);
 
-  useEffect(() => {
-    // Wait for session to load
-    if (isPending) {
-      return;
-    }
+  if (isPending) {
+    return;
+  }
+  if (!session?.user) {
+    return;
+  }
+  if (!hasPendingGreet()) {
+    return;
+  }
+  clearPendingGreet();
+  const { isAnonymous, name } = session.user;
+  const title = isAnonymous ? 'Welcome!' : `Welcome back, ${name}!`;
+  const description = isAnonymous
+    ? 'You are signed in anonymously.'
+    : 'You have successfully logged in.';
 
-    // Check if user just logged in (previous session was null/undefined and now we have a user)
-    const wasLoggedOut = !previousSession.current?.user;
-    const isNowLoggedIn = !!session?.user;
-    const hasGreeted = window.sessionStorage.getItem('greeted') === 'true';
-
-    if (wasLoggedOut && isNowLoggedIn && !hasShownToast.current && !hasGreeted) {
-      toast.success(`Welcome back, ${session.user.name}!`, {
-        description: 'You have successfully logged in.',
-        duration: 4000,
-      });
-      hasShownToast.current = true;
-
-      window.sessionStorage.setItem('greeted', 'true');
-    }
-
-    // Update previous session
-    previousSession.current = session;
-  }, [session, isPending]);
-
-  // Reset the flag when user logs out
-  useEffect(() => {
-    if (!session?.user) {
-      hasShownToast.current = false;
-    }
-  }, [session?.user]);
+  queueMicrotask(() => toast.success(title, { description, duration: 4000 }));
 }
