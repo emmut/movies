@@ -31,18 +31,18 @@ export default defineRailway((ctx) => {
     alerts: { usage: { "80": {}, "95": {}, "100": {} } },
   });
 
-  // Managed Postgres for preview databases, declared in every environment
-  // (production included, where it sits unused and asleep — the app there
-  // keeps the external DB) so PR environments fork a fully-configured
-  // instance. The deploy options rely on patches/railway.patch: upstream
-  // drops deploy config for database nodes, which would otherwise unset
-  // these on every apply. The old hollow "postgres" service still exists
-  // project-level for older PR environments; delete it once those PRs close.
+  // Managed Postgres used in every environment (production included), so PR
+  // environments fork a fully-configured instance. The deploy options rely
+  // on patches/railway.patch: upstream drops deploy config for database
+  // nodes, which would otherwise unset these on every apply. The old hollow
+  // "postgres" service still exists project-level for older PR environments;
+  // delete it once those PRs close.
   const db = postgres("postgres-db", {
     deploy: {
-      // Sleeps when idle (a connection wakes it), so the unused prod instance
-      // and quiet previews cost next to nothing.
-      sleepApplication: true,
+      // Previews sleep when idle (a connection wakes them) to cost next to
+      // nothing; production stays awake to avoid cold starts and dropped
+      // wake-up connections on the live app.
+      sleepApplication: !prod,
       limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
     },
   });
@@ -94,8 +94,8 @@ export default defineRailway((ctx) => {
     env: {
       BETTER_AUTH_SECRET: preserve(),
       BETTER_AUTH_TRUSTED_ORIGIN: preserve(),
-      // Production keeps the external DB; previews use their forked postgres-db.
-      DATABASE_URL: prod ? preserve() : db.env.DATABASE_URL,
+      // Every environment uses its own postgres-db.
+      DATABASE_URL: db.env.DATABASE_URL,
       DISCORD_CLIENT_ID: preserve(),
       DISCORD_CLIENT_SECRET: preserve(),
       GITHUB_CLIENT_ID: preserve(),
@@ -118,8 +118,8 @@ export default defineRailway((ctx) => {
   // table. Declared in every environment: PR environments fork production
   // including this service, and deleting it there cancelled the forked
   // deployment mid-flight, which Railway reported as a failed PR check.
-  // Previews ingest into their own postgres instead (and get real IMDb data);
-  // IMDb refreshes the datasets early UTC, so run shortly after.
+  // Each environment ingests into its own postgres (previews get real IMDb
+  // data); IMDb refreshes the datasets early UTC, so run shortly after.
   const imdbIngest = service("imdb-ingest", {
     // Track the PR branch in previews, same as the movies service. Left on the
     // default branch, a PR environment first deploys imdb-ingest at the PR
@@ -140,9 +140,8 @@ export default defineRailway((ctx) => {
       limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
     },
     env: {
-      // Production ingests into the external DB; previews into their forked
-      // postgres-db.
-      DATABASE_URL: prod ? preserve() : db.env.DATABASE_URL,
+      // Each environment ingests into its own postgres-db.
+      DATABASE_URL: db.env.DATABASE_URL,
     },
   });
 
@@ -162,7 +161,7 @@ export default defineRailway((ctx) => {
       limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
     },
     env: {
-      DATABASE_URL: prod ? preserve() : db.env.DATABASE_URL,
+      DATABASE_URL: db.env.DATABASE_URL,
       // Reference the movies service's token rather than preserve(): a brand-new
       // service has nothing to preserve, and the sync exits at startup without it.
       MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
@@ -189,7 +188,7 @@ export default defineRailway((ctx) => {
       limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
     },
     env: {
-      DATABASE_URL: prod ? preserve() : db.env.DATABASE_URL,
+      DATABASE_URL: db.env.DATABASE_URL,
       // Off outside production, same reasoning as title-sync: a preview should
       // not load 4–5M rows nightly unless someone is testing search there.
       SEARCH_INDEX_INGEST_ENABLED: prod ? "true" : "false",
