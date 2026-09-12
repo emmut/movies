@@ -26,6 +26,18 @@ Needs `DATABASE_URL`, `MOVIE_DB_ACCESS_TOKEN`, and `TITLE_SYNC_ENABLED=true` (fr
 
 Watch-provider data comes from JustWatch through TMDB and must be attributed as such wherever it is shown.
 
+## Ingest Search Index
+
+Downloads TMDB's [daily id exports](https://developer.themoviedb.org/docs/daily-id-exports) (movies, TV series, people; roughly 4–5M lines in total) and upserts them into the `search_index` table, then prunes ids that stopped appearing. Pruning is per media type and only runs when that type's export parsed to a plausible number of rows (see `MIN_EXPORT_ROWS`), so an empty or reformatted export can never wipe the index; the run exits non-zero instead. Each line carries only an id, the original title or name, popularity, and the adult flag; adult entries are skipped. Search falls back to this table (pg_trgm nearest-neighbour matching on a GiST index) when TMDB's literal search finds nothing.
+
+### Usage
+
+```bash
+pnpm ingest:search
+```
+
+Needs `DATABASE_URL` and `SEARCH_INDEX_INGEST_ENABLED=true` (from `.env` locally; without the flag the script exits immediately) plus the `pg_trgm` extension, which migration `0015` creates (`0016` switches the index to GiST). Runs daily in production as the `search-index-ingest` Railway cron service (09:00 UTC, after TMDB publishes at 08:00), where the Railway config sets the flag; preview environments leave it off. Without a run the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
+
 ## List Watch Providers
 
 Script to list all available watch providers from TMDB API.

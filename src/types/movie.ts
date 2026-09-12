@@ -116,7 +116,7 @@ export type SearchedMovieResponse = {
   total_results: number;
 };
 
-type MultiSearchResult =
+export type MultiSearchResult =
   | (Movie & { media_type: 'movie' })
   | (TvShow & { media_type: 'tv' })
   | (SearchedPerson & { media_type: 'person' });

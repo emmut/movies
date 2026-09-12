@@ -39,6 +39,8 @@ Lists are local: they belong to the app's users (anonymous ones included), not t
 
 What this unlocks next (sorting and filtering lists in SQL, rendering grids without per-row TMDB calls) is written up in [docs/title-cache-plan.md](./docs/title-cache-plan.md).
 
+**Search follows the same idea.** TMDB's search is a literal title match: no typo tolerance, no control over ranking. Rather than crawl the catalog, the app loads TMDB's daily id exports (every id with its original title and popularity, published precisely so integrators don't crawl) into a `search_index` table with a `pg_trgm` index. When TMDB finds nothing, search falls back to a bounded nearest-neighbour trigram query there, re-ranked by similarity, prefix match, and popularity, and hydrates the hits from TMDB. TMDB stays the first hop because it answers in one request with posters included; the index only pays its way on the typo path. The exports carry no metadata beyond titles, so TMDB stays the source for everything shown.
+
 ## Tech stack
 
 - **Framework**: Next.js 16 (App Router, cache components) with React 19
@@ -49,7 +51,7 @@ What this unlocks next (sorting and filtering lists in SQL, rendering grids with
 - **Images**: imgproxy for signed, resized poster images
 - **Analytics**: PostHog
 - **Tooling**: pnpm, oxlint/oxfmt, Vitest, Playwright, fallow
-- **Infrastructure**: Railway (app, imgproxy, nightly IMDb ratings ingest and title-cache sync crons, per-PR preview environments with their own Postgres), configured as code in `.railway/railway.ts`
+- **Infrastructure**: Railway (app, imgproxy, nightly IMDb ratings, title-cache, and search-index crons, per-PR preview environments with their own Postgres), configured as code in `.railway/railway.ts`
 
 ## Getting started
 
@@ -75,6 +77,7 @@ Run `pnpm run` for the authoritative list. The most used:
 - `pnpm db:generate` / `pnpm db:migrate` / `pnpm db:push` / `pnpm db:studio` — Drizzle
 - `pnpm ingest:imdb` — populate IMDb ratings locally (optional, ~1.5M rows)
 - `pnpm sync:titles` — refresh the local title cache for titles in lists (runs nightly in production)
+- `pnpm ingest:search` — load TMDB's id exports into the fuzzy search index (runs daily in production)
 
 ## Project structure
 
@@ -91,7 +94,7 @@ movies/
 │   └── icons/        # SVG icons
 ├── e2e/              # Playwright end-to-end tests
 ├── drizzle/          # Database migrations
-├── scripts/          # Maintenance scripts (IMDb ingest, title sync, seeding)
+├── scripts/          # Maintenance scripts (IMDb ingest, title sync, search index, seeding)
 ├── .railway/         # Railway infrastructure as code
 └── public/           # Static assets
 ```

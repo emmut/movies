@@ -75,6 +75,58 @@ Rough order; each is independently shippable.
    path and the nightly job cover them. If that ever matters, schedule a
    sync in the migration path too.
 
+## Search
+
+Same principle, different slice. TMDB's `/search` endpoints are literal
+title matches with no typo tolerance and no control over ranking, and there
+is no corpus to embed for semantic queries. TMDB's daily id exports supply
+the slice search needs without crawling: every id with its original title
+and popularity.
+
+Done (PR 2 in this stack):
+
+- `search_index` from the exports, `pg_trgm` GiST index on a folded title,
+  daily `pnpm ingest:search` (Railway `search-index-ingest`, opt-in via
+  `SEARCH_INDEX_INGEST_ENABLED`).
+- Zero-result fallback: when TMDB returns nothing on page 1, pull the nearest
+  neighbours by trigram distance and word-similarity distance straight from
+  the index (k-NN, bounded regardless of how common the query is), re-rank
+  by similarity, a prefix boost, and log popularity, then hydrate the hits
+  from the cached details fetchers. The database query gives up after 1.5s.
+- The command palette uses the same TMDB-first path with a dropdown-sized
+  fallback. A local-first palette was tried and reverted: every keystroke
+  paid a database round trip (seconds on a sleeping preview database) plus
+  one details fetch per hit, against TMDB's single request.
+
+Next:
+
+1. **Measure the k-NN scan on real data.** On 300k synthetic random-hash
+   titles (the worst case for trigram signatures) a query takes ~150ms; real
+   titles cluster far better, but check on the full index. If it is slow,
+   try `siglen=128`, or restrict the `<<->` scan to queries of 5+ characters.
+2. **Merged results with tuned ranking.** On the full search page, run TMDB
+   and the index in parallel and merge, so a typo still shows the literal
+   matches TMDB has and the index adds what it missed. Weights in
+   `fuzzyScore` are a first guess; tune against real queries once PostHog
+   shows what people type.
+3. **Localized and alternative titles.** The exports carry original titles
+   only, so "Amélie" misses "Le fabuleux destin d'Amélie Poulain". Union in
+   `titles.title` (English titles for everything in a list) and fetch
+   `/alternative_titles` lazily for hits people click, storing them as extra
+   index rows keyed to the same id.
+4. **Ingest cost.** Four to five million upserts a night is fine for
+   Postgres but not free. If it becomes a problem: skip people below a
+   popularity floor, or diff against yesterday's file and upsert only
+   changed lines.
+5. **Semantic search within lists.** Store overviews next to `titles`, embed
+   them, add a `pgvector` column: "that heist one" over your own watchlist
+   is small and clearly within the caching allowance.
+6. **Semantic search over the catalog.** No overviews in the exports, so no
+   corpus to embed. The practical substitute is query expansion: a small
+   language-model call turns a description into candidate titles, which run
+   through the normal search path; cache by normalized query. Check the
+   current API reference before wiring it up.
+
 ## Non-goals
 
 - Mirroring the TMDB catalog. The cache is bounded by what users keep in
