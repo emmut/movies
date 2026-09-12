@@ -210,19 +210,28 @@ async function completeWithIndex<T extends SearchHit>(
 ): Promise<SearchPage<T>> {
   const { title, mediaType } = parsed;
   const merge = mode === 'merge' && parsed.year === undefined;
-  const eager = merge ? fuzzyResults(title, page, limit, mediaType) : undefined;
 
+  function queryIndex() {
+    return fuzzyResults(title, page, limit, mediaType);
+  }
+
+  function ofRequestedType(hits: MultiSearchResponse['results']) {
+    return hits.filter(
+      (hit) => mediaType === undefined || hit.media_type === mediaType,
+    ) as unknown as T[];
+  }
+
+  // In merge mode the index query runs alongside TMDB; in fallback mode it
+  // only runs when TMDB found nothing.
+  const eager = merge ? queryIndex() : undefined;
   const tmdb = await tmdbPage;
-  const hits = (eager
-    ? await eager
-    : tmdb.results.length > 0
-      ? []
-      : await fuzzyResults(title, page, limit, mediaType)
-  ).filter((hit) => mediaType === undefined || hit.media_type === mediaType) as unknown as T[];
 
   if (tmdb.results.length === 0) {
+    const hits = ofRequestedType(await (eager ?? queryIndex()));
     return { results: hits, totalPages: hits.length > 0 ? 1 : tmdb.totalPages };
   }
+
+  const hits = eager ? ofRequestedType(await eager) : [];
   return {
     results: rankByTitleMatch(title, mergeUnique(tmdb.results, hits, mediaType)),
     totalPages: tmdb.totalPages,
