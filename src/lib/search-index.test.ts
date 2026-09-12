@@ -115,7 +115,7 @@ describe('searchIndexFuzzy', () => {
         {
           tmdb_id: 157336,
           media_type: 'movie',
-          title: 'Interstellar',
+          search_title: 'interstellar',
           popularity: 120,
           similarity: '0.77',
           score: '1.4',
@@ -127,7 +127,6 @@ describe('searchIndexFuzzy', () => {
       {
         tmdbId: 157336,
         mediaType: 'movie',
-        title: 'Interstellar',
         popularity: 120,
         similarity: 0.77,
         score: 1.4,

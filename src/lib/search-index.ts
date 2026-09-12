@@ -14,7 +14,6 @@ import type { TvDetails } from '@/types/tv-show';
 export type SearchIndexHit = {
   tmdbId: number;
   mediaType: SearchIndexMediaType;
-  title: string;
   popularity: number;
   similarity: number;
   score: number;
@@ -69,7 +68,7 @@ export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOpti
   return sql`
     with candidates as (
       (
-        select ${searchIndex.tmdbId}, ${searchIndex.mediaType}, ${searchIndex.title},
+        select ${searchIndex.tmdbId}, ${searchIndex.mediaType},
                ${searchIndex.searchTitle}, ${searchIndex.popularity}
         from ${searchIndex}
         where ${searchIndex.searchTitle} % ${q} ${typeFilter}
@@ -78,7 +77,7 @@ export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOpti
       )
       union
       (
-        select ${searchIndex.tmdbId}, ${searchIndex.mediaType}, ${searchIndex.title},
+        select ${searchIndex.tmdbId}, ${searchIndex.mediaType},
                ${searchIndex.searchTitle}, ${searchIndex.popularity}
         from ${searchIndex}
         where ${q} <% ${searchIndex.searchTitle} ${typeFilter}
@@ -87,12 +86,12 @@ export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOpti
       )
     ),
     scored as (
-      select tmdb_id, media_type, title, popularity,
+      select tmdb_id, media_type, search_title, popularity,
              greatest(similarity(search_title, ${q}), word_similarity(${q}, search_title)) as similarity,
              case when search_title like ${`${folded}%`}::text then 0.25 else 0 end as prefix_boost
       from candidates
     )
-    select tmdb_id, media_type, title, popularity, similarity,
+    select tmdb_id, media_type, search_title, popularity, similarity,
            similarity + prefix_boost + 0.05 * ln(1 + popularity) as score
     from scored
     where similarity >= ${MIN_SIMILARITY}
@@ -104,7 +103,7 @@ export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOpti
 type FuzzyRow = {
   tmdb_id: number;
   media_type: SearchIndexMediaType;
-  title: string;
+  search_title: string;
   popularity: number;
   similarity: number | string;
   score: number | string;
@@ -145,7 +144,6 @@ export async function searchIndexFuzzy(
   return result.rows.map((row) => ({
     tmdbId: row.tmdb_id,
     mediaType: row.media_type,
-    title: row.title,
     popularity: Number(row.popularity),
     similarity: Number(row.similarity),
     score: Number(row.score),

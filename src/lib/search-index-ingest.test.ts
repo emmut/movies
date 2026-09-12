@@ -74,7 +74,6 @@ describe('parseExportLine', () => {
     ).toEqual({
       mediaType: 'movie',
       tmdbId: 550,
-      title: 'Fight Club',
       searchTitle: 'fight club',
       popularity: 61.4,
     });
@@ -83,7 +82,7 @@ describe('parseExportLine', () => {
   it('parses a TV line, which names the title original_name', () => {
     expect(
       parseExportLine('tv', '{"id":1396,"original_name":"Breaking Bad","popularity":300.1}'),
-    ).toMatchObject({ mediaType: 'tv', tmdbId: 1396, title: 'Breaking Bad' });
+    ).toMatchObject({ mediaType: 'tv', tmdbId: 1396, searchTitle: 'breaking bad' });
   });
 
   it('parses a person line, which uses name', () => {
@@ -150,7 +149,6 @@ describe('upsertSearchIndexBatch', () => {
       {
         mediaType: 'movie' as const,
         tmdbId: 550,
-        title: 'Fight Club',
         searchTitle: 'fight club',
         popularity: 1,
       },
@@ -162,7 +160,6 @@ describe('upsertSearchIndexBatch', () => {
     expect(onConflictDoUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         set: expect.objectContaining({
-          title: expect.anything(),
           searchTitle: expect.anything(),
           popularity: expect.anything(),
           updatedAt: expect.anything(),

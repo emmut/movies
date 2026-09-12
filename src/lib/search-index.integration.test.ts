@@ -35,28 +35,24 @@ describe.skipIf(!process.env.SEARCH_TEST_DATABASE_URL)('PostgreSQL fuzzy search'
       {
         tmdbId: 157336,
         mediaType: 'movie',
-        title: 'Interstellar',
         searchTitle: 'interstellar',
         popularity: 120,
       },
       {
         tmdbId: 157336,
         mediaType: 'person',
-        title: 'Martin Walker',
         searchTitle: 'martin walker',
         popularity: 1,
       },
       {
         tmdbId: 99,
         mediaType: 'movie',
-        title: 'Interstate',
         searchTitle: 'interstate',
         popularity: 1,
       },
       {
         tmdbId: 100,
         mediaType: 'tv',
-        title: 'Interstellar TV',
         searchTitle: 'interstellar tv',
         popularity: 1,
       },
@@ -91,7 +87,7 @@ describe.skipIf(!process.env.SEARCH_TEST_DATABASE_URL)('PostgreSQL fuzzy search'
 
   it('matches prefixes and keeps the media type restriction', async () => {
     const hits = await searchIndexFuzzy('interst', { mediaType: 'movie', limit: 8 });
-    expect(hits[0]).toMatchObject({ tmdbId: 157336, title: 'Interstellar' });
+    expect(hits[0]).toMatchObject({ tmdbId: 157336 });
     expect(hits.every((hit) => hit.mediaType === 'movie')).toBe(true);
   });
 

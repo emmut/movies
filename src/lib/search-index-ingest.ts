@@ -134,7 +134,7 @@ export function parseExportLine(
       ? parsed.popularity
       : 0;
 
-  return { mediaType, tmdbId: id, title, searchTitle, popularity };
+  return { mediaType, tmdbId: id, searchTitle, popularity };
 }
 
 /**
@@ -155,7 +155,6 @@ export async function upsertSearchIndexBatch(database: NodePgDatabase, rows: Sea
     .onConflictDoUpdate({
       target: [searchIndex.mediaType, searchIndex.tmdbId],
       set: {
-        title: sql`excluded.title`,
         searchTitle: sql`excluded.search_title`,
         popularity: sql`excluded.popularity`,
         updatedAt: sql`now()`,
