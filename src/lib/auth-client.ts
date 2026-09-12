@@ -1,33 +1,11 @@
 import { passkeyClient } from '@better-auth/passkey/client';
 import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
-import { toast } from 'sonner';
 
 import { env } from '@/env';
+import { clearPendingGreet, markPendingGreet } from '@/lib/pending-greet';
 
 import { getSafeRedirectUrl } from './utils';
-
-const GREET_KEY = 'pendingGreet';
-
-function markPendingGreet() {
-  try {
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.setItem(GREET_KEY, '1');
-    }
-  } catch {
-    // ignore storage errors (e.g. private mode)
-  }
-}
-
-function clearPendingGreet() {
-  try {
-    if (typeof window !== 'undefined') {
-      window.sessionStorage.removeItem(GREET_KEY);
-    }
-  } catch {
-    // ignore
-  }
-}
 
 const authClient = createAuthClient({
   baseURL: env.NEXT_PUBLIC_BASE_URL,
@@ -35,8 +13,6 @@ const authClient = createAuthClient({
 });
 
 export const { useSession } = authClient;
-
-export type Session = typeof authClient.$Infer.Session;
 
 /**
  * Initiates a Discord social sign-in flow, redirecting the user to Discord for authentication.
@@ -59,10 +35,7 @@ export async function signInDiscord(redirectUrl: string) {
       },
       {
         onRequest: () => markPendingGreet(),
-        onError: () => {
-          clearPendingGreet();
-          toast.error('Failed to sign in with Discord');
-        },
+        onError: () => clearPendingGreet(),
       },
     );
 
@@ -74,7 +47,7 @@ export async function signInDiscord(redirectUrl: string) {
 }
 
 /**
-  * Initiates a Discord sign-in flow for linking an account in user settings.
+ * Initiates a Discord sign-in flow for linking an account in user settings.
  *
  * Redirects the user to Discord for authentication. On success, the user is redirected to the provided safe URL; on failure, to the settings page with an error message.
  *
@@ -126,10 +99,7 @@ export async function signInPasskey(email: string, autoFill = false) {
       },
       {
         onRequest: () => markPendingGreet(),
-        onError: () => {
-          clearPendingGreet();
-          toast.error('Failed to sign in with passkey. Please try again.');
-        },
+        onError: () => clearPendingGreet(),
       },
     );
 
@@ -163,10 +133,7 @@ export async function signInGitHub(redirectUrl: string) {
       },
       {
         onRequest: () => markPendingGreet(),
-        onError: () => {
-          clearPendingGreet();
-          toast.error('Failed to sign in with GitHub');
-        },
+        onError: () => clearPendingGreet(),
       },
     );
 
@@ -213,10 +180,7 @@ export async function signInAnonymous() {
   try {
     const data = await authClient.signIn.anonymous(undefined, {
       onRequest: () => markPendingGreet(),
-      onError: () => {
-        clearPendingGreet();
-        toast.error('Failed to sign in anonymously');
-      },
+      onError: () => clearPendingGreet(),
     });
 
     if (data?.error) {
