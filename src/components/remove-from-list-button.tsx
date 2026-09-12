@@ -7,6 +7,17 @@ import { MouseEvent, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { removeFromList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -50,15 +61,34 @@ export function RemoveFromListButton({
   }
 
   return (
-    <Button
-      variant="destructive"
-      size="icon"
-      className={className}
-      onClick={handleRemove}
-      disabled={isLoading}
-      aria-label="Remove from list"
-    >
-      <X className="h-4 w-4" />
-    </Button>
+    <AlertDialog>
+      <AlertDialogTrigger
+        render={
+          <Button
+            variant="destructive"
+            size="icon"
+            className={className}
+            disabled={isLoading}
+            aria-label="Remove from list"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        }
+      />
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remove from list?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will remove the item from your list. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={handleRemove} disabled={isLoading}>
+            Remove
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
