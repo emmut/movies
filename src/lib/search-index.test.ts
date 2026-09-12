@@ -1,7 +1,7 @@
 import { PgDialect } from 'drizzle-orm/pg-core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/db', () => ({ db: { execute: vi.fn() } }));
+vi.mock('@/lib/db', () => ({ db: { execute: vi.fn(), transaction: vi.fn() } }));
 vi.mock('@/lib/movies', () => ({ getMovieDetails: vi.fn() }));
 vi.mock('@/lib/tv-shows', () => ({ getTvShowDetails: vi.fn() }));
 vi.mock('@/lib/persons', () => ({ getPersonDetails: vi.fn() }));
@@ -30,15 +30,28 @@ function rows(list: Record<string, unknown>[]) {
   return { rows: list } as never;
 }
 
+const transactionExecute = vi.fn();
+
 beforeEach(() => {
   vi.clearAllMocks();
+  transactionExecute.mockReset().mockResolvedValueOnce(rows([])).mockImplementation(db.execute);
+  vi.mocked(db.transaction).mockImplementation(async (callback) => {
+    const tx = { execute: transactionExecute };
+    return callback(tx as never);
+  });
 });
 
 describe('fuzzyQuery', () => {
-  it('pulls nearest neighbours by both trigram distances straight from the index', () => {
+  it('filters by indexed similarity before ordering candidates', () => {
+    const { sql } = render('intersteller', { limit: 8 });
+
+    expect(sql).toMatch(/where "search_index"\."search_title" % \$\d+::text/);
+    expect(sql).toMatch(/where \$\d+::text <% "search_index"\."search_title"/);
+  });
+  it('retains the closest filtered candidates by both trigram distances', () => {
     const { sql, params } = render('intersteller', { limit: 5 });
 
-    expect(sql).toContain('order by "search_index"."search_title" <-> $1::text limit');
+    expect(sql).toMatch(/order by "search_index"\."search_title" <-> \$\d+::text limit/);
     expect(sql).toContain('<<-> "search_index"."search_title" limit');
     expect(params.filter((param) => param === CANDIDATE_LIMIT)).toHaveLength(2);
     // Two candidate scans, unioned so a title found by both appears once.
@@ -61,7 +74,7 @@ describe('fuzzyQuery', () => {
   it('applies the media type filter inside both candidate scans', () => {
     const { sql, params } = render('brad pit', { mediaType: 'person', limit: 5 });
 
-    expect(sql.match(/where "search_index"."media_type" = \$\d+::text/g)).toHaveLength(2);
+    expect(sql.match(/and "search_index"."media_type" = \$\d+::text/g)).toHaveLength(2);
     expect(params.filter((param) => param === 'person')).toHaveLength(2);
   });
 
@@ -73,6 +86,20 @@ describe('fuzzyQuery', () => {
 });
 
 describe('searchIndexFuzzy', () => {
+  it('sets a server timeout and matching thresholds in the query transaction', async () => {
+    vi.mocked(db.execute).mockResolvedValue(rows([]));
+
+    await searchIndexFuzzy('intersteller', { limit: 8 });
+
+    const settings = new PgDialect().sqlToQuery(transactionExecute.mock.calls[0][0]);
+    expect(settings.sql).toContain("set_config('statement_timeout', $1, true)");
+    expect(settings.sql).toContain("set_config('pg_trgm.similarity_threshold', $2, true)");
+    expect(settings.sql).toContain("set_config('pg_trgm.word_similarity_threshold', $3, true)");
+    expect(settings.params).toEqual(['1500', '0.3', '0.6']);
+    expect(db.transaction).toHaveBeenCalledTimes(1);
+    expect(transactionExecute).toHaveBeenCalledTimes(2);
+  });
+
   it('returns nothing for queries too short to trigram-match, without querying', async () => {
     expect(MIN_FUZZY_QUERY_LENGTH).toBe(3);
 

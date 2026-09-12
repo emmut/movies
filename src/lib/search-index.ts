@@ -30,14 +30,16 @@ export type SearchIndexOptions = {
 // well. Shorter queries stay with TMDB.
 export const MIN_FUZZY_QUERY_LENGTH = 3;
 
-// Nearest neighbours pulled per distance operator before re-ranking. The GiST
-// index walks in distance order and stops here, so the cost of a query does
-// not depend on how many titles happen to contain it ("the", "man").
+// Similar candidates retained per match operator before re-ranking.
 export const CANDIDATE_LIMIT = 40;
 
 // Candidates below this similarity are noise for a nonsense query; matches the
 // pg_trgm default threshold for the `%` operator.
 export const MIN_SIMILARITY = 0.3;
+
+// Word matches ignore the rest of the title. Use pg_trgm's stricter default
+// for this scan to avoid fetching thousands of weak fragment matches.
+const MIN_WORD_SIMILARITY = 0.6;
 
 // The index is a convenience layer over TMDB. A database that is slow to
 // answer (a preview instance waking from sleep) must not hold the search
@@ -45,14 +47,14 @@ export const MIN_SIMILARITY = 0.3;
 export const FUZZY_QUERY_TIMEOUT_MS = 1500;
 
 /**
- * Bounded fuzzy search over the index, as one statement.
+ * Fuzzy search over the index, as one statement.
  *
- * Candidate generation is two k-nearest-neighbour scans on the trigram GiST
- * index: `<->` (trigram distance, for typos and swapped words) and `<<->`
- * (word-similarity distance, for a query that is a prefix or fragment of the
- * title, "interst" → "interstellar"). Each returns its closest
- * `CANDIDATE_LIMIT` rows straight from the index, so the work is bounded even
- * for a query that appears in a million titles. The union is then re-ranked:
+ * GIN-backed similarity predicates select plausible whole-title and word
+ * matches before sorting by distance. An unfiltered GiST nearest-neighbour
+ * scan can traverse most of the catalog even with LIMIT 40, exhausting the
+ * preview database's memory. Each filtered scan retains `CANDIDATE_LIMIT`
+ * rows. Common fragments can still match many rows, so the caller also sets
+ * a database statement timeout. The union is then re-ranked:
  * similarity in [0, 1], a flat boost for titles that start with the query
  * (what someone typing expects first), and a gentle log-popularity term so a
  * near-miss on a well-known title outranks an exact hit on an obscure one.
@@ -61,7 +63,7 @@ export const FUZZY_QUERY_TIMEOUT_MS = 1500;
  * LIKE without escaping.
  */
 export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOptions): SQL {
-  const typeFilter = mediaType ? sql`where ${searchIndex.mediaType} = ${mediaType}::text` : sql``;
+  const typeFilter = mediaType ? sql`and ${searchIndex.mediaType} = ${mediaType}::text` : sql``;
   const q = sql`${folded}::text`;
 
   return sql`
@@ -69,7 +71,8 @@ export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOpti
       (
         select ${searchIndex.tmdbId}, ${searchIndex.mediaType}, ${searchIndex.title},
                ${searchIndex.searchTitle}, ${searchIndex.popularity}
-        from ${searchIndex} ${typeFilter}
+        from ${searchIndex}
+        where ${searchIndex.searchTitle} % ${q} ${typeFilter}
         order by ${searchIndex.searchTitle} <-> ${q}
         limit ${CANDIDATE_LIMIT}
       )
@@ -77,7 +80,8 @@ export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOpti
       (
         select ${searchIndex.tmdbId}, ${searchIndex.mediaType}, ${searchIndex.title},
                ${searchIndex.searchTitle}, ${searchIndex.popularity}
-        from ${searchIndex} ${typeFilter}
+        from ${searchIndex}
+        where ${q} <% ${searchIndex.searchTitle} ${typeFilter}
         order by ${q} <<-> ${searchIndex.searchTitle}
         limit ${CANDIDATE_LIMIT}
       )
@@ -121,7 +125,18 @@ export async function searchIndexFuzzy(
     return [];
   }
 
-  const result = await withTimeout(db.execute<FuzzyRow>(fuzzyQuery(folded, options)));
+  const result = await withTimeout(
+    db.transaction(async (tx) => {
+      // Transaction-local settings cannot leak to the next pooled request.
+      // The server cancels expensive statements even after our caller times out.
+      await tx.execute(sql`
+        select set_config('statement_timeout', ${String(FUZZY_QUERY_TIMEOUT_MS)}, true),
+               set_config('pg_trgm.similarity_threshold', ${String(MIN_SIMILARITY)}, true),
+               set_config('pg_trgm.word_similarity_threshold', ${String(MIN_WORD_SIMILARITY)}, true)
+      `);
+      return await tx.execute<FuzzyRow>(fuzzyQuery(folded, options));
+    }),
+  );
   if (result === null) {
     console.warn(`Fuzzy search index did not answer within ${FUZZY_QUERY_TIMEOUT_MS}ms; skipping`);
     return [];

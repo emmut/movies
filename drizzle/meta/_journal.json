@@ -120,6 +120,13 @@
       "when": 1788605669715,
       "tag": "0016_search_index_gist",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1789213884137,
+      "tag": "0017_search_index_filtered",
+      "breakpoints": true
     }
   ]
 }

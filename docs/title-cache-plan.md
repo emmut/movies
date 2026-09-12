@@ -85,14 +85,14 @@ and popularity.
 
 Done (PR 2 in this stack):
 
-- `search_index` from the exports, `pg_trgm` GiST index on a folded title,
+- `search_index` from the exports, `pg_trgm` GIN index on a folded title,
   daily `pnpm ingest:search` (Railway `search-index-ingest`, opt-in via
   `SEARCH_INDEX_INGEST_ENABLED`).
-- Zero-result fallback: when TMDB returns nothing on page 1, pull the nearest
-  neighbours by trigram distance and word-similarity distance straight from
-  the index (k-NN, bounded regardless of how common the query is), re-rank
-  by similarity, a prefix boost, and log popularity, then hydrate the hits
-  from the cached details fetchers. The database query gives up after 1.5s.
+- Zero-result fallback: when TMDB returns nothing on page 1, filter candidates with indexed trigram and word-similarity predicates,
+  retain the closest 40 from each, then re-rank by similarity, a prefix boost,
+  and log popularity. Hydrate the hits from the cached details fetchers.
+  A transaction-local 1.5s statement timeout cancels expensive database work;
+  a caller deadline also bounds the wait for a connection.
 - The command palette uses the same TMDB-first path with a dropdown-sized
   fallback. A local-first palette was tried and reverted: every keystroke
   paid a database round trip (seconds on a sleeping preview database) plus
@@ -100,10 +100,11 @@ Done (PR 2 in this stack):
 
 Next:
 
-1. **Measure the k-NN scan on real data.** On 300k synthetic random-hash
-   titles (the worst case for trigram signatures) a query takes ~150ms; real
-   titles cluster far better, but check on the full index. If it is slow,
-   try `siglen=128`, or restrict the `<<->` scan to queries of 5+ characters.
+1. **Measure search on the full catalog.** The unfiltered GiST k-NN query
+   exceeded the deadline on the 6.36M-row preview index, and its backend was
+   killed during a direct probe. Migration `0017` replaces it with GIN and
+   indexed similarity filters. Common fragments can still match many rows;
+   monitor cancellations and tune candidate thresholds against real queries.
 2. **Merged results with tuned ranking.** On the full search page, run TMDB
    and the index in parallel and merge, so a typo still shows the literal
    matches TMDB has and the index adds what it missed. Weights in
