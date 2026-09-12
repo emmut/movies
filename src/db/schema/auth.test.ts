@@ -8,14 +8,14 @@ import { account, passkey, session, user, verification } from './auth';
 
 // better-auth reads and writes these tables through the Drizzle adapter, and it
 // resolves them by field name at runtime — a field it expects but the schema
-// lacks only surfaces as a failed query in production. That is how the
-// `account.issuer` column added in better-auth 1.7 slipped through: social
-// sign-in died on the account write ("The field \"issuer\" does not exist in
-// the schema for the model \"account\""), while anonymous sign-in, which never
-// writes an account row, kept working.
+// lacks only surfaces as a failed query in production. Deriving the
+// expectation from better-auth itself means the next upgrade that adds a field
+// fails here instead of in the OAuth callback.
 //
-// Deriving the expectation from better-auth itself means the next upgrade that
-// adds a field fails here instead of in the OAuth callback.
+// History: better-auth 1.7.0–1.7.2 keyed accounts on (issuer, accountId) with
+// a required `issuer` column; 1.7.3 reverted to the 1.6 (providerId,
+// accountId) identity and no longer writes `issuer`, so the column and its
+// unique index were removed again rather than relaxed to nullable.
 
 // Mirrors the plugin list in src/lib/auth.ts, which can't be imported here
 // because it opens a database pool. Plugins contribute their own tables
@@ -34,13 +34,4 @@ describe('better-auth schema coverage', () => {
       expect(actual).toEqual(expect.arrayContaining(expected));
     });
   }
-
-  it('namespaces account identities with an issuer', () => {
-    // Not just any column: better-auth keys OAuth accounts on (issuer,
-    // accountId), so the column has to be non-null for every existing row.
-    const { issuer } = getTableColumns(account);
-
-    expect(issuer).toBeDefined();
-    expect(issuer.notNull).toBe(true);
-  });
 });

@@ -5,6 +5,7 @@ import { listItems, lists } from '@/db/schema/lists';
 import { db } from '@/lib/db';
 import { listItemOrderingScope, withOrderingLock } from '@/lib/ordering-lock';
 import type { SystemListType } from '@/lib/validations';
+import { systemListTypeSchema } from '@/lib/validations';
 
 // Internal names for the per-user singleton system lists; never shown in the
 // lists UI.
@@ -119,4 +120,43 @@ function systemListRowFilter(listId: string, resourceId: number, resourceType: s
     eq(listItems.resourceId, resourceId),
     eq(listItems.resourceType, resourceType),
   );
+}
+
+/**
+ * Copies the anonymous user's system list items (watchlist, watched, …) into
+ * the linked account's list of the same type, creating it if missing.
+ * Duplicates are handled by the unique constraint on
+ * (listId, resourceId, resourceType).
+ */
+export async function transferSystemListItems(
+  anonymousUserId: string,
+  newUserId: string,
+): Promise<void> {
+  for (const listType of systemListTypeSchema.options) {
+    const anonymousItems = await db
+      .select({
+        resourceId: listItems.resourceId,
+        resourceType: listItems.resourceType,
+      })
+      .from(listItems)
+      .innerJoin(lists, eq(listItems.listId, lists.id))
+      .where(and(eq(lists.userId, anonymousUserId), eq(lists.type, listType)));
+
+    if (anonymousItems.length === 0) {
+      continue;
+    }
+
+    const targetListId = await getOrCreateSystemListId(newUserId, listType);
+    await db
+      .insert(listItems)
+      .values(
+        anonymousItems.map(({ resourceId, resourceType }) => ({
+          id: crypto.randomUUID(),
+          resourceId,
+          resourceType,
+          listId: targetListId,
+        })),
+      )
+      .onConflictDoNothing();
+  }
 }
