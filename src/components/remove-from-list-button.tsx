@@ -8,14 +8,16 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { removeFromList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 
@@ -35,7 +37,6 @@ export function RemoveFromListButton({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
 
   async function handleRemove(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault(); // Prevent link navigation when clicking the button
@@ -52,7 +53,6 @@ export function RemoveFromListButton({
       });
 
       router.refresh();
-      setIsOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to remove from list');
     } finally {
@@ -61,8 +61,8 @@ export function RemoveFromListButton({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger
+    <AlertDialog>
+      <AlertDialogTrigger
         render={
           <Button
             variant="destructive"
@@ -75,22 +75,20 @@ export function RemoveFromListButton({
           </Button>
         }
       />
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Remove from list?</DialogTitle>
-          <DialogDescription>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remove from list?</AlertDialogTitle>
+          <AlertDialogDescription>
             This will remove the item from your list. This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={handleRemove} disabled={isLoading}>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" onClick={handleRemove} disabled={isLoading}>
             Remove
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
