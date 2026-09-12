@@ -3,52 +3,10 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
 import { anonymous } from 'better-auth/plugins';
-import { and, eq } from 'drizzle-orm';
 
 import * as schema from '@/db/schema/auth';
-import { listItems, lists } from '@/db/schema/lists';
 import { env } from '@/env';
 import { db } from '@/lib/db';
-import { getOrCreateSystemListId } from '@/lib/system-list';
-import { type SystemListType, systemListTypeSchema } from '@/lib/validations';
-
-/**
- * Copies the anonymous user's system list items (watchlist, watched, …) into
- * the linked account's list of the same type, creating it if missing.
- * Duplicates are handled by the unique constraint on
- * (listId, resourceId, resourceType).
- */
-async function transferSystemListItems(
-  anonymousUserId: string,
-  newUserId: string,
-  listType: SystemListType,
-) {
-  const anonymousItems = await db
-    .select({
-      resourceId: listItems.resourceId,
-      resourceType: listItems.resourceType,
-    })
-    .from(listItems)
-    .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(and(eq(lists.userId, anonymousUserId), eq(lists.type, listType)));
-
-  if (anonymousItems.length === 0) {
-    return;
-  }
-
-  const targetListId = await getOrCreateSystemListId(newUserId, listType);
-  await db
-    .insert(listItems)
-    .values(
-      anonymousItems.map(({ resourceId, resourceType }) => ({
-        id: crypto.randomUUID(),
-        resourceId,
-        resourceType,
-        listId: targetListId,
-      })),
-    )
-    .onConflictDoNothing();
-}
 
 export const auth = betterAuth({
   baseURL: env.NEXT_PUBLIC_BASE_URL,
@@ -90,9 +48,11 @@ export const auth = betterAuth({
     anonymous({
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         try {
-          for (const listType of systemListTypeSchema.options) {
-            await transferSystemListItems(anonymousUser.user.id, newUser.user.id, listType);
-          }
+          // Lazy import: system-list.ts is server-only and would break
+          // better-auth CLI commands (e.g. `auth generate`) that load this
+          // config in plain Node.
+          const { transferSystemListItems } = await import('@/lib/system-list');
+          await transferSystemListItems(anonymousUser.user.id, newUser.user.id);
         } catch (error) {
           console.error('Failed to link your account:', error);
         }
