@@ -79,7 +79,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </Suspense>
           </NuqsAdapter>
         </QueryProvider>
-        <Toaster position="top-center" richColors />
+        <Toaster position="bottom-right" richColors />
       </body>
     </html>
   );
