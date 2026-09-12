@@ -8,7 +8,7 @@ import { BackScrollRestorer } from '@/components/back-scroll-restorer';
 import { AppSidebarWrapper } from '@/components/app-sidebar-wrapper';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
-import { SearchCommand } from '@/components/search-command';
+import { SearchCommand, SearchCommandFallback } from '@/components/search-command';
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { env } from '@/env';
@@ -63,7 +63,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <header className="sticky top-0 z-10 flex h-(--header-height) shrink-0 items-center gap-4 border-b bg-background px-4">
                     <SidebarTrigger className="-ml-1" />
                     <Separator orientation="vertical" className="h-4" />
-                    <SearchCommand />
+                    {/* nuqs reads useSearchParams under the hood — needs a boundary under cacheComponents. */}
+                    <Suspense fallback={<SearchCommandFallback />}>
+                      <SearchCommand />
+                    </Suspense>
                   </header>
                   <div className="mx-auto w-full max-w-7xl px-4 py-4 sm:px-6">{children}</div>
                   <Footer />
