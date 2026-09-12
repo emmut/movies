@@ -28,6 +28,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "seed": "tsx --env-file=.env scripts/seed-watchlist-and-lists.ts",
+    "seed:high-sex-nudity": "tsx --env-file=.env scripts/seed-high-sex-nudity.ts",
     "ingest:imdb": "tsx --env-file-if-exists=.env scripts/ingest-imdb-ratings.ts",
     "sync:titles": "tsx --env-file-if-exists=.env scripts/sync-titles.ts"
   },

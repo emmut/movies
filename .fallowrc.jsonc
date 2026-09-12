@@ -16,7 +16,13 @@
     // The person page's profile-image block mirrors the movie Poster only
     // structurally (different fallback icon/labels); merging them would
     // couple the person page to a movie component for no behavioral gain.
-    "ignore": ["src/app/**/loading.tsx", "src/app/person/[id]/page.tsx"],
+    "ignore": [
+      "src/app/**/loading.tsx",
+      "src/app/person/[id]/page.tsx",
+      // Standalone seed scripts deliberately retain their own executable
+      // setup; sharing it would couple independent maintenance commands.
+      "scripts/seed-high-sex-nudity.ts",
+    ],
   },
   "health": {
     // App-Router page components are inherently conditional-JSX-heavy (cyclomatic
