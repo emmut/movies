@@ -4,6 +4,7 @@ import { cn } from 'cn';
 import { Search as SearchIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { parseAsString, useQueryState } from 'nuqs';
 import { KeyboardEvent, RefObject, useCallback, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 
@@ -24,6 +25,7 @@ import {
   getSubmitHref,
   moveSelection,
   SearchCommandItem,
+  syncPaletteQuery,
   toSearchCommandItems,
 } from './search-command-items';
 
@@ -230,11 +232,26 @@ function SearchCommandFooter({ itemCount, href, query, onNavigate }: SearchComma
 type SearchCommandPanelProps = {
   inputRef: RefObject<HTMLInputElement | null>;
   onNavigate: (href: string) => void;
+  urlQuery: string;
 };
 
-function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
-  const [query, setQuery] = useState('');
+function SearchCommandPanel({ inputRef, onNavigate, urlQuery }: SearchCommandPanelProps) {
+  // `query` is a local draft the input types into — it must not write back
+  // to the URL on every keystroke, so it only follows `urlQuery` when that
+  // value itself changes elsewhere (e.g. browser back/forward while the
+  // palette is open). Compared during render rather than in an effect, so
+  // there's no extra render showing the stale query first. Same component
+  // instance throughout, so the input keeps focus (unlike a key remount,
+  // which would replace the focused element mid-typing).
+  const [query, setQuery] = useState(urlQuery);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [syncedUrlQuery, setSyncedUrlQuery] = useState(urlQuery);
+  const sync = syncPaletteQuery(urlQuery, syncedUrlQuery);
+  if (sync) {
+    setQuery(sync.query);
+    setActiveIndex(sync.activeIndex);
+    setSyncedUrlQuery(sync.syncedUrlQuery);
+  }
 
   const debouncedQuery = useDebouncedValue(query.trim(), 250);
   const { data, isLoading, isFetching, isPlaceholderData } = useSearchSuggestions(debouncedQuery);
@@ -328,12 +345,16 @@ function SearchCommandPanel({ inputRef, onNavigate }: SearchCommandPanelProps) {
  *
  * Opens via click, ⌘K/Ctrl+K, or `/`. Arrow keys move the selection, Enter
  * opens the selected result, and "See all results" deep-links to /search.
+ *
+ * While viewing search results, the current query stays visible both on the
+ * trigger itself and, pre-filled, in the palette it opens.
  */
 export function SearchCommand() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const openShortcut = useShortcutLabel('K');
+  const [currentQuery] = useQueryState('q', parseAsString.withDefault(''));
 
   // Mount the dialog synchronously and focus the input within the opening
   // gesture. iOS Safari only raises the keyboard for a focus() that happens
@@ -359,7 +380,9 @@ export function SearchCommand() {
         className="flex h-9 max-w-md flex-1 items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm text-muted-foreground transition-colors hover:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <SearchIcon className="h-4 w-4" />
-        <span className="flex-1 text-left">Search...</span>
+        <span className={cn('flex-1 truncate text-left', currentQuery && 'text-foreground')}>
+          {currentQuery || 'Search...'}
+        </span>
         <Kbd>{openShortcut}</Kbd>
       </button>
 
@@ -369,9 +392,31 @@ export function SearchCommand() {
           className="top-24 translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg"
         >
           <DialogTitle className="sr-only">Search</DialogTitle>
-          <SearchCommandPanel inputRef={inputRef} onNavigate={navigate} />
+          <SearchCommandPanel
+            inputRef={inputRef}
+            onNavigate={navigate}
+            urlQuery={currentQuery}
+          />
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+/**
+ * Static stand-in for {@link SearchCommand} rendered while its `useQueryState()`
+ * read is suspended (`cacheComponents` requires a Suspense boundary around any
+ * dynamic URL read). Keeps the header's layout stable during that gap.
+ */
+export function SearchCommandFallback() {
+  return (
+    <button
+      type="button"
+      disabled
+      className="flex h-9 max-w-md flex-1 items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm text-muted-foreground"
+    >
+      <SearchIcon className="h-4 w-4" />
+      <span className="flex-1 text-left">Search...</span>
+    </button>
   );
 }
