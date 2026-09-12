@@ -97,6 +97,18 @@ Done (PR 2 in this stack):
   fallback. A local-first palette was tried and reverted: every keystroke
   paid a database round trip (seconds on a sleeping preview database) plus
   one details fetch per hit, against TMDB's single request.
+- Title-match ranking (`src/lib/search-rank.ts`): every TMDB page is
+  re-ordered by how closely the folded title matches the folded query —
+  exact, then the query as a leading word, then prefix, then substring —
+  with a stable sort so TMDB's own order (or popularity, in the year
+  fan-out) breaks ties. TMDB ranks by a popularity blend, which put
+  "Alien: Romulus" above "Alien" for "alien".
+- Merged first page: on the full search page, the index runs alongside TMDB
+  for queries without a year filter and its hits are added to page 1
+  (deduplicated by media type and id, ranked on equal terms, queued behind
+  TMDB within a tier). An exact match TMDB buried on page 2 now surfaces at
+  the top; typos still get the index's fuzzy hits after TMDB's literal ones.
+  The palette keeps the zero-result fallback only.
 
 Next:
 
@@ -105,11 +117,12 @@ Next:
    killed during a direct probe. Migration `0017` replaces it with GIN and
    indexed similarity filters. Common fragments can still match many rows;
    monitor cancellations and tune candidate thresholds against real queries.
-2. **Merged results with tuned ranking.** On the full search page, run TMDB
-   and the index in parallel and merge, so a typo still shows the literal
-   matches TMDB has and the index adds what it missed. Weights in
-   `fuzzyScore` are a first guess; tune against real queries once PostHog
-   shows what people type.
+2. **Tune the ranking.** The index weights (similarity, prefix boost, log
+   popularity in `search-index.ts`) and the match tiers in `search-rank.ts`
+   are a first guess; tune against real queries once PostHog shows what
+   people type. Watch for obscure exact-title matches from the index
+   crowding out popular near-matches — a popularity floor on merged hits is
+   the obvious lever.
 3. **Localized and alternative titles.** The exports carry original titles
    only, so "Amélie" misses "Le fabuleux destin d'Amélie Poulain". Union in
    `titles.title` (English titles for everything in a list) and fetch
