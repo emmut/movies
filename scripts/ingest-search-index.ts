@@ -16,7 +16,7 @@
  */
 
 import { createInterface } from 'node:readline';
-import { Readable } from 'node:stream';
+import { pipeline, Readable } from 'node:stream';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
 
@@ -39,7 +39,11 @@ import { env } from './env';
 
 const BATCH_SIZE = 5_000;
 const PROGRESS_INTERVAL = 250_000;
-const DOWNLOAD_TIMEOUT_MS = 20 * 60 * 1000;
+// Abort an export that makes no progress for this long, so a hung connection
+// dies instead of waiting forever. The timer resets on every flushed batch:
+// a slow but advancing ingest (the full catalog takes well over an hour at
+// ~1k rows/s through the trigram index) runs to completion.
+const STALL_TIMEOUT_MS = 5 * 60 * 1000;
 
 if (!env.SEARCH_INDEX_INGEST_ENABLED) {
   console.log('⏭️ SEARCH_INDEX_INGEST_ENABLED is not set; nothing to do in this environment.');
@@ -66,18 +70,39 @@ async function openExport(file: SearchIndexExport['file'], signal: AbortSignal) 
 
 async function ingestExport(db: NodePgDatabase, { mediaType, file }: SearchIndexExport) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+  function stall() {
+    controller.abort(
+      new Error(
+        `${mediaType}: no rows upserted for ${STALL_TIMEOUT_MS / 60_000} minutes; aborting`,
+      ),
+    );
+  }
+  const timeout = setTimeout(stall, STALL_TIMEOUT_MS);
+  const resetTimeout = () => timeout.refresh();
 
   try {
     const body = await openExport(file, controller.signal);
+    resetTimeout();
+
+    // `.pipe()` does not forward errors, so an aborted download used to crash
+    // the process as an unhandled 'error' event on the source Readable.
+    // `pipeline` wires error handling across both streams and destroys the
+    // gunzip output with the abort reason, which readline then surfaces as a
+    // rejection of the line loop below.
+    const source = pipeline(
+      Readable.fromWeb(body as NodeReadableStream<Uint8Array>),
+      createGunzip(),
+      () => {},
+    );
     const lines = createInterface({
-      input: Readable.fromWeb(body as NodeReadableStream<Uint8Array>).pipe(createGunzip()),
+      input: source,
       crlfDelay: Infinity,
     });
 
     const { total, skipped } = await ingestExportLines(db, mediaType, lines, {
       batchSize: BATCH_SIZE,
       onProgress(count) {
+        resetTimeout();
         if (count % PROGRESS_INTERVAL === 0) {
           console.log(`   • ${count.toLocaleString('en-US')} ${mediaType} rows upserted`);
         }
