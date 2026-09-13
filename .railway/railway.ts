@@ -183,9 +183,10 @@ export default defineRailway((ctx) => {
       startCommand: "pnpm tsx scripts/ingest-search-index.ts",
       cronSchedule: "0 9 * * *",
       restartPolicyType: "NEVER",
-      // Streams the gzipped files line by line with 5k-row batches and one
-      // pg connection — same footprint as imdb-ingest.
-      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+      // Buffers each export to disk before ingesting, streams gunzip line by
+      // line with 5k-row batches and one pg connection — but the run peaked
+      // at the old 500MB limit, so give it a full GB of headroom.
+      limitOverride: { containers: { cpu: 1, memoryBytes: 1 * GB_IN_BYTES } },
     },
     env: {
       DATABASE_URL: db.env.DATABASE_URL,
