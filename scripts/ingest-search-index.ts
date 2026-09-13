@@ -70,17 +70,15 @@ async function openExport(file: SearchIndexExport['file'], signal: AbortSignal) 
 
 async function ingestExport(db: NodePgDatabase, { mediaType, file }: SearchIndexExport) {
   const controller = new AbortController();
-  const stall = () =>
+  function stall() {
     controller.abort(
       new Error(
         `${mediaType}: no rows upserted for ${STALL_TIMEOUT_MS / 60_000} minutes; aborting`,
       ),
     );
-  let timeout = setTimeout(stall, STALL_TIMEOUT_MS);
-  const resetTimeout = () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(stall, STALL_TIMEOUT_MS);
-  };
+  }
+  const timeout = setTimeout(stall, STALL_TIMEOUT_MS);
+  const resetTimeout = () => timeout.refresh();
 
   try {
     const body = await openExport(file, controller.signal);
