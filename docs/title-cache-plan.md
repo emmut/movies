@@ -88,9 +88,11 @@ Done (PR 2 in this stack):
 - `search_index` from the exports, `pg_trgm` GIN index on a folded title,
   daily `pnpm ingest:search` (Railway `search-index-ingest`, opt-in via
   `SEARCH_INDEX_INGEST_ENABLED`).
-- Zero-result fallback: when TMDB returns nothing on page 1, filter candidates with indexed trigram and word-similarity predicates,
-  retain the closest 40 from each, then re-rank by similarity, a prefix boost,
-  and log popularity. Hydrate the hits from the cached details fetchers.
+- On page one, filter local candidates with indexed trigram and word-similarity
+  predicates, retain the closest 40 from each, then re-rank by similarity, a
+  prefix boost, and log popularity. Full-page search merges that rank with
+  TMDB using reciprocal-rank fusion. Candidates absent from TMDB are hydrated
+  from the cached details fetchers, capped at three when TMDB has results.
   A transaction-local 1.5s statement timeout cancels expensive database work;
   a caller deadline also bounds the wait for a connection.
 - The command palette uses the same TMDB-first path with a dropdown-sized
@@ -105,11 +107,9 @@ Next:
    killed during a direct probe. Migration `0017` replaces it with GIN and
    indexed similarity filters. Common fragments can still match many rows;
    monitor cancellations and tune candidate thresholds against real queries.
-2. **Merged results with tuned ranking.** On the full search page, run TMDB
-   and the index in parallel and merge, so a typo still shows the literal
-   matches TMDB has and the index adds what it missed. Weights in
-   `fuzzyScore` are a first guess; tune against real queries once PostHog
-   shows what people type.
+2. **Tune ranking from real queries.** The trigram weights and reciprocal-rank
+   fusion constant are first guesses; tune them once PostHog shows what people
+   type and which result ranks they click.
 3. **Localized and alternative titles.** The exports carry original titles
    only, so "Amélie" misses "Le fabuleux destin d'Amélie Poulain". Union in
    `titles.title` (English titles for everything in a list) and fetch

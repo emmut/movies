@@ -7,9 +7,10 @@ vi.mock('./tmdb', () => ({
   addPosterImageUrls: vi.fn((item: object) => ({ ...item, _poster: true })),
   addProfileImageUrls: vi.fn((item: object) => ({ ...item, _profile: true })),
 }));
-// The fuzzy index is a fallback; by default it finds nothing so the TMDB
-// paths below behave as before.
-vi.mock('./search-index', () => ({ searchIndexResults: vi.fn() }));
+vi.mock('./search-index', () => ({
+  hydrateSearchIndexHits: vi.fn(),
+  searchIndexFuzzy: vi.fn(),
+}));
 
 import {
   getSearchMovies,
@@ -18,15 +19,17 @@ import {
   getSearchSuggestions,
   getSearchTvShows,
 } from './search';
-import { searchIndexResults } from './search-index';
+import { hydrateSearchIndexHits, searchIndexFuzzy } from './search-index';
 import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
 
 const mockedFetch = vi.mocked(tmdbFetch);
-const mockedFuzzy = vi.mocked(searchIndexResults);
+const mockedFuzzy = vi.mocked(searchIndexFuzzy);
+const mockedHydrate = vi.mocked(hydrateSearchIndexHits);
 
 beforeEach(() => {
   vi.clearAllMocks();
   mockedFuzzy.mockResolvedValue([]);
+  mockedHydrate.mockResolvedValue([]);
 });
 
 const NO_RESULTS = { results: [], total_pages: 0, total_results: 0 };
@@ -432,17 +435,35 @@ describe('media-type keywords on single-type searches', () => {
   });
 });
 
-describe('fuzzy fallback', () => {
+describe('hybrid fuzzy search', () => {
   const fuzzyMovie = { id: 157336, title: 'Interstellar', media_type: 'movie' as const };
   const fuzzyPerson = { id: 287, name: 'Brad Pitt', media_type: 'person' as const };
+  const movieHit = {
+    tmdbId: 157336,
+    mediaType: 'movie' as const,
+    title: 'Interstellar',
+    popularity: 120,
+    similarity: 0.8,
+    score: 1.2,
+  };
+  const personHit = {
+    tmdbId: 287,
+    mediaType: 'person' as const,
+    title: 'Brad Pitt',
+    popularity: 80,
+    similarity: 0.9,
+    score: 1.3,
+  };
 
   it('getSearchMovies falls back to the index when TMDB finds nothing on page 1', async () => {
     mockedFetch.mockResolvedValue(NO_RESULTS as never);
-    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
+    mockedFuzzy.mockResolvedValue([movieHit]);
+    mockedHydrate.mockResolvedValue([fuzzyMovie as never]);
 
     const result = await getSearchMovies('intersteller');
 
     expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: 'movie', limit: 10 });
+    expect(mockedHydrate).toHaveBeenCalledWith([movieHit]);
     expect(result.movies).toEqual([{ ...fuzzyMovie, _poster: true }]);
     expect(result.totalPages).toBe(1);
   });
@@ -455,16 +476,48 @@ describe('fuzzy fallback', () => {
     expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', expect.anything());
   });
 
-  it('does not consult the index when TMDB has results', async () => {
+  it('consults the index alongside TMDB and rank-fuses duplicate hits', async () => {
     mockedFetch.mockResolvedValue({
-      results: [{ id: 1 }],
+      results: [
+        { id: 1, title: 'The Matrix Reloaded' },
+        { id: 2, title: 'The Matrix' },
+      ],
+      total_pages: 1,
+      total_results: 2,
+    } as never);
+    mockedFuzzy.mockResolvedValue([{ ...movieHit, tmdbId: 2, title: 'The Matrix' }]);
+
+    const result = await getSearchMovies('matrix');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('matrix', { mediaType: 'movie', limit: 10 });
+    expect(mockedHydrate).not.toHaveBeenCalled();
+    expect(result.movies.map((movie) => movie.id)).toEqual([2, 1]);
+  });
+
+  it('hydrates at most three index-only candidates when TMDB has results', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1, title: 'TMDB result' }],
       total_pages: 1,
       total_results: 1,
     } as never);
+    const missingHits = Array.from({ length: 5 }, (_, index) => ({
+      ...movieHit,
+      tmdbId: index + 10,
+      title: `Local ${index + 1}`,
+    }));
+    mockedFuzzy.mockResolvedValue(missingHits);
+    mockedHydrate.mockResolvedValue(
+      missingHits.slice(0, 3).map((hit) => ({
+        id: hit.tmdbId,
+        title: hit.title,
+        media_type: 'movie',
+      })) as never,
+    );
 
-    await getSearchMovies('matrix');
+    const result = await getSearchMovies('local');
 
-    expect(mockedFuzzy).not.toHaveBeenCalled();
+    expect(mockedHydrate).toHaveBeenCalledWith(missingHits.slice(0, 3));
+    expect(result.movies.map((movie) => movie.id)).toEqual([1, 10, 11, 12]);
   });
 
   it('does not consult the index beyond the first page', async () => {
@@ -478,11 +531,12 @@ describe('fuzzy fallback', () => {
 
   it('getSearchTvShows and getSearchPersons fall back with their media type', async () => {
     mockedFetch.mockResolvedValue(NO_RESULTS as never);
-    mockedFuzzy.mockResolvedValue([fuzzyPerson as never]);
 
     await getSearchTvShows('brekaing bad');
     expect(mockedFuzzy).toHaveBeenLastCalledWith('brekaing bad', { mediaType: 'tv', limit: 10 });
 
+    mockedFuzzy.mockResolvedValue([personHit]);
+    mockedHydrate.mockResolvedValue([fuzzyPerson as never]);
     const persons = await getSearchPersons('brad pit');
     expect(mockedFuzzy).toHaveBeenLastCalledWith('brad pit', { mediaType: 'person', limit: 10 });
     expect(persons.persons).toEqual([{ ...fuzzyPerson, _profile: true }]);
@@ -490,7 +544,8 @@ describe('fuzzy fallback', () => {
 
   it('keeps only results of the requested media type', async () => {
     mockedFetch.mockResolvedValue(NO_RESULTS as never);
-    mockedFuzzy.mockResolvedValue([fuzzyPerson as never, fuzzyMovie as never]);
+    mockedFuzzy.mockResolvedValue([personHit, movieHit]);
+    mockedHydrate.mockResolvedValue([fuzzyPerson as never, fuzzyMovie as never]);
 
     const result = await getSearchMovies('x');
 
@@ -499,7 +554,8 @@ describe('fuzzy fallback', () => {
 
   it('getSearchMulti falls back to the index with the parsed media type', async () => {
     mockedFetch.mockResolvedValue(NO_RESULTS as never);
-    mockedFuzzy.mockResolvedValue([fuzzyMovie as never, fuzzyPerson as never]);
+    mockedFuzzy.mockResolvedValue([movieHit, personHit]);
+    mockedHydrate.mockResolvedValue([fuzzyMovie as never, fuzzyPerson as never]);
 
     const result = await getSearchMulti('intersteller');
 
@@ -509,6 +565,24 @@ describe('fuzzy fallback', () => {
       { ...fuzzyPerson, _profile: true },
     ]);
     expect(result.totalPages).toBe(1);
+  });
+
+  it('getSearchMulti rank-fuses TMDB and local results on page one', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, title: 'The Matrix Reloaded', media_type: 'movie' },
+        { id: 2, title: 'The Matrix', media_type: 'movie' },
+      ],
+      total_pages: 4,
+      total_results: 80,
+    } as never);
+    mockedFuzzy.mockResolvedValue([{ ...movieHit, tmdbId: 2, title: 'The Matrix' }]);
+
+    const result = await getSearchMulti('matrix');
+
+    expect(result.results.map((item) => item.id)).toEqual([2, 1]);
+    expect(result.totalPages).toBe(4);
+    expect(mockedHydrate).not.toHaveBeenCalled();
   });
 
   it('getSearchMulti reports TMDB’s empty page when the index has nothing either', async () => {
@@ -535,8 +609,16 @@ describe('fuzzy fallback', () => {
 
 describe('getSearchSuggestions', () => {
   const fuzzyMovie = { id: 157336, title: 'Interstellar', media_type: 'movie' as const };
+  const movieHit = {
+    tmdbId: 157336,
+    mediaType: 'movie' as const,
+    title: 'Interstellar',
+    popularity: 120,
+    similarity: 0.8,
+    score: 1.2,
+  };
 
-  it('answers from TMDB in one request when it has results, never touching the index', async () => {
+  it('answers from TMDB without waiting for the index when TMDB has results', async () => {
     mockedFetch.mockResolvedValue({
       results: [{ id: 1, media_type: 'movie' }],
       total_pages: 1,
@@ -551,12 +633,14 @@ describe('getSearchSuggestions', () => {
       expect.objectContaining({ searchParams: expect.objectContaining({ query: 'interst' }) }),
     );
     expect(mockedFuzzy).not.toHaveBeenCalled();
+    expect(mockedHydrate).not.toHaveBeenCalled();
     expect(result.results).toEqual([{ id: 1, media_type: 'movie', _poster: true }]);
   });
 
   it('falls back to a dropdown-sized fuzzy page when TMDB has nothing', async () => {
     mockedFetch.mockResolvedValue(NO_RESULTS as never);
-    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
+    mockedFuzzy.mockResolvedValue([movieHit]);
+    mockedHydrate.mockResolvedValue([fuzzyMovie as never]);
 
     const result = await getSearchSuggestions('intersteller');
 
@@ -566,7 +650,8 @@ describe('getSearchSuggestions', () => {
 
   it('narrows the fuzzy fallback to a media-type keyword in the query', async () => {
     mockedFetch.mockResolvedValue(NO_RESULTS as never);
-    mockedFuzzy.mockResolvedValue([fuzzyMovie as never]);
+    mockedFuzzy.mockResolvedValue([movieHit]);
+    mockedHydrate.mockResolvedValue([fuzzyMovie as never]);
 
     await getSearchSuggestions('intersteller movie');
 

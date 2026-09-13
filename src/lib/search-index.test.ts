@@ -15,10 +15,10 @@ import {
   CANDIDATE_LIMIT,
   FUZZY_QUERY_TIMEOUT_MS,
   fuzzyQuery,
+  hydrateSearchIndexHits,
   MIN_FUZZY_QUERY_LENGTH,
   MIN_SIMILARITY,
   searchIndexFuzzy,
-  searchIndexResults,
 } from './search-index';
 
 function render(query: string, options: { mediaType?: 'movie' | 'tv' | 'person'; limit: number }) {
@@ -176,15 +176,21 @@ describe('searchIndexFuzzy', () => {
   });
 });
 
-describe('searchIndexResults', () => {
+describe('hydrateSearchIndexHits', () => {
   const hits = [
-    { tmdb_id: 1, media_type: 'movie', title: 'A', popularity: 1, similarity: 1, score: 1 },
-    { tmdb_id: 2, media_type: 'tv', title: 'B', popularity: 1, similarity: 1, score: 0.9 },
-    { tmdb_id: 3, media_type: 'person', title: 'C', popularity: 1, similarity: 1, score: 0.8 },
+    { tmdbId: 1, mediaType: 'movie' as const, title: 'A', popularity: 1, similarity: 1, score: 1 },
+    { tmdbId: 2, mediaType: 'tv' as const, title: 'B', popularity: 1, similarity: 1, score: 0.9 },
+    {
+      tmdbId: 3,
+      mediaType: 'person' as const,
+      title: 'C',
+      popularity: 1,
+      similarity: 1,
+      score: 0.8,
+    },
   ];
 
   beforeEach(() => {
-    vi.mocked(db.execute).mockResolvedValue(rows(hits));
     vi.mocked(getMovieDetails).mockResolvedValue({
       id: 1,
       title: 'A',
@@ -211,7 +217,7 @@ describe('searchIndexResults', () => {
   });
 
   it('hydrates each hit into the multi-search shape, preserving rank', async () => {
-    const results = await searchIndexResults('abc', { limit: 5 });
+    const results = await hydrateSearchIndexHits(hits);
 
     expect(results.map((result) => [result.media_type, result.id])).toEqual([
       ['movie', 1],
@@ -236,15 +242,13 @@ describe('searchIndexResults', () => {
   it('drops hits whose details fetch fails instead of failing the search', async () => {
     vi.mocked(getTvShowDetails).mockRejectedValue(new Error('gone'));
 
-    const results = await searchIndexResults('abc', { limit: 5 });
+    const results = await hydrateSearchIndexHits(hits);
 
     expect(results.map((result) => result.id)).toEqual([1, 3]);
   });
 
   it('returns nothing without hydrating when the index has no hits', async () => {
-    vi.mocked(db.execute).mockResolvedValue(rows([]));
-
-    await expect(searchIndexResults('zzz', { limit: 5 })).resolves.toEqual([]);
+    await expect(hydrateSearchIndexHits([])).resolves.toEqual([]);
     expect(getMovieDetails).not.toHaveBeenCalled();
   });
 });
