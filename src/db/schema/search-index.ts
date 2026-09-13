@@ -3,10 +3,10 @@ import { index, integer, pgTable, primaryKey, real, text, timestamp } from 'driz
 /**
  * Fuzzy-search index over TMDB's daily id exports: every movie, TV show, and
  * person with its original title and popularity. Loaded nightly by
- * `ingest:search`, queried with pg_trgm when TMDB's literal search finds
- * nothing (typos, partial words, word order) and for the command palette.
- * Holds no metadata beyond what the exports carry; results are hydrated
- * from TMDB on demand.
+ * `ingest:search`, queried with pg_trgm for typos, partial words, and word
+ * order. Full-page search rank-fuses its hits with TMDB; the command palette
+ * uses it as a zero-result fallback. Holds no metadata beyond what the
+ * exports carry; index-only results are hydrated from TMDB on demand.
  */
 export const searchIndex = pgTable(
   'search_index',

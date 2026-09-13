@@ -88,9 +88,9 @@ Done (PR 2 in this stack):
 - `search_index` from the exports, `pg_trgm` GIN index on a folded title,
   daily `pnpm ingest:search` (Railway `search-index-ingest`, opt-in via
   `SEARCH_INDEX_INGEST_ENABLED`).
-- Zero-result fallback: when TMDB returns nothing on page 1, filter candidates with indexed trigram and word-similarity predicates,
-  retain the closest 40 from each, then re-rank by similarity, a prefix boost,
-  and log popularity. Hydrate the hits from the cached details fetchers.
+- On page one, filter local candidates with indexed trigram and word-similarity
+  predicates, retain the closest 40 from each, then re-rank by similarity, a
+  prefix boost, and log popularity.
   A transaction-local 1.5s statement timeout cancels expensive database work;
   a caller deadline also bounds the wait for a connection.
 - The command palette uses the same TMDB-first path with a dropdown-sized
@@ -105,10 +105,13 @@ Done (PR 2 in this stack):
   "Alien: Romulus" above "Alien" for "alien".
 - Merged first page: on the full search page, the index runs alongside TMDB
   for queries without a year filter and its hits are added to page 1
-  (deduplicated by media type and id, ranked on equal terms, queued behind
-  TMDB within a tier). An exact match TMDB buried on page 2 now surfaces at
-  the top; typos still get the index's fuzzy hits after TMDB's literal ones.
-  The palette keeps the zero-result fallback only.
+  (deduplicated by media type and id). Title-match tier is the primary order;
+  reciprocal-rank fusion combines TMDB and index ranks within a tier.
+  Candidates absent from TMDB are hydrated from the cached details fetchers,
+  capped at three when TMDB has results. An exact match TMDB buried on page 2
+  now surfaces at the top. Page one waits for both sources, so its latency is
+  the slower of TMDB and the index (bounded by the index's statement timeout
+  and connection deadline); the palette keeps the zero-result fallback only.
 
 Next:
 
@@ -118,11 +121,12 @@ Next:
    indexed similarity filters. Common fragments can still match many rows;
    monitor cancellations and tune candidate thresholds against real queries.
 2. **Tune the ranking.** The index weights (similarity, prefix boost, log
-   popularity in `search-index.ts`) and the match tiers in `search-rank.ts`
-   are a first guess; tune against real queries once PostHog shows what
-   people type. Watch for obscure exact-title matches from the index
-   crowding out popular near-matches — a popularity floor on merged hits is
-   the obvious lever.
+   popularity in `search-index.ts`), reciprocal-rank fusion constant, and
+   match tiers in `search-rank.ts` are first guesses; tune against real
+   queries once PostHog shows what people type and which result ranks they
+   click. Watch for obscure exact-title matches from the index crowding out
+   popular near-matches — a popularity floor on merged hits is the obvious
+   lever.
 3. **Localized and alternative titles.** The exports carry original titles
    only, so "Amélie" misses "Le fabuleux destin d'Amélie Poulain". Union in
    `titles.title` (English titles for everything in a list) and fetch

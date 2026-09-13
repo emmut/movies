@@ -227,15 +227,11 @@ async function hydrateHit(hit: SearchIndexHit): Promise<MultiSearchResult> {
 }
 
 /**
- * Fuzzy-searches the local index and hydrates the hits into search results,
- * preserving rank. Hits whose details fetch fails (a title TMDB has since
- * removed, a transient error) are dropped rather than failing the search.
+ * Hydrates already-ranked index hits, preserving their order. Keeping this
+ * separate from retrieval lets hybrid search reuse TMDB results it already
+ * has and pay details-call latency only for local candidates TMDB missed.
  */
-export async function searchIndexResults(
-  query: string,
-  options: SearchIndexOptions,
-): Promise<MultiSearchResult[]> {
-  const hits = await searchIndexFuzzy(query, options);
+export async function hydrateSearchIndexHits(hits: SearchIndexHit[]): Promise<MultiSearchResult[]> {
   const settled = await Promise.allSettled(hits.map(hydrateHit));
 
   return settled.filter((result) => result.status === 'fulfilled').map((result) => result.value);
