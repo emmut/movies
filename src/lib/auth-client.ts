@@ -3,6 +3,7 @@ import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 import { env } from '@/env';
+import { clearPendingGreet, markPendingGreet } from '@/lib/pending-greet';
 
 import { getSafeRedirectUrl } from './utils';
 
@@ -12,8 +13,6 @@ const authClient = createAuthClient({
 });
 
 export const { useSession } = authClient;
-
-export type Session = typeof authClient.$Infer.Session;
 
 /**
  * Initiates a Discord social sign-in flow, redirecting the user to Discord for authentication.
@@ -28,11 +27,17 @@ export async function signInDiscord(redirectUrl: string) {
     const callbackURL = getSafeRedirectUrl(redirectUrl);
     const errorCallbackURL = '/login?error=failed_to_login';
 
-    const data = await authClient.signIn.social({
-      provider: 'discord',
-      callbackURL,
-      errorCallbackURL,
-    });
+    const data = await authClient.signIn.social(
+      {
+        provider: 'discord',
+        callbackURL,
+        errorCallbackURL,
+      },
+      {
+        onRequest: () => markPendingGreet(),
+        onError: () => clearPendingGreet(),
+      },
+    );
 
     return data;
   } catch (error) {
@@ -88,9 +93,15 @@ export async function addPasskey(name: string = 'My Passkey') {
 
 export async function signInPasskey(email: string, autoFill = false) {
   try {
-    const data = await authClient.signIn.passkey({
-      autoFill,
-    });
+    const data = await authClient.signIn.passkey(
+      {
+        autoFill,
+      },
+      {
+        onRequest: () => markPendingGreet(),
+        onError: () => clearPendingGreet(),
+      },
+    );
 
     if (data?.error) {
       throw data.error;
@@ -114,11 +125,17 @@ export async function signInGitHub(redirectUrl: string) {
     const callbackURL = getSafeRedirectUrl(redirectUrl);
     const errorCallbackURL = '/login?error=failed_to_login';
 
-    const data = await authClient.signIn.social({
-      provider: 'github',
-      callbackURL,
-      errorCallbackURL,
-    });
+    const data = await authClient.signIn.social(
+      {
+        provider: 'github',
+        callbackURL,
+        errorCallbackURL,
+      },
+      {
+        onRequest: () => markPendingGreet(),
+        onError: () => clearPendingGreet(),
+      },
+    );
 
     if (data?.error) {
       throw data.error;
@@ -161,7 +178,10 @@ export async function signInGitHubSettings(redirectUrl: string) {
 
 export async function signInAnonymous() {
   try {
-    const data = await authClient.signIn.anonymous();
+    const data = await authClient.signIn.anonymous(undefined, {
+      onRequest: () => markPendingGreet(),
+      onError: () => clearPendingGreet(),
+    });
 
     if (data?.error) {
       throw data.error;

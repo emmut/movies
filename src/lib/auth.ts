@@ -27,6 +27,8 @@ export const auth = betterAuth({
       enabled: true,
       maxAge: 5 * 60, // 5 minutes
     },
+    expiresIn: 60 * 60 * 24 * 365, // 1 year
+    updateAge: 60 * 60 * 24 * 30, // 30 days - refresh session monthly
   },
   rateLimit: {
     // Mirrors better-auth's default (on in production only), with an env

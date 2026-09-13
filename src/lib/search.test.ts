@@ -435,6 +435,71 @@ describe('media-type keywords on single-type searches', () => {
   });
 });
 
+describe('close title matches rank first', () => {
+  const alienPage = {
+    results: [
+      { id: 1, title: 'Alien: Romulus', popularity: 900 },
+      { id: 2, title: 'Aliens', popularity: 300 },
+      { id: 3, title: 'Alien', popularity: 200 },
+      { id: 4, title: 'Predator', popularity: 100 },
+    ],
+    total_pages: 4,
+    total_results: 80,
+  };
+
+  function ids(results: { id: number }[]) {
+    return results.map((result) => result.id);
+  }
+
+  it('re-ranks every movie page by title match before TMDB popularity', async () => {
+    mockedFetch.mockResolvedValue(alienPage as never);
+
+    const result = await getSearchMovies('alien', 3);
+
+    expect(ids(result.movies)).toEqual([3, 1, 2, 4]);
+    expect(mockedFuzzy).not.toHaveBeenCalled();
+  });
+
+  it('re-ranks year-filtered movie results against the parsed title', async () => {
+    mockedFetch.mockResolvedValue(alienPage as never);
+
+    const result = await getSearchMovies('alien 1979');
+
+    expect(ids(result.movies)).toEqual([3, 1, 2, 4]);
+    expect(mockedFuzzy).not.toHaveBeenCalled();
+  });
+
+  it('re-ranks mixed full-page results by their closest name field', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, media_type: 'movie', title: 'Alien: Romulus' },
+        { id: 2, media_type: 'person', name: 'Alien Ant Farm' },
+        { id: 3, media_type: 'tv', name: 'Alien' },
+      ],
+      total_pages: 1,
+    } as never);
+
+    const result = await getSearchMulti('alien');
+
+    expect(ids(result.results)).toEqual([3, 1, 2]);
+  });
+
+  it('uses title-match ranking in the TMDB-first command palette', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [
+        { id: 1, media_type: 'movie', title: 'Alien: Romulus' },
+        { id: 2, media_type: 'movie', title: 'Alien' },
+      ],
+      total_pages: 1,
+    } as never);
+
+    const result = await getSearchSuggestions('alien');
+
+    expect(ids(result.results)).toEqual([2, 1]);
+    expect(mockedFuzzy).not.toHaveBeenCalled();
+  });
+});
+
 describe('hybrid fuzzy search', () => {
   const fuzzyMovie = { id: 157336, title: 'Interstellar', media_type: 'movie' as const };
   const fuzzyPerson = { id: 287, name: 'Brad Pitt', media_type: 'person' as const };
@@ -517,7 +582,7 @@ describe('hybrid fuzzy search', () => {
     const result = await getSearchMovies('local');
 
     expect(mockedHydrate).toHaveBeenCalledWith(missingHits.slice(0, 3));
-    expect(result.movies.map((movie) => movie.id)).toEqual([1, 10, 11, 12]);
+    expect(result.movies.map((movie) => movie.id)).toEqual([10, 11, 12, 1]);
   });
 
   it('does not consult the index beyond the first page', async () => {

@@ -2,7 +2,8 @@
  * `sessionStorage` as an external store for `useSyncExternalStore`.
  *
  * The native `storage` event only fires in *other* documents, so writes made
- * through {@link writeSessionStorageValue} also dispatch a same-document
+ * through {@link writeSessionStorageValue} and {@link removeSessionStorageValue}
+ * also dispatch a same-document
  * event; {@link subscribeToSessionStorage} listens to both. All access is
  * guarded — on the server and when storage is unavailable (private mode,
  * blocked cookies) reads return `null` and writes are no-ops.
@@ -29,6 +30,21 @@ export function writeSessionStorageValue(key: string, value: string) {
 
   try {
     window.sessionStorage.setItem(key, value);
+  } catch {
+    return;
+  }
+
+  window.dispatchEvent(new Event(SESSION_STORAGE_EVENT));
+}
+
+/** Remove a value; notifies same-document subscribers like writes do. */
+export function removeSessionStorageValue(key: string) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.sessionStorage.removeItem(key);
   } catch {
     return;
   }

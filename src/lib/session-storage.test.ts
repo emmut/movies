@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   readSessionStorageValue,
+  removeSessionStorageValue,
   subscribeToSessionStorage,
   writeSessionStorageValue,
 } from './session-storage';
@@ -13,6 +14,7 @@ function stubWindow(overrides: Partial<{ sessionStorage: unknown }> = {}) {
     sessionStorage: overrides.sessionStorage ?? {
       getItem: (key: string) => store.get(key) ?? null,
       setItem: (key: string, value: string) => void store.set(key, value),
+      removeItem: (key: string) => void store.delete(key),
     },
   });
 
@@ -54,11 +56,41 @@ describe('read/writeSessionStorageValue', () => {
         setItem: () => {
           throw new Error('denied');
         },
+        removeItem: () => {
+          throw new Error('denied');
+        },
       },
     });
 
     expect(() => writeSessionStorageValue('key', 'value')).not.toThrow();
+    expect(() => removeSessionStorageValue('key')).not.toThrow();
     expect(readSessionStorageValue('key')).toBeNull();
+  });
+});
+
+describe('removeSessionStorageValue', () => {
+  it('removes a stored value', () => {
+    stubWindow();
+    writeSessionStorageValue('key', 'value');
+
+    removeSessionStorageValue('key');
+
+    expect(readSessionStorageValue('key')).toBeNull();
+  });
+
+  it('is a no-op on the server', () => {
+    expect(() => removeSessionStorageValue('key')).not.toThrow();
+  });
+
+  it('notifies subscribers after removal', () => {
+    stubWindow();
+    const onChange = vi.fn();
+    subscribeToSessionStorage(onChange);
+    writeSessionStorageValue('key', 'value');
+
+    removeSessionStorageValue('key');
+
+    expect(onChange).toHaveBeenCalledTimes(2);
   });
 });
 

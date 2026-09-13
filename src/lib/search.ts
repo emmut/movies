@@ -9,6 +9,7 @@ import { SearchedTvResponse, TvShow } from '@/types/tv-show';
 import { CACHE_TAGS } from './cache-tags';
 import { ParsedSearchQuery, parseSearchQuery } from './parse-search-query';
 import { hydrateSearchIndexHits, type SearchIndexHit, searchIndexFuzzy } from './search-index';
+import { type RankableResult, rankByTitleMatch } from './search-rank';
 import { addPosterImageUrls, addProfileImageUrls, tmdbFetch } from './tmdb';
 
 async function fetchMoviesBySearchQuery(query: string, page: string, year?: number) {
@@ -143,7 +144,7 @@ async function fuzzyHits(title: string, page: string, limit: number, mediaType?:
   }
 }
 
-type HybridResult = { id: number; media_type?: string };
+type HybridResult = { id: number; media_type?: string } & RankableResult;
 
 function resultKey(result: HybridResult, defaultMediaType?: FuzzyMediaType) {
   return `${result.media_type ?? defaultMediaType}:${result.id}`;
@@ -226,11 +227,13 @@ async function mergeTypedResults<T extends HybridResult>(
   totalPages: number,
   localHits: SearchIndexHit[],
   mediaType: FuzzyMediaType,
+  title: string,
 ) {
   const matchingHits = localHits.filter((hit) => hit.mediaType === mediaType);
   const hybrid = await hybridResults(results, matchingHits, FUZZY_FALLBACK_LIMIT, mediaType);
-  const matching = hybrid.filter(
-    (result) => result.media_type === undefined || result.media_type === mediaType,
+  const matching = rankByTitleMatch(
+    title,
+    hybrid.filter((result) => result.media_type === undefined || result.media_type === mediaType),
   ) as unknown as T[];
   return {
     results: matching,
@@ -352,7 +355,9 @@ async function searchMultiFiltered(
  * A trailing year in the query (e.g. "heat 1995") is used as a release-year
  * filter, and a trailing media-type keyword (e.g. "heat movie") is stripped
  * from the title. When the filtered search has no matches at all, the raw
- * query is retried unfiltered so misparsed titles still return results.
+ * query is retried unfiltered so misparsed titles still return results. Each
+ * page is ordered by title-match tier; on page one, local fuzzy candidates
+ * are merged with TMDB when no year filter is active.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
@@ -372,13 +377,17 @@ export async function getSearchMovies(
     const filtered = await fetchMoviesBySearchQuery(parsed.title, String(page), parsed.year);
     if (filtered.totalResults > 0) {
       if (parsed.year !== undefined) {
-        return { movies: filtered.movies.map(addPosterImageUrls), totalPages: filtered.totalPages };
+        return {
+          movies: rankByTitleMatch(parsed.title, filtered.movies).map(addPosterImageUrls),
+          totalPages: filtered.totalPages,
+        };
       }
       const hybrid = await mergeTypedResults(
         filtered.movies,
         filtered.totalPages,
         await (localHitsPromise ?? Promise.resolve([])),
         'movie',
+        parsed.title,
       );
       return { movies: hybrid.results.map(addPosterImageUrls), totalPages: hybrid.totalPages };
     }
@@ -394,6 +403,7 @@ export async function getSearchMovies(
     raw.totalPages,
     localHits,
     'movie',
+    parsed.title,
   );
   return { movies: results.map(addPosterImageUrls), totalPages };
 }
@@ -405,7 +415,8 @@ export async function getSearchMovies(
  * A trailing year in the query (e.g. "the office 2005") is used as a
  * first-air-date filter, and a trailing media-type keyword is stripped from
  * the title. When the filtered search has no matches at all, the raw query is
- * retried unfiltered.
+ * retried unfiltered. Each page is ordered by title-match tier; on page one,
+ * local fuzzy candidates are merged with TMDB when no year filter is active.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
@@ -426,7 +437,7 @@ export async function getSearchTvShows(
     if (filtered.totalResults > 0) {
       if (parsed.year !== undefined) {
         return {
-          tvShows: filtered.tvShows.map(addPosterImageUrls),
+          tvShows: rankByTitleMatch(parsed.title, filtered.tvShows).map(addPosterImageUrls),
           totalPages: filtered.totalPages,
         };
       }
@@ -435,6 +446,7 @@ export async function getSearchTvShows(
         filtered.totalPages,
         await (localHitsPromise ?? Promise.resolve([])),
         'tv',
+        parsed.title,
       );
       return { tvShows: hybrid.results.map(addPosterImageUrls), totalPages: hybrid.totalPages };
     }
@@ -450,6 +462,7 @@ export async function getSearchTvShows(
     raw.totalPages,
     localHits,
     'tv',
+    parsed.title,
   );
   return { tvShows: results.map(addPosterImageUrls), totalPages };
 }
@@ -460,7 +473,9 @@ export async function getSearchTvShows(
  *
  * Trailing year and media-type tokens (e.g. "brad pitt person") are stripped
  * from the title before searching; persons have no year filter. When the
- * stripped search has no matches at all, the raw query is retried.
+ * stripped search has no matches at all, the raw query is retried. Each page
+ * is ordered by name-match tier; on page one, local fuzzy candidates are
+ * merged with TMDB when no year token is active.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
@@ -471,21 +486,32 @@ export async function getSearchPersons(
   page: number = 1,
 ): Promise<SearchPersonsResult> {
   const parsed = parseSearchQuery(query);
-  const localHitsPromise = fuzzyHits(parsed.title, String(page), FUZZY_FALLBACK_LIMIT, 'person');
+  let localHitsPromise =
+    parsed.year === undefined
+      ? fuzzyHits(parsed.title, String(page), FUZZY_FALLBACK_LIMIT, 'person')
+      : undefined;
 
   if (hasQueryFilters(parsed)) {
     const filtered = await fetchPersonsBySearchQuery(parsed.title, String(page));
     if (filtered.totalResults > 0) {
+      if (parsed.year !== undefined) {
+        return {
+          persons: rankByTitleMatch(parsed.title, filtered.persons).map(addProfileImageUrls),
+          totalPages: filtered.totalPages,
+        };
+      }
       const hybrid = await mergeTypedResults(
         filtered.persons,
         filtered.totalPages,
-        await localHitsPromise,
+        await (localHitsPromise ?? Promise.resolve([])),
         'person',
+        parsed.title,
       );
       return { persons: hybrid.results.map(addProfileImageUrls), totalPages: hybrid.totalPages };
     }
   }
 
+  localHitsPromise ??= fuzzyHits(parsed.title, String(page), FUZZY_FALLBACK_LIMIT, 'person');
   const [raw, localHits] = await Promise.all([
     fetchPersonsBySearchQuery(query, String(page)),
     localHitsPromise,
@@ -495,6 +521,7 @@ export async function getSearchPersons(
     raw.totalPages,
     localHits,
     'person',
+    parsed.title,
   );
   return { persons: results.map(addProfileImageUrls), totalPages };
 }
@@ -510,11 +537,15 @@ async function hybridMultiResult(
   tmdbResult: SearchMultiResult,
   localHits: SearchIndexHit[],
   fallbackLimit: number,
+  title: string,
 ) {
   const hybrid = await hybridResults(tmdbResult.results, localHits, fallbackLimit);
   const totalPages =
     tmdbResult.results.length === 0 && hybrid.length > 0 ? 1 : tmdbResult.totalPages;
-  return displayMultiResult(hybrid as MultiSearchResponse['results'], totalPages);
+  return displayMultiResult(
+    rankByTitleMatch(title, hybrid) as MultiSearchResponse['results'],
+    totalPages,
+  );
 }
 
 async function fallbackMultiSearch(
@@ -525,10 +556,10 @@ async function fallbackMultiSearch(
 ) {
   const raw = await fetchMultiSearchQuery(query, page);
   if (raw.results.length > 0) {
-    return displayMultiResult(raw.results, raw.totalPages);
+    return displayMultiResult(rankByTitleMatch(parsed.title, raw.results), raw.totalPages);
   }
   const localHits = await fuzzyHits(parsed.title, page, fallbackLimit, parsed.mediaType);
-  return await hybridMultiResult(raw, localHits, fallbackLimit);
+  return await hybridMultiResult(raw, localHits, fallbackLimit, parsed.title);
 }
 
 async function hybridMultiSearch(
@@ -542,7 +573,7 @@ async function hybridMultiSearch(
     fetchMultiSearchQuery(query, page),
     localHitsPromise ?? fuzzyHits(parsed.title, page, fallbackLimit, parsed.mediaType),
   ]);
-  return await hybridMultiResult(raw, localHits, fallbackLimit);
+  return await hybridMultiResult(raw, localHits, fallbackLimit, parsed.title);
 }
 
 async function searchMulti(
@@ -560,10 +591,13 @@ async function searchMulti(
   const filtered = await searchMultiFiltered(parsed, pageString);
 
   if (filtered && localHitsPromise) {
-    return await hybridMultiResult(filtered, await localHitsPromise, fallbackLimit);
+    return await hybridMultiResult(filtered, await localHitsPromise, fallbackLimit, parsed.title);
   }
   if (filtered) {
-    return displayMultiResult(filtered.results, filtered.totalPages);
+    return displayMultiResult(
+      rankByTitleMatch(parsed.title, filtered.results),
+      filtered.totalPages,
+    );
   }
   if (!useHybridSearch) {
     return await fallbackMultiSearch(query, parsed, pageString, fallbackLimit);
@@ -581,9 +615,10 @@ async function searchMulti(
  * parameter — the movie and TV endpoints are searched in parallel with the
  * year filter, plus the person endpoint with the year-stripped title so people
  * are not lost to the filter, and merged by popularity. On the first page,
- * ordinary title searches merge TMDB and local fuzzy candidates with
- * reciprocal-rank fusion. Year-filtered searches remain TMDB-only because
- * the daily export does not contain release dates.
+ * ordinary title searches merge TMDB and local fuzzy candidates. Title-match
+ * tiers provide the primary order, with reciprocal-rank fusion inside each
+ * tier. Year-filtered searches remain TMDB-only because the daily export does
+ * not contain release dates.
  *
  * @param query - The search query string
  * @param page - The page number to fetch
