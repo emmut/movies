@@ -560,8 +560,11 @@ describe('hybrid fuzzy search', () => {
   });
 
   it('hydrates at most three index-only candidates when TMDB has results', async () => {
+    // All titles share a match tier, so reciprocal-rank fusion alone decides:
+    // TMDB rank 1 ties index rank 1 and keeps its place; the rest follow in
+    // index order, and hits beyond the cap are never hydrated.
     mockedFetch.mockResolvedValue({
-      results: [{ id: 1, title: 'TMDB result' }],
+      results: [{ id: 1, title: 'Local Hero' }],
       total_pages: 1,
       total_results: 1,
     } as never);
@@ -582,7 +585,38 @@ describe('hybrid fuzzy search', () => {
     const result = await getSearchMovies('local');
 
     expect(mockedHydrate).toHaveBeenCalledWith(missingHits.slice(0, 3));
-    expect(result.movies.map((movie) => movie.id)).toEqual([10, 11, 12, 1]);
+    expect(result.movies.map((movie) => movie.id)).toEqual([1, 10, 11, 12]);
+  });
+
+  it('merges the index into keyword-narrowed tv and person searches', async () => {
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1, name: 'Breaking Bad' }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+    const tvHit = { ...movieHit, tmdbId: 2, mediaType: 'tv' as const, title: 'Breaking' };
+    mockedFuzzy.mockResolvedValue([tvHit]);
+    mockedHydrate.mockResolvedValue([{ id: 2, name: 'Breaking', media_type: 'tv' }] as never);
+
+    const tv = await getSearchTvShows('breaking tv');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('breaking', { mediaType: 'tv', limit: 10 });
+    expect(mockedHydrate).toHaveBeenCalledWith([tvHit]);
+    expect(tv.tvShows.map((show) => show.id)).toEqual([2, 1]);
+
+    vi.clearAllMocks();
+    mockedFetch.mockResolvedValue({
+      results: [{ id: 1, name: 'Brad Pitt' }],
+      total_pages: 1,
+      total_results: 1,
+    } as never);
+    mockedFuzzy.mockResolvedValue([personHit]);
+    mockedHydrate.mockResolvedValue([fuzzyPerson as never]);
+
+    const persons = await getSearchPersons('brad person');
+
+    expect(mockedFuzzy).toHaveBeenCalledWith('brad', { mediaType: 'person', limit: 10 });
+    expect(persons.persons.map((person) => person.id)).toEqual([1, 287]);
   });
 
   it('does not consult the index beyond the first page', async () => {

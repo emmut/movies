@@ -109,7 +109,9 @@ Done (PR 2 in this stack):
   reciprocal-rank fusion combines TMDB and index ranks within a tier.
   Candidates absent from TMDB are hydrated from the cached details fetchers,
   capped at three when TMDB has results. An exact match TMDB buried on page 2
-  now surfaces at the top. The palette keeps the zero-result fallback only.
+  now surfaces at the top. Page one waits for both sources, so its latency is
+  the slower of TMDB and the index (bounded by the index's statement timeout
+  and connection deadline); the palette keeps the zero-result fallback only.
 
 Next:
 
