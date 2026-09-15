@@ -6,6 +6,9 @@
 // new page is on screen. Module state rather than React state: a loading
 // state can swap the controls out during the navigation (e.g. discover's
 // spinner), and a remount would lose anything stored in the component.
+// The body keeps its current height in the meantime: at narrow WebKit
+// viewports, the brief route handoff can otherwise clamp the scroll position
+// above the results before the smooth scroll begins.
 //
 // The schedule is scoped to the navigation's destination so it can't leak: a
 // later render anywhere else (the navigation was abandoned or superseded)
@@ -14,6 +17,7 @@
 type ScheduledScroll = {
   pathname: string;
   search: string;
+  bodyMinHeight: string;
 };
 
 function normalizedSearch(url: URL) {
@@ -30,11 +34,19 @@ let scheduled: ScheduledScroll | null = null;
  * @param href - The pagination link's destination (`?page=N` or a full path).
  */
 export function scheduleScrollToContent(href: string) {
+  if (scheduled) {
+    document.body.style.minHeight = scheduled.bodyMinHeight;
+  }
+
   const destination = new URL(href, window.location.href);
   scheduled = {
     pathname: destination.pathname,
     search: normalizedSearch(destination),
+    bodyMinHeight: document.body.style.minHeight,
   };
+  // Keep WebKit from clamping the bottom-of-page position during the brief
+  // route handoff. The destination render releases this before scrolling.
+  document.body.style.minHeight = `${document.documentElement.scrollHeight}px`;
 }
 
 /**
@@ -53,6 +65,7 @@ export function scrollToContentIfScheduled() {
   if (!atDestination) {
     // The scheduled navigation never landed — drop it so it can't scroll an
     // unrelated page later.
+    document.body.style.minHeight = scheduled.bodyMinHeight;
     scheduled = null;
     return;
   }
@@ -65,7 +78,9 @@ export function scrollToContentIfScheduled() {
     return;
   }
 
+  const { bodyMinHeight } = scheduled;
   scheduled = null;
+  document.body.style.minHeight = bodyMinHeight;
   // Smooth is safe here: the scroll runs after the new page has rendered, so
   // no skeleton swap can move the target mid-animation (which is what forced
   // the old click-time implementation to scroll instantly).
