@@ -1,8 +1,6 @@
 import { getSession } from '@/lib/auth-server';
 
 import { NavLink } from './nav-link';
-import { SidebarMenuItem } from './ui/sidebar';
-import { Skeleton } from './ui/skeleton';
 
 const userNavItems = [
   {
@@ -37,26 +35,3 @@ export async function UserNav() {
     </>
   );
 }
-
-function UserNavGhost() {
-  return (
-    <>
-      <NavGhostItem />
-      <NavGhostItem />
-      <NavGhostItem />
-    </>
-  );
-}
-
-function NavGhostItem() {
-  return (
-    <SidebarMenuItem>
-      <div className="flex w-full items-center gap-2 rounded-md p-2">
-        <Skeleton className="h-4 w-4 shrink-0" />
-        <Skeleton className="h-4 flex-1" />
-      </div>
-    </SidebarMenuItem>
-  );
-}
-
-UserNav.Ghost = UserNavGhost;
