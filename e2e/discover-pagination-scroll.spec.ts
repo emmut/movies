@@ -7,13 +7,13 @@ import { signInAnonymously } from './helpers';
 // (see src/lib/scroll-to-content.ts), so a mid-navigation render can't move
 // the ground under it.
 //
-// This runs under the `mobile-safari` project (WebKit + an iPhone viewport) —
-// the engine and form factor where click-time scrolling historically lost the
-// scroll.
+// This runs under the `mobile-safari` project (WebKit + a narrow viewport) —
+// the engine and viewport size where the route handoff historically clamped
+// the scroll, on both iPhone Safari and narrow Safari windows on macOS.
 //
 // Invariant: after paginating from a scrolled-down position, the viewport
-// settles at the top of `#content` (its first item, minus the
-// `scroll-m-5` gap), not at the page top.
+// approaches and settles at the top of `#content` (its first item, minus the
+// `scroll-m-5` gap) without jumping above it first.
 //
 // The header is sticky, so the root's `scroll-padding-top` holds `#content`
 // clear of it — the resting offset is that much further up the document than
@@ -21,6 +21,11 @@ import { signInAnonymously } from './helpers';
 // and this test can't drift apart.
 
 const SCROLL_MARGIN = 20; // scroll-m-5 on #content (1.25rem)
+
+type ScrollSamplingWindow = Window & {
+  __paginationScrollFrame?: number;
+  __paginationScrollSamples?: number[];
+};
 
 /** Height of the sticky header, which the root scroll-padding reserves. */
 function headerHeight(page: Page): Promise<number> {
@@ -65,6 +70,29 @@ async function settledScrollY(page: Page): Promise<number> {
   return last;
 }
 
+/** Samples the whole pagination animation so a transient jump cannot hide behind the final state. */
+async function startScrollSampling(page: Page) {
+  await page.evaluate(() => {
+    const samplingWindow = window as ScrollSamplingWindow;
+    samplingWindow.__paginationScrollSamples = [];
+
+    function sample() {
+      samplingWindow.__paginationScrollSamples?.push(Math.round(window.scrollY));
+      samplingWindow.__paginationScrollFrame = requestAnimationFrame(sample);
+    }
+
+    sample();
+  });
+}
+
+async function stopScrollSampling(page: Page) {
+  return page.evaluate(() => {
+    const samplingWindow = window as ScrollSamplingWindow;
+    cancelAnimationFrame(samplingWindow.__paginationScrollFrame ?? 0);
+    return samplingWindow.__paginationScrollSamples ?? [];
+  });
+}
+
 /** The href of the first movie card currently in the results grid, or ''. */
 function firstCardHref(page: Page): Promise<string> {
   return page.evaluate(
@@ -99,6 +127,7 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' }),
   );
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(containerTop);
+  await startScrollSampling(page);
 
   // Click Next, then wait past the loading skeletons until page 2's cards have
   // actually replaced page 1's — the grid swap (and any scroll it disturbs)
@@ -116,10 +145,15 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
     .toBe(true);
 
   const finalY = await settledScrollY(page);
+  const scrollSamples = await stopScrollSampling(page);
 
   // Lands on the results (top of the first item, minus the small scroll-margin
-  // gap) — not yanked to the page top (the bug) and not left far down the page.
+  // gap) — not yanked above it first (the narrow-WebKit bug), and not left
+  // far down the page.
   expectRestingAtResultsTop(finalY, containerTop, header);
+  expect(Math.min(...scrollSamples)).toBeGreaterThan(
+    containerTop - header - SCROLL_MARGIN - 60,
+  );
 });
 
 // Users with saved streaming services hit a different data path on a bare

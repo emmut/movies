@@ -9,12 +9,18 @@ function stubBrowser({
   url: string;
   contentElement: { scrollIntoView: () => void } | null;
 }) {
-  vi.stubGlobal('window', { location: { href: url } });
+  const location = { href: url };
+  const bodyStyle = { minHeight: '' };
+  vi.stubGlobal('window', { location });
   vi.stubGlobal('document', {
+    body: { style: bodyStyle },
+    documentElement: { scrollHeight: 2400 },
     getElementById: vi.fn(function getElementById(id: string) {
       return id === 'content' ? contentElement : null;
     }),
   });
+
+  return { bodyStyle, location };
 }
 
 afterEach(function resetModuleState() {
@@ -43,6 +49,23 @@ describe('scrollToContentIfScheduled', () => {
     stubBrowser({ url: 'http://app.test/discover?page=2', contentElement: { scrollIntoView } });
     scrollToContentIfScheduled();
 
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds the document height through navigation and releases it before scrolling', () => {
+    const scrollIntoView = vi.fn();
+    const { bodyStyle, location } = stubBrowser({
+      url: 'http://app.test/discover',
+      contentElement: { scrollIntoView },
+    });
+
+    scheduleScrollToContent('?page=2');
+    expect(bodyStyle.minHeight).toBe('2400px');
+
+    location.href = 'http://app.test/discover?page=2';
+    scrollToContentIfScheduled();
+
+    expect(bodyStyle.minHeight).toBe('');
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
