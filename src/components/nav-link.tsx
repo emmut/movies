@@ -24,19 +24,22 @@ type NavLinkProps = {
   icon: keyof typeof iconMap;
 };
 
-function NavLink({ href, label, icon }: NavLinkProps) {
+type NavLinkItemProps = NavLinkProps & {
+  isActive: boolean;
+};
+
+function NavLinkItem({ href, label, icon, isActive }: NavLinkItemProps) {
   const { setOpenMobile } = useSidebar();
-  const pathname = usePathname();
   const { Icon, activeClass } = iconMap[icon];
 
   return (
     <>
       <SidebarMenuItem>
         <SidebarMenuButton
-          isActive={pathname === href}
+          isActive={isActive}
           render={<Link href={href} onClick={() => setOpenMobile(false)} />}
         >
-          <Icon className={cn('h-4 w-4', pathname === href && activeClass)} />
+          <Icon className={cn('h-4 w-4', isActive && activeClass)} />
           <span>{label}</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
@@ -44,5 +47,15 @@ function NavLink({ href, label, icon }: NavLinkProps) {
   );
 }
 
+function NavLink(props: NavLinkProps) {
+  const pathname = usePathname();
+
+  return <NavLinkItem {...props} isActive={pathname === props.href} />;
+}
+
+function NavLinkFallback(props: NavLinkProps) {
+  return <NavLinkItem {...props} isActive={false} />;
+}
+
 NavLink.displayName = 'NavLink';
-export { NavLink };
+export { NavLink, NavLinkFallback };

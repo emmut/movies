@@ -1,4 +1,5 @@
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+import { Suspense } from 'react';
 
 import { getUser } from '@/lib/auth-server';
 import { getOriginCountryString } from '@/lib/countries';
@@ -11,6 +12,7 @@ import { fetchAvailableTvGenres } from '@/lib/tv-shows';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
 
+import DiscoverLoading from '../loading';
 import { DiscoverContent } from './discover-content';
 
 type DiscoverWithGenreParams = {
@@ -82,7 +84,15 @@ async function prefetchDiscoverMedia(queryClient: QueryClient, params: DiscoverQ
  *
  * @param props - Contains a `searchParams` promise with optional filter parameters.
  */
-export default async function DiscoverWithGenrePage(props: DiscoverWithGenreParams) {
+export default function DiscoverWithGenrePage(props: DiscoverWithGenreParams) {
+  return (
+    <Suspense fallback={<DiscoverLoading />}>
+      <DiscoverWithGenre {...props} />
+    </Suspense>
+  );
+}
+
+async function DiscoverWithGenre(props: DiscoverWithGenreParams) {
   const searchParams = await props.searchParams;
   const discoverParams = loadDiscoverSearchParams(searchParams);
 
