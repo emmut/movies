@@ -96,12 +96,25 @@ async function stopScrollSampling(page: Page) {
 /** The href of the first movie card currently in the results grid, or ''. */
 function firstCardHref(page: Page): Promise<string> {
   return page.evaluate(
-    () =>
-      document.querySelector('#content a[href^="/movie/"]')?.getAttribute('href') ?? '',
+    () => document.querySelector('#content a[href^="/movie/"]')?.getAttribute('href') ?? '',
   );
 }
 
-test('paginating lands at the top of the results, not the page top', async ({ page }) => {
+// Signed-in users get a heavier grid (list actions on every card), which moves
+// the results swap into the same task as the pagination scroll — the timing
+// where WebKit clamped the scroll before the new page had been laid out.
+for (const signedIn of [false, true]) {
+  test(`paginating lands at the top of the results, not the page top (${signedIn ? 'signed in' : 'signed out'})`, async ({
+    page,
+  }) => {
+    if (signedIn) {
+      await signInAnonymously(page);
+    }
+    await paginateAndExpectResultsTop(page);
+  });
+}
+
+async function paginateAndExpectResultsTop(page: Page) {
   await page.goto('/discover');
   const container = page.locator('#content');
   const firstCard = container.locator('a[href^="/movie/"]').first();
@@ -151,10 +164,8 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
   // gap) — not yanked above it first (the narrow-WebKit bug), and not left
   // far down the page.
   expectRestingAtResultsTop(finalY, containerTop, header);
-  expect(Math.min(...scrollSamples)).toBeGreaterThan(
-    containerTop - header - SCROLL_MARGIN - 60,
-  );
-});
+  expect(Math.min(...scrollSamples)).toBeGreaterThan(containerTop - header - SCROLL_MARGIN - 60);
+}
 
 // Users with saved streaming services hit a different data path on a bare
 // /discover URL: the server prefetches with their saved providers while the
@@ -165,9 +176,7 @@ test('paginating lands at the top of the results, not the page top', async ({ pa
 // instead of from where the user was. With the client pinned to the server's
 // provider fallback, the keys match and each page arrives once, already
 // hydrated: no client re-fetch ever fires.
-test('pagination for a user with saved providers stays on the hydrated data', async ({
-  page,
-}) => {
+test('pagination for a user with saved providers stays on the hydrated data', async ({ page }) => {
   await signInAnonymously(page, '/settings');
   await page
     .getByRole('button')

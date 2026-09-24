@@ -80,6 +80,14 @@ export function scrollToContentIfScheduled() {
 
   const { bodyMinHeight } = scheduled;
   scheduled = null;
+  // Lay the new page out while the height hold is still in place. This can
+  // run in the same task as the commit that swapped the results in (e.g. for
+  // signed-in users), before WebKit has laid the new DOM out. Releasing the
+  // hold first makes that first layout clamp the scroll well above the
+  // results — even though the finished page is as tall as the old one — so
+  // the smooth scroll then starts from there instead of from the bottom. A
+  // call, not a bare property read, so the minifier can't drop it.
+  results.getBoundingClientRect();
   document.body.style.minHeight = bodyMinHeight;
   // Smooth is safe here: the scroll runs after the new page has rendered, so
   // no skeleton swap can move the target mid-animation (which is what forced
