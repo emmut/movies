@@ -70,7 +70,7 @@ jobs:
         # first apply in every new PR environment is inherently destructive.
         # Destructive applies are fine here: nothing in a PR environment is
         # worth protecting. Production keeps the guardrail below.
-        run: railway config apply --yes --confirm-destructive
+        run: railway config apply --runner node_modules/.bin/railway-iac-ts --yes --confirm-destructive
 
   apply-prod:
     name: Apply infra to production
@@ -103,4 +103,4 @@ jobs:
         # without --confirm-destructive, which we deliberately never pass here.
         run: |
           railway link --project movies --environment "$RAILWAY_ENVIRONMENT"
-          railway config apply --yes
+          railway config apply --runner node_modules/.bin/railway-iac-ts --yes
