@@ -9,7 +9,7 @@ import { HOME_SECTIONS, MediaSectionConfig, MediaSectionHeader, TrendingHeader }
 
 function MediaSection({ heading, caption, type, category }: MediaSectionConfig) {
   return (
-    <section className="space-y-4">
+    <section className="flex flex-col gap-4">
       <MediaSectionHeader heading={heading} caption={caption} />
 
       <ItemSlider>
@@ -30,8 +30,8 @@ function MediaSection({ heading, caption, type, category }: MediaSectionConfig) 
  */
 export default function Home() {
   return (
-    <div className="space-y-8">
-      <section className="space-y-4">
+    <div className="flex flex-col gap-8">
+      <section className="flex flex-col gap-4">
         <TrendingHeader />
 
         <div className="grid gap-4 lg:grid-cols-2">

@@ -57,7 +57,7 @@ function MediaTypeButton({ active, label, mediaType, onSelect }: MediaTypeButton
   return (
     <button
       onClick={() => onSelect(mediaType)}
-      className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+      className={`flex h-9 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
         active
           ? 'bg-white text-black'
           : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
@@ -105,7 +105,7 @@ export default function MediaTypeSelector({
   }
 
   return (
-    <div className="flex rounded-lg bg-muted/60 p-1">
+    <div className="flex h-11 rounded-lg bg-muted/60 p-1">
       <MediaTypeButton
         active={optimisticMediaType === 'movie'}
         label="Movies"

@@ -201,6 +201,9 @@
        skip links), `scrollIntoView` after pagination — stops below it instead
        of behind it. Targets keep their own `scroll-m-*` as the visible gap. */
     scroll-padding-top: var(--header-height);
+    /* Reserve the classic scrollbar track so streaming between short loading
+       states and tall result grids never shifts the page horizontally. */
+    scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground;

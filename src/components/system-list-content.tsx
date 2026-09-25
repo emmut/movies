@@ -10,7 +10,7 @@ import { ListItemsGrid } from '@/components/list-items-grid';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
-import { ReorderButton } from '@/components/reorder-button';
+import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
 import WatchProviderFilter from '@/components/watch-provider-filter';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
@@ -225,7 +225,7 @@ function SystemListHeader({
   const totalItems = totalMovies + totalTvShows;
 
   return (
-    <div className="mb-8 space-y-4">
+    <div className="mb-8 flex flex-col gap-4">
       <div>
         <div className="mb-2 flex items-center gap-4">
           <SectionTitle>{CONTENT_COPY[listType].title}</SectionTitle>
@@ -244,9 +244,11 @@ function SystemListHeader({
               are a non-contiguous slice, so page offsets no longer map to
               positions in the full manual order. */}
           <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
-          {totalItems > 0 && !isProviderFiltered && (
-            <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
-          )}
+          <ReorderButtonSlot
+            isAvailable={totalItems > 0 && !isProviderFiltered}
+            isEditing={isEditing}
+            onToggleEditing={onToggleEditing}
+          />
         </div>
 
         <MediaTypeSelector currentMediaType={mediaType} />
@@ -270,7 +272,7 @@ function SystemListCounts({
   const mediaTypeCount = mediaType === 'movie' ? totalMovies : totalTvShows;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex h-6 items-center gap-2">
       <p className="text-zinc-400">
         {formatCount(mediaTypeCount, MEDIA_META[mediaType].countNoun)}{' '}
         {CONTENT_COPY[listType].countNoun}

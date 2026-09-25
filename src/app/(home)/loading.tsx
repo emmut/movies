@@ -13,8 +13,8 @@ import { HOME_SECTIONS, MediaSectionHeader, TrendingHeader } from './sections';
  */
 export default function Loading() {
   return (
-    <div className="space-y-8">
-      <section className="space-y-4">
+    <div className="flex flex-col gap-8">
+      <section className="flex flex-col gap-4">
         <TrendingHeader />
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -24,7 +24,11 @@ export default function Loading() {
       </section>
 
       {HOME_SECTIONS.map((section) => (
-        <section key={section.heading} className="space-y-4">
+        <section
+          key={section.heading}
+          data-slot="home-media-section-skeleton"
+          className="flex flex-col gap-4"
+        >
           <MediaSectionHeader heading={section.heading} caption={section.caption} />
 
           <ItemSlider>
