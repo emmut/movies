@@ -52,7 +52,7 @@ export default async function ListsPage(props: ListsPageProps) {
         </div>
 
         <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex h-6 items-center gap-2">
             <p className="text-zinc-400">
               {totalListsCount} list{totalListsCount !== 1 ? 's' : ''} created
             </p>
@@ -67,20 +67,23 @@ export default async function ListsPage(props: ListsPageProps) {
       </div>
 
       {lists.length === 0 ? (
-        <div className="py-12 text-center">
-          <div className="mb-4 text-6xl opacity-50">📝</div>
-          <h2 className="mb-2 text-xl font-semibold">You haven&apos;t created any lists yet</h2>
-          <p className="mb-6 text-zinc-400">
-            Start creating lists by clicking the button above or the list button on any movie or TV
-            show
-          </p>
-          <Link
-            href="/discover"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
-          >
-            Explore Movies & TV Shows
-          </Link>
-        </div>
+        <>
+          <div aria-hidden="true" className="mb-4 h-7" />
+          <div className="py-12 text-center">
+            <div className="mb-4 text-6xl opacity-50">📝</div>
+            <h2 className="mb-2 text-xl font-semibold">You haven&apos;t created any lists yet</h2>
+            <p className="mb-6 text-zinc-400">
+              Start creating lists by clicking the button above or the list button on any movie or
+              TV show
+            </p>
+            <Link
+              href="/discover"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
+            >
+              Explore Movies & TV Shows
+            </Link>
+          </div>
+        </>
       ) : (
         <div id="content" className="scroll-m-5">
           <ListsGrid

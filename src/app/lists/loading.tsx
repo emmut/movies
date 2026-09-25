@@ -1,3 +1,4 @@
+import { HeaderButtonSkeleton } from '@/components/list-header-skeletons';
 import SectionTitle from '@/components/section-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LISTS_PER_PAGE } from '@/lib/config';
@@ -18,15 +19,24 @@ export default function ListsLoading() {
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <SectionTitle>My Lists</SectionTitle>
-          <Skeleton className="h-9 w-28" />
+          <HeaderButtonSkeleton
+            label="Create New List"
+            slot="create-list-button-skeleton"
+            size="default"
+            iconMarginEnd
+          />
         </div>
 
         <div className="flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex h-6 items-center gap-2">
             <Skeleton className="h-4 w-24" />
             <Skeleton className="h-4 w-20" />
           </div>
         </div>
+      </div>
+
+      <div className="mb-4 flex h-7 items-center justify-end">
+        <HeaderButtonSkeleton label="Reorder lists" slot="reorder-button-skeleton" />
       </div>
 
       {/* Lists grid */}

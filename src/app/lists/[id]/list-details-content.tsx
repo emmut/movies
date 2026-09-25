@@ -7,12 +7,12 @@ import { useState } from 'react';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
+import { ListDetailsLoadingSkeleton } from '@/components/list-details-loading';
 import { ListErrorState } from '@/components/list-error-state';
 import { ListItemsGrid } from '@/components/list-items-grid';
 import { PaginationControls } from '@/components/pagination-controls';
-import { ReorderButton } from '@/components/reorder-button';
+import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
-import { Skeleton } from '@/components/ui/skeleton';
 import WatchProviderFilter from '@/components/watch-provider-filter';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
@@ -105,7 +105,7 @@ export function ListDetailsContent({
   }
 
   if (isLoading || !list) {
-    return <ListDetailsSkeleton />;
+    return <ListDetailsLoadingSkeleton />;
   }
 
   return (
@@ -117,26 +117,6 @@ export function ListDetailsContent({
       userRegion={userRegion}
       isProviderFiltered={isProviderFiltered}
     />
-  );
-}
-
-function ListDetailsSkeleton() {
-  return (
-    <div className="@container w-full">
-      <div className="mb-8">
-        <Skeleton className="mb-4 h-10 w-64" />
-        <Skeleton className="h-6 w-96" />
-      </div>
-      <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
-        {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
-          <div key={i} className="space-y-2">
-            <Skeleton className="aspect-2/3 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -271,8 +251,12 @@ function ListDetailsHeader({
   isProviderFiltered,
 }: ListDetailsHeaderProps) {
   return (
-    <div className="mb-8 space-y-4">
+    <div className="mb-8 flex flex-col gap-4">
       <SectionTitle>{listName}</SectionTitle>
+
+      <div className="h-12 overflow-hidden">
+        {listDescription && <p className="line-clamp-2 text-muted-foreground">{listDescription}</p>}
+      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -280,9 +264,11 @@ function ListDetailsHeader({
               are a non-contiguous slice, so page offsets no longer map to
               positions in the full manual order. */}
           <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
-          {itemCount > 0 && !isProviderFiltered && (
-            <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
-          )}
+          <ReorderButtonSlot
+            isAvailable={itemCount > 0 && !isProviderFiltered}
+            isEditing={isEditing}
+            onToggleEditing={onToggleEditing}
+          />
         </div>
 
         <div className="flex items-center gap-2">

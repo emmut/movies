@@ -2,6 +2,7 @@
 
 import { Check, GripVertical } from 'lucide-react';
 
+import { HeaderButtonSpacer } from '@/components/list-header-skeletons';
 import { Button } from '@/components/ui/button';
 
 type ReorderButtonProps = {
@@ -10,7 +11,7 @@ type ReorderButtonProps = {
 };
 
 /** Toggles a list page's manual-reorder mode. */
-export function ReorderButton({ isEditing, onToggleEditing }: ReorderButtonProps) {
+function ReorderButton({ isEditing, onToggleEditing }: ReorderButtonProps) {
   return (
     <Button
       variant={isEditing ? 'default' : 'secondary'}
@@ -31,4 +32,16 @@ export function ReorderButton({ isEditing, onToggleEditing }: ReorderButtonProps
       )}
     </Button>
   );
+}
+
+/** Keeps the header's flex geometry stable when reordering is unavailable. */
+export function ReorderButtonSlot({
+  isAvailable,
+  ...props
+}: ReorderButtonProps & { isAvailable: boolean }) {
+  if (!isAvailable) {
+    return <HeaderButtonSpacer label="Reorder items" slot="reorder-button-spacer" />;
+  }
+
+  return <ReorderButton {...props} />;
 }
