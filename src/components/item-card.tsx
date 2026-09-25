@@ -3,6 +3,7 @@ import { Star } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatImageUrl } from '@/lib/utils';
 import { Movie, MovieDetails } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
@@ -148,21 +149,26 @@ type ItemCardSkeletonProps = {
 function ItemCardSkeleton({ className }: ItemCardSkeletonProps) {
   return (
     <div
+      data-slot="item-card-skeleton"
       className={cn(
         'group aspect-2/3 w-[150px] shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900',
         className,
       )}
     >
-      <div className="relative h-full">
-        <div className="h-full w-full animate-pulse bg-neutral-50/10" />
+      <div className="relative h-full w-full">
+        <Skeleton className="absolute inset-0 rounded-none" />
 
-        <div className="absolute right-0 bottom-0 left-0 p-3 opacity-0">
-          <div className="mb-2 h-4 w-3/4 animate-pulse rounded bg-neutral-50/10" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent" />
+
+        <Skeleton className="absolute top-2 right-2 size-8 rounded-lg" />
+
+        <div className="absolute right-0 bottom-0 left-0 p-3">
+          <Skeleton data-slot="item-card-title-skeleton" className="mb-2 h-4 w-3/4" />
           <div className="flex items-center justify-between">
-            <div className="h-3 w-12 animate-pulse rounded bg-neutral-50/10" />
+            <Skeleton data-slot="item-card-metadata-skeleton" className="h-3 w-12" />
             <div className="flex items-center gap-1">
-              <div className="h-3 w-3 animate-pulse rounded bg-neutral-50/10" />
-              <div className="h-3 w-6 animate-pulse rounded bg-neutral-50/10" />
+              <Skeleton className="size-3" />
+              <Skeleton className="h-3 w-6" />
             </div>
           </div>
         </div>
