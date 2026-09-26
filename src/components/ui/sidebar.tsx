@@ -212,7 +212,6 @@ function Sidebar({
 
   return (
     <div
-      suppressHydrationWarning
       className="group peer hidden text-sidebar-foreground md:block"
       data-state={state}
       data-collapsible={state === 'collapsed' ? collapsible : ''}
