@@ -22,6 +22,7 @@ import { WatchProvider } from '@/types/watch-provider';
 interface WatchProviderFilterProps {
   providers: WatchProvider[];
   userRegion: string;
+  controlId?: string;
   /**
    * Renders a small labelless trigger that sits inline with `size="sm"`
    * header buttons (list pages) instead of the labeled panel field (discover).
@@ -32,16 +33,16 @@ interface WatchProviderFilterProps {
 // Both triggers spread rest props (and ref) into Button: PopoverTrigger's
 // `render` clones the element with the trigger props (onClick, aria-*), and
 // dropping them leaves a button that never opens the popover.
-type TriggerProps = { selectedCount: number } & ComponentProps<typeof Button>;
+type TriggerProps = { selectedCount: number; controlId?: string } & ComponentProps<typeof Button>;
 
 /** Discover's filter-panel trigger: labeled, full-width field. */
-function PanelTrigger({ selectedCount, className, ...props }: TriggerProps) {
+function PanelTrigger({ selectedCount, controlId, className, ...props }: TriggerProps) {
   return (
     <Button
       {...props}
       variant="outline"
       className={cn('w-full justify-between', className)}
-      id="watch-providers"
+      id={controlId}
     >
       <Filter className="mr-2 h-4 w-4" />
       {selectedCount > 0
@@ -76,6 +77,7 @@ function CompactTrigger({ selectedCount, ...props }: TriggerProps) {
 export default function WatchProviderFilter({
   providers,
   userRegion,
+  controlId = 'watch-providers',
   compact = false,
 }: WatchProviderFilterProps) {
   const [{ with_watch_providers }, setParams] = useQueryStates({
@@ -127,73 +129,73 @@ export default function WatchProviderFilter({
           compact ? (
             <CompactTrigger selectedCount={selectedCount} />
           ) : (
-            <PanelTrigger selectedCount={selectedCount} />
+            <PanelTrigger selectedCount={selectedCount} controlId={controlId} />
           )
         }
       />
-        <PopoverContent
-          align={compact ? 'start' : 'end'}
-          side="bottom"
-          sideOffset={10}
-          className="max-h-[60dvh] overflow-auto"
-        >
-          <PopoverHeader>
-            <div className="flex items-baseline justify-between">
-              <PopoverTitle className="py-1">Watch Providers</PopoverTitle>
-              {selectedCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearAllProviders} className="text-xs">
-                  Clear all
-                </Button>
-              )}
-            </div>
-          </PopoverHeader>
-
-          <div className="grid gap-2">
-            {providers.length === 0 ? (
-              <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
-                No providers available
-              </div>
-            ) : (
-              providers.map((provider) => {
-                const isSelected = selectedProviders.includes(provider.provider_id);
-                const imageError = brokenImages.has(provider.provider_id);
-
-                return (
-                  <button
-                    type="button"
-                    key={provider.provider_id}
-                    className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
-                      isSelected ? 'bg-accent' : ''
-                    }`}
-                    onClick={() => updateSelectedProviders(provider.provider_id)}
-                  >
-                    <div className="shrink-0">
-                      {imageError ? (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-sm font-semibold">
-                          {provider.provider_name.charAt(0).toUpperCase()}
-                        </div>
-                      ) : (
-                        <Image
-                          unoptimized
-                          width={32}
-                          height={32}
-                          src={formatImageUrl(provider.logo_path, 92)}
-                          alt={provider.provider_name}
-                          className="h-8 w-8 rounded-md object-cover"
-                          onError={() => handleImageError(provider.provider_id)}
-                        />
-                      )}
-                    </div>
-                    <div className="flex-1 text-left text-sm font-medium">
-                      {provider.provider_name}
-                    </div>
-                    {isSelected && <Check className="h-4 w-4 text-primary" />}
-                  </button>
-                );
-              })
+      <PopoverContent
+        align={compact ? 'start' : 'end'}
+        side="bottom"
+        sideOffset={10}
+        className="max-h-[60dvh] overflow-auto"
+      >
+        <PopoverHeader>
+          <div className="flex items-baseline justify-between">
+            <PopoverTitle className="py-1">Watch Providers</PopoverTitle>
+            {selectedCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearAllProviders} className="text-xs">
+                Clear all
+              </Button>
             )}
           </div>
-        </PopoverContent>
+        </PopoverHeader>
+
+        <div className="grid gap-2">
+          {providers.length === 0 ? (
+            <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+              No providers available
+            </div>
+          ) : (
+            providers.map((provider) => {
+              const isSelected = selectedProviders.includes(provider.provider_id);
+              const imageError = brokenImages.has(provider.provider_id);
+
+              return (
+                <button
+                  type="button"
+                  key={provider.provider_id}
+                  className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
+                    isSelected ? 'bg-accent' : ''
+                  }`}
+                  onClick={() => updateSelectedProviders(provider.provider_id)}
+                >
+                  <div className="shrink-0">
+                    {imageError ? (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-sm font-semibold">
+                        {provider.provider_name.charAt(0).toUpperCase()}
+                      </div>
+                    ) : (
+                      <Image
+                        unoptimized
+                        width={32}
+                        height={32}
+                        src={formatImageUrl(provider.logo_path, 92)}
+                        alt={provider.provider_name}
+                        className="h-8 w-8 rounded-md object-cover"
+                        onError={() => handleImageError(provider.provider_id)}
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 text-left text-sm font-medium">
+                    {provider.provider_name}
+                  </div>
+                  {isSelected && <Check className="h-4 w-4 text-primary" />}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </PopoverContent>
     </Popover>
   );
 
@@ -203,7 +205,7 @@ export default function WatchProviderFilter({
 
   return (
     <div className="min-w-54">
-      <Label htmlFor="watch-providers" className="mb-2 flex justify-end @3xl:self-end">
+      <Label htmlFor={controlId} className="mb-2 text-muted-foreground">
         Watch Providers
       </Label>
       {popover}

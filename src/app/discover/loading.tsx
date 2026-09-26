@@ -43,30 +43,42 @@ export default function DiscoverLoading() {
         <SectionTitle>Discover</SectionTitle>
       </div>
 
-      {/* Genre pills + media-type selector */}
-      <div className="@container relative mt-4 flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
-        <div className="flex flex-1 flex-wrap gap-2 pt-3">
-          {MOVIE_GENRES.map((name) => (
-            <Pill key={name} variant="skeleton">
-              {name}
-            </Pill>
-          ))}
+      {/* Responsive filters + media-type selector */}
+      <div className="@container relative mt-4 flex flex-wrap items-center gap-x-2 gap-y-4">
+        <Skeleton className="h-8 w-24 @[60rem]:hidden" />
+        <div className="hidden flex-1 @[60rem]:block">
+          <div className="flex flex-wrap gap-2 pt-3">
+            {MOVIE_GENRES.map((name) => (
+              <Pill key={name} variant="skeleton">
+                {name}
+              </Pill>
+            ))}
+          </div>
         </div>
         {/* Media-type selector — a two-segment toggle */}
-        <div className="flex gap-1 rounded-lg bg-muted/60 p-1">
-          <Skeleton className="h-9 w-24 rounded-md" />
-          <Skeleton className="h-9 w-24 rounded-md" />
-        </div>
-      </div>
-
-      {/* Sort / runtime / watch-provider filters */}
-      <div className="mt-6 flex flex-col gap-4 @3xl:flex-row @3xl:items-end @3xl:justify-between">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="min-w-54">
-            <Skeleton className="mb-2 h-4 w-24" />
-            <Skeleton className="h-9 w-full" />
+        <div className="ml-auto @[60rem]:pl-1">
+          <div className="flex gap-1 rounded-lg bg-muted/60 p-1">
+            <Skeleton className="h-9 w-24 rounded-md" />
+            <Skeleton className="h-9 w-24 rounded-md" />
           </div>
-        ))}
+        </div>
+        {/* Sort/runtime and origin-country/watch-provider filter groups */}
+        <div className="order-3 hidden basis-full flex-wrap items-end justify-between gap-y-1 @[60rem]:flex">
+          <div className="flex basis-full items-center justify-between">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+          {Array.from({ length: 2 }).map((_, groupIndex) => (
+            <div key={groupIndex} className="flex items-end gap-4">
+              {Array.from({ length: 2 }).map((__, filterIndex) => (
+                <div key={filterIndex} className="min-w-54">
+                  <Skeleton className="mb-2 h-4 w-24" />
+                  <Skeleton className="h-9 w-full" />
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="mt-7">

@@ -65,6 +65,10 @@
   }
 }
 
+@utility w-query-container {
+  width: 100cqi;
+}
+
 /*
   ---break---
 */

@@ -1,6 +1,6 @@
 'use client';
 
-import type * as React from 'react';
+import * as React from 'react';
 
 import Brand from '@/components/brand';
 import { NavLink } from '@/components/nav-link';
@@ -33,31 +33,13 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   userFooter?: React.ReactNode;
 };
 
-// Named export rather than an `AppSidebar.Ghost` static: this is a 'use client'
-// module, and runtime property assignments don't survive the client-reference
-// proxy that server components (AppSidebarWrapper) import through.
-export function AppSidebarGhost() {
+function MainNavGhost() {
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <Skeleton className="h-8 w-32" />
-      </SidebarHeader>
-      <SidebarContent className="p-1">
-        <nav aria-label="Main">
-          <SidebarMenu>
-            <SidebarGroupContent className="flex flex-col gap-1">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </SidebarGroupContent>
-          </SidebarMenu>
-        </nav>
-      </SidebarContent>
-      <SidebarRail />
-      <SidebarFooter>
-        <Skeleton className="h-12 w-full" />
-      </SidebarFooter>
-    </Sidebar>
+    <>
+      {navItems.map((item) => (
+        <Skeleton key={item.href} className="h-10 w-full" />
+      ))}
+    </>
   );
 }
 
@@ -71,9 +53,11 @@ export function AppSidebar({ userNav, userFooter, ...props }: AppSidebarProps) {
         <nav aria-label="Main">
           <SidebarMenu>
             <SidebarGroupContent className="flex flex-col gap-1">
-              {navItems.map((item) => (
-                <NavLink key={item.href} {...item} />
-              ))}
+              <React.Suspense fallback={<MainNavGhost />}>
+                {navItems.map((item) => (
+                  <NavLink key={item.href} {...item} />
+                ))}
+              </React.Suspense>
               {userNav}
             </SidebarGroupContent>
           </SidebarMenu>

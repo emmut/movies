@@ -18,11 +18,17 @@ function PopoverContent({
   alignOffset = 0,
   side = 'bottom',
   sideOffset = 4,
+  portalContainer,
   ...props
 }: PopoverPrimitive.Popup.Props &
-  Pick<PopoverPrimitive.Positioner.Props, 'align' | 'alignOffset' | 'side' | 'sideOffset'>) {
+  Pick<PopoverPrimitive.Positioner.Props, 'align' | 'alignOffset' | 'side' | 'sideOffset'> & {
+    portalContainer?: PopoverPrimitive.Portal.Props['container'];
+  }) {
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal
+      container={portalContainer}
+      className={portalContainer ? 'absolute' : undefined}
+    >
       <PopoverPrimitive.Positioner
         align={align}
         alignOffset={alignOffset}

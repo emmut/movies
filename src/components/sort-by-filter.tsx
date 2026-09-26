@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -13,6 +14,7 @@ import {
 
 type SortByFilterProps = {
   mediaType: 'movie' | 'tv';
+  controlId?: string;
 };
 
 const MOVIE_SORT_OPTIONS = [
@@ -47,7 +49,10 @@ const TV_SORT_OPTIONS = [
  *
  * @param mediaType - Whether to show movie or TV sort options.
  */
-export default function SortByFilter({ mediaType }: SortByFilterProps) {
+export default function SortByFilter({
+  mediaType,
+  controlId = 'select-sort-option',
+}: SortByFilterProps) {
   const [urlState, setUrlState] = useQueryStates({
     sort_by: parseAsString,
     page: parseAsString.withDefault('1'),
@@ -72,23 +77,21 @@ export default function SortByFilter({ mediaType }: SortByFilterProps) {
 
   return (
     <div className="min-w-54">
-      <Label className="mb-2 text-sm font-medium" htmlFor="select-sort-option">
+      <Label className="mb-2 text-muted-foreground" htmlFor={controlId}>
         Sort By
       </Label>
-      <Select
-        id="select-sort-option"
-        value={currentSortOption?.value}
-        onValueChange={handleSortChange}
-      >
+      <Select id={controlId} value={currentSortOption?.value} onValueChange={handleSortChange}>
         <SelectTrigger className="w-full">
           <SelectValue placeholder="Select sort option">{currentSortOption?.label}</SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {sortOptions.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
+          <SelectGroup>
+            {sortOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
     </div>

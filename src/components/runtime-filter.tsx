@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -20,6 +21,7 @@ const RUNTIME_OPTIONS = [
 
 type RuntimeFilterProps = {
   className?: string;
+  controlId?: string;
 };
 
 /**
@@ -28,12 +30,15 @@ type RuntimeFilterProps = {
  * Allows users to filter movies and TV shows by maximum runtime (less than or equal to).
  * Uses nuqs to manage URL state with a clean 'runtime' URL parameter.
  */
-export default function RuntimeFilter({ className }: RuntimeFilterProps) {
+export default function RuntimeFilter({
+  className,
+  controlId = 'runtime-filter',
+}: RuntimeFilterProps) {
   const [{ runtimeLte }, setRuntimeFilter] = useRuntimeFilter();
 
   return (
     <div className={className}>
-      <Label htmlFor="runtime-filter" className="mb-2">
+      <Label htmlFor={controlId} className="mb-2 text-muted-foreground">
         Runtime
       </Label>
       <Select
@@ -44,17 +49,19 @@ export default function RuntimeFilter({ className }: RuntimeFilterProps) {
           })
         }
       >
-        <SelectTrigger id="runtime-filter" className="w-full min-w-54">
+        <SelectTrigger id={controlId} className="w-full min-w-54">
           <SelectValue placeholder="Any runtime">
             {RUNTIME_OPTIONS.find((o) => o.value === (runtimeLte?.toString() ?? '0'))?.label}
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {RUNTIME_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
+          <SelectGroup>
+            {RUNTIME_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
     </div>
