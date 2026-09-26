@@ -390,6 +390,36 @@ test.describe('filters', () => {
 
     await waitForDiscoverUrl(page, /runtime=90/);
     await expect(page.getByRole('button', { name: /^filters \(1\)$/i })).toBeVisible();
+
+    // Every control must apply from the compact popover, not just render: a
+    // selection that fails to persist would only be caught here, since the
+    // other filter tests exercise the wide layout.
+    await filtersPopover.getByLabel('Sort By').click();
+    await page.getByRole('option', { name: 'Rating (High to Low)' }).click();
+    await waitForDiscoverUrl(page, /sort_by=vote_average\.desc/);
+    await expect(page.getByRole('button', { name: /^filters \(2\)$/i })).toBeVisible();
+
+    await filtersPopover.getByRole('button', { name: /^origin country$/i }).click();
+    const originCountryPopover = page.locator('[data-slot="popover-content"]').filter({
+      has: page.getByPlaceholder(/search all countries/i),
+    });
+    await originCountryPopover.getByRole('button', { name: /^sweden$/i }).click();
+    await waitForDiscoverUrl(page, /with_origin_country=SE/);
+    await expect(page.getByRole('button', { name: /^filters \(3\)$/i })).toBeVisible();
+    // Close only the nested country popover so it can't cover the next trigger.
+    await page.keyboard.press('Escape');
+
+    await filtersPopover.getByRole('button', { name: /^watch providers$/i }).click();
+    const watchProviderPopover = page.locator('[data-slot="popover-content"]').filter({
+      hasNot: page.getByRole('heading', { name: /^filters$/i }),
+    });
+    const providers = watchProviderPopover.getByRole('button').filter({
+      hasNotText: /clear all/i,
+    });
+    await expect(providers.first()).toBeVisible();
+    await providers.first().click();
+    await waitForDiscoverUrl(page, /with_watch_providers=/);
+    await expect(page.getByRole('button', { name: /^filters \(4\)$/i })).toBeVisible();
   });
 
   test('updates sort, runtime, and pagination query state', async ({ page }) => {
