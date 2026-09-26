@@ -21,6 +21,14 @@ async function expectDiscoverShell(page: Page) {
   await expect(page.getByRole('heading', { name: /^discover$/i })).toBeVisible();
   await expect(page.getByRole('button', { name: /^movies$/i })).toBeVisible();
   await expect(page.getByRole('button', { name: /^tv shows$/i })).toBeVisible();
+
+  const compactFilters = page.getByRole('button', { name: /^filters(?: \(\d+\))?$/i });
+  if (await compactFilters.isVisible()) {
+    await expect(compactFilters).toBeVisible();
+    await expect(page.locator('#content')).toBeVisible();
+    return;
+  }
+
   await expect(page.getByText(/^sort by$/i)).toBeVisible();
   await expect(page.getByText(/^runtime$/i)).toBeVisible();
   // The trigger's accessible name comes from its associated label ("Watch
@@ -178,6 +186,69 @@ test.describe('media-type toggle', () => {
 });
 
 test.describe('genre navigation', () => {
+  test('uses a multi-select dropdown when the discover container is narrow', async ({ page }) => {
+    const accessibilityWarnings: string[] = [];
+    page.on('console', (message) => {
+      if (
+        /large number of updates inside startTransition|blocked aria-hidden|tree hydrated but some attributes/i.test(
+          message.text(),
+        )
+      ) {
+        accessibilityWarnings.push(message.text());
+      }
+    });
+
+    // At this width the discover container is wider than the old 56rem cutoff,
+    // but the desktop filter groups do not have enough room to stay on one row.
+    await page.setViewportSize({ width: 1220, height: 800 });
+    await page.goto('/discover');
+    await expectDiscoverShell(page);
+
+    const filtersButton = page.getByRole('button', { name: /^filters$/i });
+    await expect(filtersButton).toBeVisible();
+    await expect(page.getByRole('button', { name: /^comedy$/i })).toBeHidden();
+
+    const mediaTypeToggle = page.getByRole('button', { name: /^movies$/i });
+    const mediaTypeXBeforeOpen = (await mediaTypeToggle.boundingBox())?.x;
+
+    await filtersButton.click();
+    const genrePopover = page.locator('[data-slot="popover-content"]').filter({
+      has: page.getByRole('heading', { name: /^filters$/i }),
+    });
+    await expect(genrePopover.getByRole('heading', { name: /^genres$/i })).toBeVisible();
+    const [sortBounds, runtimeBounds] = await Promise.all([
+      genrePopover.getByLabel('Sort By').boundingBox(),
+      genrePopover.getByLabel('Runtime').boundingBox(),
+    ]);
+    expect(sortBounds?.y).toBe(runtimeBounds?.y);
+    await expect
+      .poll(async () => (await mediaTypeToggle.boundingBox())?.x)
+      .toBe(mediaTypeXBeforeOpen);
+
+    const [popoverBounds, resultsBounds] = await Promise.all([
+      genrePopover.boundingBox(),
+      page.locator('#content').boundingBox(),
+    ]);
+    expect(popoverBounds).not.toBeNull();
+    expect(resultsBounds).not.toBeNull();
+    expect(Math.abs((popoverBounds?.width ?? 0) - (resultsBounds?.width ?? 0))).toBeLessThan(1);
+
+    const comedyFilter = genrePopover.getByRole('button', { name: /^comedy$/i });
+    await comedyFilter.click();
+    await expect(comedyFilter).toHaveAttribute('aria-pressed', 'true');
+
+    await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
+    await expect(filtersButton).toHaveText('Filters (1)');
+
+    const clearButton = genrePopover.getByRole('button', { name: /^clear all$/i });
+    await clearButton.click();
+    await expect(page).not.toHaveURL(new RegExp(`genreId=${SHARED_GENRE_ID}`));
+    await expect(clearButton).toBeVisible();
+    await expect(clearButton).toBeDisabled();
+    await expect(clearButton).not.toHaveAttribute('aria-hidden');
+    expect(accessibilityWarnings).toEqual([]);
+  });
+
   test('selecting a genre pill updates the URL and resets to page 1', async ({ page }) => {
     await page.goto(discoverUrl({ page: '2' }));
     await expectDiscoverShell(page);
@@ -196,6 +267,35 @@ test.describe('genre navigation', () => {
     await page.getByRole('button', { name: /^comedy$/i }).click();
 
     await expect(page).not.toHaveURL(new RegExp(`genreId=${SHARED_GENRE_ID}`));
+  });
+
+  test('clears every filter from the desktop clear row', async ({ page }) => {
+    await page.goto(
+      discoverUrl({
+        genreId: SHARED_GENRE_ID,
+        sort_by: 'vote_average.desc',
+        runtime: '90',
+        with_origin_country: 'SE',
+      }),
+    );
+    await expectDiscoverShell(page);
+
+    const watchProviders = page.getByRole('button', { name: /^watch providers$/i });
+    const clearButton = page.getByRole('button', { name: /^clear all$/i });
+    const [watchProviderBounds, clearButtonBounds] = await Promise.all([
+      watchProviders.boundingBox(),
+      clearButton.boundingBox(),
+    ]);
+
+    expect(watchProviderBounds).not.toBeNull();
+    expect(clearButtonBounds).not.toBeNull();
+    expect((clearButtonBounds?.y ?? 0) + (clearButtonBounds?.height ?? 0)).toBeLessThan(
+      watchProviderBounds?.y ?? 0,
+    );
+
+    await clearButton.click();
+
+    await expect(page).not.toHaveURL(/genreId=|sort_by=|runtime=|with_origin_country=/);
   });
 });
 
@@ -252,6 +352,41 @@ test.describe('sidebar navigation', () => {
 });
 
 test.describe('filters', () => {
+  test('groups filter controls into one popover when the discover container is narrow', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 400, height: 800 });
+    await page.goto('/discover');
+    await expectDiscoverShell(page);
+
+    const filtersButton = page.getByRole('button', { name: /^filters$/i });
+    await filtersButton.click();
+
+    const filtersPopover = page.locator('[data-slot="popover-content"]').filter({
+      has: page.getByRole('heading', { name: /^filters$/i }),
+    });
+    await expect(filtersPopover.getByRole('heading', { name: /^genres$/i })).toBeVisible();
+    await expect(filtersPopover.getByRole('heading', { name: /^more filters$/i })).toBeVisible();
+    await expect(filtersPopover.getByLabel('Sort By')).toBeVisible();
+    await expect(filtersPopover.getByLabel('Runtime')).toBeVisible();
+    await expect(filtersPopover.getByRole('button', { name: /^origin country$/i })).toBeVisible();
+    await expect(filtersPopover.getByRole('button', { name: /^watch providers$/i })).toBeVisible();
+
+    const [sortBounds, runtimeBounds] = await Promise.all([
+      filtersPopover.getByLabel('Sort By').boundingBox(),
+      filtersPopover.getByLabel('Runtime').boundingBox(),
+    ]);
+    expect(sortBounds).not.toBeNull();
+    expect(runtimeBounds).not.toBeNull();
+    expect(runtimeBounds?.y ?? 0).toBeGreaterThan(sortBounds?.y ?? 0);
+
+    await filtersPopover.getByLabel('Runtime').click();
+    await page.getByRole('option', { name: 'Up to 90 min' }).click();
+
+    await waitForDiscoverUrl(page, /runtime=90/);
+    await expect(page.getByRole('button', { name: /^filters \(1\)$/i })).toBeVisible();
+  });
+
   test('updates sort, runtime, and pagination query state', async ({ page }) => {
     await page.goto('/discover');
     await expectDiscoverShell(page);
@@ -266,9 +401,7 @@ test.describe('filters', () => {
     await waitForDiscoverUrl(page, /page=2/);
 
     // Paginating scrolls imperatively; the URL never carries a fragment.
-    await expect
-      .poll(() => page.evaluate(() => window.location.hash), { timeout: 5_000 })
-      .toBe('');
+    await expect.poll(() => page.evaluate(() => window.location.hash), { timeout: 5_000 }).toBe('');
   });
 
   test('resets pagination to page 1 when a filter changes', async ({ page }) => {
