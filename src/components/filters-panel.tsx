@@ -56,7 +56,7 @@ export function CompactFilterControls({
   userRegion,
 }: FilterControlsBaseProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 @[30rem]:grid-cols-2">
+    <div className="grid grid-cols-1 gap-3 @[30rem]:grid-cols-2">
       <FilterControls
         mediaType={mediaType}
         watchProviders={watchProviders}

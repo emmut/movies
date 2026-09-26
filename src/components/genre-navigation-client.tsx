@@ -107,7 +107,7 @@ function FilterDropdown({
         align="start"
         sideOffset={12}
         portalContainer={portalContainer}
-        className="w-query-container"
+        className="w-query-container gap-3 p-3"
       >
         <PopoverHeader className="flex-row items-center justify-between">
           <PopoverTitle>Filters</PopoverTitle>
