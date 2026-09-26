@@ -392,11 +392,7 @@ export function SearchCommand() {
           className="top-24 translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg"
         >
           <DialogTitle className="sr-only">Search</DialogTitle>
-          <SearchCommandPanel
-            inputRef={inputRef}
-            onNavigate={navigate}
-            urlQuery={currentQuery}
-          />
+          <SearchCommandPanel inputRef={inputRef} onNavigate={navigate} urlQuery={currentQuery} />
         </DialogContent>
       </Dialog>
     </>

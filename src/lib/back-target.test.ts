@@ -69,7 +69,9 @@ describe('saveBackTarget', () => {
 
 describe('sanitizeBackHref', () => {
   it('accepts known in-app paths with their query intact', () => {
-    expect(sanitizeBackHref('/search?q=batman&mediaType=all')).toBe('/search?q=batman&mediaType=all');
+    expect(sanitizeBackHref('/search?q=batman&mediaType=all')).toBe(
+      '/search?q=batman&mediaType=all',
+    );
     expect(sanitizeBackHref('/discover/28?watchProvider=8')).toBe('/discover/28?watchProvider=8');
     expect(sanitizeBackHref('/watchlist?mediaType=tv')).toBe('/watchlist?mediaType=tv');
     expect(sanitizeBackHref('/watched')).toBe('/watched');

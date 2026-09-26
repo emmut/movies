@@ -10,7 +10,12 @@ import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/u
 
 import { getWatchProviderFilterContext } from './watch-provider-filter-context';
 
-const netflix = { provider_id: 8, provider_name: 'Netflix', logo_path: '/n.png', display_priority: 1 };
+const netflix = {
+  provider_id: 8,
+  provider_name: 'Netflix',
+  logo_path: '/n.png',
+  display_priority: 1,
+};
 
 beforeEach(() => {
   vi.clearAllMocks();

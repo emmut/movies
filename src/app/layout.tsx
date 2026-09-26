@@ -1,4 +1,3 @@
-import { clsx } from 'cn';
 import { Metadata } from 'next';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { ReactNode, Suspense } from 'react';
@@ -15,11 +14,11 @@ import { SearchCommand, SearchCommandFallback } from '@/components/search-comman
 import { Separator } from '@/components/ui/separator';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { env } from '@/env';
-import { inter } from '@/fonts';
+import { oxaniumHeading, roboto } from '@/fonts';
 import { IMAGE_CDN_URL } from '@/lib/constants';
+import { QueryProvider } from '@/providers/query-provider';
 
 import './globals.css';
-import { QueryProvider } from '@/providers/query-provider';
 
 export const metadata: Metadata = {
   title: 'Movies',
@@ -44,8 +43,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   preconnect(new URL(IMAGE_CDN_URL).origin);
 
   return (
-    <html lang="en" className="dark">
-      <body className={clsx([inter.className])}>
+    <html lang="en" className={`dark ${roboto.variable} ${oxaniumHeading.variable}`}>
+      <body>
         <QueryProvider>
           <NuqsAdapter>
             <SidebarProvider>

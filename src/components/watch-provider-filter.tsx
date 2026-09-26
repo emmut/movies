@@ -131,69 +131,69 @@ export default function WatchProviderFilter({
           )
         }
       />
-        <PopoverContent
-          align={compact ? 'start' : 'end'}
-          side="bottom"
-          sideOffset={10}
-          className="max-h-[60dvh] overflow-auto"
-        >
-          <PopoverHeader>
-            <div className="flex items-baseline justify-between">
-              <PopoverTitle className="py-1">Watch Providers</PopoverTitle>
-              {selectedCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={clearAllProviders} className="text-xs">
-                  Clear all
-                </Button>
-              )}
-            </div>
-          </PopoverHeader>
-
-          <div className="grid gap-2">
-            {providers.length === 0 ? (
-              <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
-                No providers available
-              </div>
-            ) : (
-              providers.map((provider) => {
-                const isSelected = selectedProviders.includes(provider.provider_id);
-                const imageError = brokenImages.has(provider.provider_id);
-
-                return (
-                  <button
-                    type="button"
-                    key={provider.provider_id}
-                    className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
-                      isSelected ? 'bg-accent' : ''
-                    }`}
-                    onClick={() => updateSelectedProviders(provider.provider_id)}
-                  >
-                    <div className="shrink-0">
-                      {imageError ? (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-sm font-semibold">
-                          {provider.provider_name.charAt(0).toUpperCase()}
-                        </div>
-                      ) : (
-                        <Image
-                          unoptimized
-                          width={32}
-                          height={32}
-                          src={formatImageUrl(provider.logo_path, 92)}
-                          alt={provider.provider_name}
-                          className="h-8 w-8 rounded-md object-cover"
-                          onError={() => handleImageError(provider.provider_id)}
-                        />
-                      )}
-                    </div>
-                    <div className="flex-1 text-left text-sm font-medium">
-                      {provider.provider_name}
-                    </div>
-                    {isSelected && <Check className="h-4 w-4 text-primary" />}
-                  </button>
-                );
-              })
+      <PopoverContent
+        align={compact ? 'start' : 'end'}
+        side="bottom"
+        sideOffset={10}
+        className="max-h-[60dvh] overflow-auto"
+      >
+        <PopoverHeader>
+          <div className="flex items-baseline justify-between">
+            <PopoverTitle className="py-1">Watch Providers</PopoverTitle>
+            {selectedCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearAllProviders} className="text-xs">
+                Clear all
+              </Button>
             )}
           </div>
-        </PopoverContent>
+        </PopoverHeader>
+
+        <div className="grid gap-2">
+          {providers.length === 0 ? (
+            <div className="flex items-center justify-center p-4 text-sm text-muted-foreground">
+              No providers available
+            </div>
+          ) : (
+            providers.map((provider) => {
+              const isSelected = selectedProviders.includes(provider.provider_id);
+              const imageError = brokenImages.has(provider.provider_id);
+
+              return (
+                <button
+                  type="button"
+                  key={provider.provider_id}
+                  className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
+                    isSelected ? 'bg-accent' : ''
+                  }`}
+                  onClick={() => updateSelectedProviders(provider.provider_id)}
+                >
+                  <div className="shrink-0">
+                    {imageError ? (
+                      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-sm font-semibold">
+                        {provider.provider_name.charAt(0).toUpperCase()}
+                      </div>
+                    ) : (
+                      <Image
+                        unoptimized
+                        width={32}
+                        height={32}
+                        src={formatImageUrl(provider.logo_path, 92)}
+                        alt={provider.provider_name}
+                        className="h-8 w-8 rounded-md object-cover"
+                        onError={() => handleImageError(provider.provider_id)}
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 text-left text-sm font-medium">
+                    {provider.provider_name}
+                  </div>
+                  {isSelected && <Check className="h-4 w-4 text-primary" />}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </PopoverContent>
     </Popover>
   );
 

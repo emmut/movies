@@ -12,7 +12,7 @@ function Poster({ poster_path, title }: PosterProps) {
     /* Grid items stretch to the full row height, which makes `sticky` a no-op —
        `self-start` keeps the poster its natural height so it can follow the
        scroll. The top offset clears the sticky app header plus the grid gap. */
-    <div className="lg:sticky lg:col-span-4 lg:self-start lg:top-[calc(var(--header-height)+(--spacing(8)))]">
+    <div className="lg:sticky lg:top-[calc(var(--header-height)+(--spacing(8)))] lg:col-span-4 lg:self-start">
       {poster_path ? (
         <div className="max-w-64 lg:max-w-full">
           <Imgproxy
@@ -39,7 +39,7 @@ function Poster({ poster_path, title }: PosterProps) {
 
 Poster.Skeleton = function PosterSkeleton() {
   return (
-    <div className="lg:sticky lg:col-span-4 lg:self-start lg:top-[calc(var(--header-height)+(--spacing(8)))]">
+    <div className="lg:sticky lg:top-[calc(var(--header-height)+(--spacing(8)))] lg:col-span-4 lg:self-start">
       <Skeleton className="aspect-2/3 w-full max-w-64 rounded-lg shadow-2xl sm:mx-0 lg:max-w-full" />
     </div>
   );

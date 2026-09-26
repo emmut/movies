@@ -31,8 +31,7 @@ function stubWindow({ url, scrollY = 0 }: { url: string; scrollY?: number }) {
 }
 
 function moveTo(url: string) {
-  (window as unknown as { location: ReturnType<typeof locationFrom> }).location =
-    locationFrom(url);
+  (window as unknown as { location: ReturnType<typeof locationFrom> }).location = locationFrom(url);
 }
 
 afterEach(function resetModuleState() {

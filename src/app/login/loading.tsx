@@ -30,7 +30,7 @@ export default function LoginLoading() {
         </div>
 
         <div className="space-y-4">
-          <Skeleton className="h-4 w-56 mx-auto" />
+          <Skeleton className="mx-auto h-4 w-56" />
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-10 w-full" />
         </div>

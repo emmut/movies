@@ -65,8 +65,17 @@ export default async function MoviePage(props: MoviePageProps) {
   // Depends on the movie's imdb id; a local primary-key lookup, so cheap.
   const imdbRating = await getImdbRating(movie.imdb_id);
 
-  const { title, release_date, overview, poster_path, backdrop_path, tagline, genres, runtime, homepage } =
-    movie;
+  const {
+    title,
+    release_date,
+    overview,
+    poster_path,
+    backdrop_path,
+    tagline,
+    genres,
+    runtime,
+    homepage,
+  } = movie;
   const score = Math.ceil(movie.vote_average * 10) / 10;
 
   return (

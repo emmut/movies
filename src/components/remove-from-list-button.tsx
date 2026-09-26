@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import { MouseEvent, useState } from 'react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +17,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { removeFromList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 

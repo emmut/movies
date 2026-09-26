@@ -1,5 +1,5 @@
+import { RiArrowLeftSLine, RiArrowRightSLine, RiMoreLine } from '@remixicon/react';
 import { cn } from 'cn';
-import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react';
 import Link from 'next/link';
 import * as React from 'react';
 
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
   return (
     <nav
+      role="navigation"
       aria-label="pagination"
       data-slot="pagination"
       className={cn('mx-auto flex w-full justify-center', className)}
@@ -32,8 +33,8 @@ function PaginationItem({ ...props }: React.ComponentProps<'li'>) {
 
 type PaginationLinkProps = {
   isActive?: boolean;
-  size?: 'default' | 'sm' | 'lg' | 'icon';
-} & React.ComponentProps<typeof Link>;
+} & Pick<React.ComponentProps<typeof Button>, 'size'> &
+  React.ComponentProps<typeof Link>;
 
 function PaginationLink({
   className,
@@ -75,7 +76,7 @@ function PaginationPrevious({
       className={cn('pl-1.5!', className)}
       {...props}
     >
-      <ChevronLeftIcon data-icon="inline-start" />
+      <RiArrowLeftSLine data-icon="inline-start" />
       <span className="hidden sm:block">{text}</span>
     </PaginationLink>
   );
@@ -94,7 +95,7 @@ function PaginationNext({
       {...props}
     >
       <span className="hidden sm:block">{text}</span>
-      <ChevronRightIcon data-icon="inline-end" />
+      <RiArrowRightSLine data-icon="inline-end" />
     </PaginationLink>
   );
 }
@@ -110,7 +111,7 @@ function PaginationEllipsis({ className, ...props }: React.ComponentProps<'span'
       )}
       {...props}
     >
-      <MoreHorizontalIcon />
+      <RiMoreLine />
       <span className="sr-only">More pages</span>
     </span>
   );

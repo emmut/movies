@@ -110,10 +110,12 @@ describe('buildDiscoverSearchParams', () => {
   });
 
   it('applies the runtime filter only for a positive max runtime', () => {
-    expect(buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: 120 })).toMatchObject({
-      'with_runtime.lte': 120,
-      'with_runtime.gte': MIN_RUNTIME_FILTER_MINUTES,
-    });
+    expect(buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: 120 })).toMatchObject(
+      {
+        'with_runtime.lte': 120,
+        'with_runtime.gte': MIN_RUNTIME_FILTER_MINUTES,
+      },
+    );
 
     expect(
       buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: 0 }),

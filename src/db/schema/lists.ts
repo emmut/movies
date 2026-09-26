@@ -58,10 +58,6 @@ export const listItems = pgTable(
     // The hot read path: page queries filter by list (and resource type for
     // system lists) and sort by position. The unique index above can't serve
     // it — resource_id sits between the filtered columns.
-    index('list_items_list_type_position_idx').on(
-      table.listId,
-      table.resourceType,
-      table.position,
-    ),
+    index('list_items_list_type_position_idx').on(table.listId, table.resourceType, table.position),
   ],
 );

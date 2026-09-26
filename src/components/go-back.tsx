@@ -3,9 +3,8 @@
 import { ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { scheduleBackScrollRestore } from '@/lib/back-scroll';
-
 import { useBackTarget } from '@/hooks/use-back-target';
+import { scheduleBackScrollRestore } from '@/lib/back-scroll';
 
 import { Button } from './ui/button';
 
