@@ -7,9 +7,10 @@ import {
   parseAsStringLiteral,
   useQueryStates,
 } from 'nuqs';
+import { useRef } from 'react';
 
 import DiscoverGrid from '@/components/discover-grid';
-import FiltersPanel from '@/components/filters-panel';
+import FiltersPanel, { getActiveFilterCount } from '@/components/filters-panel';
 import { GenreNavigationClient } from '@/components/genre-navigation-client';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
@@ -42,10 +43,12 @@ type DiscoverViewState = {
   watchRegion: string;
   runtimeLte?: number;
   originCountry?: string;
+  activeFilterCount: number;
+  clearFilters: () => Promise<URLSearchParams>;
 };
 
 function useDiscoverViewState(userRegion: string, userWatchProviders: number[]): DiscoverViewState {
-  const [urlState] = useQueryStates(
+  const [urlState, setUrlState] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
       genreIds: parseAsArrayOf(parseAsInteger).withDefault([]),
@@ -65,6 +68,21 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
     },
   );
 
+  function clearFilters() {
+    return setUrlState(
+      {
+        genreIds: null,
+        sort_by: null,
+        runtimeLte: null,
+        with_origin_country: null,
+        with_watch_providers: null,
+        watch_region: null,
+        page: 1,
+      },
+      { shallow: false },
+    );
+  }
+
   return {
     page: urlState.page,
     genreIds: urlState.genreIds,
@@ -80,6 +98,13 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
     watchRegion: urlState.watch_region ?? userRegion,
     runtimeLte: urlState.runtimeLte ?? undefined,
     originCountry: getOriginCountryString(urlState.with_origin_country),
+    activeFilterCount: getActiveFilterCount({
+      sortBy: urlState.sort_by,
+      runtimeLte: urlState.runtimeLte,
+      originCountries: urlState.with_origin_country,
+      watchProviders: urlState.with_watch_providers,
+    }),
+    clearFilters,
   };
 }
 
@@ -97,24 +122,61 @@ type DiscoverToolbarProps = {
   mediaType: 'movie' | 'tv';
   movieGenres: Genre[];
   tvGenres: Genre[];
+  filteredWatchProviders: WatchProvider[];
+  userRegion: string;
+  activeFilterCount: number;
+  hasActiveFilters: boolean;
+  onClearFilters: () => Promise<URLSearchParams>;
 };
 
-function DiscoverToolbar({ genres, mediaType, movieGenres, tvGenres }: DiscoverToolbarProps) {
+function DiscoverToolbar({
+  genres,
+  mediaType,
+  movieGenres,
+  tvGenres,
+  filteredWatchProviders,
+  userRegion,
+  activeFilterCount,
+  hasActiveFilters,
+  onClearFilters,
+}: DiscoverToolbarProps) {
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="@container relative mt-4 flex flex-col gap-4 @2xl:flex-row @2xl:items-center @2xl:justify-between">
-      <div className="flex flex-1 flex-wrap gap-2">
-        <GenreNavigationClient genres={genres} />
+    <div
+      ref={toolbarRef}
+      className="@container relative mt-4 flex flex-wrap items-center gap-x-2 gap-y-4"
+    >
+      <div className="min-w-0 @[60rem]:flex-1">
+        <GenreNavigationClient
+          genres={genres}
+          mediaType={mediaType}
+          watchProviders={filteredWatchProviders}
+          userRegion={userRegion}
+          activeFilterCount={activeFilterCount}
+          portalContainer={toolbarRef}
+          onClearFilters={onClearFilters}
+        />
       </div>
-      <MediaTypeSelector
-        currentMediaType={mediaType}
-        movieGenres={movieGenres}
-        tvGenres={tvGenres}
+      <FiltersPanel
+        mediaType={mediaType}
+        watchProviders={filteredWatchProviders}
+        userRegion={userRegion}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={onClearFilters}
       />
+      <div className="ml-auto @[60rem]:pl-1">
+        <MediaTypeSelector
+          currentMediaType={mediaType}
+          movieGenres={movieGenres}
+          tvGenres={tvGenres}
+        />
+      </div>
     </div>
   );
 }
 
-type DiscoverResultsProps = DiscoverViewState & {
+type DiscoverResultsProps = Omit<DiscoverViewState, 'activeFilterCount' | 'clearFilters'> & {
   userId?: string;
 };
 
@@ -170,6 +232,8 @@ export function DiscoverContent({
     watchRegion,
     runtimeLte,
     originCountry,
+    activeFilterCount,
+    clearFilters,
   } = useDiscoverViewState(userRegion, userWatchProviders);
   const genres = mediaType === 'movie' ? movieGenres : tvGenres;
 
@@ -181,15 +245,12 @@ export function DiscoverContent({
         mediaType={mediaType}
         movieGenres={movieGenres}
         tvGenres={tvGenres}
+        filteredWatchProviders={filteredWatchProviders}
+        userRegion={watchRegion}
+        activeFilterCount={activeFilterCount}
+        hasActiveFilters={genreIds.length + activeFilterCount > 0}
+        onClearFilters={clearFilters}
       />
-
-      <div className="mt-6">
-        <FiltersPanel
-          mediaType={mediaType}
-          watchProviders={filteredWatchProviders}
-          userRegion={watchRegion}
-        />
-      </div>
 
       <DiscoverResults
         page={page}
