@@ -204,7 +204,7 @@ test.describe('genre navigation', () => {
     await page.goto('/discover');
     await expectDiscoverShell(page);
 
-    const filtersButton = page.getByRole('button', { name: /^filters$/i });
+    const filtersButton = page.getByRole('button', { name: /^filters(?: \(\d+\))?$/i });
     await expect(filtersButton).toBeVisible();
     await expect(page.getByRole('button', { name: /^comedy$/i })).toBeHidden();
 
@@ -225,13 +225,18 @@ test.describe('genre navigation', () => {
       .poll(async () => (await mediaTypeToggle.boundingBox())?.x)
       .toBe(mediaTypeXBeforeOpen);
 
-    const [popoverBounds, resultsBounds] = await Promise.all([
-      genrePopover.boundingBox(),
-      page.locator('#content').boundingBox(),
-    ]);
-    expect(popoverBounds).not.toBeNull();
-    expect(resultsBounds).not.toBeNull();
-    expect(Math.abs((popoverBounds?.width ?? 0) - (resultsBounds?.width ?? 0))).toBeLessThan(1);
+    // Poll: the popover opens with a zoom-in animation, so its bounding box
+    // is scaled down until the animation finishes.
+    await expect
+      .poll(async () => {
+        const [popoverBounds, resultsBounds] = await Promise.all([
+          genrePopover.boundingBox(),
+          page.locator('#content').boundingBox(),
+        ]);
+        if (!popoverBounds || !resultsBounds) return Number.POSITIVE_INFINITY;
+        return Math.abs(popoverBounds.width - resultsBounds.width);
+      })
+      .toBeLessThan(1);
 
     const comedyFilter = genrePopover.getByRole('button', { name: /^comedy$/i });
     await comedyFilter.click();
@@ -444,7 +449,10 @@ test.describe('filters', () => {
     // The trigger's visible value reflects the selection count.
     await expect(trigger).toContainText(/1 provider selected/i);
 
-    await page.getByRole('button', { name: /clear all/i }).click();
+    await page
+      .locator('[data-slot="popover-content"]')
+      .getByRole('button', { name: /clear all/i })
+      .click();
 
     await expect(page).not.toHaveURL(/with_watch_providers=/);
   });
@@ -468,7 +476,7 @@ test.describe('filters', () => {
     await waitForDiscoverUrl(page, /with_origin_country=SE(,|%2C)ZW/);
     await expect(trigger).toContainText(/2 countries selected/i);
 
-    await page.getByRole('button', { name: /clear all/i }).click();
+    await popover.getByRole('button', { name: /clear all/i }).click();
 
     await expect(page).not.toHaveURL(/with_origin_country=/);
   });
