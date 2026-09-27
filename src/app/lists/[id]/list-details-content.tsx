@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useState } from 'react';
@@ -94,6 +94,7 @@ export function ListDetailsContent({
   } = useQuery({
     queryKey: queryKeys.lists.detail(listId, page, activeProviders, activeRegion),
     queryFn: () => fetchListDetailsAction(listId, page, activeProviders, activeRegion),
+    placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });

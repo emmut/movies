@@ -21,6 +21,9 @@ const list = vi.hoisted(() => ({
 }));
 
 vi.mock('@tanstack/react-query', () => ({
+  keepPreviousData(previousData: unknown) {
+    return previousData;
+  },
   useQuery: () => ({ data: list, isLoading: false, isError: false }),
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));
