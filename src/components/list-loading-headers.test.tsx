@@ -19,9 +19,18 @@ const list = vi.hoisted(() => ({
   totalPages: 1,
   allItems: [],
 }));
+const queryState = vi.hoisted(() => ({ isPlaceholderData: false }));
 
 vi.mock('@tanstack/react-query', () => ({
-  useQuery: () => ({ data: list, isLoading: false, isError: false }),
+  keepPreviousData(previousData: unknown) {
+    return previousData;
+  },
+  useQuery: () => ({
+    data: list,
+    isLoading: false,
+    isError: false,
+    isPlaceholderData: queryState.isPlaceholderData,
+  }),
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));
 
@@ -44,7 +53,11 @@ vi.mock('@/components/edit-list-dialog', () => ({
 }));
 vi.mock('@/components/list-items-grid', () => ({ ListItemsGrid: () => <div /> }));
 vi.mock('@/components/reorder-button', () => ({
-  ReorderButtonSlot: () => <button type="button">Reorder items</button>,
+  ReorderButtonSlot: ({ isAvailable }: { isAvailable: boolean }) => (
+    <button type="button" disabled={!isAvailable}>
+      Reorder items
+    </button>
+  ),
 }));
 vi.mock('@/components/watch-provider-filter', () => ({
   default: () => <button type="button">Providers</button>,
@@ -96,6 +109,26 @@ describe('list loading headers', () => {
 
     expect(markup).toContain(list.description);
     expect(markup).toContain('class="h-12 overflow-hidden"');
+  });
+
+  it('disables reordering while retained custom-list data is displayed', () => {
+    queryState.isPlaceholderData = true;
+
+    try {
+      const markup = renderToStaticMarkup(
+        <ListDetailsContent
+          listId={list.id}
+          fetchListDetailsAction={vi.fn()}
+          watchProviders={[]}
+          userRegion="SE"
+        />,
+      );
+
+      expect(markup).toContain('aria-busy="true"');
+      expect(markup).toMatch(/<button[^>]*disabled=""[^>]*>Reorder items<\/button>/);
+    } finally {
+      queryState.isPlaceholderData = false;
+    }
   });
 
   it('keeps the root scrollbar gutter stable', () => {

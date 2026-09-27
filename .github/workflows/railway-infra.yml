@@ -64,6 +64,46 @@ jobs:
           echo "PR environment for #$PR_NUMBER never appeared" >&2
           exit 1
 
+      - name: Wait for forked deployments
+        run: |
+          # Creating a PR environment immediately starts deployments copied
+          # from production. The config apply below changes preview-only
+          # variables on the title-sync and search-index-ingest services,
+          # which starts replacement deployments. Applying while the forked
+          # builds are active cancels them, and Railway leaves their original
+          # GitHub checks failed even when the replacements succeed.
+          for i in $(seq 1 40); do
+            services=$(railway service list --json)
+            unsettled=$(jq -r '
+              [
+                .[]
+                | select(
+                    .latestDeployment == null
+                    or .status == "QUEUED"
+                    or .status == "INITIALIZING"
+                    or .status == "WAITING"
+                    or .status == "BUILDING"
+                    or .status == "DEPLOYING"
+                    or .status == "NEEDS_APPROVAL"
+                    or .status == "REMOVING"
+                  )
+                | "\(.name) (\(.status // "not started"))"
+              ]
+              | join(", ")
+            ' <<<"$services")
+
+            if [ -z "$unsettled" ]; then
+              echo "All forked deployments have settled."
+              exit 0
+            fi
+
+            echo "Forked deployments still active: $unsettled; retrying in 15s…"
+            sleep 15
+          done
+
+          echo "Forked deployments did not settle within 10 minutes" >&2
+          exit 1
+
       - name: Apply Railway config
         # PR environments are ephemeral forks of production, so they start with
         # prod-only services (imdb-ingest) that the config must delete — the
