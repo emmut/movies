@@ -53,7 +53,7 @@ Move one user-visible slice at a time: system lists and watched/watchlist, custo
 - No database schema or migration change is intended for package extraction. If one becomes necessary, stop and document why.
 - Do not run duplicate cron jobs for a second app. Existing Railway jobs continue to populate the shared database.
 - Do not publish server-only package entrypoints to client bundles. Use explicit package exports and import checks to enforce this.
-- Shared cron modules must also run under plain `tsx`; do not add Next's `server-only` marker to an entrypoint that the cron imports.
+- Shared cron modules must also run under Nub; do not add Next's `server-only` marker to an entrypoint that the cron imports.
 - Do not replace Next caching with an untested approximation. Cache semantics and invalidation are part of the behavior to preserve.
 - Preserve the existing local Docker, Drizzle, Railway IaC, lint, test, formatting, fallow, and Playwright workflows.
 - This roadmap does not choose a second-app framework or create a React Native/TanStack Start app.

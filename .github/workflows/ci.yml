@@ -33,7 +33,7 @@ jobs:
           cache: pnpm
 
       - name: Install tools from mise.toml
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -82,7 +82,6 @@ jobs:
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/movies
       BETTER_AUTH_SECRET: test-secret-test-secret-test-secret-0001
-      MOVIE_DB_ACCESS_TOKEN: ${{ secrets.MOVIE_DB_ACCESS_TOKEN }}
       DISCORD_CLIENT_ID: test
       DISCORD_CLIENT_SECRET: test
       GITHUB_CLIENT_ID: test
@@ -108,7 +107,7 @@ jobs:
           cache: pnpm
 
       - name: Install tools from mise.toml
-        uses: jdx/mise-action@v4
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -129,6 +128,8 @@ jobs:
 
       - name: Run e2e tests
         run: nub run --node e2e
+        env:
+          MOVIE_DB_ACCESS_TOKEN: ${{ secrets.MOVIE_DB_ACCESS_TOKEN }}
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
