@@ -50,8 +50,10 @@ describe('getRegionCodes', () => {
 });
 
 describe('regionSchema', () => {
-  it('accepts non-empty strings and rejects empty', () => {
+  it('accepts supported regions and rejects empty or unknown codes', () => {
     expect(regionSchema.safeParse('SE').success).toBe(true);
     expect(regionSchema.safeParse('').success).toBe(false);
+    expect(regionSchema.safeParse('ZZ').success).toBe(false);
+    expect(regionSchema.safeParse('se').success).toBe(false);
   });
 });

@@ -18,7 +18,10 @@ export type Region = (typeof regions)[number];
 
 export const DEFAULT_REGION: RegionCode = 'SE';
 
-export const regionSchema = z.string().min(1, 'Region is required');
+export const regionSchema = z
+  .string()
+  .min(1, 'Region is required')
+  .refine(isValidRegionCode, 'Invalid region code');
 
 export function getRegionByCode(code: string) {
   return regions.find((region) => region.code === code);

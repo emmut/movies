@@ -11,7 +11,7 @@ import { getSession } from '@/lib/auth-server';
 import { revalidateUserPreferenceCache } from '@/lib/cache-invalidation';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
-import { DEFAULT_REGION, isValidRegionCode, RegionCode, regionSchema } from '@/lib/regions';
+import { DEFAULT_REGION, RegionCode, regionSchema } from '@/lib/regions';
 import { WatchProvider } from '@/types/watch-provider';
 
 import { MAJOR_STREAMING_PROVIDERS } from './config';
@@ -60,10 +60,6 @@ export async function updateUserRegion(region: string) {
   }
 
   const validatedRegion = regionSchema.parse(region);
-
-  if (!isValidRegionCode(validatedRegion)) {
-    throw new Error('Invalid region code');
-  }
 
   await db
     .update(user)

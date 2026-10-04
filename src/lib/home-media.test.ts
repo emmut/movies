@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getHomeMediaList, HomeMediaCategory } from './home-media';
+import { fetchNowPlayingMovies } from './movies';
 import { DEFAULT_REGION } from './regions';
 
 vi.mock('./movies', () => ({
@@ -39,5 +40,19 @@ describe('getHomeMediaList', () => {
   it('falls back to the default region when none is provided', async () => {
     const items = await getHomeMediaList('now-playing-movies');
     expect(items).toEqual([expect.objectContaining({ region: DEFAULT_REGION })]);
+  });
+
+  it('rejects unsupported regions before fetching', async () => {
+    await expect(getHomeMediaList('now-playing-movies', 'ZZ')).rejects.toThrow(
+      'Invalid region code',
+    );
+    expect(fetchNowPlayingMovies).not.toHaveBeenCalled();
+  });
+
+  it('rejects unknown categories before fetching', async () => {
+    await expect(getHomeMediaList('__proto__' as HomeMediaCategory, 'US')).rejects.toThrow(
+      'Invalid home media category',
+    );
+    expect(fetchNowPlayingMovies).not.toHaveBeenCalled();
   });
 });
