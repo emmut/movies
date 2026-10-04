@@ -11,7 +11,7 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 ## Getting started
 
 1. Install dependencies: `pnpm install`.
-2. Copy the environment template and fill it in — `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
+2. Copy `.env.example` to the root `.env` and fill it in. The tracked `apps/web/.env` symlink lets Next.js read it from the app directory. `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
 3. Apply the schema to your database: `pnpm db:push`.
 4. Start the dev server: `pnpm dev`.
 5. Optional: populate IMDb ratings with `pnpm ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.

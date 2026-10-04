@@ -109,7 +109,15 @@ jobs:
         # helper provisions its credentials on the first apply; subsequent
         # applies preserve the image-backed service and its existing secrets.
         run: |
-          if railway service list --json | jq -e '.[] | select(.name == "postgres-db")' >/dev/null; then
+          if ! services=$(railway service list --json); then
+            echo "Could not list Railway services; refusing to select database bootstrap mode." >&2
+            exit 1
+          fi
+          if ! jq -e 'type == "array" and all(.[]; .name | type == "string")' <<< "$services" >/dev/null; then
+            echo "Unexpected Railway service list; refusing to select database bootstrap mode." >&2
+            exit 1
+          fi
+          if jq -e 'any(.[]; .name == "postgres-db")' <<< "$services" >/dev/null; then
             echo "RAILWAY_BOOTSTRAP_POSTGRES=false" >> "$GITHUB_ENV"
           else
             echo "RAILWAY_BOOTSTRAP_POSTGRES=true" >> "$GITHUB_ENV"

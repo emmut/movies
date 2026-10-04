@@ -65,6 +65,8 @@ pnpm dev               # dev server (starts the Docker services if needed)
 
 Open [http://localhost:3000](http://localhost:3000). See [CONTRIBUTING.md](./CONTRIBUTING.md) for prerequisites, environment details, and conventions.
 
+The app reads the root `.env` through the tracked `apps/web/.env` symlink.
+
 ## Scripts
 
 Run `pnpm run` for the authoritative list. The Next.js app lives in `apps/web`; root commands operate the whole workspace. The most used:
@@ -83,19 +85,20 @@ Run `pnpm run` for the authoritative list. The Next.js app lives in `apps/web`; 
 
 ```
 movies/
-├── apps/web/src/
-│   ├── app/          # Next.js app router pages and layouts
-│   ├── components/   # Reusable React components
-│   ├── db/           # Database schema
-│   ├── hooks/        # Custom React hooks
-│   ├── lib/          # Data fetchers, server actions, and shared logic
-│   ├── providers/    # React context providers
-│   ├── types/        # TypeScript type definitions
-│   └── icons/        # SVG icons
+├── apps/web/
+│   ├── public/       # Static assets
+│   └── src/
+│       ├── app/      # Next.js app router pages and layouts
+│       ├── components/ # Reusable React components
+│       ├── hooks/    # Custom React hooks
+│       ├── icons/    # SVG icons
+│       ├── lib/      # Data fetchers, server actions, and shared logic
+│       ├── providers/ # React context providers
+│       └── types/    # TypeScript type definitions
 ├── e2e/              # Playwright end-to-end tests
-├── packages/         # shared api, auth, config, db, and ui code
+├── packages/         # Shared api, auth, config, db, and ui code
+│   └── db/src/schema/ # Database schema
 ├── drizzle/          # Database migrations
 ├── scripts/          # Maintenance scripts (IMDb ingest, title sync, search index, seeding)
-├── .railway/         # Railway infrastructure as code
-└── public/           # Static assets
+└── .railway/         # Railway infrastructure as code
 ```

@@ -33,9 +33,11 @@
   "include": [
     "apps/web/src/**/*.ts",
     "apps/web/src/**/*.tsx",
+    "apps/web/next.config.ts",
     "packages/**/*.ts",
     "packages/**/*.tsx",
     "scripts/**/*.ts",
+    "e2e/**/*.ts",
     "drizzle.config.ts",
     "vitest.config.ts",
     "playwright.config.ts",
