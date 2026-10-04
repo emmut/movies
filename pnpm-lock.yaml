@@ -37,6 +37,9 @@ importers:
       '@imgproxy/imgproxy-node':
         specifier: ^1.1.0
         version: 1.1.0
+      '@movies/db':
+        specifier: workspace:*
+        version: link:packages/db
       '@primer/octicons-react':
         specifier: ^19.35.0
         version: 19.35.0(react@19.3.0)
@@ -164,6 +167,194 @@ importers:
       vitest:
         specifier: ^5.0.0
         version: 5.0.0(@types/node@24.13.4)(@vitest/coverage-v8@5.0.0)(vite@8.0.16(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.13))
+
+  apps/web:
+    dependencies:
+      '@base-ui/react':
+        specifier: ^1.8.0
+        version: 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@better-auth/passkey':
+        specifier: ^1.7.4
+        version: 1.7.4(@better-auth/core@1.7.4(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.4.0(zod@4.6.2))(jose@6.2.12)(kysely@0.29.5)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-auth@1.7.4(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.23.1)(kysely@0.29.5)(pg@8.23.0))(next@16.3.5(patch_hash=6d5cb38cd2f5f97326462c6268fc38d7ad51a51283afee8987abe83a09c8926f)(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@24.13.4)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(pg@8.23.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.0))(better-call@1.4.0(zod@4.6.2))(nanostores@1.5.3)
+      '@dnd-kit/core':
+        specifier: ^6.3.1
+        version: 6.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@dnd-kit/sortable':
+        specifier: ^10.0.0
+        version: 10.0.0(@dnd-kit/core@6.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+      '@dnd-kit/utilities':
+        specifier: ^3.2.2
+        version: 3.2.2(react@19.3.0)
+      '@imgproxy/imgproxy-js-core':
+        specifier: ^1.9.0
+        version: 1.9.0
+      '@imgproxy/imgproxy-node':
+        specifier: ^1.1.0
+        version: 1.1.0
+      '@movies/api':
+        specifier: workspace:*
+        version: link:../../packages/api
+      '@movies/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@movies/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@movies/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@movies/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@primer/octicons-react':
+        specifier: ^19.35.0
+        version: 19.35.0(react@19.3.0)
+      '@t3-oss/env-nextjs':
+        specifier: ^0.13.11
+        version: 0.13.11(typescript@7.0.2)(valibot@1.5.0(typescript@7.0.2))(zod@4.6.2)
+      '@tailwindcss/postcss':
+        specifier: ^4.3.3
+        version: 4.3.3
+      '@tanstack/react-query':
+        specifier: ^5.102.8
+        version: 5.102.8(react@19.3.0)
+      babel-plugin-react-compiler:
+        specifier: 1.0.0
+        version: 1.0.0
+      better-auth:
+        specifier: ^1.7.4
+        version: 1.7.4(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.23.1)(kysely@0.29.5)(pg@8.23.0))(next@16.3.5(patch_hash=6d5cb38cd2f5f97326462c6268fc38d7ad51a51283afee8987abe83a09c8926f)(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@24.13.4)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(pg@8.23.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.0)
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      cn:
+        specifier: ^0.2.6
+        version: 0.2.6
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.23.1)(kysely@0.29.5)(pg@8.23.0)
+      lucide-react:
+        specifier: ^1.45.0
+        version: 1.45.0(react@19.3.0)
+      next:
+        specifier: 16.3.5
+        version: 16.3.5(patch_hash=6d5cb38cd2f5f97326462c6268fc38d7ad51a51283afee8987abe83a09c8926f)(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@24.13.4)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      nuqs:
+        specifier: ^2.10.1
+        version: 2.10.1(next@16.3.5(patch_hash=6d5cb38cd2f5f97326462c6268fc38d7ad51a51283afee8987abe83a09c8926f)(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@24.13.4)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
+      pg:
+        specifier: ^8.23.0
+        version: 8.23.0
+      postcss:
+        specifier: 8.5.28
+        version: 8.5.28
+      posthog-js:
+        specifier: ^1.430.2
+        version: 1.430.2(@types/react@19.3.0)(react@19.3.0)
+      posthog-node:
+        specifier: ^5.52.1
+        version: 5.52.1
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      react-dom:
+        specifier: 19.3.0
+        version: 19.3.0(react@19.3.0)
+      sonner:
+        specifier: ^2.0.8
+        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      tailwindcss:
+        specifier: 4.3.3
+        version: 4.3.3
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@4.3.3)
+      zod:
+        specifier: ^4.6.2
+        version: 4.6.2
+    devDependencies:
+      '@types/node':
+        specifier: ^24.13.4
+        version: 24.13.4
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
+  packages/api:
+    dependencies:
+      '@movies/config':
+        specifier: workspace:*
+        version: link:../config
+      zod:
+        specifier: ^4.6.2
+        version: 4.6.2
+
+  packages/auth: {}
+
+  packages/config:
+    dependencies:
+      zod:
+        specifier: ^4.6.2
+        version: 4.6.2
+
+  packages/db:
+    dependencies:
+      '@better-auth/passkey':
+        specifier: ^1.7.4
+        version: 1.7.4(@better-auth/core@1.7.4(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-call@1.4.0(zod@4.6.2))(jose@6.2.12)(kysely@0.29.5)(nanostores@1.5.3))(@better-auth/utils@0.4.2)(@better-fetch/fetch@1.3.1)(better-auth@1.7.4(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.23.1)(kysely@0.29.5)(pg@8.23.0))(next@16.3.5(patch_hash=6d5cb38cd2f5f97326462c6268fc38d7ad51a51283afee8987abe83a09c8926f)(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@24.13.4)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(pg@8.23.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.0))(better-call@1.4.0(zod@4.6.2))(nanostores@1.5.3)
+      '@movies/config':
+        specifier: workspace:*
+        version: link:../config
+      better-auth:
+        specifier: ^1.7.4
+        version: 1.7.4(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.23.1)(kysely@0.29.5)(pg@8.23.0))(next@16.3.5(patch_hash=6d5cb38cd2f5f97326462c6268fc38d7ad51a51283afee8987abe83a09c8926f)(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@24.13.4)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(pg@8.23.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.0)
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@types/better-sqlite3@9.6.0)(@types/pg@8.23.1)(kysely@0.29.5)(pg@8.23.0)
+      pg:
+        specifier: ^8.23.0
+        version: 8.23.0
+      zod:
+        specifier: ^4.6.2
+        version: 4.6.2
+    devDependencies:
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
+
+  packages/ui:
+    dependencies:
+      '@base-ui/react':
+        specifier: ^1.8.0
+        version: 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      cn:
+        specifier: ^0.2.6
+        version: 0.2.6
+      lucide-react:
+        specifier: ^1.45.0
+        version: 1.45.0(react@19.3.0)
+      next:
+        specifier: 16.3.5
+        version: 16.3.5(patch_hash=6d5cb38cd2f5f97326462c6268fc38d7ad51a51283afee8987abe83a09c8926f)(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@24.13.4)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      react-dom:
+        specifier: 19.3.0
+        version: 19.3.0(react@19.3.0)
+    devDependencies:
+      typescript:
+        specifier: 7.0.2
+        version: 7.0.2
 
 packages:
 

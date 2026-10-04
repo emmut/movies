@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { execSync } from "node:child_process";
-import { defineRailway, github, image, postgres, preserve, project, service, volume } from "railway/iac";
+import { defineRailway, github, image, preserve, project, service, volume } from "railway/iac";
 
 const APP_DOMAIN = "movies.emmut.space";
 const CDN_DOMAIN = "cdn.emmut.space";
@@ -31,18 +31,31 @@ export default defineRailway((ctx) => {
     alerts: { usage: { "80": {}, "95": {}, "100": {} } },
   });
 
-  // Managed Postgres used in every environment (production included), so PR
-  // environments fork a fully-configured instance. The deploy options rely
-  // on patches/railway.patch: upstream drops deploy config for database
-  // nodes, which would otherwise unset these on every apply. The old hollow
-  // "postgres" service still exists project-level for older PR environments;
-  // delete it once those PRs close.
-  const db = postgres("postgres-db", {
+  // Railway's current Postgres is an image-backed service. Model its actual
+  // service type so a plan preserves the generated variables and volume mount.
+  const db = service("postgres-db", {
+    source: image("ghcr.io/railwayapp-templates/postgres-ssl:18"),
+    volumeMounts: { "/var/lib/postgresql/data": dbVolume },
     deploy: {
       // Every database may sleep when idle. Web startup, migrations, and cron
       // jobs all wait for the wake-up connection before doing real work.
       sleepApplication: true,
+      requiredMountPath: "/var/lib/postgresql/data",
       limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+    },
+    env: {
+      DATABASE_PUBLIC_URL: preserve(),
+      DATABASE_URL: preserve(),
+      PGDATA: preserve(),
+      PGDATABASE: preserve(),
+      PGHOST: preserve(),
+      PGPASSWORD: preserve(),
+      PGPORT: preserve(),
+      PGUSER: preserve(),
+      POSTGRES_DB: preserve(),
+      POSTGRES_PASSWORD: preserve(),
+      POSTGRES_USER: preserve(),
+      SSL_CERT_DAYS: preserve(),
     },
   });
 
@@ -88,7 +101,8 @@ export default defineRailway((ctx) => {
     // while the deploy still reports success, leaving a partial schema and
     // an empty migration journal behind.
     preDeploy: "pnpm db:migrate:railway",
-    deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
+    build: { buildCommand: "pnpm build" },
+    deploy: { startCommand: "pnpm start", limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
     domains: prod ? [APP_DOMAIN] : [],
     env: {
       BETTER_AUTH_SECRET: preserve(),

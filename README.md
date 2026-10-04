@@ -57,7 +57,7 @@ What this unlocks next (sorting and filtering lists in SQL, rendering grids with
 
 ```bash
 pnpm install
-cp .env.example .env   # fill in secrets — src/env.ts is the source of truth
+cp .env.example .env   # fill in secrets — apps/web/src/env.ts is the source of truth
 pnpm dev:docker:up     # start local Postgres + imgproxy via Docker
 pnpm db:push           # apply the schema
 pnpm dev               # dev server (starts the Docker services if needed)
@@ -67,7 +67,7 @@ Open [http://localhost:3000](http://localhost:3000). See [CONTRIBUTING.md](./CON
 
 ## Scripts
 
-Run `pnpm run` for the authoritative list. The most used:
+Run `pnpm run` for the authoritative list. The Next.js app lives in `apps/web`; root commands operate the whole workspace. The most used:
 
 - `pnpm dev` — dev server (starts Docker services first)
 - `pnpm lint` / `pnpm format` — lint and format
@@ -83,7 +83,7 @@ Run `pnpm run` for the authoritative list. The most used:
 
 ```
 movies/
-├── src/
+├── apps/web/src/
 │   ├── app/          # Next.js app router pages and layouts
 │   ├── components/   # Reusable React components
 │   ├── db/           # Database schema
@@ -93,6 +93,7 @@ movies/
 │   ├── types/        # TypeScript type definitions
 │   └── icons/        # SVG icons
 ├── e2e/              # Playwright end-to-end tests
+├── packages/         # shared api, auth, config, db, and ui code
 ├── drizzle/          # Database migrations
 ├── scripts/          # Maintenance scripts (IMDb ingest, title sync, search index, seeding)
 ├── .railway/         # Railway infrastructure as code

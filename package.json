@@ -1,14 +1,14 @@
 {
-  "name": "movies-app",
+  "name": "movies",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm run dev:docker:up && next dev",
+    "dev": "pnpm dev:docker:up && pnpm --filter @movies/web dev",
     "dev:docker:up": "docker compose -f docker-compose.dev.yml up -d",
     "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
-    "build": "pnpm lint && next build",
-    "start": "next start",
+    "build": "pnpm lint && pnpm --filter @movies/web build",
+    "start": "pnpm --filter @movies/web start",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "test": "vitest run",
@@ -19,8 +19,8 @@
     "e2e:install": "playwright install --with-deps chromium webkit",
     "fallow": "fallow audit",
     "fallow:dead-code": "fallow dead-code",
-    "format": "oxfmt --write src",
-    "format:check": "oxfmt --check src",
+    "format": "oxfmt --write apps packages scripts",
+    "format:check": "oxfmt --check apps packages scripts",
     "db": "drizzle-kit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -30,7 +30,8 @@
     "seed": "tsx --env-file=.env scripts/seed-watchlist-and-lists.ts",
     "ingest:imdb": "tsx --env-file-if-exists=.env scripts/ingest-imdb-ratings.ts",
     "sync:titles": "tsx --env-file-if-exists=.env scripts/sync-titles.ts",
-    "ingest:search": "tsx --env-file-if-exists=.env scripts/ingest-search-index.ts"
+    "ingest:search": "tsx --env-file-if-exists=.env scripts/ingest-search-index.ts",
+    "check-types": "pnpm exec tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -62,7 +63,8 @@
     "sonner": "^2.0.8",
     "tailwindcss": "4.3.3",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.6.2"
+    "zod": "^4.6.2",
+    "@movies/db": "workspace:*"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
