@@ -57,7 +57,7 @@ What this unlocks next (sorting and filtering lists in SQL, rendering grids with
 
 ```bash
 pnpm install
-cp .env.example .env   # fill in secrets — src/env.ts is the source of truth
+cp apps/web/.env.example apps/web/.env  # fill in secrets; apps/web/src/env.ts defines the required values
 pnpm dev:docker:up     # start local Postgres + imgproxy via Docker
 pnpm db:push           # apply the schema
 pnpm dev               # dev server (starts the Docker services if needed)
@@ -65,9 +65,11 @@ pnpm dev               # dev server (starts the Docker services if needed)
 
 Open [http://localhost:3000](http://localhost:3000). See [CONTRIBUTING.md](./CONTRIBUTING.md) for prerequisites, environment details, and conventions.
 
+The app reads `apps/web/.env`. A tracked root `.env` symlink lets root-level scripts read the same file.
+
 ## Scripts
 
-Run `pnpm run` for the authoritative list. The most used:
+Run `pnpm run` for the authoritative list. The Next.js app lives in `apps/web`; root commands operate the whole workspace. The most used:
 
 - `pnpm dev` — dev server (starts Docker services first)
 - `pnpm lint` / `pnpm format` — lint and format
@@ -83,18 +85,21 @@ Run `pnpm run` for the authoritative list. The most used:
 
 ```
 movies/
-├── src/
-│   ├── app/          # Next.js app router pages and layouts
-│   ├── components/   # Reusable React components
-│   ├── db/           # Database schema
-│   ├── hooks/        # Custom React hooks
-│   ├── lib/          # Data fetchers, server actions, and shared logic
-│   ├── providers/    # React context providers
-│   ├── types/        # TypeScript type definitions
-│   └── icons/        # SVG icons
+├── apps/web/
+│   ├── .env.example  # Local environment template
+│   ├── public/       # Static assets
+│   └── src/
+│       ├── app/      # Next.js app router pages and layouts
+│       ├── components/ # Reusable React components
+│       ├── hooks/    # Custom React hooks
+│       ├── icons/    # SVG icons
+│       ├── lib/      # Data fetchers, server actions, and shared logic
+│       ├── providers/ # React context providers
+│       └── types/    # TypeScript type definitions
 ├── e2e/              # Playwright end-to-end tests
+├── packages/         # Shared api, auth, config, db, and ui code
+│   └── db/src/schema/ # Database schema
 ├── drizzle/          # Database migrations
 ├── scripts/          # Maintenance scripts (IMDb ingest, title sync, search index, seeding)
-├── .railway/         # Railway infrastructure as code
-└── public/           # Static assets
+└── .railway/         # Railway infrastructure as code
 ```

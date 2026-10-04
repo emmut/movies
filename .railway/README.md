@@ -25,21 +25,21 @@ railway config pull
 Preview what Railway would change:
 
 ```bash
-railway config plan --runner node_modules/.bin/railway-iac-ts
+railway config plan
 ```
 
 Apply the planned changes:
 
 ```bash
-railway config apply --runner node_modules/.bin/railway-iac-ts
+railway config apply
 ```
 
 ## Notes
 
+- PR CI sets `RAILWAY_BOOTSTRAP_POSTGRES=true` only when the preview lacks `postgres-db`, so the first IaC apply creates the database with credentials. Later applies use the existing image-backed service declaration.
+
 - `railway config plan` is safe and does not change Railway.
 - `railway config apply` previews changes and asks before applying unless you pass `--yes`.
-- Use the repository's patched `railway-iac-ts` runner as shown above; the
-  patch preserves deploy settings on managed databases.
 - Destructive changes in non-interactive or agent sessions require `railway config apply --confirm-destructive` after reviewing the plan.
 - Services already managed by `railway.json` / `railway.toml` must be migrated before `.railway/railway.ts` can manage them.
 - Use `replicas` for scaling; advanced placement can still specify region names.

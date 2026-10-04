@@ -1,0 +1,422 @@
+'use client';
+
+import { cn } from 'cn';
+import { Search as SearchIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { parseAsString, useQueryState } from 'nuqs';
+import { KeyboardEvent, RefObject, useCallback, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+
+import Badge from '@/components/badge';
+import ClientImage from '@/components/client-image';
+import Spinner from '@/components/spinner';
+import { Dialog, DialogContent, DialogTitle } from '@movies/ui/components/dialog';
+import { Input } from '@movies/ui/components/input';
+import { Kbd } from '@movies/ui/components/kbd';
+import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { useSearchSuggestions } from '@/hooks/use-search-query';
+import { useSearchShortcut } from '@/hooks/use-search-shortcut';
+import { useShortcutLabel } from '@/hooks/use-shortcut-label';
+import { saveBackTarget } from '@/lib/back-target';
+
+import {
+  buildSeeAllHref,
+  getSubmitHref,
+  moveSelection,
+  SearchCommandItem,
+  syncPaletteQuery,
+  toSearchCommandItems,
+} from './search-command-items';
+
+const RESULT_LIMIT = 8;
+
+function SearchCommandThumb({ item }: { item: SearchCommandItem }) {
+  if (!item.imageUrls && !item.fallbackSrc) {
+    return (
+      <div className="flex h-full w-full items-center justify-center text-lg">
+        {item.fallbackEmoji}
+      </div>
+    );
+  }
+
+  return (
+    <ClientImage
+      imageUrls={item.imageUrls}
+      fallbackSrc={item.fallbackSrc}
+      alt=""
+      className="h-full w-full object-cover"
+    />
+  );
+}
+
+type SearchCommandRowProps = {
+  item: SearchCommandItem;
+  isActive: boolean;
+  onSelect: (href: string) => void;
+  onHover: () => void;
+};
+
+// The list container scrolls (max-h + overflow); attached as the row's ref
+// only while it is the active row, so React calls it exactly when the
+// selection lands on the row. block: 'nearest' is a no-op for rows already in
+// view, so mouse-hover selection never causes scroll jumps.
+function scrollActiveRowIntoView(element: HTMLAnchorElement | null) {
+  element?.scrollIntoView({ block: 'nearest' });
+}
+
+function SearchCommandRowText({ item }: { item: SearchCommandItem }) {
+  return (
+    <div className="min-w-0 flex-1">
+      <div className="truncate text-sm font-medium">{item.title}</div>
+      {item.subtitle && <div className="text-xs text-muted-foreground">{item.subtitle}</div>}
+    </div>
+  );
+}
+
+function SearchCommandRow({ item, isActive, onSelect, onHover }: SearchCommandRowProps) {
+  return (
+    <li>
+      <Link
+        ref={isActive ? scrollActiveRowIntoView : undefined}
+        href={item.href}
+        aria-current={isActive || undefined}
+        className={cn(
+          'flex items-center gap-3 rounded-lg px-2 py-1.5',
+          isActive && 'bg-accent text-accent-foreground',
+        )}
+        onClick={(event) => {
+          event.preventDefault();
+          onSelect(item.href);
+        }}
+        onMouseMove={onHover}
+      >
+        <div className="h-14 w-9 shrink-0 overflow-hidden rounded bg-zinc-800">
+          <SearchCommandThumb item={item} />
+        </div>
+        <SearchCommandRowText item={item} />
+        <Badge variant={item.badgeVariant}>{item.badge}</Badge>
+      </Link>
+    </li>
+  );
+}
+
+type SearchCommandBodyProps = {
+  query: string;
+  isLoading: boolean;
+  items: SearchCommandItem[];
+  activeIndex: number;
+  onSelect: (href: string) => void;
+  onHover: (index: number) => void;
+};
+
+function SearchCommandBody({
+  query,
+  isLoading,
+  items,
+  activeIndex,
+  onSelect,
+  onHover,
+}: SearchCommandBodyProps) {
+  const seeAllShortcut = useShortcutLabel('↵');
+
+  if (!query) {
+    return (
+      <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+        Type to search movies, TV shows, and people.
+        <br />
+        Narrow with a year or type — &ldquo;heat 1995&rdquo;, &ldquo;office tv&rdquo;
+        <br />
+        <Kbd>↵</Kbd> opens the selected result · <Kbd>{seeAllShortcut}</Kbd> searches everything
+      </p>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-6">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <p className="px-2 py-6 text-center text-sm text-muted-foreground">
+        No results for &ldquo;{query}&rdquo;
+      </p>
+    );
+  }
+
+  return (
+    <ul aria-label="Search results">
+      {items.map((item, index) => (
+        <SearchCommandRow
+          key={item.key}
+          item={item}
+          isActive={index === activeIndex}
+          onSelect={onSelect}
+          onHover={() => onHover(index)}
+        />
+      ))}
+    </ul>
+  );
+}
+
+type SearchCommandInputProps = {
+  inputRef: RefObject<HTMLInputElement | null>;
+  query: string;
+  isFetching: boolean;
+  onChange: (value: string) => void;
+  onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
+};
+
+function SearchCommandInput({
+  inputRef,
+  query,
+  isFetching,
+  onChange,
+  onKeyDown,
+}: SearchCommandInputProps) {
+  return (
+    <div className="relative border-b">
+      <SearchIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        ref={inputRef}
+        type="search"
+        aria-label="Search for movies, TV shows, or people"
+        placeholder="Search movies, TV shows, people..."
+        className="h-12 rounded-none border-0 pl-9 shadow-none focus-visible:ring-0 [&::-webkit-search-cancel-button]:appearance-none"
+        spellCheck={false}
+        autoComplete="off"
+        autoCorrect="off"
+        value={query}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={onKeyDown}
+      />
+      {isFetching && <Spinner className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2" />}
+    </div>
+  );
+}
+
+type SearchCommandFooterProps = {
+  itemCount: number;
+  href: string;
+  query: string;
+  onNavigate: (href: string) => void;
+};
+
+function SearchCommandFooter({ itemCount, href, query, onNavigate }: SearchCommandFooterProps) {
+  const seeAllShortcut = useShortcutLabel('↵');
+
+  if (!query || itemCount === 0) {
+    return null;
+  }
+
+  return (
+    <div className="border-t p-2">
+      <Link
+        href={href}
+        className="block rounded-lg px-2 py-1.5 text-center text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        onClick={(event) => {
+          event.preventDefault();
+          onNavigate(href);
+        }}
+      >
+        See all results for &ldquo;{query}&rdquo; <Kbd className="ml-1">{seeAllShortcut}</Kbd>
+      </Link>
+    </div>
+  );
+}
+
+type SearchCommandPanelProps = {
+  inputRef: RefObject<HTMLInputElement | null>;
+  onNavigate: (href: string) => void;
+  urlQuery: string;
+};
+
+function SearchCommandPanel({ inputRef, onNavigate, urlQuery }: SearchCommandPanelProps) {
+  // `query` is a local draft the input types into — it must not write back
+  // to the URL on every keystroke, so it only follows `urlQuery` when that
+  // value itself changes elsewhere (e.g. browser back/forward while the
+  // palette is open). Compared during render rather than in an effect, so
+  // there's no extra render showing the stale query first. Same component
+  // instance throughout, so the input keeps focus (unlike a key remount,
+  // which would replace the focused element mid-typing).
+  const [query, setQuery] = useState(urlQuery);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [syncedUrlQuery, setSyncedUrlQuery] = useState(urlQuery);
+  const sync = syncPaletteQuery(urlQuery, syncedUrlQuery);
+  if (sync) {
+    setQuery(sync.query);
+    setActiveIndex(sync.activeIndex);
+    setSyncedUrlQuery(sync.syncedUrlQuery);
+  }
+
+  const debouncedQuery = useDebouncedValue(query.trim(), 250);
+  const { data, isLoading, isFetching, isPlaceholderData } = useSearchSuggestions(debouncedQuery);
+
+  const items = toSearchCommandItems(data, RESULT_LIMIT);
+  const clampedIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));
+  const trimmedQuery = query.trim();
+  const seeAllHref = buildSeeAllHref(trimmedQuery);
+  // While the debounce or fetch is behind the input, `items` still shows the
+  // previous query's rows; Enter must not navigate to one of those.
+  const resultsAreFresh = trimmedQuery === debouncedQuery && !isPlaceholderData;
+
+  // The palette isn't a page, so a result's destination can't derive the
+  // search from where the navigation happened. Record the full results URL
+  // for the typed query as the destination's back target instead.
+  function navigateFromPalette(href: string) {
+    if (href !== seeAllHref) {
+      saveBackTarget(href, seeAllHref);
+    }
+    onNavigate(href);
+  }
+
+  function submit(forceSeeAll: boolean) {
+    const canOpenRow = resultsAreFresh && !forceSeeAll;
+    const href = getSubmitHref(items, clampedIndex, canOpenRow, seeAllHref, !!trimmedQuery);
+    if (href) {
+      navigateFromPalette(href);
+    }
+  }
+
+  function onInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      // ⌘/Ctrl+Enter always goes to the full results page, even with a row selected.
+      submit(event.metaKey || event.ctrlKey);
+      return;
+    }
+
+    const nextIndex = moveSelection(event.key, clampedIndex, items.length);
+    if (nextIndex !== clampedIndex) {
+      event.preventDefault();
+      setActiveIndex(nextIndex);
+    }
+  }
+
+  function onQueryChange(value: string) {
+    setQuery(value);
+    setActiveIndex(0);
+  }
+
+  return (
+    <>
+      <SearchCommandInput
+        inputRef={inputRef}
+        query={query}
+        isFetching={isFetching}
+        onChange={onQueryChange}
+        onKeyDown={onInputKeyDown}
+      />
+      {/* Stale rows (previous query, kept by keepPreviousData) are dimmed AND
+          inert — a click during the debounce/fetch window must not route to
+          the previous query's result. */}
+      <div
+        className={cn(
+          'max-h-96 overflow-y-auto p-2',
+          !resultsAreFresh && 'pointer-events-none opacity-60',
+        )}
+      >
+        <SearchCommandBody
+          query={trimmedQuery}
+          isLoading={isLoading}
+          items={items}
+          activeIndex={clampedIndex}
+          onSelect={navigateFromPalette}
+          onHover={setActiveIndex}
+        />
+      </div>
+      <SearchCommandFooter
+        itemCount={items.length}
+        href={seeAllHref}
+        query={trimmedQuery}
+        onNavigate={onNavigate}
+      />
+    </>
+  );
+}
+
+/**
+ * Header search: a trigger styled like an input that opens a command palette
+ * with search-as-you-type results across movies, TV shows, and people.
+ *
+ * Opens via click, ⌘K/Ctrl+K, or `/`. Arrow keys move the selection, Enter
+ * opens the selected result, and "See all results" deep-links to /search.
+ *
+ * While viewing search results, the current query stays visible both on the
+ * trigger itself and, pre-filled, in the palette it opens.
+ */
+export function SearchCommand() {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const openShortcut = useShortcutLabel('K');
+  const [currentQuery] = useQueryState('q', parseAsString.withDefault(''));
+
+  // Mount the dialog synchronously and focus the input within the opening
+  // gesture. iOS Safari only raises the keyboard for a focus() that happens
+  // inside the user interaction; the dialog's own (deferred) autofocus is
+  // ignored there, which left the field needing a second tap.
+  const openSearch = useCallback(() => {
+    flushSync(() => setOpen(true));
+    inputRef.current?.focus();
+  }, []);
+
+  useSearchShortcut(openSearch);
+
+  function navigate(href: string) {
+    setOpen(false);
+    router.push(href);
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={openSearch}
+        className="flex h-9 max-w-md flex-1 items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm text-muted-foreground transition-colors hover:border-ring focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      >
+        <SearchIcon className="h-4 w-4" />
+        <span className={cn('flex-1 truncate text-left', currentQuery && 'text-foreground')}>
+          {currentQuery || 'Search...'}
+        </span>
+        <Kbd>{openShortcut}</Kbd>
+      </button>
+
+      <Dialog open={open} onOpenChange={(nextOpen) => setOpen(nextOpen)}>
+        <DialogContent
+          showCloseButton={false}
+          className="top-24 translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg"
+        >
+          <DialogTitle className="sr-only">Search</DialogTitle>
+          <SearchCommandPanel
+            inputRef={inputRef}
+            onNavigate={navigate}
+            urlQuery={currentQuery}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+/**
+ * Static stand-in for {@link SearchCommand} rendered while its `useQueryState()`
+ * read is suspended (`cacheComponents` requires a Suspense boundary around any
+ * dynamic URL read). Keeps the header's layout stable during that gap.
+ */
+export function SearchCommandFallback() {
+  return (
+    <button
+      type="button"
+      disabled
+      className="flex h-9 max-w-md flex-1 items-center gap-2 rounded-md border border-input bg-transparent px-3 text-sm text-muted-foreground"
+    >
+      <SearchIcon className="h-4 w-4" />
+      <span className="flex-1 text-left">Search...</span>
+    </button>
+  );
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@movies/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./schema/*": "./src/schema/*.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.23.0",
+    "zod": "^4.6.2",
+    "@movies/config": "workspace:*",
+    "better-auth": "^1.7.4",
+    "@better-auth/passkey": "^1.7.4"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2"
+  }
+}

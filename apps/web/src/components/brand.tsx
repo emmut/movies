@@ -1,0 +1,22 @@
+import { cn } from 'cn';
+import { Popcorn } from 'lucide-react';
+import Link from 'next/link';
+
+import { useSidebar } from '@movies/ui/components/sidebar';
+type BrandProps = {
+  className?: string;
+};
+export default function Brand({ className }: BrandProps) {
+  const { setOpenMobile } = useSidebar();
+
+  return (
+    <Link
+      href="/"
+      className={cn('flex items-center gap-2 px-2 py-1', className)}
+      onClick={() => setOpenMobile(false)}
+    >
+      <Popcorn className="h-6 w-6" />
+      <span className="pt-0.5 font-light">Movies</span>
+    </Link>
+  );
+}

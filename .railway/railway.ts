@@ -31,20 +31,43 @@ export default defineRailway((ctx) => {
     alerts: { usage: { "80": {}, "95": {}, "100": {} } },
   });
 
-  // Managed Postgres used in every environment (production included), so PR
-  // environments fork a fully-configured instance. The deploy options rely
-  // on patches/railway.patch: upstream drops deploy config for database
-  // nodes, which would otherwise unset these on every apply. The old hollow
-  // "postgres" service still exists project-level for older PR environments;
-  // delete it once those PRs close.
-  const db = postgres("postgres-db", {
+  // A fresh PR fork can omit the database service. Bootstrap it with the
+  // Postgres helper so Railway generates credentials and a usable DATABASE_URL.
+  // Later applies model the existing image-backed service to preserve those
+  // credentials and its volume attachment.
+  const dbService = service("postgres-db", {
+    source: image("ghcr.io/railwayapp-templates/postgres-ssl:18"),
+    volumeMounts: { "/var/lib/postgresql/data": dbVolume },
     deploy: {
       // Every database may sleep when idle. Web startup, migrations, and cron
       // jobs all wait for the wake-up connection before doing real work.
       sleepApplication: true,
+      requiredMountPath: "/var/lib/postgresql/data",
       limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
     },
+    env: {
+      DATABASE_PUBLIC_URL: preserve(),
+      DATABASE_URL: preserve(),
+      PGDATA: preserve(),
+      PGDATABASE: preserve(),
+      PGHOST: preserve(),
+      PGPASSWORD: preserve(),
+      PGPORT: preserve(),
+      PGUSER: preserve(),
+      POSTGRES_DB: preserve(),
+      POSTGRES_PASSWORD: preserve(),
+      POSTGRES_USER: preserve(),
+      SSL_CERT_DAYS: preserve(),
+    },
   });
+  const db = process.env.RAILWAY_BOOTSTRAP_POSTGRES === "true"
+    ? postgres("postgres-db", {
+        deploy: {
+          sleepApplication: true,
+          limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+        },
+      })
+    : dbService;
 
   const imgproxyHRto = service("imgproxy-HRto", {
     // Railway auto-updates the image to new minor versions nightly (02–06).
@@ -88,7 +111,8 @@ export default defineRailway((ctx) => {
     // while the deploy still reports success, leaving a partial schema and
     // an empty migration journal behind.
     preDeploy: "pnpm db:migrate:railway",
-    deploy: { limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
+    build: { buildCommand: "pnpm build" },
+    deploy: { startCommand: "pnpm start", limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
     domains: prod ? [APP_DOMAIN] : [],
     env: {
       BETTER_AUTH_SECRET: preserve(),

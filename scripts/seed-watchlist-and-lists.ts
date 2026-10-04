@@ -13,8 +13,8 @@
 import { randomUUID } from 'crypto';
 import { and, eq } from 'drizzle-orm';
 
-import { lists, listItems } from '@/db/schema/lists';
-import { user } from '@/db/schema/auth';
+import { lists, listItems } from '@movies/db/schema/lists';
+import { user } from '@movies/db/schema/auth';
 import { db } from '@/lib/db';
 import { env } from '@/env';
 import { TMDB_API_URL } from '@/lib/constants';

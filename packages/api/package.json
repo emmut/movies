@@ -1,0 +1,13 @@
+{
+  "name": "@movies/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./validations": "./src/validations.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.2",
+    "@movies/config": "workspace:*"
+  }
+}
