@@ -8,7 +8,7 @@
     "dev:docker:up": "docker compose -f docker-compose.dev.yml up -d",
     "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
     "build": "nub run lint && nub exec turbo run build --filter=@movies/web --cache-dir=.turbo/cache",
-    "start": "nub run --filter @movies/web start",
+    "start": "nub run --node --filter @movies/web start",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "test": "vitest run",

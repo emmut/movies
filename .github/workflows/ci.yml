@@ -82,6 +82,8 @@ jobs:
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/movies
       BETTER_AUTH_SECRET: test-secret-test-secret-test-secret-0001
+      # Migration modules validate the env shape; only the browser suite needs a real TMDB token.
+      MOVIE_DB_ACCESS_TOKEN: test
       DISCORD_CLIENT_ID: test
       DISCORD_CLIENT_SECRET: test
       GITHUB_CLIENT_ID: test
