@@ -123,6 +123,10 @@ jobs:
         # worth protecting. Production keeps the guardrail below.
         run: railway config apply --yes --confirm-destructive
 
+      - name: Redeploy web after Postgres bootstrap
+        if: env.RAILWAY_BOOTSTRAP_POSTGRES == 'true'
+        run: railway redeploy --service movies --from-source --yes
+
   apply-prod:
     name: Apply infra to production
     if: github.event_name == 'push'
