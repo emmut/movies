@@ -4,11 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm dev:docker:up && pnpm --filter @movies/web dev",
+    "dev": "nub run dev:docker:up && nub exec turbo run dev --filter=@movies/web --cache-dir=.turbo/cache",
     "dev:docker:up": "docker compose -f docker-compose.dev.yml up -d",
     "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
-    "build": "pnpm lint && pnpm --filter @movies/web build",
-    "start": "pnpm --filter @movies/web start",
+    "build": "nub run lint && nub exec turbo run build --filter=@movies/web --cache-dir=.turbo/cache",
+    "start": "nub run --node --filter @movies/web start",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "test": "vitest run",
@@ -21,17 +21,18 @@
     "fallow:dead-code": "fallow dead-code",
     "format": "oxfmt --write apps packages scripts",
     "format:check": "oxfmt --check apps packages scripts",
-    "db": "drizzle-kit",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:migrate:railway": "tsx --env-file-if-exists=.env scripts/migrate-with-db-wait.ts",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "seed": "tsx --env-file=.env scripts/seed-watchlist-and-lists.ts",
-    "ingest:imdb": "tsx --env-file-if-exists=.env scripts/ingest-imdb-ratings.ts",
-    "sync:titles": "tsx --env-file-if-exists=.env scripts/sync-titles.ts",
-    "ingest:search": "tsx --env-file-if-exists=.env scripts/ingest-search-index.ts",
-    "check-types": "pnpm exec tsc --noEmit"
+    "db": "nub --env-file-if-exists=apps/web/.env exec drizzle-kit",
+    "db:generate": "nub --env-file-if-exists=apps/web/.env exec drizzle-kit generate",
+    "db:migrate": "nub --env-file-if-exists=apps/web/.env exec drizzle-kit migrate",
+    "db:migrate:railway": "nub --env-file-if-exists=apps/web/.env scripts/migrate-with-db-wait.ts",
+    "db:push": "nub --env-file-if-exists=apps/web/.env exec drizzle-kit push",
+    "db:studio": "nub --env-file-if-exists=apps/web/.env exec drizzle-kit studio",
+    "seed": "nub --env-file=apps/web/.env scripts/seed-watchlist-and-lists.ts",
+    "ingest:imdb": "nub --env-file-if-exists=apps/web/.env scripts/ingest-imdb-ratings.ts",
+    "sync:titles": "nub --env-file-if-exists=apps/web/.env scripts/sync-titles.ts",
+    "ingest:search": "nub --env-file-if-exists=apps/web/.env scripts/ingest-search-index.ts",
+    "list-providers": "nub --env-file-if-exists=apps/web/.env scripts/list-watch-providers.ts",
+    "check-types": "tsc --noEmit && nub exec turbo run check-types --filter=@movies/web --cache-dir=.turbo/cache"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -41,6 +42,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@imgproxy/imgproxy-js-core": "^1.9.0",
     "@imgproxy/imgproxy-node": "^1.1.0",
+    "@movies/db": "workspace:*",
     "@primer/octicons-react": "^19.35.0",
     "@t3-oss/env-nextjs": "^0.13.11",
     "@tailwindcss/postcss": "^4.3.3",
@@ -63,10 +65,10 @@
     "sonner": "^2.0.8",
     "tailwindcss": "4.3.3",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.6.2",
-    "@movies/db": "workspace:*"
+    "zod": "^4.6.2"
   },
   "devDependencies": {
+    "@nubjs/nub": "0.2.10",
     "@playwright/test": "^1.63.0",
     "@tanstack/react-query-devtools": "^5.102.8",
     "@types/better-sqlite3": "^9.6.0",
@@ -83,7 +85,7 @@
     "oxlint-tsgolint": "^7.0.2001",
     "railway": "3.10.0",
     "shadcn": "^4.21.0",
-    "tsx": "^4.23.13",
+    "turbo": "2.11.7",
     "typescript": "7.0.2",
     "vitest": "^5.0.0"
   },
@@ -93,6 +95,7 @@
   "packageManager": "pnpm@11.1.2+sha512.415a1cc25974731e75455c1468371be74c5aa5fb7621b50d4056d222451609f11412f23fd602e6169f1e060466641f798597e1be961a10688836a67b16569499",
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@nubjs/nub",
       "better-sqlite3",
       "core-js",
       "esbuild",

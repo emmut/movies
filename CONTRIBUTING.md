@@ -4,35 +4,38 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 
 ## Prerequisites
 
-- **pnpm** (enforced via Volta / the `packageManager` field).
+- **mise** for the pinned Node and Nub versions; pnpm remains available through the `packageManager` field for Railway and direct package-manager commands.
 - A **PostgreSQL** database for local development.
 - A **TMDB API** access token and the other secrets defined in `apps/web/src/env.ts`.
 
 ## Getting started
 
-1. Install dependencies: `pnpm install`.
-2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. Next.js reads the app-local file; the tracked root `.env` symlink lets root-level scripts read it too. `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
-3. Apply the schema to your database: `pnpm db:push`.
-4. Start the dev server: `pnpm dev`.
-5. Optional: populate IMDb ratings with `pnpm ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.
+1. Run `mise install` and `pnpm install` to install the pinned tools and dependencies. Nub runs scripts; pnpm remains the installer because the current Next and Railway patches use pnpm's patch format.
+2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. The web app and root-level database/cron commands read this app-local file. `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
+3. Apply the schema to your database: `nub run db:push`.
+4. Start the dev server: `nub run dev`.
+5. Optional: populate IMDb ratings with `nub run ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.
 
-`pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `apps/web/.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
+`nub run dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `apps/web/.env.example` points at that local database; run `nub run db:push` once it's up to apply the schema.
+
+The TMDB request collection is `apps/web/movie-db.http`; it reads `apps/web/.env` from the same directory.
 
 ## Common commands
 
-The most-used scripts — run `pnpm run` for the full list, which is authoritative.
+The most-used scripts — run `nub run` for the full list, which is authoritative.
 
 | Command | Purpose |
 | --- | --- |
-| `pnpm dev` | Dev server. |
-| `pnpm lint` / `pnpm format` | Lint / format. |
-| `pnpm test` | Unit tests. |
-| `pnpm fallow` | Audit changed files (dead code, complexity, duplication). |
-| `pnpm db:push` / `pnpm db:studio` | Apply schema / open Drizzle Studio. |
-| `pnpm sync:titles` | Refresh the local title cache (see `scripts/README.md`). |
-| `pnpm ingest:search` | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
+| `nub run dev` | Dev server through Turbo. |
+| `nub run build` | Production build through Turbo. |
+| `nub run lint` / `nub run format` | Lint / format. |
+| `nub run --node test` | Unit tests; Vitest fake timers require plain Node. |
+| `nub run fallow` | Audit changed files (dead code, complexity, duplication). |
+| `nub run db:push` / `nub run db:studio` | Apply schema / open Drizzle Studio. |
+| `nub run sync:titles` | Refresh the local title cache (see `scripts/README.md`). |
+| `nub run ingest:search` | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
 
-Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` all pass.
+Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` all pass. The corresponding `nub run` commands use the same scripts.
 
 ## Conventions
 
@@ -63,4 +66,4 @@ Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test
 - **Lint, typecheck & test**.
 - **Fallow audit** — fails only on findings newly introduced relative to the merge-base.
 
-The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test apps/web/src/lib/search-index.integration.test.ts`; fixtures use a temporary table.
+The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" nub run --node test apps/web/src/lib/search-index.integration.test.ts`; fixtures use a temporary table.

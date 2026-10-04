@@ -12,7 +12,7 @@ import type { RegionWatchProviders } from '@/types/watch-provider';
 import { TmdbRequestError } from './tmdb-fetch';
 
 // No 'server-only' here: the nightly sync (scripts/sync-titles.ts) runs under
-// tsx outside the Next.js server runtime and shares this module with the app.
+// Nub outside the Next.js server runtime and shares this module with the app.
 
 export type TitleMediaType = 'movie' | 'tv';
 

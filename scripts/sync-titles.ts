@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env nub
 
 /**
  * Refreshes the local title cache — `titles`, `title_availability` — for every

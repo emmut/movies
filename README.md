@@ -34,7 +34,7 @@ Lists are local: they belong to the app's users (anonymous ones included), not t
 
 - `titles` holds the fields list grids need for every title in any list; `title_availability` holds one row per title, region, provider, and offer type.
 - The provider filter is an `EXISTS` predicate on the list query, so counting and paging happen in SQL.
-- The cache is filled on write (adding to a list syncs the title after the response), caught up lazily for titles that predate it, and refreshed nightly by `pnpm sync:titles`, which also prunes titles no list references.
+- The cache is filled on write (adding to a list syncs the title after the response), caught up lazily for titles that predate it, and refreshed nightly by `nub run sync:titles`, which also prunes titles no list references.
 - TMDB remains the source of truth. Browsing pages still read it through Next's `'use cache'`; only list-shaped features, where the app already owns the set of ids, read the local tables.
 
 What this unlocks next (sorting and filtering lists in SQL, rendering grids without per-row TMDB calls) is written up in [docs/title-cache-plan.md](./docs/title-cache-plan.md).
@@ -56,30 +56,34 @@ What this unlocks next (sorting and filtering lists in SQL, rendering grids with
 ## Getting started
 
 ```bash
+mise install
 pnpm install
 cp apps/web/.env.example apps/web/.env  # fill in secrets; apps/web/src/env.ts defines the required values
-pnpm dev:docker:up     # start local Postgres + imgproxy via Docker
-pnpm db:push           # apply the schema
-pnpm dev               # dev server (starts the Docker services if needed)
+nub run dev:docker:up  # start local Postgres + imgproxy via Docker
+nub run db:push        # apply the schema
+nub run dev            # dev server (starts the Docker services if needed)
 ```
 
 Open [http://localhost:3000](http://localhost:3000). See [CONTRIBUTING.md](./CONTRIBUTING.md) for prerequisites, environment details, and conventions.
 
-The app reads `apps/web/.env`. A tracked root `.env` symlink lets root-level scripts read the same file.
+The app and root-level database/cron commands read `apps/web/.env`. The workspace uses Turbo for web builds and development. Nub is pinned with mise for local scripts and as a build dependency for Railway; pnpm remains the installer for existing dependency patches.
+
+Turbo's build task stays uncached because static generation fetches live TMDB data. The task graph, environment inputs, and output paths follow the reference monorepo.
 
 ## Scripts
 
-Run `pnpm run` for the authoritative list. The Next.js app lives in `apps/web`; root commands operate the whole workspace. The most used:
+Run `nub run` for the authoritative list. The Next.js app lives in `apps/web`; root commands operate the whole workspace. The most used:
 
-- `pnpm dev` — dev server (starts Docker services first)
-- `pnpm lint` / `pnpm format` — lint and format
-- `pnpm test` — unit tests (Vitest)
-- `pnpm e2e` — end-to-end tests (Playwright)
-- `pnpm fallow` — audit changed files (dead code, complexity, duplication)
-- `pnpm db:generate` / `pnpm db:migrate` / `pnpm db:push` / `pnpm db:studio` — Drizzle
-- `pnpm ingest:imdb` — populate IMDb ratings locally (optional, ~1.5M rows)
-- `pnpm sync:titles` — refresh the local title cache for titles in lists (runs nightly in production)
-- `pnpm ingest:search` — load TMDB's id exports into the fuzzy search index (runs daily in production)
+- `nub run dev` — dev server through Turbo (starts Docker services first)
+- `nub run build` — production build through Turbo
+- `nub run lint` / `nub run format` — lint and format
+- `nub run --node test` — unit tests (Vitest; Vitest's fake timers require plain Node)
+- `nub run --node e2e` — end-to-end tests (Playwright)
+- `nub run fallow` — audit changed files (dead code, complexity, duplication)
+- `nub run db:generate` / `nub run db:migrate` / `nub run db:push` / `nub run db:studio` — Drizzle
+- `nub run ingest:imdb` — populate IMDb ratings locally (optional, ~1.5M rows)
+- `nub run sync:titles` — refresh the local title cache for titles in lists (runs nightly in production)
+- `nub run ingest:search` — load TMDB's id exports into the fuzzy search index (runs daily in production)
 
 ## Project structure
 
@@ -87,6 +91,7 @@ Run `pnpm run` for the authoritative list. The Next.js app lives in `apps/web`; 
 movies/
 ├── apps/web/
 │   ├── .env.example  # Local environment template
+│   ├── movie-db.http # TMDB request collection
 │   ├── public/       # Static assets
 │   └── src/
 │       ├── app/      # Next.js app router pages and layouts

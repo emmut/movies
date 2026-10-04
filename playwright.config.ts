@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 // Where the suite points. Set E2E_BASE_URL to test against an already-running
 // server (local dev, a preview deployment) and skip the managed webServer.
-const baseURL = process.env.E2E_BASE_URL ?? 'http://localhost:3000';
+const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${process.env.PORT ?? '3000'}`;
 const useManagedServer = !process.env.E2E_BASE_URL;
 
 export default defineConfig({
@@ -42,7 +42,7 @@ export default defineConfig({
   // Build + start the real app unless we were pointed at an external URL.
   webServer: useManagedServer
     ? {
-        command: process.env.E2E_WEBSERVER_CMD ?? 'pnpm build && pnpm start',
+        command: process.env.E2E_WEBSERVER_CMD ?? 'nub run build && nub run --node --filter @movies/web start',
         url: baseURL,
         // Every test signs in anonymously from one IP; better-auth's default
         // rate limit (3 sign-ins per 10s per IP) would 429 the suite.

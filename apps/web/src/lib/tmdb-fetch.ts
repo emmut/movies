@@ -1,5 +1,5 @@
 // No 'server-only' here: the nightly title sync (scripts/sync-titles.ts) runs
-// under tsx outside the Next.js server runtime and needs the same client.
+// under Nub outside the Next.js server runtime and needs the same client.
 // The app-facing wrapper in `tmdb.ts` binds the token from `@/env`.
 
 import { TMDB_API_URL } from './constants';

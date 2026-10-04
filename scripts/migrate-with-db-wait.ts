@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env nub
 
 /**
  * Waits for the database to accept connections, then applies the committed

@@ -1,10 +1,10 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env nub
 
 /**
  * Script to list all available watch providers from TMDB API
  *
- * Usage: pnpm run list-providers [region]
- * Example: pnpm run list-providers SE
+ * Usage: nub run list-providers [region]
+ * Example: nub run list-providers SE
  */
 
 const TMDB_API_URL = 'https://api.themoviedb.org/3';
@@ -33,6 +33,25 @@ async function fetchFromTMDB(endpoint: string): Promise<WatchProvidersResponse> 
   }
 
   return response.json();
+}
+
+function printProviders(label: string, providers: WatchProvider[]) {
+  console.log(label);
+  console.log('─'.repeat(90));
+  console.log('│      ID      │   Priority   │           Provider Name            │');
+  console.log('├──────────────┼──────────────┼────────────────────────────────────┤');
+  providers
+    .sort((a, b) => a.display_priority - b.display_priority)
+    .forEach((provider) => {
+      const id = provider.provider_id.toString().padStart(12);
+      const priority = provider.display_priority.toString().padStart(12);
+      const name =
+        provider.provider_name.length > 34
+          ? provider.provider_name.substring(0, 31) + '...'
+          : provider.provider_name.padEnd(34);
+      console.log(`│${id} │${priority} │ ${name} │`);
+    });
+  console.log('└──────────────┴──────────────┴────────────────────────────────────┘');
 }
 
 async function main() {
@@ -75,44 +94,9 @@ async function main() {
     const movieProviders = movieData.results || [];
     const tvProviders = tvData.results || [];
 
-    // Display movie providers
-    console.log('🎬 MOVIE PROVIDERS');
-    console.log('─'.repeat(90));
-    console.log('│      ID      │   Priority   │           Provider Name            │');
-    console.log('├──────────────┼──────────────┼────────────────────────────────────┤');
-    movieProviders
-      .sort((a, b) => a.display_priority - b.display_priority)
-      .forEach((provider) => {
-        const id = provider.provider_id.toString().padStart(12);
-        const priority = provider.display_priority.toString().padStart(12);
-        const name =
-          provider.provider_name.length > 34
-            ? provider.provider_name.substring(0, 31) + '...'
-            : provider.provider_name.padEnd(34);
-        console.log(`│${id} │${priority} │ ${name} │`);
-      });
-    console.log('└──────────────┴──────────────┴────────────────────────────────────┘');
-
+    printProviders('🎬 MOVIE PROVIDERS', movieProviders);
     console.log('');
-
-    // Display TV providers
-    console.log('📺 TV PROVIDERS');
-    console.log('─'.repeat(90));
-    console.log('│      ID      │   Priority   │           Provider Name            │');
-    console.log('├──────────────┼──────────────┼────────────────────────────────────┤');
-    tvProviders
-      .sort((a, b) => a.display_priority - b.display_priority)
-      .forEach((provider) => {
-        const id = provider.provider_id.toString().padStart(12);
-        const priority = provider.display_priority.toString().padStart(12);
-        const name =
-          provider.provider_name.length > 34
-            ? provider.provider_name.substring(0, 31) + '...'
-            : provider.provider_name.padEnd(34);
-        console.log(`│${id} │${priority} │ ${name} │`);
-      });
-    console.log('└──────────────┴──────────────┴────────────────────────────────────┘');
-
+    printProviders('📺 TV PROVIDERS', tvProviders);
     console.log('');
     console.log(`📊 Movie providers: ${movieProviders.length}`);
     console.log(`📊 TV providers: ${tvProviders.length}`);
@@ -127,7 +111,7 @@ async function main() {
       console.log('');
       console.log('💡 Available regions (examples):');
       console.log('   SE (Sweden), US (United States), GB (United Kingdom)');
-      console.log('   Usage: pnpm run list-providers SE');
+      console.log('   Usage: nub run list-providers SE');
     }
   } catch (error) {
     console.error('❌ Error:', error instanceof Error ? error.message : String(error));

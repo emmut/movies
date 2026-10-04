@@ -32,17 +32,20 @@ jobs:
           node-version-file: package.json
           cache: pnpm
 
+      - name: Install tools from mise.toml
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm lint
+        run: nub run lint
 
       - name: Typecheck
-        run: pnpm exec tsc --noEmit
+        run: nub run check-types
 
       - name: Test
-        run: pnpm test
+        run: nub run --node test
 
   e2e:
     name: E2E (Playwright)
@@ -79,7 +82,8 @@ jobs:
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/movies
       BETTER_AUTH_SECRET: test-secret-test-secret-test-secret-0001
-      MOVIE_DB_ACCESS_TOKEN: ${{ secrets.MOVIE_DB_ACCESS_TOKEN }}
+      # Migration modules validate the env shape; only the browser suite needs a real TMDB token.
+      MOVIE_DB_ACCESS_TOKEN: test
       DISCORD_CLIENT_ID: test
       DISCORD_CLIENT_SECRET: test
       GITHUB_CLIENT_ID: test
@@ -104,6 +108,9 @@ jobs:
           node-version-file: package.json
           cache: pnpm
 
+      - name: Install tools from mise.toml
+        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -111,18 +118,20 @@ jobs:
       # the PR here instead of a pre-deploy, and e2e exercises the schema that
       # migrations actually produce.
       - name: Apply database migrations
-        run: pnpm db:migrate
+        run: nub run db:migrate
 
       - name: Test PostgreSQL fuzzy search
-        run: pnpm test apps/web/src/lib/search-index.integration.test.ts
+        run: nub run --node test apps/web/src/lib/search-index.integration.test.ts
         env:
           SEARCH_TEST_DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Install Playwright browser
-        run: pnpm e2e:install
+        run: nub run e2e:install
 
       - name: Run e2e tests
-        run: pnpm e2e
+        run: nub run --node e2e
+        env:
+          MOVIE_DB_ACCESS_TOKEN: ${{ secrets.MOVIE_DB_ACCESS_TOKEN }}
 
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
