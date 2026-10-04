@@ -11,12 +11,12 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 ## Getting started
 
 1. Install dependencies: `pnpm install`.
-2. Copy `.env.example` to the root `.env` and fill it in. The tracked `apps/web/.env` symlink lets Next.js read it from the app directory. `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
+2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. Next.js reads the app-local file; the tracked root `.env` symlink lets root-level scripts read it too. `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
 3. Apply the schema to your database: `pnpm db:push`.
 4. Start the dev server: `pnpm dev`.
 5. Optional: populate IMDb ratings with `pnpm ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.
 
-`pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
+`pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `apps/web/.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
 
 ## Common commands
 

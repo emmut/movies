@@ -57,7 +57,7 @@ What this unlocks next (sorting and filtering lists in SQL, rendering grids with
 
 ```bash
 pnpm install
-cp .env.example .env   # fill in secrets — apps/web/src/env.ts is the source of truth
+cp apps/web/.env.example apps/web/.env  # fill in secrets; apps/web/src/env.ts defines the required values
 pnpm dev:docker:up     # start local Postgres + imgproxy via Docker
 pnpm db:push           # apply the schema
 pnpm dev               # dev server (starts the Docker services if needed)
@@ -65,7 +65,7 @@ pnpm dev               # dev server (starts the Docker services if needed)
 
 Open [http://localhost:3000](http://localhost:3000). See [CONTRIBUTING.md](./CONTRIBUTING.md) for prerequisites, environment details, and conventions.
 
-The app reads the root `.env` through the tracked `apps/web/.env` symlink.
+The app reads `apps/web/.env`. A tracked root `.env` symlink lets root-level scripts read the same file.
 
 ## Scripts
 
@@ -86,6 +86,7 @@ Run `pnpm run` for the authoritative list. The Next.js app lives in `apps/web`; 
 ```
 movies/
 ├── apps/web/
+│   ├── .env.example  # Local environment template
 │   ├── public/       # Static assets
 │   └── src/
 │       ├── app/      # Next.js app router pages and layouts
