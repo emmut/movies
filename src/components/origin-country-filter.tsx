@@ -30,15 +30,15 @@ function getTriggerLabel(selected: string[]) {
 
 // PopoverTrigger's `render` clones the element with the trigger props
 // (onClick, aria-*); dropping them leaves a button that never opens the popover.
-type TriggerProps = { selected: string[] } & ComponentProps<typeof Button>;
+type TriggerProps = { selected: string[]; controlId: string } & ComponentProps<typeof Button>;
 
-function CountryTrigger({ selected, className, ...props }: TriggerProps) {
+function CountryTrigger({ selected, controlId, className, ...props }: TriggerProps) {
   return (
     <Button
       {...props}
       variant="outline"
       className={cn('w-full justify-between', className)}
-      id="origin-country"
+      id={controlId}
     >
       <Filter className="mr-2 h-4 w-4 shrink-0" />
       <span className="truncate">{getTriggerLabel(selected)}</span>
@@ -54,7 +54,13 @@ function CountryTrigger({ selected, className, ...props }: TriggerProps) {
  * originating from ANY of the selected countries. Selections live in the
  * `with_origin_country` URL query parameter.
  */
-export default function OriginCountryFilter() {
+type OriginCountryFilterProps = {
+  controlId?: string;
+};
+
+export default function OriginCountryFilter({
+  controlId = 'origin-country',
+}: OriginCountryFilterProps) {
   const [{ with_origin_country: rawSelection }, setParams] = useQueryStates({
     with_origin_country: parseAsArrayOf(parseAsString).withDefault([]),
     page: parseAsString.withDefault('1'),
@@ -99,11 +105,13 @@ export default function OriginCountryFilter() {
 
   return (
     <div className="min-w-54">
-      <Label htmlFor="origin-country" className="mb-2 flex justify-end @3xl:self-end">
+      <Label htmlFor={controlId} className="mb-2 text-muted-foreground">
         Origin Country
       </Label>
       <Popover open={isOpen} onOpenChange={handleOpenChange}>
-        <PopoverTrigger render={<CountryTrigger selected={selectedCountries} />} />
+        <PopoverTrigger
+          render={<CountryTrigger selected={selectedCountries} controlId={controlId} />}
+        />
         <PopoverContent
           align="end"
           side="bottom"

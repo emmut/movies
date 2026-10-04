@@ -13,10 +13,10 @@ export default function Loading() {
     <div className="@container w-full">
       <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <SectionTitle>Search</SectionTitle>
-        <Skeleton className="h-10 w-36 rounded-md" />
+        <Skeleton className="h-9 w-[180px] rounded-md" />
       </div>
 
-      <div className="mt-8 grid max-h-[45vh] grid-cols-2 gap-4 overflow-hidden @3xl:grid-cols-4 @8xl:grid-cols-5">
+      <div className="mt-8 grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
         <ItemGrid.Skeletons className="w-full" />
       </div>
     </div>

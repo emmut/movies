@@ -7,8 +7,12 @@ function stubBrowser({
   contentElement,
 }: {
   url: string;
-  contentElement: { scrollIntoView: () => void } | null;
+  contentElement: { scrollIntoView: () => void; getBoundingClientRect?: () => void } | null;
 }) {
+  const results = contentElement && {
+    getBoundingClientRect: vi.fn(),
+    ...contentElement,
+  };
   const location = { href: url };
   const bodyStyle = { minHeight: '' };
   vi.stubGlobal('window', { location });
@@ -16,7 +20,7 @@ function stubBrowser({
     body: { style: bodyStyle },
     documentElement: { scrollHeight: 2400 },
     getElementById: vi.fn(function getElementById(id: string) {
-      return id === 'content' ? contentElement : null;
+      return id === 'content' ? results : null;
     }),
   });
 
@@ -67,6 +71,27 @@ describe('scrollToContentIfScheduled', () => {
 
     expect(bodyStyle.minHeight).toBe('');
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('lays out the new page while the height hold is still in place', () => {
+    // Record the hold each time layout is forced, as WebKit lays out on read.
+    const holdAtLayout: string[] = [];
+    const { bodyStyle, location } = stubBrowser({
+      url: 'http://app.test/discover',
+      contentElement: {
+        scrollIntoView: vi.fn(),
+        getBoundingClientRect: vi.fn(function getBoundingClientRect() {
+          holdAtLayout.push(bodyStyle.minHeight);
+        }),
+      },
+    });
+    scheduleScrollToContent('?page=2');
+
+    location.href = 'http://app.test/discover?page=2';
+    scrollToContentIfScheduled();
+
+    expect(holdAtLayout).toEqual(['2400px']);
+    expect(bodyStyle.minHeight).toBe('');
   });
 
   it('consumes the schedule so a later render does not scroll again', () => {

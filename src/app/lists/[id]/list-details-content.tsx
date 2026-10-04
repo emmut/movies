@@ -1,18 +1,18 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
+import { ListDetailsLoadingSkeleton } from '@/components/list-details-loading';
 import { ListErrorState } from '@/components/list-error-state';
 import { ListItemsGrid } from '@/components/list-items-grid';
 import { PaginationControls } from '@/components/pagination-controls';
-import { ReorderButton } from '@/components/reorder-button';
+import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
-import { Skeleton } from '@/components/ui/skeleton';
 import WatchProviderFilter from '@/components/watch-provider-filter';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
@@ -91,9 +91,11 @@ export function ListDetailsContent({
     data: list,
     isLoading,
     isError,
+    isPlaceholderData,
   } = useQuery({
     queryKey: queryKeys.lists.detail(listId, page, activeProviders, activeRegion),
     queryFn: () => fetchListDetailsAction(listId, page, activeProviders, activeRegion),
+    placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 30, // 30 minutes
   });
@@ -105,7 +107,7 @@ export function ListDetailsContent({
   }
 
   if (isLoading || !list) {
-    return <ListDetailsSkeleton />;
+    return <ListDetailsLoadingSkeleton />;
   }
 
   return (
@@ -116,27 +118,8 @@ export function ListDetailsContent({
       watchProviders={watchProviders}
       userRegion={userRegion}
       isProviderFiltered={isProviderFiltered}
+      isPlaceholderData={isPlaceholderData}
     />
-  );
-}
-
-function ListDetailsSkeleton() {
-  return (
-    <div className="@container w-full">
-      <div className="mb-8">
-        <Skeleton className="mb-4 h-10 w-64" />
-        <Skeleton className="h-6 w-96" />
-      </div>
-      <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
-        {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
-          <div key={i} className="space-y-2">
-            <Skeleton className="aspect-2/3 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-3 w-1/2" />
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -147,6 +130,7 @@ interface ListDetailsViewProps {
   watchProviders: WatchProvider[];
   userRegion: string;
   isProviderFiltered: boolean;
+  isPlaceholderData: boolean;
 }
 
 function ListDetailsView({
@@ -156,9 +140,11 @@ function ListDetailsView({
   watchProviders,
   userRegion,
   isProviderFiltered,
+  isPlaceholderData,
 }: ListDetailsViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
+  const canReorder = !isProviderFiltered && !isPlaceholderData;
 
   const offset = (page - 1) * ITEMS_PER_PAGE;
   const { localItems, isPending, move } = useReorderableItems(
@@ -172,7 +158,7 @@ function ListDetailsView({
   );
 
   return (
-    <div className="@container w-full">
+    <div data-slot="list-details" aria-busy={isPlaceholderData} className="@container w-full">
       <ListDetailsHeader
         listName={list.name}
         listId={list.id}
@@ -183,7 +169,7 @@ function ListDetailsView({
         onToggleEditing={() => setIsEditing((value) => !value)}
         watchProviders={watchProviders}
         userRegion={userRegion}
-        isProviderFiltered={isProviderFiltered}
+        canReorder={canReorder}
       />
 
       <ListDetailsBody
@@ -191,7 +177,7 @@ function ListDetailsView({
         items={localItems}
         offset={offset}
         isPending={isPending}
-        isEditing={isEditing && !isProviderFiltered}
+        isEditing={isEditing && canReorder}
         isProviderFiltered={isProviderFiltered}
         onMove={move}
         userId={userId}
@@ -255,7 +241,7 @@ interface ListDetailsHeaderProps {
   onToggleEditing: () => void;
   watchProviders: WatchProvider[];
   userRegion: string;
-  isProviderFiltered: boolean;
+  canReorder: boolean;
 }
 
 function ListDetailsHeader({
@@ -268,21 +254,28 @@ function ListDetailsHeader({
   onToggleEditing,
   watchProviders,
   userRegion,
-  isProviderFiltered,
+  canReorder,
 }: ListDetailsHeaderProps) {
   return (
-    <div className="mb-8 space-y-4">
+    <div className="mb-8 flex flex-col gap-4">
       <SectionTitle>{listName}</SectionTitle>
+
+      <div className="h-12 overflow-hidden">
+        {listDescription && <p className="line-clamp-2 text-muted-foreground">{listDescription}</p>}
+      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
-          {/* Reordering a provider-filtered view is disabled: the visible rows
-              are a non-contiguous slice, so page offsets no longer map to
+          {/* Reordering is disabled for filtered views and while retained query
+              data belongs to the previous page/filter. In either case, the
+              visible rows and current page offset do not map to the same
               positions in the full manual order. */}
           <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
-          {itemCount > 0 && !isProviderFiltered && (
-            <ReorderButton isEditing={isEditing} onToggleEditing={onToggleEditing} />
-          )}
+          <ReorderButtonSlot
+            isAvailable={itemCount > 0 && canReorder}
+            isEditing={isEditing}
+            onToggleEditing={onToggleEditing}
+          />
         </div>
 
         <div className="flex items-center gap-2">

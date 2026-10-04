@@ -1,6 +1,7 @@
 import { BackTargetLink } from '@/components/back-target-link';
 import Badge from '@/components/badge';
 import { Imgproxy } from '@/components/image-proxy';
+import { Skeleton } from '@/components/ui/skeleton';
 import { fetchTrendingMovies } from '@/lib/movies';
 import { fetchTrendingTvShows } from '@/lib/tv-shows';
 import { formatDateYear } from '@/lib/utils';
@@ -78,8 +79,18 @@ async function Trending({ index, type }: TrendingCardProp) {
 
 Trending.Skeleton = function TrendingSkeleton() {
   return (
-    <div className="relative isolate h-52 animate-pulse overflow-hidden rounded-xl bg-neutral-50/10 lg:h-72 lg:flex-1">
-      <div className="absolute right-0 bottom-0 left-0 z-10 flex h-12 flex-col justify-center bg-zinc-950/10 px-3 py-2"></div>
+    <div
+      data-slot="home-trending-skeleton"
+      className="relative isolate h-52 overflow-hidden rounded-xl border lg:h-72 lg:flex-1"
+    >
+      <Skeleton className="absolute inset-0 rounded-none" />
+
+      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
+
+      <div className="absolute right-0 bottom-0 left-0 z-10 flex flex-col justify-center px-3 py-2">
+        <Skeleton data-slot="trending-title-skeleton" className="h-6 w-2/3" />
+        <Skeleton data-slot="trending-year-skeleton" className="mt-1 h-5 w-12" />
+      </div>
     </div>
   );
 };
