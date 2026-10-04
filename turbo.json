@@ -1,0 +1,40 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "cache": false,
+      "env": [
+        "AUTH_RATE_LIMIT_DISABLED",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_TRUSTED_ORIGIN",
+        "CI",
+        "DATABASE_URL",
+        "DB_POOL_MAX",
+        "DISCORD_CLIENT_ID",
+        "DISCORD_CLIENT_SECRET",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "IMGPROXY_KEY",
+        "IMGPROXY_SALT",
+        "MOVIE_DB_ACCESS_TOKEN",
+        "NEXT_PUBLIC_*",
+        "RAILWAY_*",
+        "SKIP_ENV_VALIDATION",
+        "TMDB_API_URL_OVERRIDE",
+        "VERCEL_*"
+      ]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  },
+  "globalDependencies": ["apps/*/.env*", "packages/*/.env*", "tsconfig.json"]
+}

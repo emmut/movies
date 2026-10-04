@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env nub
 
 /**
  * Downloads IMDb's daily ratings dataset and upserts it into the

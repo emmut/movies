@@ -4,7 +4,7 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { searchIndex } from '@movies/db/schema/search-index';
 
 // No 'server-only' here: the nightly ingest (scripts/ingest-search-index.ts)
-// runs under tsx outside the Next.js server runtime.
+// runs under Nub outside the Next.js server runtime.
 
 export type SearchIndexMediaType = 'movie' | 'tv' | 'person';
 

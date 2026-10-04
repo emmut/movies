@@ -110,9 +110,9 @@ export default defineRailway((ctx) => {
     // headless drizzle-kit push crashes mid-apply in its prompt renderer
     // while the deploy still reports success, leaving a partial schema and
     // an empty migration journal behind.
-    preDeploy: "pnpm db:migrate:railway",
-    build: { buildCommand: "pnpm build" },
-    deploy: { startCommand: "pnpm start", limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
+    preDeploy: "./node_modules/.bin/nub run db:migrate:railway",
+    build: { buildCommand: "./node_modules/.bin/nub run build" },
+    deploy: { startCommand: "./node_modules/.bin/nub run start", limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
     domains: prod ? [APP_DOMAIN] : [],
     env: {
       BETTER_AUTH_SECRET: preserve(),
@@ -150,12 +150,12 @@ export default defineRailway((ctx) => {
     // first — and Railway reports that cancelled deployment as a failed PR
     // check. Pinning the branch keeps the single deployment green.
     source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
-    // The cron only needs dependencies + tsx; Railpack's default
-    // `pnpm run build` would run `next build`, which fails env validation
+    // The cron only needs dependencies + Nub. Railpack's default web build
+    // would run `next build`, which fails env validation
     // since this service only has DATABASE_URL.
-    build: { buildCommand: "echo 'skipping app build — cron runs tsx directly'" },
+    build: { buildCommand: "echo 'skipping app build — cron runs Nub directly'" },
     deploy: {
-      startCommand: "pnpm tsx scripts/ingest-imdb-ratings.ts",
+      startCommand: "./node_modules/.bin/nub scripts/ingest-imdb-ratings.ts",
       cronSchedule: "30 5 * * *",
       restartPolicyType: "NEVER",
       // Streaming ingest with 5k-row batches and a single pg connection —
@@ -175,9 +175,9 @@ export default defineRailway((ctx) => {
   // of them; details only weekly.
   const titleSync = service("title-sync", {
     source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
-    build: { buildCommand: "echo 'skipping app build — cron runs tsx directly'" },
+    build: { buildCommand: "echo 'skipping app build — cron runs Nub directly'" },
     deploy: {
-      startCommand: "pnpm tsx scripts/sync-titles.ts",
+      startCommand: "./node_modules/.bin/nub scripts/sync-titles.ts",
       cronSchedule: "0 4 * * *",
       restartPolicyType: "NEVER",
       // A few TMDB requests in flight and one small pool — far under half a GB.
@@ -201,9 +201,9 @@ export default defineRailway((ctx) => {
   // public files, not API calls.
   const searchIndexIngest = service("search-index-ingest", {
     source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
-    build: { buildCommand: "echo 'skipping app build — cron runs tsx directly'" },
+    build: { buildCommand: "echo 'skipping app build — cron runs Nub directly'" },
     deploy: {
-      startCommand: "pnpm tsx scripts/ingest-search-index.ts",
+      startCommand: "./node_modules/.bin/nub scripts/ingest-search-index.ts",
       cronSchedule: "0 9 * * *",
       restartPolicyType: "NEVER",
       // Buffers each export to disk before ingesting, streams gunzip line by

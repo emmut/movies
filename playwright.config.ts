@@ -42,7 +42,7 @@ export default defineConfig({
   // Build + start the real app unless we were pointed at an external URL.
   webServer: useManagedServer
     ? {
-        command: process.env.E2E_WEBSERVER_CMD ?? 'pnpm build && pnpm start',
+        command: process.env.E2E_WEBSERVER_CMD ?? 'nub run build && nub run start',
         url: baseURL,
         // Every test signs in anonymously from one IP; better-auth's default
         // rate limit (3 sign-ins per 10s per IP) would 429 the suite.

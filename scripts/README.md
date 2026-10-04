@@ -7,10 +7,10 @@ Downloads IMDb's [non-commercial ratings dataset](https://developer.imdb.com/non
 ### Usage
 
 ```bash
-pnpm ingest:imdb
+nub run ingest:imdb
 ```
 
-Needs `DATABASE_URL` (from `.env` locally). Runs daily in production as the `imdb-ingest` Railway cron service (05:30 UTC, shortly after IMDb refreshes the datasets). The dataset is licensed for personal, non-commercial use only.
+Needs `DATABASE_URL` (from `apps/web/.env` locally). Runs daily in production as the `imdb-ingest` Railway cron service (05:30 UTC, shortly after IMDb refreshes the datasets). The dataset is licensed for personal, non-commercial use only.
 
 ## Sync Titles
 
@@ -19,10 +19,10 @@ Refreshes the local title cache — the `titles`, `title_availability`, and `tit
 ### Usage
 
 ```bash
-pnpm sync:titles
+nub run sync:titles
 ```
 
-Needs `DATABASE_URL`, `MOVIE_DB_ACCESS_TOKEN`, and `TITLE_SYNC_ENABLED=true` (from `.env` locally); without the flag the script exits immediately, which is how preview environments stay quiet. Runs nightly in production as the `title-sync` Railway cron service (04:00 UTC), where the Railway config sets the flag. Titles are also written through when they are added to a list, so a run mostly refreshes stale rows: availability daily, details weekly. A title TMDB has deleted is recorded with an empty availability set so filtered pages stop retrying it. The run exits non-zero if any title failed to sync; failed titles stay stale and are retried the next night.
+Needs `DATABASE_URL`, `MOVIE_DB_ACCESS_TOKEN`, and `TITLE_SYNC_ENABLED=true` (from `apps/web/.env` locally); without the flag the script exits immediately, which is how preview environments stay quiet. Runs nightly in production as the `title-sync` Railway cron service (04:00 UTC), where the Railway config sets the flag. Titles are also written through when they are added to a list, so a run mostly refreshes stale rows: availability daily, details weekly. A title TMDB has deleted is recorded with an empty availability set so filtered pages stop retrying it. The run exits non-zero if any title failed to sync; failed titles stay stale and are retried the next night.
 
 Watch-provider data comes from JustWatch through TMDB and must be attributed as such wherever it is shown.
 
@@ -33,10 +33,10 @@ Downloads TMDB's [daily id exports](https://developer.themoviedb.org/docs/daily-
 ### Usage
 
 ```bash
-pnpm ingest:search
+nub run ingest:search
 ```
 
-Needs `DATABASE_URL` and `SEARCH_INDEX_INGEST_ENABLED=true` (from `.env` locally; without the flag the script exits immediately) plus the `pg_trgm` extension, which migration `0015` creates (`0017` replaces the GiST index with GIN for filtered search). Runs daily in production as the `search-index-ingest` Railway cron service (09:00 UTC, after TMDB publishes at 08:00), where the Railway config sets the flag; preview environments leave it off. Without a run the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
+Needs `DATABASE_URL` and `SEARCH_INDEX_INGEST_ENABLED=true` (from `apps/web/.env` locally; without the flag the script exits immediately) plus the `pg_trgm` extension, which migration `0015` creates (`0017` replaces the GiST index with GIN for filtered search). Runs daily in production as the `search-index-ingest` Railway cron service (09:00 UTC, after TMDB publishes at 08:00), where the Railway config sets the flag; preview environments leave it off. Without a run the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
 
 ## List Watch Providers
 
@@ -46,13 +46,13 @@ Script to list all available watch providers from TMDB API.
 
 ```bash
 # List all providers for all regions
-pnpm run list-providers
+nub run list-providers
 
 # List providers for a specific region (e.g. Sweden)
-pnpm run list-providers SE
+nub run list-providers SE
 
 # List providers for USA
-pnpm run list-providers US
+nub run list-providers US
 ```
 
 ### What the script does
