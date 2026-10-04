@@ -1,7 +1,7 @@
 'use server';
 
 import { fetchNowPlayingMovies, fetchTopRatedMovies, fetchUpcomingMovies } from '@/lib/movies';
-import { DEFAULT_REGION } from '@/lib/regions';
+import { DEFAULT_REGION, regionSchema } from '@/lib/regions';
 import { fetchOnTheAirTvShows, fetchPopularTvShows, fetchTopRatedTvShows } from '@/lib/tv-shows';
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
@@ -36,5 +36,9 @@ export async function getHomeMediaList(
   category: HomeMediaCategory,
   region: string = DEFAULT_REGION,
 ): Promise<Movie[] | TvShow[]> {
-  return FETCHERS[category](region);
+  if (!Object.hasOwn(FETCHERS, category)) {
+    throw new Error('Invalid home media category');
+  }
+
+  return FETCHERS[category](regionSchema.parse(region));
 }
