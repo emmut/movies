@@ -104,13 +104,24 @@ jobs:
           echo "Forked deployments did not settle within 10 minutes" >&2
           exit 1
 
-      - name: Apply Railway config
+      - name: Select Postgres bootstrap mode
+        # A new PR fork may not include its Postgres service. The database
+        # helper provisions its credentials on the first apply; subsequent
+        # applies preserve the image-backed service and its existing secrets.
+        run: |
+          if railway service list --json | jq -e '.[] | select(.name == "postgres-db")' >/dev/null; then
+            echo "RAILWAY_BOOTSTRAP_POSTGRES=false" >> "$GITHUB_ENV"
+          else
+            echo "RAILWAY_BOOTSTRAP_POSTGRES=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Apply Railway config for PR
         # PR environments are ephemeral forks of production, so they start with
         # prod-only services (imdb-ingest) that the config must delete — the
         # first apply in every new PR environment is inherently destructive.
         # Destructive applies are fine here: nothing in a PR environment is
         # worth protecting. Production keeps the guardrail below.
-        run: railway config apply --runner node_modules/.bin/railway-iac-ts --yes --confirm-destructive
+        run: railway config apply --yes --confirm-destructive
 
   apply-prod:
     name: Apply infra to production
@@ -143,4 +154,4 @@ jobs:
         # without --confirm-destructive, which we deliberately never pass here.
         run: |
           railway link --project movies --environment "$RAILWAY_ENVIRONMENT"
-          railway config apply --runner node_modules/.bin/railway-iac-ts --yes
+          railway config apply --yes

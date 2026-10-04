@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { execSync } from "node:child_process";
-import { defineRailway, github, image, preserve, project, service, volume } from "railway/iac";
+import { defineRailway, github, image, postgres, preserve, project, service, volume } from "railway/iac";
 
 const APP_DOMAIN = "movies.emmut.space";
 const CDN_DOMAIN = "cdn.emmut.space";
@@ -31,9 +31,11 @@ export default defineRailway((ctx) => {
     alerts: { usage: { "80": {}, "95": {}, "100": {} } },
   });
 
-  // Railway's current Postgres is an image-backed service. Model its actual
-  // service type so a plan preserves the generated variables and volume mount.
-  const db = service("postgres-db", {
+  // A fresh PR fork can omit the database service. Bootstrap it with the
+  // Postgres helper so Railway generates credentials and a usable DATABASE_URL.
+  // Later applies model the existing image-backed service to preserve those
+  // credentials and its volume attachment.
+  const dbService = service("postgres-db", {
     source: image("ghcr.io/railwayapp-templates/postgres-ssl:18"),
     volumeMounts: { "/var/lib/postgresql/data": dbVolume },
     deploy: {
@@ -58,6 +60,14 @@ export default defineRailway((ctx) => {
       SSL_CERT_DAYS: preserve(),
     },
   });
+  const db = process.env.RAILWAY_BOOTSTRAP_POSTGRES === "true"
+    ? postgres("postgres-db", {
+        deploy: {
+          sleepApplication: true,
+          limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+        },
+      })
+    : dbService;
 
   const imgproxyHRto = service("imgproxy-HRto", {
     // Railway auto-updates the image to new minor versions nightly (02–06).
