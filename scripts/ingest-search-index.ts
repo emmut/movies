@@ -42,8 +42,8 @@ import { connectForCron } from './cron-db';
 import { describeError } from './describe-error';
 import { env } from './env';
 
-const BATCH_SIZE = 5_000;
-const PROGRESS_INTERVAL = 250_000;
+const BATCH_SIZE = 1_000;
+const PROGRESS_INTERVAL = 25_000;
 // Abort an export that makes no progress for this long, so a hung connection
 // dies instead of waiting forever. The timer resets on every flushed batch:
 // a slow but advancing ingest (the full catalog takes well over an hour at
@@ -140,10 +140,11 @@ async function ingestExport(
   workDir: string,
 ) {
   const controller = new AbortController();
+  let completed = 0;
   function stall() {
     controller.abort(
       new Error(
-        `${mediaType}: no progress for ${STALL_TIMEOUT_MS / 60_000} minutes; aborting`,
+        `${mediaType}: no progress after ${completed.toLocaleString('en-US')} rows for ${STALL_TIMEOUT_MS / 60_000} minutes; aborting`,
       ),
     );
   }
@@ -172,6 +173,7 @@ async function ingestExport(
     const { total, skipped } = await ingestExportLines(db, mediaType, lines, {
       batchSize: BATCH_SIZE,
       onProgress(count) {
+        completed = count;
         resetTimeout();
         if (count % PROGRESS_INTERVAL === 0) {
           console.log(`   • ${count.toLocaleString('en-US')} ${mediaType} rows upserted`);
