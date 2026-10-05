@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm';
 import { index, integer, pgTable, primaryKey, real, text, timestamp } from 'drizzle-orm/pg-core';
 
 /**
@@ -22,7 +23,11 @@ export const searchIndex = pgTable(
      */
     searchTitle: text('search_title').notNull(),
     popularity: real('popularity').notNull().default(0),
-    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    /** Last seen in an export; stale-row pruning depends on conflict updates refreshing it. */
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => sql`now()`),
   },
   (table) => [
     primaryKey({ columns: [table.mediaType, table.tmdbId] }),

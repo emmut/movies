@@ -1,4 +1,5 @@
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { searchIndex } from '@movies/db/schema/search-index';
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -159,16 +160,23 @@ describe('upsertSearchIndexBatch', () => {
     await upsertSearchIndexBatch(database, rows);
 
     expect(values).toHaveBeenCalledWith(rows);
+    expect(onConflictDoUpdate).toHaveBeenCalledTimes(1);
     expect(onConflictDoUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         set: expect.objectContaining({
           title: expect.anything(),
           searchTitle: expect.anything(),
           popularity: expect.anything(),
-          updatedAt: expect.anything(),
         }),
       }),
     );
+    const upsert = drizzle
+      .mock()
+      .insert(searchIndex)
+      .values(rows)
+      .onConflictDoUpdate(onConflictDoUpdate.mock.calls[0][0])
+      .toSQL();
+    expect(upsert.sql).toContain('"updated_at" = now()');
   });
 });
 

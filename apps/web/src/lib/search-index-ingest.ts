@@ -1,7 +1,6 @@
+import { searchIndex } from '@movies/db/schema/search-index';
 import { and, eq, lt, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-
-import { searchIndex } from '@movies/db/schema/search-index';
 
 // No 'server-only' here: the nightly ingest (scripts/ingest-search-index.ts)
 // runs under Nub outside the Next.js server runtime.
@@ -158,7 +157,6 @@ export async function upsertSearchIndexBatch(database: NodePgDatabase, rows: Sea
         title: sql`excluded.title`,
         searchTitle: sql`excluded.search_title`,
         popularity: sql`excluded.popularity`,
-        updatedAt: sql`now()`,
       },
     });
 }
