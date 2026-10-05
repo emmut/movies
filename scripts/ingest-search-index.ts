@@ -144,7 +144,7 @@ async function ingestExport(
   function stall() {
     controller.abort(
       new Error(
-        `${mediaType}: no progress after ${completed.toLocaleString()} rows for ${STALL_TIMEOUT_MS / 60_000} minutes; aborting`,
+        `${mediaType}: no progress after ${completed.toLocaleString('en-US')} rows for ${STALL_TIMEOUT_MS / 60_000} minutes; aborting`,
       ),
     );
   }
