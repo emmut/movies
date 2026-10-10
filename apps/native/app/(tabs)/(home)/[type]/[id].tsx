@@ -1,5 +1,5 @@
-import { CatalogScreen } from '@native/components/catalog-screen';
+import { CatalogRoute } from '@native/components/catalog-route';
 
 export default function TitleDetails() {
-  return <CatalogScreen />;
+  return <CatalogRoute />;
 }

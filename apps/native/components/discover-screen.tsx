@@ -3,6 +3,7 @@ import type { MediaCard } from '@movies/api/home';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { DiscoverFilters } from '@native/components/discover-filters';
 import { MediaPoster } from '@native/components/media-poster';
+import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { orpc } from '@native/lib/api';
 import { readDiscoverState } from '@native/lib/discover-state';
 import { useRegion } from '@native/lib/preferences';
@@ -14,13 +15,6 @@ import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-conte
 import { withUniwind } from 'uniwind';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
-function renderCard({ item }: { item: MediaCard }) {
-  return (
-    <View className="flex-1 items-center pb-4">
-      <MediaPoster item={item} />
-    </View>
-  );
-}
 function keyExtractor(item: MediaCard) {
   return item.type + ':' + item.id;
 }
@@ -33,9 +27,14 @@ function DiscoveryResults({
   change: (params: Record<string, string>) => void;
 }) {
   const query = useQuery(orpc.discovery.list.queryOptions({ input }));
-  const { ref, onScroll, onLayout, onScrollBeginDrag, onContentSizeChange } = useRememberedScroll<
-    FlatList<MediaCard>
-  >('discover:' + JSON.stringify(input));
+  const {
+    ref,
+    onScroll,
+    onLayout,
+    onScrollBeginDrag,
+    onContentSizeChange,
+    captureBeforeNavigation,
+  } = useRememberedScroll<FlatList<MediaCard>>('discover:' + JSON.stringify(input));
   if (query.isPending)
     return (
       <View className="flex-1 items-center justify-center">
@@ -59,49 +58,55 @@ function DiscoveryResults({
     );
   const totalPages = Math.max(1, query.data.totalPages);
   return (
-    <FlatList
-      testID="discover-scroll"
-      contentInsetAdjustmentBehavior="automatic"
-      className="flex-1"
-      ref={ref}
-      data={query.data.items}
-      renderItem={renderCard}
-      keyExtractor={keyExtractor}
-      numColumns={2}
-      onScroll={onScroll}
-      onLayout={onLayout}
-      onScrollBeginDrag={onScrollBeginDrag}
-      onContentSizeChange={onContentSizeChange}
-      scrollEventThrottle={16}
-      ListEmptyComponent={<Text className="p-5 text-muted">No titles match these filters.</Text>}
-      ListFooterComponent={
-        <View className="items-center gap-3 p-4">
-          <Text className="text-muted">
-            {query.data.totalResults} results · Page {input.page} of {totalPages}
-          </Text>
-          <View className="flex-row gap-4">
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: input.page <= 1 }}
-              disabled={input.page <= 1}
-              className="min-h-11 justify-center rounded-xl bg-default px-4"
-              onPress={() => change({ page: String(input.page - 1) })}
-            >
-              <Text className="text-foreground">Previous page</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: input.page >= totalPages }}
-              disabled={input.page >= totalPages}
-              className="min-h-11 justify-center rounded-xl bg-default px-4"
-              onPress={() => change({ page: String(input.page + 1) })}
-            >
-              <Text className="text-foreground">Next page</Text>
-            </Pressable>
+    <ScrollNavigationProvider capture={captureBeforeNavigation}>
+      <FlatList
+        testID="discover-scroll"
+        contentInsetAdjustmentBehavior="automatic"
+        className="flex-1"
+        ref={ref}
+        data={query.data.items}
+        renderItem={({ item }) => (
+          <View className="flex-1 items-center pb-4">
+            <MediaPoster item={item} region={input.region} />
           </View>
-        </View>
-      }
-    />
+        )}
+        keyExtractor={keyExtractor}
+        numColumns={2}
+        onScroll={onScroll}
+        onLayout={onLayout}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onContentSizeChange={onContentSizeChange}
+        scrollEventThrottle={16}
+        ListEmptyComponent={<Text className="p-5 text-muted">No titles match these filters.</Text>}
+        ListFooterComponent={
+          <View className="items-center gap-3 p-4">
+            <Text className="text-muted">
+              {query.data.totalResults} results · Page {input.page} of {totalPages}
+            </Text>
+            <View className="flex-row gap-4">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: input.page <= 1 }}
+                disabled={input.page <= 1}
+                className="min-h-11 justify-center rounded-xl bg-default px-4"
+                onPress={() => change({ page: String(input.page - 1) })}
+              >
+                <Text className="text-foreground">Previous page</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: input.page >= totalPages }}
+                disabled={input.page >= totalPages}
+                className="min-h-11 justify-center rounded-xl bg-default px-4"
+                onPress={() => change({ page: String(input.page + 1) })}
+              >
+                <Text className="text-foreground">Next page</Text>
+              </Pressable>
+            </View>
+          </View>
+        }
+      />
+    </ScrollNavigationProvider>
   );
 }
 

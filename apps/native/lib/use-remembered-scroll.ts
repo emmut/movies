@@ -4,7 +4,7 @@ import {
   readScrollOffset,
   restoreScrollPosition,
 } from '@native/lib/scroll-restoration';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRoute } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import type {
   FlatList,
@@ -20,26 +20,34 @@ const positions = new Map<string, number>();
 export function useRememberedScroll<
   T extends ScrollView | Pick<FlatList<unknown>, 'scrollToOffset' | 'getScrollableNode'> =
     ScrollView,
->(key: string) {
+>(key: string, scope: 'screen' | 'entry' = 'screen') {
+  const route = useRoute();
+  const positionKey = scope === 'entry' ? route.key + ':' + key : key;
   const ref = useRef<T>(null);
-  const offset = useRef(positions.get(key) ?? 0);
-  const remembered = useRef(positions.has(key));
+  const offset = useRef(positions.get(positionKey) ?? 0);
+  const remembered = useRef(positions.has(positionKey));
   const bottomInset = useRef(0);
+  const navigationOffset = useRef<number | null>(null);
   const contentHeight = useRef(0);
   const viewportHeight = useRef(0);
   const phase = useRef<'hidden' | 'restoring' | 'ready'>('hidden');
 
   const restore = useCallback(function restore() {
-    if (phase.current !== 'restoring') return;
-    if (!ref.current) return;
+    if (phase.current !== 'restoring') {
+      return;
+    }
+    if (!ref.current) {
+      return;
+    }
     if (
       !canRestoreScroll(
         offset.current,
         contentHeight.current + bottomInset.current,
         viewportHeight.current,
       )
-    )
+    ) {
       return;
+    }
     phase.current = 'ready';
     restoreScrollPosition(ref.current, offset.current);
   }, []);
@@ -51,19 +59,28 @@ export function useRememberedScroll<
         const frame = requestAnimationFrame(restore);
         return function blur() {
           cancelAnimationFrame(frame);
-          if (ref.current)
+          if (navigationOffset.current !== null) {
+            offset.current = navigationOffset.current;
+          } else if (ref.current) {
             offset.current = readScrollOffset(ref.current.getScrollableNode(), offset.current);
+          }
+          navigationOffset.current = null;
           phase.current = 'hidden';
           if (viewportHeight.current > 0) {
             remembered.current = true;
-            positions.set(key, offset.current);
+            positions.set(positionKey, offset.current);
           }
         };
       },
-      [key, restore],
+      [positionKey, restore],
     ),
   );
 
+  function captureBeforeNavigation() {
+    if (ref.current) {
+      navigationOffset.current = readScrollOffset(ref.current.getScrollableNode(), offset.current);
+    }
+  }
   function onLayout(event: LayoutChangeEvent) {
     viewportHeight.current = event.nativeEvent.layout.height;
     restore();
@@ -75,13 +92,21 @@ export function useRememberedScroll<
     const { contentOffset } = event.nativeEvent;
     const contentInset = event.nativeEvent.contentInset ?? { top: 0, bottom: 0 };
     bottomInset.current = contentInset.bottom;
-    if (phase.current === 'ready')
+    if (phase.current === 'ready') {
       offset.current = clampScrollOffset(contentOffset.y, contentInset.top);
+    }
     restore();
   }
   function onContentSizeChange(_width: number, height: number) {
     contentHeight.current = height;
     restore();
   }
-  return { ref, onScroll, onContentSizeChange, onLayout, onScrollBeginDrag };
+  return {
+    ref,
+    onScroll,
+    onContentSizeChange,
+    onLayout,
+    onScrollBeginDrag,
+    captureBeforeNavigation,
+  };
 }

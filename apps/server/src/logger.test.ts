@@ -22,6 +22,7 @@ function setup(level: string) {
   });
   const logger: Logger = pino({ level }, destination);
   const services = {
+    person: { details: vi.fn(), credits: vi.fn() },
     search: { list: vi.fn() },
     discovery: { list: vi.fn(), options: vi.fn() },
     home: { list: vi.fn().mockResolvedValue([]), trending: vi.fn() },

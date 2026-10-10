@@ -1,9 +1,7 @@
 import 'server-only';
 import { pickYoutubeTrailer, type TmdbVideoResponse } from '@movies/api/catalog-support';
 import { buildDiscoverSearchParams } from '@movies/api/discover-params';
-import { cacheLife, cacheTag } from 'next/cache';
-
-import type { GenreResponse } from '@/types/genre';
+import type { GenreResponse } from '@movies/api/tmdb-types/genre';
 import {
   TmdbExternalIdsResponse,
   TvCredits,
@@ -12,7 +10,8 @@ import {
   TvResponse,
   TvSimilar,
   TvWatchProviders,
-} from '@/types/tv-show';
+} from '@movies/api/tmdb-types/tv-show';
+import { cacheLife, cacheTag } from 'next/cache';
 
 import { CACHE_TAGS } from './cache-tags';
 import { DEFAULT_REGION } from './regions';

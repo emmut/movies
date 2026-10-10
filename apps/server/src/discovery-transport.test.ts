@@ -10,6 +10,8 @@ function setup() {
     options: vi.fn().mockResolvedValue({ genres: [], providers: [], countries: [] }),
   };
   const app = createApp({
+    person: { details: vi.fn(), credits: vi.fn() },
+    search: { list: vi.fn() },
     home: { list: vi.fn(), trending: vi.fn() },
     catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
     discovery,

@@ -8,7 +8,13 @@ function setup() {
   const home = { list: vi.fn().mockResolvedValue([]), trending: vi.fn().mockResolvedValue([]) };
   const catalog = { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() };
   const app = createApp(
-    { discovery: { list: vi.fn(), options: vi.fn() }, home, catalog },
+    {
+      person: { details: vi.fn(), credits: vi.fn() },
+      search: { list: vi.fn() },
+      discovery: { list: vi.fn(), options: vi.fn() },
+      home,
+      catalog,
+    },
     'http://localhost:8081',
   );
   const client: AppRouterClient = createORPCClient(
@@ -60,6 +66,8 @@ describe('homepage RPC transport', () => {
   it('allows a LAN browser preview in development without hardcoding its IP', async () => {
     const home = { list: vi.fn().mockResolvedValue([]), trending: vi.fn().mockResolvedValue([]) };
     const app = createApp({
+      person: { details: vi.fn(), credits: vi.fn() },
+      search: { list: vi.fn() },
       discovery: { list: vi.fn(), options: vi.fn() },
       home,
       catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
@@ -79,6 +87,8 @@ describe('homepage RPC transport', () => {
     'http://172.16.0.2:8081',
   ])('allows local dev origin %s', async (origin) => {
     const app = createApp({
+      person: { details: vi.fn(), credits: vi.fn() },
+      search: { list: vi.fn() },
       discovery: { list: vi.fn(), options: vi.fn() },
       home: { list: vi.fn(), trending: vi.fn() },
       catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
@@ -95,6 +105,8 @@ describe('homepage RPC transport', () => {
     'http://172.32.0.2:8081',
   ])('rejects unrelated dev origins %s', async (origin) => {
     const app = createApp({
+      person: { details: vi.fn(), credits: vi.fn() },
+      search: { list: vi.fn() },
       discovery: { list: vi.fn(), options: vi.fn() },
       home: { list: vi.fn(), trending: vi.fn() },
       catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },

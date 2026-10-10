@@ -14,7 +14,16 @@
     "./tmdb-fetch": "./src/tmdb-fetch.ts",
     "./discover": "./src/discover.ts",
     "./discover-params": "./src/discover-params.ts",
-    "./discover-options": "./src/discover-options.ts"
+    "./discover-options": "./src/discover-options.ts",
+    "./search-engine": "./src/search-engine.ts",
+    "./search-rank": "./src/search-rank.ts",
+    "./parse-search-query": "./src/parse-search-query.ts",
+    "./search-index-model": "./src/search-index-model.ts",
+    "./tmdb-types/*": "./src/tmdb-types/*.ts",
+    "./search-hydration": "./src/search-hydration.ts",
+    "./search": "./src/search.ts",
+    "./person": "./src/person.ts",
+    "./filmography": "./src/filmography.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

@@ -67,7 +67,7 @@ test('discovery stays native through detail navigation and browser back', async 
   await page.goto('/discover?genreId=12');
   await expect(page.getByRole('link', { name: 'Open Discovered movie, Movie' })).toBeVisible();
   await page.getByRole('link', { name: 'Open Discovered movie, Movie' }).click();
-  await expect(page).toHaveURL(/\/discover\/movie\/42$/);
+  await expect(page).toHaveURL(/\/discover\/movie\/42\?region=SE$/);
   await expect(page.getByText('A memorable story.', { exact: true })).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/discover\?genreId=12$/);
@@ -209,4 +209,93 @@ test('discovery retains the shared poster treatment in dark theme', async ({ pag
   await page.screenshot({ path: '/tmp/movies-native-discover-dark.png' });
   await page.emulateMedia({ colorScheme: 'light' });
   await page.screenshot({ path: '/tmp/movies-native-discover-light.png' });
+});
+
+test('discovery passes its selected region to title details and provider queries', async ({
+  page,
+}) => {
+  const details: Record<string, unknown>[] = [];
+  const providers: Record<string, unknown>[] = [];
+  await page.route('**/rpc/catalog/details*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    details.push(readInput(route.request()));
+    await route.fulfill({ json: { json: detailFixture('movie') }, headers: corsHeaders });
+  });
+  await page.route('**/rpc/catalog/providers*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    providers.push(readInput(route.request()));
+    await route.fulfill({
+      json: { json: { link: 'https://watch.example', free: [], streaming: [], rent: [], buy: [] } },
+      headers: corsHeaders,
+    });
+  });
+  await page.goto('/discover?watch_region=US');
+  await page.getByRole('link', { name: 'Open Discovered movie, Movie' }).click();
+  await expect.poll(() => details.at(-1)).toMatchObject({ region: 'US' });
+  await expect.poll(() => providers.at(-1)).toMatchObject({ region: 'US' });
+  await expect(
+    page.getByRole('button', { name: 'Watch region: United States. Change region' }),
+  ).toBeAttached();
+});
+
+test('unavailable selected providers remain visible and can be removed', async ({ page }) => {
+  await page.route('**/rpc/discovery/options*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({ json: { json: { ...choices, providers: [] } }, headers: corsHeaders });
+  });
+  await page.goto('/discover?watch_region=US&with_watch_providers=8');
+  await expect(page.getByRole('button', { name: 'Watch Providers', exact: true })).toContainText(
+    'Unavailable provider (8)',
+  );
+  await page.getByRole('button', { name: 'Watch Providers', exact: true }).click();
+  const selected = page.getByRole('checkbox', { name: 'Unavailable provider (8)', exact: true });
+  await expect(selected).toBeChecked();
+  await selected.click();
+  await expect(selected).not.toBeAttached();
+  await page.getByRole('button', { name: 'Close Watch Providers' }).click();
+  await expect(page.getByRole('button', { name: 'Watch Providers', exact: true })).toContainText(
+    'Any',
+  );
+});
+
+test('country selection limits explain disabled additions and permit removal', async ({ page }) => {
+  const countries = Array.from({ length: 51 }, (_, index) => ({
+    code:
+      'A' +
+      String.fromCharCode(65 + Math.floor(index / 26)) +
+      String.fromCharCode(65 + (index % 26)),
+    name: 'Country ' + index,
+  })).map((country) => ({ ...country, code: country.code.slice(1) }));
+  await page.route('**/rpc/discovery/options*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({ json: { json: { ...choices, countries } }, headers: corsHeaders });
+  });
+  await page.goto(
+    '/discover?with_origin_country=' +
+      countries
+        .slice(0, 50)
+        .map((country) => country.code)
+        .join('|'),
+  );
+  await page.getByRole('button', { name: 'Origin Country', exact: true }).click();
+  await expect(
+    page.getByText('You can select up to 50 options. Remove one to select another.'),
+  ).toBeVisible();
+  await page.getByRole('textbox', { name: 'Find Origin Country' }).fill('Country 50');
+  await expect(page.getByRole('checkbox', { name: 'Country 50', exact: true })).toBeDisabled();
+  await page.getByRole('textbox', { name: 'Find Origin Country' }).fill('Country 0');
+  await page.getByRole('checkbox', { name: 'Country 0', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Find Origin Country' }).fill('Country 50');
+  const option = page.getByRole('checkbox', { name: 'Country 50', exact: true });
+  await expect(option).toBeEnabled();
+  await option.click();
+  await expect(option).toBeChecked();
 });

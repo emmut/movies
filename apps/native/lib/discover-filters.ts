@@ -16,6 +16,7 @@ export type FilterSpec = {
   options: Choice[];
   selected: string[];
   multiple: boolean;
+  maxSelections?: number;
 };
 
 const builders = {
@@ -25,14 +26,16 @@ const builders = {
       options: data.genres.map((item) => ({ value: String(item.id), label: item.name })),
       selected: input.genreIds.map(String),
       multiple: true,
+      maxSelections: 50,
     };
   },
   with_watch_providers(input: DiscoveryInput, data: DiscoveryOptions): FilterSpec {
     return {
       title: 'Watch Providers',
-      options: data.providers.map((item) => ({ value: String(item.id), label: item.name })),
+      options: providerChoices(input.providerIds, data),
       selected: input.providerIds.map(String),
       multiple: true,
+      maxSelections: 50,
     };
   },
   with_origin_country(input: DiscoveryInput, data: DiscoveryOptions): FilterSpec {
@@ -41,6 +44,7 @@ const builders = {
       options: data.countries.map((item) => ({ value: item.code, label: item.name })),
       selected: input.originCountries,
       multiple: true,
+      maxSelections: 50,
     };
   },
   watch_region(input: DiscoveryInput, _data: DiscoveryOptions): FilterSpec {
@@ -78,4 +82,14 @@ export function filterSpec(
   data: DiscoveryOptions,
 ): FilterSpec {
   return builders[filter](input, data);
+}
+
+function providerChoices(selected: number[], data: DiscoveryOptions): Choice[] {
+  const choices = data.providers.map((item) => ({ value: String(item.id), label: item.name }));
+  for (const id of selected) {
+    if (!data.providers.some((item) => item.id === id)) {
+      choices.push({ value: String(id), label: 'Unavailable provider (' + id + ')' });
+    }
+  }
+  return choices;
 }

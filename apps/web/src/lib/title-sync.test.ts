@@ -1,12 +1,12 @@
 import { TmdbRequestError } from '@movies/api/tmdb-fetch';
+import type { MovieDetails } from '@movies/api/tmdb-types/movie';
+import type { TvDetails } from '@movies/api/tmdb-types/tv-show';
+import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { chain } from '@/test/db-chain';
-import type { MovieDetails } from '@/types/movie';
-import type { TvDetails } from '@/types/tv-show';
-import type { WatchProvider } from '@/types/watch-provider';
 
 import {
   availabilityRows,

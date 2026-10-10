@@ -1,5 +1,7 @@
 'use client';
 
+import type { Genre } from '@movies/api/tmdb-types/genre';
+import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import {
   parseAsArrayOf,
   parseAsInteger,
@@ -20,8 +22,6 @@ import {
   getWatchProvidersString,
   parseAsPipeSeparatedArrayOfIntegers,
 } from '@/lib/watch-provider-search-params';
-import type { Genre } from '@/types/genre';
-import { WatchProvider } from '@/types/watch-provider';
 
 import Pagination from './pagination';
 

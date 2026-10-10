@@ -111,7 +111,7 @@ test('invalid route IDs do not fetch catalog data', async ({ page }) => {
     requests += 1;
     await route.abort();
   });
-  for (const route of ['/movie/0', '/tv/1e2', '/movie/not-a-number', '/person/42']) {
+  for (const route of ['/movie/0', '/tv/1e2', '/movie/not-a-number', '/unsupported/42']) {
     await page.goto(route);
     await expect(page.getByText('Title not found', { exact: true })).toBeVisible();
   }

@@ -29,6 +29,15 @@ import {
   type DiscoveryOptions,
 } from './discover';
 import { homeListInput, trendingInput, mediaCardSchema, type MediaCard } from './home';
+import {
+  personInput,
+  personCreditsInput,
+  personDetailSchema,
+  type PersonInput,
+  type PersonCreditsInput,
+  type PersonDetail,
+} from './person';
+import { searchInput, searchPageSchema, type SearchInput, type SearchPage } from './search';
 
 // Services are supplied by the host, so the router has no app, env, or database dependencies.
 export type HomeService = {
@@ -45,13 +54,37 @@ export type DiscoveryService = {
   list(input: DiscoveryInput): Promise<DiscoveryPage>;
   options(input: DiscoveryOptionsInput): Promise<DiscoveryOptions>;
 };
+export type SearchService = { list(input: SearchInput): Promise<SearchPage> };
+export type PersonService = {
+  details(input: PersonInput): Promise<PersonDetail>;
+  credits(input: PersonCreditsInput): Promise<MediaCard[]>;
+};
 export type AppServices = {
+  person: PersonService;
+  search: SearchService;
   home: HomeService;
   catalog: CatalogService;
   discovery: DiscoveryService;
 };
 const procedure = os.$context<AppServices>();
 export const appRouter = {
+  person: {
+    details: procedure
+      .input(personInput)
+      .output(personDetailSchema)
+      .errors({ NOT_FOUND: { message: 'Person not found' } })
+      .handler(({ input, context }) => context.person.details(input)),
+    credits: procedure
+      .input(personCreditsInput)
+      .output(z.array(mediaCardSchema))
+      .handler(({ input, context }) => context.person.credits(input)),
+  },
+  search: {
+    list: procedure
+      .input(searchInput)
+      .output(searchPageSchema)
+      .handler(({ input, context }) => context.search.list(input)),
+  },
   discovery: {
     list: procedure
       .input(discoveryInput)

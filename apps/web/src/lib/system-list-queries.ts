@@ -1,9 +1,11 @@
 'use server';
 
+import { MovieDetails } from '@movies/api/tmdb-types/movie';
+import { TvDetails } from '@movies/api/tmdb-types/tv-show';
+import { listItems, lists } from '@movies/db/schema/lists';
 import { and, asc, count, desc, eq, SQL } from 'drizzle-orm';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { listItems, lists } from '@movies/db/schema/lists';
 import { getUser } from '@/lib/auth-server';
 import { SYSTEM_LIST_CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
@@ -23,9 +25,7 @@ import {
   parseWatchProviderFilter,
   streamableOnProviders,
 } from '@/lib/watch-provider-availability';
-import { MovieDetails } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
-import { TvDetails } from '@/types/tv-show';
 
 import { ITEMS_PER_PAGE } from './config';
 import { getTvShowDetails } from './tv-shows';

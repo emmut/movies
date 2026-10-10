@@ -1,4 +1,4 @@
-import { normalizeSearchTitle } from './search-index-ingest';
+import { normalizeSearchTitle } from '@movies/config/search-title';
 
 /** The name fields a TMDB search hit may carry, across movies, TV shows and people. */
 export type RankableResult = {

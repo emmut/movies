@@ -47,7 +47,12 @@ export function readDiscoverState(params: Params, region: string): DiscoveryInpu
     originCountries: countryCodes(params.with_origin_country),
   });
 }
-export function toggleSelection(values: string[], value: string) {
-  if (values.includes(value)) return values.filter((entry) => entry !== value);
+export function toggleSelection(values: string[], value: string, maxSelections?: number) {
+  if (values.includes(value)) {
+    return values.filter((entry) => entry !== value);
+  }
+  if (maxSelections !== undefined && values.length >= maxSelections) {
+    return values;
+  }
   return [...values, value];
 }

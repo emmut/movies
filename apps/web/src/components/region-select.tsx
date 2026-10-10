@@ -1,7 +1,8 @@
 'use client';
 
-import { parseAsStringLiteral, useQueryState } from 'nuqs';
-
+import { RegionWatchProviders } from '@movies/api/tmdb-types/watch-provider';
+import { DEFAULT_REGION, Region, regions, type RegionCode } from '@movies/config/regions';
+import { Dot } from '@movies/ui/components/dot';
 import {
   Select,
   SelectContent,
@@ -9,10 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movies/ui/components/select';
-import { DEFAULT_REGION, Region, regions, type RegionCode } from '@movies/config/regions';
-import { RegionWatchProviders } from '@/types/watch-provider';
-
-import { Dot } from '@movies/ui/components/dot';
+import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 const regionCodes = regions.map((r) => r.code);
 

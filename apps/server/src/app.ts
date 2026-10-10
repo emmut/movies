@@ -1,7 +1,7 @@
 import 'server-only';
 import { appRouter, type AppServices } from '@movies/api/router';
 import { RPCHandler } from '@orpc/server/fetch';
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
 
 // Development browsers may use localhost or the computer's private LAN address.
@@ -11,8 +11,15 @@ function localOrigin(origin: string) {
   return LOCAL_ORIGIN.test(origin) ? origin : '';
 }
 
-export function createApp(services: AppServices, origin?: string) {
+export function createApp(
+  services: AppServices,
+  origin?: string,
+  middleware: MiddlewareHandler[] = [],
+) {
   const app = new Hono();
+  for (const use of middleware) {
+    app.use(use);
+  }
   const handler = new RPCHandler(appRouter);
   app.use(
     '/rpc/*',

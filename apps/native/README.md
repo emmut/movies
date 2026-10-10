@@ -30,7 +30,10 @@ The API defaults to port 3001. Local development permits localhost and private L
 - Core detail artwork, title/tagline, badges and regional certification, TMDB ratings/votes, overview, movie financial/runtime facts and TV season/episode/network facts. Missing titles and upstream outages have distinct states.
 - Trailers open an embedded player in a native sheet; closing unmounts playback. WebView uses the installed app ID for YouTube identification; actual device playback remains unverified.
 - Regional free/streaming/rent/buy providers, watch links and attribution, plus native similar/recommendation rows. Supporting sections retry independently; provider-region and scroll context survive related-title back navigation.
-- Genre taps currently open web discovery; IMDb ratings, origin-country links, cast/crew, person pages and reviews remain pending.
+- Genre taps open native discovery, with shared filters, sort options, selected watch region and pagination.
+- Native Search handles all/movie/TV/person results, shared ranking/fuzzy fallback, pagination and contextual detail/back navigation.
+- Native person pages include artwork, biography, facts, aliases, source links and canonical movie/TV filmography.
+- IMDb ratings, origin-country links, cast/crew, reviews and authenticated quick actions remain pending.
 
 Native styling uses Tailwind/Uniwind, including content containers and third-party components adapted with `withUniwind`.
 
@@ -46,7 +49,7 @@ The existing web app and cron scripts retain T3 Env validation during the increm
 
 `packages/api/home` exports the schemas, card DTO and shared section definitions. `packages/api/router` exports the oRPC router and its client type. Hosts inject `HomeService` and `CatalogService`; clients import the router type only. No React Native, Next.js, env, session, or database dependencies live in the router. `apps/server` supplies the TMDB implementation and Hono transport. The existing web app retains its cached fetchers, uses the shared section definitions and retrying TMDB transport, and can migrate procedure by procedure later. Consumers import shared definitions and the transport directly from `@movies/api`; app-local compatibility re-exports are not used.
 
-`home.list`, `home.trending`, `catalog.details`, `catalog.trailer`, `catalog.providers` and `catalog.related` are exposed. Catalog contracts validate positive safe-integer IDs, supported media/regions and normalized outputs; core upstream records are validated before mapping. Certification, trailer selection and currency/runtime formatting have canonical shared implementations consumed directly by web and native/Hono. Native discovery reads and filter options are exposed through `discovery.list` and `discovery.options`. Auth, lists, watchlist and search remain pending.
+`home.list`, `home.trending`, `catalog.details`, `catalog.trailer`, `catalog.providers` and `catalog.related` are exposed. Catalog contracts validate positive safe-integer IDs, supported media/regions and normalized outputs; core upstream records are validated before mapping. Certification, trailer selection and currency/runtime formatting have canonical shared implementations consumed directly by web and native/Hono. Native discovery reads and filter options are exposed through `discovery.list` and `discovery.options`. Search and person reads use the shared canonical engine and filmography rules. Auth, lists and watchlist remain pending. Set the API's optional DATABASE_URL to the same migrated database as web to enable fuzzy index matching; otherwise search uses TMDB.
 
 ## Verify
 
@@ -62,6 +65,6 @@ See [the committed session decisions and full feature parity plan](../../docs/na
 
 Native uses Expo Router's system tabs: Home, Discover, Search and More (ellipsis), with SF Symbols on iOS and Material symbols on Android. iOS 26 supplies the standard Liquid Glass appearance; earlier iOS and Android use their own system tab bars. Movie/TV details stay in Home's nested native stack. The browser export uses a preview dock and does not demonstrate native glass rendering.
 
-Discover is a native grid and filter workflow with its own detail stack. Search still contains an explicit browser handoff control; More holds the remaining browser workflows. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.
+Discover is a native grid and filter workflow with its own detail stack. Search has native result and detail/person stacks; More holds the remaining browser workflows. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.
 
 Movie/TV detail headers use native Liquid Glass when available, with a native material fallback on older iOS. Screens avoid an extra bottom safe-area backing and let scrollable content extend behind the native bar. App path aliases (`@native/`, `@server/`) resolve consistently through TypeScript, Metro and the root test runner.

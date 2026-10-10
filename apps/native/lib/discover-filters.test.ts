@@ -53,3 +53,10 @@ describe('native filter choices', () => {
     ).toBe(false);
   });
 });
+
+it('keeps unavailable selected providers visible and removable after options change', () => {
+  const spec = filterSpec('with_watch_providers', input, { ...options, providers: [] });
+  expect(spec.selected).toEqual(['8']);
+  expect(spec.options).toEqual([{ value: '8', label: 'Unavailable provider (8)' }]);
+  expect(spec.maxSelections).toBe(50);
+});

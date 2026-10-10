@@ -13,6 +13,8 @@ function setup() {
     .mockResolvedValueOnce({ results: [] });
   const catalog = createCatalogService(fetchTmdb);
   const app = createApp({
+    person: { details: vi.fn(), credits: vi.fn() },
+    search: { list: vi.fn() },
     discovery: { list: vi.fn(), options: vi.fn() },
     home: { list: vi.fn(), trending: vi.fn() },
     catalog,

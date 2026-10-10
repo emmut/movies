@@ -26,11 +26,17 @@ export function DiscoverFilters({
   const [open, setOpen] = useState<Filter | null>(null);
   const spec = open ? filterSpec(open, input, data) : null;
   function select(value: string) {
-    if (!open) return;
+    if (!open) {
+      return;
+    }
     const current = filterSpec(open, input, data);
-    const values = current.multiple ? toggleSelection(current.selected, value) : [value];
+    const values = current.multiple
+      ? toggleSelection(current.selected, value, current.maxSelections)
+      : [value];
     change({ [open]: values.join('|'), page: '1' });
-    if (!current.multiple) setOpen(null);
+    if (!current.multiple) {
+      setOpen(null);
+    }
   }
   return (
     <View className="gap-3">

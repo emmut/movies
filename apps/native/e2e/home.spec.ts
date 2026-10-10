@@ -174,3 +174,36 @@ test('keeps touch metadata on the artwork with distinct movie and TV accents', a
   await poster.scrollIntoViewIfNeeded();
   await expect(poster.getByLabel('Rating 8.3 out of 10')).toBeVisible();
 });
+
+test('fresh title visits start at the top while returning to Home preserves its scroll', async ({
+  page,
+}) => {
+  await page.route('**/rpc/home/*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({
+      json: { json: [responseTitle(readInput(route.request()))] },
+      headers: corsHeaders,
+    });
+  });
+  await page.route('**/rpc/catalog/details*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({ json: { json: detailFixture('movie') }, headers: corsHeaders });
+  });
+  await page.goto('/');
+  const poster = page.getByRole('link', { name: 'Open Test movie, Movie' }).first();
+  await poster.click();
+  const scroll = page.getByTestId('catalog-scroll');
+  await expect(page.getByText('No Poster', { exact: true })).toBeVisible();
+  await scroll.evaluate((element) => {
+    element.scrollTop = 1000;
+  });
+  await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await page.goBack();
+  await poster.click();
+  await expect(page.getByText('No Poster', { exact: true })).toBeVisible();
+  await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBe(0);
+});

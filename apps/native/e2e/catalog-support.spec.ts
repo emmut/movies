@@ -111,7 +111,7 @@ test('provider region changes affect availability and persist across related-tit
   await card.scrollIntoViewIfNeeded();
   const offset = await page.getByTestId('catalog-scroll').evaluate((element) => element.scrollTop);
   await card.click();
-  await expect(page).toHaveURL(/\/movie\/43$/);
+  await expect(page).toHaveURL(/\/movie\/43\?region=SE$/);
   await expect(page.getByText('Another movie', { exact: true }).last()).toBeVisible();
   await page.goBack();
   await expect(page).toHaveURL(/\/movie\/42\?watchRegion=US$/);

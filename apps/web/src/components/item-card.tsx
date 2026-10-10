@@ -1,4 +1,6 @@
 import { displayRating } from '@movies/api/home';
+import { Movie, MovieDetails } from '@movies/api/tmdb-types/movie';
+import { TvDetails, TvShow } from '@movies/api/tmdb-types/tv-show';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { cn } from 'cn';
 import { Star } from 'lucide-react';
@@ -6,9 +8,7 @@ import { Star } from 'lucide-react';
 import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
 import { formatImageUrl } from '@/lib/utils';
-import { Movie, MovieDetails } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
-import { TvDetails, TvShow } from '@/types/tv-show';
 
 import Badge from './badge';
 import { QuickAddButton } from './quick-add-button';

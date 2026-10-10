@@ -1,5 +1,7 @@
 import { displayRating, type MediaCard } from '@movies/api/home';
 import { MediaBadge } from '@native/components/media-badge';
+import { useScrollNavigation } from '@native/components/scroll-navigation';
+import { catalogPath } from '@native/lib/catalog-navigation';
 import { Image as ExpoImage } from 'expo-image';
 import { Link, usePathname } from 'expo-router';
 import { memo } from 'react';
@@ -64,15 +66,24 @@ function releaseYear(date: string) {
 export const MediaPoster = memo(function Poster({
   item,
   featured = false,
+  region,
 }: {
   item: MediaCard;
   featured?: boolean;
+  region?: string;
 }) {
   const pathname = usePathname();
-  const titlePath = pathname.startsWith('/discover') ? '/discover/[type]/[id]' : '/[type]/[id]';
+  const rememberNavigation = useScrollNavigation();
   return (
-    <Link href={{ pathname: titlePath, params: { type: item.type, id: item.id } }} asChild>
+    <Link
+      href={{
+        pathname: catalogPath(pathname),
+        params: { type: item.type, id: item.id, ...(region ? { region } : {}) },
+      }}
+      asChild
+    >
       <Pressable
+        onPressIn={rememberNavigation}
         accessibilityRole="link"
         accessibilityLabel={`Open ${item.title}, ${mediaLabel(item.type)}`}
         className={featured ? 'w-full' : 'w-36'}
@@ -82,19 +93,16 @@ export const MediaPoster = memo(function Poster({
     </Link>
   );
 });
-function renderPoster({ item }: { item: MediaCard }) {
-  return <MediaPoster item={item} />;
-}
 function Separator() {
   return <View className="w-3" />;
 }
 
-export function MediaPosterRow({ items }: { items: MediaCard[] }) {
+export function MediaPosterRow({ items, region }: { items: MediaCard[]; region?: string }) {
   return (
     <FlatList
       horizontal
       data={items}
-      renderItem={renderPoster}
+      renderItem={({ item }) => <MediaPoster item={item} region={region} />}
       keyExtractor={keyExtractor}
       ItemSeparatorComponent={Separator}
       showsHorizontalScrollIndicator={false}

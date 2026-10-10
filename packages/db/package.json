@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./schema/*": "./src/schema/*.ts"
+    "./schema/*": "./src/schema/*.ts",
+    "./search-index": "./src/search-index.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
@@ -12,7 +13,8 @@
     "zod": "^4.6.2",
     "@movies/config": "workspace:*",
     "better-auth": "^1.7.4",
-    "@better-auth/passkey": "^1.7.4"
+    "@better-auth/passkey": "^1.7.4",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "typescript": "7.0.2"

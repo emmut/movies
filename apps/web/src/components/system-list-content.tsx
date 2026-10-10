@@ -1,5 +1,6 @@
 'use client';
 
+import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
@@ -24,7 +25,6 @@ import {
 } from '@/lib/system-list-queries';
 import type { SystemListType } from '@/lib/validations';
 import { activeWatchProviderFilter } from '@/lib/watch-provider-search-params';
-import type { WatchProvider } from '@/types/watch-provider';
 
 const CONTENT_COPY: Record<
   SystemListType,

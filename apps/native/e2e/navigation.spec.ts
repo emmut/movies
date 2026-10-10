@@ -104,18 +104,15 @@ test('detail screens retain the dock and Home returns to the native homepage', a
   expect(page.context().pages()).toHaveLength(1);
 });
 
-for (const destination of ['Search'] as const) {
-  test(destination + ' native tab shell labels its deferred browser handoff', async ({ page }) => {
-    await page.goto('/' + destination.toLowerCase());
-    await expect(page.getByRole('heading', { name: destination, exact: true })).toBeVisible();
-    await expect(
-      page.getByText('This workflow currently opens in your browser. Its native page is planned.'),
-    ).toBeVisible();
-    const popup = page.waitForEvent('popup');
-    await page.getByRole('link', { name: 'Open ' + destination + ' in browser' }).click();
-    await expect(await popup).toHaveURL('http://localhost:3000/' + destination.toLowerCase());
-  });
-}
+test('Search starts natively without a browser handoff', async ({ page }) => {
+  await page.goto('/search');
+  await expect(page.getByRole('heading', { name: 'Search', exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('textbox', { name: 'Search movies, TV shows and people' }),
+  ).toBeVisible();
+  await expect(page.getByText('Find movies, TV shows and people.')).toBeVisible();
+  expect(page.context().pages()).toHaveLength(1);
+});
 
 test('More tab shell exposes every secondary workflow', async ({ page }) => {
   await page.goto('/more');

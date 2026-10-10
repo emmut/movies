@@ -14,13 +14,14 @@ export const queryClient = new QueryClient({
 });
 
 // Keep refetch-on-focus working when a native app returns from the background.
-focusManager.setEventListener((setFocused) => {
-  const subscription = AppState.addEventListener('change', (state) => {
-    if (Platform.OS !== 'web') setFocused(state === 'active');
+if (Platform.OS !== 'web') {
+  focusManager.setEventListener((setFocused) => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      setFocused(state === 'active');
+    });
+    return function cleanup() {
+      subscription.remove();
+    };
   });
-  return function cleanup() {
-    subscription.remove();
-  };
-});
-// Native requests retry normally; browser connectivity is tracked by React Query.
-if (Platform.OS !== 'web') onlineManager.setOnline(true);
+  onlineManager.setOnline(true);
+}

@@ -1,4 +1,5 @@
 import { catalogDetailInput, parseCatalogId, type CatalogDetailInput } from '@movies/api/catalog';
+import { regionSchema } from '@movies/config/regions';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogContent } from '@native/components/catalog-content';
 import { orpc } from '@native/lib/api';
@@ -74,12 +75,12 @@ function CatalogQuery({ input }: { input: CatalogDetailInput }) {
   );
 }
 export function CatalogScreen() {
-  const params = useLocalSearchParams<{ type?: string; id?: string }>();
+  const params = useLocalSearchParams<{ type?: string; id?: string; region?: string }>();
   const { region } = useRegion();
   const input = catalogDetailInput.safeParse({
     id: parseCatalogId(params.id),
     type: params.type,
-    region,
+    region: regionSchema.safeParse(params.region).data ?? region,
   });
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']} collapsable={false}>

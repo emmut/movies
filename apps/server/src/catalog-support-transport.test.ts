@@ -9,6 +9,8 @@ function setup() {
   const fetcher = vi.fn().mockResolvedValue({ results: [] });
   const catalog = createCatalogService(fetcher);
   const app = createApp({
+    person: { details: vi.fn(), credits: vi.fn() },
+    search: { list: vi.fn() },
     discovery: { list: vi.fn(), options: vi.fn() },
     home: { list: vi.fn(), trending: vi.fn() },
     catalog,

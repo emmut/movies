@@ -36,7 +36,7 @@ export function CatalogRelated({
           void query.refetch();
         }}
       />
-      {query.data ? <MediaPosterRow items={query.data} /> : null}
+      {query.data ? <MediaPosterRow items={query.data} region={input.region} /> : null}
     </View>
   );
 }

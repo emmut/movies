@@ -10,7 +10,7 @@ Status: **Foundation** means a working subset exists; **Pending** means no nativ
 | --- | --- | --- | --- |
 | Movies popcorn wordmark, shared palette, light/dark theme | `components/brand.tsx`, `app/globals.css` | Foundation | Both themes, phone/tablet, accessible brand |
 | Home, Discover, session-dependent Watchlist/Watched/Lists, Settings/login navigation | `components/app-sidebar*.tsx`, `components/nav-user.tsx` | Foundation: system tabs and More; page implementation resumed, Home available | Implement all destinations natively; remove browser bridges; verify system Liquid Glass tabs, back gestures and deep links on devices |
-| Search entry point | `components/search-box.tsx`, `components/search-command.tsx` | Pending | Touch search equivalent, see all results, correct destination while results are stale |
+| Search entry point | `components/search-box.tsx`, `components/search-command.tsx` | Foundation: native Search tab and submitted-query workflow; device pending | Touch search equivalent, see all results, correct destination while results are stale |
 | Daily movie and TV trending with backdrop/title/year overlays | `app/trending.tsx` | Foundation | Same records as web, two types, missing backdrop/date, both themes |
 | Six ordered sections and region-specific upcoming exclusion | `app/(home)/page.tsx`, `@movies/api/home` | Foundation | Same order and regional results, independent loading/error/retry/empty states |
 | Bordered 2:3 poster cards, title/year/rating, yellow Movie/red TV Show badges | `components/item-card.tsx`, `components/badge.tsx` | Foundation | Touch-visible metadata, long titles, missing artwork, large text and contrast |
@@ -33,8 +33,8 @@ Status: **Foundation** means a working subset exists; **Pending** means no nativ
 | Movie/TV trailers | `components/trailer-content.tsx`, `components/trailer-button.tsx` | Foundation: native sheet/player; device playback pending | Play/close, no trailer, upstream failure |
 | Regional free/stream/rent/buy providers and watch links | `components/streaming-providers.tsx` | Foundation: regional groups, links, attribution and retries | Shared supported regions, no services, logos and external links |
 | Movie/TV similar and recommended title sliders | `components/other-content.tsx` | Foundation: native rows/routes and context restoration | Native title routes; optional failures do not fail page |
-| Person photo/name/biography/facts/aliases/popularity/credits | `app/person/[id]/page.tsx` | Pending | Missing photo/biography/dates and deceased people |
-| Person movie/TV filmography, deduplication and ordering | Person page, `lib/utils.ts` | Pending | Same cast deduplication/popularity/date ordering; correct native routes |
+| Person photo/name/biography/facts/aliases/popularity/credits | `app/person/[id]/page.tsx` | Foundation: native person metadata and recovery; device pending | Missing photo/biography/dates and deceased people |
+| Person movie/TV filmography, deduplication and ordering | Person page, `lib/utils.ts` | Foundation: canonical shared deduplication/order and native routes | Same cast deduplication/popularity/date ordering; correct native routes |
 | Person add to custom list (no system-list action) | Person page, quick add | Pending | Person items persist in custom lists |
 | TMDB/IMDb/homepage external links | `components/external-links.tsx` | Foundation: TMDB/homepage; IMDb pending | Valid links only, usable native browser return |
 
@@ -73,13 +73,13 @@ Current web custom lists are owner-only (`getOwnedCustomList`); there is no publ
 
 | Workflow | Web source | Native status | Required evidence |
 | --- | --- | --- | --- |
-| Full search: all/movie/TV/person, page, typed query | `app/search/search-content.tsx`, `search-results.tsx` | Pending | Same results/ranking and native destinations; empty/zero results |
-| Query year/media suffix parsing | `lib/parse-search-query.ts` | Pending | Canonical rules, ambiguous words and titles containing years |
-| Full search fuzzy index and merge ranking | `lib/search.ts`, `lib/search-index.ts` | Pending | Page-one fusion/title tiers/hydration cap; absent index falls back to TMDB |
+| Full search: all/movie/TV/person, page, typed query | `app/search/search-content.tsx`, `search-results.tsx` | Foundation: native results, type sheets and pagination; device pending | Same results/ranking and native destinations; empty/zero results |
+| Query year/media suffix parsing | `lib/parse-search-query.ts` | Foundation: canonical parser shared by web and Hono | Canonical rules, ambiguous words and titles containing years |
+| Full search fuzzy index and merge ranking | `lib/search.ts`, `lib/search-index.ts` | Foundation: canonical engine, hydration and PostgreSQL reader | Page-one fusion/title tiers/hydration cap; absent index falls back to TMDB |
 | Command-search intent and see-all | `components/search-command*.tsx` | Pending | TMDB-first, zero-result fuzzy fallback, current-query destination |
-| Discover movie/TV, genre selection, sort | `app/discover/[[...genreId]]/discover-content.tsx` | Pending | Same genres/sort/bounds, multiple genres and type switch |
-| Discover runtime/origin/provider/region filters and clear | Discover content, `components/filters-panel.tsx` | Pending | Same filter semantics and saved-provider defaults; filter-aware query keys |
-| Search/discovery pagination and return context | Search/discover pagination, back-target helpers | Pending | Restore query/filters/page/scroll after detail and back |
+| Discover movie/TV, genre selection, sort | `app/discover/[[...genreId]]/discover-content.tsx` | Foundation: native grid, genres and shared sort options | Same genres/sort/bounds, multiple genres and type switch |
+| Discover runtime/origin/provider/region filters and clear | Discover content, `components/filters-panel.tsx` | Foundation: native filters and clear; account provider defaults pending | Same filter semantics and saved-provider defaults; filter-aware query keys |
+| Search/discovery pagination and return context | Search/discover pagination, back-target helpers | Foundation: contextual native stacks and browser back checks | Restore query/filters/page/scroll after detail and back |
 | Detail review preview, expand/collapse, see all | `components/reviews-section.tsx`, `review-card.tsx` | Pending | Author/date/optional rating/content, empty/upstream failure |
 | Full movie/TV reviews, pagination and external TMDB links | `components/reviews-page-content.tsx` | Pending | Same title/page rules, back to native title and external return |
 
@@ -194,3 +194,13 @@ Evidence: compared the deployed web Discover screen's controls; 31 native browse
 Home now uses the same native stack glass/material header as movie/TV details, retaining the Movies wordmark and region picker. Its old separately painted header row and top safe-area padding are removed, and content scrolls underneath the native header. First visits preserve the OS's automatic resting inset; saved positions retain legitimate negative top offsets and account for the bottom tab inset.
 
 The region picker, source-scroll restoration and native movie/TV navigation pass the browser checks. Header glass/material rendering is covered by the shared native options and both platform bundle exports; physical iOS appearance still needs device verification. This does not complete the remaining search, identity/list, catalog or release phases.
+
+## Search, people and review feedback checkpoint
+
+Search now provides all/movie/TV/person results, submitted query state, type selection, bounded pagination, loading/empty/error/retry states and native contextual title/person routes. Person pages show artwork, biography, dates/age, birthplace, aliases, department, popularity, source links and movie/TV filmography. Authenticated custom-list actions remain pending.
+
+Web and Hono now consume the same query parser, title tiers, reciprocal-rank merge, page-one fuzzy fallback, hydration conversions and PostgreSQL fuzzy reader. Web adapters retain their Next caching; native receives validated normalized cards. Old moved pure modules were removed and their consumers import package entry points directly. An optional server DATABASE_URL enables the shared index; missing index access degrades to TMDB without failing search.
+
+PR feedback addressed in this checkpoint: preserve browser focus listeners; scope detail scroll to navigation entries so fresh openings start at the top; capture scroll before navigation without replacing Expo Link handling; carry Discover's selected region into details/providers and related routes; keep unavailable selected provider IDs visible and removable; explain and enforce 50-option selection limits; declare LOG_LEVEL and register request logging middleware before routes.
+
+Verification includes shared web search regressions, real PostgreSQL fuzzy-reader tests (four passed against a temporary fixture), normalized API/validation tests, native search/person/filter state tests, browser workflows and iOS/Android exports. Final check counts are recorded in the PR description. Physical device glass, native gestures/session storage and release verification remain outstanding. Identity, persistent preferences, system/custom lists, authenticated quick actions, catalog credits/IMDb/reviews and account/security remain active work; this checkpoint does not complete the goal.

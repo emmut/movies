@@ -19,11 +19,7 @@ describe('native navigation menu destinations', () => {
   it('returns native Home without needing a browser URL', () => {
     expect(getMenuDestination('home', '')).toEqual({ kind: 'native', path: '/' });
   });
-  it.each(
-    [...PRIMARY_MENU_ITEMS, ...MORE_MENU_ITEMS].filter(
-      (item) => item.id !== 'home' && item.id !== 'discover',
-    ),
-  )('opens the existing $label workflow until it is ported', (item) => {
+  it.each(MORE_MENU_ITEMS)('opens the existing $label workflow until it is ported', (item) => {
     expect(getMenuDestination(item.id, 'https://movies.example/')).toEqual({
       kind: 'browser',
       url: `https://movies.example${item.path}`,
@@ -31,6 +27,9 @@ describe('native navigation menu destinations', () => {
   });
   it('routes Discover natively', () => {
     expect(getMenuDestination('discover', '')).toEqual({ kind: 'native', path: '/discover' });
+  });
+  it('routes Search natively', () => {
+    expect(getMenuDestination('search', '')).toEqual({ kind: 'native', path: '/search' });
   });
   it('preserves an explicit web base path', () => {
     expect(getMenuDestination('settings', 'https://movies.example/app')).toEqual({

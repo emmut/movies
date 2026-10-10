@@ -1,10 +1,10 @@
+import type { Movie } from '@movies/api/tmdb-types/movie';
+import type { TvShow } from '@movies/api/tmdb-types/tv-show';
 import type { ComponentProps, ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
-import type { Movie } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
-import type { TvShow } from '@/types/tv-show';
 
 import ItemCard from './item-card';
 

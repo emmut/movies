@@ -1,12 +1,12 @@
 'use server';
 
 import type { HomeMediaCategory } from '@movies/api/home';
+import { Movie } from '@movies/api/tmdb-types/movie';
+import { TvShow } from '@movies/api/tmdb-types/tv-show';
 import { DEFAULT_REGION, regionSchema } from '@movies/config/regions';
 
 import { fetchNowPlayingMovies, fetchTopRatedMovies, fetchUpcomingMovies } from '@/lib/movies';
 import { fetchOnTheAirTvShows, fetchPopularTvShows, fetchTopRatedTvShows } from '@/lib/tv-shows';
-import { Movie } from '@/types/movie';
-import { TvShow } from '@/types/tv-show';
 
 const FETCHERS: Record<HomeMediaCategory, (region: string) => Promise<Movie[] | TvShow[]>> = {
   'now-playing-movies': fetchNowPlayingMovies,

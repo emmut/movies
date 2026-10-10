@@ -1,9 +1,9 @@
+import { deduplicateAndSortByPopularity } from '@movies/api/filmography';
 import { formatCurrency, formatRuntime } from '@movies/api/formatting';
 import { describe, expect, it } from 'vitest';
 
 import {
   createLoginUrl,
-  deduplicateAndSortByPopularity,
   formatCompactNumber,
   formatDateYear,
   formatImageUrl,

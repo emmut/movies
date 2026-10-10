@@ -3,17 +3,8 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@/lib/query-keys';
-import {
-  getSearchMovies,
-  getSearchMulti,
-  getSearchPersons,
-  getSearchSuggestions,
-  getSearchTvShows,
-  SearchMoviesResult,
-  SearchMultiResult,
-  SearchPersonsResult,
-  SearchTvShowsResult,
-} from '@/lib/search';
+import type { SearchMoviesResult, SearchMultiResult, SearchPersonsResult, SearchTvShowsResult } from '@movies/api/search-engine';
+import { getSearchMovies, getSearchMulti, getSearchPersons, getSearchSuggestions, getSearchTvShows } from '@/lib/search';
 
 type UseSearchParams = {
   query: string;

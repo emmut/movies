@@ -55,3 +55,10 @@ describe('native discovery URL state', () => {
     expect(toggleSelection(['8', '9'], '8')).toEqual(['9']);
   });
 });
+
+it('keeps removals available at the selection limit and refuses extra additions', () => {
+  const selected = Array.from({ length: 50 }, (_, index) => String(index + 1));
+  expect(toggleSelection(selected, '51', 50)).toEqual(selected);
+  expect(toggleSelection(selected, '1', 50)).toHaveLength(49);
+  expect(toggleSelection(['1'], '2', 50)).toEqual(['1', '2']);
+});
