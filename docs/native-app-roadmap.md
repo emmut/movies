@@ -107,3 +107,11 @@ Apply these conventions in new work immediately. The owner explicitly deferred a
 - Every `if`/`else` body uses a block, including single-line early returns.
 - Consumers of modules moved into shared packages import directly from their package entry points. Remove old import/re-export and forwarding shims; retain host adapters only where they bind actual framework caching, authentication or transport behavior.
 - Verify the completed changes against these rules before release, together with the existing path-alias and repository validation requirements. The broader cleanup is a required end-goal deliverable, not a reason to restart current feature work.
+
+## Identity transport checkpoint
+
+Native auth uses the official Better Auth Expo client and SecureStore. During this incremental port, the existing web auth host stays canonical: Hono forwards `/api/auth/*` to its validated AUTH_URL and verifies session cookies through the same host with cookie-cache bypass. This preserves configured social callback URLs, rate limits, anonymous migration and revocation without duplicating auth rules or secrets in another server. A future auth-host extraction must migrate both consumers together; it must not introduce a second session authority.
+
+Browser previews use credentialed CORS with explicit origins; app schemes are trusted by the canonical Expo server plugin, and LAN/Expo Go origins are restricted to development. Native OAuth uses system browser/deep-link handling, then verifies a returned non-anonymous session before completing navigation. Discarded OAuth cannot incorrectly finish using an old anonymous session. Session changes clear native query caches.
+
+This establishes the dependency for authenticated preferences and list workflows. It does not complete identity: native passkeys, device OAuth/storage/restart checks, settings/account linking presentation and persistent region/provider preferences remain required.

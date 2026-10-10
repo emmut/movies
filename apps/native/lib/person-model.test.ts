@@ -44,8 +44,10 @@ describe('person display metadata', () => {
   });
 });
 
-it('counts available filmography when a supporting section is missing', () => {
-  expect(personCreditCount(undefined, undefined)).toBe(0);
-  expect(personCreditCount([{}], undefined)).toBe(1);
+it('keeps credit totals unknown until both filmography sections are available', () => {
+  expect(personCreditCount(undefined, undefined)).toBeUndefined();
+  expect(personCreditCount([{}], undefined)).toBeUndefined();
+  expect(personCreditCount(undefined, [{}])).toBeUndefined();
+  expect(personCreditCount([], [])).toBe(0);
   expect(personCreditCount([{}], [{}, {}])).toBe(3);
 });

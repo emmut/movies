@@ -16,7 +16,7 @@ Leave the public URL overrides empty for local development. The app derives port
 
 For Expo Go, keep your phone and computer on the same network and scan the current terminal QR code. The phone must be able to reach Expo on port 8081 and the API on port 3001. A saved link with an old IP will not load. A tunnel for Expo does not tunnel the API: supply an explicit reachable API URL when using one.
 
-The API defaults to port 3001. Local development permits localhost and private LAN browser origins. Set `CORS_ORIGIN` to the exact browser origin in production; an explicit value overrides the development allowlist. Native requests do not require browser CORS. The API is read-only and public for this slice.
+The API defaults to port 3001. Local development permits localhost and private LAN browser origins. Set `CORS_ORIGIN` to the exact browser origin in production; an explicit value overrides the development allowlist. Native requests do not require browser CORS. Catalog reads are public. Native sign-in uses the canonical web auth service through the API; configure AUTH_URL as described below.
 
 ## Current behavior
 
@@ -49,7 +49,7 @@ The existing web app and cron scripts retain T3 Env validation during the increm
 
 `packages/api/home` exports the schemas, card DTO and shared section definitions. `packages/api/router` exports the oRPC router and its client type. Hosts inject `HomeService` and `CatalogService`; clients import the router type only. No React Native, Next.js, env, session, or database dependencies live in the router. `apps/server` supplies the TMDB implementation and Hono transport. The existing web app retains its cached fetchers, uses the shared section definitions and retrying TMDB transport, and can migrate procedure by procedure later. Consumers import shared definitions and the transport directly from `@movies/api`; app-local compatibility re-exports are not used.
 
-`home.list`, `home.trending`, `catalog.details`, `catalog.trailer`, `catalog.providers` and `catalog.related` are exposed. Catalog contracts validate positive safe-integer IDs, supported media/regions and normalized outputs; core upstream records are validated before mapping. Certification, trailer selection and currency/runtime formatting have canonical shared implementations consumed directly by web and native/Hono. Native discovery reads and filter options are exposed through `discovery.list` and `discovery.options`. Search and person reads use the shared canonical engine and filmography rules. Auth, lists and watchlist remain pending. Set the API's optional DATABASE_URL to the same migrated database as web to enable fuzzy index matching; otherwise search uses TMDB.
+`home.list`, `home.trending`, `catalog.details`, `catalog.trailer`, `catalog.providers` and `catalog.related` are exposed. Catalog contracts validate positive safe-integer IDs, supported media/regions and normalized outputs; core upstream records are validated before mapping. Certification, trailer selection and currency/runtime formatting have canonical shared implementations consumed directly by web and native/Hono. Native discovery reads and filter options are exposed through `discovery.list` and `discovery.options`. Search and person reads use the shared canonical engine and filmography rules. Native sign-in, anonymous sessions, OAuth returns and sign-out are implemented; device passkeys, persistent preferences, lists and watchlist remain pending. Set the API's optional DATABASE_URL to the same migrated database as web to enable fuzzy index matching; otherwise search uses TMDB.
 
 ## Verify
 
@@ -65,6 +65,16 @@ See [the committed session decisions and full feature parity plan](../../docs/na
 
 Native uses Expo Router's system tabs: Home, Discover, Search and More (ellipsis), with SF Symbols on iOS and Material symbols on Android. iOS 26 supplies the standard Liquid Glass appearance; earlier iOS and Android use their own system tab bars. Movie/TV details stay in Home's nested native stack. The browser export uses a preview dock and does not demonstrate native glass rendering.
 
-Discover is a native grid and filter workflow with its own detail stack. Search has native result and detail/person stacks; More holds the remaining browser workflows. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.
+Discover is a native grid and filter workflow with its own detail stack. Search has native result and detail/person stacks. More opens Sign in natively; Watchlist, Watched, Lists and Settings still use browser bridges. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.
 
 Movie/TV detail headers use native Liquid Glass when available, with a native material fallback on older iOS. Screens avoid an extra bottom safe-area backing and let scrollable content extend behind the native bar. App path aliases (`@native/`, `@server/`) resolve consistently through TypeScript, Metro and the root test runner.
+
+## Native identity
+
+Set `AUTH_URL=http://localhost:3000` in `apps/server/.env` for local development, pointing at the same web instance/database used by browser clients. Restart the API after changes. Production must use the canonical deployed web auth origin and configure CORS_ORIGIN for its browser client; auth remains unavailable with a clear error if AUTH_URL is absent. The public catalog API still works without auth configuration.
+
+The API forwards only auth requests to that configured host. Better Auth on web remains responsible for social credentials/callbacks, session revocation, rate limits, passkeys and anonymous watchlist migration. Its Expo plugin allows the Movies app scheme; local browser/Expo Go origins are admitted only during development. Hono's identity RPC verifies each request's cookie with cookie-cache bypass and exposes public identity fields, never session tokens. Private procedures must use this verified identity instead of caller-provided user IDs.
+
+Native uses the official Better Auth Expo client and Expo SecureStore, with manually forwarded secure cookies on RPC requests and the platform cookie jar disabled. The browser preview uses credentialed fetches. Account changes clear query caches; sign-out restores the default session region. Passkey sign-in currently works through the browser client only; native device credential support remains pending and is not counted as completed parity.
+
+Anonymous sign-in/revocation is checked against the real local web service with a disposable test account. Run `AUTH_TEST_WEB_URL=http://localhost:3000 AUTH_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/movies pnpm test apps/server/src/auth-gateway.integration.test.ts`; it rejects remote hosts and deletes only its own newly created anonymous fixture. Device restart, secure storage and real OAuth/provider flows still require device verification.

@@ -4,6 +4,8 @@ import { useLocalSearchParams } from 'expo-router';
 
 export function CatalogRoute() {
   const { type } = useLocalSearchParams<{ type?: string }>();
-  if (type === 'person') return <PersonScreen />;
+  if (type === 'person') {
+    return <PersonScreen />;
+  }
   return <CatalogScreen />;
 }

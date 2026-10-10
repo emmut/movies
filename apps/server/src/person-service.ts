@@ -12,10 +12,14 @@ import {
 import { z } from 'zod';
 
 function publicUrl(value: string | null) {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
   try {
     const url = new URL(value);
-    if (url.protocol === 'http:' || url.protocol === 'https:') return url.toString();
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      return url.toString();
+    }
   } catch {
     return null;
   }
@@ -44,8 +48,9 @@ export function createPersonService(fetchTmdb: TmdbFetch): PersonService {
               : null,
         };
       } catch (error) {
-        if (error instanceof TmdbRequestError && error.status === 404)
+        if (error instanceof TmdbRequestError && error.status === 404) {
           throw new ORPCError('NOT_FOUND');
+        }
         throw error;
       }
     },

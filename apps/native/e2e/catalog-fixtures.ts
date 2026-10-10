@@ -2,7 +2,8 @@ import type { CatalogDetail } from '@movies/api/catalog';
 import type { Page, Request, Route } from '@playwright/test';
 
 export const corsHeaders = {
-  'access-control-allow-origin': '*',
+  'access-control-allow-origin': 'http://localhost:8083',
+  'access-control-allow-credentials': 'true',
   'access-control-allow-headers': 'content-type',
   'access-control-allow-methods': 'GET, POST, OPTIONS',
 };
@@ -48,6 +49,15 @@ export function detailFixture(type: 'movie' | 'tv'): CatalogDetail {
 }
 
 export async function mockEmptySupport({ page }: { page: Page }) {
+  await page.route('**/api/auth/get-session*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({
+      json: null,
+      headers: corsHeaders,
+    });
+  });
   await page.route(/\/rpc\/catalog\/(trailer|providers|related)(?:\?|$)/, async (route) => {
     if (await preflight(route)) return;
     const path = new URL(route.request().url()).pathname;

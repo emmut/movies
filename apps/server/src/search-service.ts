@@ -8,7 +8,7 @@ import { tmdbImageUrl, toMediaCard } from '@server/media-card';
 import { createSearchSources } from '@server/search-sources';
 
 function searchCard(item: MultiSearchResult): SearchItem {
-  if (item.media_type === 'person')
+  if (item.media_type === 'person') {
     return {
       id: item.id,
       type: 'person',
@@ -17,6 +17,7 @@ function searchCard(item: MultiSearchResult): SearchItem {
       department: item.known_for_department,
       knownFor: item.known_for.map((credit) => credit.title ?? credit.name ?? '').filter(Boolean),
     };
+  }
   return toMediaCard(item, item.media_type);
 }
 async function noIndex() {

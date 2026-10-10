@@ -34,6 +34,7 @@ function DiscoveryResults({
     onScrollBeginDrag,
     onContentSizeChange,
     captureBeforeNavigation,
+    cancelBeforeNavigation,
   } = useRememberedScroll<FlatList<MediaCard>>('discover:' + JSON.stringify(input));
   if (query.isPending)
     return (
@@ -47,7 +48,7 @@ function DiscoveryResults({
         <Text className="text-foreground">Couldn’t load discovered titles.</Text>
         <Pressable
           accessibilityRole="button"
-          className="min-h-11 justify-center rounded-xl bg-default px-4"
+          className="bg-default min-h-11 justify-center rounded-xl px-4"
           onPress={() => {
             void query.refetch();
           }}
@@ -58,7 +59,7 @@ function DiscoveryResults({
     );
   const totalPages = Math.max(1, query.data.totalPages);
   return (
-    <ScrollNavigationProvider capture={captureBeforeNavigation}>
+    <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
       <FlatList
         testID="discover-scroll"
         contentInsetAdjustmentBehavior="automatic"
@@ -75,6 +76,7 @@ function DiscoveryResults({
         onScroll={onScroll}
         onLayout={onLayout}
         onScrollBeginDrag={onScrollBeginDrag}
+        onTouchMove={onScrollBeginDrag}
         onContentSizeChange={onContentSizeChange}
         scrollEventThrottle={16}
         ListEmptyComponent={<Text className="p-5 text-muted">No titles match these filters.</Text>}
@@ -88,7 +90,7 @@ function DiscoveryResults({
                 accessibilityRole="button"
                 accessibilityState={{ disabled: input.page <= 1 }}
                 disabled={input.page <= 1}
-                className="min-h-11 justify-center rounded-xl bg-default px-4"
+                className="bg-default min-h-11 justify-center rounded-xl px-4"
                 onPress={() => change({ page: String(input.page - 1) })}
               >
                 <Text className="text-foreground">Previous page</Text>
@@ -97,7 +99,7 @@ function DiscoveryResults({
                 accessibilityRole="button"
                 accessibilityState={{ disabled: input.page >= totalPages }}
                 disabled={input.page >= totalPages}
-                className="min-h-11 justify-center rounded-xl bg-default px-4"
+                className="bg-default min-h-11 justify-center rounded-xl px-4"
                 onPress={() => change({ page: String(input.page + 1) })}
               >
                 <Text className="text-foreground">Next page</Text>
@@ -138,7 +140,7 @@ export function DiscoverScreen() {
               accessibilityRole="button"
               accessibilityLabel={type === 'movie' ? 'Movies' : 'TV Shows'}
               accessibilityState={{ selected: input.type === type }}
-              className="min-h-11 justify-center rounded-xl border border-border bg-default px-4"
+              className="bg-default min-h-11 justify-center rounded-xl border border-border px-4"
               onPress={() => change({ mediaType: type, genreId: '', sort_by: '', page: '1' })}
             >
               <Text className="font-semibold text-foreground">

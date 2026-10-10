@@ -3,6 +3,7 @@ import 'varlock/auto-load';
 import { serve } from '@hono/node-server';
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
 import { createApp } from '@server/app';
+import { createAuthGateway } from '@server/auth-gateway';
 import { createCatalogService } from '@server/catalog-service';
 import { createDiscoveryService } from '@server/discovery-service';
 import { ENV } from '@server/env';
@@ -24,5 +25,6 @@ const app = createApp(
   },
   ENV.CORS_ORIGIN?.replace(/\/$/, '') ?? (ENV.NODE_ENV === 'production' ? '' : undefined),
   [createRequestLogger(logger)],
+  ENV.AUTH_URL ? createAuthGateway(ENV.AUTH_URL) : undefined,
 );
 serve({ fetch: app.fetch, port: ENV.PORT });

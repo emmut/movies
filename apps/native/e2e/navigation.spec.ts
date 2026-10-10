@@ -58,7 +58,10 @@ test('keeps only Home, Discover, Search and overflow at the bottom', async ({ pa
   await expect(page).toHaveURL(/localhost:8083\/more$/);
   for (const name of ['Watchlist', 'Watched', 'Lists', 'Settings', 'Sign in']) {
     await expect(
-      page.getByRole('link', { name: name + ' (opens browser)', exact: true }),
+      page.getByRole('link', {
+        name: name === 'Sign in' ? name : name + ' (opens browser)',
+        exact: true,
+      }),
     ).toBeVisible();
   }
   await page
@@ -119,7 +122,10 @@ test('More tab shell exposes every secondary workflow', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'More', exact: true })).toBeVisible();
   for (const name of ['Watchlist', 'Watched', 'Lists', 'Settings', 'Sign in']) {
     await expect(
-      page.getByRole('link', { name: name + ' (opens browser)', exact: true }),
+      page.getByRole('link', {
+        name: name === 'Sign in' ? name : name + ' (opens browser)',
+        exact: true,
+      }),
     ).toBeVisible();
   }
 });

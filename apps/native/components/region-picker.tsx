@@ -1,5 +1,5 @@
 import { regions, type RegionCode } from '@movies/config/regions';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Platform, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -15,6 +15,10 @@ export function RegionPicker({
   onSelect: (region: RegionCode) => void;
   onClose: () => void;
 }) {
+  // Web's animated Modal restores focus after closing, which can move a later Back destination.
+  if (!visible && Platform.OS === 'web') {
+    return null;
+  }
   return (
     <Modal
       visible={visible}
@@ -30,7 +34,7 @@ export function RegionPicker({
           <Pressable
             accessibilityRole="button"
             onPress={onClose}
-            className="rounded-xl bg-default px-4 py-3"
+            className="bg-default rounded-xl px-4 py-3"
           >
             <Text className="text-foreground">Done</Text>
           </Pressable>

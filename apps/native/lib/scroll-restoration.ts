@@ -28,3 +28,13 @@ export function clampScrollOffset(offset: number, topInset: number) {
   const minimum = topInset > 0 ? -topInset : 0;
   return Math.max(minimum, offset);
 }
+
+/** Layout events can describe a previously visible browser screen during a back transition. */
+export function readScrollDimensions(node: unknown, content: number, viewport: number) {
+  if (node && typeof node === 'object' && 'scrollHeight' in node && 'clientHeight' in node) {
+    if (typeof node.scrollHeight === 'number' && typeof node.clientHeight === 'number') {
+      return { content: node.scrollHeight, viewport: node.clientHeight };
+    }
+  }
+  return { content, viewport };
+}

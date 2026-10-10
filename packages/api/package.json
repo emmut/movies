@@ -23,7 +23,8 @@
     "./search-hydration": "./src/search-hydration.ts",
     "./search": "./src/search.ts",
     "./person": "./src/person.ts",
-    "./filmography": "./src/filmography.ts"
+    "./filmography": "./src/filmography.ts",
+    "./session": "./src/session.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

@@ -23,6 +23,7 @@ export default function Home() {
     onLayout,
     onScrollBeginDrag,
     captureBeforeNavigation,
+    cancelBeforeNavigation,
   } = useRememberedScroll('home');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -37,7 +38,7 @@ export default function Home() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']} collapsable={false}>
       <HomeHeader region={region} onOpenRegion={() => setPickerOpen(true)} />
-      <ScrollNavigationProvider capture={captureBeforeNavigation}>
+      <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
         <ScrollView
           className="flex-1"
           testID="home-scroll"
@@ -47,6 +48,7 @@ export default function Home() {
           onContentSizeChange={restoreHomeScroll}
           onLayout={onLayout}
           onScrollBeginDrag={onScrollBeginDrag}
+          onTouchMove={onScrollBeginDrag}
           scrollEventThrottle={16}
           contentContainerClassName="gap-4 pb-10"
           refreshControl={

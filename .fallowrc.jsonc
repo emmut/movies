@@ -10,9 +10,14 @@
     "@tanstack/react-query-devtools",
     // Expo Router loads fonts; Metro selects react-native-web and the Babel preset.
     "expo-font",
+    // Better Auth Expo loads these platform modules; the app must install them.
+    "expo-network",
+    "expo-web-browser",
     "react-native-web",
     "babel-preset-expo",
   ],
+  // oxfmt loads its TypeScript config as a tooling entry point.
+  "entry": ["oxfmt.config.ts"],
   "duplicates": {
     // Loading skeletons are mirrored per route by App-Router convention, so
     // sibling loading.tsx files (movie/tv) will always register as clones.

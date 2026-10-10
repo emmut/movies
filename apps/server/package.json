@@ -20,7 +20,8 @@
     "zod": "^4.6.2",
     "@movies/db": "workspace:*",
     "drizzle-orm": "^0.45.2",
-    "pg": "^8.23.0"
+    "pg": "^8.23.0",
+    "@movies/config": "workspace:*"
   },
   "devDependencies": {
     "@orpc/client": "^1.15.0",

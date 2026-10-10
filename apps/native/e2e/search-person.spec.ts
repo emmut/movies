@@ -215,3 +215,47 @@ test('invalid person IDs are rejected locally and not-found/errors have distinct
   await page.getByRole('button', { name: 'Go to Home', exact: true }).click();
   await expect(page).toHaveURL(/localhost:8083\/$/);
 });
+
+for (const bothFail of [false, true]) {
+  test(`unavailable filmography does not present a ${bothFail ? 'zero' : 'partial'} credit total`, async ({
+    page,
+  }) => {
+    await page.route('**/rpc/person/credits*', async (route) => {
+      if (await preflight(route)) {
+        return;
+      }
+      const input = readInput(route.request());
+      if (input.type === 'movie' || bothFail) {
+        await route.fulfill({
+          status: 500,
+          json: {
+            json: {
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'offline',
+              status: 500,
+              defined: false,
+            },
+          },
+          headers: corsHeaders,
+        });
+        return;
+      }
+      await route.fulfill({
+        json: {
+          json: [
+            { ...movie, type: 'tv' },
+            { ...movie, id: 43, type: 'tv' },
+          ],
+        },
+        headers: corsHeaders,
+      });
+    });
+    await page.goto('/search/person/7');
+    await expect(page.getByRole('button', { name: 'Retry Movies', exact: true })).toBeAttached();
+    const stat = page.getByText('Credits', { exact: true }).locator('..');
+    await expect(stat).toContainText('—');
+    await page.getByRole('button', { name: 'Retry Movies', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Retry Movies', exact: true })).toBeAttached();
+    await expect(stat).toContainText('—');
+  });
+}

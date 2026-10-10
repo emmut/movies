@@ -100,7 +100,7 @@ test('shows empty rows and allows retry after an API outage', async ({ page }) =
             },
           }
         : { json: [] },
-      headers: { 'access-control-allow-origin': '*' },
+      headers: corsHeaders,
     });
   });
   await page.goto('/');
@@ -206,4 +206,63 @@ test('fresh title visits start at the top while returning to Home preserves its 
   await poster.click();
   await expect(page.getByText('No Poster', { exact: true })).toBeVisible();
   await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBe(0);
+});
+
+test('a poster press cancelled by dragging keeps the latest reading position across tabs', async ({
+  page,
+}) => {
+  await page.route('**/rpc/home/*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({
+      json: { json: [responseTitle(readInput(route.request()))] },
+      headers: corsHeaders,
+    });
+  });
+  await page.route('**/rpc/discovery/list*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({
+      json: { json: { items: [], totalPages: 0, totalResults: 0 } },
+      headers: corsHeaders,
+    });
+  });
+  await page.route('**/rpc/discovery/options*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({
+      json: { json: { genres: [], providers: [], countries: [] } },
+      headers: corsHeaders,
+    });
+  });
+  await page.goto('/');
+  const poster = page.getByRole('link', { name: 'Open Test series, TV Show' }).first();
+  await poster.scrollIntoViewIfNeeded();
+  const bounds = await poster.boundingBox();
+  if (!bounds) {
+    throw new Error('The poster needs a visible touch target');
+  }
+  const start = { x: bounds.x + bounds.width / 2, y: bounds.y + Math.min(160, bounds.height / 2) };
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [start] });
+  await cdp.send('Input.dispatchTouchEvent', {
+    type: 'touchMove',
+    touchPoints: [{ ...start, y: Math.max(30, start.y - 120) }],
+  });
+  // Hold the finger before lifting so this cancellation gesture does not add an inertial fling.
+  await page.waitForTimeout(200);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await expect(page).toHaveURL('http://localhost:8083/');
+  const scroll = page.getByTestId('home-scroll');
+  await scroll.evaluate((element) => {
+    element.scrollTop = 1250;
+  });
+  await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBe(1250);
+  await page.getByRole('button', { name: 'Discover', exact: true }).click();
+  await expect(page).toHaveURL(/\/discover$/);
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBe(1250);
 });

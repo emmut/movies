@@ -19,14 +19,20 @@ describe('native navigation menu destinations', () => {
   it('returns native Home without needing a browser URL', () => {
     expect(getMenuDestination('home', '')).toEqual({ kind: 'native', path: '/' });
   });
-  it.each(MORE_MENU_ITEMS)('opens the existing $label workflow until it is ported', (item) => {
-    expect(getMenuDestination(item.id, 'https://movies.example/')).toEqual({
-      kind: 'browser',
-      url: `https://movies.example${item.path}`,
-    });
-  });
+  it.each(MORE_MENU_ITEMS.filter((item) => item.id !== 'login'))(
+    'opens the existing $label workflow until it is ported',
+    (item) => {
+      expect(getMenuDestination(item.id, 'https://movies.example/')).toEqual({
+        kind: 'browser',
+        url: `https://movies.example${item.path}`,
+      });
+    },
+  );
   it('routes Discover natively', () => {
     expect(getMenuDestination('discover', '')).toEqual({ kind: 'native', path: '/discover' });
+  });
+  it('routes Sign in natively', () => {
+    expect(getMenuDestination('login', '')).toEqual({ kind: 'native', path: '/login' });
   });
   it('routes Search natively', () => {
     expect(getMenuDestination('search', '')).toEqual({ kind: 'native', path: '/search' });

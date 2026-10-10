@@ -42,15 +42,15 @@ Status: **Foundation** means a working subset exists; **Pending** means no nativ
 
 | Workflow | Web source | Native status | Required evidence |
 | --- | --- | --- | --- |
-| Anonymous sign-in and persistent session | `components/login-form.tsx`, `lib/auth-client.ts`, `@movies/auth` | Pending | Secure storage; restart, expiration and authenticated request context |
-| Discord/GitHub sign-in, safe return destinations | Login form, `app/login/page.tsx` | Pending | OAuth redirects/deep links and failure/retry on both platforms |
+| Anonymous sign-in and persistent session | `components/login-form.tsx`, `lib/auth-client.ts`, `@movies/auth` | Foundation: canonical auth gateway and SecureStore client; real local revocation checked, device restart pending | Secure storage; restart, expiration and authenticated request context |
+| Discord/GitHub sign-in, safe return destinations | Login form, `app/login/page.tsx` | Unverified: native actions, Expo return handling and cancellation checks; real device/provider flows pending | OAuth redirects/deep links and failure/retry on both platforms |
 | Link anonymous account, preserve its watchlist | `app/settings/link-account.tsx`, shared auth | Pending | Same records survive linking; native and web session behavior |
 | Passkey sign-in | `components/passkey-login-form.tsx` | Pending | Supported platform flow or explicit documented alternative |
 | Add/list/delete passkeys | `app/settings/add-passkey.tsx`, `passkey-list.tsx`, `passkey-actions.ts` | Pending | Supported platform flow or explicit documented alternative |
-| Sign-out, user identity and session-dependent navigation | `components/nav-user.tsx` | Pending | Session revoked/cleared, caches cannot expose previous user's data |
+| Sign-out, user identity and session-dependent navigation | `components/nav-user.tsx` | Foundation: native More identity/sign-out, cache clearing and region reset | Session revoked/cleared, caches cannot expose previous user's data |
 | Save account region | `app/settings/region-form.tsx`, `lib/user-actions.ts` | Pending; homepage is session-only | Same supported region and Sweden default, survives restart and visible on web |
 | Save provider preferences and regional provider options | `app/settings/watch-provider-form.tsx` | Pending | Shared account values, regional choices and refreshed discovery |
-| Session-derived authorization | `lib/auth-server.ts`, list actions | Pending | Never trust caller user IDs; expired/anonymous/cross-user tests |
+| Session-derived authorization | `lib/auth-server.ts`, list actions | Foundation: request-bound session verification RPC; private procedure ports pending | Never trust caller user IDs; expired/anonymous/cross-user tests |
 
 ## Lists
 
@@ -204,3 +204,15 @@ Web and Hono now consume the same query parser, title tiers, reciprocal-rank mer
 PR feedback addressed in this checkpoint: preserve browser focus listeners; scope detail scroll to navigation entries so fresh openings start at the top; capture scroll before navigation without replacing Expo Link handling; carry Discover's selected region into details/providers and related routes; keep unavailable selected provider IDs visible and removable; explain and enforce 50-option selection limits; declare LOG_LEVEL and register request logging middleware before routes.
 
 Verification includes shared web search regressions, real PostgreSQL fuzzy-reader tests (four passed against a temporary fixture), normalized API/validation tests, native search/person/filter state tests, browser workflows and iOS/Android exports. Final check counts are recorded in the PR description. Physical device glass, native gestures/session storage and release verification remain outstanding. Identity, persistent preferences, system/custom lists, authenticated quick actions, catalog credits/IMDb/reviews and account/security remain active work; this checkpoint does not complete the goal.
+
+## Initial native identity checkpoint
+
+The native Sign in route preserves web login wording, feature cards, provider accents and anonymous/social/passkey choices. More opens Sign in natively and displays session identity/sign-out. Native auth uses official Expo secure storage and browser/deep links; browser preview uses credentialed requests. Error/retry, safe redirect, anonymous-session completion, cancelled-social detection, expiry/revocation, credential forwarding, account-change cache clearing and sign-out region reset have targeted checks.
+
+Hono forwards authentication to the existing canonical web host configured by AUTH_URL. Verified session RPCs bypass the web cookie cache and return only public user data; host failures remain distinct from a missing session. Web retains its social providers, anonymous migration and passkey authority, with an Expo plugin and development-only preview origins. No native client receives server credentials.
+
+Verification: compared running web Login and inspected Next runtime compilation/errors; a real local anonymous auth/revocation integration test passes and cleans its own account; final unit/browser/audit/export counts are recorded in the PR. Browser Back is also checked after region-sheet closure: pointer capture, live layout measurement and immediate web sheet focus cleanup preserve the original offset. CI's obsolete deferred-screen file was removed and the formatter config is declared as a tooling entry point; the full PR-base Fallow audit passes locally.
+
+Native passkeys remain pending rather than being treated as completed by the browser implementation. Real OAuth/linking, secure-storage restart and both device platforms remain unverified. Account preferences, system/custom lists, authenticated quick actions and remaining catalog/reviews work retain their full scope; no phase or release is complete.
+
+Additional Search checkpoint review fixes: cancelled pointer/touch movement and native scroll drags clear pending navigation captures; incomplete or failed filmography keeps the aggregate credit total unknown; new Search/Person/identity files were checked with the TypeScript AST for non-block conditional bodies and corrected. Browser regressions exercise cancelled poster drag/tab return and both partial and total filmography outages. The broader end-goal coding audit is still pending.

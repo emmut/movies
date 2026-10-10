@@ -38,6 +38,7 @@ import {
   type PersonDetail,
 } from './person';
 import { searchInput, searchPageSchema, type SearchInput, type SearchPage } from './search';
+import { sessionUserSchema, type SessionUser } from './session';
 
 // Services are supplied by the host, so the router has no app, env, or database dependencies.
 export type HomeService = {
@@ -66,8 +67,17 @@ export type AppServices = {
   catalog: CatalogService;
   discovery: DiscoveryService;
 };
-const procedure = os.$context<AppServices>();
+export type AppContext = AppServices & { session?: { current(): Promise<SessionUser | null> } };
+const procedure = os.$context<AppContext>();
 export const appRouter = {
+  session: {
+    current: procedure.output(sessionUserSchema.nullable()).handler(async ({ context }) => {
+      if (!context.session) {
+        return null;
+      }
+      return context.session.current();
+    }),
+  },
   person: {
     details: procedure
       .input(personInput)

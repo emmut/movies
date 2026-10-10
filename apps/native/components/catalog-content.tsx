@@ -14,8 +14,10 @@ import { Link } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 function Genres({ item }: { item: CatalogDetail }) {
-  const rememberNavigation = useScrollNavigation();
-  if (item.genres.length === 0) return null;
+  const navigationPress = useScrollNavigation();
+  if (item.genres.length === 0) {
+    return null;
+  }
   return (
     <View className="gap-3">
       <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
@@ -32,10 +34,10 @@ function Genres({ item }: { item: CatalogDetail }) {
             asChild
           >
             <Pressable
-              onPressIn={rememberNavigation}
+              {...navigationPress}
               accessibilityRole="link"
               accessibilityLabel={'Discover ' + genre.name}
-              className="min-h-11 justify-center rounded-lg border border-border bg-default px-3"
+              className="bg-default min-h-11 justify-center rounded-lg border border-border px-3"
             >
               <Text className="text-sm text-foreground">{genre.name}</Text>
             </Pressable>
@@ -54,6 +56,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
     onLayout,
     onScrollBeginDrag,
     captureBeforeNavigation,
+    cancelBeforeNavigation,
   } = useRememberedScroll('catalog:' + item.type + ':' + item.id, 'entry');
   const input = { id: item.id, type: item.type, region };
   const noOverview =
@@ -61,7 +64,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
       ? 'No overview available for this movie.'
       : 'No overview available for this TV show.';
   return (
-    <ScrollNavigationProvider capture={captureBeforeNavigation}>
+    <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
       <ScrollView
         ref={scrollRef}
         testID="catalog-scroll"
@@ -69,6 +72,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
         onContentSizeChange={restoreScroll}
         onLayout={onLayout}
         onScrollBeginDrag={onScrollBeginDrag}
+        onTouchMove={onScrollBeginDrag}
         scrollEventThrottle={16}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-8 pt-4 pb-12"

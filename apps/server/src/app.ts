@@ -1,20 +1,20 @@
 import 'server-only';
 import { appRouter, type AppServices } from '@movies/api/router';
+import { isLocalBrowserOrigin } from '@movies/config/native-auth';
 import { RPCHandler } from '@orpc/server/fetch';
+import type { AuthGateway } from '@server/auth-gateway';
 import { Hono, type MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
 
-// Development browsers may use localhost or the computer's private LAN address.
-const LOCAL_ORIGIN =
-  /^https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(?::\d{1,5})?$/;
 function localOrigin(origin: string) {
-  return LOCAL_ORIGIN.test(origin) ? origin : '';
+  return isLocalBrowserOrigin(origin) ? origin : '';
 }
 
 export function createApp(
   services: AppServices,
   origin?: string,
   middleware: MiddlewareHandler[] = [],
+  auth?: AuthGateway,
 ) {
   const app = new Hono();
   for (const use of middleware) {
@@ -26,11 +26,37 @@ export function createApp(
     cors({
       origin: origin ?? localOrigin,
       allowMethods: ['GET', 'POST', 'OPTIONS'],
+      credentials: true,
       allowHeaders: ['Content-Type'],
     }),
   );
+  app.use(
+    '/api/auth/*',
+    cors({
+      origin: origin ?? localOrigin,
+      credentials: true,
+      allowMethods: ['GET', 'POST', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'expo-origin'],
+    }),
+  );
+  app.on(['GET', 'POST'], '/api/auth/*', async (c) => {
+    if (!auth) {
+      return c.json({ message: 'Authentication is not configured' }, 503);
+    }
+    try {
+      return await auth.handle(c.req.raw);
+    } catch {
+      return c.json({ message: 'Could not reach authentication service' }, 502);
+    }
+  });
   app.all('/rpc/*', async (c) => {
-    const result = await handler.handle(c.req.raw, { prefix: '/rpc', context: services });
+    const result = await handler.handle(c.req.raw, {
+      prefix: '/rpc',
+      context: {
+        ...services,
+        session: auth ? { current: () => auth.current(c.req.raw.headers) } : undefined,
+      },
+    });
     return result.matched ? result.response : c.notFound();
   });
   app.get('/health', (c) => c.json({ status: 'ok' }));

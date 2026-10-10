@@ -5,10 +5,11 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 
 /** The host owns connection settings; SQL, ranking and deadlines remain shared with web. */
 export function createFuzzySearch(databaseUrl?: string, poolMax = 3): SearchSources['fuzzy'] {
-  if (!databaseUrl)
+  if (!databaseUrl) {
     return async function noIndex() {
       return [];
     };
+  }
   const database = drizzle({
     connection: {
       connectionString: databaseUrl,

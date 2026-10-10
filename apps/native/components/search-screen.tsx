@@ -49,7 +49,7 @@ function SearchForm({
         accessibilityLabel="Search movies, TV shows and people"
         placeholder="Search movies, TV shows and people"
         placeholderTextColorClassName="accent-muted"
-        className="min-h-12 flex-1 rounded-xl border border-border bg-default px-4 text-foreground"
+        className="bg-default min-h-12 flex-1 rounded-xl border border-border px-4 text-foreground"
         value={draft}
         onChangeText={setDraft}
         maxLength={500}
@@ -87,6 +87,7 @@ function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: n
     onContentSizeChange,
     onScrollBeginDrag,
     captureBeforeNavigation,
+    cancelBeforeNavigation,
   } = useRememberedScroll<FlatList<SearchItem>>('search:' + JSON.stringify(input));
   if (query.isPending) {
     return (
@@ -101,7 +102,7 @@ function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: n
         <Text className="text-foreground">Couldn’t load search results.</Text>
         <Pressable
           accessibilityRole="button"
-          className="min-h-11 justify-center rounded-xl bg-default px-4"
+          className="bg-default min-h-11 justify-center rounded-xl px-4"
           onPress={() => {
             void query.refetch();
           }}
@@ -112,7 +113,7 @@ function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: n
     );
   }
   return (
-    <ScrollNavigationProvider capture={captureBeforeNavigation}>
+    <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
       <FlatList
         testID="search-scroll"
         className="flex-1"
@@ -125,6 +126,7 @@ function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: n
         onLayout={onLayout}
         onContentSizeChange={onContentSizeChange}
         onScrollBeginDrag={onScrollBeginDrag}
+        onTouchMove={onScrollBeginDrag}
         contentInsetAdjustmentBehavior="automatic"
         scrollEventThrottle={16}
         ListEmptyComponent={<Text className="p-5 text-muted">No results for “{input.query}”.</Text>}
@@ -180,7 +182,7 @@ export function SearchScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Media type"
-          className="min-h-11 justify-center self-start rounded-xl bg-default px-4"
+          className="bg-default min-h-11 justify-center self-start rounded-xl px-4"
           onPress={() => setTypeOpen(true)}
         >
           <Text className="text-foreground">

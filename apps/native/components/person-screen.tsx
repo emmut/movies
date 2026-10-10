@@ -88,7 +88,7 @@ function PersonStatistics({
   movie: UseQueryResult<MediaCard[]>;
   tv: UseQueryResult<MediaCard[]>;
 }) {
-  if (movie.isPending || tv.isPending) {
+  if (!movie.isSuccess || !tv.isSuccess) {
     return <StatGrid stats={personStats(person, undefined)} />;
   }
   const credits = personCreditCount(movie.data, tv.data);
@@ -108,9 +108,10 @@ function PersonContent({ person }: { person: PersonDetail }) {
     onScrollBeginDrag,
     onContentSizeChange,
     captureBeforeNavigation,
+    cancelBeforeNavigation,
   } = useRememberedScroll('person:' + person.id, 'entry');
   return (
-    <ScrollNavigationProvider capture={captureBeforeNavigation}>
+    <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
       <ScrollView
         testID="person-scroll"
         className="flex-1"
@@ -118,6 +119,7 @@ function PersonContent({ person }: { person: PersonDetail }) {
         onScroll={onScroll}
         onLayout={onLayout}
         onScrollBeginDrag={onScrollBeginDrag}
+        onTouchMove={onScrollBeginDrag}
         onContentSizeChange={onContentSizeChange}
         scrollEventThrottle={16}
         contentInsetAdjustmentBehavior="automatic"
@@ -158,7 +160,7 @@ function PersonNotFound() {
       </Text>
       <Pressable
         accessibilityRole="button"
-        className="min-h-11 justify-center rounded-xl bg-default px-4"
+        className="bg-default min-h-11 justify-center rounded-xl px-4"
         onPress={() => router.replace('/')}
       >
         <Text className="font-semibold text-foreground">Go to Home</Text>
@@ -175,7 +177,7 @@ function PersonLoadError({ error, retry }: { error: Error; retry: () => Promise<
       <Text className="text-foreground">Couldn’t load this person.</Text>
       <Pressable
         accessibilityRole="button"
-        className="min-h-11 justify-center rounded-xl bg-default px-4"
+        className="bg-default min-h-11 justify-center rounded-xl px-4"
         onPress={() => {
           void retry();
         }}

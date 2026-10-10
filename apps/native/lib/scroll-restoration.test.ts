@@ -2,6 +2,7 @@ import {
   canRestoreScroll,
   clampScrollOffset,
   readScrollOffset,
+  readScrollDimensions,
   restoreScrollPosition,
 } from '@native/lib/scroll-restoration';
 import { describe, expect, it, vi } from 'vitest';
@@ -59,4 +60,16 @@ describe('native transparent-header insets', () => {
     expect(clampScrollOffset(-20, 0)).toBe(0);
     expect(clampScrollOffset(-20, -1)).toBe(0);
   });
+});
+
+it('checks the current browser layout rather than stale measurements when returning', () => {
+  expect(readScrollDimensions({ scrollHeight: 1868, clientHeight: 600 }, 2500, 600)).toEqual({
+    content: 1868,
+    viewport: 600,
+  });
+  expect(readScrollDimensions({ scrollHeight: 0, clientHeight: 0 }, 2500, 600)).toEqual({
+    content: 0,
+    viewport: 0,
+  });
+  expect(readScrollDimensions(null, 2500, 600)).toEqual({ content: 2500, viewport: 600 });
 });

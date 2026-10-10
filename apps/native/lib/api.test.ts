@@ -6,6 +6,7 @@ const native = vi.hoisted(() => ({
   remove: vi.fn(),
   addListener: vi.fn(),
 }));
+vi.mock('@native/lib/auth-client', () => ({ authClient: { getCookie: async () => '' } }));
 vi.mock('@native/lib/connections', () => ({ serverUrl: 'http://localhost:3001' }));
 vi.mock('react-native', () => ({
   Platform: {

@@ -10,14 +10,14 @@ import { withUniwind } from 'uniwind';
 const Image = withUniwind(NativeImage);
 export function SearchPerson({ item }: { item: SearchPersonCard }) {
   const pathname = usePathname();
-  const rememberNavigation = useScrollNavigation();
+  const navigationPress = useScrollNavigation();
   return (
     <Link
       href={{ pathname: catalogPath(pathname), params: { type: 'person', id: item.id } }}
       asChild
     >
       <Pressable
-        onPressIn={rememberNavigation}
+        {...navigationPress}
         accessibilityRole="link"
         accessibilityLabel={'Open ' + item.name + ', Person'}
         className="w-36 gap-2"

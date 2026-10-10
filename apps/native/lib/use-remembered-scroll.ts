@@ -1,7 +1,9 @@
+import { registerScrollCapture } from '@native/lib/navigation-scroll';
 import {
   canRestoreScroll,
   clampScrollOffset,
   readScrollOffset,
+  readScrollDimensions,
   restoreScrollPosition,
 } from '@native/lib/scroll-restoration';
 import { useFocusEffect, useRoute } from 'expo-router';
@@ -39,25 +41,32 @@ export function useRememberedScroll<
     if (!ref.current) {
       return;
     }
-    if (
-      !canRestoreScroll(
-        offset.current,
-        contentHeight.current + bottomInset.current,
-        viewportHeight.current,
-      )
-    ) {
+    const dimensions = readScrollDimensions(
+      ref.current.getScrollableNode(),
+      contentHeight.current + bottomInset.current,
+      viewportHeight.current,
+    );
+    if (!canRestoreScroll(offset.current, dimensions.content, dimensions.viewport)) {
       return;
     }
     phase.current = 'ready';
     restoreScrollPosition(ref.current, offset.current);
   }, []);
 
+  const captureBeforeNavigation = useCallback(function captureBeforeNavigation() {
+    if (ref.current) {
+      navigationOffset.current = readScrollOffset(ref.current.getScrollableNode(), offset.current);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(
       function focus() {
+        const unregister = registerScrollCapture(captureBeforeNavigation);
         phase.current = remembered.current ? 'restoring' : 'ready';
         const frame = requestAnimationFrame(restore);
         return function blur() {
+          unregister();
           cancelAnimationFrame(frame);
           if (navigationOffset.current !== null) {
             offset.current = navigationOffset.current;
@@ -72,20 +81,19 @@ export function useRememberedScroll<
           }
         };
       },
-      [positionKey, restore],
+      [positionKey, restore, captureBeforeNavigation],
     ),
   );
 
-  function captureBeforeNavigation() {
-    if (ref.current) {
-      navigationOffset.current = readScrollOffset(ref.current.getScrollableNode(), offset.current);
-    }
-  }
   function onLayout(event: LayoutChangeEvent) {
     viewportHeight.current = event.nativeEvent.layout.height;
     restore();
   }
+  function cancelBeforeNavigation() {
+    navigationOffset.current = null;
+  }
   function onScrollBeginDrag() {
+    cancelBeforeNavigation();
     phase.current = 'ready';
   }
   function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -108,5 +116,6 @@ export function useRememberedScroll<
     onLayout,
     onScrollBeginDrag,
     captureBeforeNavigation,
+    cancelBeforeNavigation,
   };
 }

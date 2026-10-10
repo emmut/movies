@@ -16,7 +16,7 @@ function keyExtractor(item: MediaCard) {
 
 function CardMetadata({ item, featured }: { item: MediaCard; featured: boolean }) {
   return (
-    <View className="absolute bottom-0 left-0 right-0 gap-1 p-3">
+    <View className="absolute right-0 bottom-0 left-0 gap-1 p-3">
       <Text numberOfLines={2} className="text-sm font-semibold text-white">
         {item.title}
       </Text>
@@ -50,7 +50,7 @@ function CardImage({ item, featured }: { item: MediaCard; featured: boolean }) {
       />
       <View className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
       {source === null ? <Text className="text-xs text-zinc-400">No image available</Text> : null}
-      <View className="absolute left-2 top-2">
+      <View className="absolute top-2 left-2">
         <MediaBadge type={item.type} />
       </View>
       <CardMetadata item={item} featured={featured} />
@@ -73,7 +73,7 @@ export const MediaPoster = memo(function Poster({
   region?: string;
 }) {
   const pathname = usePathname();
-  const rememberNavigation = useScrollNavigation();
+  const navigationPress = useScrollNavigation();
   return (
     <Link
       href={{
@@ -83,7 +83,7 @@ export const MediaPoster = memo(function Poster({
       asChild
     >
       <Pressable
-        onPressIn={rememberNavigation}
+        {...navigationPress}
         accessibilityRole="link"
         accessibilityLabel={`Open ${item.title}, ${mediaLabel(item.type)}`}
         className={featured ? 'w-full' : 'w-36'}
