@@ -1,5 +1,5 @@
 import 'server-only';
-import { appRouter, type HomeService } from '@movies/api/router';
+import { appRouter, type AppServices } from '@movies/api/router';
 import { RPCHandler } from '@orpc/server/fetch';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -11,7 +11,7 @@ function localOrigin(origin: string) {
   return LOCAL_ORIGIN.test(origin) ? origin : '';
 }
 
-export function createApp(home: HomeService, origin?: string) {
+export function createApp(services: AppServices, origin?: string) {
   const app = new Hono();
   const handler = new RPCHandler(appRouter);
   app.use(
@@ -23,7 +23,7 @@ export function createApp(home: HomeService, origin?: string) {
     }),
   );
   app.all('/rpc/*', async (c) => {
-    const result = await handler.handle(c.req.raw, { prefix: '/rpc', context: { home } });
+    const result = await handler.handle(c.req.raw, { prefix: '/rpc', context: services });
     return result.matched ? result.response : c.notFound();
   });
   app.get('/health', (c) => c.json({ status: 'ok' }));

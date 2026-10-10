@@ -1,17 +1,26 @@
 import { HOME_SECTIONS } from '@movies/api/home';
-import { DEFAULT_REGION, regions, type RegionCode } from '@movies/config/regions';
+import { regions } from '@movies/config/regions';
 import { useState } from 'react';
-import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
+import { Brand } from '../components/brand';
 import { MediaRow, TrendingCard } from '../components/media-row';
+import { RegionPicker } from '../components/region-picker';
 import { queryClient, orpc } from '../lib/api';
+import { useRegion } from '../lib/preferences';
+import { useRememberedScroll } from '../lib/use-remembered-scroll';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
 export default function Home() {
-  const [region, setRegion] = useState<RegionCode>(DEFAULT_REGION);
+  const { region, setRegion } = useRegion();
+  const {
+    ref: homeScrollRef,
+    onScroll: rememberHomeScroll,
+    onContentSizeChange: restoreHomeScroll,
+  } = useRememberedScroll('home');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   async function refresh() {
@@ -24,10 +33,8 @@ export default function Home() {
   }
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
-      <View className="flex-row items-center justify-between px-5 py-3">
-        <Text className="text-foreground text-2xl font-bold">
-          Movies<Text className="text-yellow-600">.</Text>
-        </Text>
+      <View className="flex-row items-center justify-between border-b border-border px-4 py-3">
+        <Brand />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Region: ${regions.find((item) => item.code === region)?.name}. Change region`}
@@ -38,7 +45,12 @@ export default function Home() {
         </Pressable>
       </View>
       <ScrollView
-        contentContainerClassName="pb-10"
+        testID="home-scroll"
+        ref={homeScrollRef}
+        onScroll={rememberHomeScroll}
+        onContentSizeChange={restoreHomeScroll}
+        scrollEventThrottle={16}
+        contentContainerClassName="gap-4 pb-10"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -49,9 +61,13 @@ export default function Home() {
           />
         }
       >
-        <View className="gap-3 px-5 pt-5">
-          <Text className="text-foreground text-3xl font-bold">Trending Now</Text>
-          <Text className="mb-2 text-sm text-muted">What everyone’s watching</Text>
+        <View className="gap-4 px-4 pt-5">
+          <Text
+            accessibilityRole="header"
+            className="text-2xl font-bold tracking-tight text-foreground"
+          >
+            Trending Now
+          </Text>
           <TrendingCard type="movie" />
           <TrendingCard type="tv" />
         </View>
@@ -62,42 +78,12 @@ export default function Home() {
           Movie and TV data provided by TMDB
         </Text>
       </ScrollView>
-      <Modal
+      <RegionPicker
         visible={pickerOpen}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setPickerOpen(false)}
-      >
-        <SafeAreaView className="flex-1 bg-background">
-          <View className="flex-row items-center justify-between px-5 py-3">
-            <Text className="text-foreground text-xl font-bold">Choose your region</Text>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setPickerOpen(false)}
-              className="rounded-xl bg-default px-4 py-3"
-            >
-              <Text className="text-foreground">Done</Text>
-            </Pressable>
-          </View>
-          <ScrollView>
-            {regions.map((item) => (
-              <Pressable
-                key={item.code}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: region === item.code }}
-                onPress={() => {
-                  setRegion(item.code);
-                  setPickerOpen(false);
-                }}
-                className="flex-row justify-between p-5"
-              >
-                <Text className="text-foreground text-lg">{item.name}</Text>
-                <Text className="text-yellow-600">{region === item.code ? '✓' : ''}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
+        selected={region}
+        onSelect={setRegion}
+        onClose={() => setPickerOpen(false)}
+      />
     </SafeAreaView>
   );
 }

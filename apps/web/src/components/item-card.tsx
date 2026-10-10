@@ -1,9 +1,10 @@
+import { displayRating } from '@movies/api/home';
+import { Skeleton } from '@movies/ui/components/skeleton';
 import { cn } from 'cn';
 import { Star } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
-import { Skeleton } from '@movies/ui/components/skeleton';
 import { formatImageUrl } from '@/lib/utils';
 import { Movie, MovieDetails } from '@/types/movie';
 import type { ProxyImageUrls } from '@/types/proxy-image';
@@ -59,7 +60,7 @@ export default function ItemCard({
   eagerImage = false,
 }: ItemCardProps) {
   const posterImageUrls = (item as { posterImageUrls?: ProxyImageUrls }).posterImageUrls;
-  const score = Math.ceil(item.vote_average * 10) / 10;
+  const score = displayRating(item.vote_average);
 
   const title = isResource(item) ? item.title : item.name;
   const releaseDate = isResource(item) ? item.release_date : item.first_air_date;

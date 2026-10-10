@@ -90,3 +90,16 @@ describe('formatCertification', () => {
     expect(formatCertification(null, 'SE')).toBeNull();
   });
 });
+
+it('uses a non-theatrical certification when no theatrical release is rated', () => {
+  const results = [
+    {
+      iso_3166_1: 'SE',
+      release_dates: [
+        { certification: '', iso_639_1: '', release_date: '', type: 3 },
+        { certification: '15', iso_639_1: '', release_date: '', type: 4 },
+      ],
+    },
+  ];
+  expect(pickMovieCertification(results, 'SE')).toEqual({ value: '15', region: 'SE' });
+});

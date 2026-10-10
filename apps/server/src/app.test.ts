@@ -7,14 +7,15 @@ import { createApp } from './app';
 
 function setup() {
   const home = { list: vi.fn().mockResolvedValue([]), trending: vi.fn().mockResolvedValue([]) };
-  const app = createApp(home, 'http://localhost:8081');
+  const catalog = { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() };
+  const app = createApp({ home, catalog }, 'http://localhost:8081');
   const client: AppRouterClient = createORPCClient(
     new RPCLink({
       url: 'http://localhost/rpc',
       fetch: async (request, init) => app.request(request, init),
     }),
   );
-  return { home, app, client };
+  return { home, catalog, app, client };
 }
 describe('homepage RPC transport', () => {
   it('serves health and leaves unknown routes as 404', async () => {
@@ -56,7 +57,10 @@ describe('homepage RPC transport', () => {
   });
   it('allows a LAN browser preview in development without hardcoding its IP', async () => {
     const home = { list: vi.fn().mockResolvedValue([]), trending: vi.fn().mockResolvedValue([]) };
-    const app = createApp(home);
+    const app = createApp({
+      home,
+      catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
+    });
     const origin = 'http://192.168.1.78:8081';
     const response = await app.request('/rpc/home/list', {
       method: 'OPTIONS',
@@ -71,7 +75,10 @@ describe('homepage RPC transport', () => {
     'http://10.0.2.2:8081',
     'http://172.16.0.2:8081',
   ])('allows local dev origin %s', async (origin) => {
-    const app = createApp({ list: vi.fn(), trending: vi.fn() });
+    const app = createApp({
+      home: { list: vi.fn(), trending: vi.fn() },
+      catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
+    });
     const response = await app.request('/rpc/home/list', {
       method: 'OPTIONS',
       headers: { origin },
@@ -83,7 +90,10 @@ describe('homepage RPC transport', () => {
     'http://192.168.1.78.attacker.example',
     'http://172.32.0.2:8081',
   ])('rejects unrelated dev origins %s', async (origin) => {
-    const app = createApp({ list: vi.fn(), trending: vi.fn() });
+    const app = createApp({
+      home: { list: vi.fn(), trending: vi.fn() },
+      catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
+    });
     const response = await app.request('/rpc/home/list', {
       method: 'OPTIONS',
       headers: { origin },

@@ -1,81 +1,9 @@
-import type { MediaCard, HomeMediaSection } from '@movies/api/home';
+import type { HomeMediaSection } from '@movies/api/home';
 import { useQuery } from '@tanstack/react-query';
-import { Image as ExpoImage } from 'expo-image';
-import { memo } from 'react';
-import { Alert, FlatList, Linking, Pressable, Text, View } from 'react-native';
-import { withUniwind } from 'uniwind';
+import { Pressable, Text, View } from 'react-native';
 
 import { orpc } from '../lib/api';
-import { webUrl } from '../lib/connections';
-
-const Image = withUniwind(ExpoImage);
-
-function keyExtractor(item: MediaCard) {
-  return `${item.type}-${item.id}`;
-}
-async function openTitle(item: MediaCard) {
-  await Linking.openURL(`${webUrl}/${item.type}/${item.id}`);
-}
-function CardImage({ item, featured }: { item: MediaCard; featured: boolean }) {
-  const source = featured ? item.backdropUrl : item.posterUrl;
-  return (
-    <View
-      className={`items-center justify-center overflow-hidden rounded-xl bg-zinc-800 ${featured ? 'h-50 w-full' : 'h-54'}`}
-    >
-      <Image
-        source={source}
-        contentFit="cover"
-        transition={150}
-        className="absolute inset-0 size-full"
-        accessibilityIgnoresInvertColors
-      />
-      {source === null ? <Text className="text-xs text-zinc-400">No image available</Text> : null}
-      <View className="absolute bottom-2 left-2 rounded-md bg-zinc-950/85 p-1.5">
-        <Text className="text-xs font-bold text-yellow-400">
-          {mediaLabel(item.type)} · ★ {item.rating.toFixed(1)}
-        </Text>
-      </View>
-    </View>
-  );
-}
-function mediaLabel(type: MediaCard['type']) {
-  return type === 'movie' ? 'Movie' : 'TV show';
-}
-function releaseYear(date: string) {
-  return date.slice(0, 4) || 'Release date TBA';
-}
-const Poster = memo(function Poster({
-  item,
-  featured = false,
-}: {
-  item: MediaCard;
-  featured?: boolean;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="link"
-      accessibilityLabel={`Open ${item.title}, ${mediaLabel(item.type)}`}
-      onPress={() => {
-        void openTitle(item).catch(() =>
-          Alert.alert('Couldn’t open title', 'Check the web app address and try again.'),
-        );
-      }}
-      className={featured ? 'gap-1.5' : 'w-36 gap-1.5'}
-    >
-      <CardImage item={item} featured={featured} />
-      <Text numberOfLines={2} className="text-base font-semibold text-foreground">
-        {item.title}
-      </Text>
-      <Text className="text-sm text-muted">{releaseYear(item.releaseDate)}</Text>
-    </Pressable>
-  );
-});
-function renderPoster({ item }: { item: MediaCard }) {
-  return <Poster item={item} />;
-}
-function Separator() {
-  return <View className="w-3" />;
-}
+import { MediaPoster, MediaPosterRow } from './media-poster';
 
 function RowState({
   pending,
@@ -118,10 +46,14 @@ export function MediaRow({ section, region }: { section: HomeMediaSection; regio
     orpc.home.list.queryOptions({ input: { category: section.category, region } }),
   );
   return (
-    <View className="gap-3.5 py-4">
-      <View className="gap-1 px-5">
-        <Text className="text-foreground text-xl font-semibold">{section.heading}</Text>
-        <Text className="text-sm text-muted">{section.caption}</Text>
+    <View className="gap-4 py-4">
+      <View className="px-4">
+        <Text
+          accessibilityRole="header"
+          className="text-xl font-semibold tracking-tight text-foreground"
+        >
+          {section.heading}
+        </Text>
       </View>
       <RowState
         pending={query.isPending}
@@ -132,17 +64,9 @@ export function MediaRow({ section, region }: { section: HomeMediaSection; regio
         }}
       />
       {query.data && query.data.length > 0 ? (
-        <FlatList
-          horizontal
-          data={query.data}
-          renderItem={renderPoster}
-          keyExtractor={keyExtractor}
-          ItemSeparatorComponent={Separator}
-          contentContainerClassName="px-5"
-          showsHorizontalScrollIndicator={false}
-          initialNumToRender={4}
-          maxToRenderPerBatch={4}
-        />
+        <View className="px-4">
+          <MediaPosterRow items={query.data} />
+        </View>
       ) : null}
     </View>
   );
@@ -151,7 +75,7 @@ export function MediaRow({ section, region }: { section: HomeMediaSection; regio
 export function TrendingCard({ type }: { type: 'movie' | 'tv' }) {
   const query = useQuery(orpc.home.trending.queryOptions({ input: { type } }));
   return (
-    <View className="mb-4">
+    <View>
       <RowState
         pending={query.isPending}
         failed={query.isError}
@@ -160,7 +84,7 @@ export function TrendingCard({ type }: { type: 'movie' | 'tv' }) {
           void query.refetch();
         }}
       />
-      {query.data?.[0] ? <Poster item={query.data[0]} featured /> : null}
+      {query.data?.[0] ? <MediaPoster item={query.data[0]} featured /> : null}
     </View>
   );
 }

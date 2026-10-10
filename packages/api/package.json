@@ -5,6 +5,10 @@
   "type": "module",
   "exports": {
     "./validations": "./src/validations.ts",
+    "./formatting": "./src/formatting.ts",
+    "./catalog-support": "./src/catalog-support.ts",
+    "./catalog": "./src/catalog.ts",
+    "./certifications": "./src/certifications.ts",
     "./home": "./src/home.ts",
     "./router": "./src/router.ts",
     "./tmdb-fetch": "./src/tmdb-fetch.ts"

@@ -1,7 +1,7 @@
+import { formatCurrency } from '@movies/api/formatting';
 import { DollarSign } from 'lucide-react';
 
 import type { MovieDetails } from '@/types/movie';
-import { formatCurrency } from '@/lib/utils';
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (

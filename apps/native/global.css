@@ -1,3 +1,23 @@
 @import 'tailwindcss';
 @import 'uniwind';
 @import 'heroui-native/styles';
+
+/* Match the web product's stone palette; HeroUI keeps its native controls. */
+@layer theme {
+  :root {
+    @variant light {
+      --background: oklch(1 0 0);
+      --foreground: oklch(0.147 0.004 49.25);
+      --muted: oklch(0.553 0.013 58.071);
+      --border: oklch(0.923 0.003 48.717);
+      --default: oklch(0.97 0.001 106.424);
+    }
+    @variant dark {
+      --background: oklch(0.147 0.004 49.25);
+      --foreground: oklch(0.985 0.001 106.423);
+      --muted: oklch(0.709 0.01 56.259);
+      --border: oklch(0.268 0.007 34.298);
+      --default: oklch(0.268 0.007 34.298);
+    }
+  }
+}

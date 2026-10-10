@@ -3,6 +3,8 @@ import type { MediaCard, HomeMediaCategory } from '@movies/api/home';
 import type { HomeService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
 
+import { toMediaCard, type TmdbCard } from './media-card';
+
 const endpoints: Record<HomeMediaCategory, string> = {
   'now-playing-movies': '/movie/now_playing',
   'on-the-air-tv': '/tv/on_the_air',
@@ -11,34 +13,10 @@ const endpoints: Record<HomeMediaCategory, string> = {
   'top-rated-movies': '/movie/top_rated',
   'top-rated-tv': '/tv/top_rated',
 };
-type TmdbTitle = {
-  id: number;
-  title?: string;
-  name?: string;
-  release_date?: string;
-  first_air_date?: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  vote_average: number;
-};
-function imageUrl(path: string | null, size: string) {
-  return path ? `https://image.tmdb.org/t/p/${size}${path}` : null;
-}
-function toCard(item: TmdbTitle, type: MediaCard['type']): MediaCard {
-  return {
-    id: item.id,
-    type,
-    title: item.title ?? item.name ?? '',
-    releaseDate: item.release_date ?? item.first_air_date ?? '',
-    posterUrl: imageUrl(item.poster_path, 'w342'),
-    backdropUrl: imageUrl(item.backdrop_path, 'w780'),
-    rating: item.vote_average,
-  };
-}
 export function createHomeService(fetchTmdb: TmdbFetch): HomeService {
   async function load(path: string, type: MediaCard['type'], region?: string) {
-    const data = await fetchTmdb<{ results: TmdbTitle[] }>(path, { searchParams: { region } });
-    return data.results.map((item) => toCard(item, type));
+    const data = await fetchTmdb<{ results: TmdbCard[] }>(path, { searchParams: { region } });
+    return data.results.map((item) => toMediaCard(item, type));
   }
   return {
     async list({ category, region }) {

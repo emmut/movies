@@ -1,11 +1,14 @@
 import 'server-only';
+import type {
+  MovieReleaseDatesResponse,
+  TvContentRatingsResponse,
+} from '@movies/api/certifications';
+import { pickMovieCertification, pickTvCertification } from '@movies/api/certifications';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import type { MovieReleaseDatesResponse, TvContentRatingsResponse } from '@/types/certification';
 import type { TmdbReviewsResponse } from '@/types/review';
 
 import { CACHE_TAGS } from './cache-tags';
-import { pickMovieCertification, pickTvCertification } from './certifications';
 import { tmdbFetch } from './tmdb';
 
 type MediaType = 'movie' | 'tv';

@@ -3,13 +3,13 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   testDir: './e2e',
   use: {
-    baseURL: 'http://localhost:8082',
+    baseURL: 'http://localhost:8083',
     ...devices['iPhone 13'],
     defaultBrowserType: 'chromium',
   },
   webServer: {
-    command: 'python3 -m http.server 8082 --bind 127.0.0.1 --directory dist',
-    url: 'http://localhost:8082',
+    command: 'python3 e2e/serve.py',
+    url: 'http://localhost:8083',
     reuseExistingServer: !process.env.CI,
   },
 });

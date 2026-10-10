@@ -1,8 +1,8 @@
 import 'server-only';
+import { pickYoutubeTrailer, type TmdbVideoResponse } from '@movies/api/catalog-support';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import type { GenreResponse } from '@/types/genre';
-import { TmdbVideoResponse } from '@/types/tmdb-video';
 import {
   TmdbExternalIdsResponse,
   TvCredits,
@@ -240,15 +240,7 @@ export async function getTvShowTrailer(tvId: number) {
       errorMessage: 'Failed to fetch trailer',
     });
 
-    const trailer = data.results.find(
-      (video) => (video.type === 'Trailer' || video.type === 'Teaser') && video.site === 'YouTube',
-    );
-
-    if (!trailer) {
-      return null;
-    }
-
-    return trailer.key;
+    return pickYoutubeTrailer(data.results);
   } catch (error) {
     console.error('Error fetching trailer:', error);
     return null;
