@@ -8,7 +8,11 @@ import { describe, expect, it, vi } from 'vitest';
 function setup() {
   const fetcher = vi.fn().mockResolvedValue({ results: [] });
   const catalog = createCatalogService(fetcher);
-  const app = createApp({ home: { list: vi.fn(), trending: vi.fn() }, catalog });
+  const app = createApp({
+    discovery: { list: vi.fn(), options: vi.fn() },
+    home: { list: vi.fn(), trending: vi.fn() },
+    catalog,
+  });
   const client: AppRouterClient = createORPCClient(
     new RPCLink({
       url: 'http://localhost/rpc',

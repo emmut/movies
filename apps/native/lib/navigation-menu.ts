@@ -13,9 +13,12 @@ export const MORE_MENU_ITEMS = [
   { id: 'login', label: 'Sign in', symbol: 'person.crop.circle', path: '/login' },
 ] as const;
 const allItems = [...PRIMARY_MENU_ITEMS, ...MORE_MENU_ITEMS];
-type MenuDestination = { kind: 'native'; path: '/' } | { kind: 'browser'; url: string };
+type MenuDestination =
+  | { kind: 'native'; path: '/' | '/discover' }
+  | { kind: 'browser'; url: string };
 
 export function getMenuDestination(id: string, webBaseUrl: string): MenuDestination | null {
+  if (id === 'discover') return { kind: 'native', path: '/discover' };
   if (id === 'home') return { kind: 'native', path: '/' };
   const item = allItems.find((entry) => entry.id === id);
   if (!item) return null;

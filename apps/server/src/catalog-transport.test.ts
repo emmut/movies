@@ -12,7 +12,11 @@ function setup() {
     .mockResolvedValueOnce({ id: 42, title: 'A movie' })
     .mockResolvedValueOnce({ results: [] });
   const catalog = createCatalogService(fetchTmdb);
-  const app = createApp({ home: { list: vi.fn(), trending: vi.fn() }, catalog });
+  const app = createApp({
+    discovery: { list: vi.fn(), options: vi.fn() },
+    home: { list: vi.fn(), trending: vi.fn() },
+    catalog,
+  });
   const client: AppRouterClient = createORPCClient(
     new RPCLink({
       url: 'http://localhost/rpc',

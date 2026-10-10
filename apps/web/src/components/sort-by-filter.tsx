@@ -1,7 +1,6 @@
 'use client';
 
-import { parseAsString, useQueryStates } from 'nuqs';
-
+import { MOVIE_SORT_OPTIONS, TV_SORT_OPTIONS } from '@movies/api/discover-options';
 import { Label } from '@movies/ui/components/label';
 import {
   Select,
@@ -11,35 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movies/ui/components/select';
+import { parseAsString, useQueryStates } from 'nuqs';
 
 type SortByFilterProps = {
   mediaType: 'movie' | 'tv';
   controlId?: string;
 };
-
-const MOVIE_SORT_OPTIONS = [
-  { value: 'popularity.desc', label: 'Popularity (High to Low)' },
-  { value: 'popularity.asc', label: 'Popularity (Low to High)' },
-  { value: 'vote_average.desc', label: 'Rating (High to Low)' },
-  { value: 'vote_average.asc', label: 'Rating (Low to High)' },
-  { value: 'release_date.desc', label: 'Release Date (Newest)' },
-  { value: 'release_date.asc', label: 'Release Date (Oldest)' },
-  { value: 'revenue.desc', label: 'Revenue (High to Low)' },
-  { value: 'revenue.asc', label: 'Revenue (Low to High)' },
-  { value: 'original_title.asc', label: 'Title (A-Z)' },
-  { value: 'original_title.desc', label: 'Title (Z-A)' },
-  { value: 'vote_count.desc', label: 'Most Voted' },
-  { value: 'vote_count.asc', label: 'Least Voted' },
-];
-
-const TV_SORT_OPTIONS = [
-  { value: 'popularity.desc', label: 'Popularity (High to Low)' },
-  { value: 'popularity.asc', label: 'Popularity (Low to High)' },
-  { value: 'vote_average.desc', label: 'Rating (High to Low)' },
-  { value: 'vote_average.asc', label: 'Rating (Low to High)' },
-  { value: 'first_air_date.desc', label: 'First Air Date (Newest)' },
-  { value: 'first_air_date.asc', label: 'First Air Date (Oldest)' },
-];
 
 /**
  * Renders a sort-by dropdown filter for ordering movies or TV shows.

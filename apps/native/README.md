@@ -46,7 +46,7 @@ The existing web app and cron scripts retain T3 Env validation during the increm
 
 `packages/api/home` exports the schemas, card DTO and shared section definitions. `packages/api/router` exports the oRPC router and its client type. Hosts inject `HomeService` and `CatalogService`; clients import the router type only. No React Native, Next.js, env, session, or database dependencies live in the router. `apps/server` supplies the TMDB implementation and Hono transport. The existing web app retains its cached fetchers, uses the shared section definitions and retrying TMDB transport, and can migrate procedure by procedure later. Consumers import shared definitions and the transport directly from `@movies/api`; app-local compatibility re-exports are not used.
 
-`home.list`, `home.trending`, `catalog.details`, `catalog.trailer`, `catalog.providers` and `catalog.related` are exposed. Catalog contracts validate positive safe-integer IDs, supported media/regions and normalized outputs; core upstream records are validated before mapping. Certification, trailer selection and currency/runtime formatting have canonical shared implementations consumed directly by web and native/Hono. Auth, lists, watchlist, discovery and search have not been migrated.
+`home.list`, `home.trending`, `catalog.details`, `catalog.trailer`, `catalog.providers` and `catalog.related` are exposed. Catalog contracts validate positive safe-integer IDs, supported media/regions and normalized outputs; core upstream records are validated before mapping. Certification, trailer selection and currency/runtime formatting have canonical shared implementations consumed directly by web and native/Hono. Native discovery reads and filter options are exposed through `discovery.list` and `discovery.options`. Auth, lists, watchlist and search remain pending.
 
 ## Verify
 
@@ -62,4 +62,6 @@ See [the committed session decisions and full feature parity plan](../../docs/na
 
 Native uses Expo Router's system tabs: Home, Discover, Search and More (ellipsis), with SF Symbols on iOS and Material symbols on Android. iOS 26 supplies the standard Liquid Glass appearance; earlier iOS and Android use their own system tab bars. Movie/TV details stay in Home's nested native stack. The browser export uses a preview dock and does not demonstrate native glass rendering.
 
-Discover/Search currently contain explicit browser handoff controls; More holds the remaining browser workflows. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.
+Discover is a native grid and filter workflow with its own detail stack. Search still contains an explicit browser handoff control; More holds the remaining browser workflows. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.
+
+Movie/TV detail headers use native Liquid Glass when available, with a native material fallback on older iOS. Screens avoid an extra bottom safe-area backing and let scrollable content extend behind the native bar. App path aliases (`@native/`, `@server/`) resolve consistently through TypeScript, Metro and the root test runner.

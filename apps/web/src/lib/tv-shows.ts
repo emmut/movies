@@ -1,5 +1,6 @@
 import 'server-only';
 import { pickYoutubeTrailer, type TmdbVideoResponse } from '@movies/api/catalog-support';
+import { buildDiscoverSearchParams } from '@movies/api/discover-params';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import type { GenreResponse } from '@/types/genre';
@@ -14,7 +15,6 @@ import {
 } from '@/types/tv-show';
 
 import { CACHE_TAGS } from './cache-tags';
-import { buildDiscoverSearchParams } from './discover-params';
 import { DEFAULT_REGION } from './regions';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
 

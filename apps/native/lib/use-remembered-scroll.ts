@@ -1,7 +1,12 @@
-import { canRestoreScroll } from '@native/lib/scroll-restoration';
+import {
+  canRestoreScroll,
+  readScrollOffset,
+  restoreScrollPosition,
+} from '@native/lib/scroll-restoration';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
 import type {
+  FlatList,
   LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -11,8 +16,11 @@ import type {
 const positions = new Map<string, number>();
 
 /** Remember the focused screen, ignoring zero-offset events while it is hidden. */
-export function useRememberedScroll(key: string) {
-  const ref = useRef<ScrollView>(null);
+export function useRememberedScroll<
+  T extends ScrollView | Pick<FlatList<unknown>, 'scrollToOffset' | 'getScrollableNode'> =
+    ScrollView,
+>(key: string) {
+  const ref = useRef<T>(null);
   const offset = useRef(positions.get(key) ?? 0);
   const contentHeight = useRef(0);
   const viewportHeight = useRef(0);
@@ -23,7 +31,7 @@ export function useRememberedScroll(key: string) {
     if (!ref.current) return;
     if (!canRestoreScroll(offset.current, contentHeight.current, viewportHeight.current)) return;
     phase.current = 'ready';
-    ref.current.scrollTo({ y: offset.current, animated: false });
+    restoreScrollPosition(ref.current, offset.current);
   }, []);
 
   useFocusEffect(
@@ -33,6 +41,8 @@ export function useRememberedScroll(key: string) {
         const frame = requestAnimationFrame(restore);
         return function blur() {
           cancelAnimationFrame(frame);
+          if (ref.current)
+            offset.current = readScrollOffset(ref.current.getScrollableNode(), offset.current);
           phase.current = 'hidden';
           positions.set(key, offset.current);
         };

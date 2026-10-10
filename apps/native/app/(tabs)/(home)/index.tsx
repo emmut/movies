@@ -34,7 +34,11 @@ export default function Home() {
     }
   }
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+    <SafeAreaView
+      className="flex-1 bg-background"
+      edges={['top', 'left', 'right']}
+      collapsable={false}
+    >
       <View className="flex-row items-center justify-between border-b border-border px-4 py-3">
         <Brand />
         <Pressable
@@ -49,6 +53,7 @@ export default function Home() {
       <ScrollView
         className="flex-1"
         testID="home-scroll"
+        contentInsetAdjustmentBehavior="automatic"
         ref={homeScrollRef}
         onScroll={rememberHomeScroll}
         onContentSizeChange={restoreHomeScroll}

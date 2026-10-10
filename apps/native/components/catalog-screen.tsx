@@ -82,7 +82,7 @@ export function CatalogScreen() {
     region,
   });
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['left', 'right', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']} collapsable={false}>
       {input.success ? <CatalogQuery input={input.data} /> : <TitleNotFound />}
       <BottomNavigation />
     </SafeAreaView>

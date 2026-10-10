@@ -8,6 +8,18 @@ import { expect, test, type Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
   await mockEmptySupport({ page });
+  await page.route('**/rpc/discovery/list*', (route) =>
+    route.fulfill({
+      json: { json: { items: [], totalPages: 0, totalResults: 0 } },
+      headers: corsHeaders,
+    }),
+  );
+  await page.route('**/rpc/discovery/options*', (route) =>
+    route.fulfill({
+      json: { json: { genres: [], providers: [], countries: [] } },
+      headers: corsHeaders,
+    }),
+  );
   await page.route('**/rpc/home/*', async (route) => {
     if (await preflight(route)) return;
     await route.fulfill({ json: { json: [] }, headers: corsHeaders });
@@ -92,7 +104,7 @@ test('detail screens retain the dock and Home returns to the native homepage', a
   expect(page.context().pages()).toHaveLength(1);
 });
 
-for (const destination of ['Discover', 'Search'] as const) {
+for (const destination of ['Search'] as const) {
   test(destination + ' native tab shell labels its deferred browser handoff', async ({ page }) => {
     await page.goto('/' + destination.toLowerCase());
     await expect(page.getByRole('heading', { name: destination, exact: true })).toBeVisible();

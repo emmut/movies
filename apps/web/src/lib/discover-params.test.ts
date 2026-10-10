@@ -1,8 +1,8 @@
+import { buildDiscoverSearchParams } from '@movies/api/discover-params';
 import { describe, expect, it } from 'vitest';
 
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { MIN_RUNTIME_FILTER_MINUTES } from './constants';
-import { buildDiscoverSearchParams } from './discover-params';
 import { DEFAULT_REGION } from './regions';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
@@ -110,13 +110,21 @@ describe('buildDiscoverSearchParams', () => {
   });
 
   it('applies the runtime filter only for a positive max runtime', () => {
-    expect(buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: 120 })).toMatchObject({
-      'with_runtime.lte': 120,
-      'with_runtime.gte': MIN_RUNTIME_FILTER_MINUTES,
-    });
+    expect(buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: 120 })).toMatchObject(
+      {
+        'with_runtime.lte': 120,
+        'with_runtime.gte': MIN_RUNTIME_FILTER_MINUTES,
+      },
+    );
 
     expect(
       buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: 0 }),
     ).not.toHaveProperty('with_runtime.lte');
   });
+});
+
+it.each([Number.NaN, 0, -1])('does not emit an invalid runtime bound %s', (runtime) => {
+  expect(
+    buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: runtime }),
+  ).not.toHaveProperty('with_runtime.lte');
 });

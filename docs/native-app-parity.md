@@ -24,7 +24,7 @@ Status: **Foundation** means a working subset exists; **Pending** means no nativ
 | --- | --- | --- | --- |
 | Movie route, poster/backdrop/title/tagline/certification | `app/movie/[movieId]/page.tsx`, `components/item-header.tsx` | Foundation: native route and browser checks; device pending | Valid/invalid IDs, not-found vs upstream error, native back restores source scroll |
 | Movie TMDB score/votes, optional IMDb, runtime/year/popularity | Movie page, `components/ratings-card.tsx` | Foundation: TMDB/runtime/year/popularity; IMDb pending | Shared IMDb data, absent optional values |
-| Movie genres and discovery links, origin countries, overview | Movie page, `components/origin-countries.tsx` | Foundation: overview/genres with web discovery bridge; countries pending | Correct discovery context and overview fallback |
+| Movie genres and discovery links, origin countries, overview | Movie page, `components/origin-countries.tsx` | Foundation: overview/genres with native discovery routes; countries pending | Correct discovery context and overview fallback |
 | Movie status/original title/release/languages/budget/revenue/profit | `components/movie-facts.tsx` | Foundation: core facts and financial rules | Hide absent money; profit requires budget and revenue |
 | Movie cast and crew links to people | `components/movie-credits.tsx`, `components/cast-slider.tsx` | Pending | Correct person IDs; supporting failures preserve main details |
 | TV route, artwork/title/tagline/certification/ratings | `app/tv/[tvId]/page.tsx` | Foundation: native route and TMDB; IMDb/device pending | Correct TV IDs and native back context |
@@ -178,3 +178,13 @@ Validation: 671 unit tests passed (four skipped); 25 native browser checks cover
 The owner resumed the full native plan after initially deferring the page ports. Search/Discover, identity, persistent preferences and lists, account/security, person/catalog/reviews, internal-link replacement and device/release verification are active requirements again. Historical deferred-slice notes above describe the earlier checkpoint only; no pending workflow is complete.
 
 Native and Hono internal imports now use app-scoped path aliases (`@native/` and `@server/`), with TypeScript and Vitest resolving the same modules. Expo browser checks verify Metro runtime resolution. Scroll restoration now waits until the saved offset fits inside the scrollable content, and a manual drag can take control of a pending restoration.
+
+## Native discovery and translucent navigation
+
+Discovery now has a native two-column poster grid, movie/TV selection, genres, all shared sort choices, runtime, origin-country/provider multi-select sheets, watch region, clear/reset and bounded pagination. Native genre links replace their web handoffs. Discovery owns a themed native stack so title/related navigation returns to the source filters and page; the browser handoff for Search and the remaining More workflows are still pending replacement.
+
+Web and Hono use the same discovery parameter builder and sort options. The public oRPC service validates input/output and upstream records, keeps provider/region defaults and OR semantics, skips implicit providers for country-only filtering, and caps TMDB pagination at 500. Saved account region/providers and authenticated quick actions still require the identity/list slices; this is a discovery foundation, not completion of the full parity phase.
+
+The opaque detail-header fill and duplicate bottom safe-area backing are removed. Supported iOS devices render a native GlassView header over scrolling content; older iOS uses native translucent material. NativeTabs retains its system glass bar, and navigation follows the system light/dark theme. Physical-device glass rendering remains unverified.
+
+Evidence: compared the deployed web Discover screen's controls; 31 native browser checks pass, including OR selection, clearing, media/region changes, cached pagination, empty/error/retry, native genre links and contextual detail/back navigation. Discovery contracts/service/filter models and shared query rules have 100% statement/branch/function coverage. Root/workspace typechecks, lint and audit pass; 728 committed unit tests pass (four skipped). Both native iOS/Android exports pass; browser screenshots in light/dark themes do not prove OS glass appearance.

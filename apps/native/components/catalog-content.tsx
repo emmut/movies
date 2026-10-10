@@ -5,9 +5,9 @@ import { CatalogProviders } from '@native/components/catalog-providers';
 import { CatalogRelated } from '@native/components/catalog-related';
 import { CatalogTrailer } from '@native/components/catalog-trailer';
 import { ExternalLink } from '@native/components/external-link';
-import { webUrl } from '@native/lib/connections';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import { ScrollView, Text, View } from 'react-native';
+import { Link } from 'expo-router';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 function Genres({ item }: { item: CatalogDetail }) {
   if (item.genres.length === 0) return null;
@@ -18,12 +18,22 @@ function Genres({ item }: { item: CatalogDetail }) {
       </Text>
       <View className="flex-row flex-wrap gap-2">
         {item.genres.map((genre) => (
-          <ExternalLink
+          <Link
             key={genre.id}
-            href={`${webUrl}/discover?genreId=${genre.id}&mediaType=${item.type}`}
+            href={{
+              pathname: '/discover',
+              params: { genreId: String(genre.id), mediaType: item.type },
+            }}
+            asChild
           >
-            {genre.name}
-          </ExternalLink>
+            <Pressable
+              accessibilityRole="link"
+              accessibilityLabel={'Discover ' + genre.name}
+              className="min-h-11 justify-center rounded-lg border border-border bg-default px-3"
+            >
+              <Text className="text-sm text-foreground">{genre.name}</Text>
+            </Pressable>
+          </Link>
         ))}
       </View>
     </View>

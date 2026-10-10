@@ -18,6 +18,16 @@ import {
   type Trailer,
   type ProviderGroups,
 } from './catalog-support';
+import {
+  discoveryInput,
+  discoveryOptionsInput,
+  discoveryPageSchema,
+  discoveryOptionsSchema,
+  type DiscoveryInput,
+  type DiscoveryOptionsInput,
+  type DiscoveryPage,
+  type DiscoveryOptions,
+} from './discover';
 import { homeListInput, trendingInput, mediaCardSchema, type MediaCard } from './home';
 
 // Services are supplied by the host, so the router has no app, env, or database dependencies.
@@ -31,9 +41,27 @@ export type CatalogService = {
   providers(input: CatalogDetailInput): Promise<ProviderGroups>;
   related(input: CatalogRelatedInput): Promise<MediaCard[]>;
 };
-export type AppServices = { home: HomeService; catalog: CatalogService };
+export type DiscoveryService = {
+  list(input: DiscoveryInput): Promise<DiscoveryPage>;
+  options(input: DiscoveryOptionsInput): Promise<DiscoveryOptions>;
+};
+export type AppServices = {
+  home: HomeService;
+  catalog: CatalogService;
+  discovery: DiscoveryService;
+};
 const procedure = os.$context<AppServices>();
 export const appRouter = {
+  discovery: {
+    list: procedure
+      .input(discoveryInput)
+      .output(discoveryPageSchema)
+      .handler(({ input, context }) => context.discovery.list(input)),
+    options: procedure
+      .input(discoveryOptionsInput)
+      .output(discoveryOptionsSchema)
+      .handler(({ input, context }) => context.discovery.options(input)),
+  },
   catalog: {
     trailer: procedure
       .input(catalogTitleInput)

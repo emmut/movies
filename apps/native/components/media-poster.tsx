@@ -1,7 +1,7 @@
 import { displayRating, type MediaCard } from '@movies/api/home';
 import { MediaBadge } from '@native/components/media-badge';
 import { Image as ExpoImage } from 'expo-image';
-import { Link } from 'expo-router';
+import { Link, usePathname } from 'expo-router';
 import { memo } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { withUniwind } from 'uniwind';
@@ -68,8 +68,10 @@ export const MediaPoster = memo(function Poster({
   item: MediaCard;
   featured?: boolean;
 }) {
+  const pathname = usePathname();
+  const titlePath = pathname.startsWith('/discover') ? '/discover/[type]/[id]' : '/[type]/[id]';
   return (
-    <Link href={{ pathname: '/[type]/[id]', params: { type: item.type, id: item.id } }} asChild>
+    <Link href={{ pathname: titlePath, params: { type: item.type, id: item.id } }} asChild>
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={`Open ${item.title}, ${mediaLabel(item.type)}`}
