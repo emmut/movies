@@ -1,3 +1,4 @@
+import { TmdbRequestError } from '@movies/api/tmdb-fetch';
 import { sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -26,7 +27,6 @@ import {
   tvTitleRow,
   upsertTitle,
 } from './title-sync';
-import { TmdbRequestError } from './tmdb-fetch';
 
 function offer(id: number): WatchProvider {
   return {

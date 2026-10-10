@@ -1,13 +1,12 @@
+import { formatCurrency, formatRuntime } from '@movies/api/formatting';
 import { describe, expect, it } from 'vitest';
 
 import {
   createLoginUrl,
   deduplicateAndSortByPopularity,
   formatCompactNumber,
-  formatCurrency,
   formatDateYear,
   formatImageUrl,
-  formatRuntime,
   getErrorMessage,
   getSafeRedirectUrl,
   isValidRedirectUrl,

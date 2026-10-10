@@ -1,8 +1,8 @@
 import 'server-only';
+import { createTmdbFetch } from '@movies/api/tmdb-fetch';
+
 import { env } from '@/env';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
-
-import { createTmdbFetch } from './tmdb-fetch';
 
 /**
  * Fetches a TMDb API endpoint with authorization and JSON parsing, bound to
@@ -15,7 +15,7 @@ import { createTmdbFetch } from './tmdb-fetch';
  *
  * @throws {TmdbRequestError} If the response status is not OK.
  */
-export const tmdbFetch = createTmdbFetch(env.MOVIE_DB_ACCESS_TOKEN);
+export const tmdbFetch = createTmdbFetch(env.MOVIE_DB_ACCESS_TOKEN, env.TMDB_API_URL_OVERRIDE);
 
 /**
  * Degrades an optional TMDb fetch to `fallback` when it fails, so a single

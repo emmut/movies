@@ -9,7 +9,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup, architecture, and convention
 - **When building a feature**: write tests (aim for 100% coverage) and run `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` before calling it done — all must pass.
 - If fallow finds duplicate code, but the abstraction to merge the code does not make sens, use suppression
 - Prefer normal functions over arrows except inline.
+- Use clean code and senior engineering patterns: clear ownership, small interfaces, explicit validation/error handling and readable control flow. Avoid overusing ternaries, nested conditionals and dense chained expressions; use meaningful helpers, intermediate values and ordinary blocks.
 - Server-only modules import `server-only`; keep secrets and DB access out of client components.
+- **Native/web recognition**: native screens must preserve the web app's branding, colors, content hierarchy, card treatments and actions, and look closer to web than the current native homepage. Compare the running web screen before implementing its native counterpart; use native navigation, back buttons/gestures, sheets and controls where they make sense. Follow [the native decisions and parity roadmap](./docs/native-app-roadmap.md).
+- Native styling uses Tailwind/Uniwind; StyleSheet or inline style objects require a specific API limitation that classes cannot handle.
+- Native/Hono envs follow the reference's per-app Varlock pattern: tracked schemas, generated app-scoped `ENV`, and no hand-written env re-export wrappers. Inspect `/home/emmut/code/movies-app-example` and its relevant config when diagnosing setup problems; web remains the visual/product source of truth.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

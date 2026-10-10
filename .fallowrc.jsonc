@@ -8,6 +8,10 @@
     "@imgproxy/imgproxy-js-core",
     "pg",
     "@tanstack/react-query-devtools",
+    // Expo Router loads fonts; Metro selects react-native-web and the Babel preset.
+    "expo-font",
+    "react-native-web",
+    "babel-preset-expo",
   ],
   "duplicates": {
     // Loading skeletons are mirrored per route by App-Router convention, so

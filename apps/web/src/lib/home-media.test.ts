@@ -1,6 +1,7 @@
+import type { HomeMediaCategory } from '@movies/api/home';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getHomeMediaList, HomeMediaCategory } from './home-media';
+import { getHomeMediaList } from './home-media';
 import { fetchNowPlayingMovies } from './movies';
 import { DEFAULT_REGION } from './regions';
 

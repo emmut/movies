@@ -1,8 +1,5 @@
-// No 'server-only' here: the nightly title sync (scripts/sync-titles.ts) runs
-// under Nub outside the Next.js server runtime and needs the same client.
-// The app-facing wrapper in `tmdb.ts` binds the token from `@/env`.
-
-import { TMDB_API_URL } from './constants';
+// Framework-independent transport shared by the Hono host, web app, and title-sync job.
+// Each consumer binds its own access token with createTmdbFetch.
 
 type TmdbSearchParams = Record<string, string | number | undefined>;
 
@@ -135,6 +132,7 @@ async function fetchWithRetry(
  * an API endpoint with authorization and JSON parsing.
  *
  * @param accessToken - The TMDb API read access token (bearer).
+ * @param baseUrl - Validated host-supplied API base URL; defaults to TMDB.
  * @returns A fetcher taking the API path (e.g. '/movie/123') and optional
  * query parameters (`undefined` values are skipped) plus the error message to
  * throw on a non-OK response.
@@ -142,12 +140,15 @@ async function fetchWithRetry(
  * @throws {TmdbRequestError} From the returned fetcher when the response
  * status is not OK.
  */
-export function createTmdbFetch(accessToken: string): TmdbFetch {
+export function createTmdbFetch(
+  accessToken: string,
+  baseUrl = 'https://api.themoviedb.org/3',
+): TmdbFetch {
   return async function tmdbFetch<T>(
     path: string,
     { searchParams, errorMessage }: TmdbFetchOptions = {},
   ): Promise<T> {
-    const url = new URL(`${TMDB_API_URL}${path}`);
+    const url = new URL(`${baseUrl.replace(/\/$/, '')}${path}`);
 
     for (const [key, value] of Object.entries(searchParams ?? {})) {
       if (value !== undefined) {

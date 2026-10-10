@@ -28,7 +28,8 @@ describe('server startup', () => {
     const onReady = vi.fn();
     void startup.then(onReady);
 
-    await vi.waitFor(() => expect(execute).toHaveBeenCalledTimes(1));
+    await vi.dynamicImportSettled();
+    expect(execute).toHaveBeenCalledTimes(1);
     expect(onReady).not.toHaveBeenCalled();
 
     await vi.advanceTimersByTimeAsync(2_000);

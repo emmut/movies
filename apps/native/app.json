@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Movies",
+    "slug": "movies",
+    "scheme": "movies",
+    "version": "0.1.0",
+    "userInterfaceStyle": "automatic",
+    "plugins": ["expo-router"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.movies.app"
+    },
+    "android": {
+      "package": "com.movies.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
+  }
+}
