@@ -21,11 +21,15 @@ test.beforeEach(async ({ page }) => {
     }),
   );
   await page.route('**/rpc/home/*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({ json: { json: [] }, headers: corsHeaders });
   });
   await page.route('**/rpc/catalog/details*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({ json: { json: detailFixture('movie') }, headers: corsHeaders });
   });
   await page
@@ -39,7 +43,9 @@ async function expectDockAtBottom(page: Page) {
     .filter({ visible: true })
     .boundingBox();
   const viewport = page.viewportSize();
-  if (!bounds || !viewport) throw new Error('Navigation and viewport must have measurable bounds');
+  if (!bounds || !viewport) {
+    throw new Error('Navigation and viewport must have measurable bounds');
+  }
   expect(bounds.y).toBeGreaterThan(viewport.height - 100);
   expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height);
 }

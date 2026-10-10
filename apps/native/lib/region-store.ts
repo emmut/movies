@@ -16,10 +16,16 @@ export function createRegionStore(initialRegion: RegionCode = DEFAULT_REGION) {
     },
     setRegion(nextRegion: string) {
       const selected = getRegionByCode(nextRegion);
-      if (!selected) throw new Error('Invalid region code');
-      if (selected.code === region) return;
+      if (!selected) {
+        throw new Error('Invalid region code');
+      }
+      if (selected.code === region) {
+        return;
+      }
       region = selected.code;
-      for (const listener of listeners) listener();
+      for (const listener of listeners) {
+        listener();
+      }
     },
   };
 }

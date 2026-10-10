@@ -45,7 +45,9 @@ function watchLink(link: string | undefined, { id, type }: CatalogDetailInput) {
   if (link) {
     try {
       const url = new URL(link);
-      if (url.protocol === 'https:' || url.protocol === 'http:') return url.href;
+      if (url.protocol === 'https:' || url.protocol === 'http:') {
+        return url.href;
+      }
     } catch {
       // Missing/invalid upstream links use TMDB's documented watch page.
     }

@@ -3,6 +3,7 @@ import type { MediaCard } from '@movies/api/home';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { DiscoverFilters } from '@native/components/discover-filters';
 import { MediaPoster } from '@native/components/media-poster';
+import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { orpc } from '@native/lib/api';
 import { readDiscoverState } from '@native/lib/discover-state';
@@ -36,27 +37,17 @@ function DiscoveryResults({
     captureBeforeNavigation,
     cancelBeforeNavigation,
   } = useRememberedScroll<FlatList<MediaCard>>('discover:' + JSON.stringify(input));
-  if (query.isPending)
+  if (query.isPending || query.isError) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator accessibilityLabel="Loading discovered titles" />
-      </View>
+      <ScreenQueryState
+        label="discovered titles"
+        failed={query.isError}
+        retry={() => {
+          void query.refetch();
+        }}
+      />
     );
-  if (query.isError)
-    return (
-      <View className="flex-1 items-start gap-3 p-5">
-        <Text className="text-foreground">Couldn’t load discovered titles.</Text>
-        <Pressable
-          accessibilityRole="button"
-          className="bg-default min-h-11 justify-center rounded-xl px-4"
-          onPress={() => {
-            void query.refetch();
-          }}
-        >
-          <Text className="text-foreground">Try again</Text>
-        </Pressable>
-      </View>
-    );
+  }
   const totalPages = Math.max(1, query.data.totalPages);
   return (
     <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>

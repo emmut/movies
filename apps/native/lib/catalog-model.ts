@@ -30,11 +30,17 @@ export function catalogStats(item: CatalogDetail): CatalogStat[] {
 }
 
 function addFact(facts: Fact[], label: string, value: string) {
-  if (value) facts.push({ label, value });
+  if (value) {
+    facts.push({ label, value });
+  }
 }
 function movieMoney(item: Extract<CatalogDetail, { type: 'movie' }>, facts: Fact[]) {
-  if (item.budget > 0) addFact(facts, 'Budget', formatCurrency(item.budget, false));
-  if (item.revenue > 0) addFact(facts, 'Revenue', formatCurrency(item.revenue, false));
+  if (item.budget > 0) {
+    addFact(facts, 'Budget', formatCurrency(item.budget, false));
+  }
+  if (item.revenue > 0) {
+    addFact(facts, 'Revenue', formatCurrency(item.revenue, false));
+  }
   if (item.budget > 0 && item.revenue > 0) {
     addFact(facts, 'Profit', formatCurrency(item.revenue - item.budget, false));
   }
@@ -48,7 +54,9 @@ function tvFacts(item: Extract<CatalogDetail, { type: 'tv' }>, facts: Fact[]) {
 }
 
 function originalTitle(item: CatalogDetail) {
-  if (item.type === 'movie') return item.originalTitle;
+  if (item.type === 'movie') {
+    return item.originalTitle;
+  }
   return item.originalTitle === item.title ? '' : item.originalTitle;
 }
 
@@ -59,7 +67,10 @@ export function catalogFacts(item: CatalogDetail): Fact[] {
   const dateLabel = item.type === 'movie' ? 'Release Date' : 'First Air Date';
   addFact(facts, dateLabel, item.releaseDate || 'Not available');
   addFact(facts, 'Languages', item.languages.join(', '));
-  if (item.type === 'movie') movieMoney(item, facts);
-  else tvFacts(item, facts);
+  if (item.type === 'movie') {
+    movieMoney(item, facts);
+  } else {
+    tvFacts(item, facts);
+  }
   return facts;
 }

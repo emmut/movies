@@ -28,11 +28,15 @@ const related = {
 test.beforeEach(async ({ page }) => {
   await mockEmptySupport({ page });
   await page.route('**/rpc/home/*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({ json: { json: [] }, headers: corsHeaders });
   });
   await page.route('**/rpc/catalog/details*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     const input = readInput(route.request());
     const item = detailFixture(input.type);
     if (input.id === 43) {
@@ -48,7 +52,9 @@ for (const type of ['movie', 'tv'] as const) {
     page,
   }) => {
     await page.route('**/rpc/catalog/trailer*', async (route) => {
-      if (await preflight(route)) return;
+      if (await preflight(route)) {
+        return;
+      }
       expect(readInput(route.request())).toEqual({ id: 42, type });
       await route.fulfill({ json: { json: { key: 'AbCdEfGhI_1' } }, headers: corsHeaders });
     });
@@ -80,7 +86,9 @@ test('provider region changes affect availability and persist across related-tit
   const providerRegions: string[] = [];
   const relatedRegions: string[] = [];
   await page.route('**/rpc/catalog/providers*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     const input = readInput(route.request());
     providerRegions.push(input.region);
     const result = {
@@ -90,7 +98,9 @@ test('provider region changes affect availability and persist across related-tit
     await route.fulfill({ json: { json: result }, headers: corsHeaders });
   });
   await page.route('**/rpc/catalog/related*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     const input = readInput(route.request());
     relatedRegions.push(input.region);
     await route.fulfill({
@@ -128,7 +138,9 @@ test('provider groups link to the selected watch URL and retain artwork/name con
   page,
 }) => {
   await page.route('**/rpc/catalog/providers*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({
       json: { json: { ...groups, free: [{ ...provider, id: 11, name: 'Free service' }] } },
       headers: corsHeaders,
@@ -156,7 +168,9 @@ test('free-only availability is not labelled unavailable, and absent trailers/re
   page,
 }) => {
   await page.route('**/rpc/catalog/providers*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({
       json: { json: { link: groups.link, free: [provider], streaming: [], rent: [], buy: [] } },
       headers: corsHeaders,
@@ -173,12 +187,18 @@ test('free-only availability is not labelled unavailable, and absent trailers/re
 test('supporting outages retry independently without discarding core details', async ({ page }) => {
   let failed = true;
   await page.route(/\/rpc\/catalog\/(trailer|providers|related)(?:\?|$)/, async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     if (!failed) {
       const path = new URL(route.request().url()).pathname;
       let data: unknown = [];
-      if (path.endsWith('/trailer')) data = { key: 'AbCdEfGhI_1' };
-      if (path.endsWith('/providers')) data = { ...groups, streaming: [] };
+      if (path.endsWith('/trailer')) {
+        data = { key: 'AbCdEfGhI_1' };
+      }
+      if (path.endsWith('/providers')) {
+        data = { ...groups, streaming: [] };
+      }
       await route.fulfill({ json: { json: data }, headers: corsHeaders });
       return;
     }
@@ -214,13 +234,18 @@ test('supporting outages retry independently without discarding core details', a
 test('supporting requests can remain pending while core metadata is usable', async ({ page }) => {
   const completion = Promise.withResolvers<void>();
   await page.route(/\/rpc\/catalog\/(trailer|providers|related)(?:\?|$)/, async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await completion.promise;
     const path = new URL(route.request().url()).pathname;
     let data: unknown = [];
-    if (path.endsWith('/trailer')) data = null;
-    if (path.endsWith('/providers'))
+    if (path.endsWith('/trailer')) {
+      data = null;
+    }
+    if (path.endsWith('/providers')) {
       data = { link: groups.link, free: [], streaming: [], rent: [], buy: [] };
+    }
     await route.fulfill({ json: { json: data }, headers: corsHeaders });
   });
   await page.goto('/movie/42');

@@ -70,14 +70,17 @@ describe('discovery service', () => {
   });
   it('loads regional choices concurrently and normalizes ordered output', async () => {
     const fetcher = vi.fn().mockImplementation(async (path: string) => {
-      if (path.startsWith('/genre')) return { genres: [{ id: 12, name: 'Adventure' }] };
-      if (path.startsWith('/watch'))
+      if (path.startsWith('/genre')) {
+        return { genres: [{ id: 12, name: 'Adventure' }] };
+      }
+      if (path.startsWith('/watch')) {
         return {
           results: [
             { provider_id: 9, provider_name: 'Second', logo_path: null, display_priority: 2 },
             { provider_id: 8, provider_name: 'First', logo_path: '/logo.png' },
           ],
         };
+      }
       return [
         { iso_3166_1: 'US', english_name: 'United States' },
         { iso_3166_1: 'SE', english_name: 'Sweden' },

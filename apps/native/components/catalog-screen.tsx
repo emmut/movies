@@ -22,7 +22,7 @@ function TitleNotFound() {
       <Text className="text-base text-muted">This movie or TV show is no longer available.</Text>
       <Pressable
         accessibilityRole="button"
-        className="rounded-lg bg-default px-4 py-3"
+        className="bg-default rounded-lg px-4 py-3"
         onPress={() => router.replace('/')}
       >
         <Text className="font-semibold text-foreground">Go to Home</Text>
@@ -31,14 +31,16 @@ function TitleNotFound() {
   );
 }
 function TitleLoadError({ error, retry }: { error: Error; retry: () => void }) {
-  if ('code' in error && error.code === 'NOT_FOUND') return <TitleNotFound />;
+  if ('code' in error && error.code === 'NOT_FOUND') {
+    return <TitleNotFound />;
+  }
   return (
     <View className="flex-1 items-start justify-center gap-4 px-5">
       <Text className="text-xl font-semibold text-foreground">Couldn’t load this title.</Text>
       <Text className="text-base text-muted">Check your connection and try again.</Text>
       <Pressable
         accessibilityRole="button"
-        className="rounded-lg bg-default px-4 py-3"
+        className="bg-default rounded-lg px-4 py-3"
         onPress={() => {
           void retry();
         }}
@@ -58,7 +60,7 @@ function CatalogQuery({ input }: { input: CatalogDetailInput }) {
       </View>
     );
   }
-  if (query.isError)
+  if (query.isError) {
     return (
       <TitleLoadError
         error={query.error}
@@ -67,6 +69,7 @@ function CatalogQuery({ input }: { input: CatalogDetailInput }) {
         }}
       />
     );
+  }
   return (
     <>
       <Stack.Screen options={{ title: query.data.title }} />

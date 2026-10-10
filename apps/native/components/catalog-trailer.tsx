@@ -29,7 +29,7 @@ function TrailerSheet({
             accessibilityRole="button"
             accessibilityLabel="Close trailer"
             onPress={onClose}
-            className="min-h-11 justify-center rounded-lg bg-default px-4 py-2"
+            className="bg-default min-h-11 justify-center rounded-lg px-4 py-2"
           >
             <Text className="text-foreground">Done</Text>
           </Pressable>
@@ -58,7 +58,7 @@ function TrailerAction({
         accessibilityRole="button"
         accessibilityLabel={`Play Trailer for ${title}`}
         onPress={() => setOpen(true)}
-        className={`min-h-11 self-start justify-center rounded-lg px-4 py-2 ${buttonColor}`}
+        className={`min-h-11 justify-center self-start rounded-lg px-4 py-2 ${buttonColor}`}
       >
         <Text className="font-semibold text-white">▷ Play Trailer</Text>
       </Pressable>
@@ -70,7 +70,9 @@ function TrailerAction({
 }
 export function CatalogTrailer({ input, title }: { input: CatalogTitleInput; title: string }) {
   const query = useQuery(orpc.catalog.trailer.queryOptions({ input, retry: false }));
-  if (query.data === null) return null;
+  if (query.data === null) {
+    return null;
+  }
   return (
     <View className="gap-3">
       <CatalogSectionState

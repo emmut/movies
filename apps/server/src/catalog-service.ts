@@ -48,10 +48,14 @@ const detailsSchema = z.object({
 });
 
 function publicHomepage(value: string) {
-  if (!value) return null;
+  if (!value) {
+    return null;
+  }
   try {
     const url = new URL(value);
-    if (url.protocol === 'https:' || url.protocol === 'http:') return url.href;
+    if (url.protocol === 'https:' || url.protocol === 'http:') {
+      return url.href;
+    }
   } catch {
     // Optional upstream homepage metadata may not be a usable URL.
   }
@@ -76,9 +80,13 @@ async function loadDetails(fetchTmdb: TmdbFetch, { id, type }: CatalogDetailInpu
   try {
     const data = await fetchTmdb<unknown>(`/${type}/${id}`);
     const details = detailsSchema.parse(data);
-    if (details.id !== id) throw new Error('Upstream title identifier mismatch');
+    if (details.id !== id) {
+      throw new Error('Upstream title identifier mismatch');
+    }
     const title = type === 'movie' ? details.title : details.name;
-    if (!title.trim()) throw new Error('Upstream title is missing');
+    if (!title.trim()) {
+      throw new Error('Upstream title is missing');
+    }
     return details;
   } catch (error) {
     if (error instanceof TmdbRequestError && error.status === 404) {

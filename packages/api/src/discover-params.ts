@@ -17,8 +17,12 @@ type TmdbParams = Record<string, string | number | undefined>;
 
 function applySelections(params: TmdbParams, input: DiscoverParams) {
   // Pipe = OR on TMDB: each extra genre widens the results.
-  if (input.genreIds.length > 0) params.with_genres = input.genreIds.join('|');
-  if (input.withOriginCountry) params.with_origin_country = input.withOriginCountry;
+  if (input.genreIds.length > 0) {
+    params.with_genres = input.genreIds.join('|');
+  }
+  if (input.withOriginCountry) {
+    params.with_origin_country = input.withOriginCountry;
+  }
 }
 
 function applyProviders(params: TmdbParams, input: DiscoverParams) {
@@ -28,14 +32,20 @@ function applyProviders(params: TmdbParams, input: DiscoverParams) {
     return;
   }
   // Country-only discovery must not be narrowed to the default streamers.
-  if (input.withOriginCountry) return;
+  if (input.withOriginCountry) {
+    return;
+  }
   params.with_watch_providers = majorProviders;
   params.watch_region = params.region;
 }
 
 function applyRuntime(params: TmdbParams, runtime: number | undefined) {
-  if (typeof runtime !== 'number') return;
-  if (!(runtime > 0)) return;
+  if (typeof runtime !== 'number') {
+    return;
+  }
+  if (!(runtime > 0)) {
+    return;
+  }
   params['with_runtime.lte'] = runtime;
   params['with_runtime.gte'] = MIN_RUNTIME_FILTER_MINUTES;
 }

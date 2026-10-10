@@ -8,12 +8,16 @@ export const corsHeaders = {
   'access-control-allow-methods': 'GET, POST, OPTIONS',
 };
 export async function preflight(route: Route) {
-  if (route.request().method() !== 'OPTIONS') return false;
+  if (route.request().method() !== 'OPTIONS') {
+    return false;
+  }
   await route.fulfill({ status: 204, headers: corsHeaders });
   return true;
 }
 export function readInput(request: Request) {
-  if (request.method() === 'POST') return request.postDataJSON().json;
+  if (request.method() === 'POST') {
+    return request.postDataJSON().json;
+  }
   return JSON.parse(new URL(request.url()).searchParams.get('data') ?? '{}').json;
 }
 export function detailFixture(type: 'movie' | 'tv'): CatalogDetail {
@@ -36,7 +40,9 @@ export function detailFixture(type: 'movie' | 'tv'): CatalogDetail {
     homepage: 'https://example.com',
     certification: { value: 'R', region: 'US' },
   };
-  if (type === 'movie') return { ...common, type, runtime: 125, budget: 1000, revenue: 2000 };
+  if (type === 'movie') {
+    return { ...common, type, runtime: 125, budget: 1000, revenue: 2000 };
+  }
   return {
     ...common,
     type,
@@ -59,11 +65,15 @@ export async function mockEmptySupport({ page }: { page: Page }) {
     });
   });
   await page.route(/\/rpc\/catalog\/(trailer|providers|related)(?:\?|$)/, async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     const path = new URL(route.request().url()).pathname;
     let response: unknown = [];
-    if (path.endsWith('/trailer')) response = null;
-    if (path.endsWith('/providers'))
+    if (path.endsWith('/trailer')) {
+      response = null;
+    }
+    if (path.endsWith('/providers')) {
       response = {
         link: 'https://www.themoviedb.org/movie/42/watch',
         free: [],
@@ -71,6 +81,7 @@ export async function mockEmptySupport({ page }: { page: Page }) {
         rent: [],
         buy: [],
       };
+    }
     await route.fulfill({ json: { json: response }, headers: corsHeaders });
   });
 }

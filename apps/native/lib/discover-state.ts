@@ -16,8 +16,12 @@ function ids(value: Params[string]) {
 }
 function boundedInteger(value: Params[string], max: number) {
   const number = Number(scalar(value));
-  if (!Number.isInteger(number)) return undefined;
-  if (number < 1 || number > max) return undefined;
+  if (!Number.isInteger(number)) {
+    return undefined;
+  }
+  if (number < 1 || number > max) {
+    return undefined;
+  }
   return number;
 }
 function watchRegion(value: Params[string], fallback: string) {

@@ -180,12 +180,14 @@ describe('catalog service', () => {
         type: 'movie',
         region: 'SE',
       });
-      if (status === 404)
+      if (status === 404) {
         await expect(operation).rejects.toMatchObject({
           code: 'NOT_FOUND',
           message: 'Title not found',
         });
-      else await expect(operation).rejects.toBe(upstream);
+      } else {
+        await expect(operation).rejects.toBe(upstream);
+      }
     }
   });
   it.each([

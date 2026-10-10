@@ -12,7 +12,9 @@ test.beforeEach(mockEmptySupport);
 for (const type of ['movie', 'tv'] as const) {
   test(`${type} deep links render metadata and preserve theme contrast`, async ({ page }) => {
     await page.route('**/rpc/catalog/details*', async (route) => {
-      if (await preflight(route)) return;
+      if (await preflight(route)) {
+        return;
+      }
       expect(readInput(route.request())).toEqual({ id: 42, type, region: 'SE' });
       await route.fulfill({ json: { json: detailFixture(type) }, headers: corsHeaders });
     });
@@ -57,7 +59,9 @@ test('missing optional data uses honest fallbacks without inert actions', async 
     revenue: 0,
   };
   await page.route('**/rpc/catalog/details*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({ json: { json: item }, headers: corsHeaders });
   });
   await page.goto('/movie/42');
@@ -76,7 +80,9 @@ test('missing optional data uses honest fallbacks without inert actions', async 
 test('shows loading, distinguishes outage from not found, and retries', async ({ page }) => {
   let state: 'outage' | 'ready' | 'missing' = 'outage';
   await page.route('**/rpc/catalog/details*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({
       status: state === 'ready' ? 200 : state === 'missing' ? 404 : 500,
       headers: corsHeaders,
@@ -121,7 +127,9 @@ test('invalid route IDs do not fetch catalog data', async ({ page }) => {
 test('shows loading while details are in flight', async ({ page }) => {
   const response = Promise.withResolvers<void>();
   await page.route('**/rpc/catalog/details*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await response.promise;
     await route.fulfill({ json: { json: detailFixture('movie') }, headers: corsHeaders });
   });

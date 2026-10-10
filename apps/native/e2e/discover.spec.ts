@@ -34,11 +34,15 @@ const card = {
 test.beforeEach(async ({ page }) => {
   await mockEmptySupport({ page });
   await page.route('**/rpc/discovery/options*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({ json: { json: choices }, headers: corsHeaders });
   });
   await page.route('**/rpc/discovery/list*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     const input = readInput(route.request());
     await route.fulfill({
       json: {
@@ -58,7 +62,9 @@ test.beforeEach(async ({ page }) => {
     });
   });
   await page.route('**/rpc/catalog/details*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({ json: { json: detailFixture('movie') }, headers: corsHeaders });
   });
 });
@@ -78,7 +84,9 @@ test('discovery stays native through detail navigation and browser back', async 
 test('filter sheets preserve OR selections and reset pagination', async ({ page }) => {
   const inputs: Record<string, unknown>[] = [];
   await page.route('**/rpc/discovery/list*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     inputs.push(readInput(route.request()));
     await route.fulfill({
       json: { json: { items: [], totalPages: 3, totalResults: 50 } },
@@ -127,7 +135,9 @@ test('filter sheets preserve OR selections and reset pagination', async ({ page 
 test('media type, region and page controls change the API request natively', async ({ page }) => {
   const inputs: Record<string, unknown>[] = [];
   await page.route('**/rpc/discovery/list*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     inputs.push(readInput(route.request()));
     await route.fulfill({
       json: {
@@ -159,7 +169,9 @@ test('missing results and terminal pages show usable empty and pagination states
   page,
 }) => {
   await page.route('**/rpc/discovery/list*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({
       json: { json: { items: [], totalPages: 0, totalResults: 0 } },
       headers: corsHeaders,
@@ -174,9 +186,13 @@ test('missing results and terminal pages show usable empty and pagination states
 test('API failures retry without handing discovery to a browser', async ({ page }) => {
   let attempts = 0;
   await page.route('**/rpc/discovery/list*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     attempts += 1;
-    if (attempts <= 2) return route.fulfill({ status: 500, headers: corsHeaders, body: 'offline' });
+    if (attempts <= 2) {
+      return route.fulfill({ status: 500, headers: corsHeaders, body: 'offline' });
+    }
     await route.fulfill({
       json: { json: { items: [card], totalPages: 1, totalResults: 1 } },
       headers: corsHeaders,

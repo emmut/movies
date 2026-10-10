@@ -7,7 +7,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Text, View } from 'react-native';
 
 function relatedHeading(type: CatalogDetailInput['type'], kind: CatalogRelatedInput['kind']) {
-  if (kind === 'recommendations') return 'Recommendations';
+  if (kind === 'recommendations') {
+    return 'Recommendations';
+  }
   return type === 'movie' ? 'Similar Movies' : 'Similar TV Shows';
 }
 
@@ -22,7 +24,9 @@ export function CatalogRelated({
     orpc.catalog.related.queryOptions({ input: { ...input, kind }, retry: false }),
   );
   const heading = relatedHeading(input.type, kind);
-  if (query.data?.length === 0) return null;
+  if (query.data?.length === 0) {
+    return null;
+  }
   return (
     <View className="gap-3">
       <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">

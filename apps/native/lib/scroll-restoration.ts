@@ -17,9 +17,15 @@ export function restoreScrollPosition(target: ScrollTarget, offset: number) {
 
 /** Browser scroll events can lag behind the click that navigates away. */
 export function readScrollOffset(node: unknown, fallback: number) {
-  if (!node || typeof node !== 'object') return fallback;
-  if (!('scrollTop' in node) || !('clientHeight' in node)) return fallback;
-  if (typeof node.scrollTop !== 'number' || node.clientHeight === 0) return fallback;
+  if (!node || typeof node !== 'object') {
+    return fallback;
+  }
+  if (!('scrollTop' in node) || !('clientHeight' in node)) {
+    return fallback;
+  }
+  if (typeof node.scrollTop !== 'number' || node.clientHeight === 0) {
+    return fallback;
+  }
   return Math.max(0, node.scrollTop);
 }
 

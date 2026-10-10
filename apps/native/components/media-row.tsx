@@ -15,15 +15,16 @@ function RowState({
   retry: () => void;
   empty: boolean;
 }) {
-  if (pending)
+  if (pending) {
     return (
       <View accessibilityLabel="Loading titles" className="flex-row gap-3 overflow-hidden px-5">
         {[0, 1, 2].map((id) => (
-          <View key={id} className="h-54 w-36 rounded-xl bg-default" />
+          <View key={id} className="bg-default h-54 w-36 rounded-xl" />
         ))}
       </View>
     );
-  if (failed)
+  }
+  if (failed) {
     return (
       <View className="items-start gap-2 px-5">
         <Text className="text-sm text-muted">Couldn’t load these titles.</Text>
@@ -36,7 +37,10 @@ function RowState({
         </Pressable>
       </View>
     );
-  if (empty) return <Text className="px-5 py-6 text-muted">No titles available right now.</Text>;
+  }
+  if (empty) {
+    return <Text className="px-5 py-6 text-muted">No titles available right now.</Text>;
+  }
   return null;
 }
 

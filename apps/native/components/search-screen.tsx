@@ -3,6 +3,7 @@ import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogPagination } from '@native/components/catalog-pagination';
 import { ChoiceSheet } from '@native/components/choice-sheet';
 import { MediaPoster } from '@native/components/media-poster';
+import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { SearchPerson } from '@native/components/search-person-card';
 import { orpc } from '@native/lib/api';
@@ -11,15 +12,7 @@ import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Keyboard,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -89,27 +82,15 @@ function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: n
     captureBeforeNavigation,
     cancelBeforeNavigation,
   } = useRememberedScroll<FlatList<SearchItem>>('search:' + JSON.stringify(input));
-  if (query.isPending) {
+  if (query.isPending || query.isError) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator accessibilityLabel="Loading search results" />
-      </View>
-    );
-  }
-  if (query.isError) {
-    return (
-      <View className="flex-1 items-start gap-3 p-5">
-        <Text className="text-foreground">Couldn’t load search results.</Text>
-        <Pressable
-          accessibilityRole="button"
-          className="bg-default min-h-11 justify-center rounded-xl px-4"
-          onPress={() => {
-            void query.refetch();
-          }}
-        >
-          <Text className="text-foreground">Try again</Text>
-        </Pressable>
-      </View>
+      <ScreenQueryState
+        label="search results"
+        failed={query.isError}
+        retry={() => {
+          void query.refetch();
+        }}
+      />
     );
   }
   return (

@@ -66,7 +66,7 @@ function ProviderContent({ groups }: { groups: ProviderGroups }) {
           </View>
         ) : null,
       )}
-      <View className="gap-2 rounded-lg bg-default p-3">
+      <View className="bg-default gap-2 rounded-lg p-3">
         <Text className="text-center text-sm text-foreground">
           Powered by JustWatch via TMDB API
         </Text>
@@ -81,7 +81,9 @@ function ProviderContent({ groups }: { groups: ProviderGroups }) {
 function useWatchRegion(defaultRegion: string) {
   const { watchRegion } = useLocalSearchParams<{ watchRegion?: string }>();
   const fallback = getRegionByCode(defaultRegion);
-  if (!fallback) throw new Error('Unsupported watch region');
+  if (!fallback) {
+    throw new Error('Unsupported watch region');
+  }
   return getRegionByCode(watchRegion ?? defaultRegion) ?? fallback;
 }
 
@@ -102,7 +104,7 @@ export function CatalogProviders({ input }: { input: CatalogDetailInput }) {
         accessibilityRole="button"
         accessibilityLabel={`Watch region: ${region.name}. Change region`}
         onPress={() => setPickerOpen(true)}
-        className="self-start rounded-xl bg-default px-4 py-3"
+        className="bg-default self-start rounded-xl px-4 py-3"
       >
         <Text className="text-foreground">{region.name} ▾</Text>
       </Pressable>

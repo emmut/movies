@@ -11,7 +11,9 @@ export function resolveServiceUrl({
   expoHost,
   port,
 }: ServiceUrlOptions) {
-  if (explicitUrl?.trim()) return explicitUrl.trim().replace(/\/$/, '');
+  if (explicitUrl?.trim()) {
+    return explicitUrl.trim().replace(/\/$/, '');
+  }
   const host = browserOrigin ?? (expoHost ? `http://${expoHost}` : 'http://localhost');
   const url = new URL(host);
   url.port = String(port);

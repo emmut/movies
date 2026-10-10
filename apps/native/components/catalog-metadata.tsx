@@ -13,7 +13,7 @@ export function CatalogHeading({ item, region }: { item: CatalogDetail; region: 
       <Text accessibilityRole="header" className="text-3xl font-bold text-foreground">
         {item.title}
       </Text>
-      {item.tagline ? <Text className="text-lg italic text-muted">“{item.tagline}”</Text> : null}
+      {item.tagline ? <Text className="text-lg text-muted italic">“{item.tagline}”</Text> : null}
       <View className="flex-row flex-wrap gap-2">
         <MediaBadge type={item.type} />
         {certification ? (
@@ -28,7 +28,9 @@ export function CatalogHeading({ item, region }: { item: CatalogDetail; region: 
 
 export function CatalogStats({ item }: { item: CatalogDetail }) {
   const stats = catalogStats(item).map((stat) => {
-    if (stat.label !== 'TMDB Rating') return stat;
+    if (stat.label !== 'TMDB Rating') {
+      return stat;
+    }
     return { ...stat, description: item.voteCount.toLocaleString('en-US') + ' votes' };
   });
   return <StatGrid stats={stats} />;

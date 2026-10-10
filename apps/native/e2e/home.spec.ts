@@ -29,13 +29,19 @@ test('renders the homepage, changes regional queries, and opens native details',
 }) => {
   const regions: string[] = [];
   await page.route('**/rpc/home/*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     const input = readInput(route.request());
-    if (input.region) regions.push(input.region);
+    if (input.region) {
+      regions.push(input.region);
+    }
     await route.fulfill({ json: { json: [responseTitle(input)] }, headers: corsHeaders });
   });
   await page.route('**/rpc/catalog/details*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     const input = readInput(route.request());
     expect(input).toEqual({ id: 42, type: 'movie', region: 'US' });
     await route.fulfill({ json: { json: detailFixture('movie') }, headers: corsHeaders });
@@ -87,7 +93,9 @@ test('renders the homepage, changes regional queries, and opens native details',
 test('shows empty rows and allows retry after an API outage', async ({ page }) => {
   let fail = true;
   await page.route('**/rpc/home/*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({
       status: fail ? 500 : 200,
       json: fail
@@ -114,7 +122,9 @@ test('shows empty rows and allows retry after an API outage', async ({ page }) =
 test('applies Tailwind image sizing and follows the system theme', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'light' });
   await page.route('**/rpc/home/*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     await route.fulfill({ json: { json: [title] }, headers: corsHeaders });
   });
   await page.goto('/');
@@ -131,7 +141,9 @@ test('applies Tailwind image sizing and follows the system theme', async ({ page
 
 test('keeps touch metadata on the artwork with distinct movie and TV accents', async ({ page }) => {
   await page.route('**/rpc/home/*', async (route) => {
-    if (await preflight(route)) return;
+    if (await preflight(route)) {
+      return;
+    }
     const item = responseTitle(readInput(route.request()));
     await route.fulfill({
       json: { json: [{ ...item, releaseDate: '', rating: 8.21 }] },

@@ -21,7 +21,9 @@ export function createHomeService(fetchTmdb: TmdbFetch): HomeService {
     async list({ category, region }) {
       const type = category.endsWith('movies') ? 'movie' : 'tv';
       const items = await load(endpoints[category], type, region);
-      if (category !== 'upcoming-movies') return items;
+      if (category !== 'upcoming-movies') {
+        return items;
+      }
       const playing = await load(endpoints['now-playing-movies'], 'movie', region);
       const playingIds = new Set(playing.map((item) => item.id));
       return items.filter((item) => !playingIds.has(item.id));
