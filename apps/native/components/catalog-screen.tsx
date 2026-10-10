@@ -7,6 +7,7 @@ import { withUniwind } from 'uniwind';
 
 import { orpc } from '../lib/api';
 import { useRegion } from '../lib/preferences';
+import { BottomNavigation } from './bottom-navigation';
 import { CatalogContent } from './catalog-content';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
@@ -84,6 +85,7 @@ export function CatalogScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right', 'bottom']}>
       {input.success ? <CatalogQuery input={input.data} /> : <TitleNotFound />}
+      <BottomNavigation />
     </SafeAreaView>
   );
 }

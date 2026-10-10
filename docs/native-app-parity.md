@@ -9,7 +9,7 @@ Status: **Foundation** means a working subset exists; **Pending** means no nativ
 | Workflow | Web source | Native status | Required evidence |
 | --- | --- | --- | --- |
 | Movies popcorn wordmark, shared palette, light/dark theme | `components/brand.tsx`, `app/globals.css` | Foundation | Both themes, phone/tablet, accessible brand |
-| Home, Discover, session-dependent Watchlist/Watched/Lists, Settings/login navigation | `components/app-sidebar*.tsx`, `components/nav-user.tsx` | Pending except Home | Real destinations; native stack/tabs, back gestures and deep links |
+| Home, Discover, session-dependent Watchlist/Watched/Lists, Settings/login navigation | `components/app-sidebar*.tsx`, `components/nav-user.tsx` | Foundation: system tabs and More; pages deferred except Home | Implement all destinations natively; remove browser bridges; verify system Liquid Glass tabs, back gestures and deep links on devices |
 | Search entry point | `components/search-box.tsx`, `components/search-command.tsx` | Pending | Touch search equivalent, see all results, correct destination while results are stale |
 | Daily movie and TV trending with backdrop/title/year overlays | `app/trending.tsx` | Foundation | Same records as web, two types, missing backdrop/date, both themes |
 | Six ordered sections and region-specific upcoming exclusion | `app/(home)/page.tsx`, `@movies/api/home` | Foundation | Same order and regional results, independent loading/error/retry/empty states |
@@ -164,3 +164,11 @@ Catalog still needs person/filmography, cast/crew/creators, IMDb, origin-country
 The first pushed catalog commit passed GitHub lint/typecheck/unit, web E2E and preview checks, but CI flagged the web poster card complexity that the local upstream-relative audit had treated as inherited. Composed its artwork, overlay and list actions into private components while preserving its public API and DOM treatments. Added rendering regression coverage for movie/TV metadata and scores, missing artwork/dates, quick-add versus custom-list removal, and eager/proxy image data. The audit against `origin/main` now reports no complexity findings. Root tests now pass 660 cases (four skipped). This follow-up does not complete any remaining native parity phase.
 
 The subsequent CI audit exposed an incomplete import graph: its job had no dependency installation, so Expo framework dependencies and generated Varlock accessors were unavailable. The audit job now performs the same pinned pnpm/Node/mise setup and frozen install as the test job, including app-scoped code generation through postinstall. Audit thresholds and dependency checks remain intact.
+
+## System bottom tabs — 2026-10-10
+
+Home, Discover, Search and More (…) now use Expo Router NativeTabs, with native SF/Material icons and labels. iOS 26 supplies system Liquid Glass. Movie/TV routes live inside Home's native stack; More contains the five secondary workflows. Browser exports use a separate preview dock; their screenshots do not establish native glass appearance.
+
+The owner explicitly deferred full page implementation. Discover/Search currently have labelled browser handoffs; More destinations remain browser workflows. The plan requires implementing every navigation page natively and removing all internal web bridges later.
+
+Validation: 671 unit tests passed (four skipped); 25 native browser checks cover bottom placement, primary route selection without a popup, More destinations, explicit deferred handoffs and existing catalog/back/scroll behavior. Lint and root/workspace typechecks pass. iOS/Android bundle exports pass; real-device tab appearance, selection, back gestures and accessibility remain unverified. No remaining native parity phase is complete.

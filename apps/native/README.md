@@ -57,3 +57,9 @@ Run the root lint, typecheck, test and Fallow commands; `nub run check-types` al
 ## Decisions and roadmap
 
 See [the committed session decisions and full feature parity plan](../../docs/native-app-roadmap.md). The goal is complete web feature parity with a recognizable shared product design, using native navigation and controls where appropriate. The homepage recognition slice has been compared with live web data in both themes; core catalog navigation is implemented; quick actions, the remaining catalog sections, full app navigation and device verification remain unfinished. See [the workflow parity checklist and verification evidence](../../docs/native-app-parity.md). The setup reference is `/home/emmut/code/movies-app-example`; consult its integration/configuration files when diagnosing problems, then verify behavior locally.
+
+### Bottom navigation
+
+Native uses Expo Router's system tabs: Home, Discover, Search and More (ellipsis), with SF Symbols on iOS and Material symbols on Android. iOS 26 supplies the standard Liquid Glass appearance; earlier iOS and Android use their own system tab bars. Movie/TV details stay in Home's nested native stack. The browser export uses a preview dock and does not demonstrate native glass rendering.
+
+Discover/Search currently contain explicit browser handoff controls; More holds the remaining browser workflows. Their full native pages and removal of all internal web bridges are recorded in the plan for later execution, at the owner's request. Bundle and browser checks do not replace real device verification.

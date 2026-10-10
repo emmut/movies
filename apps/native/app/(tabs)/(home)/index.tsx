@@ -5,12 +5,13 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
-import { Brand } from '../components/brand';
-import { MediaRow, TrendingCard } from '../components/media-row';
-import { RegionPicker } from '../components/region-picker';
-import { queryClient, orpc } from '../lib/api';
-import { useRegion } from '../lib/preferences';
-import { useRememberedScroll } from '../lib/use-remembered-scroll';
+import { BottomNavigation } from '../../../components/bottom-navigation';
+import { Brand } from '../../../components/brand';
+import { MediaRow, TrendingCard } from '../../../components/media-row';
+import { RegionPicker } from '../../../components/region-picker';
+import { queryClient, orpc } from '../../../lib/api';
+import { useRegion } from '../../../lib/preferences';
+import { useRememberedScroll } from '../../../lib/use-remembered-scroll';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
@@ -45,6 +46,7 @@ export default function Home() {
         </Pressable>
       </View>
       <ScrollView
+        className="flex-1"
         testID="home-scroll"
         ref={homeScrollRef}
         onScroll={rememberHomeScroll}
@@ -78,6 +80,7 @@ export default function Home() {
           Movie and TV data provided by TMDB
         </Text>
       </ScrollView>
+      <BottomNavigation />
       <RegionPicker
         visible={pickerOpen}
         selected={region}

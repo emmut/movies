@@ -84,3 +84,18 @@ The ordering can change when a concrete dependency requires it; record the reaso
 For each slice, record implemented workflows, visual comparison evidence, API calls moved, tests run and outstanding device/platform checks. Run `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm check-types`, `pnpm test` and `pnpm fallow`. Run native browser tests and native bundles when app code or bundler/env integration changes; use real device or simulator checks for native navigation, session storage, gestures and platform UI.
 
 The current automated baseline verifies the homepage, region changes, native movie/TV routes and deep links, same-document back navigation with region/scroll restoration, core metadata, loading/optional-data/not-found states, error/retry/empty states, Tailwind image sizing and system theme changes. API tests cover contract/transport behavior, category dispatch and upcoming filtering. Env validation should read the actual tracked schemas in isolated fixtures or startup checks, not maintain a second hand-written schema just for tests. A successful bundle is not a successful phone session; report those separately.
+
+## Navigation requirement — native pages deferred
+
+Use the standard system bottom tab bar, including iOS 26 Liquid Glass, with icons and labels for **Home, Discover, Search and More (…)**. More contains Watchlist, Watched, Lists, Settings and sign-in/account destinations. Keep movie/TV detail stacks inside Home so the tab bar stays available and native back navigation preserves context.
+
+**Recorded owner instruction: implement all navigation pages later.** The current browser bridges are transitional, not completed native workflows. A tab shell or an external link does not satisfy feature parity.
+
+When executing the remaining page work:
+
+- Implement every navigation destination as a real native screen: Discover, Search, Watchlist, Watched, Lists and individual lists, Settings, sign-in and account/security flows. Complete related person, reviews and catalog routes in the parity inventory too.
+- Preserve each web page's content, actions, loading/error/empty behavior, shared sessions and backend rules. Preserve search ranking, filters, pagination, region and scroll/back context.
+- Remove every Movies-web navigation bridge, including menus, genre discovery and related internal links. Browser opening remains appropriate for truly external provider, source and official-site links.
+- Verify every menu item and internal link reaches its native destination without opening the web app. Add workflow tests and verify the system tab bar, back gestures and deep links on real iOS and Android devices.
+
+This records future work only; do not treat the remaining page implementations as part of the current tab-bar change or mark them complete.
