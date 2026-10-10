@@ -7,7 +7,6 @@ import { fetchNowPlayingMovies, fetchTopRatedMovies, fetchUpcomingMovies } from 
 import { fetchOnTheAirTvShows, fetchPopularTvShows, fetchTopRatedTvShows } from '@/lib/tv-shows';
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
-export type { HomeMediaCategory } from '@movies/api/home';
 
 const FETCHERS: Record<HomeMediaCategory, (region: string) => Promise<Movie[] | TvShow[]>> = {
   'now-playing-movies': fetchNowPlayingMovies,

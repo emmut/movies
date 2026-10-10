@@ -1,6 +1,5 @@
-// No 'server-only' here: the nightly title sync (scripts/sync-titles.ts) runs
-// under Nub outside the Next.js server runtime and needs the same client.
-// The app-facing wrapper in `tmdb.ts` binds the token from `@/env`.
+// Framework-independent transport shared by the Hono host, web app, and title-sync job.
+// Each consumer binds its own access token with createTmdbFetch.
 
 const TMDB_API_URL = process.env.TMDB_API_URL_OVERRIDE ?? 'https://api.themoviedb.org/3';
 

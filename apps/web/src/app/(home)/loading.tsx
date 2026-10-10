@@ -1,8 +1,10 @@
+import { HOME_SECTIONS } from '@movies/api/home';
+
 import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
 import { ItemSlider } from '@/components/item-slider';
 
-import { HOME_SECTIONS, MediaSectionHeader, TrendingHeader } from './sections';
+import { MediaSectionHeader, TrendingHeader } from './sections';
 
 /**
  * Loading skeleton for the homepage.

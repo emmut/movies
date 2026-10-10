@@ -37,6 +37,9 @@ importers:
       '@imgproxy/imgproxy-node':
         specifier: ^1.1.0
         version: 1.1.0
+      '@movies/api':
+        specifier: workspace:*
+        version: link:packages/api
       '@movies/db':
         specifier: workspace:*
         version: link:packages/db

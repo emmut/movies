@@ -1,8 +1,8 @@
 import 'server-only';
+import { createTmdbFetch } from '@movies/api/tmdb-fetch';
+
 import { env } from '@/env';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
-
-import { createTmdbFetch } from './tmdb-fetch';
 
 /**
  * Fetches a TMDb API endpoint with authorization and JSON parsing, bound to

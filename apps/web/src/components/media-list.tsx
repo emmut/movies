@@ -1,6 +1,8 @@
-import PersonalizedMediaList from '@/components/personalized-media-list';
-import { getHomeMediaList, HomeMediaCategory } from '@/lib/home-media';
+import type { HomeMediaCategory } from '@movies/api/home';
 import { DEFAULT_REGION } from '@movies/config/regions';
+
+import PersonalizedMediaList from '@/components/personalized-media-list';
+import { getHomeMediaList } from '@/lib/home-media';
 
 type MediaListProps = {
   category: HomeMediaCategory;

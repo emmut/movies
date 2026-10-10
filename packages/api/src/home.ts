@@ -35,6 +35,8 @@ export const HOME_SECTIONS = [
   },
 ] as const;
 
+export type HomeMediaSection = (typeof HOME_SECTIONS)[number];
+
 export const homeCategorySchema = z.enum([
   'now-playing-movies',
   'on-the-air-tv',

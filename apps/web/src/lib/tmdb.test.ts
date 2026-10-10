@@ -14,8 +14,9 @@ vi.mock('@/lib/imgproxy-url', () => ({
   buildProxyImageUrls: vi.fn(() => ({ src: 'proxied', srcSet: 'proxied 1x' })),
 }));
 
+import { TmdbRequestError } from '@movies/api/tmdb-fetch';
+
 import { addPosterImageUrls, addProfileImageUrls, optional, tmdbFetch } from './tmdb';
-import { TmdbRequestError } from './tmdb-fetch';
 
 function jsonResponse(body: unknown, status = 200, headers: Record<string, string> = {}) {
   return {

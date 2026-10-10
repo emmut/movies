@@ -1,4 +1,4 @@
-import type { MediaCard, HOME_SECTIONS } from '@movies/api/home';
+import type { MediaCard, HomeMediaSection } from '@movies/api/home';
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import { memo } from 'react';
@@ -115,13 +115,7 @@ function RowState({
   return null;
 }
 
-export function MediaRow({
-  section,
-  region,
-}: {
-  section: (typeof HOME_SECTIONS)[number];
-  region: string;
-}) {
+export function MediaRow({ section, region }: { section: HomeMediaSection; region: string }) {
   const query = useQuery(
     orpc.home.list.queryOptions({ input: { category: section.category, region } }),
   );

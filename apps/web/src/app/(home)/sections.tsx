@@ -1,21 +1,3 @@
-import { HomeMediaCategory } from '@/lib/home-media';
-
-export type MediaSectionConfig = {
-  heading: string;
-  caption: string;
-  type: 'movie' | 'tv';
-  category: HomeMediaCategory;
-};
-
-/**
- * The ordered media sections rendered below the trending row on the homepage.
- *
- * Shared between the page and its loading skeleton so both render the same
- * headings in the same order — the loading state never shows a different
- * number of sections than the real page, so nothing shifts once content loads.
- */
-export { HOME_SECTIONS } from '@movies/api/home';
-
 /**
  * Heading row for a homepage media section. Static markup (no data), so it
  * renders identically in the page and its loading skeleton.
