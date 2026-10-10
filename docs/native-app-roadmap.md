@@ -115,3 +115,14 @@ Native auth uses the official Better Auth Expo client and SecureStore. During th
 Browser previews use credentialed CORS with explicit origins; app schemes are trusted by the canonical Expo server plugin, and LAN/Expo Go origins are restricted to development. Native OAuth uses system browser/deep-link handling, then verifies a returned non-anonymous session before completing navigation. Discarded OAuth cannot incorrectly finish using an old anonymous session. Session changes clear native query caches.
 
 This establishes the dependency for authenticated preferences and list workflows. It does not complete identity: native passkeys, device OAuth/storage/restart checks, settings/account linking presentation and persistent region/provider preferences remain required.
+
+## Next steps
+
+Pick up here; details and evidence for completed work are in the [parity checklist](native-app-parity.md).
+
+1. **Verify the hosted API on PR #350.** Confirm the Railway infra workflow created the `api` service, generated its domain and that `/health` answers. Then point a local Expo build at it (`EXPO_PUBLIC_SERVER_URL`, `EXPO_PUBLIC_WEB_URL`) and check sign-in forwarding and `preferences.*` against the preview database.
+2. **Native Settings screen.** Replace the More → Settings web bridge. Port the region form on top of `preferences.region`/`setRegion`, matching web wording and layout.
+3. **Watch-provider preferences.** Move `setUserWatchProviders`/`getUserWatchProviders` into `@movies/db/user-preferences`, add private `preferences.providers` procedures and the native Settings form. Use saved providers as Discover defaults, as web does.
+4. **Watchlist and Watched (phase 3).** Extract system-list reads and mutations from web actions into shared server modules, keeping ownership checks, title-cache write-through, provider filtering and manual ordering. Expose them as private procedures and build the native screens and quick-add actions. Document and test web cache freshness for each Hono mutation.
+5. **Custom lists (phase 4)**, then the remaining catalog work (cast/crew, IMDb, reviews), passkeys and account linking.
+6. **Release work.** Set up EAS builds with per-environment `EXPO_PUBLIC_*` URLs, a production custom API domain, real iOS/Android device checks and the final code audit.
