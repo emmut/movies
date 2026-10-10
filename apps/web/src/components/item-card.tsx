@@ -14,8 +14,12 @@ import Badge from './badge';
 import { QuickAddButton } from './quick-add-button';
 import { RemoveFromListButton } from './remove-from-list-button';
 
+type ItemResource = (Movie | MovieDetails | TvShow | TvDetails) & {
+  posterImageUrls?: ProxyImageUrls;
+};
+
 type ItemCardProps = {
-  resource: Movie | MovieDetails | TvShow | TvDetails;
+  resource: ItemResource;
   type: 'movie' | 'tv';
   className?: string;
   userId?: string;
@@ -45,11 +49,113 @@ function resolveImageSrc(src: string, size: number) {
   return formatImageUrl(src, size);
 }
 
-/**
- * Displays a card for a movie or TV show resource with poster, title, release year, and score.
- *
- * The card visually distinguishes between movies and TV shows, linking to the resource's detail page and showing additional information and badges on hover or focus. If no poster image is available, a fallback with an emoji and "No Poster" text is shown.
- */
+function cardMetadata(item: ItemResource) {
+  const title = isResource(item) ? item.title : item.name;
+  const releaseDate = isResource(item) ? item.release_date : item.first_air_date;
+  return { title, releaseYear: releaseDate ? releaseDate.split('-')[0] : 'N/A' };
+}
+
+function CardArtwork({
+  item,
+  title,
+  type,
+  eagerImage,
+}: {
+  item: ItemResource;
+  title: string;
+  type: ItemCardProps['type'];
+  eagerImage: boolean;
+}) {
+  return (
+    <>
+      {item.poster_path ? (
+        <ClientImage
+          imageUrls={item.posterImageUrls}
+          fallbackSrc={resolveImageSrc(item.poster_path, 500)}
+          alt={title}
+          className="h-full w-full object-cover"
+          eager={eagerImage}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-zinc-800">
+          <div className="text-center text-zinc-400">
+            <div className="mb-2 text-4xl">{type === 'movie' ? '🎬' : '📺'}</div>
+            <div className="text-sm font-semibold">No Poster</div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function CardOverlay({
+  title,
+  releaseYear,
+  score,
+  type,
+}: {
+  title: string;
+  releaseYear: string;
+  score: number;
+  type: ItemCardProps['type'];
+}) {
+  return (
+    <>
+      <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100" />
+
+      <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
+        <div className="inset-0 bg-linear-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100" />
+
+        <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{title}</h3>
+        <div className="flex items-center justify-between text-xs text-zinc-300">
+          <span>{releaseYear}</span>
+          <div className="flex items-center gap-1">
+            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
+            <span>{score}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
+        <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
+          {type === 'movie' ? 'Movie' : 'TV Show'}
+        </Badge>
+      </div>
+    </>
+  );
+}
+
+function CardActions({
+  mediaId,
+  mediaType,
+  userId,
+  showListButton,
+  listId,
+}: {
+  mediaId: number;
+  mediaType: ItemCardProps['type'];
+  userId?: string;
+  showListButton: boolean;
+  listId?: string;
+}) {
+  return (
+    <>
+      {showListButton && listId === undefined && (
+        <div className="absolute top-2 right-2 transition-opacity">
+          <QuickAddButton mediaId={mediaId} mediaType={mediaType} userId={userId} />
+        </div>
+      )}
+
+      {listId !== undefined && (
+        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
+          <RemoveFromListButton listId={listId} mediaId={mediaId} mediaType={mediaType} />
+        </div>
+      )}
+    </>
+  );
+}
+
+/** A poster link with hover/focus metadata and independently composed list actions. */
 export default function ItemCard({
   resource: item,
   type,
@@ -59,20 +165,11 @@ export default function ItemCard({
   listId,
   eagerImage = false,
 }: ItemCardProps) {
-  const posterImageUrls = (item as { posterImageUrls?: ProxyImageUrls }).posterImageUrls;
-  const score = displayRating(item.vote_average);
-
-  const title = isResource(item) ? item.title : item.name;
-  const releaseDate = isResource(item) ? item.release_date : item.first_air_date;
-  const releaseYear = releaseDate ? releaseDate.split('-')[0] : 'N/A';
-  const href = `/${type}/${item.id}`;
-  const emoji = type === 'movie' ? '🎬' : '📺';
-
+  const { title, releaseYear } = cardMetadata(item);
   const borderColor =
     type === 'movie'
       ? 'hover:border-yellow-300 focus-within:border-yellow-300'
       : 'hover:border-red-500 focus-within:border-red-500';
-
   return (
     <div
       className={cn(
@@ -81,59 +178,24 @@ export default function ItemCard({
         className,
       )}
     >
-      <BackTargetLink href={href}>
+      <BackTargetLink href={`/${type}/${item.id}`}>
         <div className="relative h-full w-full">
-          {item.poster_path ? (
-            <ClientImage
-              imageUrls={posterImageUrls}
-              fallbackSrc={resolveImageSrc(item.poster_path, 500)}
-              alt={title}
-              className="h-full w-full object-cover"
-              eager={eagerImage}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-zinc-800">
-              <div className="text-center text-zinc-400">
-                <div className="mb-2 text-4xl">{emoji}</div>
-                <div className="text-sm font-semibold">No Poster</div>
-              </div>
-            </div>
-          )}
-
-          <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100" />
-
-          <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
-            <div className="inset-0 bg-linear-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100" />
-
-            <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{title}</h3>
-            <div className="flex items-center justify-between text-xs text-zinc-300">
-              <span>{releaseYear}</span>
-              <div className="flex items-center gap-1">
-                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                <span>{score}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
-            <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
-              {type === 'movie' ? 'Movie' : 'TV Show'}
-            </Badge>
-          </div>
+          <CardArtwork item={item} title={title} type={type} eagerImage={eagerImage} />
+          <CardOverlay
+            title={title}
+            releaseYear={releaseYear}
+            score={displayRating(item.vote_average)}
+            type={type}
+          />
         </div>
       </BackTargetLink>
-
-      {showListButton && listId === undefined && (
-        <div className="absolute top-2 right-2 transition-opacity">
-          <QuickAddButton mediaId={item.id} mediaType={type} userId={userId} />
-        </div>
-      )}
-
-      {listId !== undefined && (
-        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
-          <RemoveFromListButton listId={listId} mediaId={item.id} mediaType={type} />
-        </div>
-      )}
+      <CardActions
+        mediaId={item.id}
+        mediaType={type}
+        userId={userId}
+        showListButton={showListButton}
+        listId={listId}
+      />
     </div>
   );
 }

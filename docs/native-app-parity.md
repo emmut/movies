@@ -158,3 +158,7 @@ Verification:
 - Next reported no compilation or runtime errors after sharing trailer selection.
 
 Catalog still needs person/filmography, cast/crew/creators, IMDb, origin-country actions and reviews. Identity, persistent preferences/lists, search/discovery and release/device criteria retain their full original scope. No phase is marked complete.
+
+## PR audit follow-up — 2026-10-10
+
+The first pushed catalog commit passed GitHub lint/typecheck/unit, web E2E and preview checks, but CI flagged the web poster card complexity that the local upstream-relative audit had treated as inherited. Composed its artwork, overlay and list actions into private components while preserving its public API and DOM treatments. Added rendering regression coverage for movie/TV metadata and scores, missing artwork/dates, quick-add versus custom-list removal, and eager/proxy image data. The audit against `origin/main` now reports no complexity findings. Root tests now pass 660 cases (four skipped). This follow-up does not complete any remaining native parity phase.
