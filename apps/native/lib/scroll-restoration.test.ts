@@ -1,5 +1,6 @@
 import {
   canRestoreScroll,
+  clampScrollOffset,
   readScrollOffset,
   restoreScrollPosition,
 } from '@native/lib/scroll-restoration';
@@ -45,5 +46,17 @@ describe('scroll adapters', () => {
   it('captures the actual browser offset before blur and clamps overscroll', () => {
     expect(readScrollOffset({ scrollTop: 1900, clientHeight: 600 }, 1268)).toBe(1900);
     expect(readScrollOffset({ scrollTop: -10, clientHeight: 600 }, 300)).toBe(0);
+  });
+});
+
+describe('native transparent-header insets', () => {
+  it('preserves the native resting position below a translucent header', () => {
+    expect(clampScrollOffset(-88, 88)).toBe(-88);
+    expect(clampScrollOffset(300, 88)).toBe(300);
+  });
+  it('clamps bounce to the inset edge and uses zero for browsers without native insets', () => {
+    expect(clampScrollOffset(-120, 88)).toBe(-88);
+    expect(clampScrollOffset(-20, 0)).toBe(0);
+    expect(clampScrollOffset(-20, -1)).toBe(0);
   });
 });

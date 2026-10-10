@@ -1,5 +1,6 @@
 import {
   canRestoreScroll,
+  clampScrollOffset,
   readScrollOffset,
   restoreScrollPosition,
 } from '@native/lib/scroll-restoration';
@@ -22,6 +23,8 @@ export function useRememberedScroll<
 >(key: string) {
   const ref = useRef<T>(null);
   const offset = useRef(positions.get(key) ?? 0);
+  const remembered = useRef(positions.has(key));
+  const bottomInset = useRef(0);
   const contentHeight = useRef(0);
   const viewportHeight = useRef(0);
   const phase = useRef<'hidden' | 'restoring' | 'ready'>('hidden');
@@ -29,7 +32,14 @@ export function useRememberedScroll<
   const restore = useCallback(function restore() {
     if (phase.current !== 'restoring') return;
     if (!ref.current) return;
-    if (!canRestoreScroll(offset.current, contentHeight.current, viewportHeight.current)) return;
+    if (
+      !canRestoreScroll(
+        offset.current,
+        contentHeight.current + bottomInset.current,
+        viewportHeight.current,
+      )
+    )
+      return;
     phase.current = 'ready';
     restoreScrollPosition(ref.current, offset.current);
   }, []);
@@ -37,14 +47,17 @@ export function useRememberedScroll<
   useFocusEffect(
     useCallback(
       function focus() {
-        phase.current = 'restoring';
+        phase.current = remembered.current ? 'restoring' : 'ready';
         const frame = requestAnimationFrame(restore);
         return function blur() {
           cancelAnimationFrame(frame);
           if (ref.current)
             offset.current = readScrollOffset(ref.current.getScrollableNode(), offset.current);
           phase.current = 'hidden';
-          positions.set(key, offset.current);
+          if (viewportHeight.current > 0) {
+            remembered.current = true;
+            positions.set(key, offset.current);
+          }
         };
       },
       [key, restore],
@@ -59,7 +72,12 @@ export function useRememberedScroll<
     phase.current = 'ready';
   }
   function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    if (phase.current === 'ready') offset.current = Math.max(0, event.nativeEvent.contentOffset.y);
+    const { contentOffset } = event.nativeEvent;
+    const contentInset = event.nativeEvent.contentInset ?? { top: 0, bottom: 0 };
+    bottomInset.current = contentInset.bottom;
+    if (phase.current === 'ready')
+      offset.current = clampScrollOffset(contentOffset.y, contentInset.top);
+    restore();
   }
   function onContentSizeChange(_width: number, height: number) {
     contentHeight.current = height;

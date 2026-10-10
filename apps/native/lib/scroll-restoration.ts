@@ -22,3 +22,9 @@ export function readScrollOffset(node: unknown, fallback: number) {
   if (typeof node.scrollTop !== 'number' || node.clientHeight === 0) return fallback;
   return Math.max(0, node.scrollTop);
 }
+
+/** Automatic native header insets legitimately give the top position a negative offset. */
+export function clampScrollOffset(offset: number, topInset: number) {
+  const minimum = topInset > 0 ? -topInset : 0;
+  return Math.max(minimum, offset);
+}

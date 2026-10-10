@@ -1,14 +1,13 @@
 import { HOME_SECTIONS } from '@movies/api/home';
-import { regions } from '@movies/config/regions';
 import { BottomNavigation } from '@native/components/bottom-navigation';
-import { Brand } from '@native/components/brand';
+import { HomeHeader } from '@native/components/home-header';
 import { MediaRow, TrendingCard } from '@native/components/media-row';
 import { RegionPicker } from '@native/components/region-picker';
 import { queryClient, orpc } from '@native/lib/api';
 import { useRegion } from '@native/lib/preferences';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -34,22 +33,8 @@ export default function Home() {
     }
   }
   return (
-    <SafeAreaView
-      className="flex-1 bg-background"
-      edges={['top', 'left', 'right']}
-      collapsable={false}
-    >
-      <View className="flex-row items-center justify-between border-b border-border px-4 py-3">
-        <Brand />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Region: ${regions.find((item) => item.code === region)?.name}. Change region`}
-          onPress={() => setPickerOpen(true)}
-          className="rounded-xl bg-default px-4 py-3"
-        >
-          <Text className="text-foreground">{region} ▾</Text>
-        </Pressable>
-      </View>
+    <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']} collapsable={false}>
+      <HomeHeader region={region} onOpenRegion={() => setPickerOpen(true)} />
       <ScrollView
         className="flex-1"
         testID="home-scroll"

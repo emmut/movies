@@ -188,3 +188,9 @@ Web and Hono use the same discovery parameter builder and sort options. The publ
 The opaque detail-header fill and duplicate bottom safe-area backing are removed. Supported iOS devices render a native GlassView header over scrolling content; older iOS uses native translucent material. NativeTabs retains its system glass bar, and navigation follows the system light/dark theme. Physical-device glass rendering remains unverified.
 
 Evidence: compared the deployed web Discover screen's controls; 31 native browser checks pass, including OR selection, clearing, media/region changes, cached pagination, empty/error/retry, native genre links and contextual detail/back navigation. Discovery contracts/service/filter models and shared query rules have 100% statement/branch/function coverage. Root/workspace typechecks, lint and audit pass; 728 committed unit tests pass (four skipped). Both native iOS/Android exports pass; browser screenshots in light/dark themes do not prove OS glass appearance.
+
+## Homepage glass header
+
+Home now uses the same native stack glass/material header as movie/TV details, retaining the Movies wordmark and region picker. Its old separately painted header row and top safe-area padding are removed, and content scrolls underneath the native header. First visits preserve the OS's automatic resting inset; saved positions retain legitimate negative top offsets and account for the bottom tab inset.
+
+The region picker, source-scroll restoration and native movie/TV navigation pass the browser checks. Header glass/material rendering is covered by the shared native options and both platform bundle exports; physical iOS appearance still needs device verification. This does not complete the remaining search, identity/list, catalog or release phases.

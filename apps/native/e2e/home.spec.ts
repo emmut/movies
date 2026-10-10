@@ -43,6 +43,8 @@ test('renders the homepage, changes regional queries, and opens native details',
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
+  await expect(page.getByText('Movies', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Region: Sweden/ })).toBeVisible();
   await expect(page.getByText('Trending Now', { exact: true })).toBeVisible();
   for (const heading of [
     'Movies in Theaters',
