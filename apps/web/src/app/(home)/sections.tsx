@@ -14,44 +14,7 @@ export type MediaSectionConfig = {
  * headings in the same order — the loading state never shows a different
  * number of sections than the real page, so nothing shifts once content loads.
  */
-export const HOME_SECTIONS: MediaSectionConfig[] = [
-  {
-    heading: 'Movies in Theaters',
-    caption: 'Now playing',
-    type: 'movie',
-    category: 'now-playing-movies',
-  },
-  {
-    heading: 'TV Shows on Air',
-    caption: 'Currently airing',
-    type: 'tv',
-    category: 'on-the-air-tv',
-  },
-  {
-    heading: 'Coming Soon',
-    caption: 'Upcoming movies',
-    type: 'movie',
-    category: 'upcoming-movies',
-  },
-  {
-    heading: 'Popular TV Shows',
-    caption: 'Trending series',
-    type: 'tv',
-    category: 'popular-tv',
-  },
-  {
-    heading: 'Top Rated Movies',
-    caption: 'All-time favorites',
-    type: 'movie',
-    category: 'top-rated-movies',
-  },
-  {
-    heading: 'Top Rated TV Shows',
-    caption: 'Highest rated series',
-    type: 'tv',
-    category: 'top-rated-tv',
-  },
-];
+export { HOME_SECTIONS } from '@movies/api/home';
 
 /**
  * Heading row for a homepage media section. Static markup (no data), so it

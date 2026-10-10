@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nub run dev:docker:up && nub exec turbo run dev --filter=@movies/web --cache-dir=.turbo/cache",
+    "dev": "nub run dev:docker:up && nub exec turbo run dev --cache-dir=.turbo/cache",
     "dev:docker:up": "docker compose -f docker-compose.dev.yml up -d",
     "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
     "build": "nub run lint && nub exec turbo run build --filter=@movies/web --cache-dir=.turbo/cache",
@@ -32,7 +32,9 @@
     "sync:titles": "nub --env-file-if-exists=apps/web/.env scripts/sync-titles.ts",
     "ingest:search": "nub --env-file-if-exists=apps/web/.env scripts/ingest-search-index.ts",
     "list-providers": "nub --env-file-if-exists=apps/web/.env scripts/list-watch-providers.ts",
-    "check-types": "tsc --noEmit && nub exec turbo run check-types --filter=@movies/web --cache-dir=.turbo/cache"
+    "check-types": "tsc --noEmit && nub run --filter @movies/web --filter @movies/native --filter @movies/server check-types",
+    "dev:native": "nub run --filter @movies/native dev",
+    "dev:api": "nub run --filter @movies/server dev"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

@@ -33,7 +33,14 @@
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": [
+        "MOVIE_DB_ACCESS_TOKEN",
+        "TMDB_API_URL_OVERRIDE",
+        "PORT",
+        "CORS_ORIGIN",
+        "EXPO_PUBLIC_*"
+      ]
     }
   },
   "globalDependencies": ["apps/*/.env*", "packages/*/.env*", "tsconfig.json"]

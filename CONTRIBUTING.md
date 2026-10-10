@@ -20,13 +20,17 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 
 The TMDB request collection is `apps/web/movie-db.http`; it reads `apps/web/.env` from the same directory.
 
+## Native app
+
+`apps/native` contains the Expo React Native app; `apps/server` hosts its public oRPC API. Root `nub run dev` starts Docker, web, API, and Expo together. Start just the native services with `nub run dev:native` and `nub run dev:api`. See [the native setup and roadmap](apps/native/README.md) for environment setup, device URLs, current scope, and browser checks. `nub run check-types` includes both workspaces.
+
 ## Common commands
 
 The most-used scripts — run `nub run` for the full list, which is authoritative.
 
 | Command | Purpose |
 | --- | --- |
-| `nub run dev` | Dev server through Turbo. |
+| `nub run dev` | Docker plus web, API, and Expo through Turbo. |
 | `nub run build` | Production build through Turbo. |
 | `nub run lint` / `nub run format` | Lint / format. |
 | `nub run --node test` | Unit tests; Vitest fake timers require plain Node. |

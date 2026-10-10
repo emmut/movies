@@ -4,10 +4,14 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./validations": "./src/validations.ts"
+    "./validations": "./src/validations.ts",
+    "./home": "./src/home.ts",
+    "./router": "./src/router.ts",
+    "./tmdb-fetch": "./src/tmdb-fetch.ts"
   },
   "dependencies": {
     "zod": "^4.6.2",
-    "@movies/config": "workspace:*"
+    "@movies/config": "workspace:*",
+    "@orpc/server": "^1.15.0"
   }
 }

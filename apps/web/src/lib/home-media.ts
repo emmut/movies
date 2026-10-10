@@ -1,18 +1,13 @@
 'use server';
 
-import { fetchNowPlayingMovies, fetchTopRatedMovies, fetchUpcomingMovies } from '@/lib/movies';
+import type { HomeMediaCategory } from '@movies/api/home';
 import { DEFAULT_REGION, regionSchema } from '@movies/config/regions';
+
+import { fetchNowPlayingMovies, fetchTopRatedMovies, fetchUpcomingMovies } from '@/lib/movies';
 import { fetchOnTheAirTvShows, fetchPopularTvShows, fetchTopRatedTvShows } from '@/lib/tv-shows';
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
-
-export type HomeMediaCategory =
-  | 'now-playing-movies'
-  | 'on-the-air-tv'
-  | 'upcoming-movies'
-  | 'popular-tv'
-  | 'top-rated-movies'
-  | 'top-rated-tv';
+export type { HomeMediaCategory } from '@movies/api/home';
 
 const FETCHERS: Record<HomeMediaCategory, (region: string) => Promise<Movie[] | TvShow[]>> = {
   'now-playing-movies': fetchNowPlayingMovies,

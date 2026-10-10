@@ -8,7 +8,12 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    include: ['apps/web/src/**/*.{test,spec}.{ts,tsx}', 'packages/**/*.{test,spec}.{ts,tsx}'],
+    include: [
+      'apps/web/src/**/*.{test,spec}.{ts,tsx}',
+      'packages/**/*.{test,spec}.{ts,tsx}',
+      'apps/server/src/**/*.test.ts',
+      'apps/native/lib/**/*.test.ts',
+    ],
     alias: [
       // The single `@/* -> src/*` tsconfig path mapping, inlined (no plugin/dep).
       { find: /^@\//, replacement: fileURLToPath(new URL('./apps/web/src/', import.meta.url)) },
