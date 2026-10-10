@@ -27,3 +27,11 @@ Continue the remaining page work:
 - Verify every menu item and internal link reaches its native destination without opening the web app. Add workflow tests and verify the system tab bar, back gestures and deep links on real iOS and Android devices.
 
 The remaining page work is active again. Implement and verify each workflow before marking its parity row complete. Use app path aliases rather than relative parent imports.
+
+## Final code audit
+
+Apply these conventions in new work immediately. The owner explicitly deferred a repository-wide rewrite until the end-goal audit.
+
+- Every `if`/`else` body uses a block, including single-line early returns.
+- Consumers of modules moved into shared packages import directly from their package entry points. Remove old import/re-export and forwarding shims; retain host adapters only where they bind actual framework caching, authentication or transport behavior.
+- Verify the completed changes against these rules before release, together with the existing path-alias and repository validation requirements. The broader cleanup is a required end-goal deliverable, not a reason to restart current feature work.

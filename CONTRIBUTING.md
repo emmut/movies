@@ -44,6 +44,8 @@ Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test
 ## Conventions
 
 - Prefer normal functions over arrow functions except for inline usage.
+- Every `if` and `else` body uses braces, including single-line early returns.
+- When moving a module into a shared package, update its consumers to import directly from the package. Remove the old import/re-export or forwarding shim rather than keeping a compatibility layer.
 - Write clean, maintainable code with small, cohesive modules and explicit control flow. Avoid nested ternaries and dense chained expressions; prefer descriptive helpers, intermediate values and ordinary blocks when they clarify the behavior.
 - Native styling uses Tailwind/Uniwind classes; use React Native style objects only when a library cannot accept classes.
 - Native and Hono apps use per-app Varlock `.env.schema` files and generated app-scoped `ENV` modules. Generate with `pnpm env:generate`; do not edit generated files or add env re-export wrappers. The existing web app and cron scripts use T3 Env.
