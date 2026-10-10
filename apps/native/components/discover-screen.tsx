@@ -106,7 +106,7 @@ function DiscoveryResults({
 export function DiscoverScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
-  const { region } = useRegion();
+  const region = useRegion();
   const input = readDiscoverState(params, region);
   const options = useQuery(
     orpc.discovery.options.queryOptions({ input: { type: input.type, region: input.region } }),

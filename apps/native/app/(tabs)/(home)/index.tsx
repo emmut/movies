@@ -5,7 +5,7 @@ import { MediaRow, TrendingCard } from '@native/components/media-row';
 import { RegionPicker } from '@native/components/region-picker';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { queryClient, orpc } from '@native/lib/api';
-import { useRegion } from '@native/lib/preferences';
+import { useRegionSetting } from '@native/lib/preferences';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -15,7 +15,7 @@ import { withUniwind } from 'uniwind';
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
 export default function Home() {
-  const { region, setRegion } = useRegion();
+  const { region, setRegion, saveFailed } = useRegionSetting();
   const {
     ref: homeScrollRef,
     onScroll: rememberHomeScroll,
@@ -62,6 +62,11 @@ export default function Home() {
           }
         >
           <View className="gap-4 px-4 pt-5">
+            {saveFailed ? (
+              <Text accessibilityRole="alert" className="text-sm text-red-500">
+                Couldn’t save your region. Choose it again to retry.
+              </Text>
+            ) : null}
             <Text
               accessibilityRole="header"
               className="text-2xl font-bold tracking-tight text-foreground"

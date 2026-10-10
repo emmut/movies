@@ -1,23 +1,33 @@
 import { DEFAULT_REGION } from '@movies/config/regions';
 import { queryClient } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
-import { useRegion } from '@native/lib/preferences';
+import { resetSessionRegion } from '@native/lib/preferences';
+import { classifySessionChange } from '@native/lib/session-change';
 import { useEffect, useRef, type ReactNode } from 'react';
 
-/** Session-specific cache entries cannot survive an account change or sign-out. */
+/**
+ * Session-specific cache entries cannot survive an account change or sign-out.
+ * The first settled session is the baseline, not a change: resetting then
+ * would drop the queries the opening screen is already showing.
+ */
 export function SessionBoundary({ children }: { children: ReactNode }) {
-  const { data } = authClient.useSession();
+  const { data, isPending } = authClient.useSession();
   const userId = data?.user.id ?? null;
   const previousUser = useRef<string | null | undefined>(undefined);
-  const { setRegion } = useRegion();
   useEffect(() => {
-    if (previousUser.current !== undefined && previousUser.current !== userId) {
-      queryClient.clear();
-      if (userId === null) {
-        setRegion(DEFAULT_REGION);
-      }
+    if (isPending) {
+      return;
     }
+    const change = classifySessionChange(previousUser.current, userId);
     previousUser.current = userId;
-  }, [userId, setRegion]);
+    if (change === 'none') {
+      return;
+    }
+    // Reset clears every user's cached data and refetches what is on screen.
+    void queryClient.resetQueries();
+    if (change === 'signed-out') {
+      resetSessionRegion(DEFAULT_REGION);
+    }
+  }, [userId, isPending]);
   return children;
 }

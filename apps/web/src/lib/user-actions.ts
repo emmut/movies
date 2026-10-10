@@ -3,9 +3,9 @@
 import { randomUUID } from 'crypto';
 
 import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
-import { DEFAULT_REGION, RegionCode, regionSchema } from '@movies/config/regions';
-import { user } from '@movies/db/schema/auth';
+import { DEFAULT_REGION, regionSchema, type RegionCode } from '@movies/config/regions';
 import { userWatchProviders } from '@movies/db/schema/user-watch-providers';
+import { createUserPreferenceStore } from '@movies/db/user-preferences';
 import { and, eq, inArray, not } from 'drizzle-orm';
 import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 
@@ -23,6 +23,7 @@ type WatchProvidersResponse = {
 
 const MAX_DISPLAY_PRIORITY = 50;
 const MAX_PROVIDERS = 12;
+const preferences = createUserPreferenceStore(db);
 
 export async function getUserRegion() {
   const session = await getSession();
@@ -39,17 +40,7 @@ async function getCachedUserRegion(userId: string) {
   cacheTag(CACHE_TAGS.private.userRegion(userId));
   cacheLife('privateShort');
 
-  const userData = await db
-    .select({ region: user.region })
-    .from(user)
-    .where(eq(user.id, userId))
-    .limit(1);
-
-  if (userData.length === 0) {
-    throw new Error('User not found');
-  }
-
-  return (userData[0].region ?? DEFAULT_REGION) as RegionCode;
+  return preferences.readRegion(userId);
 }
 
 export async function updateUserRegion(region: string) {
@@ -59,15 +50,9 @@ export async function updateUserRegion(region: string) {
     throw new Error('Unauthorized');
   }
 
-  const validatedRegion = regionSchema.parse(region);
+  const validatedRegion = regionSchema.parse(region) as RegionCode;
 
-  await db
-    .update(user)
-    .set({
-      region: validatedRegion,
-      updatedAt: new Date(),
-    })
-    .where(eq(user.id, session.user.id));
+  await preferences.writeRegion(session.user.id, validatedRegion);
 
   revalidateUserPreferenceCache(session.user.id);
 

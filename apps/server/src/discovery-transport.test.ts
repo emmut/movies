@@ -1,7 +1,5 @@
-import type { AppRouterClient } from '@movies/api/router';
-import { createORPCClient } from '@orpc/client';
-import { RPCLink } from '@orpc/client/fetch';
 import { createApp } from '@server/app';
+import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vitest';
 
 function setup() {
@@ -9,19 +7,8 @@ function setup() {
     list: vi.fn().mockResolvedValue({ items: [], totalPages: 0, totalResults: 0 }),
     options: vi.fn().mockResolvedValue({ genres: [], providers: [], countries: [] }),
   };
-  const app = createApp({
-    person: { details: vi.fn(), credits: vi.fn() },
-    search: { list: vi.fn() },
-    home: { list: vi.fn(), trending: vi.fn() },
-    catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
-    discovery,
-  });
-  const client: AppRouterClient = createORPCClient(
-    new RPCLink({
-      url: 'http://localhost/rpc',
-      fetch: async (request, init) => app.request(request, init),
-    }),
-  );
+  const app = createApp(mockServices({ discovery }));
+  const client = createTestClient(app);
   return { app, client, discovery };
 }
 describe('discovery RPC transport', () => {

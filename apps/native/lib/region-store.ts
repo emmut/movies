@@ -29,3 +29,14 @@ export function createRegionStore(initialRegion: RegionCode = DEFAULT_REGION) {
     },
   };
 }
+
+/**
+ * A signed-in account owns its region, as on web; the session store covers
+ * signed-out use and the moment before the account preference has loaded.
+ */
+export function resolveRegion(sessionRegion: RegionCode, accountRegion: RegionCode | undefined) {
+  if (accountRegion) {
+    return accountRegion;
+  }
+  return sessionRegion;
+}

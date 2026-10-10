@@ -1,28 +1,12 @@
-import type { AppRouterClient } from '@movies/api/router';
-import { createORPCClient } from '@orpc/client';
-import { RPCLink } from '@orpc/client/fetch';
 import { createApp } from '@server/app';
+import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vitest';
 
 function setup() {
   const home = { list: vi.fn().mockResolvedValue([]), trending: vi.fn().mockResolvedValue([]) };
   const catalog = { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() };
-  const app = createApp(
-    {
-      person: { details: vi.fn(), credits: vi.fn() },
-      search: { list: vi.fn() },
-      discovery: { list: vi.fn(), options: vi.fn() },
-      home,
-      catalog,
-    },
-    'http://localhost:8081',
-  );
-  const client: AppRouterClient = createORPCClient(
-    new RPCLink({
-      url: 'http://localhost/rpc',
-      fetch: async (request, init) => app.request(request, init),
-    }),
-  );
+  const app = createApp(mockServices({ home, catalog }), 'http://localhost:8081');
+  const client = createTestClient(app);
   return { home, catalog, app, client };
 }
 describe('homepage RPC transport', () => {
@@ -65,13 +49,7 @@ describe('homepage RPC transport', () => {
   });
   it('allows a LAN browser preview in development without hardcoding its IP', async () => {
     const home = { list: vi.fn().mockResolvedValue([]), trending: vi.fn().mockResolvedValue([]) };
-    const app = createApp({
-      person: { details: vi.fn(), credits: vi.fn() },
-      search: { list: vi.fn() },
-      discovery: { list: vi.fn(), options: vi.fn() },
-      home,
-      catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
-    });
+    const app = createApp(mockServices({ home }));
     const origin = 'http://192.168.1.78:8081';
     const response = await app.request('/rpc/home/list', {
       method: 'OPTIONS',
@@ -86,13 +64,7 @@ describe('homepage RPC transport', () => {
     'http://10.0.2.2:8081',
     'http://172.16.0.2:8081',
   ])('allows local dev origin %s', async (origin) => {
-    const app = createApp({
-      person: { details: vi.fn(), credits: vi.fn() },
-      search: { list: vi.fn() },
-      discovery: { list: vi.fn(), options: vi.fn() },
-      home: { list: vi.fn(), trending: vi.fn() },
-      catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
-    });
+    const app = createApp(mockServices());
     const response = await app.request('/rpc/home/list', {
       method: 'OPTIONS',
       headers: { origin },
@@ -104,13 +76,7 @@ describe('homepage RPC transport', () => {
     'http://192.168.1.78.attacker.example',
     'http://172.32.0.2:8081',
   ])('rejects unrelated dev origins %s', async (origin) => {
-    const app = createApp({
-      person: { details: vi.fn(), credits: vi.fn() },
-      search: { list: vi.fn() },
-      discovery: { list: vi.fn(), options: vi.fn() },
-      home: { list: vi.fn(), trending: vi.fn() },
-      catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
-    });
+    const app = createApp(mockServices());
     const response = await app.request('/rpc/home/list', {
       method: 'OPTIONS',
       headers: { origin },

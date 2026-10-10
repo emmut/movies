@@ -1,9 +1,7 @@
-import type { AppRouterClient } from '@movies/api/router';
 import { TmdbRequestError } from '@movies/api/tmdb-fetch';
-import { createORPCClient } from '@orpc/client';
-import { RPCLink } from '@orpc/client/fetch';
 import { createApp } from '@server/app';
 import { createCatalogService } from '@server/catalog-service';
+import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vitest';
 
 function setup() {
@@ -12,19 +10,8 @@ function setup() {
     .mockResolvedValueOnce({ id: 42, title: 'A movie' })
     .mockResolvedValueOnce({ results: [] });
   const catalog = createCatalogService(fetchTmdb);
-  const app = createApp({
-    person: { details: vi.fn(), credits: vi.fn() },
-    search: { list: vi.fn() },
-    discovery: { list: vi.fn(), options: vi.fn() },
-    home: { list: vi.fn(), trending: vi.fn() },
-    catalog,
-  });
-  const client: AppRouterClient = createORPCClient(
-    new RPCLink({
-      url: 'http://localhost/rpc',
-      fetch: async (request, init) => app.request(request, init),
-    }),
-  );
+  const app = createApp(mockServices({ catalog }));
+  const client = createTestClient(app);
   return { app, client, fetchTmdb, catalog };
 }
 describe('catalog RPC transport', () => {

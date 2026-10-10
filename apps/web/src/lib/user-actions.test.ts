@@ -39,6 +39,7 @@ describe('updateUserRegion', () => {
   });
 
   it('persists a valid region, revalidates caches/paths, and returns it', async () => {
+    vi.mocked(db.update).mockReturnValue(chain([{ id: 'user-1' }]));
     const result = await updateUserRegion('US');
 
     expect(result).toEqual({ success: true, region: 'US' });

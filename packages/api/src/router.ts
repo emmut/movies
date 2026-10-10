@@ -37,6 +37,7 @@ import {
   type PersonCreditsInput,
   type PersonDetail,
 } from './person';
+import { regionPreferenceSchema, type RegionPreference } from './preferences';
 import { searchInput, searchPageSchema, type SearchInput, type SearchPage } from './search';
 import { sessionUserSchema, type SessionUser } from './session';
 
@@ -60,7 +61,13 @@ export type PersonService = {
   details(input: PersonInput): Promise<PersonDetail>;
   credits(input: PersonCreditsInput): Promise<MediaCard[]>;
 };
+/** Account preferences for a verified user; the router supplies the user ID from the session. */
+export type PreferencesService = {
+  region(userId: string): Promise<RegionPreference>;
+  setRegion(userId: string, input: RegionPreference): Promise<RegionPreference>;
+};
 export type AppServices = {
+  preferences: PreferencesService;
   person: PersonService;
   search: SearchService;
   home: HomeService;
@@ -69,6 +76,25 @@ export type AppServices = {
 };
 export type AppContext = AppServices & { session?: { current(): Promise<SessionUser | null> } };
 const procedure = os.$context<AppContext>();
+
+/**
+ * Private procedures derive the user from the verified session and never
+ * accept a caller-supplied user ID. Anonymous accounts are accounts too, as
+ * on web.
+ */
+const authedProcedure = procedure
+  .errors({ UNAUTHORIZED: { message: 'Sign in to continue' } })
+  .use(async ({ context, next, errors }) => {
+    if (!context.session) {
+      throw errors.UNAUTHORIZED();
+    }
+    const user = await context.session.current();
+    if (!user) {
+      throw errors.UNAUTHORIZED();
+    }
+    return next({ context: { user } });
+  });
+
 export const appRouter = {
   session: {
     current: procedure.output(sessionUserSchema.nullable()).handler(async ({ context }) => {
@@ -77,6 +103,15 @@ export const appRouter = {
       }
       return context.session.current();
     }),
+  },
+  preferences: {
+    region: authedProcedure
+      .output(regionPreferenceSchema)
+      .handler(({ context }) => context.preferences.region(context.user.id)),
+    setRegion: authedProcedure
+      .input(regionPreferenceSchema)
+      .output(regionPreferenceSchema)
+      .handler(({ input, context }) => context.preferences.setRegion(context.user.id, input)),
   },
   person: {
     details: procedure

@@ -1,25 +1,12 @@
-import type { AppRouterClient } from '@movies/api/router';
-import { createORPCClient } from '@orpc/client';
-import { RPCLink } from '@orpc/client/fetch';
 import { createApp } from '@server/app';
+import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vitest';
 
 function setup() {
   const search = { list: vi.fn().mockResolvedValue({ items: [], totalPages: 0 }) };
   const person = { details: vi.fn(), credits: vi.fn().mockResolvedValue([]) };
-  const app = createApp({
-    search,
-    person,
-    home: { list: vi.fn(), trending: vi.fn() },
-    discovery: { list: vi.fn(), options: vi.fn() },
-    catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
-  });
-  const client: AppRouterClient = createORPCClient(
-    new RPCLink({
-      url: 'http://localhost/rpc',
-      fetch: async (request, init) => app.request(request, init),
-    }),
-  );
+  const app = createApp(mockServices({ search, person }));
+  const client = createTestClient(app);
   return { search, person, app, client };
 }
 describe('search and person RPC contracts', () => {

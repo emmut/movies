@@ -2,6 +2,7 @@ import { Writable } from 'node:stream';
 
 import { createApp } from '@server/app';
 import { createRequestLogger } from '@server/logger';
+import { mockServices } from '@server/test-services';
 import { pino, type Logger } from 'pino';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -21,13 +22,9 @@ function setup(level: string) {
     },
   });
   const logger: Logger = pino({ level }, destination);
-  const services = {
-    person: { details: vi.fn(), credits: vi.fn() },
-    search: { list: vi.fn() },
-    discovery: { list: vi.fn(), options: vi.fn() },
+  const services = mockServices({
     home: { list: vi.fn().mockResolvedValue([]), trending: vi.fn() },
-    catalog: { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() },
-  };
+  });
   const app = createApp(services, undefined, [createRequestLogger(logger)]);
   return { app, lines };
 }

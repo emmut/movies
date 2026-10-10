@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./schema/*": "./src/schema/*.ts",
-    "./search-index": "./src/search-index.ts"
+    "./search-index": "./src/search-index.ts",
+    "./user-preferences": "./src/user-preferences.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",

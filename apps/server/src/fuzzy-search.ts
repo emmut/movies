@@ -1,24 +1,14 @@
 import 'server-only';
 import type { SearchSources } from '@movies/api/search-engine';
 import { createSearchIndexReader } from '@movies/db/search-index';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import type { Database } from '@server/database';
 
-/** The host owns connection settings; SQL, ranking and deadlines remain shared with web. */
-export function createFuzzySearch(databaseUrl?: string, poolMax = 3): SearchSources['fuzzy'] {
-  if (!databaseUrl) {
+/** The host owns the connection; SQL, ranking and deadlines remain shared with web. */
+export function createFuzzySearch(database?: Database): SearchSources['fuzzy'] {
+  if (!database) {
     return async function noIndex() {
       return [];
     };
   }
-  const database = drizzle({
-    connection: {
-      connectionString: databaseUrl,
-      max: poolMax,
-      min: 1,
-      keepAlive: true,
-      idleTimeoutMillis: 5 * 60_000,
-      connectionTimeoutMillis: 60_000,
-    },
-  });
   return createSearchIndexReader(database).searchIndexFuzzy;
 }

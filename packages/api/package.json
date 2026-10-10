@@ -24,7 +24,8 @@
     "./search": "./src/search.ts",
     "./person": "./src/person.ts",
     "./filmography": "./src/filmography.ts",
-    "./session": "./src/session.ts"
+    "./session": "./src/session.ts",
+    "./preferences": "./src/preferences.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

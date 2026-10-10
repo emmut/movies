@@ -1,29 +1,7 @@
 import { corsHeaders, mockEmptySupport, preflight } from '@native/e2e/catalog-fixtures';
+import { mockAccountRegion, mockSession, sessionResponse } from '@native/e2e/session-fixtures';
 import { expect, test, type Page } from '@playwright/test';
 
-const user = {
-  id: 'anonymous-1',
-  name: 'Anonymous',
-  email: 'anonymous@example.com',
-  emailVerified: false,
-  image: null,
-  isAnonymous: true,
-  createdAt: '2026-01-01',
-  updatedAt: '2026-01-01',
-};
-function sessionResponse() {
-  return {
-    user,
-    session: {
-      id: 'session-1',
-      token: 'test-token',
-      userId: user.id,
-      expiresAt: '2099-01-01T00:00:00.000Z',
-      createdAt: '2026-01-01',
-      updatedAt: '2026-01-01',
-    },
-  };
-}
 async function emptyHome(page: Page) {
   await page.route('**/rpc/home/*', async (route) => {
     if (await preflight(route)) {
@@ -61,12 +39,8 @@ test('anonymous sign-in updates native session navigation and sign-out revokes i
 }) => {
   let signedIn = false;
   let signOutCalls = 0;
-  await page.route('**/api/auth/get-session*', async (route) => {
-    if (await preflight(route)) {
-      return;
-    }
-    await route.fulfill({ json: signedIn ? sessionResponse() : null, headers: corsHeaders });
-  });
+  const account = await mockAccountRegion(page, 'SE');
+  await mockSession(page, () => signedIn);
   await page.route('**/api/auth/sign-in/anonymous', async (route) => {
     if (await preflight(route)) {
       return;
@@ -88,6 +62,7 @@ test('anonymous sign-in updates native session navigation and sign-out revokes i
   await page.getByRole('button', { name: /Region: Sweden/ }).click();
   await page.getByRole('radio', { name: 'United States', exact: true }).click();
   await expect(page.getByRole('button', { name: /Region: United States/ })).toBeVisible();
+  await expect.poll(() => account.saves).toEqual(['US']);
   await page.getByRole('button', { name: 'More navigation', exact: true }).click();
   await expect(page.getByText('Signed in as Anonymous')).toBeVisible();
   await expect(page.getByText('Signed in as Anonymous')).toBeVisible();
@@ -104,12 +79,7 @@ test('failed sign-in is retryable and rejects an off-origin return destination',
 }) => {
   let attempts = 0;
   let signedIn = false;
-  await page.route('**/api/auth/get-session*', async (route) => {
-    if (await preflight(route)) {
-      return;
-    }
-    await route.fulfill({ json: signedIn ? sessionResponse() : null, headers: corsHeaders });
-  });
+  await mockSession(page, () => signedIn);
   await page.route('**/api/auth/sign-in/anonymous', async (route) => {
     if (await preflight(route)) {
       return;

@@ -79,7 +79,7 @@ function CatalogQuery({ input }: { input: CatalogDetailInput }) {
 }
 export function CatalogScreen() {
   const params = useLocalSearchParams<{ type?: string; id?: string; region?: string }>();
-  const { region } = useRegion();
+  const region = useRegion();
   const input = catalogDetailInput.safeParse({
     id: parseCatalogId(params.id),
     type: params.type,

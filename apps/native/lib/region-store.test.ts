@@ -1,4 +1,4 @@
-import { createRegionStore } from '@native/lib/region-store';
+import { createRegionStore, resolveRegion } from '@native/lib/region-store';
 import { describe, expect, it, vi } from 'vitest';
 
 describe('session region', () => {
@@ -25,5 +25,12 @@ describe('session region', () => {
     expect(() => store.setRegion('XX')).toThrow();
     expect(store.getSnapshot()).toBe('US');
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+describe('effective region', () => {
+  it('prefers the loaded account preference and otherwise uses the session region', () => {
+    expect(resolveRegion('SE', 'NO')).toBe('NO');
+    expect(resolveRegion('US', undefined)).toBe('US');
   });
 });
