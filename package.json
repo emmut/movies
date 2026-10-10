@@ -34,7 +34,9 @@
     "list-providers": "nub --env-file-if-exists=apps/web/.env scripts/list-watch-providers.ts",
     "check-types": "tsc --noEmit && nub run --filter @movies/web --filter @movies/native --filter @movies/server check-types",
     "dev:native": "nub run --filter @movies/native dev",
-    "dev:api": "nub run --filter @movies/server dev"
+    "dev:api": "nub run --filter @movies/server dev",
+    "env:generate": "varlock codegen --path ./apps/native/ && varlock codegen --path ./apps/server/",
+    "postinstall": "nub run env:generate"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -44,6 +46,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@imgproxy/imgproxy-js-core": "^1.9.0",
     "@imgproxy/imgproxy-node": "^1.1.0",
+    "@movies/api": "workspace:*",
     "@movies/db": "workspace:*",
     "@primer/octicons-react": "^19.35.0",
     "@t3-oss/env-nextjs": "^0.13.11",
@@ -67,8 +70,7 @@
     "sonner": "^2.0.8",
     "tailwindcss": "4.3.3",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.6.2",
-    "@movies/api": "workspace:*"
+    "zod": "^4.6.2"
   },
   "devDependencies": {
     "@nubjs/nub": "0.2.10",
@@ -90,6 +92,7 @@
     "shadcn": "^4.21.0",
     "turbo": "2.11.7",
     "typescript": "7.0.2",
+    "varlock": "1.18.0",
     "vitest": "^5.0.0"
   },
   "engines": {

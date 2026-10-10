@@ -52,3 +52,7 @@ opencode.json
 **/dist/
 expo-env.d.ts
 uniwind-types.d.ts
+
+# Per-app Varlock modules are generated from tracked schemas on install
+/apps/native/src/env.ts
+/apps/server/src/env.ts

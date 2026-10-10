@@ -4,16 +4,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --conditions=react-server --env-file-if-exists=.env --import tsx --watch src/index.ts",
-    "start": "node --conditions=react-server --env-file-if-exists=.env --import tsx src/index.ts",
-    "check-types": "tsc --noEmit"
+    "dev": "node --conditions=react-server --import tsx --watch src/index.ts",
+    "start": "node --conditions=react-server --import tsx src/index.ts",
+    "check-types": "tsc --noEmit",
+    "env:generate": "varlock codegen"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.0",
     "@movies/api": "workspace:*",
     "@orpc/server": "^1.15.0",
     "hono": "^4.9.0",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "varlock": "1.18.0"
   },
   "devDependencies": {
     "@orpc/client": "^1.15.0",

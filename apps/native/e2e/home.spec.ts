@@ -93,3 +93,21 @@ test('shows empty rows and allows retry after an API outage', async ({ page }) =
   await retry.click();
   await expect(page.getByText('No titles available right now.').first()).toBeVisible();
 });
+
+test('applies Tailwind image sizing and follows the system theme', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.route('**/rpc/home/*', async (route) => {
+    if (await preflight(route)) return;
+    await route.fulfill({ json: { json: [title] }, headers: corsHeaders });
+  });
+  await page.goto('/');
+  const card = page.getByRole('link', { name: 'Open Test movie, Movie' }).first();
+  await expect(card).toBeVisible();
+  await expect(card.locator(':scope > div').first()).toHaveCSS('height', '200px');
+  const heading = page.getByText('Trending Now', { exact: true });
+  const lightColor = await heading.evaluate((element) => getComputedStyle(element).color);
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect
+    .poll(() => heading.evaluate((element) => getComputedStyle(element).color))
+    .not.toBe(lightColor);
+});

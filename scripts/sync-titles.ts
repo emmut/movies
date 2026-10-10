@@ -51,7 +51,7 @@ if (!env.MOVIE_DB_ACCESS_TOKEN) {
   process.exit(1);
 }
 
-const tmdbFetch = createTmdbFetch(env.MOVIE_DB_ACCESS_TOKEN);
+const tmdbFetch = createTmdbFetch(env.MOVIE_DB_ACCESS_TOKEN, env.TMDB_API_URL_OVERRIDE);
 
 const source: TitleSource = {
   movieDetails: (id) => tmdbFetch(`/movie/${id}`),

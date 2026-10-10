@@ -1,26 +1,19 @@
 import { HOME_SECTIONS } from '@movies/api/home';
 import { DEFAULT_REGION, regions, type RegionCode } from '@movies/config/regions';
 import { useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  useColorScheme,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
+import { withUniwind } from 'uniwind';
 
 import { MediaRow, TrendingCard } from '../components/media-row';
 import { queryClient, orpc } from '../lib/api';
+
+const SafeAreaView = withUniwind(NativeSafeAreaView);
 
 export default function Home() {
   const [region, setRegion] = useState<RegionCode>(DEFAULT_REGION);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const dark = useColorScheme() === 'dark';
   async function refresh() {
     setRefreshing(true);
     try {
@@ -30,45 +23,44 @@ export default function Home() {
     }
   }
   return (
-    <SafeAreaView
-      style={[styles.screen, { backgroundColor: dark ? '#09090b' : '#fafafa' }]}
-      edges={['top', 'left', 'right']}
-    >
-      <View style={styles.header}>
+    <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
+      <View className="flex-row items-center justify-between px-5 py-3">
         <Text className="text-foreground text-2xl font-bold">
-          Movies<Text style={styles.accent}>.</Text>
+          Movies<Text className="text-yellow-600">.</Text>
         </Text>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Region: ${regions.find((item) => item.code === region)?.name}. Change region`}
           onPress={() => setPickerOpen(true)}
-          style={styles.region}
+          className="rounded-xl bg-default px-4 py-3"
         >
           <Text className="text-foreground">{region} ▾</Text>
         </Pressable>
       </View>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerClassName="pb-10"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => {
               void refresh();
             }}
-            tintColor="#facc15"
+            tintColorClassName="accent-yellow-400"
           />
         }
       >
-        <View style={styles.trending}>
+        <View className="gap-3 px-5 pt-5">
           <Text className="text-foreground text-3xl font-bold">Trending Now</Text>
-          <Text style={styles.caption}>What everyone’s watching</Text>
+          <Text className="mb-2 text-sm text-muted">What everyone’s watching</Text>
           <TrendingCard type="movie" />
           <TrendingCard type="tv" />
         </View>
         {HOME_SECTIONS.map((section) => (
           <MediaRow key={section.category} section={section} region={region} />
         ))}
-        <Text style={styles.credit}>Movie and TV data provided by TMDB</Text>
+        <Text className="p-5 text-center text-xs text-muted">
+          Movie and TV data provided by TMDB
+        </Text>
       </ScrollView>
       <Modal
         visible={pickerOpen}
@@ -76,13 +68,13 @@ export default function Home() {
         presentationStyle="pageSheet"
         onRequestClose={() => setPickerOpen(false)}
       >
-        <SafeAreaView style={[styles.screen, { backgroundColor: dark ? '#09090b' : '#fafafa' }]}>
-          <View style={styles.header}>
+        <SafeAreaView className="flex-1 bg-background">
+          <View className="flex-row items-center justify-between px-5 py-3">
             <Text className="text-foreground text-xl font-bold">Choose your region</Text>
             <Pressable
               accessibilityRole="button"
               onPress={() => setPickerOpen(false)}
-              style={styles.region}
+              className="rounded-xl bg-default px-4 py-3"
             >
               <Text className="text-foreground">Done</Text>
             </Pressable>
@@ -97,10 +89,10 @@ export default function Home() {
                   setRegion(item.code);
                   setPickerOpen(false);
                 }}
-                style={styles.option}
+                className="flex-row justify-between p-5"
               >
                 <Text className="text-foreground text-lg">{item.name}</Text>
-                <Text style={styles.accent}>{region === item.code ? '✓' : ''}</Text>
+                <Text className="text-yellow-600">{region === item.code ? '✓' : ''}</Text>
               </Pressable>
             ))}
           </ScrollView>
@@ -109,25 +101,3 @@ export default function Home() {
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  header: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  accent: { color: '#ca8a04' },
-  region: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: '#88888820',
-  },
-  content: { paddingBottom: 40 },
-  trending: { paddingHorizontal: 20, paddingTop: 20, gap: 12 },
-  caption: { color: '#88888f', fontSize: 14, marginBottom: 8 },
-  option: { padding: 20, flexDirection: 'row', justifyContent: 'space-between' },
-  credit: { padding: 20, color: '#88888f', fontSize: 12, textAlign: 'center' },
-});

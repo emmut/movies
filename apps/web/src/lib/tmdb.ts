@@ -15,7 +15,7 @@ import { buildProxyImageUrls } from '@/lib/imgproxy-url';
  *
  * @throws {TmdbRequestError} If the response status is not OK.
  */
-export const tmdbFetch = createTmdbFetch(env.MOVIE_DB_ACCESS_TOKEN);
+export const tmdbFetch = createTmdbFetch(env.MOVIE_DB_ACCESS_TOKEN, env.TMDB_API_URL_OVERRIDE);
 
 /**
  * Degrades an optional TMDb fetch to `fallback` when it fails, so a single

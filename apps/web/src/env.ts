@@ -3,6 +3,7 @@ import { z } from 'zod/v4';
 
 export const env = createEnv({
   server: {
+    TMDB_API_URL_OVERRIDE: z.url({ protocol: /^https?$/ }).optional(),
     MOVIE_DB_ACCESS_TOKEN: z.string().min(1),
     BETTER_AUTH_SECRET: z.string().min(1),
     BETTER_AUTH_TRUSTED_ORIGIN: z.string().min(1).optional(),
@@ -43,6 +44,7 @@ export const env = createEnv({
   },
 
   runtimeEnv: {
+    TMDB_API_URL_OVERRIDE: process.env.TMDB_API_URL_OVERRIDE,
     MOVIE_DB_ACCESS_TOKEN: process.env.MOVIE_DB_ACCESS_TOKEN,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_TRUSTED_ORIGIN: process.env.BETTER_AUTH_TRUSTED_ORIGIN,
