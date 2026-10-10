@@ -1,5 +1,7 @@
 # Multi-app refactor handoff
 
+> Historical handoff: the owner has now chosen Expo React Native with Hono/oRPC and started the native homepage. [The native app decisions and parity roadmap](native-app-roadmap.md) supersedes this document's undecided transport/framework and deferred second-app scope. The remaining cron extraction and cache safeguards below still apply; do not treat them as completed. Current porting uses direct canonical package imports, without compatibility re-export layers.
+
 ## Brief for the next agent
 
 The monorepo currently has a Next.js app in `apps/web` and shared `api`, `auth`, `config`, `db`, and `ui` packages. Prepare it for a future TanStack Start or React Native app without changing current behavior. Work in the PR sequence below. **Do not combine the package extraction with the Hono API migration.** Each PR and each small commit must leave the app and Railway jobs working. Start from the merged monorepo refactor, not from an unmerged copy of its branch.

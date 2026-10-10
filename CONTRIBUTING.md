@@ -22,28 +22,31 @@ The TMDB request collection is `apps/web/movie-db.http`; it reads `apps/web/.env
 
 ## Native app
 
-`apps/native` contains the Expo React Native app; `apps/server` hosts its public oRPC API. Root `nub run dev` starts Docker, web, API, and Expo together. Start just the native services with `nub run dev:native` and `nub run dev:api`. See [the native setup and roadmap](apps/native/README.md) for environment setup, device URLs, current scope, and browser checks. `nub run check-types` includes both workspaces.
+`apps/native` contains the Expo React Native app; `apps/server` hosts its public oRPC API. Root `nub run dev` starts Docker, web, API, and Expo together. Start just the native services with `nub run dev:native` and `nub run dev:api`. See [the native setup](apps/native/README.md) and [the recorded decisions and full parity roadmap](docs/native-app-roadmap.md) for environment setup, device URLs, current scope, and browser checks. `nub run check-types` includes both workspaces.
 
 ## Common commands
 
 The most-used scripts — run `nub run` for the full list, which is authoritative.
 
-| Command | Purpose |
-| --- | --- |
-| `nub run dev` | Docker plus web, API, and Expo through Turbo. |
-| `nub run build` | Production build through Turbo. |
-| `nub run lint` / `nub run format` | Lint / format. |
-| `nub run --node test` | Unit tests; Vitest fake timers require plain Node. |
-| `nub run fallow` | Audit changed files (dead code, complexity, duplication). |
-| `nub run db:push` / `nub run db:studio` | Apply schema / open Drizzle Studio. |
-| `nub run sync:titles` | Refresh the local title cache (see `scripts/README.md`). |
-| `nub run ingest:search` | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
+| Command                                 | Purpose                                                                       |
+| --------------------------------------- | ----------------------------------------------------------------------------- |
+| `nub run dev`                           | Docker plus web, API, and Expo through Turbo.                                 |
+| `nub run build`                         | Production build through Turbo.                                               |
+| `nub run lint` / `nub run format`       | Lint / format.                                                                |
+| `nub run --node test`                   | Unit tests; Vitest fake timers require plain Node.                            |
+| `nub run fallow`                        | Audit changed files (dead code, complexity, duplication).                     |
+| `nub run db:push` / `nub run db:studio` | Apply schema / open Drizzle Studio.                                           |
+| `nub run sync:titles`                   | Refresh the local title cache (see `scripts/README.md`).                      |
+| `nub run ingest:search`                 | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
 
 Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` all pass. The corresponding `nub run` commands use the same scripts.
 
 ## Conventions
 
 - Prefer normal functions over arrow functions except for inline usage.
+- Write clean, maintainable code with small, cohesive modules and explicit control flow. Avoid nested ternaries and dense chained expressions; prefer descriptive helpers, intermediate values and ordinary blocks when they clarify the behavior.
+- Native styling uses Tailwind/Uniwind classes; use React Native style objects only when a library cannot accept classes.
+- Native and Hono apps use per-app Varlock `.env.schema` files and generated app-scoped `ENV` modules. Generate with `pnpm env:generate`; do not edit generated files or add env re-export wrappers. The existing web app and cron scripts use T3 Env.
 - Naming: kebab-case files, PascalCase exports.
 - Server-only modules import `server-only`; keep secrets and DB access out of client components.
 - Mutations go through server actions: every action authenticates via `requireUser()` and validates input with the Zod schemas in `apps/web/src/lib/validations.ts`.
