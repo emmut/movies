@@ -51,6 +51,10 @@ The existing web app and cron scripts retain T3 Env validation during the increm
 
 `home.list`, `home.trending`, `catalog.details`, `catalog.trailer`, `catalog.providers` and `catalog.related` are exposed. Catalog contracts validate positive safe-integer IDs, supported media/regions and normalized outputs; core upstream records are validated before mapping. Certification, trailer selection and currency/runtime formatting have canonical shared implementations consumed directly by web and native/Hono. Native discovery reads and filter options are exposed through `discovery.list` and `discovery.options`. Search and person reads use the shared canonical engine and filmography rules. Native sign-in, anonymous sessions, OAuth returns and sign-out are implemented; device passkeys, persistent preferences, lists and watchlist remain pending. Set the API's optional DATABASE_URL to the same migrated database as web to enable fuzzy index matching; otherwise search uses TMDB.
 
+## Hosting
+
+Railway runs the API as the `api` service in production and every PR environment. It installs the workspace, starts `@movies/server` with tsx and checks `/health`. It shares the environment's database and TMDB token with web, and forwards auth to the same environment's web domain (`AUTH_URL`). `CORS_ORIGIN` stays unset because native requests send no browser origin. After each config apply, the infra workflow generates a `*.up.railway.app` domain for the API if it has none (`railway domain list --service api` shows it). Build native against a hosted API by setting `EXPO_PUBLIC_SERVER_URL` to that domain, and `EXPO_PUBLIC_WEB_URL` to the matching web domain.
+
 ## Verify
 
 Run the root lint, typecheck, test and Fallow commands; `nub run check-types` also checks the native and server workspaces. API transport/service tests run with the root Vitest suite.
