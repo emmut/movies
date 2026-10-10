@@ -1,8 +1,7 @@
+import { webUrl } from '@native/lib/connections';
+import { getMenuDestination } from '@native/lib/navigation-menu';
 import { usePathname, useRouter } from 'expo-router';
 import { Alert, Linking } from 'react-native';
-
-import { webUrl } from './connections';
-import { getMenuDestination } from './navigation-menu';
 
 export function useNavigationMenu() {
   const router = useRouter();

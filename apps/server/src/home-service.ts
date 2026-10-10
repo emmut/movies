@@ -2,8 +2,7 @@ import 'server-only';
 import type { MediaCard, HomeMediaCategory } from '@movies/api/home';
 import type { HomeService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
-
-import { toMediaCard, type TmdbCard } from './media-card';
+import { toMediaCard, type TmdbCard } from '@server/media-card';
 
 const endpoints: Record<HomeMediaCategory, string> = {
   'now-playing-movies': '/movie/now_playing',

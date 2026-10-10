@@ -1,7 +1,6 @@
 import type { CatalogDetail } from '@movies/api/catalog';
+import { catalogFacts, catalogStats } from '@native/lib/catalog-model';
 import { describe, expect, it } from 'vitest';
-
-import { catalogFacts, catalogStats } from './catalog-model';
 
 const movie: Extract<CatalogDetail, { type: 'movie' }> = {
   id: 42,

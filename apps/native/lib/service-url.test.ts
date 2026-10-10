@@ -1,6 +1,5 @@
+import { resolveServiceUrl } from '@native/lib/service-url';
 import { describe, expect, it } from 'vitest';
-
-import { resolveServiceUrl } from './service-url';
 
 describe('development service addresses', () => {
   it('uses the Expo host instead of the phone’s localhost', () => {

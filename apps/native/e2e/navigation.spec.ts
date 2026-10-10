@@ -1,6 +1,10 @@
+import {
+  corsHeaders,
+  detailFixture,
+  mockEmptySupport,
+  preflight,
+} from '@native/e2e/catalog-fixtures';
 import { expect, test, type Page } from '@playwright/test';
-
-import { corsHeaders, detailFixture, mockEmptySupport, preflight } from './catalog-fixtures';
 
 test.beforeEach(async ({ page }) => {
   await mockEmptySupport({ page });

@@ -1,12 +1,11 @@
-import { expect, test } from '@playwright/test';
-
 import {
   corsHeaders,
   detailFixture,
   mockEmptySupport,
   preflight,
   readInput,
-} from './catalog-fixtures';
+} from '@native/e2e/catalog-fixtures';
+import { expect, test } from '@playwright/test';
 
 const provider = { id: 8, name: 'Test Streaming', logoUrl: null };
 const groups = {

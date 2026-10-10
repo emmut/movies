@@ -3,10 +3,10 @@ import 'varlock/auto-load';
 import { serve } from '@hono/node-server';
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
 
-import { createApp } from './app';
-import { createCatalogService } from './catalog-service';
-import { ENV } from './env';
-import { createHomeService } from './home-service';
+import { createApp } from '@server/app';
+import { createCatalogService } from '@server/catalog-service';
+import { ENV } from '@server/env';
+import { createHomeService } from '@server/home-service';
 
 const fetchTmdb = createTmdbFetch(ENV.MOVIE_DB_ACCESS_TOKEN, ENV.TMDB_API_URL_OVERRIDE);
 const app = createApp(

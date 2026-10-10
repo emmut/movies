@@ -7,9 +7,8 @@ import {
 } from '@movies/api/catalog-support';
 import type { CatalogService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
+import { tmdbImageUrl, toMediaCard } from '@server/media-card';
 import { z } from 'zod';
-
-import { tmdbImageUrl, toMediaCard } from './media-card';
 
 const videosSchema = z.object({
   results: z.array(z.object({ key: z.string(), site: z.string(), type: z.string() })),

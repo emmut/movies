@@ -1,11 +1,10 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
 import type { CatalogRelatedInput } from '@movies/api/catalog-support';
+import { CatalogSectionState } from '@native/components/catalog-section-state';
+import { MediaPosterRow } from '@native/components/media-poster';
+import { orpc } from '@native/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { Text, View } from 'react-native';
-
-import { orpc } from '../lib/api';
-import { CatalogSectionState } from './catalog-section-state';
-import { MediaPosterRow } from './media-poster';
 
 function relatedHeading(type: CatalogDetailInput['type'], kind: CatalogRelatedInput['kind']) {
   if (kind === 'recommendations') return 'Recommendations';

@@ -1,11 +1,10 @@
 import type { AppRouterClient } from '@movies/api/router';
+import { serverUrl } from '@native/lib/connections';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import { createTanstackQueryUtils } from '@orpc/tanstack-query';
 import { QueryClient, focusManager, onlineManager } from '@tanstack/react-query';
 import { AppState, Platform } from 'react-native';
-
-import { serverUrl } from './connections';
 const client: AppRouterClient = createORPCClient(
   new RPCLink({ url: `${serverUrl.replace(/\/$/, '')}/rpc` }),
 );

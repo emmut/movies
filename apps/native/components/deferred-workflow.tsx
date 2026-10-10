@@ -1,10 +1,9 @@
+import { BottomNavigation } from '@native/components/bottom-navigation';
+import { PRIMARY_MENU_ITEMS } from '@native/lib/navigation-menu';
+import { useNavigationMenu } from '@native/lib/use-navigation-menu';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
-
-import { PRIMARY_MENU_ITEMS } from '../lib/navigation-menu';
-import { useNavigationMenu } from '../lib/use-navigation-menu';
-import { BottomNavigation } from './bottom-navigation';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 

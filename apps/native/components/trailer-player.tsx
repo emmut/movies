@@ -1,11 +1,10 @@
 import { trailerEmbedUrl } from '@movies/api/catalog-support';
+import { ExternalLink } from '@native/components/external-link';
 import { applicationId } from 'expo-application';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { WebView as NativeWebView } from 'react-native-webview';
 import { withUniwind } from 'uniwind';
-
-import { ExternalLink } from './external-link';
 
 const WebView = withUniwind(NativeWebView);
 export function TrailerPlayer({ videoKey, title }: { videoKey: string; title: string }) {

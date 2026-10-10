@@ -1,6 +1,5 @@
+import { createCatalogSupportService } from '@server/catalog-support-service';
 import { describe, expect, it, vi } from 'vitest';
-
-import { createCatalogSupportService } from './catalog-support-service';
 
 const input = { id: 42, type: 'movie', region: 'SE' } as const;
 const provider = {

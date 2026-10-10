@@ -1,8 +1,7 @@
+import { resolveServiceUrl } from '@native/lib/service-url';
+import { ENV } from '@native/src/env';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-
-import { ENV } from '../src/env';
-import { resolveServiceUrl } from './service-url';
 
 const browserOrigin =
   Platform.OS === 'web' && typeof window !== 'undefined' ? window.location.origin : undefined;

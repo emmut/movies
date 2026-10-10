@@ -1,11 +1,10 @@
 import { displayRating, type MediaCard } from '@movies/api/home';
+import { MediaBadge } from '@native/components/media-badge';
 import { Image as ExpoImage } from 'expo-image';
 import { Link } from 'expo-router';
 import { memo } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { withUniwind } from 'uniwind';
-
-import { MediaBadge } from './media-badge';
 
 const Image = withUniwind(ExpoImage);
 

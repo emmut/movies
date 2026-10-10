@@ -1,6 +1,9 @@
+import {
+  getMenuDestination,
+  MORE_MENU_ITEMS,
+  PRIMARY_MENU_ITEMS,
+} from '@native/lib/navigation-menu';
 import { describe, expect, it } from 'vitest';
-
-import { getMenuDestination, MORE_MENU_ITEMS, PRIMARY_MENU_ITEMS } from './navigation-menu';
 
 describe('native navigation menu destinations', () => {
   it('keeps Home, Discover and Search primary and the rest in overflow', () => {

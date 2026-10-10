@@ -1,14 +1,13 @@
 import { catalogDetailInput, parseCatalogId, type CatalogDetailInput } from '@movies/api/catalog';
+import { BottomNavigation } from '@native/components/bottom-navigation';
+import { CatalogContent } from '@native/components/catalog-content';
+import { orpc } from '@native/lib/api';
+import { useRegion } from '@native/lib/preferences';
 import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
-
-import { orpc } from '../lib/api';
-import { useRegion } from '../lib/preferences';
-import { BottomNavigation } from './bottom-navigation';
-import { CatalogContent } from './catalog-content';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 

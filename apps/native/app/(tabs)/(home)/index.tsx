@@ -1,17 +1,16 @@
 import { HOME_SECTIONS } from '@movies/api/home';
 import { regions } from '@movies/config/regions';
+import { BottomNavigation } from '@native/components/bottom-navigation';
+import { Brand } from '@native/components/brand';
+import { MediaRow, TrendingCard } from '@native/components/media-row';
+import { RegionPicker } from '@native/components/region-picker';
+import { queryClient, orpc } from '@native/lib/api';
+import { useRegion } from '@native/lib/preferences';
+import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
-
-import { BottomNavigation } from '../../../components/bottom-navigation';
-import { Brand } from '../../../components/brand';
-import { MediaRow, TrendingCard } from '../../../components/media-row';
-import { RegionPicker } from '../../../components/region-picker';
-import { queryClient, orpc } from '../../../lib/api';
-import { useRegion } from '../../../lib/preferences';
-import { useRememberedScroll } from '../../../lib/use-remembered-scroll';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
@@ -21,6 +20,8 @@ export default function Home() {
     ref: homeScrollRef,
     onScroll: rememberHomeScroll,
     onContentSizeChange: restoreHomeScroll,
+    onLayout,
+    onScrollBeginDrag,
   } = useRememberedScroll('home');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,6 +52,8 @@ export default function Home() {
         ref={homeScrollRef}
         onScroll={rememberHomeScroll}
         onContentSizeChange={restoreHomeScroll}
+        onLayout={onLayout}
+        onScrollBeginDrag={onScrollBeginDrag}
         scrollEventThrottle={16}
         contentContainerClassName="gap-4 pb-10"
         refreshControl={

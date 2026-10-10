@@ -1,9 +1,8 @@
 import type { HomeMediaSection } from '@movies/api/home';
+import { MediaPoster, MediaPosterRow } from '@native/components/media-poster';
+import { orpc } from '@native/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { Pressable, Text, View } from 'react-native';
-
-import { orpc } from '../lib/api';
-import { MediaPoster, MediaPosterRow } from './media-poster';
 
 function RowState({
   pending,

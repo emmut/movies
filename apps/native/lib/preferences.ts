@@ -1,6 +1,5 @@
+import { createRegionStore } from '@native/lib/region-store';
 import { useSyncExternalStore } from 'react';
-
-import { createRegionStore } from './region-store';
 
 // Account persistence replaces this session store during the identity slice.
 const regionStore = createRegionStore();

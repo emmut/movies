@@ -1,13 +1,12 @@
 import type { CatalogTitleInput } from '@movies/api/catalog-support';
+import { CatalogSectionState } from '@native/components/catalog-section-state';
+import { TrailerPlayer } from '@native/components/trailer-player';
+import { orpc } from '@native/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
-
-import { orpc } from '../lib/api';
-import { CatalogSectionState } from './catalog-section-state';
-import { TrailerPlayer } from './trailer-player';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 function TrailerSheet({

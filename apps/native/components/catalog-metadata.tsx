@@ -1,10 +1,9 @@
 import type { CatalogDetail } from '@movies/api/catalog';
 import { formatCertification } from '@movies/api/certifications';
+import { CatalogIcon } from '@native/components/catalog-icon';
+import { MediaBadge } from '@native/components/media-badge';
+import { catalogFacts, catalogStats, type CatalogStat } from '@native/lib/catalog-model';
 import { Text, View } from 'react-native';
-
-import { catalogFacts, catalogStats, type CatalogStat } from '../lib/catalog-model';
-import { CatalogIcon } from './catalog-icon';
-import { MediaBadge } from './media-badge';
 
 const statAccents: Record<CatalogStat['accent'], string> = {
   yellow: 'text-yellow-500',

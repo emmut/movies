@@ -1,10 +1,9 @@
 import type { AppRouterClient } from '@movies/api/router';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
+import { createApp } from '@server/app';
+import { createCatalogService } from '@server/catalog-service';
 import { describe, expect, it, vi } from 'vitest';
-
-import { createApp } from './app';
-import { createCatalogService } from './catalog-service';
 
 function setup() {
   const fetcher = vi.fn().mockResolvedValue({ results: [] });

@@ -9,10 +9,9 @@ import {
 import type { CatalogService } from '@movies/api/router';
 import { TmdbRequestError, type TmdbFetch } from '@movies/api/tmdb-fetch';
 import { ORPCError } from '@orpc/server';
+import { createCatalogSupportService } from '@server/catalog-support-service';
+import { tmdbImageUrl } from '@server/media-card';
 import { z } from 'zod';
-
-import { createCatalogSupportService } from './catalog-support-service';
-import { tmdbImageUrl } from './media-card';
 
 const text = z
   .string()

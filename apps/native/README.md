@@ -62,4 +62,4 @@ See [the committed session decisions and full feature parity plan](../../docs/na
 
 Native uses Expo Router's system tabs: Home, Discover, Search and More (ellipsis), with SF Symbols on iOS and Material symbols on Android. iOS 26 supplies the standard Liquid Glass appearance; earlier iOS and Android use their own system tab bars. Movie/TV details stay in Home's nested native stack. The browser export uses a preview dock and does not demonstrate native glass rendering.
 
-Discover/Search currently contain explicit browser handoff controls; More holds the remaining browser workflows. Their full native pages and removal of all internal web bridges are recorded in the plan for later execution, at the owner's request. Bundle and browser checks do not replace real device verification.
+Discover/Search currently contain explicit browser handoff controls; More holds the remaining browser workflows. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.

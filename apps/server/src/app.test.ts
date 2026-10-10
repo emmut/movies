@@ -1,9 +1,8 @@
 import type { AppRouterClient } from '@movies/api/router';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
+import { createApp } from '@server/app';
 import { describe, expect, it, vi } from 'vitest';
-
-import { createApp } from './app';
 
 function setup() {
   const home = { list: vi.fn().mockResolvedValue([]), trending: vi.fn().mockResolvedValue([]) };

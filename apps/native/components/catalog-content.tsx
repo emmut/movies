@@ -1,14 +1,13 @@
 import type { CatalogDetail } from '@movies/api/catalog';
+import { CatalogArtwork } from '@native/components/catalog-artwork';
+import { CatalogFacts, CatalogHeading, CatalogStats } from '@native/components/catalog-metadata';
+import { CatalogProviders } from '@native/components/catalog-providers';
+import { CatalogRelated } from '@native/components/catalog-related';
+import { CatalogTrailer } from '@native/components/catalog-trailer';
+import { ExternalLink } from '@native/components/external-link';
+import { webUrl } from '@native/lib/connections';
+import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { ScrollView, Text, View } from 'react-native';
-
-import { webUrl } from '../lib/connections';
-import { useRememberedScroll } from '../lib/use-remembered-scroll';
-import { CatalogArtwork } from './catalog-artwork';
-import { CatalogFacts, CatalogHeading, CatalogStats } from './catalog-metadata';
-import { CatalogProviders } from './catalog-providers';
-import { CatalogRelated } from './catalog-related';
-import { CatalogTrailer } from './catalog-trailer';
-import { ExternalLink } from './external-link';
 
 function Genres({ item }: { item: CatalogDetail }) {
   if (item.genres.length === 0) return null;
@@ -36,6 +35,8 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
     ref: scrollRef,
     onScroll: rememberScroll,
     onContentSizeChange: restoreScroll,
+    onLayout,
+    onScrollBeginDrag,
   } = useRememberedScroll(`${item.type}:${item.id}`);
   const input = { id: item.id, type: item.type, region };
   const noOverview =
@@ -48,6 +49,8 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
       testID="catalog-scroll"
       onScroll={rememberScroll}
       onContentSizeChange={restoreScroll}
+      onLayout={onLayout}
+      onScrollBeginDrag={onScrollBeginDrag}
       scrollEventThrottle={16}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerClassName="gap-8 pt-4 pb-12"

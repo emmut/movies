@@ -9,7 +9,7 @@ Status: **Foundation** means a working subset exists; **Pending** means no nativ
 | Workflow | Web source | Native status | Required evidence |
 | --- | --- | --- | --- |
 | Movies popcorn wordmark, shared palette, light/dark theme | `components/brand.tsx`, `app/globals.css` | Foundation | Both themes, phone/tablet, accessible brand |
-| Home, Discover, session-dependent Watchlist/Watched/Lists, Settings/login navigation | `components/app-sidebar*.tsx`, `components/nav-user.tsx` | Foundation: system tabs and More; pages deferred except Home | Implement all destinations natively; remove browser bridges; verify system Liquid Glass tabs, back gestures and deep links on devices |
+| Home, Discover, session-dependent Watchlist/Watched/Lists, Settings/login navigation | `components/app-sidebar*.tsx`, `components/nav-user.tsx` | Foundation: system tabs and More; page implementation resumed, Home available | Implement all destinations natively; remove browser bridges; verify system Liquid Glass tabs, back gestures and deep links on devices |
 | Search entry point | `components/search-box.tsx`, `components/search-command.tsx` | Pending | Touch search equivalent, see all results, correct destination while results are stale |
 | Daily movie and TV trending with backdrop/title/year overlays | `app/trending.tsx` | Foundation | Same records as web, two types, missing backdrop/date, both themes |
 | Six ordered sections and region-specific upcoming exclusion | `app/(home)/page.tsx`, `@movies/api/home` | Foundation | Same order and regional results, independent loading/error/retry/empty states |
@@ -172,3 +172,9 @@ Home, Discover, Search and More (…) now use Expo Router NativeTabs, with nativ
 The owner explicitly deferred full page implementation. Discover/Search currently have labelled browser handoffs; More destinations remain browser workflows. The plan requires implementing every navigation page natively and removing all internal web bridges later.
 
 Validation: 671 unit tests passed (four skipped); 25 native browser checks cover bottom placement, primary route selection without a popup, More destinations, explicit deferred handoffs and existing catalog/back/scroll behavior. Lint and root/workspace typechecks pass. iOS/Android bundle exports pass; real-device tab appearance, selection, back gestures and accessibility remain unverified. No remaining native parity phase is complete.
+
+## Full page implementation resumed and import conventions
+
+The owner resumed the full native plan after initially deferring the page ports. Search/Discover, identity, persistent preferences and lists, account/security, person/catalog/reviews, internal-link replacement and device/release verification are active requirements again. Historical deferred-slice notes above describe the earlier checkpoint only; no pending workflow is complete.
+
+Native and Hono internal imports now use app-scoped path aliases (`@native/` and `@server/`), with TypeScript and Vitest resolving the same modules. Expo browser checks verify Metro runtime resolution. Scroll restoration now waits until the saved offset fits inside the scrollable content, and a manual drag can take control of a pending restoration.

@@ -1,8 +1,7 @@
+import { PRIMARY_MENU_ITEMS } from '@native/lib/navigation-menu';
+import { useNavigationMenu } from '@native/lib/use-navigation-menu';
 import { usePathname, useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
-
-import { PRIMARY_MENU_ITEMS } from '../lib/navigation-menu';
-import { useNavigationMenu } from '../lib/use-navigation-menu';
 
 /** Browser preview only; iOS and Android render NativeTabs instead. */
 export function BottomNavigation() {

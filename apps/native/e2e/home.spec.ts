@@ -1,12 +1,11 @@
-import { expect, test } from '@playwright/test';
-
 import {
   corsHeaders,
   detailFixture,
   mockEmptySupport,
   preflight,
   readInput,
-} from './catalog-fixtures';
+} from '@native/e2e/catalog-fixtures';
+import { expect, test } from '@playwright/test';
 
 test.beforeEach(mockEmptySupport);
 

@@ -1,18 +1,17 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
 import type { ProviderGroups, WatchProviderCard } from '@movies/api/catalog-support';
 import { getRegionByCode } from '@movies/config/regions';
+import { CatalogIcon } from '@native/components/catalog-icon';
+import { CatalogSectionState } from '@native/components/catalog-section-state';
+import { ExternalLink } from '@native/components/external-link';
+import { RegionPicker } from '@native/components/region-picker';
+import { orpc } from '@native/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { Image as ExpoImage } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Linking, Pressable, Text, View } from 'react-native';
 import { withUniwind } from 'uniwind';
-
-import { orpc } from '../lib/api';
-import { CatalogIcon } from './catalog-icon';
-import { CatalogSectionState } from './catalog-section-state';
-import { ExternalLink } from './external-link';
-import { RegionPicker } from './region-picker';
 
 const Image = withUniwind(ExpoImage);
 const providerKinds = [

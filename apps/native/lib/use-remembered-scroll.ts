@@ -1,6 +1,12 @@
+import { canRestoreScroll } from '@native/lib/scroll-restoration';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
-import type { NativeScrollEvent, NativeSyntheticEvent, ScrollView } from 'react-native';
+import type {
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+} from 'react-native';
 
 const positions = new Map<string, number>();
 
@@ -9,11 +15,13 @@ export function useRememberedScroll(key: string) {
   const ref = useRef<ScrollView>(null);
   const offset = useRef(positions.get(key) ?? 0);
   const contentHeight = useRef(0);
+  const viewportHeight = useRef(0);
   const phase = useRef<'hidden' | 'restoring' | 'ready'>('hidden');
 
   const restore = useCallback(function restore() {
     if (phase.current !== 'restoring') return;
-    if (!ref.current || contentHeight.current < offset.current) return;
+    if (!ref.current) return;
+    if (!canRestoreScroll(offset.current, contentHeight.current, viewportHeight.current)) return;
     phase.current = 'ready';
     ref.current.scrollTo({ y: offset.current, animated: false });
   }, []);
@@ -33,6 +41,13 @@ export function useRememberedScroll(key: string) {
     ),
   );
 
+  function onLayout(event: LayoutChangeEvent) {
+    viewportHeight.current = event.nativeEvent.layout.height;
+    restore();
+  }
+  function onScrollBeginDrag() {
+    phase.current = 'ready';
+  }
   function onScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
     if (phase.current === 'ready') offset.current = Math.max(0, event.nativeEvent.contentOffset.y);
   }
@@ -40,5 +55,5 @@ export function useRememberedScroll(key: string) {
     contentHeight.current = height;
     restore();
   }
-  return { ref, onScroll, onContentSizeChange };
+  return { ref, onScroll, onContentSizeChange, onLayout, onScrollBeginDrag };
 }

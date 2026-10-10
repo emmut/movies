@@ -6,7 +6,10 @@
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@server/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*.ts"]
 }
