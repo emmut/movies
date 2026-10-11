@@ -1,3 +1,5 @@
+import { formatCertification } from '@movies/api/certifications';
+import { displayRating } from '@movies/api/home';
 import { Calendar, Tv, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
@@ -18,7 +20,6 @@ import { StreamingSection, StreamingSectionSkeleton } from '@/components/streami
 import { TrailerContent } from '@/components/trailer-content';
 import { TvCast } from '@/components/tv-cast';
 import { getUser } from '@/lib/auth-server';
-import { formatCertification } from '@/lib/certifications';
 import { getImdbRating } from '@/lib/imdb';
 import { getMediaCertification } from '@/lib/media-info';
 import { getSystemListMemberships } from '@/lib/system-list-queries';
@@ -89,7 +90,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
     networks,
     created_by,
   } = tvShow;
-  const score = Math.ceil(tvShow.vote_average * 10) / 10;
+  const score = displayRating(tvShow.vote_average);
 
   return (
     <div className="min-h-screen">

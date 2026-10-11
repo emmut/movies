@@ -1,8 +1,7 @@
 import 'server-only';
-import { cacheLife, cacheTag } from 'next/cache';
-
-import { DEFAULT_REGION } from '@movies/config/regions';
-import type { GenreResponse } from '@/types/genre';
+import { pickYoutubeTrailer, type TmdbVideoResponse } from '@movies/api/catalog-support';
+import { buildDiscoverSearchParams } from '@movies/api/discover-params';
+import type { GenreResponse } from '@movies/api/tmdb-types/genre';
 import {
   MovieCredits,
   MovieDetails,
@@ -10,11 +9,11 @@ import {
   MovieResponse,
   MovieSimilar,
   MovieWatchProviders,
-} from '@/types/movie';
-import { TmdbVideoResponse } from '@/types/tmdb-video';
+} from '@movies/api/tmdb-types/movie';
+import { DEFAULT_REGION } from '@movies/config/regions';
+import { cacheLife, cacheTag } from 'next/cache';
 
 import { CACHE_TAGS } from './cache-tags';
-import { buildDiscoverSearchParams } from './discover-params';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
 
 /**
@@ -237,15 +236,7 @@ export async function getMovieTrailer(movieId: number) {
       errorMessage: 'Failed to fetch trailer',
     });
 
-    const trailer = data.results.find(
-      (video) => (video.type === 'Trailer' || video.type === 'Teaser') && video.site === 'YouTube',
-    );
-
-    if (!trailer) {
-      return null;
-    }
-
-    return trailer.key;
+    return pickYoutubeTrailer(data.results);
   } catch (error) {
     console.error('Error fetching trailer:', error);
     return null;

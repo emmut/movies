@@ -1,13 +1,14 @@
+import { HOME_SECTIONS, type HomeMediaSection } from '@movies/api/home';
 import { Suspense } from 'react';
 
 import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
-import MediaList from '@/components/media-list';
 import { ItemSlider } from '@/components/item-slider';
+import MediaList from '@/components/media-list';
 
-import { HOME_SECTIONS, MediaSectionConfig, MediaSectionHeader, TrendingHeader } from './sections';
+import { MediaSectionHeader, TrendingHeader } from './sections';
 
-function MediaSection({ heading, caption, type, category }: MediaSectionConfig) {
+function MediaSection({ heading, caption, type, category }: HomeMediaSection) {
   return (
     <section className="flex flex-col gap-4">
       <MediaSectionHeader heading={heading} caption={caption} />

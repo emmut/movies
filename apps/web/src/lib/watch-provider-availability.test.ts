@@ -1,10 +1,12 @@
+import { parseWatchProviderFilter } from '@movies/api/system-lists';
+import { streamableOnProviders } from '@movies/db/title-availability';
 import { PgDialect } from 'drizzle-orm/pg-core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/db', () => ({ db: { select: vi.fn() } }));
 vi.mock('@/lib/title-sync-server', () => ({ appTitleSource: { source: 'app' } }));
-vi.mock('@/lib/title-sync', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/title-sync')>();
+vi.mock('@movies/db/title-sync', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@movies/db/title-sync')>();
   return {
     ...actual,
     selectTitlesNeedingAvailability: vi.fn(),
@@ -15,13 +17,9 @@ vi.mock('@/lib/title-sync', async (importOriginal) => {
 import { sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
-import { selectTitlesNeedingAvailability, syncTitleAvailability } from '@/lib/title-sync';
+import { selectTitlesNeedingAvailability, syncTitleAvailability } from '@movies/db/title-sync';
 
-import {
-  ensureAvailabilityKnown,
-  parseWatchProviderFilter,
-  streamableOnProviders,
-} from './watch-provider-availability';
+import { ensureAvailabilityKnown } from './watch-provider-availability';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -63,7 +61,7 @@ describe('streamableOnProviders', () => {
   it('correlates the availability rows with the outer list_items row', () => {
     const { sql } = render({ providerIds: [8], region: 'SE' });
 
-    expect(sql).toContain('exists ( select 1 from "title_availability"');
+    expect(sql).toContain('exists (select "tmdb_id" from "title_availability"');
     expect(sql).toContain('"title_availability"."media_type" = "list_items"."resource_type"');
     expect(sql).toContain('"title_availability"."tmdb_id" = "list_items"."resource_id"');
   });
@@ -72,15 +70,16 @@ describe('streamableOnProviders', () => {
     const { sql, params } = render({ providerIds: [8, 337], region: 'US' });
 
     expect(sql).toContain('"title_availability"."region" = $1');
-    expect(sql).toContain('"title_availability"."provider_id" = any($2::integer[])');
-    expect(params).toEqual(['US', [8, 337]]);
+    expect(sql).toContain('"title_availability"."provider_id" in ($2, $3)');
+    expect(params).toEqual(['US', 8, 337, 'flatrate', 'free']);
   });
 
   it('only counts streaming offers, never rent or buy', () => {
-    const { sql } = render({ providerIds: [8], region: 'SE' });
+    const { sql, params } = render({ providerIds: [8], region: 'SE' });
 
-    expect(sql).toContain(`"title_availability"."offer_type" in ('flatrate', 'free')`);
-    expect(sql).not.toContain('rent');
+    expect(sql).toContain('"title_availability"."offer_type" in ($3, $4)');
+    expect(params).toEqual(['SE', 8, 'flatrate', 'free']);
+    expect(params).not.toContain('rent');
   });
 });
 

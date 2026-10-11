@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { SearchMultiResult } from '@/lib/search';
+import type { SearchMultiResult } from '@movies/api/search-engine';
 
 import {
   buildSeeAllHref,

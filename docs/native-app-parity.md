@@ -1,0 +1,288 @@
+# Native feature parity checklist
+
+This checklist implements the baseline inventory required by [the roadmap](native-app-roadmap.md) and [short plan](native-app-plan.md). Web code and running web screens remain the product source of truth. Rows describe workflows, not merely screen existence. Update status only with the evidence in the last column; browser exports do not prove device behavior.
+
+Status: **Foundation** means a working subset exists; **Pending** means no native workflow exists; **Unverified** means implementation needs stronger runtime evidence. No phase is complete yet.
+
+## Navigation and homepage
+
+| Workflow                                                                             | Web source                                                   | Native status                                                                 | Required evidence                                                                                                                     |
+| ------------------------------------------------------------------------------------ | ------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Movies popcorn wordmark, shared palette, light/dark theme                            | `components/brand.tsx`, `app/globals.css`                    | Foundation                                                                    | Both themes, phone/tablet, accessible brand                                                                                           |
+| Home, Discover, session-dependent Watchlist/Watched/Lists, Settings/login navigation | `components/app-sidebar*.tsx`, `components/nav-user.tsx`     | Foundation: system tabs and More; page implementation resumed, Home available | Implement all destinations natively; remove browser bridges; verify system Liquid Glass tabs, back gestures and deep links on devices |
+| Search entry point                                                                   | `components/search-box.tsx`, `components/search-command.tsx` | Foundation: native Search tab and submitted-query workflow; device pending    | Touch search equivalent, see all results, correct destination while results are stale                                                 |
+| Daily movie and TV trending with backdrop/title/year overlays                        | `app/trending.tsx`                                           | Foundation                                                                    | Same records as web, two types, missing backdrop/date, both themes                                                                    |
+| Six ordered sections and region-specific upcoming exclusion                          | `app/(home)/page.tsx`, `@movies/api/home`                    | Foundation                                                                    | Same order and regional results, independent loading/error/retry/empty states                                                         |
+| Bordered 2:3 poster cards, title/year/rating, yellow Movie/red TV Show badges        | `components/item-card.tsx`, `components/badge.tsx`           | Foundation                                                                    | Touch-visible metadata, long titles, missing artwork, large text and contrast                                                         |
+| Quick add: watchlist, watched, custom lists, create-and-add                          | `components/quick-add-button-inner.tsx`                      | Foundation: native system-list actions; custom lists pending                  | Persistent mutations, pending/error/rollback, cross-client freshness                                                                  |
+| TMDB attribution and external source links                                           | `components/footer.tsx`                                      | Foundation: abbreviated text                                                  | Appropriate attribution and working external links                                                                                    |
+| Refresh and foreground recovery                                                      | Native addition                                              | Foundation                                                                    | Offline/reconnect and real device foreground/pull-to-refresh                                                                          |
+
+## Catalog
+
+| Workflow                                                                      | Web source                                                        | Native status                                                               | Required evidence                                                                  |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Movie route, poster/backdrop/title/tagline/certification                      | `app/movie/[movieId]/page.tsx`, `components/item-header.tsx`      | Foundation: native route and browser checks; device pending                 | Valid/invalid IDs, not-found vs upstream error, native back restores source scroll |
+| Movie TMDB score/votes, optional IMDb, runtime/year/popularity                | Movie page, `components/ratings-card.tsx`                         | Foundation: TMDB/runtime/year/popularity; IMDb pending                      | Shared IMDb data, absent optional values                                           |
+| Movie genres and discovery links, origin countries, overview                  | Movie page, `components/origin-countries.tsx`                     | Foundation: overview/genres with native discovery routes; countries pending | Correct discovery context and overview fallback                                    |
+| Movie status/original title/release/languages/budget/revenue/profit           | `components/movie-facts.tsx`                                      | Foundation: core facts and financial rules                                  | Hide absent money; profit requires budget and revenue                              |
+| Movie cast and crew links to people                                           | `components/movie-credits.tsx`, `components/cast-slider.tsx`      | Pending                                                                     | Correct person IDs; supporting failures preserve main details                      |
+| TV route, artwork/title/tagline/certification/ratings                         | `app/tv/[tvId]/page.tsx`                                          | Foundation: native route and TMDB; IMDb/device pending                      | Correct TV IDs and native back context                                             |
+| TV seasons/episodes/runtime/status/air dates/languages/original name/networks | TV page                                                           | Foundation: core TV facts                                                   | Optional facts and missing dates                                                   |
+| TV creators and cast link to people                                           | TV page, `components/tv-cast.tsx`                                 | Pending                                                                     | Creator/cast routes work natively                                                  |
+| Movie/TV trailers                                                             | `components/trailer-content.tsx`, `components/trailer-button.tsx` | Foundation: native sheet/player; device playback pending                    | Play/close, no trailer, upstream failure                                           |
+| Regional free/stream/rent/buy providers and watch links                       | `components/streaming-providers.tsx`                              | Foundation: regional groups, links, attribution and retries                 | Shared supported regions, no services, logos and external links                    |
+| Movie/TV similar and recommended title sliders                                | `components/other-content.tsx`                                    | Foundation: native rows/routes and context restoration                      | Native title routes; optional failures do not fail page                            |
+| Person photo/name/biography/facts/aliases/popularity/credits                  | `app/person/[id]/page.tsx`                                        | Foundation: native person metadata and recovery; device pending             | Missing photo/biography/dates and deceased people                                  |
+| Person movie/TV filmography, deduplication and ordering                       | Person page, `lib/utils.ts`                                       | Foundation: canonical shared deduplication/order and native routes          | Same cast deduplication/popularity/date ordering; correct native routes            |
+| Person add to custom list (no system-list action)                             | Person page, quick add                                            | Pending                                                                     | Person items persist in custom lists                                               |
+| TMDB/IMDb/homepage external links                                             | `components/external-links.tsx`                                   | Foundation: TMDB/homepage; IMDb pending                                     | Valid links only, usable native browser return                                     |
+
+## Identity, preferences and account
+
+| Workflow                                                 | Web source                                                               | Native status                                                                                                                                      | Required evidence                                                             |
+| -------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Anonymous sign-in and persistent session                 | `components/login-form.tsx`, `lib/auth-client.ts`, `@movies/auth`        | Foundation: canonical auth gateway and SecureStore client; real local revocation checked, device restart pending                                   | Secure storage; restart, expiration and authenticated request context         |
+| Discord/GitHub sign-in, safe return destinations         | Login form, `app/login/page.tsx`                                         | Unverified: native actions, Expo return handling and cancellation checks; real device/provider flows pending                                       | OAuth redirects/deep links and failure/retry on both platforms                |
+| Link anonymous account, preserve its watchlist           | `app/settings/link-account.tsx`, shared auth                             | Pending                                                                                                                                            | Same records survive linking; native and web session behavior                 |
+| Passkey sign-in                                          | `components/passkey-login-form.tsx`                                      | Pending                                                                                                                                            | Supported platform flow or explicit documented alternative                    |
+| Add/list/delete passkeys                                 | `app/settings/add-passkey.tsx`, `passkey-list.tsx`, `passkey-actions.ts` | Pending                                                                                                                                            | Supported platform flow or explicit documented alternative                    |
+| Sign-out, user identity and session-dependent navigation | `components/nav-user.tsx`                                                | Foundation: native More identity/sign-out, cache clearing and region reset                                                                         | Session revoked/cleared, caches cannot expose previous user's data            |
+| Save account region                                      | `app/settings/region-form.tsx`, `lib/user-actions.ts`                    | Foundation: signed-in Home region reads/saves the account row via `preferences.*`; native Settings region form implemented; device restart pending | Same supported region and Sweden default, survives restart and visible on web |
+| Save provider preferences and regional provider options  | `app/settings/watch-provider-form.tsx`                                   | Foundation: native Settings and canonical transactional storage; real local shared-account browser flow verified, device pending                   | Shared account values, regional choices and refreshed discovery               |
+| Session-derived authorization                            | `lib/auth-server.ts`, list actions                                       | Foundation: request-bound session verification RPC; private procedure ports pending                                                                | Never trust caller user IDs; expired/anonymous/cross-user tests               |
+
+## Lists
+
+| Workflow                                                       | Web source                                                   | Native status | Required evidence                                                                         |
+| -------------------------------------------------------------- | ------------------------------------------------------------ | ------------- | ----------------------------------------------------------------------------------------- |
+| Watchlist and Watched counts, movie/TV switch, paginated cards | `components/system-list-content.tsx`                         | Foundation: shared store, native screens; cross-client/device checks pending | Same persistent rows/counts, account ownership, correct page bounds                       |
+| System-list provider filtering by region                       | System-list content, `lib/system-list-queries.ts`            | Foundation: SQL filters verified; real native/web workflow pending | Shared title availability/cache; empty versus filtered-empty                              |
+| Manual system-list item order across pages                     | System-list content, `lib/lists.ts`                          | Foundation: PostgreSQL/browser ordering verified; device pending | Scoped media order/global offsets, reorder disabled under provider filters                |
+| Add/remove watchlist and watched from details/quick add        | `lib/system-list-actions.ts`                                 | Foundation: private mutations and browser actions; cross-client/device pending | Repeat/racing actions, title-cache write-through, rollback and query refresh              |
+| Custom-list index/counts/pagination/order                      | `app/lists/page.tsx`, `components/lists-grid.tsx`            | Pending       | Same ownership and ordering; concurrent edits and paged moves                             |
+| Create/edit list: name, description, allowed emoji             | `components/list-form-fields.tsx`, `@movies/api/validations` | Pending       | Shared trimming/limits/validation; native sheet and useful errors                         |
+| Delete list with confirmation and return navigation            | `components/delete-list-button.tsx`                          | Pending       | Ownership and deletion failure; returns to updated index                                  |
+| List details/counts/items/page/provider filter                 | `app/lists/[id]/list-details-content.tsx`                    | Pending       | Movies/TV/people, loading/error/empty/filtered-empty, ownership                           |
+| Add/remove movie/TV/person and create-and-add                  | `lib/lists.ts`, quick add                                    | Pending       | Duplicate/repeat operations, pending state and cross-client freshness                     |
+| Reorder custom lists and their items                           | `lib/lists.ts`, `hooks/use-reorderable-items.ts`             | Pending       | Transactions/locks, global indices, concurrent consumers; disable while filtered or stale |
+
+Current web custom lists are owner-only (`getOwnedCustomList`); there is no public-sharing control to invent. The short plan's sorting requirement includes preserving existing manual ordering. System lists support movies/TV; custom lists also support people.
+
+## Search, discovery and reviews
+
+| Workflow                                                  | Web source                                            | Native status                                                                            | Required evidence                                                          |
+| --------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Full search: all/movie/TV/person, page, typed query       | `app/search/search-content.tsx`, `search-results.tsx` | Foundation: native results, type sheets and pagination; device pending                   | Same results/ranking and native destinations; empty/zero results           |
+| Query year/media suffix parsing                           | `lib/parse-search-query.ts`                           | Foundation: canonical parser shared by web and Hono                                      | Canonical rules, ambiguous words and titles containing years               |
+| Full search fuzzy index and merge ranking                 | `lib/search.ts`, `lib/search-index.ts`                | Foundation: canonical engine, hydration and PostgreSQL reader                            | Page-one fusion/title tiers/hydration cap; absent index falls back to TMDB |
+| Command-search intent and see-all                         | `components/search-command*.tsx`                      | Pending                                                                                  | TMDB-first, zero-result fuzzy fallback, current-query destination          |
+| Discover movie/TV, genre selection, sort                  | `app/discover/[[...genreId]]/discover-content.tsx`    | Foundation: native grid, genres and shared sort options                                  | Same genres/sort/bounds, multiple genres and type switch                   |
+| Discover runtime/origin/provider/region filters and clear | Discover content, `components/filters-panel.tsx`      | Foundation: native filters and clear; saved account defaults implemented; device pending | Same filter semantics and saved-provider defaults; filter-aware query keys |
+| Search/discovery pagination and return context            | Search/discover pagination, back-target helpers       | Foundation: contextual native stacks and browser back checks                             | Restore query/filters/page/scroll after detail and back                    |
+| Detail review preview, expand/collapse, see all           | `components/reviews-section.tsx`, `review-card.tsx`   | Pending                                                                                  | Author/date/optional rating/content, empty/upstream failure                |
+| Full movie/TV reviews, pagination and external TMDB links | `components/reviews-page-content.tsx`                 | Pending                                                                                  | Same title/page rules, back to native title and external return            |
+
+Reviews are read-only TMDB reviews. Web has no review creation/editing workflow.
+
+## Shared backend and release gates
+
+- Extract canonical framework-independent operations as needed; retain web caching/actions until caller migration is verified. No native imports of Next actions or secrets.
+- Every Hono mutation needs tested web cache freshness as well as native invalidation. Same database, ownership, anonymous migration, locks, title/provider/IMDb/search data and existing cron jobs.
+- Record per-slice procedure additions, contract/error tests, visual comparison, accessibility and platform limitations.
+- Run `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm check-types`, `pnpm test`, `pnpm fallow`, native browser tests and iOS/Android bundles for relevant changes.
+- Real iOS/Android checks: back gestures, source scroll, sheets, large text/screen readers, OAuth/deep links, secure sessions/restarts, offline/reconnect/foreground and performance.
+- Production hosting/configuration: validated app-scoped Varlock env, origins, auth/session settings, deep-link association and native release builds. Keep draft PR #350 aligned with reviewed slices; deployment is a separate explicit operation.
+
+## Homepage recognition slice — 2026-10-10
+
+Inspected the running web homepage at `http://localhost:3000` at 390 × 844 in dark and light themes, along with its homepage, card, badge, brand and theme sources. Temporary reference screenshots: `/tmp/movies-web-before.png`, `/tmp/movies-web-light.png`.
+
+Native changes restore the popcorn/Movies wordmark, web stone background/foreground/border palette, 208px trending cards, title/year overlays, bordered 2:3 poster cards and yellow/red media badges. Metadata is always visible for touch. Narrow headings match web; the native region sheet remains available. Explicit white overlay text avoids the dark-text-over-dark-artwork problem observed in web light appearance.
+
+No API procedures moved in this slice. Native navigation/detail routes, quick actions, saved account preferences, full attribution and real device checks remain pending. Live native browser comparisons at 390 × 844 used the same Sweden region and signed-out state as web: Matchbox the Movie, LINK CLICK, Resident Evil and Coyote vs. Acme appeared on both clients. Final native screenshots: `/tmp/movies-native-dark-live.png`, `/tmp/movies-native-light-live.png`. Native overlays remain white in light/dark appearance. The comparison also found a score-rounding mismatch; `displayRating` in `@movies/api/home` now owns the existing web upward-to-one-decimal rule for web cards, web movie/TV details and native cards. Resident Evil and Coyote vs. Acme display 7.4 and 7.6 on both clients.
+
+Verification:
+
+- `pnpm lint`: passed with two pre-existing hook warnings.
+- `pnpm exec tsc --noEmit` and `pnpm check-types`: passed, including native/server/web.
+- `pnpm test`: 579 passed, 4 skipped. A first run under simultaneous bundling timed out in the unchanged startup test; the full rerun passed.
+- `pnpm fallow`: passed; no newly introduced gate findings (inherited web card complexity is excluded by the audit gate).
+- `pnpm --filter @movies/native test:e2e`: four passed after a fresh web export. Covers homepage/order/region/web-detail bridge, failure/retry/empty, sizing/system theme, artwork metadata/badges/fallbacks/contrast and upward rating rounding.
+- Next runtime: no compilation issues or runtime errors; homepage cards and Interstellar/Game of Thrones details render after sharing the rating rule.
+- Expo iOS/Android JavaScript exports: verified separately from device execution. No simulator or physical-device success is claimed.
+
+These checks do not complete phase 0: real-device accessibility/interaction checks, native navigation and auth-dependent actions remain pending. Larger screens, long titles and large text still need visual comparison. API procedures and release infrastructure remain unchanged.
+
+## Core movie/TV detail slice — 2026-10-10
+
+Implemented `catalog.details` in the host-injected oRPC contract and Hono service. Requests validate media type, positive safe-integer IDs and supported region with the shared Sweden default. Core upstream metadata is validated and normalized to explicit movie/TV DTOs. Mismatched/malformed records fail; 404 maps to a safe defined `NOT_FOUND` error, and outages remain retryable failures. Certification failure is logged and does not discard usable core details.
+
+Moved certification types/pickers/formatting into `@movies/api/certifications` and currency/runtime formatting into `@movies/api/formatting`. Web imports these canonical modules directly; old web-local implementations were removed. Existing web caching/fetching and actions remain. Server-only code and tokens stay out of native bundles; the API has no new database or mutation dependency.
+
+Homepage taps now use `/movie/:id` and `/tv/:id` inside Expo's native stack. Core screens preserve web backdrop/poster proportions, metadata order, movie/TV badges, colored statistic cards/icons, certification labels, overview and movie/TV facts. Native headers replace the web back row. Genre links remain an explicit browser bridge to web discovery; no inert native discovery control is claimed. Core pages have loading, retry, not-found and missing-art/optional-value states. Inline stack style objects are limited to navigator color options, which cannot receive classes.
+
+Browser back exposed two lifecycle problems: region state reset during layout remount, and hidden screens emitted zero-offset scroll events. Region now belongs to an app-session store; homepage scroll remembers the focused screen and restores when its content exists. The navigation test confirms the same document, selected United States region and exact prior vertical offset after opening a poster and returning. Real platform gestures still need device verification.
+
+The Expo browser preview now uses a single-page export for arbitrary IDs, with an HTML deep-link fallback in the browser-test server on port 8083. Production browser-preview hosting needs the equivalent fallback. Native release hosting configuration is still pending.
+
+Inspected running web Interstellar (`/movie/157336`) and Game of Thrones (`/tv/1399`) before implementation, and native equivalents using the same Sweden region/signed-out state at 390 × 844. Web screenshots: `/tmp/movies-web-movie-detail.png`, `/tmp/movies-web-tv-detail.png`, `/tmp/movies-web-tv-metadata.png`. Native screenshots: `/tmp/movies-native-movie-detail.png`, `/tmp/movies-native-movie-light.png`, `/tmp/movies-native-tv-metadata.png`, `/tmp/movies-native-tv-light.png`. Native stats retain dark surfaces and white values in both themes. Wider-screen/large-text and real-device comparisons remain pending.
+
+Verification:
+
+- `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm check-types`, `pnpm fallow`: passed, with existing web hook warnings/inherited card complexity only.
+- `pnpm test`: 631 passed, 4 skipped.
+- Focused coverage: 100% statements/branches/functions/lines across catalog service, catalog contract/ID parsing, certification rules, formatting, native metadata model and region store. Native screen and scroll-hook behavior is exercised by browser tests; this coverage claim does not include every native component.
+- Native browser suite: ten passed after a fresh export, including direct movie/TV deep links, selected-region requests, same-document navigation/scroll restoration, optional-data fallbacks, loading, retry, not-found and invalid routes without fetching.
+- iOS/Android JavaScript exports passed to `/tmp/movies-native-catalog-bundles`. This does not establish simulator/device behavior or signed release builds.
+- Live API returned Interstellar details and Swedish certification; Next reported no compilation/runtime errors after the shared-module extraction.
+
+Phase 1 remains incomplete: IMDb, origin-country actions, trailers, credits/creators, watch providers, recommendations/similar, person filmography and reviews still need native workflows. Identity, quick actions and persistent preferences remain in their original roadmap phases. No phase or release is marked complete.
+
+## Catalog supporting sections — 2026-10-10
+
+Added independent `catalog.trailer`, `catalog.providers` and `catalog.related` queries with validated identifiers, regions, related kinds and normalized outputs. Upstream failures reach section retry controls without discarding core metadata or being misrepresented as empty availability. Web and Hono share the canonical YouTube Trailer/Teaser picker; existing web cache behavior remains. Homepage and related rows share one virtualized poster implementation; provider and homepage controls share a native region sheet.
+
+Provider `watchRegion` is part of route context and query keys. Free, Streaming, Rent and Buy preserve web ordering, colored icons, dark logo/name cards, watch links and attribution. Free-only regions correctly show availability. Missing/unsafe watch URLs fall back to TMDB. The scroll hook now remembers home and individual catalog screens; browser tests prove exact source-offset and provider-region restoration after recommendation navigation.
+
+Trailers embed inside native sheets through Expo-compatible WebView; the browser preview uses an iframe. Closing unmounts playback. Native requests identify the installed app using expo-application and a HTTPS Referer, following [YouTube requirements](https://developers.google.com/youtube/terms/required-minimum-functionality) and [Expo WebView setup](https://docs.expo.dev/versions/latest/sdk/webview/). Browser tests use a mocked frame; actual iOS/Android playback/fullscreen/media behavior remains unverified.
+
+Live Interstellar provider and related rows were compared with web at 390 × 844 in Sweden. Provider names match, including Amazon Prime Video, Viaplay, Tele2 Play, HBO Max, Apple TV Store and Google Play Movies. Final provider captures: `/tmp/movies-native-providers-dark-final.png` and `/tmp/movies-native-providers-light-final.png`; reference: `/tmp/movies-web-providers.png`. Related references: `/tmp/movies-web-related.png`, `/tmp/movies-native-related.png`, `/tmp/movies-native-related-light.png`. Foreground labels with colored icons and theme-aware attribution correct light-theme contrast.
+
+Verification:
+
+- Lint, root/workspace typechecks and Fallow gates passed; existing web hook warnings/inherited card complexity remain.
+- Unit tests: 656 passed, four skipped. Focused supporting contract/service/card-mapper coverage: 100% statements/branches/functions/lines.
+- Native browser tests: 17 passed, covering trailer-sheet lifecycle, provider groups/links/regions, free-only availability, missing sections, independent loading/retries and related-navigation context.
+- Final web/iOS/Android exports passed; platform bundles are in `/tmp/movies-native-support-bundles`. Bundles do not prove device playback or signed release behavior.
+- Next reported no compilation or runtime errors after sharing trailer selection.
+
+Catalog still needs person/filmography, cast/crew/creators, IMDb, origin-country actions and reviews. Identity, persistent preferences/lists, search/discovery and release/device criteria retain their full original scope. No phase is marked complete.
+
+## PR audit follow-up — 2026-10-10
+
+The first pushed catalog commit passed GitHub lint/typecheck/unit, web E2E and preview checks, but CI flagged the web poster card complexity that the local upstream-relative audit had treated as inherited. Composed its artwork, overlay and list actions into private components while preserving its public API and DOM treatments. Added rendering regression coverage for movie/TV metadata and scores, missing artwork/dates, quick-add versus custom-list removal, and eager/proxy image data. The audit against `origin/main` now reports no complexity findings. Root tests now pass 660 cases (four skipped). This follow-up does not complete any remaining native parity phase.
+
+The subsequent CI audit exposed an incomplete import graph: its job had no dependency installation, so Expo framework dependencies and generated Varlock accessors were unavailable. The audit job now performs the same pinned pnpm/Node/mise setup and frozen install as the test job, including app-scoped code generation through postinstall. Audit thresholds and dependency checks remain intact.
+
+## System bottom tabs — 2026-10-10
+
+Home, Discover, Search and More (…) now use Expo Router NativeTabs, with native SF/Material icons and labels. iOS 26 supplies system Liquid Glass. Movie/TV routes live inside Home's native stack; More contains the five secondary workflows. Browser exports use a separate preview dock; their screenshots do not establish native glass appearance.
+
+The owner explicitly deferred full page implementation. Discover/Search currently have labelled browser handoffs; More destinations remain browser workflows. The plan requires implementing every navigation page natively and removing all internal web bridges later.
+
+Validation: 671 unit tests passed (four skipped); 25 native browser checks cover bottom placement, primary route selection without a popup, More destinations, explicit deferred handoffs and existing catalog/back/scroll behavior. Lint and root/workspace typechecks pass. iOS/Android bundle exports pass; real-device tab appearance, selection, back gestures and accessibility remain unverified. No remaining native parity phase is complete.
+
+## Full page implementation resumed and import conventions
+
+The owner resumed the full native plan after initially deferring the page ports. Search/Discover, identity, persistent preferences and lists, account/security, person/catalog/reviews, internal-link replacement and device/release verification are active requirements again. Historical deferred-slice notes above describe the earlier checkpoint only; no pending workflow is complete.
+
+Native and Hono internal imports now use app-scoped path aliases (`@native/` and `@server/`), with TypeScript and Vitest resolving the same modules. Expo browser checks verify Metro runtime resolution. Scroll restoration now waits until the saved offset fits inside the scrollable content, and a manual drag can take control of a pending restoration.
+
+## Native discovery and translucent navigation
+
+Discovery now has a native two-column poster grid, movie/TV selection, genres, all shared sort choices, runtime, origin-country/provider multi-select sheets, watch region, clear/reset and bounded pagination. Native genre links replace their web handoffs. Discovery owns a themed native stack so title/related navigation returns to the source filters and page; the browser handoff for Search and the remaining More workflows are still pending replacement.
+
+Web and Hono use the same discovery parameter builder and sort options. The public oRPC service validates input/output and upstream records, keeps provider/region defaults and OR semantics, skips implicit providers for country-only filtering, and caps TMDB pagination at 500. Saved account region/providers and authenticated quick actions still require the identity/list slices; this is a discovery foundation, not completion of the full parity phase.
+
+The opaque detail-header fill and duplicate bottom safe-area backing are removed. Supported iOS devices render a native GlassView header over scrolling content; older iOS uses native translucent material. NativeTabs retains its system glass bar, and navigation follows the system light/dark theme. Physical-device glass rendering remains unverified.
+
+Evidence: compared the deployed web Discover screen's controls; 31 native browser checks pass, including OR selection, clearing, media/region changes, cached pagination, empty/error/retry, native genre links and contextual detail/back navigation. Discovery contracts/service/filter models and shared query rules have 100% statement/branch/function coverage. Root/workspace typechecks, lint and audit pass; 728 committed unit tests pass (four skipped). Both native iOS/Android exports pass; browser screenshots in light/dark themes do not prove OS glass appearance.
+
+## Homepage glass header
+
+Home now uses the same native stack glass/material header as movie/TV details, retaining the Movies wordmark and region picker. Its old separately painted header row and top safe-area padding are removed, and content scrolls underneath the native header. First visits preserve the OS's automatic resting inset; saved positions retain legitimate negative top offsets and account for the bottom tab inset.
+
+The region picker, source-scroll restoration and native movie/TV navigation pass the browser checks. Header glass/material rendering is covered by the shared native options and both platform bundle exports; physical iOS appearance still needs device verification. This does not complete the remaining search, identity/list, catalog or release phases.
+
+## Search, people and review feedback checkpoint
+
+Search now provides all/movie/TV/person results, submitted query state, type selection, bounded pagination, loading/empty/error/retry states and native contextual title/person routes. Person pages show artwork, biography, dates/age, birthplace, aliases, department, popularity, source links and movie/TV filmography. Authenticated custom-list actions remain pending.
+
+Web and Hono now consume the same query parser, title tiers, reciprocal-rank merge, page-one fuzzy fallback, hydration conversions and PostgreSQL fuzzy reader. Web adapters retain their Next caching; native receives validated normalized cards. Old moved pure modules were removed and their consumers import package entry points directly. An optional server DATABASE_URL enables the shared index; missing index access degrades to TMDB without failing search.
+
+PR feedback addressed in this checkpoint: preserve browser focus listeners; scope detail scroll to navigation entries so fresh openings start at the top; capture scroll before navigation without replacing Expo Link handling; carry Discover's selected region into details/providers and related routes; keep unavailable selected provider IDs visible and removable; explain and enforce 50-option selection limits; declare LOG_LEVEL and register request logging middleware before routes.
+
+Verification includes shared web search regressions, real PostgreSQL fuzzy-reader tests (four passed against a temporary fixture), normalized API/validation tests, native search/person/filter state tests, browser workflows and iOS/Android exports. Final check counts are recorded in the PR description. Physical device glass, native gestures/session storage and release verification remain outstanding. Identity, persistent preferences, system/custom lists, authenticated quick actions, catalog credits/IMDb/reviews and account/security remain active work; this checkpoint does not complete the goal.
+
+## Initial native identity checkpoint
+
+The native Sign in route preserves web login wording, feature cards, provider accents and anonymous/social/passkey choices. More opens Sign in natively and displays session identity/sign-out. Native auth uses official Expo secure storage and browser/deep links; browser preview uses credentialed requests. Error/retry, safe redirect, anonymous-session completion, cancelled-social detection, expiry/revocation, credential forwarding, account-change cache clearing and sign-out region reset have targeted checks.
+
+Hono forwards authentication to the existing canonical web host configured by AUTH_URL. Verified session RPCs bypass the web cookie cache and return only public user data; host failures remain distinct from a missing session. Web retains its social providers, anonymous migration and passkey authority, with an Expo plugin and development-only preview origins. No native client receives server credentials.
+
+Verification: compared running web Login and inspected Next runtime compilation/errors; a real local anonymous auth/revocation integration test passes and cleans its own account; final unit/browser/audit/export counts are recorded in the PR. Browser Back is also checked after region-sheet closure: pointer capture, live layout measurement and immediate web sheet focus cleanup preserve the original offset. CI's obsolete deferred-screen file was removed and the formatter config is declared as a tooling entry point; the full PR-base Fallow audit passes locally.
+
+Native passkeys remain pending rather than being treated as completed by the browser implementation. Real OAuth/linking, secure-storage restart and both device platforms remain unverified. Account preferences, system/custom lists, authenticated quick actions and remaining catalog/reviews work retain their full scope; no phase or release is complete.
+
+Additional Search checkpoint review fixes: cancelled pointer/touch movement and native scroll drags clear pending navigation captures; incomplete or failed filmography keeps the aggregate credit total unknown; new Search/Person/identity files were checked with the TypeScript AST for non-block conditional bodies and corrected. Browser regressions exercise cancelled poster drag/tab return and both partial and total filmography outages. The broader end-goal coding audit is still pending.
+
+## Hosted API and account region
+
+Railway now runs the Hono API as `api` in production and PR environments; the infra workflow gives it a generated domain after each apply. A production custom domain must be added in the dashboard first.
+
+`preferences.region`/`preferences.setRegion` are the first private procedures. A shared middleware derives the user from the verified session (anonymous accounts included, as on web), rejects missing auth/sessions with `UNAUTHORIZED`, strips caller-supplied user IDs and reports session-host outages as server errors. `@movies/db/user-preferences` is the single region read/write implementation for web actions and Hono; unsupported stored values read as Sweden. Hono opens one bounded pool shared by fuzzy search and preferences. Web freshness: its region reads use `'use cache: private'`, which Next does not persist server-side across requests, so a Hono write is visible to web on the next request (open tabs may show the old value for up to the 60s client stale time).
+
+Native Home's region picker saves to the signed-in account with optimistic update, rollback and a retry message; signed-out changes stay on the device. Fixed a startup bug: the first settled session was treated as an account change and cleared the query cache, which stalled every on-screen query for signed-in launches; account changes now reset and refetch active queries.
+
+Verification: server transport/service/database tests, store unit tests plus a real PostgreSQL integration test (temporary table), web action regression, 51 native browser tests (signed-in load/save/reload, failed save rollback, signed-out isolation). Settings screen, provider preferences, device restart and hosted end-to-end checks remain pending.
+
+## Settings region slice — 2026-10-11
+
+- More → Settings now pushes a real native screen in More’s stack (`/more/settings`), preserving the system tabs and back context. Watchlist, Watched and Lists still bridge to web and remain pending.
+- Region reads and saves use the existing private `preferences.region`/`setRegion` procedures. No new API operations or alternate database rules were introduced. The form requires an explicit save, prevents duplicate submissions, retains failed drafts for retry, refreshes the shared account-region query and reflects saved changes on Home. Signed-out or expired sessions return to native sign-in with the Settings return destination; session/read failures have recovery.
+- Compared the running PR web Settings page with the native browser screen: same Settings introduction, Region title/description, supported options, bordered card and Save changes wording. Native uses a touch-sized sheet and button; browser screenshots cover light/dark Sweden forms. The running web app forces dark appearance (`app/layout.tsx`); native light appearance uses the existing shared light palette. Account linking, passkeys and streaming services are still pending; this is not full Settings parity.
+- Hosted evidence: PR #350 infra and API checks passed at commit `1f0820f`; API service `a05b017b-a471-449f-aa6d-6b5c1600ec86` in `movies-pr-350` has `api-movies-pr-350.up.railway.app`. `/health` returned 200. A successful disposable anonymous fixture exercised API auth forwarding and region POST reads/writes, and its canonical web Settings page showed Norway. That successful fixture and the browser comparison fixture were deleted through Better Auth. This does not prove OAuth, native cookie storage or phone connectivity.
+- Browser tests cover menu navigation without a popup, back to More, explicit saves, reload persistence, failed-save retry, read-error recovery, expired/signed-out redirects, pending submission controls, Home region refresh and both themes. Screenshots: `/tmp/native-roadmap-web-settings.png`, `/tmp/native-roadmap-settings-light.png`, `/tmp/native-roadmap-settings-dark.png`.
+- Repository lint, root/workspace type checks, Vitest (841 passed, 7 skipped) and Fallow passed. All 59 browser workflows passed; 15 focused Settings/navigation checks passed again after the final navigation helper change. Web, iOS and Android exports passed; final native bundles also used the PR API/web URLs. Native gestures, system tab appearance, secure session restart and preview use from a real iOS/Android device remain unverified. Next implementation: shared provider preference storage/procedures, Settings streaming services and Discover defaults, with cross-client cache freshness verification.
+
+## Streaming preference slice — 2026-10-11
+
+- `@movies/db/user-preferences` now owns provider reads and complete replacements for both web and Hono. Incoming IDs are validated against the PostgreSQL integer range. Writes deduplicate/sort, lock the owning account row and replace within one transaction, including Clear All; a failed insert preserves the previous selection. Existing provider selections outside the current region are retained until explicitly cleared.
+- Private `preferences.providers`, `setProviders` and `providerOptions` procedures derive access from the canonical session. Settings options use the full regional movie-provider list in the same upstream order as web; Discovery retains its media-specific priority ordering. Both use the same validated upstream reader and normalized logos.
+- Native Settings has a virtualized provider list with logos/initial fallbacks, touch checkboxes, the existing web wording, Clear All, explicit Save Preferences, pending controls, success feedback and separate read/save recovery. Its Region form remains mounted while regional provider options load. Account-pref query keys include the user identity; a late response from an old session cannot overwrite the next account’s preference cache.
+- Native Discover waits for the signed-in region/provider reads before requesting results. The canonical provider fallback now lives in `@movies/api/preferences`, imported directly by both clients: explicit nonempty URL selection, otherwise saved providers. Clearing filters restores saved defaults, matching web. Saved selections can exceed 50 providers, as web Settings allows; no stored services are silently truncated. Genre/country/page bounds remain unchanged.
+- Web retains its private cache adapters and action invalidation. The installed Next.js guide confirms private results do not persist in a server cache across production requests. Browser focus/visibility return refreshes rendered props plus user/home client queries. Settings forms remount only when their saved values change. An already-visible web page requires a subsequent focus/visibility return or explicit refresh to observe an external mutation; this slice does not introduce live cross-device push updates.
+- Real local integration uses web, Hono and the native browser export on the same migrated database/session. It verifies Hono region/provider writes appear on an already-open web Settings page after focus, and a native Netflix save appears on web and survives native reload. Fixtures are deleted through canonical Better Auth. Tests are in `e2e/preference-freshness.spec.ts`, opt-in via the local URLs documented in the Native README. Device SecureStore and restart are still unverified.
+- PostgreSQL integration tests passed for ownership, deduplication, clear-all, missing accounts, rollback after a rejected insert and two-connection concurrent replacements; fixtures use temporary tables/an isolated schema. API/service tests verify authorization, anonymous accounts, caller-supplied user IDs, malformed inputs/upstream choices and upstream errors. Native browser coverage includes defaults/URL overrides/clear, unavailable providers, failed reads/saves/retry, pending controls, reload, missing/broken logos, both themes and delayed-save account isolation.
+- Visual evidence: inspected the hosted web Streaming Services form, then compared native and web using the same real local Sweden account and selected Netflix provider. Screenshots: `/tmp/native-provider-web-settings.png`, `/tmp/native-provider-live-native.png`, `/tmp/native-provider-live-web.png`, plus phone-viewport `/tmp/native-provider-settings-light.png` and `/tmp/native-provider-settings-dark.png`. The native list uses touch-sized rows rather than the desktop four-column grid. Web currently forces dark appearance; native light uses the shared light palette.
+- Validation: repository lint, root/workspace type checks, Vitest (869 passed, 10 opt-in skipped) and Fallow passed. All 67 native browser workflows passed, including the delayed-save regression. The two real shared-consumer browser tests and five PostgreSQL preference tests passed independently. Web/iOS/Android exports passed. Next.js compilation/runtime probes reported no issues, and React introspection confirmed the refresh component is mounted under the Query provider.
+- Teardown: real local test fixtures were deleted. The hosted visual-comparison browser session was lost before teardown, so deletion of its empty preview fixture is unverified.
+- Remaining: hosted rollout of these new provider procedures, real iOS/Android storage/restart/controls checks, account linking/passkeys, and the full list/quick-action workflows. The next implementation slice is Watchlist/Watched, including title-cache write-through and cross-client freshness; no phase is marked complete by this preference work.
+
+## System lists and PR review fixes — 2026-10-11
+
+More now opens native Watchlist and Watched screens. Counts, movie/TV switching, region/provider filters, empty states, pagination and media-scoped manual ordering use private Hono procedures and shared database stores. Contextual More detail routes preserve the list stack and bottom navigation. Custom Lists remains the remaining browser bridge; its native workflows are still phase 4.
+
+Web and Hono share ownership-scoped system-list reads, transactional singleton creation/toggling, ordering locks and anonymous-account transfer. Title availability filtering and title-cache synchronization also have canonical shared modules. Hono additions await best-effort title write-through; a sync failure is logged without discarding the successful list mutation. Hydration failures remain distinguishable from genuinely empty lists. Web refreshes account queries and private render props on returning to focus, but real native/API/web list freshness and title-cache write-through still need an end-to-end workflow before phase acceptance.
+
+The [PR review audit](native-pr-review.md) records all 16 comments, including earlier resolved feedback. The six remaining findings are addressed: direct canonical imports, serialized Home country selection, rollback with no prior account data, Quick add modal dismissal before sign-in, query-preserving sign-in destinations and per-page scroll memory. Filter sheets stay mounted when the grid switches inputs. Earlier title-entry and cancelled-touch restoration regressions remain covered by the full browser suite.
+
+Verification:
+
+- Root lint, root and all app typechecks, unit tests and Fallow passed. Unit result: 915 passed, 14 skipped. The unchanged startup test timed out under concurrent platform bundling; the full rerun after bundling passed.
+- Fresh native browser export: all 80 tests passed, including counts, empty states/themes, filters, cross-page moves, detail/back context, independent watch/watched actions, read/write recovery and the review regressions.
+- Real PostgreSQL system-list integration: four tests passed against isolated fixtures with two connections, including ownership rejection, concurrent singleton creation, media order, provider filtering and idempotent anonymous transfer.
+- New return-URL and scroll-memory helpers have 100% statement/branch/function/line coverage. Hook/component runtime behavior is verified separately by browser tests.
+- iOS/Android/web JavaScript exports passed to `/tmp/pr350-native-bundles`; device execution is not claimed.
+
+Still required: real native/API/web add/remove/order freshness and title-cache write-through, hosted rollout checks, device gestures/storage/restart, custom lists/create-and-add, remaining catalog sections, passkeys/account linking and release work. No phase is marked complete. The draft PR remains open for the full roadmap.
+
+## Real system-list freshness — 2026-10-11
+
+Added `e2e/system-list-freshness.spec.ts`, explicitly enabled only against local web, API, native browser and database hosts. Requests and responses use the real services and real Interstellar, Inception and Game of Thrones records. A passthrough RPC route verifies the native bundle uses the expected local API origin. API health is checked before creating an anonymous fixture.
+
+Both Watchlist and Watched workflows passed: native adds movie and TV records, web refreshes rows/counts on focus, native changes manual movie order and web reflects it, both clients filter through a stored Swedish streaming/free offer, and removing a filtered title updates web rows and its unfiltered count on focus. Returning to unfiltered pages preserves the remaining title; the other system list stays empty. Each add checks that title details and availability markers were refreshed after the database checkpoint, before a provider-filter request can trigger catch-up. No mocked API response or web reload substitutes for mutation freshness.
+
+Final verification on the dependency-merge head `a137c5e`:
+
+- Real browser integration: two tests passed; no uncaught browser errors. Final tests verify deletion of their exact newly created anonymous IDs through the local database. IDs are attached to the test report for recovery if an interrupted run needs investigation.
+- Root lint, root and workspace typechecks, all 915 unit tests and Fallow passed. Four existing web lint warnings remain.
+- Matching 390 × 844 dark-theme captures: `/tmp/native-list-live-watchlist.png`, `/tmp/web-list-live-watchlist.png`, `/tmp/native-list-live-watched.png`, `/tmp/web-list-live-watched.png`. Native preserves headings/counts, poster proportions and accents with touch-visible metadata and native order controls.
+- CI for the dependency-merge head passed lint/typecheck/tests, E2E and Fallow; the preview infrastructure and services succeeded. Review feedback is still monitored as part of the full goal.
+
+A dependency update interrupted one earlier attempt: the API stopped listening on port 3001, while web auth still responded. Restarting the API restored `/health` and auth forwarding, then both workflows passed again. That attempt timed out in HTTP fixture cleanup, so its two anonymous deletions are unverified. The final tests record fixture IDs and use scoped database cleanup, independent of browser/service timeouts. Global title-cache rows stay under the existing sync/pruning job.
+
+Next development diagnostics still report that private list routes could not validate instant UI because the target segment was prevented from rendering. Compilation is clear and the functional tests pass; this is not recorded as a clean diagnostic result. A root Suspense boundary around the client-only login toast, included in the dependency merge, was insufficient to remove these warnings. Continue with the underlying error's cause and the parent component stack rather than disabling validation.
+
+Hosted native list verification, real device controls/back gestures/storage/restart and all custom-list workflows remain required. Local freshness verification does not complete the phase or the full native roadmap.

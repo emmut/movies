@@ -4,17 +4,26 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./schema/*": "./src/schema/*.ts"
+    "./schema/*": "./src/schema/*.ts",
+    "./search-index": "./src/search-index.ts",
+    "./user-preferences": "./src/user-preferences.ts",
+    "./title-sync": "./src/title-sync.ts",
+    "./ordering-lock": "./src/ordering-lock.ts",
+    "./system-lists": "./src/system-lists.ts",
+    "./title-availability": "./src/title-availability.ts",
+    "./list-item-order": "./src/list-item-order.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.3",
-    "pg": "^8.23.0",
-    "zod": "^4.6.5",
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:",
+    "zod": "catalog:",
     "@movies/config": "workspace:*",
-    "better-auth": "^1.7.4",
-    "@better-auth/passkey": "^1.7.4"
+    "better-auth": "catalog:",
+    "@better-auth/passkey": "catalog:",
+    "server-only": "catalog:",
+    "@movies/api": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "7.0.2"
+    "typescript": "catalog:"
   }
 }

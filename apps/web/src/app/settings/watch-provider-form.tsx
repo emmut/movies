@@ -1,17 +1,23 @@
 'use client';
 
+import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
+import { Button } from '@movies/ui/components/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@movies/ui/components/card';
 import { useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
-import { Button } from '@movies/ui/components/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@movies/ui/components/card';
 import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
 import { setUserWatchProviders } from '@/lib/user-actions';
 import { formatImageUrl } from '@/lib/utils';
-import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFormProps {
   availableProviders: WatchProvider[];

@@ -1,5 +1,9 @@
 'use client';
 
+import { MovieDetails } from '@movies/api/tmdb-types/movie';
+import { PersonDetails } from '@movies/api/tmdb-types/person';
+import { TvDetails } from '@movies/api/tmdb-types/tv-show';
+import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
@@ -19,10 +23,6 @@ import { ITEMS_PER_PAGE } from '@/lib/config';
 import { moveListItem } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 import { activeWatchProviderFilter } from '@/lib/watch-provider-search-params';
-import { MovieDetails } from '@/types/movie';
-import { PersonDetails } from '@/types/person';
-import { TvDetails } from '@/types/tv-show';
-import type { WatchProvider } from '@/types/watch-provider';
 
 export type ListItem =
   | (MovieDetails & { resourceType: 'movie'; listItemId: string })

@@ -1,9 +1,15 @@
+import { regions } from '@movies/config/regions';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@movies/ui/components/card';
 import { unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@movies/ui/components/card';
 import { getUser } from '@/lib/auth-server';
-import { regions } from '@movies/config/regions';
 import {
   getAllWatchProviders,
   getUserRegion,
@@ -90,6 +96,7 @@ export default async function SettingsPage(props: SettingsPageProps) {
         </CardHeader>
         <CardContent>
           <RegionForm
+            key={currentRegion}
             currentRegion={currentRegion}
             regions={regions}
             updateRegionAction={updateUserRegion}
@@ -98,6 +105,7 @@ export default async function SettingsPage(props: SettingsPageProps) {
       </Card>
 
       <WatchProviderForm
+        key={currentRegion + ':' + userWatchProviders.join(',')}
         availableProviders={allWatchProviders}
         userProviders={userWatchProviders}
       />

@@ -2,10 +2,11 @@
 // fetchers in movies.ts/tv-shows.ts are server-only.
 'use server';
 
+import type { Movie } from '@movies/api/tmdb-types/movie';
+import type { TvShow } from '@movies/api/tmdb-types/tv-show';
+
 import { fetchDiscoverMovies } from '@/lib/movies';
 import { fetchDiscoverTvShows } from '@/lib/tv-shows';
-import type { Movie } from '@/types/movie';
-import type { TvShow } from '@/types/tv-show';
 
 export type DiscoverResult = {
   results: Movie[] | TvShow[];

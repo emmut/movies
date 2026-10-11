@@ -1,6 +1,5 @@
+import { parseSearchQuery } from '@movies/api/parse-search-query';
 import { describe, expect, it } from 'vitest';
-
-import { parseSearchQuery } from './parse-search-query';
 
 describe('parseSearchQuery years', () => {
   it('extracts a trailing year', () => {

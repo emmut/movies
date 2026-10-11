@@ -5,9 +5,12 @@
   "type": "module",
   "exports": {
     "./regions": "./regions.ts",
-    "./constants": "./constants.ts"
+    "./constants": "./constants.ts",
+    "./search-title": "./search-title.ts",
+    "./native-auth": "./native-auth.ts",
+    "./login": "./login.ts"
   },
   "dependencies": {
-    "zod": "^4.6.5"
+    "zod": "catalog:"
   }
 }

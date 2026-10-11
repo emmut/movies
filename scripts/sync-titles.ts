@@ -17,6 +17,8 @@
  * provider data is supplied by JustWatch and must be attributed as such.
  */
 
+import { createTmdbFetch } from '@movies/api/tmdb-fetch';
+
 import {
   AVAILABILITY_MAX_AGE_MS,
   mapWithConcurrency,
@@ -29,8 +31,7 @@ import {
   TITLE_DETAILS_MAX_AGE_MS,
   type TitleKey,
   type TitleSource,
-} from '@/lib/title-sync';
-import { createTmdbFetch } from '@/lib/tmdb-fetch';
+} from '@movies/db/title-sync';
 
 import { connectForCron } from './cron-db';
 import { describeError } from './describe-error';
@@ -50,7 +51,7 @@ if (!env.MOVIE_DB_ACCESS_TOKEN) {
   process.exit(1);
 }
 
-const tmdbFetch = createTmdbFetch(env.MOVIE_DB_ACCESS_TOKEN);
+const tmdbFetch = createTmdbFetch(env.MOVIE_DB_ACCESS_TOKEN, env.TMDB_API_URL_OVERRIDE);
 
 const source: TitleSource = {
   movieDetails: (id) => tmdbFetch(`/movie/${id}`),

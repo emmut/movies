@@ -1,0 +1,36 @@
+{
+  "name": "@movies/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --conditions=react-server --import tsx --watch src/index.ts",
+    "start": "node --conditions=react-server --import tsx src/index.ts",
+    "check-types": "tsc --noEmit",
+    "env:generate": "varlock codegen"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.0",
+    "@movies/api": "workspace:*",
+    "@movies/auth": "workspace:*",
+    "@orpc/server": "catalog:",
+    "hono": "^4.9.0",
+    "pino": "^10.4.0",
+    "server-only": "catalog:",
+    "varlock": "catalog:",
+    "zod": "catalog:",
+    "@movies/db": "workspace:*",
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:",
+    "@movies/config": "workspace:*"
+  },
+  "devDependencies": {
+    "better-auth": "catalog:",
+    "@orpc/client": "catalog:",
+    "@types/node": "catalog:",
+    "pino-pretty": "^13.2.0",
+    "tsx": "^4.20.0",
+    "typescript": "catalog:",
+    "@types/pg": "catalog:"
+  }
+}

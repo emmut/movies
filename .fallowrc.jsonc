@@ -8,7 +8,16 @@
     "@imgproxy/imgproxy-js-core",
     "pg",
     "@tanstack/react-query-devtools",
+    // Expo Router loads fonts; Metro selects react-native-web and the Babel preset.
+    "expo-font",
+    // Better Auth Expo loads these platform modules; the app must install them.
+    "expo-network",
+    "expo-web-browser",
+    "react-native-web",
+    "babel-preset-expo",
   ],
+  // oxfmt loads its TypeScript config as a tooling entry point.
+  "entry": ["oxfmt.config.ts"],
   "duplicates": {
     // Loading skeletons are mirrored per route by App-Router convention, so
     // sibling loading.tsx files (movie/tv) will always register as clones.
@@ -16,7 +25,7 @@
     // The person page's profile-image block mirrors the movie Poster only
     // structurally (different fallback icon/labels); merging them would
     // couple the person page to a movie component for no behavioral gain.
-    "ignore": ["apps/web/src/app/**/loading.tsx", "apps/web/src/app/person/[id]/page.tsx"],
+    "ignore": ["apps/web/src/app/**/loading.tsx", "apps/web/src/app/person/*/page.tsx"],
   },
   "health": {
     // App-Router page components are inherently conditional-JSX-heavy (cyclomatic

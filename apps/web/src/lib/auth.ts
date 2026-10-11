@@ -1,20 +1,30 @@
+import 'server-only';
+import { expo } from '@better-auth/expo';
 import { passkey } from '@better-auth/passkey';
+import { AUTH_CLIENT_IP_HEADER } from '@movies/auth/proxy';
+import { nativeTrustedOrigins } from '@movies/config/native-auth';
+import * as schema from '@movies/db/schema/auth';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
 import { anonymous } from 'better-auth/plugins';
 
-import * as schema from '@movies/db/schema/auth';
 import { env } from '@/env';
 import { db } from '@/lib/db';
 
 export const auth = betterAuth({
   baseURL: env.NEXT_PUBLIC_BASE_URL,
-  trustedOrigins: [
-    env.BETTER_AUTH_TRUSTED_ORIGIN,
-    env.VERCEL_BRANCH_URL,
-    env.VERCEL_PROJECT_PRODUCTION_URL,
-  ].filter((domain) => domain != null),
+  advanced: { ipAddress: { ipAddressHeaders: [AUTH_CLIENT_IP_HEADER, 'x-real-ip'] } },
+  trustedOrigins: async (request) =>
+    [
+      env.BETTER_AUTH_TRUSTED_ORIGIN,
+      env.VERCEL_BRANCH_URL,
+      env.VERCEL_PROJECT_PRODUCTION_URL,
+      ...nativeTrustedOrigins(
+        process.env.NODE_ENV === 'development',
+        request?.headers.get('origin'),
+      ),
+    ].filter((domain) => domain != null),
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema,
@@ -47,13 +57,15 @@ export const auth = betterAuth({
   },
 
   plugins: [
+    expo(),
     anonymous({
       onLinkAccount: async ({ anonymousUser, newUser }) => {
         try {
           // Lazy import: system-list.ts is server-only and would break
           // better-auth CLI commands (e.g. `auth generate`) that load this
           // config in plain Node.
-          const { transferSystemListItems } = await import('@/lib/system-list');
+          const { createSystemListStore } = await import('@movies/db/system-lists');
+          const { transferSystemListItems } = createSystemListStore(db);
           await transferSystemListItems(anonymousUser.user.id, newUser.user.id);
         } catch (error) {
           console.error('Failed to link your account:', error);

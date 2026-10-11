@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+const withOrderingLock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/db', () => ({
-  db: { select: vi.fn(), insert: vi.fn(), update: vi.fn(), delete: vi.fn(), execute: vi.fn() },
+  db: { select: vi.fn(), insert: vi.fn(), update: vi.fn(), delete: vi.fn() },
 }));
 vi.mock('@/lib/auth-server', () => ({ requireUser: vi.fn() }));
 vi.mock('@/lib/cache-invalidation', () => ({
@@ -34,12 +35,12 @@ vi.mock('@/lib/watch-provider-availability', async (importOriginal) => {
 });
 // Run the locked callback against the db mock directly; the real lock needs a
 // live transaction and is covered by ordering-lock.test.ts.
-vi.mock('@/lib/ordering-lock', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/ordering-lock')>();
+vi.mock('@movies/db/ordering-lock', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@movies/db/ordering-lock')>();
   const { db } = await import('@/lib/db');
   return {
     ...actual,
-    withOrderingLock: vi.fn((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
+    createOrderingLock: () => withOrderingLock.mockImplementation((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
   };
 });
 
@@ -50,7 +51,7 @@ import {
 } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
-import { withOrderingLock } from '@/lib/ordering-lock';
+
 import { getPersonDetails } from '@/lib/persons';
 import { scheduleTitleSync } from '@/lib/title-sync-server';
 import { ensureAvailabilityKnown } from '@/lib/watch-provider-availability';
@@ -81,10 +82,13 @@ beforeEach(() => {
   vi.mocked(db.insert).mockReturnValue(chain(undefined));
   vi.mocked(db.update).mockReturnValue(chain(undefined));
   vi.mocked(db.delete).mockReturnValue(chain(undefined));
-  vi.mocked(db.execute).mockResolvedValue(undefined as never);
 });
 
 describe('createList', () => {
+  beforeEach(() => {
+    vi.mocked(db.select).mockReturnValue(chain([{ lastPosition: 2 }]));
+  });
+
   it('inserts and returns a generated list id on valid input', async () => {
     const result = await createList('My faves', 'desc', '🎬');
     expect(result.success).toBe(true);
@@ -173,14 +177,14 @@ describe('moveList', () => {
   it('persists the new order in a single statement when the list is owned', async () => {
     vi.mocked(db.select).mockReturnValue(chain([{ id: OTHER_UUID }, { id: UUID }]));
     await moveList(UUID, 0);
-    expect(db.execute).toHaveBeenCalledTimes(1);
+    expect(db.update).toHaveBeenCalledTimes(1);
     expect(withOrderingLock).toHaveBeenCalledWith('lists:user-1', expect.any(Function));
   });
 
   it('throws when the list is not among the user’s custom lists', async () => {
     vi.mocked(db.select).mockReturnValue(chain([{ id: OTHER_UUID }]));
     await expect(moveList(UUID, 0)).rejects.toThrow('List not found');
-    expect(db.execute).not.toHaveBeenCalled();
+    expect(db.update).not.toHaveBeenCalled();
   });
 
   it('rejects a non-uuid list id without querying', async () => {
@@ -205,14 +209,14 @@ describe('moveListItem', () => {
       ]),
     );
     await moveListItem(UUID, 0);
-    expect(db.execute).toHaveBeenCalledTimes(1);
+    expect(db.update).toHaveBeenCalledTimes(1);
     expect(withOrderingLock).toHaveBeenCalledWith(`list-items:${UUID}`, expect.any(Function));
   });
 
   it('throws when the item is not among the user’s custom lists', async () => {
     vi.mocked(db.select).mockReturnValue(chain([]));
     await expect(moveListItem(UUID, 0)).rejects.toThrow('Item not found');
-    expect(db.execute).not.toHaveBeenCalled();
+    expect(db.update).not.toHaveBeenCalled();
   });
 
   it('rejects a non-uuid item id without querying', async () => {

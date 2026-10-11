@@ -1,10 +1,23 @@
 'use server';
 
-import { and, asc, count, desc, eq, sql, SQL } from 'drizzle-orm';
+import { moveIdToIndex } from '@movies/api/list-order';
+import { pageWindow } from '@movies/api/paginate';
+import { fulfilledValues } from '@movies/api/settled';
+import { parseWatchProviderFilter } from '@movies/api/system-lists';
+import { createListItemOrderingStore } from '@movies/db/list-item-order';
+import {
+  createOrderingLock,
+  listItemOrderingScope,
+  listOrderingScope,
+  nextPosition,
+  rewriteListPositions,
+} from '@movies/db/ordering-lock';
+import { listItems, lists } from '@movies/db/schema/lists';
+import { streamableOnProviders } from '@movies/db/title-availability';
+import { and, asc, count, desc, eq, sql, type SQL } from 'drizzle-orm';
 import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { listItems, lists } from '@movies/db/schema/lists';
 import { requireUser } from '@/lib/auth-server';
 import {
   revalidateUserListCache,
@@ -14,14 +27,6 @@ import {
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
-import { moveIdToIndex } from '@/lib/list-order';
-import {
-  listItemOrderingScope,
-  listOrderingScope,
-  withOrderingLock,
-  type OrderingTx,
-} from '@/lib/ordering-lock';
-import { pageWindow } from '@/lib/paginate';
 import { scheduleTitleSync } from '@/lib/title-sync-server';
 import {
   createListSchema,
@@ -37,11 +42,7 @@ import {
   updateListSchema,
   WatchProviderFilter,
 } from '@/lib/validations';
-import {
-  ensureAvailabilityKnown,
-  parseWatchProviderFilter,
-  streamableOnProviders,
-} from '@/lib/watch-provider-availability';
+import { ensureAvailabilityKnown } from '@/lib/watch-provider-availability';
 
 import { ITEMS_PER_PAGE, LISTS_PER_PAGE } from './config';
 
@@ -60,6 +61,9 @@ export interface LocalList {
     createdAt: Date;
   }>;
 }
+
+const withOrderingLock = createOrderingLock(db);
+const listItemOrdering = createListItemOrderingStore(db);
 
 const CUSTOM_LIST_TYPE = 'custom' as const;
 
@@ -98,7 +102,7 @@ function itemManualOrder() {
  */
 async function assertCustomListOwnership(listId: string, userId: string) {
   const [{ count: ownedCount }] = await db
-    .select({ count: sql`count(*)`.mapWith(Number) })
+    .select({ count: count() })
     .from(lists)
     .where(and(eq(lists.id, listId), ownedCustomListsFilter(userId)));
 
@@ -139,12 +143,12 @@ async function getCachedUserListCount(userId: string) {
   cacheLife('privateShort');
 
   try {
-    const count = await db
-      .select({ count: sql`count(*)`.mapWith(Number) })
+    const rows = await db
+      .select({ count: count() })
       .from(lists)
       .where(ownedCustomListsFilter(userId));
 
-    return count[0].count;
+    return rows[0]?.count ?? 0;
   } catch (error) {
     console.error('Error fetching user list count:', error);
     return 0;
@@ -172,20 +176,12 @@ export async function getUserListsPaginated(page: number = 1) {
       .where(ownedCustomListsFilter(user.id));
 
     const totalItems = totalCountResult[0]?.count ?? 0;
-    const totalPages = Math.ceil(totalItems / LISTS_PER_PAGE);
-    const currentPage = Math.max(1, Math.min(page, totalPages));
+    const { offset, ...pagination } = pageWindow(totalItems, page, LISTS_PER_PAGE);
 
     if (totalItems === 0) {
-      return {
-        lists: [],
-        totalItems: 0,
-        totalPages: 0,
-        currentPage,
-        itemsPerPage: LISTS_PER_PAGE,
-      };
+      return { lists: [], ...pagination };
     }
 
-    const offset = Math.max(0, (currentPage - 1) * LISTS_PER_PAGE);
     const listsWithCounts = await db
       .select({
         id: lists.id,
@@ -194,7 +190,7 @@ export async function getUserListsPaginated(page: number = 1) {
         emoji: lists.emoji,
         createdAt: lists.createdAt,
         updatedAt: lists.updatedAt,
-        itemCount: sql`count(${listItems.id})`.mapWith(Number),
+        itemCount: count(listItems.id),
       })
       .from(lists)
       .leftJoin(listItems, eq(lists.id, listItems.listId))
@@ -204,13 +200,7 @@ export async function getUserListsPaginated(page: number = 1) {
       .limit(LISTS_PER_PAGE)
       .offset(offset);
 
-    return {
-      lists: listsWithCounts,
-      totalItems,
-      totalPages,
-      currentPage,
-      itemsPerPage: LISTS_PER_PAGE,
-    };
+    return { lists: listsWithCounts, ...pagination };
   } catch (error) {
     console.error('Error fetching paginated user lists:', error);
     const currentPage = Math.max(1, page);
@@ -274,50 +264,35 @@ async function fetchOwnedCustomListRow(listId: string, userId: string) {
   return listResult[0];
 }
 
-/** Number of `list_items` rows matching `where`, coerced from the driver's count. */
+/** Number of `list_items` rows matching `where`. */
 async function countListItems(where: SQL | undefined) {
-  const totalCountResult = await db.select({ count: count() }).from(listItems).where(where);
-
-  // Safely coerce count to number, handling BigInt/string/null cases
-  return Number(totalCountResult[0]?.count) || 0;
+  const rows = await db.select({ count: count() }).from(listItems).where(where);
+  return rows[0]?.count ?? 0;
 }
 
-async function queryUnfilteredListPage(list: typeof lists.$inferSelect, page: number) {
-  const totalItems = await countListItems(eq(listItems.listId, list.id));
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-  const currentPage = Math.max(1, Math.min(page, totalPages || 1));
-
+/** One page of the list items matching `where`, in manual order. */
+async function selectListItemsPage(where: SQL | undefined, totalItems: number, page: number) {
+  const { offset, ...pagination } = pageWindow(totalItems, page, ITEMS_PER_PAGE);
   if (totalItems === 0) {
-    return {
-      ...list,
-      items: [],
-      itemCount: 0,
-      totalItems: 0,
-      totalPages: 0,
-      currentPage,
-      itemsPerPage: ITEMS_PER_PAGE,
-    };
+    return { items: [], ...pagination };
   }
 
-  // Ensure offset is always >= 0
-  const offset = Math.max(0, (currentPage - 1) * ITEMS_PER_PAGE);
   const items = await db
     .select()
     .from(listItems)
-    .where(eq(listItems.listId, list.id))
+    .where(where)
     .orderBy(...itemManualOrder())
     .limit(ITEMS_PER_PAGE)
     .offset(offset);
+  return { items, ...pagination };
+}
 
-  return {
-    ...list,
-    items,
-    itemCount: totalItems,
-    totalItems,
-    totalPages,
-    currentPage,
-    itemsPerPage: ITEMS_PER_PAGE,
-  };
+async function queryUnfilteredListPage(list: typeof lists.$inferSelect, page: number) {
+  const where = eq(listItems.listId, list.id);
+  const totalItems = await countListItems(where);
+  const itemsPage = await selectListItemsPage(where, totalItems, page);
+
+  return { ...list, ...itemsPage, itemCount: totalItems };
 }
 
 /**
@@ -340,25 +315,9 @@ async function queryProviderFilteredListPage(
   const where = and(scope, streamableOnProviders(providerFilter));
   const itemCount = await countListItems(scope);
   const totalItems = await countListItems(where);
-  const { offset, ...pagination } = pageWindow(totalItems, page, ITEMS_PER_PAGE);
+  const itemsPage = await selectListItemsPage(where, totalItems, page);
 
-  const items =
-    totalItems === 0
-      ? []
-      : await db
-          .select()
-          .from(listItems)
-          .where(where)
-          .orderBy(...itemManualOrder())
-          .limit(ITEMS_PER_PAGE)
-          .offset(offset);
-
-  return {
-    ...list,
-    items,
-    itemCount,
-    ...pagination,
-  };
+  return { ...list, ...itemsPage, itemCount };
 }
 
 /**
@@ -383,26 +342,16 @@ export async function getListDetailsWithResources(
   const paginatedList = await getListDetailsPaginated(listId, page, providerFilter);
 
   // Fetch details for paginated items only
-  const movieItems = paginatedList.items?.filter((item) => item.resourceType === 'movie') || [];
-  const tvItems = paginatedList.items?.filter((item) => item.resourceType === 'tv') || [];
-  const personItems = paginatedList.items?.filter((item) => item.resourceType === 'person') || [];
+  const items = paginatedList.items;
+  function resourceIdsOf(resourceType: string) {
+    return items.filter((item) => item.resourceType === resourceType).map((item) => item.resourceId);
+  }
 
   const [movies, tvShows, persons] = await Promise.all([
-    Promise.allSettled(movieItems.map((item) => getMovieDetails(item.resourceId))),
-    Promise.allSettled(tvItems.map((item) => getTvShowDetails(item.resourceId))),
-    Promise.allSettled(personItems.map((item) => getPersonDetails(item.resourceId))),
-  ]).then(
-    ([movieResults, tvResults, personResults]) =>
-      [
-        movieResults
-          .filter((result) => result.status === 'fulfilled')
-          .map((result) => result.value),
-        tvResults.filter((result) => result.status === 'fulfilled').map((result) => result.value),
-        personResults
-          .filter((result) => result.status === 'fulfilled')
-          .map((result) => result.value),
-      ] as const,
-  );
+    fulfilledValues(resourceIdsOf('movie'), getMovieDetails),
+    fulfilledValues(resourceIdsOf('tv'), getTvShowDetails),
+    fulfilledValues(resourceIdsOf('person'), getPersonDetails),
+  ]);
 
   const listItemIdByResource = new Map<string, string>();
   for (const item of paginatedList.items) {
@@ -461,14 +410,15 @@ export async function createList(name: string, description: string = '', emoji: 
   // Locked so concurrent creates can't read the same max(position) and append
   // to the same slot.
   await withOrderingLock(listOrderingScope(user.id), async (tx) => {
+    // Append to the end of the user's manual ordering.
+    const position = await nextPosition(tx, lists, ownedCustomListsFilter(user.id));
     await tx.insert(lists).values({
       id: listId,
       userId: user.id,
       name: validatedData.name,
       description: validatedData.description,
       emoji: validatedData.emoji,
-      // Append to the end of the user's manual ordering.
-      position: sql`coalesce((select max(${lists.position}) + 1 from ${lists} where ${lists.userId} = ${user.id} and ${lists.type} = ${CUSTOM_LIST_TYPE}), 1)`,
+      position,
     });
   });
 
@@ -498,13 +448,14 @@ export async function addToList(
     // Locked so concurrent adds can't read the same max(position) and append
     // to the same slot.
     await withOrderingLock(listItemOrderingScope(validatedData.listId), async (tx) => {
+      // Append to the end of the list's manual ordering.
+      const position = await nextPosition(tx, listItems, eq(listItems.listId, validatedData.listId));
       await tx.insert(listItems).values({
         id: crypto.randomUUID(),
         listId: validatedData.listId,
         resourceId: validatedData.resourceId,
         resourceType: validatedData.resourceType,
-        // Append to the end of the list's manual ordering.
-        position: sql`coalesce((select max(${listItems.position}) + 1 from ${listItems} where ${listItems.listId} = ${validatedData.listId}), 1)`,
+        position,
       });
     });
   } catch (error) {
@@ -607,19 +558,6 @@ export async function updateList(
 }
 
 /**
- * Rewrites the manual ordering of a user's custom lists in one statement,
- * assigning 1-based positions from the given id order.
- */
-async function persistListOrder(tx: OrderingTx, userId: string, orderedIds: string[]) {
-  await tx.execute(sql`
-    update ${lists}
-    set position = ord.position
-    from unnest(${sql.param(orderedIds)}::text[]) with ordinality as ord(id, position)
-    where ${lists.id} = ord.id and ${lists.userId} = ${userId}
-  `);
-}
-
-/**
  * Moves a custom list to a new spot in the user's manual ordering.
  *
  * @param listId - The list to move.
@@ -650,25 +588,12 @@ export async function moveList(listId: string, position: number) {
       throw new Error('List not found');
     }
 
-    await persistListOrder(tx, user.id, orderedIds);
+    await rewriteListPositions(tx, user.id, orderedIds);
   });
 
   revalidateUserListCache(user.id);
 
   revalidatePath('/lists');
-}
-
-/**
- * Rewrites the manual ordering of a list's items in one statement, assigning
- * 1-based positions from the given id order.
- */
-async function persistListItemOrder(tx: OrderingTx, listId: string, orderedIds: string[]) {
-  await tx.execute(sql`
-    update ${listItems}
-    set position = ord.position
-    from unnest(${sql.param(orderedIds)}::text[]) with ordinality as ord(id, position)
-    where ${listItems.id} = ord.id and ${listItems.listId} = ${listId}
-  `);
 }
 
 /**
@@ -691,45 +616,7 @@ export async function moveListItem(
 
   const validatedData = moveListItemSchema.parse({ itemId, position, resourceType });
 
-  const itemRows = await db
-    .select({ listId: listItems.listId, listType: lists.type })
-    .from(listItems)
-    .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(and(eq(listItems.id, validatedData.itemId), eq(lists.userId, user.id)))
-    .limit(1);
-
-  if (itemRows.length === 0) {
-    throw new Error('Item not found');
-  }
-
-  const listId = itemRows[0].listId;
-  const listType = itemRows[0].listType;
-
-  const orderWhere = validatedData.resourceType
-    ? and(eq(listItems.listId, listId), eq(listItems.resourceType, validatedData.resourceType))
-    : eq(listItems.listId, listId);
-
-  // The current order is read and rewritten under one lock so a concurrent
-  // move can't compute from a stale snapshot and overwrite this one.
-  await withOrderingLock(listItemOrderingScope(listId), async (tx) => {
-    const orderedRows = await tx
-      .select({ id: listItems.id })
-      .from(listItems)
-      .where(orderWhere)
-      .orderBy(...itemManualOrder());
-
-    const orderedIds = moveIdToIndex(
-      orderedRows.map((row) => row.id),
-      validatedData.itemId,
-      validatedData.position,
-    );
-
-    if (orderedIds === null) {
-      throw new Error('Item not found');
-    }
-
-    await persistListItemOrder(tx, listId, orderedIds);
-  });
+  const { listId, listType } = await listItemOrdering.move(user.id, validatedData);
 
   if (listType === 'custom') {
     revalidateUserListCache(user.id, listId);
@@ -775,7 +662,7 @@ async function getCachedUserListsWithStatus(
         emoji: lists.emoji,
         createdAt: lists.createdAt,
         updatedAt: lists.updatedAt,
-        itemCount: sql<number>`count(${listItems.id})`.mapWith(Number),
+        itemCount: count(listItems.id),
         hasItem: sql<boolean>`bool_or(
           ${listItems.resourceId} = ${mediaId} AND
           ${listItems.resourceType} = ${mediaType}

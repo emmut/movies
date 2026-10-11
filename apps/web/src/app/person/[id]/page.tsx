@@ -1,3 +1,4 @@
+import { deduplicateAndSortByPopularity } from '@movies/api/filmography';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 
 import Badge from '@/components/badge';
@@ -5,12 +6,11 @@ import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import { Imgproxy } from '@/components/image-proxy';
 import ItemCard from '@/components/item-card';
-import { QuickAddButton } from '@/components/quick-add-button';
 import { ItemSlider } from '@/components/item-slider';
+import { QuickAddButton } from '@/components/quick-add-button';
 import { getUser } from '@/lib/auth-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
 import { optional } from '@/lib/tmdb';
-import { deduplicateAndSortByPopularity } from '@/lib/utils';
 
 type PersonPageProps = {
   params: Promise<{

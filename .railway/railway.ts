@@ -137,6 +137,35 @@ export default defineRailway((ctx) => {
     },
   });
 
+  // Public Hono/oRPC API for the native app. Runs the TypeScript entrypoint
+  // directly (tsx), so the build only installs dependencies. Auth requests are
+  // forwarded to this environment's web service, which stays the single
+  // session authority. Native clients send no Origin, so CORS_ORIGIN stays
+  // unset and production admits no browser origins. Railway configuration
+  // cannot register a new custom domain, so the Railway infra workflow gives
+  // every environment a generated domain after apply. To move production to
+  // a custom domain, add it in the dashboard and declare it here.
+  const api = service("api", {
+    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    build: { buildCommand: "echo 'skipping app build — the API runs its TypeScript entrypoint'" },
+    deploy: {
+      startCommand: "./node_modules/.bin/nub run --node --filter @movies/server start",
+      healthcheckPath: "/health",
+      sleepApplication: true,
+      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+    },
+    replicas: { "europe-west4": 1 },
+    env: {
+      NODE_ENV: "production",
+      MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
+      // Same database as web: fuzzy search reads its search_index table.
+      DATABASE_URL: db.env.DATABASE_URL,
+      AUTH_URL: "https://${{movies.RAILWAY_PUBLIC_DOMAIN}}",
+      AUTH_IP_SOURCE: "railway",
+      AUTH_PROXY_SECRET: movies.env.BETTER_AUTH_SECRET,
+    },
+  });
+
   // Daily cron that ingests IMDb's ratings dataset into the imdb_ratings
   // table. Declared in every environment: PR environments fork production
   // including this service, and deleting it there cancelled the forked
@@ -220,6 +249,6 @@ export default defineRailway((ctx) => {
   });
 
   return project("movies", {
-    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest, titleSync, searchIndexIngest],
+    resources: [movies, api, imgproxyHRto, db, dbVolume, imdbIngest, titleSync, searchIndexIngest],
   });
 });

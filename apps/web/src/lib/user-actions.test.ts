@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/db', () => ({
-  db: { update: vi.fn(), insert: vi.fn(), delete: vi.fn(), select: vi.fn() },
+  db: { update: vi.fn(), insert: vi.fn(), delete: vi.fn(), select: vi.fn(), transaction: vi.fn() },
 }));
 vi.mock('@/lib/auth-server', () => ({ getSession: vi.fn() }));
 vi.mock('@/lib/cache-invalidation', () => ({ revalidateUserPreferenceCache: vi.fn() }));
@@ -29,6 +29,8 @@ beforeEach(() => {
   vi.mocked(getSession).mockResolvedValue({ user: { id: 'user-1' } } as never);
   vi.mocked(db.update).mockReturnValue(chain(undefined));
   vi.mocked(db.delete).mockReturnValue(chain(undefined));
+  vi.mocked(db.select).mockReturnValue(chain([{ id: 'user-1' }]));
+  vi.mocked(db.transaction).mockImplementation(async (work) => work(db as never));
 });
 
 describe('updateUserRegion', () => {
@@ -39,6 +41,7 @@ describe('updateUserRegion', () => {
   });
 
   it('persists a valid region, revalidates caches/paths, and returns it', async () => {
+    vi.mocked(db.update).mockReturnValue(chain([{ id: 'user-1' }]));
     const result = await updateUserRegion('US');
 
     expect(result).toEqual({ success: true, region: 'US' });
@@ -74,9 +77,8 @@ describe('setUserWatchProviders', () => {
     expect(revalidateUserPreferenceCache).toHaveBeenCalledWith('user-1');
   });
 
-  it('dedupes ids, inserts them, then prunes anything not in the set', async () => {
-    const onConflictDoNothing = vi.fn().mockResolvedValue(undefined);
-    const valuesSpy = vi.fn().mockReturnValue({ onConflictDoNothing });
+  it('dedupes ids and replaces only the verified account selection in a transaction', async () => {
+    const valuesSpy = vi.fn().mockResolvedValue(undefined);
     vi.mocked(db.insert).mockReturnValue({ values: valuesSpy } as never);
 
     await setUserWatchProviders([8, 8, 9]);
@@ -85,8 +87,16 @@ describe('setUserWatchProviders', () => {
     const inserted = valuesSpy.mock.calls[0][0] as Array<{ providerId: number; userId: string }>;
     expect(inserted.map((row) => row.providerId)).toEqual([8, 9]);
     expect(inserted.every((row) => row.userId === 'user-1')).toBe(true);
-    expect(onConflictDoNothing).toHaveBeenCalledTimes(1);
-    // Prune pass removes providers no longer selected.
+    expect(db.transaction).toHaveBeenCalledTimes(1);
+    // The complete replacement removes providers no longer selected atomically.
     expect(db.delete).toHaveBeenCalledTimes(1);
   });
 });
+
+it.each([0, -1, 1.5, 2_147_483_648])(
+  'rejects invalid provider ID %s before starting a write',
+  async (id) => {
+    await expect(setUserWatchProviders([id])).rejects.toThrow();
+    expect(db.transaction).not.toHaveBeenCalled();
+  },
+);

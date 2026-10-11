@@ -4,10 +4,37 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./validations": "./src/validations.ts"
+    "./validations": "./src/validations.ts",
+    "./formatting": "./src/formatting.ts",
+    "./catalog-support": "./src/catalog-support.ts",
+    "./catalog": "./src/catalog.ts",
+    "./certifications": "./src/certifications.ts",
+    "./home": "./src/home.ts",
+    "./router": "./src/router.ts",
+    "./tmdb-fetch": "./src/tmdb-fetch.ts",
+    "./discover": "./src/discover.ts",
+    "./discover-params": "./src/discover-params.ts",
+    "./discover-options": "./src/discover-options.ts",
+    "./search-engine": "./src/search-engine.ts",
+    "./search-rank": "./src/search-rank.ts",
+    "./parse-search-query": "./src/parse-search-query.ts",
+    "./search-index-model": "./src/search-index-model.ts",
+    "./tmdb-types/*": "./src/tmdb-types/*.ts",
+    "./search-hydration": "./src/search-hydration.ts",
+    "./search": "./src/search.ts",
+    "./person": "./src/person.ts",
+    "./filmography": "./src/filmography.ts",
+    "./session": "./src/session.ts",
+    "./preferences": "./src/preferences.ts",
+    "./list-order": "./src/list-order.ts",
+    "./paginate": "./src/paginate.ts",
+    "./system-lists": "./src/system-lists.ts",
+    "./system-list-copy": "./src/system-list-copy.ts",
+    "./settled": "./src/settled.ts"
   },
   "dependencies": {
-    "zod": "^4.6.5",
-    "@movies/config": "workspace:*"
+    "@movies/config": "workspace:*",
+    "@orpc/server": "catalog:",
+    "zod": "catalog:"
   }
 }

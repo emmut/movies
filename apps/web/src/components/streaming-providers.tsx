@@ -1,14 +1,15 @@
 'use client';
 
-import { Play, ShoppingCart, TicketCheck, Tv } from 'lucide-react';
+import type { MovieWatchProviders } from '@movies/api/tmdb-types/movie';
+import type { TvWatchProviders } from '@movies/api/tmdb-types/tv-show';
+import type { RegionWatchProviders, WatchProvider } from '@movies/api/tmdb-types/watch-provider';
+import { getRegionCodes, RegionCode } from '@movies/config/regions';
+import { Play, ShoppingCart, TicketCheck, Tv, type LucideIcon } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 import { RegionSelect } from '@/components/region-select';
-import { getRegionCodes, RegionCode } from '@movies/config/regions';
 import { formatImageUrl } from '@/lib/utils';
-import type { MovieWatchProviders } from '@/types/movie';
-import type { TvWatchProviders } from '@/types/tv-show';
 
 type StreamingProvidersProps = {
   watchProviders: MovieWatchProviders | TvWatchProviders;
@@ -16,6 +17,76 @@ type StreamingProvidersProps = {
   resourceType: 'movie' | 'tv';
   userRegion: RegionCode;
 };
+
+function ProviderGroup({
+  title,
+  Icon,
+  accent,
+  providers,
+  href,
+}: {
+  title: string;
+  Icon: LucideIcon;
+  accent: string;
+  providers: WatchProvider[];
+  href: string;
+}) {
+  if (providers.length === 0) {
+    return null;
+  }
+  return (
+    <div>
+      <h3 className="mb-3 flex items-center gap-2 text-lg font-medium">
+        <Icon className={'h-5 w-5 ' + accent} />
+        {title}
+      </h3>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {providers.map((provider) => (
+          <a
+            key={provider.provider_id}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
+          >
+            <Image
+              unoptimized
+              src={formatImageUrl(provider.logo_path, 92)}
+              alt={provider.provider_name}
+              width={32}
+              height={32}
+              className="flex-shrink-0 rounded"
+            />
+            <span className="truncate text-sm font-medium">{provider.provider_name}</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function providerGroups(
+  source: RegionWatchProviders | undefined,
+  type: 'movie' | 'tv',
+  id: number,
+) {
+  const data: Partial<RegionWatchProviders> = source ?? {};
+  const fallback = 'https://www.themoviedb.org/' + type + '/' + id + '/watch';
+  const href = data.link ?? fallback;
+  const groups = [
+    { kind: 'free' as const, title: 'Free', Icon: TicketCheck, accent: 'text-blue-500', href },
+    { kind: 'flatrate' as const, title: 'Streaming', Icon: Tv, accent: 'text-green-500', href },
+    { kind: 'rent' as const, title: 'Rent', Icon: Play, accent: 'text-blue-500', href },
+    {
+      kind: 'buy' as const,
+      title: 'Buy',
+      Icon: ShoppingCart,
+      accent: 'text-orange-500',
+      href: data.link || fallback,
+    },
+  ];
+  return groups.map((group) => ({ ...group, providers: data[group.kind] ?? [] }));
+}
 
 /**
  * Displays available streaming, rental, and purchase providers for a movie or TV show by region.
@@ -39,25 +110,16 @@ export function StreamingProviders({
   const regions = getRegionCodes();
   const [region] = useQueryState('region', parseAsStringLiteral(regions).withDefault(userRegion));
 
-  const regionProviders = watchProviders.results?.[region];
-  const allRegionProviders = watchProviders.results;
-  const streamingServices = regionProviders?.flatrate || [];
-  const rentalServices = regionProviders?.rent || [];
-  const purchaseServices = regionProviders?.buy || [];
-  const freeServices = regionProviders?.free || [];
-
-  const hasAnyServices =
-    streamingServices.length > 0 || rentalServices.length > 0 || purchaseServices.length > 0;
-
-  function getDefaultWatchUrl() {
-    return `https://www.themoviedb.org/${resourceType}/${resourceId}/watch`;
-  }
+  const groups = providerGroups(watchProviders.results?.[region], resourceType, resourceId);
+  const hasAnyServices = groups.some(
+    (group) => group.kind !== 'free' && group.providers.length > 0,
+  );
 
   return (
     <div>
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-xl font-semibold">Where to watch</h2>
-        <RegionSelect defaultValue={userRegion} allRegionProviders={allRegionProviders} />
+        <RegionSelect defaultValue={userRegion} allRegionProviders={watchProviders.results} />
       </div>
 
       <div className="space-y-6">
@@ -67,125 +129,9 @@ export function StreamingProviders({
           </div>
         )}
 
-        {freeServices.length > 0 && (
-          <div>
-            <h3 className="mb-3 flex items-center gap-2 text-lg font-medium">
-              <TicketCheck className="h-5 w-5 text-blue-500" />
-              Free
-            </h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {freeServices.map((provider) => (
-                <a
-                  key={provider.provider_id}
-                  href={regionProviders?.link ?? getDefaultWatchUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
-                >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
-                    alt={provider.provider_name}
-                    width={32}
-                    height={32}
-                    className="flex-shrink-0 rounded"
-                  />
-                  <span className="truncate text-sm font-medium">{provider.provider_name}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {streamingServices.length > 0 && (
-          <div>
-            <h3 className="mb-3 flex items-center gap-2 text-lg font-medium">
-              <Tv className="h-5 w-5 text-green-500" />
-              Streaming
-            </h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {streamingServices.map((provider) => (
-                <a
-                  key={provider.provider_id}
-                  href={regionProviders?.link ?? getDefaultWatchUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
-                >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
-                    alt={provider.provider_name}
-                    width={32}
-                    height={32}
-                    className="flex-shrink-0 rounded"
-                  />
-                  <span className="truncate text-sm font-medium">{provider.provider_name}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {rentalServices.length > 0 && (
-          <div>
-            <h3 className="mb-3 flex items-center gap-2 text-lg font-medium">
-              <Play className="h-5 w-5 text-blue-500" />
-              Rent
-            </h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {rentalServices.map((provider) => (
-                <a
-                  key={provider.provider_id}
-                  href={regionProviders?.link ?? getDefaultWatchUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
-                >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
-                    alt={provider.provider_name}
-                    width={32}
-                    height={32}
-                    className="flex-shrink-0 rounded"
-                  />
-                  <span className="truncate text-sm font-medium">{provider.provider_name}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {purchaseServices.length > 0 && (
-          <div>
-            <h3 className="mb-3 flex items-center gap-2 text-lg font-medium">
-              <ShoppingCart className="h-5 w-5 text-orange-500" />
-              Buy
-            </h3>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {purchaseServices.map((provider) => (
-                <a
-                  key={provider.provider_id}
-                  href={regionProviders?.link || getDefaultWatchUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-lg bg-zinc-800 p-3 transition-colors hover:bg-zinc-700"
-                >
-                  <Image
-                    unoptimized
-                    src={formatImageUrl(provider.logo_path, 92)}
-                    alt={provider.provider_name}
-                    width={32}
-                    height={32}
-                    className="flex-shrink-0 rounded"
-                  />
-                  <span className="truncate text-sm font-medium">{provider.provider_name}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
+        {groups.map((group) => (
+          <ProviderGroup key={group.kind} {...group} />
+        ))}
 
         <div className="flex items-center justify-center gap-2 rounded-lg bg-zinc-800/50 p-3 text-center text-sm text-zinc-400 sm:justify-start">
           <span>Powered by</span>

@@ -1,8 +1,8 @@
+import { getWatchProvidersString } from '@movies/api/preferences';
 import { describe, expect, it } from 'vitest';
 
 import {
   activeWatchProviderFilter,
-  getWatchProvidersString,
   loadWatchProviderSearchParams,
   parseAsPipeSeparatedArrayOfIntegers,
 } from './watch-provider-search-params';

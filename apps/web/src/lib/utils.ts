@@ -11,16 +11,6 @@ export function formatImageUrl(path: string | null, width = 500) {
   return `${IMAGE_CDN_URL}w${width}${path}`;
 }
 
-export function formatCurrency(amount: number, withSymbol = true) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    currencyDisplay: withSymbol ? 'symbol' : 'code',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 /**
  * Formats a count in compact notation for tight UI spots, e.g. 30755 → "30.8K"
  * and 3206008 → "3.2M".
@@ -29,12 +19,6 @@ export function formatCompactNumber(value: number) {
   return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(
     value,
   );
-}
-
-export function formatRuntime(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${remainingMinutes}m`;
 }
 
 /**
@@ -46,23 +30,6 @@ export function formatRuntime(minutes: number) {
  * @param getDateString - Function that returns a date string for each item
  * @returns An array of unique items sorted by popularity and date
  */
-export function deduplicateAndSortByPopularity<T extends { id: number; popularity: number }>(
-  items: T[],
-  getDateString: (item: T) => string,
-): T[] {
-  return items
-    .filter((item, index, self) => index === self.findIndex((i) => i.id === item.id))
-    .sort((a, b) => {
-      // Sort by popularity first, then by date
-      if (b.popularity !== a.popularity) {
-        return b.popularity - a.popularity;
-      }
-      return (
-        new Date(getDateString(b) || '1900-01-01').getTime() -
-        new Date(getDateString(a) || '1900-01-01').getTime()
-      );
-    });
-}
 
 export { createLoginUrl, getSafeRedirectUrl, isValidRedirectUrl } from '@movies/auth/redirect';
 

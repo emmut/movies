@@ -3,9 +3,9 @@ import { defineConfig } from 'oxfmt';
 export default defineConfig({
   singleQuote: true,
   jsxSingleQuote: false,
-  ignorePatterns: [],
+  ignorePatterns: ['apps/native/src/env.ts', 'apps/server/src/env.ts'],
   sortTailwindcss: {
-    stylesheet: './src/app/globals.css',
+    stylesheet: './apps/web/src/app/globals.css',
     functions: ['cn', 'clsx'],
   },
   sortImports: {},

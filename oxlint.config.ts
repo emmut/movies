@@ -16,4 +16,13 @@ export default defineConfig({
       },
     ],
   },
+  overrides: [
+    {
+      // New workspaces adopt braced control flow now; web follows in a separate rewrite.
+      files: ['apps/native/**', 'apps/server/**', 'packages/**'],
+      rules: {
+        curly: 'error',
+      },
+    },
+  ],
 });

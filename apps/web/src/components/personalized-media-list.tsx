@@ -1,14 +1,15 @@
 'use client';
 
+import type { HomeMediaCategory } from '@movies/api/home';
+import { Movie } from '@movies/api/tmdb-types/movie';
+import { TvShow } from '@movies/api/tmdb-types/tv-show';
+import { DEFAULT_REGION } from '@movies/config/regions';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import ItemCard from '@/components/item-card';
 import { useUserRegion } from '@/hooks/use-user-region';
-import { getHomeMediaList, HomeMediaCategory } from '@/lib/home-media';
+import { getHomeMediaList } from '@/lib/home-media';
 import { queryKeys } from '@/lib/query-keys';
-import { DEFAULT_REGION } from '@movies/config/regions';
-import { Movie } from '@/types/movie';
-import { TvShow } from '@/types/tv-show';
 
 type MediaItem = Movie | TvShow;
 
