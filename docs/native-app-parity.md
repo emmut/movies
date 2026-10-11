@@ -267,3 +267,22 @@ Verification:
 - iOS/Android/web JavaScript exports passed to `/tmp/pr350-native-bundles`; device execution is not claimed.
 
 Still required: real native/API/web add/remove/order freshness and title-cache write-through, hosted rollout checks, device gestures/storage/restart, custom lists/create-and-add, remaining catalog sections, passkeys/account linking and release work. No phase is marked complete. The draft PR remains open for the full roadmap.
+
+## Real system-list freshness — 2026-10-11
+
+Added `e2e/system-list-freshness.spec.ts`, explicitly enabled only against local web, API, native browser and database hosts. Requests and responses use the real services and real Interstellar, Inception and Game of Thrones records. A passthrough RPC route verifies the native bundle uses the expected local API origin. API health is checked before creating an anonymous fixture.
+
+Both Watchlist and Watched workflows passed: native adds movie and TV records, web refreshes rows/counts on focus, native changes manual movie order and web reflects it, both clients filter through a stored Swedish streaming/free offer, and removing a filtered title updates web rows and its unfiltered count on focus. Returning to unfiltered pages preserves the remaining title; the other system list stays empty. Each add checks that title details and availability markers were refreshed after the database checkpoint, before a provider-filter request can trigger catch-up. No mocked API response or web reload substitutes for mutation freshness.
+
+Final verification on the dependency-merge head `a137c5e`:
+
+- Real browser integration: two tests passed; no uncaught browser errors. Final tests verify deletion of their exact newly created anonymous IDs through the local database. IDs are attached to the test report for recovery if an interrupted run needs investigation.
+- Root lint, root and workspace typechecks, all 915 unit tests and Fallow passed. Four existing web lint warnings remain.
+- Matching 390 × 844 dark-theme captures: `/tmp/native-list-live-watchlist.png`, `/tmp/web-list-live-watchlist.png`, `/tmp/native-list-live-watched.png`, `/tmp/web-list-live-watched.png`. Native preserves headings/counts, poster proportions and accents with touch-visible metadata and native order controls.
+- CI for the dependency-merge head passed lint/typecheck/tests, E2E and Fallow; the preview infrastructure and services succeeded. Review feedback is still monitored as part of the full goal.
+
+A dependency update interrupted one earlier attempt: the API stopped listening on port 3001, while web auth still responded. Restarting the API restored `/health` and auth forwarding, then both workflows passed again. That attempt timed out in HTTP fixture cleanup, so its two anonymous deletions are unverified. The final tests record fixture IDs and use scoped database cleanup, independent of browser/service timeouts. Global title-cache rows stay under the existing sync/pruning job.
+
+Next development diagnostics still report that private list routes could not validate instant UI because the target segment was prevented from rendering. Compilation is clear and the functional tests pass; this is not recorded as a clean diagnostic result. A root Suspense boundary around the client-only login toast, included in the dependency merge, was insufficient to remove these warnings. Continue with the underlying error's cause and the parent component stack rather than disabling validation.
+
+Hosted native list verification, real device controls/back gestures/storage/restart and all custom-list workflows remain required. Local freshness verification does not complete the phase or the full native roadmap.

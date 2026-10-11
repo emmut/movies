@@ -71,7 +71,7 @@ See [the committed session decisions and full feature parity plan](../../docs/na
 
 Native uses Expo Router's system tabs: Home, Discover, Search and More (ellipsis), with SF Symbols on iOS and Material symbols on Android. iOS 26 supplies the standard Liquid Glass appearance; earlier iOS and Android use their own system tab bars. Movie/TV details stay in Home's nested native stack. The browser export uses a preview dock and does not demonstrate native glass rendering.
 
-Discover is a native grid and filter workflow with its own detail stack. Search has native result and detail/person stacks. More opens Sign in and Settings natively. Settings ports account region and streaming-service preferences. Account linking/passkey sections remain pending. Watchlist, Watched and Lists still use browser bridges. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.
+Discover is a native grid and filter workflow with its own detail stack. Search has native result and detail/person stacks. More opens Sign in, Settings, Watchlist and Watched natively. Settings ports account region and streaming-service preferences. System lists support movie/TV counts, provider/region filters, pagination, manual ordering and detail/quick-add actions. Contextual More details preserve list navigation. Account linking/passkey sections remain pending. Custom Lists is the remaining browser bridge and must be replaced by native workflows. Bundle and browser checks do not replace real device verification.
 
 Movie/TV detail headers use native Liquid Glass when available, with a native material fallback on older iOS. Screens avoid an extra bottom safe-area backing and let scrollable content extend behind the native bar. App path aliases (`@native/`, `@server/`) resolve consistently through TypeScript, Metro and the root test runner.
 
@@ -97,3 +97,16 @@ PREFERENCES_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/movies
 The browser tests create/delete their own anonymous fixtures and verify actual Hono saves, web focus refresh, native session sharing and reload persistence. The database tests use isolated temporary tables/a private schema and test ownership, clear-all, rollback and concurrent replacements. These tests require explicit local hosts; default CI runs skip the browser integration when the API URL is absent.
 
 Web’s existing private preference caches are browser render caches, not persistent server caches. Returning to the web browser refreshes rendered preferences and its user/home query caches. A continuously visible web page picks up external changes on its next focus/visibility return or explicit refresh; no new invalidation service or secret was introduced. Saved providers outside the current region remain saved until explicitly cleared, as on web. iOS/Android storage/restart and platform controls still need device checks.
+
+### Shared system-list verification
+
+Start web and Hono against the same migrated local database, export native for web with its API URL pointing to the local Hono host, then serve `apps/native/dist` using `python3 e2e/serve.py` from `apps/native` on port 8083.
+
+```sh
+E2E_BASE_URL=http://localhost:3000 SYSTEM_LIST_TEST_API_URL=http://localhost:3001 SYSTEM_LIST_TEST_NATIVE_URL=http://localhost:8083 SYSTEM_LIST_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/movies pnpm exec playwright test e2e/system-list-freshness.spec.ts --project chromium --workers 1
+SYSTEM_LIST_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/movies pnpm test packages/db/src/system-lists.integration.test.ts
+```
+
+The cross-client tests use real movie and TV data, Hono mutations, database cache records and web queries. They cover native add/remove/reorder, movie/TV counts, independent Watchlist/Watched state, provider filtering and focus refresh without reloading the web page after a mutation. Cache timestamps are checked immediately after adding, before filtered reads can repair missing availability. RPC interception validates the local API origin and continues requests unchanged; responses are not mocked. Tests record their newly created anonymous account IDs and delete only those anonymous fixtures directly from the local database, including on workflow failure. Real title-cache records remain managed by the existing sync/pruning job.
+
+These are explicit local integration tests and are skipped without all three service/database URL settings. Device interaction, restart and hosted verification remain separate acceptance work.
