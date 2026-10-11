@@ -1,5 +1,6 @@
 import 'server-only';
 import { selectWatchProviders } from '@movies/api/preferences';
+import { fulfilledValues } from '@movies/api/settled';
 import type { SystemListService } from '@movies/api/router';
 import { parseWatchProviderFilter, type SystemListToggleInput } from '@movies/api/system-lists';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
@@ -12,7 +13,7 @@ import { ensureTitleAvailability } from '@movies/db/title-availability';
 import { syncTitle, type TitleSource } from '@movies/db/title-sync';
 import { createUserPreferenceStore } from '@movies/db/user-preferences';
 import { ORPCError } from '@orpc/server';
-import type { Database } from '@server/database';
+import { requireDatabase, type Database } from '@server/database';
 import { tmdbCardSchema, toMediaCard } from '@server/media-card';
 import { readWatchProviders, toProviderChoices } from '@server/watch-provider-options';
 
@@ -25,9 +26,7 @@ function titleSource(fetchTmdb: TmdbFetch): TitleSource {
   };
 }
 
-async function unavailable(): Promise<never> {
-  throw new Error('System lists require DATABASE_URL');
-}
+const unavailable = requireDatabase('System lists');
 
 /** Same account rows, ordering locks and title cache as web; no Next action imports. */
 export function createSystemListService(
@@ -48,6 +47,16 @@ export function createSystemListService(
   const order = createListItemOrderingStore(database);
   const source = titleSource(fetchTmdb);
   const preferences = createUserPreferenceStore(database);
+
+  /** TMDB card for a list row; rejects when TMDB answers for a different title. */
+  async function hydrateCard(row: { id: string; resourceId: number }, resourceType: 'movie' | 'tv') {
+    const raw = tmdbCardSchema.parse(await fetchTmdb('/' + resourceType + '/' + row.resourceId));
+    if (raw.id !== row.resourceId) {
+      throw new Error('Unexpected title identifier');
+    }
+    return { ...toMediaCard(raw, resourceType), listItemId: row.id };
+  }
+
   return {
     async options(userId, input) {
       const [records, saved] = await Promise.all([
@@ -65,20 +74,9 @@ export function createSystemListService(
         store.countItems(userId, input.listType, 'movie'),
         store.countItems(userId, input.listType, 'tv'),
       ]);
-      const settled = await Promise.allSettled(
-        rows.items.map(async (row) => {
-          const raw = tmdbCardSchema.parse(
-            await fetchTmdb('/' + input.resourceType + '/' + row.resourceId),
-          );
-          if (raw.id !== row.resourceId) {
-            throw new Error('Unexpected title identifier');
-          }
-          return { ...toMediaCard(raw, input.resourceType), listItemId: row.id };
-        }),
+      const items = await fulfilledValues(rows.items, (row) =>
+        hydrateCard(row, input.resourceType),
       );
-      const items = settled
-        .filter((result) => result.status === 'fulfilled')
-        .map((result) => result.value);
       return {
         ...rows,
         itemsPerPage: ITEMS_PER_PAGE,

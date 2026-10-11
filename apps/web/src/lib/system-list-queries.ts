@@ -1,5 +1,7 @@
 'use server';
 
+import 'server-only';
+import { fulfilledValues } from '@movies/api/settled';
 import { MovieDetails } from '@movies/api/tmdb-types/movie';
 import { TvDetails } from '@movies/api/tmdb-types/tv-show';
 import { parseWatchProviderFilter } from '@movies/api/system-lists';
@@ -19,9 +21,7 @@ import {
   systemListTypeSchema,
   WatchProviderFilter,
 } from '@/lib/validations';
-import {
-  ensureAvailabilityKnown,
-} from '@/lib/watch-provider-availability';
+import { ensureAvailabilityKnown } from '@/lib/watch-provider-availability';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 
 import { ITEMS_PER_PAGE } from './config';
@@ -199,14 +199,13 @@ async function hydrateResourceDetails(
   rows: SystemListItemRow[],
   resourceType: 'movie' | 'tv',
 ): Promise<SystemListItem[]> {
-  const settled = await Promise.allSettled(rows.map((row) => fetchListItem(row, resourceType)));
-
-  return settled.filter((result) => result.status === 'fulfilled').map((result) => result.value);
+  return await fulfilledValues(rows, (row) => fetchListItem(row, resourceType));
 }
 
 function emptyPage(page: number) {
+  const items: SystemListItem[] = [];
   return {
-    items: [] as SystemListItem[],
+    items,
     totalItems: 0,
     totalPages: 0,
     currentPage: page,

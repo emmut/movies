@@ -2,19 +2,30 @@ import 'server-only';
 import type { WatchProviderFilter } from '@movies/api/validations';
 import { listItems } from '@movies/db/schema/lists';
 import { titleAvailability } from '@movies/db/schema/titles';
-import { sql, type SQL } from 'drizzle-orm';
+import { and, eq, exists, inArray, type SQL } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { QueryBuilder } from 'drizzle-orm/pg-core';
 import { mapWithConcurrency, selectTitlesNeedingAvailability, syncTitleAvailability, type TitleSource } from './title-sync';
 
+const STREAMABLE_OFFER_TYPES = ['flatrate', 'free'] as const;
+
+const queryBuilder = new QueryBuilder();
+
+/** List items streamable (subscription or free) on any of the filter's providers. */
 export function streamableOnProviders(filter: WatchProviderFilter): SQL {
-  return sql`exists (
-    select 1 from ${titleAvailability}
-    where ${titleAvailability.mediaType} = ${listItems.resourceType}
-      and ${titleAvailability.tmdbId} = ${listItems.resourceId}
-      and ${titleAvailability.region} = ${filter.region}
-      and ${titleAvailability.providerId} = any(${sql.param(filter.providerIds)}::integer[])
-      and ${titleAvailability.offerType} in ('flatrate', 'free')
-  )`;
+  const matchingOffers = queryBuilder
+    .select({ tmdbId: titleAvailability.tmdbId })
+    .from(titleAvailability)
+    .where(
+      and(
+        eq(titleAvailability.mediaType, listItems.resourceType),
+        eq(titleAvailability.tmdbId, listItems.resourceId),
+        eq(titleAvailability.region, filter.region),
+        inArray(titleAvailability.providerId, filter.providerIds),
+        inArray(titleAvailability.offerType, STREAMABLE_OFFER_TYPES),
+      ),
+    );
+  return exists(matchingOffers);
 }
 
 /** Unknown is different from unavailable. A failed catch-up lookup fails the filtered read. */

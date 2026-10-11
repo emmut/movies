@@ -7,7 +7,7 @@ import { listItems, lists } from '@movies/db/schema/lists';
 import { titleAvailability, titleAvailabilitySyncs, titles } from '@movies/db/schema/titles';
 import { and, eq, inArray, isNull, lt, notExists, or, sql, SQL } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import type { PgColumn } from 'drizzle-orm/pg-core';
+import { QueryBuilder, type PgColumn } from 'drizzle-orm/pg-core';
 
 // No 'server-only' here: the nightly sync (scripts/sync-titles.ts) runs under
 // Nub outside the Next.js server runtime and shares this module with the app.
@@ -337,8 +337,15 @@ export async function pruneOrphanTitles(database: TitleSyncDatabase) {
   return { titles: prunedTitles.length, availability: prunedAvailability.length };
 }
 
+const queryBuilder = new QueryBuilder();
+
 function referencingListItems(table: typeof titles | typeof titleAvailabilitySyncs) {
-  return sql`(select 1 from ${listItems} where ${listItems.resourceType} = ${table.mediaType} and ${listItems.resourceId} = ${table.tmdbId})`;
+  return queryBuilder
+    .select({ id: listItems.id })
+    .from(listItems)
+    .where(
+      and(eq(listItems.resourceType, table.mediaType), eq(listItems.resourceId, table.tmdbId)),
+    );
 }
 
 /**

@@ -48,3 +48,11 @@ describe('native navigation menu destinations', () => {
 it.each(['watchlist', 'watched'])('routes %s natively', (id) => {
   expect(getMenuDestination(id, '')).toEqual({ kind: 'native', path: '/more/' + id });
 });
+
+it('opens only items without a native screen in the browser', () => {
+  const items = [...PRIMARY_MENU_ITEMS, ...MORE_MENU_ITEMS];
+  const browserIds = items
+    .filter((item) => getMenuDestination(item.id, 'https://movies.example')?.kind === 'browser')
+    .map((item) => item.id);
+  expect(browserIds).toEqual(['lists']);
+});

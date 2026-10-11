@@ -8,8 +8,17 @@ const regionCodes = regions.map((region) => region.code) as [RegionCode, ...Regi
 export const regionPreferenceSchema = z.object({ region: z.enum(regionCodes) });
 export type RegionPreference = z.infer<typeof regionPreferenceSchema>;
 
+const POSTGRES_INTEGER_MAX = 2_147_483_647;
+// Highest TMDB display priority still offered as a filter choice.
+const MAX_PROVIDER_DISPLAY_PRIORITY = 50;
+// Choices shown when the account has not saved any providers.
+const DEFAULT_PROVIDER_CHOICE_LIMIT = 12;
+
+/** A positive id that fits PostgreSQL's integer column. */
+export const postgresIntegerIdSchema = z.number().int().positive().max(POSTGRES_INTEGER_MAX);
+
 // Stored in PostgreSQL's integer column; validate both consumers before writing.
-export const watchProviderIdSchema = z.number().int().positive().max(2_147_483_647);
+export const watchProviderIdSchema = postgresIntegerIdSchema;
 export const providerPreferenceSchema = z.object({
   providerIds: z
     .array(watchProviderIdSchema)
@@ -48,7 +57,7 @@ export function selectWatchProviders<T extends { provider_id: number; display_pr
   userProviders: number[] = [],
 ): T[] {
   const available = records
-    .filter((item) => item.display_priority <= 50)
+    .filter((item) => item.display_priority <= MAX_PROVIDER_DISPLAY_PRIORITY)
     .sort((a, b) => a.display_priority - b.display_priority);
   if (userProviders.length > 0) {
     return available.filter((item) => userProviders.includes(item.provider_id));
@@ -56,5 +65,5 @@ export function selectWatchProviders<T extends { provider_id: number; display_pr
   const major = new Set<number>(MAJOR_STREAMING_PROVIDERS);
   const preferred = available.filter((item) => major.has(item.provider_id));
   const other = available.filter((item) => !major.has(item.provider_id));
-  return [...preferred, ...other].slice(0, 12);
+  return [...preferred, ...other].slice(0, DEFAULT_PROVIDER_CHOICE_LIMIT);
 }

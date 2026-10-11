@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const withOrderingLock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/db', () => ({
-  db: { select: vi.fn(), insert: vi.fn(), update: vi.fn(), delete: vi.fn(), execute: vi.fn() },
+  db: { select: vi.fn(), insert: vi.fn(), update: vi.fn(), delete: vi.fn() },
 }));
 vi.mock('@/lib/auth-server', () => ({ requireUser: vi.fn() }));
 vi.mock('@/lib/cache-invalidation', () => ({
@@ -82,10 +82,13 @@ beforeEach(() => {
   vi.mocked(db.insert).mockReturnValue(chain(undefined));
   vi.mocked(db.update).mockReturnValue(chain(undefined));
   vi.mocked(db.delete).mockReturnValue(chain(undefined));
-  vi.mocked(db.execute).mockResolvedValue(undefined as never);
 });
 
 describe('createList', () => {
+  beforeEach(() => {
+    vi.mocked(db.select).mockReturnValue(chain([{ lastPosition: 2 }]));
+  });
+
   it('inserts and returns a generated list id on valid input', async () => {
     const result = await createList('My faves', 'desc', '🎬');
     expect(result.success).toBe(true);
@@ -174,14 +177,14 @@ describe('moveList', () => {
   it('persists the new order in a single statement when the list is owned', async () => {
     vi.mocked(db.select).mockReturnValue(chain([{ id: OTHER_UUID }, { id: UUID }]));
     await moveList(UUID, 0);
-    expect(db.execute).toHaveBeenCalledTimes(1);
+    expect(db.update).toHaveBeenCalledTimes(1);
     expect(withOrderingLock).toHaveBeenCalledWith('lists:user-1', expect.any(Function));
   });
 
   it('throws when the list is not among the user’s custom lists', async () => {
     vi.mocked(db.select).mockReturnValue(chain([{ id: OTHER_UUID }]));
     await expect(moveList(UUID, 0)).rejects.toThrow('List not found');
-    expect(db.execute).not.toHaveBeenCalled();
+    expect(db.update).not.toHaveBeenCalled();
   });
 
   it('rejects a non-uuid list id without querying', async () => {
@@ -206,14 +209,14 @@ describe('moveListItem', () => {
       ]),
     );
     await moveListItem(UUID, 0);
-    expect(db.execute).toHaveBeenCalledTimes(1);
+    expect(db.update).toHaveBeenCalledTimes(1);
     expect(withOrderingLock).toHaveBeenCalledWith(`list-items:${UUID}`, expect.any(Function));
   });
 
   it('throws when the item is not among the user’s custom lists', async () => {
     vi.mocked(db.select).mockReturnValue(chain([]));
     await expect(moveListItem(UUID, 0)).rejects.toThrow('Item not found');
-    expect(db.execute).not.toHaveBeenCalled();
+    expect(db.update).not.toHaveBeenCalled();
   });
 
   it('rejects a non-uuid item id without querying', async () => {

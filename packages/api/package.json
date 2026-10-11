@@ -29,7 +29,8 @@
     "./list-order": "./src/list-order.ts",
     "./paginate": "./src/paginate.ts",
     "./system-lists": "./src/system-lists.ts",
-    "./system-list-copy": "./src/system-list-copy.ts"
+    "./system-list-copy": "./src/system-list-copy.ts",
+    "./settled": "./src/settled.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

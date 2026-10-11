@@ -5,6 +5,11 @@ import { SettingsSaveButton, SettingsSaveFeedback } from '@native/components/set
 import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc, queryClient } from '@native/lib/api';
 import { combineQueryStates } from '@native/lib/query-state';
+import {
+  commitSavedSetting,
+  isUnauthorized,
+  SETTINGS_LOGIN_HREF,
+} from '@native/lib/settings-session';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Image as ExpoImage } from 'expo-image';
 import { Redirect } from 'expo-router';
@@ -132,17 +137,11 @@ function ProviderForm({
 }) {
   const [draft, setDraft] = useState<number[] | null>(null);
   const selected = draft ?? current;
+  const providersKey = accountQueryKey(orpc.preferences.providers.queryKey(), userId);
   const mutation = useMutation(
     orpc.preferences.setProviders.mutationOptions({
       async onSuccess(result) {
-        queryClient.setQueryData(
-          accountQueryKey(orpc.preferences.providers.queryKey(), userId),
-          result,
-        );
-        setDraft(null);
-        await queryClient.invalidateQueries({
-          queryKey: accountQueryKey(orpc.preferences.providers.queryKey(), userId),
-        });
+        await commitSavedSetting(queryClient, providersKey, result, () => setDraft(null));
       },
     }),
   );
@@ -239,8 +238,8 @@ function ProviderEmpty({ ready }: { ready: boolean }) {
 }
 
 function ProviderAccess({ error, children }: { error: Error | null; children: ReactNode }) {
-  if (error && 'code' in error && error.code === 'UNAUTHORIZED') {
-    return <Redirect href="/login?redirect_url=%2Fmore%2Fsettings" />;
+  if (isUnauthorized(error)) {
+    return <Redirect href={SETTINGS_LOGIN_HREF} />;
   }
   return children;
 }

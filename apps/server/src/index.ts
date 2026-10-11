@@ -19,6 +19,18 @@ import { createSystemListService } from '@server/system-list-service';
 const fetchTmdb = createTmdbFetch(ENV.MOVIE_DB_ACCESS_TOKEN, ENV.TMDB_API_URL_OVERRIDE);
 const database = createDatabase(ENV.DATABASE_URL, ENV.DB_POOL_MAX);
 const logger = createLogger(ENV.LOG_LEVEL, ENV.NODE_ENV === 'development');
+
+/** Configured origin without a trailing slash; production without one allows no origin. */
+function resolveCorsOrigin() {
+  if (ENV.CORS_ORIGIN !== undefined) {
+    return ENV.CORS_ORIGIN.replace(/\/$/, '');
+  }
+  if (ENV.NODE_ENV === 'production') {
+    return '';
+  }
+  return undefined;
+}
+
 const app = createApp(
   {
     systemLists: createSystemListService(database, fetchTmdb, (error, input) => {
@@ -34,7 +46,7 @@ const app = createApp(
     catalog: createCatalogService(fetchTmdb),
     discovery: createDiscoveryService(fetchTmdb),
   },
-  ENV.CORS_ORIGIN?.replace(/\/$/, '') ?? (ENV.NODE_ENV === 'production' ? '' : undefined),
+  resolveCorsOrigin(),
   [createRequestLogger(logger)],
   ENV.AUTH_URL ? createAuthGateway(ENV.AUTH_URL) : undefined,
 );

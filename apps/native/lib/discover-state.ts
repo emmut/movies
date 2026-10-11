@@ -1,13 +1,13 @@
 import { discoveryInput, type DiscoveryInput } from '@movies/api/discover';
 import { MOVIE_SORT_OPTIONS, TV_SORT_OPTIONS } from '@movies/api/discover-options';
-import { resolveWatchProviderIds, watchProviderIdSchema } from '@movies/api/preferences';
-import { regionSchema } from '@movies/config/regions';
+import { resolveWatchProviderIds } from '@movies/api/preferences';
+import {
+  providerIdList,
+  regionOr,
+  scalar,
+  type SearchParams as Params,
+} from '@native/lib/search-params';
 
-type Params = Record<string, string | string[] | undefined>;
-
-function scalar(value: Params[string]) {
-  return Array.isArray(value) ? value[0] : value;
-}
 function ids(value: Params[string], maxSelections = 50) {
   return (scalar(value) ?? '')
     .split(/[|,]/)
@@ -24,10 +24,6 @@ function boundedInteger(value: Params[string], max: number) {
     return undefined;
   }
   return number;
-}
-function watchRegion(value: Params[string], fallback: string) {
-  const parsed = regionSchema.safeParse(scalar(value));
-  return parsed.success ? parsed.data : fallback;
 }
 function sortForType(type: 'movie' | 'tv', value: Params[string]) {
   const options = type === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
@@ -47,15 +43,13 @@ export function readDiscoverState(
   const type = scalar(params.mediaType) === 'tv' ? 'tv' : 'movie';
   return discoveryInput.parse({
     type,
-    region: watchRegion(params.watch_region, region),
+    region: regionOr(params.watch_region, region),
     sortBy: sortForType(type, params.sort_by),
     page: boundedInteger(params.page, 500) ?? 1,
     runtime: boundedInteger(params.runtime, 600),
     genreIds: ids(params.genreId),
     providerIds: resolveWatchProviderIds(
-      ids(params.with_watch_providers, Infinity).filter(
-        (id) => watchProviderIdSchema.safeParse(id).success,
-      ),
+      providerIdList(params.with_watch_providers),
       userProviders,
     ),
     originCountries: countryCodes(params.with_origin_country),

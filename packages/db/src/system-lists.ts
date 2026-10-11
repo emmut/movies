@@ -1,13 +1,15 @@
 import 'server-only';
 import { pageWindow } from '@movies/api/paginate';
-import type { WatchProviderFilter } from '@movies/api/validations';
-import type { SystemListType } from '@movies/api/validations';
-import { systemListTypeSchema } from '@movies/api/validations';
+import {
+  systemListTypeSchema,
+  type SystemListType,
+  type WatchProviderFilter,
+} from '@movies/api/validations';
 import { ITEMS_PER_PAGE } from '@movies/config/constants';
-import { listItemOrderingScope, createOrderingLock } from '@movies/db/ordering-lock';
+import { createOrderingLock, listItemOrderingScope, nextPosition } from '@movies/db/ordering-lock';
 import { listItems, lists } from '@movies/db/schema/lists';
 import { streamableOnProviders } from '@movies/db/title-availability';
-import { and, asc, count, desc, eq, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, type SQL } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 // Internal names for the per-user singleton system lists; never shown in the
@@ -17,12 +19,14 @@ const SYSTEM_LIST_NAMES: Record<SystemListType, string> = {
   watched: 'Watched',
 };
 
-/**
- * Returns the id of the user's system list of the given type, or `null` if
- * the user has never added anything to it.
- */
+/** Data access for the per-user singleton system lists (watchlist, watched). */
 export function createSystemListStore(db: NodePgDatabase) {
   const withOrderingLock = createOrderingLock(db);
+
+  /**
+   * Returns the id of the user's system list of the given type, or `null` if
+   * the user has never added anything to it.
+   */
   async function getSystemListId(userId: string, listType: SystemListType): Promise<string | null> {
     const result = await db
       .select({ id: lists.id })
@@ -99,16 +103,15 @@ export function createSystemListStore(db: NodePgDatabase) {
     // Locked so concurrent adds can't read the same max(position) and append to
     // the same slot.
     const inserted = await withOrderingLock(listItemOrderingScope(listId), async (tx) => {
+      // Append to the end of the list's manual ordering for this resource type.
+      const position = await nextPosition(
+        tx,
+        listItems,
+        and(eq(listItems.listId, listId), eq(listItems.resourceType, resourceType)),
+      );
       return await tx
         .insert(listItems)
-        .values({
-          id: crypto.randomUUID(),
-          listId,
-          resourceId,
-          resourceType,
-          // Append to the end of the list's manual ordering for this resource type.
-          position: sql`coalesce((select max(${listItems.position}) + 1 from ${listItems} where ${listItems.listId} = ${listId} and ${listItems.resourceType} = ${resourceType}), 1)`,
-        })
+        .values({ id: crypto.randomUUID(), listId, resourceId, resourceType, position })
         .onConflictDoNothing()
         .returning({ id: listItems.id });
     });

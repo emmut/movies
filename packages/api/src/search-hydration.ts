@@ -1,3 +1,4 @@
+import { fulfilledValues } from './settled';
 import type { SearchIndexHit } from './search-index-model';
 import type { MovieDetails, MultiSearchResult } from './tmdb-types/movie';
 import type { PersonDetails } from './tmdb-types/person';
@@ -81,9 +82,7 @@ export function createSearchHydrator(sources: SearchDetailSources) {
    * has and pay details-call latency only for local candidates TMDB missed.
    */
   async function hydrateSearchIndexHits(hits: SearchIndexHit[]): Promise<MultiSearchResult[]> {
-    const settled = await Promise.allSettled(hits.map(hydrateHit));
-
-    return settled.filter((result) => result.status === 'fulfilled').map((result) => result.value);
+    return await fulfilledValues(hits, hydrateHit);
   }
 
   return { hydrateSearchIndexHits };

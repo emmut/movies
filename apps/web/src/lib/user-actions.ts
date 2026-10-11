@@ -58,22 +58,10 @@ export async function updateUserRegion(region: string) {
   return { success: true, region: validatedRegion };
 }
 
-async function fetchWatchProvidersForRegion(region: string, userWatchProviders?: number[]) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.watchProvidersByRegion(region));
-  cacheLife('days');
-
-  const data = await tmdbFetch<WatchProvidersResponse>('/watch/providers/movie', {
-    searchParams: { watch_region: region },
-    errorMessage: 'Failed to fetch watch providers',
-  });
-
-  return selectWatchProviders(data.results, userWatchProviders);
-}
-
 export async function getWatchProviders(region?: string, userWatchProviders?: number[]) {
   const userRegion = region || (await getUserRegion());
-  return await fetchWatchProvidersForRegion(userRegion, userWatchProviders);
+  const providers = await fetchAllWatchProvidersForRegion(userRegion);
+  return selectWatchProviders(providers, userWatchProviders);
 }
 
 async function fetchAllWatchProvidersForRegion(region: string) {

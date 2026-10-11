@@ -1,4 +1,8 @@
-import { SYSTEM_LIST_COPY, SYSTEM_LIST_MEDIA } from '@movies/api/system-list-copy';
+import {
+  SYSTEM_LIST_COPY,
+  SYSTEM_LIST_MEDIA,
+  type SystemListCopy,
+} from '@movies/api/system-list-copy';
 import type { SystemListPage, SystemListPageInput } from '@movies/api/system-lists';
 import type { SystemListType } from '@movies/api/validations';
 import { BottomNavigation } from '@native/components/bottom-navigation';
@@ -9,6 +13,7 @@ import { SystemListFilters } from '@native/components/system-list-filters';
 import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc, queryClient } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
+import { accountRegionQueryOptions } from '@native/lib/preferences';
 import { readSystemListState, canReorderSystemList } from '@native/lib/system-list-state';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
@@ -52,18 +57,25 @@ function ListEmpty({
   return <EmptyListCopy input={input} total={result.counts.movie + result.counts.tv} />;
 }
 
+function emptyHint(copy: SystemListCopy, media: string, total: number) {
+  if (total === 0) {
+    return copy.emptyHintAll(media, 'tapping');
+  }
+  return copy.emptyHintMedia(media);
+}
+
 function EmptyListCopy({ input, total }: { input: SystemListPageInput; total: number }) {
   const router = useRouter();
   const copy = SYSTEM_LIST_COPY[input.listType];
   const media = SYSTEM_LIST_MEDIA[input.resourceType];
   const message = total === 0 ? copy.emptyTitleAll : copy.emptyTitleMedia(media.label);
-  const hint = total === 0 ? copy.emptyHintAll(media.label) : copy.emptyHintMedia(media.label);
+  const hint = emptyHint(copy, media.label, total);
   return (
     <View className="items-center gap-3 p-5">
       <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
         {message}
       </Text>
-      <Text className="text-center text-muted">{hint.replace('clicking', 'tapping')}</Text>
+      <Text className="text-center text-muted">{hint}</Text>
       <Pressable
         accessibilityRole="link"
         className="bg-default min-h-12 justify-center rounded-lg px-4"
@@ -98,14 +110,12 @@ function ListHeader({
           <Pressable
             key={type}
             accessibilityRole="button"
-            accessibilityLabel={SYSTEM_LIST_MEDIA[type].exploreLabel.replace('Explore ', '')}
+            accessibilityLabel={SYSTEM_LIST_MEDIA[type].tabLabel}
             accessibilityState={{ selected: type === input.resourceType }}
             className="min-h-12 justify-center rounded-lg border border-border px-4"
             onPress={() => router.setParams({ mediaType: type, page: '1' })}
           >
-            <Text className="text-foreground">
-              {SYSTEM_LIST_MEDIA[type].exploreLabel.replace('Explore ', '')}
-            </Text>
+            <Text className="text-foreground">{SYSTEM_LIST_MEDIA[type].tabLabel}</Text>
           </Pressable>
         ))}
       </View>
@@ -343,10 +353,7 @@ function ListQuery({
 }
 
 function RegionalList({ listType, userId }: { listType: SystemListType; userId: string }) {
-  const region = useQuery({
-    ...orpc.preferences.region.queryOptions({ retry: false }),
-    queryKey: accountQueryKey(orpc.preferences.region.queryKey(), userId),
-  });
+  const region = useQuery(accountRegionQueryOptions(userId, { retry: false }));
   const params = useLocalSearchParams();
   const router = useRouter();
   if (!region.data) {

@@ -16,24 +16,41 @@ function useSessionRegion() {
     sessionRegion.getSnapshot,
   );
 }
+function useAccountSession() {
+  const session = authClient.useSession();
+  return { session, accountId: session.data?.user.id ?? null };
+}
 function useAccountId() {
-  const { data } = authClient.useSession();
-  return data?.user.id ?? null;
+  return useAccountSession().accountId;
+}
+
+/** Omitting `retry` keeps the client's default retry policy. */
+type RegionQueryOptions = { retry?: false };
+
+export function accountRegionQueryKey(accountId: string | null) {
+  return accountQueryKey(accountRegionKey, accountId);
+}
+
+/** The account region query; every caller shares one cache entry per account. */
+export function accountRegionQueryOptions(accountId: string | null, options: RegionQueryOptions = {}) {
+  return {
+    ...orpc.preferences.region.queryOptions(options),
+    queryKey: accountRegionQueryKey(accountId),
+  };
 }
 
 /** Saved defaults are private and must never be loaded for a signed-out caller. */
 export function useProviderPreferences() {
-  const session = authClient.useSession();
-  const signedIn = Boolean(session.data?.user.id);
+  const { session, accountId } = useAccountSession();
+  const signedIn = Boolean(accountId);
   const query = useQuery({
     ...orpc.preferences.providers.queryOptions({ retry: false }),
     enabled: signedIn,
-    queryKey: accountQueryKey(orpc.preferences.providers.queryKey(), session.data?.user.id ?? null),
+    queryKey: accountQueryKey(orpc.preferences.providers.queryKey(), accountId),
   });
   const accountRegion = useQuery({
-    ...orpc.preferences.region.queryOptions({ retry: false }),
+    ...accountRegionQueryOptions(accountId, { retry: false }),
     enabled: signedIn,
-    queryKey: accountQueryKey(accountRegionKey, session.data?.user.id ?? null),
   });
   return { signedIn, query, accountRegion, session };
 }
@@ -44,9 +61,8 @@ export function useRegion() {
   const signedIn = Boolean(accountId);
   const local = useSessionRegion();
   const account = useQuery({
-    ...orpc.preferences.region.queryOptions(),
+    ...accountRegionQueryOptions(accountId),
     enabled: signedIn,
-    queryKey: accountQueryKey(accountRegionKey, accountId),
   });
   return resolveRegion(local, signedIn ? account.data?.region : undefined);
 }
@@ -60,7 +76,7 @@ export function useRegionSetting() {
   const accountId = useAccountId();
   const signedIn = Boolean(accountId);
   const region = useRegion();
-  const queryKey = accountQueryKey(accountRegionKey, accountId);
+  const queryKey = accountRegionQueryKey(accountId);
   const save = useMutation(
     orpc.preferences.setRegion.mutationOptions({
       async onMutate(input) {

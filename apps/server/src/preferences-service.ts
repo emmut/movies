@@ -2,12 +2,10 @@ import 'server-only';
 import type { PreferencesService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
 import { createUserPreferenceStore } from '@movies/db/user-preferences';
-import type { Database } from '@server/database';
+import { requireDatabase, type Database } from '@server/database';
 import { readWatchProviders, toProviderChoices } from '@server/watch-provider-options';
 
-async function missingDatabase(): Promise<never> {
-  throw new Error('Account preferences require DATABASE_URL');
-}
+const missingDatabase = requireDatabase('Account preferences');
 
 /** Session-scoped preferences backed by the same account rows web reads. */
 export function createPreferencesService(

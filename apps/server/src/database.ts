@@ -22,3 +22,10 @@ export function createDatabase(databaseUrl?: string, poolMax = 3): Database | un
     },
   });
 }
+
+/** Stub for a database-backed service method when the API runs without a database. */
+export function requireDatabase(feature: string) {
+  return async function unavailable(): Promise<never> {
+    throw new Error(feature + ' require DATABASE_URL');
+  };
+}

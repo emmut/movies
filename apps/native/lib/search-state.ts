@@ -1,13 +1,7 @@
 import { searchInput, type SearchInput } from '@movies/api/search';
+import { scalar, type SearchParams as Params } from '@native/lib/search-params';
 
-type Params = Record<string, string | string[] | undefined>;
 type SearchState = { query: string; type: SearchInput['type']; page: number };
-function scalar(value: Params[string]) {
-  if (Array.isArray(value)) {
-    return value[0];
-  }
-  return value;
-}
 export function readSearchState(params: Params): SearchState {
   const query = (scalar(params.q) ?? '').trim().slice(0, 500);
   const type = searchInput.shape.type.safeParse(scalar(params.mediaType));

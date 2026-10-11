@@ -55,6 +55,9 @@ import {
   systemListResourceInput,
   systemListMembershipSchema,
   systemListMoveInput,
+  systemListMoveResultSchema,
+  type SystemListMoveResult,
+  type SystemListToggle,
   type SystemListPageInput,
   type SystemListPage,
   type SystemListResourceInput,
@@ -95,11 +98,8 @@ export type SystemListService = {
   options(userId: string, input: RegionPreference): Promise<ProviderChoice[]>;
   page(userId: string, input: SystemListPageInput): Promise<SystemListPage>;
   memberships(userId: string, input: SystemListResourceInput): Promise<SystemListMembership>;
-  toggle(
-    userId: string,
-    input: SystemListToggleInput,
-  ): Promise<{ action: 'added' | 'removed' | 'unchanged' }>;
-  move(userId: string, input: SystemListMoveInput): Promise<{ success: boolean }>;
+  toggle(userId: string, input: SystemListToggleInput): Promise<SystemListToggle>;
+  move(userId: string, input: SystemListMoveInput): Promise<SystemListMoveResult>;
 };
 export type AppServices = {
   systemLists: SystemListService;
@@ -151,7 +151,7 @@ export const appRouter = {
       .handler(({ input, context }) => context.systemLists.toggle(context.user.id, input)),
     move: authedProcedure
       .input(systemListMoveInput)
-      .output(z.object({ success: z.boolean() }))
+      .output(systemListMoveResultSchema)
       .errors({ NOT_FOUND: { message: 'Item not found' } })
       .handler(({ input, context }) => context.systemLists.move(context.user.id, input)),
   },

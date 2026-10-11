@@ -3,9 +3,14 @@ import { BottomNavigation } from '@native/components/bottom-navigation';
 import { ProviderSettings } from '@native/components/provider-settings';
 import { RegionPicker } from '@native/components/region-picker';
 import { SettingsSaveButton, SettingsSaveFeedback } from '@native/components/settings-controls';
-import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc, queryClient } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
+import { accountRegionQueryKey, accountRegionQueryOptions } from '@native/lib/preferences';
+import {
+  commitSavedSetting,
+  isUnauthorized,
+  SETTINGS_LOGIN_HREF,
+} from '@native/lib/settings-session';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
@@ -18,17 +23,11 @@ const SafeAreaView = withUniwind(NativeSafeAreaView);
 function RegionForm({ currentRegion, userId }: { currentRegion: RegionCode; userId: string }) {
   const [draft, setDraft] = useState<RegionCode | null>(null);
   const selected = draft ?? currentRegion;
+  const regionKey = accountRegionQueryKey(userId);
   const save = useMutation(
     orpc.preferences.setRegion.mutationOptions({
       async onSuccess(result) {
-        queryClient.setQueryData(
-          accountQueryKey(orpc.preferences.region.queryKey(), userId),
-          result,
-        );
-        setDraft(null);
-        await queryClient.invalidateQueries({
-          queryKey: accountQueryKey(orpc.preferences.region.queryKey(), userId),
-        });
+        await commitSavedSetting(queryClient, regionKey, result, () => setDraft(null));
       },
     }),
   );
@@ -116,17 +115,14 @@ function SettingsError({ message, retry }: { message: string; retry: () => void 
 }
 
 function RegionReadError({ error, retry }: { error: Error; retry: () => void }) {
-  if ('code' in error && error.code === 'UNAUTHORIZED') {
-    return <Redirect href="/login?redirect_url=%2Fmore%2Fsettings" />;
+  if (isUnauthorized(error)) {
+    return <Redirect href={SETTINGS_LOGIN_HREF} />;
   }
   return <SettingsError message="Couldn’t load region settings." retry={retry} />;
 }
 
 function RegionSettings({ userId }: { userId: string }) {
-  const query = useQuery({
-    ...orpc.preferences.region.queryOptions({ retry: false }),
-    queryKey: accountQueryKey(orpc.preferences.region.queryKey(), userId),
-  });
+  const query = useQuery(accountRegionQueryOptions(userId, { retry: false }));
   if (query.isPending) {
     return <ActivityIndicator accessibilityLabel="Loading region settings" />;
   }
@@ -171,7 +167,7 @@ function AccountSettings() {
     );
   }
   if (!session.data) {
-    return <Redirect href="/login?redirect_url=%2Fmore%2Fsettings" />;
+    return <Redirect href={SETTINGS_LOGIN_HREF} />;
   }
   return <RegionSettings key={session.data.user.id} userId={session.data.user.id} />;
 }

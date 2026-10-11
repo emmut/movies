@@ -4,12 +4,13 @@ import {
   type SystemListPageInput,
 } from '@movies/api/system-lists';
 import type { SystemListType } from '@movies/api/validations';
-import { regionSchema } from '@movies/config/regions';
+import {
+  providerIdList,
+  regionOr,
+  scalar,
+  type SearchParams as Params,
+} from '@native/lib/search-params';
 
-type Params = Record<string, string | string[] | undefined>;
-function scalar(value: Params[string]) {
-  return Array.isArray(value) ? value[0] : value;
-}
 function positivePage(value: Params[string]) {
   const page = Number(scalar(value));
   if (Number.isSafeInteger(page) && page > 0) {
@@ -17,12 +18,8 @@ function positivePage(value: Params[string]) {
   }
   return 1;
 }
-function providerIds(value: Params[string]) {
-  const ids = (scalar(value) ?? '')
-    .split(/[|,]/)
-    .map(Number)
-    .filter((id) => Number.isInteger(id) && id > 0 && id <= 2_147_483_647);
-  return [...new Set(ids)];
+function uniqueProviderIds(value: Params[string]) {
+  return [...new Set(providerIdList(value))];
 }
 export function readSystemListState(
   params: Params,
@@ -33,8 +30,8 @@ export function readSystemListState(
     listType,
     resourceType: scalar(params.mediaType) === 'tv' ? 'tv' : 'movie',
     page: positivePage(params.page),
-    providerIds: providerIds(params.with_watch_providers),
-    region: regionSchema.safeParse(scalar(params.watch_region)).data ?? accountRegion,
+    providerIds: uniqueProviderIds(params.with_watch_providers),
+    region: regionOr(params.watch_region, accountRegion),
   });
 }
 export function canReorderSystemList(
