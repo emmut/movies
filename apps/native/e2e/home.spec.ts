@@ -19,6 +19,53 @@ const title = {
   rating: 8.2,
 };
 
+for (const theme of ['light', 'dark'] as const) {
+  test('Lucide icons preserve dimensions and foreground colors in ' + theme, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: theme });
+    await page.route('**/rpc/home/*', async (route) => {
+      if (await preflight(route)) {
+        return;
+      }
+      await route.fulfill({ json: { json: [{ ...title, rating: 8.21 }] }, headers: corsHeaders });
+    });
+    await page.goto('/');
+    const icon = page.getByTestId('brand-icon');
+    await expect(icon).toBeVisible();
+    const dimensions = await icon.boundingBox();
+    expect(dimensions?.width).toBe(24);
+    expect(dimensions?.height).toBe(24);
+    const stroke = await icon.evaluate((node) => getComputedStyle(node).stroke);
+    const textColor = await page
+      .getByText('Movies', { exact: true })
+      .evaluate((node) => getComputedStyle(node).color);
+    const colors = await page.evaluate(
+      ({ stroke, textColor }) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const context = canvas.getContext('2d');
+        if (!context) {
+          throw new Error('Color comparison requires a canvas context');
+        }
+        function pixel(color: string) {
+          context!.clearRect(0, 0, 1, 1);
+          context!.fillStyle = color;
+          context!.fillRect(0, 0, 1, 1);
+          return Array.from(context!.getImageData(0, 0, 1, 1).data);
+        }
+        return { stroke: pixel(stroke), text: pixel(textColor) };
+      },
+      { stroke, textColor },
+    );
+    for (let index = 0; index < 4; index += 1) {
+      expect(Math.abs(colors.stroke[index] - colors.text[index])).toBeLessThanOrEqual(1);
+    }
+    await expect(page.getByLabel('Rating 8.3 out of 10').first()).toBeAttached();
+    await page.getByRole('button', { name: 'Quick add Test movie', exact: true }).first().click();
+    await expect(page.getByRole('button', { name: 'Close quick add', exact: true })).toBeVisible();
+  });
+}
+
 function responseTitle(input: { type?: string; category?: string }) {
   const type = input.type ?? (input.category?.endsWith('movies') ? 'movie' : 'tv');
   return { ...title, type, title: type === 'movie' ? 'Test movie' : 'Test series' };

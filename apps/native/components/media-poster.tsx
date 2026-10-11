@@ -1,4 +1,5 @@
 import { displayRating, type MediaCard } from '@movies/api/home';
+import { StarIcon } from '@native/components/icons';
 import { MediaBadge } from '@native/components/media-badge';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
 import { SystemQuickAdd } from '@native/components/system-quick-add';
@@ -24,12 +25,19 @@ function CardMetadata({ item, featured }: { item: MediaCard; featured: boolean }
       <View className="flex-row items-center justify-between">
         <Text className="text-xs text-zinc-300">{releaseYear(item.releaseDate)}</Text>
         {featured ? null : (
-          <Text
-            accessibilityLabel={`Rating ${displayRating(item.rating).toFixed(1)} out of 10`}
-            className="text-xs text-yellow-500"
-          >
-            ★ {displayRating(item.rating).toFixed(1)}
-          </Text>
+          <View className="flex-row items-center gap-1">
+            <StarIcon
+              className="size-3 text-yellow-500"
+              fillClassName="text-yellow-500"
+              accessible={false}
+            />
+            <Text
+              accessibilityLabel={`Rating ${displayRating(item.rating).toFixed(1)} out of 10`}
+              className="text-xs text-yellow-500"
+            >
+              {displayRating(item.rating).toFixed(1)}
+            </Text>
+          </View>
         )}
       </View>
     </View>

@@ -1,6 +1,5 @@
 import { expect as playwrightExpect, test, type Page } from '@playwright/test';
 import { Client } from 'pg';
-import { z } from 'zod';
 
 import { signInAnonymously } from './helpers';
 
@@ -12,6 +11,57 @@ test.skip(
   !nativeUrl || !apiUrl || !databaseUrl,
   'Set local native and database URLs for cross-client list verification',
 );
+
+test('anonymous fixture identity is captured and cleaned when navigation never completes', async ({
+  page,
+  baseURL,
+}) => {
+  test.setTimeout(45_000);
+  requireLocal(baseURL, 'web app');
+  const database = new Client({ connectionString: requireLocal(databaseUrl, 'database') });
+  await database.connect();
+  let fixtureUserId: string | null = null;
+  // Exercise real signup while intentionally withholding the UI's navigation step.
+  await page.route('**/login?redirect_url=*', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<button>Continue as anonymous</button><script>
+      document.querySelector('button').onclick = () => fetch('/api/auth/sign-in/anonymous', {
+        method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}'
+      });
+    </script>`,
+    }),
+  );
+  try {
+    await expect(
+      signInAnonymously(page, '/watchlist', async (userId) => {
+        fixtureUserId = userId;
+        await test.info().attach('anonymous-fixture', {
+          body: JSON.stringify({ userId }),
+          contentType: 'application/json',
+        });
+      }),
+    ).rejects.toThrow(/Timeout/);
+    expect(fixtureUserId).not.toBeNull();
+    const created = await database.query(
+      'SELECT id FROM "user" WHERE id=$1 AND is_anonymous=true',
+      [fixtureUserId],
+    );
+    expect(created.rows).toHaveLength(1);
+  } finally {
+    try {
+      if (fixtureUserId) {
+        const deleted = await database.query(
+          'DELETE FROM "user" WHERE id=$1 AND is_anonymous=true',
+          [fixtureUserId],
+        );
+        expect(deleted.rowCount).toBe(1);
+      }
+    } finally {
+      await database.end();
+    }
+  }
+});
 
 function requireLocal(url: string | undefined, label: string) {
   if (!url || !['localhost', '127.0.0.1'].includes(new URL(url).hostname)) {
@@ -76,15 +126,12 @@ for (const listType of ['watchlist', 'watched'] as const) {
       const add = listType === 'watchlist' ? 'Add to Watchlist' : 'Mark as Watched';
       const remove = listType === 'watchlist' ? 'Remove from Watchlist' : 'Mark as not watched';
       try {
-        await signInAnonymously(page, '/' + listType);
-        const session = await page.request.get('/api/auth/get-session');
-        const created = z
-          .object({ user: z.object({ id: z.string(), isAnonymous: z.literal(true) }) })
-          .parse(await session.json());
-        fixtureUserId = created.user.id;
-        await test.info().attach('anonymous-fixture', {
-          body: JSON.stringify({ userId: fixtureUserId }),
-          contentType: 'application/json',
+        await signInAnonymously(page, '/' + listType, async (userId) => {
+          fixtureUserId = userId;
+          await test.info().attach('anonymous-fixture', {
+            body: JSON.stringify({ userId }),
+            contentType: 'application/json',
+          });
         });
         await expect(
           page.getByRole('heading', {

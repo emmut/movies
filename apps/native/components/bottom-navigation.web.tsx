@@ -1,3 +1,4 @@
+import { EllipsisIcon } from '@native/components/icons';
 import { PRIMARY_MENU_ITEMS } from '@native/lib/navigation-menu';
 import { captureActiveScroll } from '@native/lib/navigation-scroll';
 import { useNavigationMenu } from '@native/lib/use-navigation-menu';
@@ -45,7 +46,7 @@ export function BottomNavigation() {
             router.navigate('/more');
           }}
         >
-          <Text className="text-xl font-bold text-foreground">…</Text>
+          <EllipsisIcon className="size-6 text-foreground" accessible={false} />
           <Text className="text-sm font-semibold text-foreground">More</Text>
         </Pressable>
       </View>

@@ -1,4 +1,5 @@
 import type { MediaCard } from '@movies/api/home';
+import { PlusIcon } from '@native/components/icons';
 import { SystemListActions } from '@native/components/system-list-actions';
 import { useState } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
@@ -16,7 +17,7 @@ export function SystemQuickAdd({ item }: { item: MediaCard }) {
         className="size-11 items-center justify-center rounded-full border border-white/30 bg-black/70"
         onPress={() => setOpen(true)}
       >
-        <Text className="text-xl font-semibold text-white">+</Text>
+        <PlusIcon className="size-5 text-white" accessible={false} />
       </Pressable>
       {open ? (
         <Modal

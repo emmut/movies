@@ -6,6 +6,7 @@ import {
 import type { SystemListPage, SystemListPageInput } from '@movies/api/system-lists';
 import type { SystemListType } from '@movies/api/validations';
 import { BottomNavigation } from '@native/components/bottom-navigation';
+import { ArrowUpIcon, ArrowDownIcon } from '@native/components/icons';
 import { MediaPoster } from '@native/components/media-poster';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
@@ -202,7 +203,7 @@ function MoveControls({
         className="bg-default min-h-12 justify-center rounded-lg px-3"
         onPress={() => move(item, index - 1)}
       >
-        <Text className="text-foreground">↑</Text>
+        <ArrowUpIcon className="size-5 text-foreground" accessible={false} />
       </Pressable>
       <Pressable
         accessibilityRole="button"
@@ -212,7 +213,7 @@ function MoveControls({
         className="bg-default min-h-12 justify-center rounded-lg px-3"
         onPress={() => move(item, index + 1)}
       >
-        <Text className="text-foreground">↓</Text>
+        <ArrowDownIcon className="size-5 text-foreground" accessible={false} />
       </Pressable>
     </View>
   );

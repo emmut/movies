@@ -1,4 +1,5 @@
 import { regions, type RegionCode } from '@movies/config/regions';
+import { CheckIcon } from '@native/components/icons';
 import { Platform, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
@@ -52,7 +53,9 @@ export function RegionPicker({
               className="flex-row justify-between p-5"
             >
               <Text className="text-lg text-foreground">{item.name}</Text>
-              <Text className="text-yellow-600">{selected === item.code ? '✓' : ''}</Text>
+              {selected === item.code ? (
+                <CheckIcon className="size-5 text-yellow-600" accessible={false} />
+              ) : null}
             </Pressable>
           ))}
         </ScrollView>

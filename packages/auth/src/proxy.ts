@@ -69,5 +69,13 @@ export function verifiedAuthRequest(request: Request, secret: string, now = Date
   if (request.headers.has(SIGNATURE_HEADER) || request.headers.has(TIMESTAMP_HEADER)) {
     headers.set(AUTH_CLIENT_IP_HEADER, verify(request, secret, now));
   }
-  return new Request(request, { headers });
+  const init: RequestInit & { duplex: 'half' } = {
+    method: request.method,
+    headers,
+    body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
+    signal: request.signal,
+    duplex: 'half',
+  };
+  // Next may supply a proxied Request: Undici's copy constructor checks private state.
+  return new Request(request.url, init);
 }

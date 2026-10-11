@@ -1,3 +1,4 @@
+import { CheckIcon } from '@native/components/icons';
 import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
@@ -30,7 +31,7 @@ function ChoiceRow({
       onPress={() => onSelect(item.value)}
     >
       <Text className="text-base text-foreground">{item.label}</Text>
-      {checked ? <Text className="font-bold text-yellow-500">✓</Text> : null}
+      {checked ? <CheckIcon className="size-5 text-yellow-500" accessible={false} /> : null}
     </Pressable>
   );
 }
@@ -68,7 +69,7 @@ export function ChoiceSheet({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={'Close ' + title}
-            className="min-h-11 justify-center rounded-xl bg-default px-4"
+            className="bg-default min-h-11 justify-center rounded-xl px-4"
             onPress={onClose}
           >
             <Text className="font-semibold text-foreground">Done</Text>

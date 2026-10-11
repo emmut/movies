@@ -4,6 +4,7 @@ import { getRegionByCode } from '@movies/config/regions';
 import { CatalogIcon } from '@native/components/catalog-icon';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { ExternalLink } from '@native/components/external-link';
+import { ChevronDownIcon } from '@native/components/icons';
 import { RegionPicker } from '@native/components/region-picker';
 import { orpc } from '@native/lib/api';
 import { useQuery } from '@tanstack/react-query';
@@ -106,7 +107,10 @@ export function CatalogProviders({ input }: { input: CatalogDetailInput }) {
         onPress={() => setPickerOpen(true)}
         className="bg-default self-start rounded-xl px-4 py-3"
       >
-        <Text className="text-foreground">{region.name} ▾</Text>
+        <View className="flex-row items-center gap-1">
+          <Text className="text-foreground">{region.name}</Text>
+          <ChevronDownIcon className="size-4 text-foreground" accessible={false} />
+        </View>
       </Pressable>
       <CatalogSectionState
         label="watch providers"

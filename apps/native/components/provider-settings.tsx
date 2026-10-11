@@ -1,6 +1,7 @@
 import type { ProviderChoice } from '@movies/api/preferences';
 import type { RegionCode } from '@movies/config/regions';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
+import { CheckIcon } from '@native/components/icons';
 import { SettingsSaveButton, SettingsSaveFeedback } from '@native/components/settings-controls';
 import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc, queryClient } from '@native/lib/api';
@@ -67,7 +68,7 @@ function ProviderRow({
     >
       <ProviderLogo provider={provider} />
       <Text className="flex-1 text-sm font-medium text-foreground">{provider.name}</Text>
-      {checked ? <Text className="font-semibold text-foreground">✓</Text> : null}
+      {checked ? <CheckIcon className="size-5 text-foreground" accessible={false} /> : null}
     </Pressable>
   );
 }

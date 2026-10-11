@@ -1,5 +1,6 @@
 import type { SystemListPageInput } from '@movies/api/system-lists';
 import { ChoiceSheet } from '@native/components/choice-sheet';
+import { ChevronDownIcon } from '@native/components/icons';
 import { RegionPicker } from '@native/components/region-picker';
 import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc } from '@native/lib/api';
@@ -45,7 +46,10 @@ export function SystemListFilters({
           className="min-h-12 justify-center rounded-lg border border-border px-3"
           onPress={() => setOpen('region')}
         >
-          <Text className="text-foreground">{input.region} ▾</Text>
+          <View className="flex-row items-center gap-1">
+            <Text className="text-foreground">{input.region}</Text>
+            <ChevronDownIcon className="size-4 text-foreground" accessible={false} />
+          </View>
         </Pressable>
         <ClearProviders
           count={input.providerIds.length}

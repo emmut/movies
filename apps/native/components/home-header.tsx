@@ -1,7 +1,8 @@
 import { regions } from '@movies/config/regions';
 import { Brand } from '@native/components/brand';
+import { ChevronDownIcon } from '@native/components/icons';
 import { Stack } from 'expo-router';
-import { Pressable, Text } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 function RegionControl({
   region,
@@ -22,7 +23,10 @@ function RegionControl({
       onPress={onPress}
       className="min-h-11 justify-center rounded-xl px-3"
     >
-      <Text className="font-semibold text-foreground">{region} ▾</Text>
+      <View className="flex-row items-center gap-1">
+        <Text className="font-semibold text-foreground">{region}</Text>
+        <ChevronDownIcon className="size-4 text-foreground" accessible={false} />
+      </View>
     </Pressable>
   );
 }

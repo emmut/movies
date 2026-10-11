@@ -1,5 +1,6 @@
 import type { SystemListResourceInput } from '@movies/api/system-lists';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
+import { StarIcon, CheckIcon } from '@native/components/icons';
 import { authClient } from '@native/lib/auth-client';
 import { useSystemListMembership, useSystemListToggle } from '@native/lib/system-lists';
 import { useCurrentUrl } from '@native/lib/use-current-url';
@@ -13,7 +14,7 @@ const actions = [
     inactive: 'Add to Watchlist',
     remove: 'Remove from Watchlist',
     field: 'inWatchlist',
-    icon: '★',
+    icon: StarIcon,
   },
   {
     listType: 'watched',
@@ -21,7 +22,7 @@ const actions = [
     inactive: 'Mark as Watched',
     remove: 'Mark as not watched',
     field: 'watched',
-    icon: '✓',
+    icon: CheckIcon,
   },
 ] as const;
 
@@ -52,6 +53,7 @@ function AuthenticatedActions({
       <View className="flex-row flex-wrap gap-2">
         {actions.map((action) => {
           const active = membership[action.field];
+          const Icon = action.icon;
           return (
             <Pressable
               key={action.listType}
@@ -60,13 +62,14 @@ function AuthenticatedActions({
               accessibilityState={{ disabled: mutation.isPending, selected: active }}
               disabled={mutation.isPending}
               className={
-                'min-h-12 items-center justify-center rounded-lg border px-4 ' +
+                'min-h-12 flex-row items-center justify-center gap-2 rounded-lg border px-4 ' +
                 (active ? 'bg-default border-foreground' : 'border-border')
               }
               onPress={() => mutation.mutate({ ...input, listType: action.listType })}
             >
+              <Icon className="size-4 text-foreground" accessible={false} />
               <Text className="font-semibold text-foreground">
-                {action.icon} {active ? action.active : action.inactive}
+                {active ? action.active : action.inactive}
               </Text>
             </Pressable>
           );
