@@ -1,12 +1,17 @@
 'use server';
 
+import 'server-only';
+
 import { revalidatePath } from 'next/cache';
 
 import { requireUser } from '@/lib/auth-server';
 import { revalidateUserSystemListCache } from '@/lib/cache-invalidation';
-import { toggleSystemListRow } from '@/lib/system-list';
+import { createSystemListStore } from '@movies/db/system-lists';
+import { db } from '@/lib/db';
 import { scheduleTitleSync } from '@/lib/title-sync-server';
-import { resourceIdSchema, SystemListType, systemListTypeSchema } from '@/lib/validations';
+import { resourceIdSchema, SystemListType, systemListTypeSchema } from '@movies/api/validations';
+
+const { toggleSystemListRow } = createSystemListStore(db);
 
 type ToggleSystemListItemParams = {
   listType: SystemListType;

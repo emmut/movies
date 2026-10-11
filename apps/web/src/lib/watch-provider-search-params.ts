@@ -26,16 +26,6 @@ export function activeWatchProviderFilter(withWatchProviders: number[], region: 
   return { activeProviders: withWatchProviders, activeRegion: region };
 }
 
-export function getWatchProvidersString(urlProviders: number[], userProviders: number[]) {
-  if (urlProviders.length > 0) {
-    return urlProviders.join('|');
-  }
-  if (userProviders.length > 0) {
-    return userProviders.join('|');
-  }
-  return undefined;
-}
-
 export const parseAsPipeSeparatedArrayOfIntegers = createParser({
   parse(value) {
     if (!value) {

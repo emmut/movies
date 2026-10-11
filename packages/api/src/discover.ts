@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import { MOVIE_SORT_OPTIONS, TV_SORT_OPTIONS } from './discover-options';
 import { mediaCardSchema } from './home';
+import { watchProviderIdSchema } from './preferences';
 
 const selectionIds = z.array(z.number().int().positive().max(Number.MAX_SAFE_INTEGER)).max(50);
 export const discoveryOptionsInput = z.object({
@@ -13,7 +14,7 @@ export const discoveryInput = discoveryOptionsInput
   .extend({
     page: z.number().int().min(1).max(500).default(1),
     genreIds: selectionIds.default([]),
-    providerIds: selectionIds.default([]),
+    providerIds: z.array(watchProviderIdSchema).default([]),
     originCountries: z
       .array(z.string().regex(/^[A-Z]{2}$/))
       .max(50)

@@ -9,6 +9,7 @@ import {
   ScrollNavigationProvider,
   useScrollNavigation,
 } from '@native/components/scroll-navigation';
+import { SystemListActions } from '@native/components/system-list-actions';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { Link } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -81,6 +82,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
         <View className="gap-6 px-4">
           <CatalogHeading item={item} region={region} />
           <CatalogStats item={item} />
+          <SystemListActions input={{ resourceId: item.id, resourceType: item.type }} />
           <CatalogTrailer input={{ id: item.id, type: item.type }} title={item.title} />
           <Genres item={item} />
           <View className="gap-3">

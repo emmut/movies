@@ -14,6 +14,9 @@ const user: SessionUser = {
 
 function setup(current: AuthGateway['current'] | undefined) {
   const preferences = {
+    providers: vi.fn().mockResolvedValue({ providerIds: [8] }),
+    setProviders: vi.fn().mockImplementation(async (_userId, input) => input),
+    providerOptions: vi.fn().mockResolvedValue([]),
     region: vi.fn().mockResolvedValue({ region: 'NO' }),
     setRegion: vi.fn().mockImplementation(async (_userId, input) => input),
   };
@@ -78,3 +81,47 @@ describe('account preference RPC', () => {
     });
   });
 });
+
+it('denies provider reads, writes and choices when the session is absent or expired', async () => {
+  const { client, preferences } = setup(vi.fn().mockResolvedValue(null));
+  await expect(client.preferences.providers()).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+  await expect(client.preferences.setProviders({ providerIds: [8] })).rejects.toMatchObject({
+    code: 'UNAUTHORIZED',
+  });
+  await expect(client.preferences.providerOptions({ region: 'SE' })).rejects.toMatchObject({
+    code: 'UNAUTHORIZED',
+  });
+  expect(preferences.providers).not.toHaveBeenCalled();
+  expect(preferences.setProviders).not.toHaveBeenCalled();
+  expect(preferences.providerOptions).not.toHaveBeenCalled();
+});
+it.each([false, true])(
+  'scopes provider reads and complete replacements to session identity (anonymous=%s)',
+  async (isAnonymous) => {
+    const { client, app, preferences } = setup(vi.fn().mockResolvedValue({ ...user, isAnonymous }));
+    expect(await client.preferences.providers()).toEqual({ providerIds: [8] });
+    expect(preferences.providers).toHaveBeenCalledWith('user-1');
+    const response = await app.request('/rpc/preferences/setProviders', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: 'signed-test-cookie' },
+      body: JSON.stringify({ json: { providerIds: [9, 8, 8], userId: 'someone-else' } }),
+    });
+    expect(response.status).toBe(200);
+    expect(preferences.setProviders).toHaveBeenCalledWith('user-1', { providerIds: [8, 9] });
+    expect(await client.preferences.providerOptions({ region: 'NO' })).toEqual([]);
+    expect(preferences.providerOptions).toHaveBeenCalledWith({ region: 'NO' });
+  },
+);
+it.each([0, -1, 1.5, 2_147_483_648, '8'])(
+  'rejects invalid provider ID %s before writing',
+  async (id) => {
+    const { app, preferences } = setup(vi.fn().mockResolvedValue(user));
+    const response = await app.request('/rpc/preferences/setProviders', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', cookie: 'signed-test-cookie' },
+      body: JSON.stringify({ json: { providerIds: [id] } }),
+    });
+    expect(response.status).toBe(400);
+    expect(preferences.setProviders).not.toHaveBeenCalled();
+  },
+);

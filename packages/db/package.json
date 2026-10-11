@@ -6,7 +6,12 @@
   "exports": {
     "./schema/*": "./src/schema/*.ts",
     "./search-index": "./src/search-index.ts",
-    "./user-preferences": "./src/user-preferences.ts"
+    "./user-preferences": "./src/user-preferences.ts",
+    "./title-sync": "./src/title-sync.ts",
+    "./ordering-lock": "./src/ordering-lock.ts",
+    "./system-lists": "./src/system-lists.ts",
+    "./title-availability": "./src/title-availability.ts",
+    "./list-item-order": "./src/list-item-order.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
@@ -15,7 +20,8 @@
     "@movies/config": "workspace:*",
     "better-auth": "^1.7.4",
     "@better-auth/passkey": "^1.7.4",
-    "server-only": "^0.0.1"
+    "server-only": "^0.0.1",
+    "@movies/api": "workspace:*"
   },
   "devDependencies": {
     "typescript": "7.0.2"

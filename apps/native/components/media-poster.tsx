@@ -1,6 +1,7 @@
 import { displayRating, type MediaCard } from '@movies/api/home';
 import { MediaBadge } from '@native/components/media-badge';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
+import { SystemQuickAdd } from '@native/components/system-quick-add';
 import { catalogPath } from '@native/lib/catalog-navigation';
 import { Image as ExpoImage } from 'expo-image';
 import { Link, usePathname } from 'expo-router';
@@ -75,22 +76,27 @@ export const MediaPoster = memo(function Poster({
   const pathname = usePathname();
   const navigationPress = useScrollNavigation();
   return (
-    <Link
-      href={{
-        pathname: catalogPath(pathname),
-        params: { type: item.type, id: item.id, ...(region ? { region } : {}) },
-      }}
-      asChild
-    >
-      <Pressable
-        {...navigationPress}
-        accessibilityRole="link"
-        accessibilityLabel={`Open ${item.title}, ${mediaLabel(item.type)}`}
-        className={featured ? 'w-full' : 'w-36'}
+    <View className={featured ? 'w-full' : 'w-36'}>
+      <Link
+        href={{
+          pathname: catalogPath(pathname),
+          params: { type: item.type, id: item.id, ...(region ? { region } : {}) },
+        }}
+        asChild
       >
-        <CardImage item={item} featured={featured} />
-      </Pressable>
-    </Link>
+        <Pressable
+          {...navigationPress}
+          accessibilityRole="link"
+          accessibilityLabel={`Open ${item.title}, ${mediaLabel(item.type)}`}
+          className="w-full"
+        >
+          <CardImage item={item} featured={featured} />
+        </Pressable>
+      </Link>
+      <View className="absolute top-2 right-2">
+        <SystemQuickAdd item={item} />
+      </View>
+    </View>
   );
 });
 function Separator() {

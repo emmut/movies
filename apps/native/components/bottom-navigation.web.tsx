@@ -38,7 +38,7 @@ export function BottomNavigation() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="More navigation"
-          accessibilityState={{ selected: pathname === '/more' }}
+          accessibilityState={{ selected: pathname.startsWith('/more') }}
           className="min-h-11 items-center justify-center px-2"
           onPress={() => {
             captureActiveScroll();

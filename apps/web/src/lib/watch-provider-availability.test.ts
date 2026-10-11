@@ -1,10 +1,12 @@
+import { parseWatchProviderFilter } from '@movies/api/system-lists';
+import { streamableOnProviders } from '@movies/db/title-availability';
 import { PgDialect } from 'drizzle-orm/pg-core';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@/lib/db', () => ({ db: { select: vi.fn() } }));
 vi.mock('@/lib/title-sync-server', () => ({ appTitleSource: { source: 'app' } }));
-vi.mock('@/lib/title-sync', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/title-sync')>();
+vi.mock('@movies/db/title-sync', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@movies/db/title-sync')>();
   return {
     ...actual,
     selectTitlesNeedingAvailability: vi.fn(),
@@ -15,12 +17,10 @@ vi.mock('@/lib/title-sync', async (importOriginal) => {
 import { sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
-import { selectTitlesNeedingAvailability, syncTitleAvailability } from '@/lib/title-sync';
+import { selectTitlesNeedingAvailability, syncTitleAvailability } from '@movies/db/title-sync';
 
 import {
   ensureAvailabilityKnown,
-  parseWatchProviderFilter,
-  streamableOnProviders,
 } from './watch-provider-availability';
 
 beforeEach(() => {

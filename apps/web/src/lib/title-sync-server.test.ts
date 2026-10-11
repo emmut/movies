@@ -7,8 +7,8 @@ vi.mock('@/lib/tv-shows', () => ({
   getTvShowDetails: vi.fn(),
   getTvShowWatchProviders: vi.fn(),
 }));
-vi.mock('@/lib/title-sync', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/title-sync')>();
+vi.mock('@movies/db/title-sync', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@movies/db/title-sync')>();
   return { ...actual, syncTitle: vi.fn() };
 });
 
@@ -16,7 +16,7 @@ import { after } from 'next/server';
 
 import { db } from '@/lib/db';
 import { getMovieDetails, getMovieWatchProviders } from '@/lib/movies';
-import { syncTitle } from '@/lib/title-sync';
+import { syncTitle } from '@movies/db/title-sync';
 import { getTvShowDetails, getTvShowWatchProviders } from '@/lib/tv-shows';
 
 import { appTitleSource, scheduleTitleSync } from './title-sync-server';

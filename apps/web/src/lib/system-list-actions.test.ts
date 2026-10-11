@@ -3,16 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@/lib/auth-server', () => ({ requireUser: vi.fn() }));
 vi.mock('@/lib/cache-invalidation', () => ({ revalidateUserSystemListCache: vi.fn() }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
-vi.mock('@/lib/system-list', () => ({
-  toggleSystemListRow: vi.fn(),
-}));
+const toggleSystemListRow = vi.hoisted(() => vi.fn());
+vi.mock('@/lib/db', () => ({ db: {} }));
+vi.mock('@movies/db/system-lists', () => ({ createSystemListStore: () => ({ toggleSystemListRow }) }));
 vi.mock('@/lib/title-sync-server', () => ({ scheduleTitleSync: vi.fn() }));
 
 import { revalidatePath } from 'next/cache';
 
 import { requireUser } from '@/lib/auth-server';
 import { revalidateUserSystemListCache } from '@/lib/cache-invalidation';
-import { toggleSystemListRow } from '@/lib/system-list';
 import { scheduleTitleSync } from '@/lib/title-sync-server';
 
 import { toggleSystemListItem } from './system-list-actions';

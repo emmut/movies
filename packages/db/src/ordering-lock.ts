@@ -1,10 +1,9 @@
 import 'server-only';
 import { sql } from 'drizzle-orm';
-
-import { db } from '@/lib/db';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 /** The transaction handle `withOrderingLock` hands to its callback. */
-export type OrderingTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type OrderingTx = Parameters<Parameters<NodePgDatabase['transaction']>[0]>[0];
 
 /** Lock scope for the manual ordering of a user's custom lists. */
 export function listOrderingScope(userId: string) {
@@ -29,12 +28,14 @@ export function listItemOrderingScope(listId: string) {
  * @param scope - Lock key naming the ordering being written, e.g.
  *   `lists:<userId>` or `list-items:<listId>`.
  */
-export async function withOrderingLock<T>(
-  scope: string,
-  fn: (tx: OrderingTx) => Promise<T>,
-): Promise<T> {
-  return await db.transaction(async (tx) => {
-    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${scope}, 0))`);
-    return await fn(tx);
-  });
+export function createOrderingLock(db: NodePgDatabase) {
+  return async function withOrderingLock<T>(
+    scope: string,
+    fn: (tx: OrderingTx) => Promise<T>,
+  ): Promise<T> {
+    return await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${scope}, 0))`);
+      return await fn(tx);
+    });
+  };
 }

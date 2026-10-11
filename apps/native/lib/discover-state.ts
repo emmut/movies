@@ -1,5 +1,6 @@
 import { discoveryInput, type DiscoveryInput } from '@movies/api/discover';
 import { MOVIE_SORT_OPTIONS, TV_SORT_OPTIONS } from '@movies/api/discover-options';
+import { resolveWatchProviderIds, watchProviderIdSchema } from '@movies/api/preferences';
 import { regionSchema } from '@movies/config/regions';
 
 type Params = Record<string, string | string[] | undefined>;
@@ -7,12 +8,12 @@ type Params = Record<string, string | string[] | undefined>;
 function scalar(value: Params[string]) {
   return Array.isArray(value) ? value[0] : value;
 }
-function ids(value: Params[string]) {
+function ids(value: Params[string], maxSelections = 50) {
   return (scalar(value) ?? '')
     .split(/[|,]/)
     .map(Number)
     .filter((id) => Number.isSafeInteger(id) && id > 0)
-    .slice(0, 50);
+    .slice(0, maxSelections);
 }
 function boundedInteger(value: Params[string], max: number) {
   const number = Number(scalar(value));
@@ -38,7 +39,11 @@ function countryCodes(value: Params[string]) {
     .filter((code) => /^[A-Z]{2}$/.test(code))
     .slice(0, 50);
 }
-export function readDiscoverState(params: Params, region: string): DiscoveryInput {
+export function readDiscoverState(
+  params: Params,
+  region: string,
+  userProviders: number[] = [],
+): DiscoveryInput {
   const type = scalar(params.mediaType) === 'tv' ? 'tv' : 'movie';
   return discoveryInput.parse({
     type,
@@ -47,7 +52,12 @@ export function readDiscoverState(params: Params, region: string): DiscoveryInpu
     page: boundedInteger(params.page, 500) ?? 1,
     runtime: boundedInteger(params.runtime, 600),
     genreIds: ids(params.genreId),
-    providerIds: ids(params.with_watch_providers),
+    providerIds: resolveWatchProviderIds(
+      ids(params.with_watch_providers, Infinity).filter(
+        (id) => watchProviderIdSchema.safeParse(id).success,
+      ),
+      userProviders,
+    ),
     originCountries: countryCodes(params.with_origin_country),
   });
 }

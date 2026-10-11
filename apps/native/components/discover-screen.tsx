@@ -7,7 +7,8 @@ import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { orpc } from '@native/lib/api';
 import { readDiscoverState } from '@native/lib/discover-state';
-import { useRegion } from '@native/lib/preferences';
+import { useRegion, useProviderPreferences } from '@native/lib/preferences';
+import { combineQueryStates } from '@native/lib/query-state';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -103,11 +104,11 @@ function DiscoveryResults({
   );
 }
 
-export function DiscoverScreen() {
+function DiscoverContent({ userProviders }: { userProviders: number[] }) {
   const params = useLocalSearchParams();
   const router = useRouter();
   const region = useRegion();
-  const input = readDiscoverState(params, region);
+  const input = readDiscoverState(params, region, userProviders);
   const options = useQuery(
     orpc.discovery.options.queryOptions({ input: { type: input.type, region: input.region } }),
   );
@@ -115,11 +116,7 @@ export function DiscoverScreen() {
     router.setParams(values);
   }
   return (
-    <SafeAreaView
-      className="flex-1 bg-background"
-      edges={['top', 'left', 'right']}
-      collapsable={false}
-    >
+    <>
       <View className="gap-3 p-4">
         <Text accessibilityRole="header" className="text-2xl font-bold text-foreground">
           Discover
@@ -159,6 +156,59 @@ export function DiscoverScreen() {
         ) : null}
       </View>
       <DiscoveryResults key={JSON.stringify(input)} input={input} change={change} />
+    </>
+  );
+}
+
+function AccountDiscovery() {
+  const preferences = useProviderPreferences();
+  if (preferences.session.isPending) {
+    return <ScreenQueryState label="account preferences" failed={false} retry={() => {}} />;
+  }
+  if (preferences.session.error) {
+    return (
+      <ScreenQueryState
+        label="account preferences"
+        failed
+        retry={() => {
+          void preferences.session.refetch();
+        }}
+      />
+    );
+  }
+  if (!preferences.signedIn) {
+    return <DiscoverContent userProviders={[]} />;
+  }
+  return <AuthenticatedDiscovery preferences={preferences} />;
+}
+
+function AuthenticatedDiscovery({
+  preferences,
+}: {
+  preferences: ReturnType<typeof useProviderPreferences>;
+}) {
+  const { query, accountRegion } = preferences;
+  const state = combineQueryStates([query, accountRegion]);
+  if (query.data && !state.pending && !state.error) {
+    return <DiscoverContent userProviders={query.data.providerIds} />;
+  }
+  return (
+    <ScreenQueryState
+      label="account preferences"
+      failed={Boolean(state.error)}
+      retry={state.retry}
+    />
+  );
+}
+
+export function DiscoverScreen() {
+  return (
+    <SafeAreaView
+      className="flex-1 bg-background"
+      edges={['top', 'left', 'right']}
+      collapsable={false}
+    >
+      <AccountDiscovery />
       <BottomNavigation />
     </SafeAreaView>
   );

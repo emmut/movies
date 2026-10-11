@@ -61,7 +61,8 @@ export const auth = betterAuth({
           // Lazy import: system-list.ts is server-only and would break
           // better-auth CLI commands (e.g. `auth generate`) that load this
           // config in plain Node.
-          const { transferSystemListItems } = await import('@/lib/system-list');
+          const { createSystemListStore } = await import('@movies/db/system-lists');
+          const { transferSystemListItems } = createSystemListStore(db);
           await transferSystemListItems(anonymousUser.user.id, newUser.user.id);
         } catch (error) {
           console.error('Failed to link your account:', error);

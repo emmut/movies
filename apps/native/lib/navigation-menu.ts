@@ -13,11 +13,26 @@ export const MORE_MENU_ITEMS = [
   { id: 'login', label: 'Sign in', symbol: 'person.crop.circle', path: '/login' },
 ] as const;
 const allItems = [...PRIMARY_MENU_ITEMS, ...MORE_MENU_ITEMS];
-type MenuDestination =
-  | { kind: 'native'; path: '/' | '/discover' | '/search' | '/login' }
-  | { kind: 'browser'; url: string };
+export type NativeMenuPath =
+  | '/'
+  | '/discover'
+  | '/search'
+  | '/login'
+  | '/more/settings'
+  | '/more/watchlist'
+  | '/more/watched';
+type MenuDestination = { kind: 'native'; path: NativeMenuPath } | { kind: 'browser'; url: string };
 
 export function getMenuDestination(id: string, webBaseUrl: string): MenuDestination | null {
+  if (id === 'watchlist') {
+    return { kind: 'native', path: '/more/watchlist' };
+  }
+  if (id === 'watched') {
+    return { kind: 'native', path: '/more/watched' };
+  }
+  if (id === 'settings') {
+    return { kind: 'native', path: '/more/settings' };
+  }
   if (id === 'discover') {
     return { kind: 'native', path: '/discover' };
   }

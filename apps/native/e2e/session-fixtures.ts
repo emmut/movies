@@ -41,7 +41,7 @@ export async function mockAccountRegion(
   options: { failSaves?: boolean } = {},
 ) {
   const account = { region: initial, saves: [] as string[] };
-  await page.route('**/rpc/preferences/*', async (route) => {
+  await page.route(/\/rpc\/preferences\/(region|setRegion)(?:\?|$)/, async (route) => {
     if (await preflight(route)) {
       return;
     }
@@ -67,5 +67,57 @@ export async function mockAccountRegion(
     }
     await route.fulfill({ json: { json: { region: account.region } }, headers: corsHeaders });
   });
+  return account;
+}
+
+/** Account provider preferences and regional choices, with independently retryable failures. */
+export async function mockProviderPreferences(
+  page: Page,
+  initial: number[] = [],
+  options: {
+    choices?: { id: number; name: string; logoUrl: string | null }[];
+    failReads?: boolean;
+    failSaves?: boolean;
+  } = {},
+) {
+  const account = { providerIds: initial, saves: [] as number[][], regions: [] as string[] };
+  await page.route(
+    /\/rpc\/preferences\/(providers|setProviders|providerOptions)(?:\?|$)/,
+    async (route) => {
+      if (await preflight(route)) {
+        return;
+      }
+      const path = new URL(route.request().url()).pathname;
+      const input = readInput(route.request());
+      let fail = options.failReads;
+      let result: unknown = { providerIds: account.providerIds };
+      if (path.endsWith('/setProviders')) {
+        account.saves.push(input.providerIds);
+        fail = options.failSaves;
+        if (!fail) {
+          account.providerIds = input.providerIds;
+        }
+        result = { providerIds: account.providerIds };
+      }
+      if (path.endsWith('/providerOptions')) {
+        account.regions.push(input.region);
+        result = options.choices ?? [];
+      }
+      await route.fulfill({
+        status: fail ? 500 : 200,
+        json: fail
+          ? {
+              json: {
+                defined: false,
+                code: 'INTERNAL_SERVER_ERROR',
+                status: 500,
+                message: 'offline',
+              },
+            }
+          : { json: result },
+        headers: corsHeaders,
+      });
+    },
+  );
   return account;
 }

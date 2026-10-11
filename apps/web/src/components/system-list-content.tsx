@@ -1,5 +1,9 @@
 'use client';
 
+import {
+  SYSTEM_LIST_COPY as CONTENT_COPY,
+  SYSTEM_LIST_MEDIA as MEDIA_META,
+} from '@movies/api/system-list-copy';
 import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
@@ -25,42 +29,6 @@ import {
 } from '@/lib/system-list-queries';
 import type { SystemListType } from '@/lib/validations';
 import { activeWatchProviderFilter } from '@/lib/watch-provider-search-params';
-
-const CONTENT_COPY: Record<
-  SystemListType,
-  {
-    title: string;
-    countNoun: string;
-    emptyTitleAll: string;
-    emptyTitleMedia: (mediaLabel: string) => string;
-    emptyHintAll: (mediaLabel: string) => string;
-    emptyHintMedia: (mediaLabel: string) => string;
-  }
-> = {
-  watchlist: {
-    title: 'My Watchlist',
-    countNoun: 'saved',
-    emptyTitleAll: 'Your watchlist is empty',
-    emptyTitleMedia: (mediaLabel) => `No ${mediaLabel} in your watchlist`,
-    emptyHintAll: (mediaLabel) =>
-      `Start adding ${mediaLabel} by clicking the star on any detail page`,
-    emptyHintMedia: (mediaLabel) => `Add some ${mediaLabel} to see them here`,
-  },
-  watched: {
-    title: 'Watched',
-    countNoun: 'watched',
-    emptyTitleAll: "You haven't watched anything yet",
-    emptyTitleMedia: (mediaLabel) => `No ${mediaLabel} watched yet`,
-    emptyHintAll: (mediaLabel) =>
-      `Mark ${mediaLabel} as watched from any detail page to track them here`,
-    emptyHintMedia: (mediaLabel) => `Mark some ${mediaLabel} as watched to see them here`,
-  },
-};
-
-const MEDIA_META = {
-  movie: { emoji: '🎬', label: 'movies', exploreLabel: 'Explore Movies', countNoun: 'movie' },
-  tv: { emoji: '📺', label: 'TV shows', exploreLabel: 'Explore TV Shows', countNoun: 'TV show' },
-} as const;
 
 // React Query timings shared by the prefetches and the client queries so
 // hydration and refetching agree; system lists change infrequently.

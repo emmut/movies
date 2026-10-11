@@ -1,4 +1,7 @@
 export function catalogPath(source: string) {
+  if (source.startsWith('/more')) {
+    return '/more/[type]/[id]' as const;
+  }
   if (source.startsWith('/search')) {
     return '/search/[type]/[id]' as const;
   }

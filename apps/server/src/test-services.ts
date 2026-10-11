@@ -7,7 +7,20 @@ import { vi } from 'vitest';
 /** Every host service as an inert mock; tests replace the ones they exercise. */
 export function mockServices(overrides: Partial<AppServices> = {}): AppServices {
   return {
-    preferences: { region: vi.fn(), setRegion: vi.fn() },
+    systemLists: {
+      options: vi.fn(),
+      page: vi.fn(),
+      memberships: vi.fn(),
+      toggle: vi.fn(),
+      move: vi.fn(),
+    },
+    preferences: {
+      region: vi.fn(),
+      setRegion: vi.fn(),
+      providers: vi.fn(),
+      setProviders: vi.fn(),
+      providerOptions: vi.fn(),
+    },
     person: { details: vi.fn(), credits: vi.fn() },
     search: { list: vi.fn() },
     discovery: { list: vi.fn(), options: vi.fn() },

@@ -1,12 +1,10 @@
 'use server';
 
-import { randomUUID } from 'crypto';
-
+import 'server-only';
+import { providerPreferenceSchema, selectWatchProviders } from '@movies/api/preferences';
 import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { DEFAULT_REGION, regionSchema, type RegionCode } from '@movies/config/regions';
-import { userWatchProviders } from '@movies/db/schema/user-watch-providers';
 import { createUserPreferenceStore } from '@movies/db/user-preferences';
-import { and, eq, inArray, not } from 'drizzle-orm';
 import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 
 import { getSession } from '@/lib/auth-server';
@@ -14,15 +12,12 @@ import { revalidateUserPreferenceCache } from '@/lib/cache-invalidation';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 
-import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { tmdbFetch } from './tmdb';
 
 type WatchProvidersResponse = {
   results: WatchProvider[];
 };
 
-const MAX_DISPLAY_PRIORITY = 50;
-const MAX_PROVIDERS = 12;
 const preferences = createUserPreferenceStore(db);
 
 export async function getUserRegion() {
@@ -73,30 +68,7 @@ async function fetchWatchProvidersForRegion(region: string, userWatchProviders?:
     errorMessage: 'Failed to fetch watch providers',
   });
 
-  const availableProviders = data.results
-    .filter((provider) => provider.display_priority <= MAX_DISPLAY_PRIORITY)
-    .sort((a, b) => a.display_priority - b.display_priority);
-
-  if (userWatchProviders && userWatchProviders.length > 0) {
-    const filteredUserWatchProviders = availableProviders.filter((provider) =>
-      userWatchProviders.includes(provider.provider_id),
-    );
-
-    return filteredUserWatchProviders;
-  }
-
-  const majorProviderIds = new Set<number>(MAJOR_STREAMING_PROVIDERS);
-  const majorProviders = availableProviders.filter((provider) =>
-    majorProviderIds.has(provider.provider_id),
-  );
-
-  const otherProviders = availableProviders.filter(
-    (provider) => !majorProviderIds.has(provider.provider_id),
-  );
-
-  const topProviders = [...majorProviders, ...otherProviders].slice(0, MAX_PROVIDERS);
-
-  return topProviders;
+  return selectWatchProviders(data.results, userWatchProviders);
 }
 
 export async function getWatchProviders(region?: string, userWatchProviders?: number[]) {
@@ -140,12 +112,7 @@ async function getCachedUserWatchProviders(userId: string) {
   cacheTag(CACHE_TAGS.private.userWatchProviders(userId));
   cacheLife('privateShort');
 
-  const result = await db
-    .select({ providerId: userWatchProviders.providerId })
-    .from(userWatchProviders)
-    .where(eq(userWatchProviders.userId, userId));
-
-  return result.map((row) => row.providerId);
+  return preferences.readProviders(userId);
 }
 
 /**
@@ -158,28 +125,8 @@ export async function setUserWatchProviders(providerIds: number[]) {
     throw new Error('Unauthorized');
   }
 
-  const uniqueIds = [...new Set(providerIds)];
-
-  if (uniqueIds.length === 0) {
-    await db.delete(userWatchProviders).where(eq(userWatchProviders.userId, session.user.id));
-  } else {
-    const values = uniqueIds.map((providerId) => ({
-      id: randomUUID(),
-      userId: session.user.id,
-      providerId,
-      createdAt: new Date(),
-    }));
-
-    await db.insert(userWatchProviders).values(values).onConflictDoNothing();
-    await db
-      .delete(userWatchProviders)
-      .where(
-        and(
-          eq(userWatchProviders.userId, session.user.id),
-          not(inArray(userWatchProviders.providerId, uniqueIds)),
-        ),
-      );
-  }
+  const validated = providerPreferenceSchema.parse({ providerIds });
+  await preferences.writeProviders(session.user.id, validated.providerIds);
 
   revalidateUserPreferenceCache(session.user.id);
 

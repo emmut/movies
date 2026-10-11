@@ -1,6 +1,7 @@
 import type { DiscoveryInput, DiscoveryOptions } from '@movies/api/discover';
 import { MOVIE_SORT_OPTIONS, TV_SORT_OPTIONS } from '@movies/api/discover-options';
 import { regions } from '@movies/config/regions';
+import { providerChoices } from '@native/lib/provider-choices';
 
 type Choice = { value: string; label: string };
 
@@ -32,10 +33,9 @@ const builders = {
   with_watch_providers(input: DiscoveryInput, data: DiscoveryOptions): FilterSpec {
     return {
       title: 'Watch Providers',
-      options: providerChoices(input.providerIds, data),
+      options: providerChoices(data.providers, input.providerIds),
       selected: input.providerIds.map(String),
       multiple: true,
-      maxSelections: 50,
     };
   },
   with_origin_country(input: DiscoveryInput, data: DiscoveryOptions): FilterSpec {
@@ -82,14 +82,4 @@ export function filterSpec(
   data: DiscoveryOptions,
 ): FilterSpec {
   return builders[filter](input, data);
-}
-
-function providerChoices(selected: number[], data: DiscoveryOptions): Choice[] {
-  const choices = data.providers.map((item) => ({ value: String(item.id), label: item.name }));
-  for (const id of selected) {
-    if (!data.providers.some((item) => item.id === id)) {
-      choices.push({ value: String(id), label: 'Unavailable provider (' + id + ')' });
-    }
-  }
-  return choices;
 }

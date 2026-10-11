@@ -21,7 +21,7 @@ The API defaults to port 3001. Local development permits localhost and private L
 ## Current behavior
 
 - Daily trending movie and TV cards, and all six homepage media rows in the web app's order.
-- Region selection using the same supported regions and Sweden default as web. Each region gets its own query cache; selection lasts for the app session.
+- Region selection using the same supported regions and Sweden default as web. Each region gets its own query cache. Signed-in users read/save the shared account region; signed-out selection lasts for the app session. More → Settings provides an explicit-save account region form.
 - Upcoming movies exclude titles already playing in the selected region.
 - Web popcorn branding and stone palette, trending backdrop/title overlays, and bordered 2:3 posters with touch-visible title/year/rating and yellow Movie/red TV Show badges.
 - Virtualized horizontal poster rows with optimized Expo images, missing-image/date fallbacks, shared upward rating rounding, safe areas, and system light/dark appearance.
@@ -33,6 +33,8 @@ The API defaults to port 3001. Local development permits localhost and private L
 - Genre taps open native discovery, with shared filters, sort options, selected watch region and pagination.
 - Native Search handles all/movie/TV/person results, shared ranking/fuzzy fallback, pagination and contextual detail/back navigation.
 - Native person pages include artwork, biography, facts, aliases, source links and canonical movie/TV filmography.
+- Settings saves the shared account region and streaming-service preferences, with explicit save/clear, regional choices, missing/broken-logo fallbacks and retryable loading/save errors. Discover applies URL provider selections before saved account defaults, matching web.
+- Private preference query keys include the account identity, so late saves from a previous session cannot seed another account’s cache.
 - IMDb ratings, origin-country links, cast/crew, reviews and authenticated quick actions remain pending.
 
 Native styling uses Tailwind/Uniwind, including content containers and third-party components adapted with `withUniwind`.
@@ -49,11 +51,11 @@ The existing web app and cron scripts retain T3 Env validation during the increm
 
 `packages/api/home` exports the schemas, card DTO and shared section definitions. `packages/api/router` exports the oRPC router and its client type. Hosts inject `HomeService` and `CatalogService`; clients import the router type only. No React Native, Next.js, env, session, or database dependencies live in the router. `apps/server` supplies the TMDB implementation and Hono transport. The existing web app retains its cached fetchers, uses the shared section definitions and retrying TMDB transport, and can migrate procedure by procedure later. Consumers import shared definitions and the transport directly from `@movies/api`; app-local compatibility re-exports are not used.
 
-`home.list`, `home.trending`, `catalog.details`, `catalog.trailer`, `catalog.providers` and `catalog.related` are exposed. Catalog contracts validate positive safe-integer IDs, supported media/regions and normalized outputs; core upstream records are validated before mapping. Certification, trailer selection and currency/runtime formatting have canonical shared implementations consumed directly by web and native/Hono. Native discovery reads and filter options are exposed through `discovery.list` and `discovery.options`. Search and person reads use the shared canonical engine and filmography rules. Native sign-in, anonymous sessions, OAuth returns and sign-out are implemented; device passkeys, persistent preferences, lists and watchlist remain pending. Set the API's optional DATABASE_URL to the same migrated database as web to enable fuzzy index matching; otherwise search uses TMDB.
+`home.list`, `home.trending`, `catalog.details`, `catalog.trailer`, `catalog.providers` and `catalog.related` are exposed. Catalog contracts validate positive safe-integer IDs, supported media/regions and normalized outputs; core upstream records are validated before mapping. Certification, trailer selection and currency/runtime formatting have canonical shared implementations consumed directly by web and native/Hono. Native discovery reads and filter options are exposed through `discovery.list` and `discovery.options`. Search and person reads use the shared canonical engine and filmography rules. Native sign-in, anonymous sessions, OAuth returns and sign-out are implemented; device passkeys, lists and watchlist remain pending. Private region/provider procedures use the shared account store; saved providers are Discover defaults. Set the API's optional DATABASE_URL to the same migrated database as web to enable fuzzy index matching; otherwise search uses TMDB.
 
 ## Hosting
 
-Railway runs the API as the `api` service in production and every PR environment. It installs the workspace, starts `@movies/server` with tsx and checks `/health`. It shares the environment's database and TMDB token with web, and forwards auth to the same environment's web domain (`AUTH_URL`). `CORS_ORIGIN` stays unset because native requests send no browser origin. After each config apply, the infra workflow generates a `*.up.railway.app` domain for the API if it has none (`railway domain list --service api` shows it). Build native against a hosted API by setting `EXPO_PUBLIC_SERVER_URL` to that domain, and `EXPO_PUBLIC_WEB_URL` to the matching web domain.
+Railway runs the API as the `api` service in production and every PR environment. It installs the workspace, starts `@movies/server` with tsx and checks `/health`. It shares the environment's database and TMDB token with web, and forwards auth to the same environment's web domain (`AUTH_URL`). `CORS_ORIGIN` stays unset because native requests send no browser origin. After each config apply, the infra workflow generates a `*.up.railway.app` domain for the API if it has none (`railway domain list --service api` shows it). Build native against a hosted API by setting `EXPO_PUBLIC_SERVER_URL` to that domain, and `EXPO_PUBLIC_WEB_URL` to the matching web domain. When changing these build-time URLs, clear Metro’s transform cache (`expo export --clear` or `expo start --clear`) so a previous local bundle cannot reuse old inlined settings.
 
 ## Verify
 
@@ -69,7 +71,7 @@ See [the committed session decisions and full feature parity plan](../../docs/na
 
 Native uses Expo Router's system tabs: Home, Discover, Search and More (ellipsis), with SF Symbols on iOS and Material symbols on Android. iOS 26 supplies the standard Liquid Glass appearance; earlier iOS and Android use their own system tab bars. Movie/TV details stay in Home's nested native stack. The browser export uses a preview dock and does not demonstrate native glass rendering.
 
-Discover is a native grid and filter workflow with its own detail stack. Search has native result and detail/person stacks. More opens Sign in natively; Watchlist, Watched, Lists and Settings still use browser bridges. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.
+Discover is a native grid and filter workflow with its own detail stack. Search has native result and detail/person stacks. More opens Sign in and Settings natively. Settings ports account region and streaming-service preferences. Account linking/passkey sections remain pending. Watchlist, Watched and Lists still use browser bridges. The owner has resumed full native page implementation; these browser handoffs must be replaced as each workflow is ported and verified. Bundle and browser checks do not replace real device verification.
 
 Movie/TV detail headers use native Liquid Glass when available, with a native material fallback on older iOS. Screens avoid an extra bottom safe-area backing and let scrollable content extend behind the native bar. App path aliases (`@native/`, `@server/`) resolve consistently through TypeScript, Metro and the root test runner.
 
@@ -82,3 +84,16 @@ The API forwards only auth requests to that configured host. Better Auth on web 
 Native uses the official Better Auth Expo client and Expo SecureStore, with manually forwarded secure cookies on RPC requests and the platform cookie jar disabled. The browser preview uses credentialed fetches. Account changes clear query caches; sign-out restores the default session region. Passkey sign-in currently works through the browser client only; native device credential support remains pending and is not counted as completed parity.
 
 Anonymous sign-in/revocation is checked against the real local web service with a disposable test account. Run `AUTH_TEST_WEB_URL=http://localhost:3000 AUTH_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/movies pnpm test apps/server/src/auth-gateway.integration.test.ts`; it rejects remote hosts and deletes only its own newly created anonymous fixture. Device restart, secure storage and real OAuth/provider flows still require device verification.
+
+### Shared preference verification
+
+With local web and API hosts running against the same migrated database, and a native browser export served on port 8083:
+
+```sh
+E2E_BASE_URL=http://localhost:3000 PREFERENCE_TEST_API_URL=http://localhost:3001 PREFERENCE_TEST_NATIVE_URL=http://localhost:8083 pnpm exec playwright test e2e/preference-freshness.spec.ts --project chromium
+PREFERENCES_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/movies pnpm test packages/db/src/user-preferences.integration.test.ts packages/db/src/user-provider-preferences.integration.test.ts
+```
+
+The browser tests create/delete their own anonymous fixtures and verify actual Hono saves, web focus refresh, native session sharing and reload persistence. The database tests use isolated temporary tables/a private schema and test ownership, clear-all, rollback and concurrent replacements. These tests require explicit local hosts; default CI runs skip the browser integration when the API URL is absent.
+
+Web’s existing private preference caches are browser render caches, not persistent server caches. Returning to the web browser refreshes rendered preferences and its user/home query caches. A continuously visible web page picks up external changes on its next focus/visibility return or explicit refresh; no new invalidation service or secret was introduced. Saved providers outside the current region remain saved until explicitly cleared, as on web. iOS/Android storage/restart and platform controls still need device checks.

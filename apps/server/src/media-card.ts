@@ -1,5 +1,6 @@
 import 'server-only';
 import type { MediaCard } from '@movies/api/home';
+import { z } from 'zod';
 
 export type TmdbCard = {
   id: number;
@@ -25,3 +26,14 @@ export function toMediaCard(item: TmdbCard, type: MediaCard['type']): MediaCard 
     rating: item.vote_average,
   };
 }
+
+export const tmdbCardSchema = z.object({
+  id: z.number().int().positive(),
+  title: z.string().optional(),
+  name: z.string().optional(),
+  release_date: z.string().optional(),
+  first_air_date: z.string().optional(),
+  poster_path: z.string().nullable().default(null),
+  backdrop_path: z.string().nullable().default(null),
+  vote_average: z.number().min(0).max(10).default(0),
+});

@@ -1,10 +1,21 @@
 'use server';
 
+import { moveIdToIndex } from '@movies/api/list-order';
+import { pageWindow } from '@movies/api/paginate';
+import { parseWatchProviderFilter } from '@movies/api/system-lists';
+import { createListItemOrderingStore } from '@movies/db/list-item-order';
+import {
+  listItemOrderingScope,
+  listOrderingScope,
+  createOrderingLock,
+  type OrderingTx,
+} from '@movies/db/ordering-lock';
+import { listItems, lists } from '@movies/db/schema/lists';
+import { streamableOnProviders } from '@movies/db/title-availability';
 import { and, asc, count, desc, eq, sql, SQL } from 'drizzle-orm';
 import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { listItems, lists } from '@movies/db/schema/lists';
 import { requireUser } from '@/lib/auth-server';
 import {
   revalidateUserListCache,
@@ -14,14 +25,6 @@ import {
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
-import { moveIdToIndex } from '@/lib/list-order';
-import {
-  listItemOrderingScope,
-  listOrderingScope,
-  withOrderingLock,
-  type OrderingTx,
-} from '@/lib/ordering-lock';
-import { pageWindow } from '@/lib/paginate';
 import { scheduleTitleSync } from '@/lib/title-sync-server';
 import {
   createListSchema,
@@ -37,11 +40,7 @@ import {
   updateListSchema,
   WatchProviderFilter,
 } from '@/lib/validations';
-import {
-  ensureAvailabilityKnown,
-  parseWatchProviderFilter,
-  streamableOnProviders,
-} from '@/lib/watch-provider-availability';
+import { ensureAvailabilityKnown } from '@/lib/watch-provider-availability';
 
 import { ITEMS_PER_PAGE, LISTS_PER_PAGE } from './config';
 
@@ -60,6 +59,9 @@ export interface LocalList {
     createdAt: Date;
   }>;
 }
+
+const withOrderingLock = createOrderingLock(db);
+const listItemOrdering = createListItemOrderingStore(db);
 
 const CUSTOM_LIST_TYPE = 'custom' as const;
 
@@ -659,19 +661,6 @@ export async function moveList(listId: string, position: number) {
 }
 
 /**
- * Rewrites the manual ordering of a list's items in one statement, assigning
- * 1-based positions from the given id order.
- */
-async function persistListItemOrder(tx: OrderingTx, listId: string, orderedIds: string[]) {
-  await tx.execute(sql`
-    update ${listItems}
-    set position = ord.position
-    from unnest(${sql.param(orderedIds)}::text[]) with ordinality as ord(id, position)
-    where ${listItems.id} = ord.id and ${listItems.listId} = ${listId}
-  `);
-}
-
-/**
  * Moves a list item to a new spot in its list's manual ordering.
  *
  * @param itemId - The list item (row) to move.
@@ -691,45 +680,7 @@ export async function moveListItem(
 
   const validatedData = moveListItemSchema.parse({ itemId, position, resourceType });
 
-  const itemRows = await db
-    .select({ listId: listItems.listId, listType: lists.type })
-    .from(listItems)
-    .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(and(eq(listItems.id, validatedData.itemId), eq(lists.userId, user.id)))
-    .limit(1);
-
-  if (itemRows.length === 0) {
-    throw new Error('Item not found');
-  }
-
-  const listId = itemRows[0].listId;
-  const listType = itemRows[0].listType;
-
-  const orderWhere = validatedData.resourceType
-    ? and(eq(listItems.listId, listId), eq(listItems.resourceType, validatedData.resourceType))
-    : eq(listItems.listId, listId);
-
-  // The current order is read and rewritten under one lock so a concurrent
-  // move can't compute from a stale snapshot and overwrite this one.
-  await withOrderingLock(listItemOrderingScope(listId), async (tx) => {
-    const orderedRows = await tx
-      .select({ id: listItems.id })
-      .from(listItems)
-      .where(orderWhere)
-      .orderBy(...itemManualOrder());
-
-    const orderedIds = moveIdToIndex(
-      orderedRows.map((row) => row.id),
-      validatedData.itemId,
-      validatedData.position,
-    );
-
-    if (orderedIds === null) {
-      throw new Error('Item not found');
-    }
-
-    await persistListItemOrder(tx, listId, orderedIds);
-  });
+  const { listId, listType } = await listItemOrdering.move(user.id, validatedData);
 
   if (listType === 'custom') {
     revalidateUserListCache(user.id, listId);

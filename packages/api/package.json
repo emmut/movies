@@ -25,7 +25,11 @@
     "./person": "./src/person.ts",
     "./filmography": "./src/filmography.ts",
     "./session": "./src/session.ts",
-    "./preferences": "./src/preferences.ts"
+    "./preferences": "./src/preferences.ts",
+    "./list-order": "./src/list-order.ts",
+    "./paginate": "./src/paginate.ts",
+    "./system-lists": "./src/system-lists.ts",
+    "./system-list-copy": "./src/system-list-copy.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

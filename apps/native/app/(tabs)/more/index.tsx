@@ -32,7 +32,7 @@ function SignOut() {
         accessibilityRole="button"
         disabled={signingOut}
         accessibilityState={{ disabled: signingOut }}
-        className="min-h-14 justify-center rounded-xl border border-border bg-default px-4"
+        className="bg-default min-h-14 justify-center rounded-xl border border-border px-4"
         onPress={() => {
           void signOut();
         }}
@@ -71,8 +71,8 @@ export default function More() {
           <Pressable
             key={item.id}
             accessibilityRole="link"
-            accessibilityLabel={item.id === 'login' ? 'Sign in' : item.label + ' (opens browser)'}
-            className="min-h-14 justify-center rounded-xl border border-border bg-default px-4"
+            accessibilityLabel={item.id !== 'lists' ? item.label : item.label + ' (opens browser)'}
+            className="bg-default min-h-14 justify-center rounded-xl border border-border px-4"
             onPress={() => select(item.id)}
           >
             <Text className="font-semibold text-foreground">{item.label}</Text>

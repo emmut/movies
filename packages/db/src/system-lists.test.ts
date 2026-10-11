@@ -1,22 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+const withOrderingLock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/db', () => ({ db: { select: vi.fn(), insert: vi.fn(), delete: vi.fn() } }));
 // Run the locked callback against the db mock directly; the real lock needs a
 // live transaction and is covered by ordering-lock.test.ts.
-vi.mock('@/lib/ordering-lock', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/ordering-lock')>();
+vi.mock('@movies/db/ordering-lock', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@movies/db/ordering-lock')>();
   const { db } = await import('@/lib/db');
   return {
     ...actual,
-    withOrderingLock: vi.fn((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
+    createOrderingLock: () => withOrderingLock.mockImplementation((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
   };
 });
 
 import { db } from '@/lib/db';
-import { withOrderingLock } from '@/lib/ordering-lock';
+
 import { chain } from '@/test/db-chain';
 
-import { getOrCreateSystemListId, getSystemListId, toggleSystemListRow } from './system-list';
+import { createSystemListStore } from '@movies/db/system-lists';
+const { getOrCreateSystemListId, getSystemListId, toggleSystemListRow } = createSystemListStore(db as never);
 
 beforeEach(() => {
   vi.clearAllMocks();

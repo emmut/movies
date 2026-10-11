@@ -37,9 +37,31 @@ import {
   type PersonCreditsInput,
   type PersonDetail,
 } from './person';
-import { regionPreferenceSchema, type RegionPreference } from './preferences';
+import {
+  regionPreferenceSchema,
+  providerPreferenceSchema,
+  providerChoicesSchema,
+  type RegionPreference,
+  type ProviderPreference,
+  type ProviderChoice,
+} from './preferences';
 import { searchInput, searchPageSchema, type SearchInput, type SearchPage } from './search';
 import { sessionUserSchema, type SessionUser } from './session';
+import {
+  systemListPageInput,
+  systemListPageSchema,
+  systemListToggleInput,
+  systemListToggleSchema,
+  systemListResourceInput,
+  systemListMembershipSchema,
+  systemListMoveInput,
+  type SystemListPageInput,
+  type SystemListPage,
+  type SystemListResourceInput,
+  type SystemListMembership,
+  type SystemListToggleInput,
+  type SystemListMoveInput,
+} from './system-lists';
 
 // Services are supplied by the host, so the router has no app, env, or database dependencies.
 export type HomeService = {
@@ -65,8 +87,22 @@ export type PersonService = {
 export type PreferencesService = {
   region(userId: string): Promise<RegionPreference>;
   setRegion(userId: string, input: RegionPreference): Promise<RegionPreference>;
+  providers(userId: string): Promise<ProviderPreference>;
+  setProviders(userId: string, input: ProviderPreference): Promise<ProviderPreference>;
+  providerOptions(input: RegionPreference): Promise<ProviderChoice[]>;
+};
+export type SystemListService = {
+  options(userId: string, input: RegionPreference): Promise<ProviderChoice[]>;
+  page(userId: string, input: SystemListPageInput): Promise<SystemListPage>;
+  memberships(userId: string, input: SystemListResourceInput): Promise<SystemListMembership>;
+  toggle(
+    userId: string,
+    input: SystemListToggleInput,
+  ): Promise<{ action: 'added' | 'removed' | 'unchanged' }>;
+  move(userId: string, input: SystemListMoveInput): Promise<{ success: boolean }>;
 };
 export type AppServices = {
+  systemLists: SystemListService;
   preferences: PreferencesService;
   person: PersonService;
   search: SearchService;
@@ -96,6 +132,29 @@ const authedProcedure = procedure
   });
 
 export const appRouter = {
+  systemLists: {
+    options: authedProcedure
+      .input(regionPreferenceSchema)
+      .output(providerChoicesSchema)
+      .handler(({ input, context }) => context.systemLists.options(context.user.id, input)),
+    page: authedProcedure
+      .input(systemListPageInput)
+      .output(systemListPageSchema)
+      .handler(({ input, context }) => context.systemLists.page(context.user.id, input)),
+    memberships: authedProcedure
+      .input(systemListResourceInput)
+      .output(systemListMembershipSchema)
+      .handler(({ input, context }) => context.systemLists.memberships(context.user.id, input)),
+    toggle: authedProcedure
+      .input(systemListToggleInput)
+      .output(systemListToggleSchema)
+      .handler(({ input, context }) => context.systemLists.toggle(context.user.id, input)),
+    move: authedProcedure
+      .input(systemListMoveInput)
+      .output(z.object({ success: z.boolean() }))
+      .errors({ NOT_FOUND: { message: 'Item not found' } })
+      .handler(({ input, context }) => context.systemLists.move(context.user.id, input)),
+  },
   session: {
     current: procedure.output(sessionUserSchema.nullable()).handler(async ({ context }) => {
       if (!context.session) {
@@ -105,6 +164,17 @@ export const appRouter = {
     }),
   },
   preferences: {
+    providers: authedProcedure
+      .output(providerPreferenceSchema)
+      .handler(({ context }) => context.preferences.providers(context.user.id)),
+    setProviders: authedProcedure
+      .input(providerPreferenceSchema)
+      .output(providerPreferenceSchema)
+      .handler(({ input, context }) => context.preferences.setProviders(context.user.id, input)),
+    providerOptions: authedProcedure
+      .input(regionPreferenceSchema)
+      .output(providerChoicesSchema)
+      .handler(({ input, context }) => context.preferences.providerOptions(input)),
     region: authedProcedure
       .output(regionPreferenceSchema)
       .handler(({ context }) => context.preferences.region(context.user.id)),

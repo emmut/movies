@@ -31,7 +31,7 @@ import {
   TITLE_DETAILS_MAX_AGE_MS,
   type TitleKey,
   type TitleSource,
-} from '@/lib/title-sync';
+} from '@movies/db/title-sync';
 
 import { connectForCron } from './cron-db';
 import { describeError } from './describe-error';

@@ -62,3 +62,13 @@ it('keeps removals available at the selection limit and refuses extra additions'
   expect(toggleSelection(selected, '1', 50)).toHaveLength(49);
   expect(toggleSelection(['1'], '2', 50)).toEqual(['1', '2']);
 });
+
+it('uses account provider defaults after empty/cleared filters, without dropping a large selection', () => {
+  const saved = Array.from({ length: 70 }, (_, index) => index + 1);
+  expect(readDiscoverState({}, 'NO', saved).providerIds).toEqual(saved);
+  expect(readDiscoverState({ with_watch_providers: '' }, 'NO', [8]).providerIds).toEqual([8]);
+  expect(readDiscoverState({ with_watch_providers: '9' }, 'NO', [8]).providerIds).toEqual([9]);
+  expect(
+    readDiscoverState({ with_watch_providers: '9,2147483648' }, 'NO', [8]).providerIds,
+  ).toEqual([9]);
+});

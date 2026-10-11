@@ -19,7 +19,7 @@ describe('native navigation menu destinations', () => {
   it('returns native Home without needing a browser URL', () => {
     expect(getMenuDestination('home', '')).toEqual({ kind: 'native', path: '/' });
   });
-  it.each(MORE_MENU_ITEMS.filter((item) => item.id !== 'login'))(
+  it.each(MORE_MENU_ITEMS.filter((item) => item.id === 'lists'))(
     'opens the existing $label workflow until it is ported',
     (item) => {
       expect(getMenuDestination(item.id, 'https://movies.example/')).toEqual({
@@ -37,13 +37,14 @@ describe('native navigation menu destinations', () => {
   it('routes Search natively', () => {
     expect(getMenuDestination('search', '')).toEqual({ kind: 'native', path: '/search' });
   });
-  it('preserves an explicit web base path', () => {
-    expect(getMenuDestination('settings', 'https://movies.example/app')).toEqual({
-      kind: 'browser',
-      url: 'https://movies.example/app/settings',
-    });
+  it('routes Settings natively', () => {
+    expect(getMenuDestination('settings', '')).toEqual({ kind: 'native', path: '/more/settings' });
   });
   it('does not treat arbitrary OS action IDs as links', () => {
     expect(getMenuDestination('https://attacker.example', 'https://movies.example')).toBeNull();
   });
+});
+
+it.each(['watchlist', 'watched'])('routes %s natively', (id) => {
+  expect(getMenuDestination(id, '')).toEqual({ kind: 'native', path: '/more/' + id });
 });

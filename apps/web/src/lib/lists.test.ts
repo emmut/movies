@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+const withOrderingLock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/db', () => ({
   db: { select: vi.fn(), insert: vi.fn(), update: vi.fn(), delete: vi.fn(), execute: vi.fn() },
@@ -34,12 +35,12 @@ vi.mock('@/lib/watch-provider-availability', async (importOriginal) => {
 });
 // Run the locked callback against the db mock directly; the real lock needs a
 // live transaction and is covered by ordering-lock.test.ts.
-vi.mock('@/lib/ordering-lock', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@/lib/ordering-lock')>();
+vi.mock('@movies/db/ordering-lock', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@movies/db/ordering-lock')>();
   const { db } = await import('@/lib/db');
   return {
     ...actual,
-    withOrderingLock: vi.fn((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
+    createOrderingLock: () => withOrderingLock.mockImplementation((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
   };
 });
 
@@ -50,7 +51,7 @@ import {
 } from '@/lib/cache-invalidation';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
-import { withOrderingLock } from '@/lib/ordering-lock';
+
 import { getPersonDetails } from '@/lib/persons';
 import { scheduleTitleSync } from '@/lib/title-sync-server';
 import { ensureAvailabilityKnown } from '@/lib/watch-provider-availability';

@@ -58,14 +58,14 @@ test('keeps only Home, Discover, Search and overflow at the bottom', async ({ pa
   }
   await expect(dock.getByRole('button')).toHaveCount(4);
 
-  await expect(page.getByRole('link', { name: 'Settings (opens browser)' })).not.toBeAttached();
+  await expect(page.getByRole('link', { name: 'Lists (opens browser)' })).not.toBeAttached();
   await expectDockAtBottom(page);
   await dock.getByRole('button', { name: 'More navigation' }).click();
   await expect(page).toHaveURL(/localhost:8083\/more$/);
   for (const name of ['Watchlist', 'Watched', 'Lists', 'Settings', 'Sign in']) {
     await expect(
       page.getByRole('link', {
-        name: name === 'Sign in' ? name : name + ' (opens browser)',
+        name: name === 'Lists' ? name + ' (opens browser)' : name,
         exact: true,
       }),
     ).toBeVisible();
@@ -96,8 +96,8 @@ test('More exposes the selected browser workflow', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'More navigation', exact: true }).click();
   const popup = page.waitForEvent('popup');
-  await page.getByRole('link', { name: 'Settings (opens browser)', exact: true }).click();
-  await expect(await popup).toHaveURL('http://localhost:3000/settings');
+  await page.getByRole('link', { name: 'Lists (opens browser)', exact: true }).click();
+  await expect(await popup).toHaveURL('http://localhost:3000/lists');
   await expect(page).toHaveURL(/localhost:8083\/more$/);
 });
 
@@ -129,7 +129,7 @@ test('More tab shell exposes every secondary workflow', async ({ page }) => {
   for (const name of ['Watchlist', 'Watched', 'Lists', 'Settings', 'Sign in']) {
     await expect(
       page.getByRole('link', {
-        name: name === 'Sign in' ? name : name + ' (opens browser)',
+        name: name === 'Lists' ? name + ' (opens browser)' : name,
         exact: true,
       }),
     ).toBeVisible();

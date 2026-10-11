@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('@/lib/db', () => ({ db: { transaction: vi.fn() } }));
-
-import { db } from '@/lib/db';
-
-import { listItemOrderingScope, listOrderingScope, withOrderingLock } from './ordering-lock';
+import { createOrderingLock, listItemOrderingScope, listOrderingScope } from '@movies/db/ordering-lock';
+const db = { transaction: vi.fn() };
+const withOrderingLock = createOrderingLock(db as never);
 
 const tx = { execute: vi.fn() };
 

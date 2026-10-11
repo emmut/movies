@@ -15,7 +15,7 @@ import { EditListDialog } from '@/components/edit-list-dialog';
 import { ReorderControls } from '@/components/reorder-controls';
 import { Button } from '@movies/ui/components/button';
 import { useReorderSensors } from '@/hooks/use-reorder-sensors';
-import { sameIdOrder } from '@/lib/list-order';
+import { sameIdOrder } from '@movies/api/list-order';
 import { LocalList, moveList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 
