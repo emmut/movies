@@ -4,7 +4,7 @@ import { orpc, queryClient } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
 import { createRegionStore, resolveRegion } from '@native/lib/region-store';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useSyncExternalStore } from 'react';
+import { useRef, useSyncExternalStore } from 'react';
 
 const sessionRegion = createRegionStore();
 const accountRegionKey = orpc.preferences.region.queryKey();
@@ -32,7 +32,10 @@ export function accountRegionQueryKey(accountId: string | null) {
 }
 
 /** The account region query; every caller shares one cache entry per account. */
-export function accountRegionQueryOptions(accountId: string | null, options: RegionQueryOptions = {}) {
+export function accountRegionQueryOptions(
+  accountId: string | null,
+  options: RegionQueryOptions = {},
+) {
   return {
     ...orpc.preferences.region.queryOptions(options),
     queryKey: accountRegionQueryKey(accountId),
@@ -77,6 +80,7 @@ export function useRegionSetting() {
   const signedIn = Boolean(accountId);
   const region = useRegion();
   const queryKey = accountRegionQueryKey(accountId);
+  const saving = useRef(false);
   const save = useMutation(
     orpc.preferences.setRegion.mutationOptions({
       async onMutate(input) {
@@ -85,23 +89,37 @@ export function useRegionSetting() {
         queryClient.setQueryData(queryKey, input);
         return { previous };
       },
-      onError(_error, _input, context) {
-        if (context?.previous) {
+      async onError(_error, _input, context) {
+        if (!context) {
+          return;
+        }
+        if (context.previous !== undefined) {
           queryClient.setQueryData(queryKey, context.previous);
+        } else {
+          await queryClient.resetQueries({ queryKey, exact: true });
         }
       },
       async onSettled() {
-        await queryClient.invalidateQueries({ queryKey });
+        try {
+          await queryClient.invalidateQueries({ queryKey });
+        } finally {
+          saving.current = false;
+        }
       },
     }),
   );
   function setRegion(next: RegionCode) {
-    sessionRegion.setRegion(next);
+    if (saving.current) {
+      return;
+    }
     if (signedIn) {
+      saving.current = true;
       save.mutate({ region: next });
+    } else {
+      sessionRegion.setRegion(next);
     }
   }
-  return { region, setRegion, saveFailed: save.isError };
+  return { region, setRegion, saveFailed: save.isError, saving: save.isPending };
 }
 
 /** Signing out returns the session to the default region. */

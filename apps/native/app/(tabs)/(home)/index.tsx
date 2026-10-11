@@ -15,7 +15,7 @@ import { withUniwind } from 'uniwind';
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
 export default function Home() {
-  const { region, setRegion, saveFailed } = useRegionSetting();
+  const { region, setRegion, saveFailed, saving } = useRegionSetting();
   const {
     ref: homeScrollRef,
     onScroll: rememberHomeScroll,
@@ -37,7 +37,7 @@ export default function Home() {
   }
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']} collapsable={false}>
-      <HomeHeader region={region} onOpenRegion={() => setPickerOpen(true)} />
+      <HomeHeader region={region} onOpenRegion={() => setPickerOpen(true)} saving={saving} />
       <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
         <ScrollView
           className="flex-1"

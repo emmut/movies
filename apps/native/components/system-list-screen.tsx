@@ -15,6 +15,7 @@ import { orpc, queryClient } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
 import { accountRegionQueryOptions } from '@native/lib/preferences';
 import { readSystemListState, canReorderSystemList } from '@native/lib/system-list-state';
+import { useCurrentUrl } from '@native/lib/use-current-url';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
@@ -373,6 +374,7 @@ function RegionalList({ listType, userId }: { listType: SystemListType; userId: 
 
 function ListSession({ listType }: { listType: SystemListType }) {
   const session = authClient.useSession();
+  const returnUrl = useCurrentUrl();
   if (session.isPending || session.error) {
     return (
       <ScreenQueryState
@@ -385,9 +387,7 @@ function ListSession({ listType }: { listType: SystemListType }) {
     );
   }
   if (!session.data) {
-    return (
-      <Redirect href={{ pathname: '/login', params: { redirect_url: '/more/' + listType } }} />
-    );
+    return <Redirect href={{ pathname: '/login', params: { redirect_url: returnUrl } }} />;
   }
   return (
     <RegionalList key={session.data.user.id} listType={listType} userId={session.data.user.id} />

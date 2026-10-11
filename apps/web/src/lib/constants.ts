@@ -3,4 +3,3 @@
 // deployments.
 export const TMDB_API_URL = process.env.TMDB_API_URL_OVERRIDE ?? 'https://api.themoviedb.org/3';
 export const IMAGE_CDN_URL = 'https://image.tmdb.org/t/p/';
-export { MIN_RUNTIME_FILTER_MINUTES } from '@movies/api/discover-params';

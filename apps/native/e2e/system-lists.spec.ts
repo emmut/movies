@@ -5,7 +5,7 @@ import {
   preflight,
   readInput,
 } from '@native/e2e/catalog-fixtures';
-import { mockAccountRegion, mockSession } from '@native/e2e/session-fixtures';
+import { mockAccountRegion, mockSession, sessionResponse } from '@native/e2e/session-fixtures';
 import { expect, test, type Page } from '@playwright/test';
 
 type Item = {
@@ -204,6 +204,27 @@ test('manual moves use media-scoped global offsets across pages', async ({ page 
   await expect(page.getByRole('link', { name: 'Open Movie 20, Movie', exact: true })).toBeVisible();
   expect(data.watchlist.filter((item) => item.type === 'tv')).toHaveLength(1);
 });
+
+test('changing list pages starts at the top and back from a title retains that page position', async ({
+  page,
+}) => {
+  await model(page);
+  await page.goto('/more/watchlist');
+  const scroll = page.getByTestId('system-list-scroll');
+  await expect(page.getByText('Page 1 of 2')).toBeAttached();
+  await scroll.evaluate((element) => {
+    element.scrollTop = element.scrollHeight;
+  });
+  await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBeGreaterThan(100);
+  await page.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(page.getByText('Page 2 of 2')).toBeVisible();
+  await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBe(0);
+  await page.getByRole('link', { name: 'Open Movie 21, Movie', exact: true }).click();
+  await expect(page.getByText('A memorable story.', { exact: true })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByText('Page 2 of 2')).toBeVisible();
+  await expect.poll(() => scroll.evaluate((element) => element.scrollTop)).toBe(0);
+});
 test('quick add updates independent watch/watched state without detail or web navigation', async ({
   page,
 }) => {
@@ -260,8 +281,60 @@ test('signed-out list routes return to native sign-in with the intended destinat
 }) => {
   await mockEmptySupport({ page });
   await mockSession(page, () => false);
-  await page.goto('/more/watchlist');
+  await page.goto('/more/watchlist?page=2&watch_region=US&with_watch_providers=8');
   await expect(page).toHaveURL(/\/login\?redirect_url=/);
   await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
+  expect(new URL(page.url()).searchParams.get('redirect_url')).toBe(
+    '/more/watchlist?page=2&watch_region=US&with_watch_providers=8',
+  );
   expect(page.context().pages()).toHaveLength(1);
+});
+
+test('quick-add sign-in dismisses its sheet before exposing login controls', async ({ page }) => {
+  await mockEmptySupport({ page });
+  await page.route('**/rpc/home/*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({ json: { json: [entry(42)] }, headers: corsHeaders });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Quick add Movie 42', exact: true }).first().click();
+  await page.getByRole('link', { name: 'Sign in to manage your lists', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Welcome Back' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Close quick add' })).not.toBeAttached();
+  await page
+    .getByRole('button', { name: 'Continue as anonymous', exact: true })
+    .click({ trial: true });
+});
+
+test('inline list sign-in preserves the explicit title country through authentication', async ({
+  page,
+}) => {
+  await model(page);
+  let signedIn = false;
+  await mockSession(page, () => signedIn);
+  await page.route('**/api/auth/sign-in/anonymous', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    signedIn = true;
+    await route.fulfill({ json: sessionResponse(), headers: corsHeaders });
+  });
+  const regions: string[] = [];
+  await page.route('**/rpc/catalog/details*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    regions.push(readInput(route.request()).region);
+    await route.fulfill({ json: { json: detailFixture('movie') }, headers: corsHeaders });
+  });
+  await page.goto('/discover/movie/42?region=US');
+  await page.getByRole('link', { name: 'Sign in to manage your lists', exact: true }).click();
+  expect(new URL(page.url()).searchParams.get('redirect_url')).toBe('/discover/movie/42?region=US');
+  await page.getByRole('button', { name: 'Continue as anonymous', exact: true }).click();
+  await expect(page).toHaveURL('http://localhost:8083/discover/movie/42?region=US');
+  await expect(page.getByRole('button', { name: 'Add to Watchlist', exact: true })).toBeVisible();
+  expect(regions.length).toBeGreaterThan(0);
+  expect(regions.every((region) => region === 'US')).toBe(true);
 });

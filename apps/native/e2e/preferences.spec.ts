@@ -66,3 +66,67 @@ test('signed-out region changes stay on the device and never call the account AP
   await expect.poll(() => regions.filter((region) => region === 'DE').length).toBe(6);
   expect(account.saves).toEqual([]);
 });
+
+test('a pending account save disables another selection until the write completes', async ({
+  page,
+}) => {
+  await mockSession(page);
+  const account = await mockAccountRegion(page, 'NO');
+  await recordHomeRegions(page);
+  let completeSave = () => {};
+  const saveGate = new Promise<void>((resolve) => {
+    completeSave = resolve;
+  });
+  await page.route('**/rpc/preferences/setRegion', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    const input = readInput(route.request());
+    account.saves.push(input.region);
+    await saveGate;
+    account.region = input.region;
+    await route.fulfill({ json: { json: { region: account.region } }, headers: corsHeaders });
+  });
+  try {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Region: Norway/ }).click();
+    await page.getByRole('radio', { name: 'Denmark', exact: true }).click();
+    await expect.poll(() => account.saves).toEqual(['DK']);
+    await expect(page.getByRole('button', { name: /Region: Denmark/ })).toBeDisabled();
+    completeSave();
+    await expect(page.getByRole('button', { name: /Region: Denmark/ })).toBeEnabled();
+    await page.getByRole('button', { name: /Region: Denmark/ }).click();
+    await page.getByRole('radio', { name: 'Finland', exact: true }).click();
+    await expect.poll(() => account.saves).toEqual(['DK', 'FI']);
+    await expect.poll(() => account.region).toBe('FI');
+  } finally {
+    completeSave();
+  }
+});
+
+test('failed saves without any account data restore the prior session region', async ({ page }) => {
+  await mockSession(page);
+  await recordHomeRegions(page);
+  await page.route(/\/rpc\/preferences\/(region|setRegion)(?:\?|$)/, async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({
+      status: 500,
+      json: {
+        json: { defined: false, code: 'INTERNAL_SERVER_ERROR', status: 500, message: 'offline' },
+      },
+      headers: corsHeaders,
+    });
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: /Region: Sweden/ }).click();
+  await page.getByRole('radio', { name: 'Finland', exact: true }).click();
+  await expect(
+    page.getByText('Couldn’t save your region. Choose it again to retry.', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /Region: Sweden/ })).toBeEnabled();
+  await page.getByRole('button', { name: 'More navigation', exact: true }).click();
+  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Region: Sweden/ })).toBeEnabled();
+});

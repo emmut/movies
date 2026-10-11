@@ -1,8 +1,7 @@
-import { buildDiscoverSearchParams } from '@movies/api/discover-params';
+import { buildDiscoverSearchParams, MIN_RUNTIME_FILTER_MINUTES } from '@movies/api/discover-params';
 import { describe, expect, it } from 'vitest';
 
 import { MAJOR_STREAMING_PROVIDERS } from './config';
-import { MIN_RUNTIME_FILTER_MINUTES } from './constants';
 import { DEFAULT_REGION } from './regions';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');

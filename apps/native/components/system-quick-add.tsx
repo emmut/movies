@@ -39,7 +39,10 @@ export function SystemQuickAdd({ item }: { item: MediaCard }) {
                 <Text className="text-foreground">Done</Text>
               </Pressable>
             </View>
-            <SystemListActions input={{ resourceId: item.id, resourceType: item.type }} />
+            <SystemListActions
+              input={{ resourceId: item.id, resourceType: item.type }}
+              onSignIn={() => setOpen(false)}
+            />
           </SafeAreaView>
         </Modal>
       ) : null}

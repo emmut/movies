@@ -2,7 +2,8 @@ import type { SystemListResourceInput } from '@movies/api/system-lists';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { authClient } from '@native/lib/auth-client';
 import { useSystemListMembership, useSystemListToggle } from '@native/lib/system-lists';
-import { Link, usePathname } from 'expo-router';
+import { useCurrentUrl } from '@native/lib/use-current-url';
+import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 const actions = [
@@ -80,9 +81,15 @@ function AuthenticatedActions({
   );
 }
 
-export function SystemListActions({ input }: { input: SystemListResourceInput }) {
+export function SystemListActions({
+  input,
+  onSignIn,
+}: {
+  input: SystemListResourceInput;
+  onSignIn?: () => void;
+}) {
   const session = authClient.useSession();
-  const pathname = usePathname();
+  const returnUrl = useCurrentUrl();
   if (session.error) {
     return (
       <CatalogSectionState
@@ -100,9 +107,10 @@ export function SystemListActions({ input }: { input: SystemListResourceInput })
   }
   if (!session.data) {
     return (
-      <Link href={{ pathname: '/login', params: { redirect_url: pathname } }} asChild>
+      <Link href={{ pathname: '/login', params: { redirect_url: returnUrl } }} asChild>
         <Pressable
           accessibilityRole="link"
+          onPress={onSignIn}
           className="min-h-12 justify-center rounded-lg border border-border px-4"
         >
           <Text className="font-semibold text-foreground">Sign in to manage your lists</Text>
