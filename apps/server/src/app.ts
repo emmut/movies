@@ -1,9 +1,10 @@
 import 'server-only';
 import { appRouter, type AppServices } from '@movies/api/router';
+import { AUTH_NOT_CONFIGURED } from '@movies/api/session';
 import { isLocalBrowserOrigin } from '@movies/config/native-auth';
 import { RPCHandler } from '@orpc/server/fetch';
 import type { AuthGateway } from '@server/auth-gateway';
-import { Hono, type MiddlewareHandler } from 'hono';
+import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
 
 function localOrigin(origin: string) {
@@ -15,6 +16,7 @@ export function createApp(
   origin?: string,
   middleware: MiddlewareHandler[] = [],
   auth?: AuthGateway,
+  clientIp?: (context: Context) => string,
 ) {
   const app = new Hono();
   for (const use of middleware) {
@@ -41,10 +43,13 @@ export function createApp(
   );
   app.on(['GET', 'POST'], '/api/auth/*', async (c) => {
     if (!auth) {
-      return c.json({ message: 'Authentication is not configured' }, 503);
+      return c.json(
+        { code: AUTH_NOT_CONFIGURED, message: 'Authentication is not configured' },
+        503,
+      );
     }
     try {
-      return await auth.handle(c.req.raw);
+      return await auth.handle(c.req.raw, clientIp?.(c));
     } catch {
       return c.json({ message: 'Could not reach authentication service' }, 502);
     }
@@ -54,7 +59,9 @@ export function createApp(
       prefix: '/rpc',
       context: {
         ...services,
-        session: auth ? { current: () => auth.current(c.req.raw.headers) } : undefined,
+        session: auth
+          ? { current: () => auth.current(c.req.raw.headers, clientIp?.(c)) }
+          : undefined,
       },
     });
     return result.matched ? result.response : c.notFound();

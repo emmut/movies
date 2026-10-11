@@ -16,6 +16,61 @@ const choices = [
   },
 ];
 
+test('saving preferred services refreshes cached system-list options immediately', async ({
+  page,
+}) => {
+  await mockSession(page);
+  await mockAccountRegion(page, 'SE');
+  const account = await mockProviderPreferences(page, [8], { choices });
+  let optionReads = 0;
+  await page.route('**/rpc/systemLists/options*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    optionReads += 1;
+    await route.fulfill({
+      json: { json: choices.filter((choice) => account.providerIds.includes(choice.id)) },
+      headers: corsHeaders,
+    });
+  });
+  await page.route('**/rpc/systemLists/page*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({
+      json: {
+        json: {
+          items: [],
+          totalItems: 0,
+          totalPages: 0,
+          currentPage: 1,
+          itemsPerPage: 20,
+          counts: { movie: 0, tv: 0 },
+          unavailableItems: 0,
+        },
+      },
+      headers: corsHeaders,
+    });
+  });
+  await page.goto('/more/watchlist');
+  await page.getByRole('button', { name: 'Providers', exact: true }).click();
+  await expect(page.getByRole('checkbox', { name: 'Netflix', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Close Providers', exact: true }).click();
+  const previousReads = optionReads;
+  await page.getByRole('button', { name: 'More navigation', exact: true }).click();
+  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await page.getByRole('checkbox', { name: 'Netflix', exact: true }).click();
+  await page.getByRole('checkbox', { name: choices[1].name, exact: true }).click();
+  await page.getByRole('button', { name: 'Save Preferences', exact: true }).click();
+  await expect(page.getByText('Preferences saved!', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'More navigation', exact: true }).click();
+  await page.getByRole('link', { name: 'Watchlist', exact: true }).click();
+  await page.getByRole('button', { name: 'Providers', exact: true }).click();
+  await expect(page.getByRole('checkbox', { name: choices[1].name, exact: true })).toBeVisible();
+  await expect(page.getByRole('checkbox', { name: 'Netflix', exact: true })).not.toBeAttached();
+  expect(optionReads).toBeGreaterThan(previousReads);
+});
+
 test.beforeEach(async ({ page }) => {
   await mockEmptySupport({ page });
   await page.route('**/broken-logo.png', (route) => route.fulfill({ status: 404, body: '' }));

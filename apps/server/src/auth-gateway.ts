@@ -1,5 +1,6 @@
 import 'server-only';
 import { sessionUserSchema } from '@movies/api/session';
+import { authProxyHeaders } from '@movies/auth/proxy';
 import { z } from 'zod';
 
 const upstreamSession = z.object({
@@ -20,7 +21,11 @@ const forwardedHeaders = [
 export type AuthGateway = ReturnType<typeof createAuthGateway>;
 
 /** Web owns auth, OAuth callbacks and anonymous migration; the API never mints its own sessions. */
-export function createAuthGateway(baseUrl: string, fetcher: typeof fetch = fetch) {
+export function createAuthGateway(
+  baseUrl: string,
+  fetcher: typeof fetch = fetch,
+  proxySecret?: string,
+) {
   const base = new URL(baseUrl);
   if (!['http:', 'https:'].includes(base.protocol) || base.username || base.password) {
     throw new Error('Invalid authentication service URL');
@@ -28,7 +33,19 @@ export function createAuthGateway(baseUrl: string, fetcher: typeof fetch = fetch
   function endpoint(path: string) {
     return new URL(path, base.origin);
   }
-  async function handle(request: Request) {
+  function signHeaders(
+    headers: Headers,
+    clientIp: string | undefined,
+    method: string,
+    path: string,
+  ) {
+    if (!proxySecret) {
+      return;
+    }
+    const metadata = authProxyHeaders(proxySecret, clientIp ?? '', method, path);
+    metadata.forEach((value, name) => headers.set(name, value));
+  }
+  async function handle(request: Request, clientIp?: string) {
     const source = new URL(request.url);
     if (!source.pathname.startsWith('/api/auth/')) {
       return new Response('Not found', { status: 404 });
@@ -42,6 +59,7 @@ export function createAuthGateway(baseUrl: string, fetcher: typeof fetch = fetch
     }
     const target = endpoint(source.pathname);
     target.search = source.search;
+    signHeaders(headers, clientIp, request.method, target.pathname);
     const body =
       request.method === 'GET' || request.method === 'HEAD'
         ? undefined
@@ -60,13 +78,15 @@ export function createAuthGateway(baseUrl: string, fetcher: typeof fetch = fetch
     responseHeaders.set('Cache-Control', 'no-store');
     return new Response(response.body, { status: response.status, headers: responseHeaders });
   }
-  async function current(headers: Headers) {
+  async function current(headers: Headers, clientIp?: string) {
     const cookie = headers.get('cookie');
     if (!cookie) {
       return null;
     }
+    const trustedHeaders = new Headers({ cookie });
+    signHeaders(trustedHeaders, clientIp, 'GET', '/api/auth/get-session');
     const response = await fetcher(endpoint('/api/auth/get-session?disableCookieCache=true'), {
-      headers: { cookie },
+      headers: trustedHeaders,
       redirect: 'manual',
       signal: AbortSignal.timeout(15_000),
     });

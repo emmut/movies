@@ -31,6 +31,36 @@ const card = {
   rating: 8.2,
 };
 
+for (const code of ['AUTH_NOT_CONFIGURED', 'INTERNAL_SERVER_ERROR']) {
+  test(
+    'discovery distinguishes unconfigured auth from session failure: ' + code,
+    async ({ page }) => {
+      await page.route('**/api/auth/get-session*', async (route) => {
+        if (await preflight(route)) {
+          return;
+        }
+        await route.fulfill({
+          status: 503,
+          json: { code, message: 'Authentication unavailable' },
+          headers: corsHeaders,
+        });
+      });
+      await page.goto('/discover');
+      if (code === 'AUTH_NOT_CONFIGURED') {
+        await expect(
+          page.getByRole('link', { name: 'Open Discovered movie, Movie' }),
+        ).toBeVisible();
+        await expect(page.getByText('Couldn’t load account preferences.')).not.toBeAttached();
+      } else {
+        await expect(page.getByText('Couldn’t load account preferences.')).toBeVisible();
+        await expect(
+          page.getByRole('link', { name: 'Open Discovered movie, Movie' }),
+        ).not.toBeAttached();
+      }
+    },
+  );
+}
+
 test.beforeEach(async ({ page }) => {
   await mockEmptySupport({ page });
   await page.route('**/rpc/discovery/options*', async (route) => {

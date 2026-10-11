@@ -7,6 +7,7 @@ import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { orpc } from '@native/lib/api';
 import { readDiscoverState } from '@native/lib/discover-state';
+import { hasDiscoverySessionError } from '@native/lib/discovery-session';
 import { useRegion, useProviderPreferences } from '@native/lib/preferences';
 import { combineQueryStates } from '@native/lib/query-state';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
@@ -165,7 +166,7 @@ function AccountDiscovery() {
   if (preferences.session.isPending) {
     return <ScreenQueryState label="account preferences" failed={false} retry={() => {}} />;
   }
-  if (preferences.session.error) {
+  if (hasDiscoverySessionError(preferences.session)) {
     return (
       <ScreenQueryState
         label="account preferences"

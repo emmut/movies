@@ -118,6 +118,10 @@ This establishes the dependency for authenticated preferences and list workflows
 
 ## Next steps
 
+The owner also requires a design and UX improvement pass: native should match the web app as closely as possible while adapting to native navigation, keyboard behavior, touch controls, sheets and gestures. Compare the running web app at a mobile viewport before implementing each revised native flow. Preserve its branding, layout, content hierarchy, card treatments, actions and interaction semantics. Explicit priorities are search autocomplete while typing and the Discover filter area, using the mobile web screen as the reference. Verify the revised flows with meaningful interaction tests and matched mobile screenshots; device behavior remains a separate requirement. This UX work is part of the active goal, not merely a final cosmetic audit.
+
+The owner also requires React Native Lucide icons for native UI iconography. Replace inline icon markup and symbolic text glyphs with `lucide-react-native` components, using the app's Tailwind/Uniwind styling. Keep user-selected list emoji as content. Native system-tab icon APIs must retain platform navigation behavior; document any API limitation requiring a platform icon adapter. This icon cleanup is part of the active goal alongside full native parity and all PR-comment fixes.
+
 Pick up here; details and evidence for completed work are in the [parity checklist](native-app-parity.md).
 
 The active goal also includes fixing all review comments on [PR #350](https://github.com/emmut/movies/pull/350), as requested by the owner. Audit each comment against the current implementation, fix remaining issues with regression coverage, and run the required repository checks. Include earlier and outdated comments in the audit; a later implementation must be verified rather than assumed to address them. Recheck the PR for new feedback before roadmap acceptance. This adds to the full native roadmap scope and does not replace it. Track findings and evidence in the [PR review audit](native-pr-review.md).

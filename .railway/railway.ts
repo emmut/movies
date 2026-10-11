@@ -161,6 +161,8 @@ export default defineRailway((ctx) => {
       // Same database as web: fuzzy search reads its search_index table.
       DATABASE_URL: db.env.DATABASE_URL,
       AUTH_URL: "https://${{movies.RAILWAY_PUBLIC_DOMAIN}}",
+      AUTH_IP_SOURCE: "railway",
+      AUTH_PROXY_SECRET: movies.env.BETTER_AUTH_SECRET,
     },
   });
 

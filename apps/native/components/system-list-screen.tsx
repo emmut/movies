@@ -140,10 +140,14 @@ function listCountCaption(input: SystemListPageInput, result: SystemListPage) {
 function PageControls({
   result,
   change,
+  stale,
 }: {
   result: SystemListPage;
   change: (params: Record<string, string>) => void;
+  stale: boolean;
 }) {
+  const previousDisabled = stale || result.currentPage <= 1;
+  const nextDisabled = stale || result.currentPage >= result.totalPages;
   return (
     <View className="items-center gap-3 p-5">
       <Text className="text-muted">
@@ -152,8 +156,8 @@ function PageControls({
       <View className="flex-row gap-4">
         <Pressable
           accessibilityRole="button"
-          disabled={result.currentPage <= 1}
-          accessibilityState={{ disabled: result.currentPage <= 1 }}
+          disabled={previousDisabled}
+          accessibilityState={{ disabled: previousDisabled }}
           className="bg-default min-h-12 justify-center rounded-lg px-4"
           onPress={() => change({ page: String(result.currentPage - 1) })}
         >
@@ -161,8 +165,8 @@ function PageControls({
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          disabled={result.currentPage >= result.totalPages}
-          accessibilityState={{ disabled: result.currentPage >= result.totalPages }}
+          disabled={nextDisabled}
+          accessibilityState={{ disabled: nextDisabled }}
           className="bg-default min-h-12 justify-center rounded-lg px-4"
           onPress={() => change({ page: String(result.currentPage + 1) })}
         >
@@ -308,7 +312,7 @@ function ListGrid({
           </View>
         )}
         ListEmptyComponent={<ListEmpty input={input} result={result} retry={retry} />}
-        ListFooterComponent={<PageControls result={result} change={change} />}
+        ListFooterComponent={<PageControls result={result} change={change} stale={stale} />}
       />
     </ScrollNavigationProvider>
   );

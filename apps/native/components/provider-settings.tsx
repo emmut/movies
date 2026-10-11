@@ -142,6 +142,9 @@ function ProviderForm({
     orpc.preferences.setProviders.mutationOptions({
       async onSuccess(result) {
         await commitSavedSetting(queryClient, providersKey, result, () => setDraft(null));
+        await queryClient.invalidateQueries({
+          queryKey: accountQueryKey(orpc.systemLists.options.key(), userId),
+        });
       },
     }),
   );

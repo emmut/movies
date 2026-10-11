@@ -205,6 +205,59 @@ test('manual moves use media-scoped global offsets across pages', async ({ page 
   expect(data.watchlist.filter((item) => item.type === 'tv')).toHaveLength(1);
 });
 
+test('paging is disabled while a new media input shows the previous result', async ({ page }) => {
+  const data = await model(page);
+  data.watchlist.push(...Array.from({ length: 40 }, (_, i) => entry(i + 22)));
+  const tv = Array.from({ length: 41 }, (_, i) => entry(i + 1, 'tv'));
+  let finish = () => {};
+  const gate = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  await page.route('**/rpc/systemLists/page*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    const input = readInput(route.request());
+    if (input.resourceType !== 'tv') {
+      await route.fallback();
+      return;
+    }
+    data.reads.push(input);
+    await gate;
+    await route.fulfill({
+      json: {
+        json: {
+          items: tv.slice((input.page - 1) * 20, input.page * 20),
+          totalItems: 41,
+          totalPages: 3,
+          currentPage: input.page,
+          itemsPerPage: 20,
+          counts: { movie: 61, tv: 41 },
+          unavailableItems: 0,
+        },
+      },
+      headers: corsHeaders,
+    });
+  });
+  try {
+    await page.goto('/more/watchlist?page=2');
+    await expect(page.getByText('Page 2 of 4')).toBeVisible();
+    await page.getByRole('button', { name: 'TV Shows', exact: true }).click();
+    await expect.poll(() => data.reads.at(-1)?.resourceType).toBe('tv');
+    await expect(page.getByRole('button', { name: 'Next page', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Previous page', exact: true })).toBeDisabled();
+    finish();
+    await expect(page.getByText('Page 1 of 3')).toBeVisible();
+    await page.getByRole('button', { name: 'Next page', exact: true }).click();
+    await expect(page.getByText('Page 2 of 3')).toBeVisible();
+    expect(
+      data.reads.filter((input) => input.resourceType === 'tv').map((input) => input.page),
+    ).toEqual([1, 2]);
+  } finally {
+    finish();
+  }
+});
+
 test('changing list pages starts at the top and back from a title retains that page position', async ({
   page,
 }) => {

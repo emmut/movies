@@ -1,3 +1,4 @@
+import { AUTH_CLIENT_IP_HEADER, verifiedAuthRequest } from '@movies/auth/proxy';
 import { createAuthGateway } from '@server/auth-gateway';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -11,6 +12,39 @@ const user = {
 const session = { user, session: { expiresAt: '2099-01-01T00:00:00.000Z' } };
 
 describe('canonical auth gateway', () => {
+  it('signs transport identity for session reads without forwarding caller metadata', async () => {
+    const secret = 'a-shared-auth-secret-of-at-least-32-characters';
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json(session));
+    const gateway = createAuthGateway('https://auth.example.com', fetcher, secret);
+    expect(
+      await gateway.current(
+        new Headers({ Cookie: 'signed-cookie', [AUTH_CLIENT_IP_HEADER]: 'forged' }),
+        '203.0.113.10',
+      ),
+    ).toEqual(user);
+    const [url, options] = fetcher.mock.calls[0];
+    const verified = verifiedAuthRequest(new Request(String(url), options), secret);
+    expect(verified.headers.get(AUTH_CLIENT_IP_HEADER)).toBe('203.0.113.10');
+    expect(verified.headers.get('cookie')).toBe('signed-cookie');
+  });
+  it('requires trusted transport identity when signing is configured', async () => {
+    const fetcher = vi.fn<typeof fetch>();
+    const gateway = createAuthGateway(
+      'https://auth.example.com',
+      fetcher,
+      'a-shared-auth-secret-of-at-least-32-characters',
+    );
+    await expect(
+      gateway.handle(
+        new Request('https://api.example.com/api/auth/sign-in/anonymous', {
+          method: 'POST',
+          body: '{}',
+        }),
+      ),
+    ).rejects.toThrow('Invalid authentication proxy metadata');
+    await expect(gateway.current(new Headers({ Cookie: 'signed-cookie' }))).rejects.toThrow();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
   it.each(['file:///tmp/auth', 'https://name:password@example.com'])(
     'rejects an invalid host %s',
     (url) => {
@@ -18,16 +52,14 @@ describe('canonical auth gateway', () => {
     },
   );
   it('forwards auth data and cookies only to the configured host without following redirects', async () => {
-    const fetcher = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(
-        new Response('{"success":true}', {
-          headers: {
-            'Set-Cookie': 'better-auth.session_token=test; HttpOnly',
-            'Content-Type': 'application/json',
-          },
-        }),
-      );
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response('{"success":true}', {
+        headers: {
+          'Set-Cookie': 'better-auth.session_token=test; HttpOnly',
+          'Content-Type': 'application/json',
+        },
+      }),
+    );
     const gateway = createAuthGateway('http://localhost:3000', fetcher);
     const request = new Request('http://localhost:3001/api/auth/sign-in/anonymous', {
       method: 'POST',
@@ -86,15 +118,13 @@ describe('canonical auth gateway', () => {
     expect(fetcher).not.toHaveBeenCalled();
   });
   it('forces database session validation and returns only public identity fields', async () => {
-    const fetcher = vi
-      .fn<typeof fetch>()
-      .mockResolvedValue(
-        Response.json({
-          ...session,
-          session: { ...session.session, token: 'private', userId: user.id },
-          user: { ...user, providerToken: 'private' },
-        }),
-      );
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      Response.json({
+        ...session,
+        session: { ...session.session, token: 'private', userId: user.id },
+        user: { ...user, providerToken: 'private' },
+      }),
+    );
     const gateway = createAuthGateway('https://auth.example.com', fetcher);
     expect(await gateway.current(new Headers({ Cookie: 'signed-cookie' }))).toEqual(user);
     const [target, options] = fetcher.mock.calls[0];

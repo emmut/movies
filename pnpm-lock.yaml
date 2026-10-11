@@ -435,6 +435,9 @@ importers:
       '@movies/api':
         specifier: workspace:*
         version: link:../../packages/api
+      '@movies/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@movies/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -475,6 +478,9 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.23.1
+      better-auth:
+        specifier: 'catalog:'
+        version: 1.7.4(drizzle-kit@0.31.10)(drizzle-orm@0.45.4(@types/better-sqlite3@9.6.0)(@types/pg@8.23.1)(kysely@0.29.5)(pg@8.23.0))(next@16.3.6(patch_hash=6d5cb38cd2f5f97326462c6268fc38d7ad51a51283afee8987abe83a09c8926f)(@babel/core@7.29.7)(@playwright/test@1.63.0)(@types/node@24.13.4)(babel-plugin-react-compiler@1.0.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(pg@8.23.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(vitest@5.0.0)
       pino-pretty:
         specifier: ^13.2.0
         version: 13.2.0
@@ -618,7 +624,11 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
 
-  packages/auth: {}
+  packages/auth:
+    dependencies:
+      server-only:
+        specifier: 'catalog:'
+        version: 0.0.1
 
   packages/config:
     dependencies:

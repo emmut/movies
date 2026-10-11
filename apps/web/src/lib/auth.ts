@@ -1,5 +1,7 @@
+import 'server-only';
 import { expo } from '@better-auth/expo';
 import { passkey } from '@better-auth/passkey';
+import { AUTH_CLIENT_IP_HEADER } from '@movies/auth/proxy';
 import { nativeTrustedOrigins } from '@movies/config/native-auth';
 import * as schema from '@movies/db/schema/auth';
 import { betterAuth } from 'better-auth';
@@ -12,6 +14,7 @@ import { db } from '@/lib/db';
 
 export const auth = betterAuth({
   baseURL: env.NEXT_PUBLIC_BASE_URL,
+  advanced: { ipAddress: { ipAddressHeaders: [AUTH_CLIENT_IP_HEADER, 'x-real-ip'] } },
   trustedOrigins: async (request) =>
     [
       env.BETTER_AUTH_TRUSTED_ORIGIN,
