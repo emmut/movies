@@ -14,16 +14,16 @@
     "./list-item-order": "./src/list-item-order.ts"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.2",
-    "pg": "^8.23.0",
-    "zod": "^4.6.2",
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:",
+    "zod": "catalog:",
     "@movies/config": "workspace:*",
-    "better-auth": "^1.7.4",
-    "@better-auth/passkey": "^1.7.4",
-    "server-only": "^0.0.1",
+    "better-auth": "catalog:",
+    "@better-auth/passkey": "catalog:",
+    "server-only": "catalog:",
     "@movies/api": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "7.0.2"
+    "typescript": "catalog:"
   }
 }

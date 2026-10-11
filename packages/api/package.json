@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@movies/config": "workspace:*",
-    "@orpc/server": "^1.15.0",
-    "zod": "^4.6.2"
+    "@orpc/server": "catalog:",
+    "zod": "catalog:"
   }
 }
