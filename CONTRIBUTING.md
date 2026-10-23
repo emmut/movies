@@ -4,45 +4,47 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 
 ## Prerequisites
 
-- **mise** for the pinned Node and Nub versions; pnpm remains available through the `packageManager` field for Railway and direct package-manager commands.
+- **Vite+** for Node and pnpm management. Install the global CLI from [viteplus.dev](https://viteplus.dev/guide/global-cli), then open a new terminal so its shims take precedence over older runtime/package-manager shims.
 - A **PostgreSQL** database for local development.
 - A **TMDB API** access token and the other secrets defined in `apps/web/src/env.ts`.
-- Node **24.11.0 or newer within 24.x** for Vite+. The existing mise pin selects Node 24; no global `vp` installation is required.
+- Node **24.11.1** is pinned in `.node-version`; pnpm **12.15.0** is pinned with integrity in `package.json`. Vite+ installs and selects both.
 
 ## Getting started
 
-1. Run `mise install` and `pnpm install` to install the pinned tools and dependencies. Nub runs scripts; pnpm remains the installer because the current Next and Railway patches use pnpm's patch format.
+1. Run `vp env install` and `vp install` to install the pinned runtime, package manager, and dependencies. Vite+ runs tasks and TypeScript scripts on Node; pnpm installs the current Next and Railway dependency patches.
 2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. The web app and root-level database/cron commands read this app-local file. `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
-3. Apply the schema to your database: `nub run db:push`.
-4. Start the dev server: `nub run dev`.
-5. Optional: populate IMDb ratings with `nub run ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.
+3. Apply the schema to your database: `pnpm db:push`.
+4. Start the dev server: `pnpm dev`.
+5. Optional: populate IMDb ratings with `pnpm ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.
 
-`nub run dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `apps/web/.env.example` points at that local database; run `nub run db:push` once it's up to apply the schema.
+`pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `apps/web/.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
 
 The TMDB request collection is `apps/web/movie-db.http`; it reads `apps/web/.env` from the same directory.
 
 ## Common commands
 
-The most-used scripts — run `nub run` for the full list, which is authoritative.
+The most-used scripts — run `pnpm run` for the full list, which is authoritative.
 
 | Command | Purpose |
 | --- | --- |
-| `nub run dev` | Dev server through Turbo. |
-| `nub run build` | Production build through Turbo. |
-| `nub run lint` / `nub run format` | Lint / format. |
-| `nub run --node test` | Unit tests; Vitest fake timers require plain Node. |
-| `nub run fallow` | Audit changed files (dead code, complexity, duplication). |
-| `nub run db:push` / `nub run db:studio` | Apply schema / open Drizzle Studio. |
-| `nub run sync:titles` | Refresh the local title cache (see `scripts/README.md`). |
-| `nub run ingest:search` | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
+| `pnpm dev` | Dev server through Turbo. |
+| `pnpm build` | Production build through Turbo. |
+| `pnpm lint` / `pnpm format` | Lint / format. |
+| `pnpm test` | Unit tests on Node through Vite+. |
+| `pnpm fallow` | Audit changed files (dead code, complexity, duplication). |
+| `pnpm db:push` / `pnpm db:studio` | Apply schema / open Drizzle Studio. |
+| `pnpm sync:titles` | Refresh the local title cache (see `scripts/README.md`). |
+| `pnpm ingest:search` | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
 
-Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` all pass. The corresponding `nub run` commands use the same scripts.
+Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` all pass. The corresponding `pnpm run` commands use the same scripts.
 
 Use `pnpm exec vp check` (or `pnpm check`) for formatting, linting, and type-aware checks, `pnpm exec vp test run` for unit tests, and `pnpm test:coverage` for coverage. Formatting retains the existing `apps`, `packages`, and `scripts` scope, plus `vite.config.ts`. The pnpm `packageManager` field remains authoritative for installation; run `pnpm install --frozen-lockfile` in CI.
 
 Use `pnpm test:watch` to watch the full suite or `pnpm --filter @movies/web test:watch` for web tests. The package script delegates to the shared root runner with Vite+'s `vp run -w` workspace selector and a test file filter.
 
-Use `pnpm exec vp run dev` for this project's Docker and Next.js development workflow, `pnpm exec vp run build` for its production build, and `pnpm exec vp run <task>` for any other package script. These retain the existing Nub/Turbo orchestration. Built-in `vp dev` and `vp build` run Vite itself and cannot replace Next.js's server or build. `vp test` runs the built-in Vitest runner; `vp run test` runs the project's one-shot test script. Shared packages export source directly to Next.js and have no separate `vp pack` build.
+To change project versions, run `vp env pin node@<version> --target node-version` or `vp env pin pnpm@<version>`. `vp env current` shows the resolved pair. CI uses the same pins through `setup-vp`. Vite+ owns provisioning; `runtimeOnFail: ignore` and `pmOnFail: ignore` keep pnpm from independently switching tools.
+
+Use `pnpm exec vp run dev` for this project's Docker and Next.js development workflow, `pnpm exec vp run build` for its production build, and `pnpm exec vp run <task>` for any other package script. Vite+ runs tasks, and Turbo retains workspace build/development orchestration. TypeScript utilities run through `vpx`, preserving path aliases and Node's `--env-file` / `--env-file-if-exists` behavior. Built-in `vp dev` and `vp build` run Vite itself and cannot replace Next.js's server or build. `vp test` runs the built-in Vitest runner; `vp run test` runs the project's one-shot test script. Shared packages export source directly to Next.js and have no separate `vp pack` build.
 
 ## Conventions
 
@@ -73,4 +75,4 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - **Lint, typecheck & test**.
 - **Fallow audit** — fails only on findings newly introduced relative to the merge-base.
 
-The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" nub run --node test apps/web/src/lib/search-index.integration.test.ts`; fixtures use a temporary table.
+The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test apps/web/src/lib/search-index.integration.test.ts`; fixtures use a temporary table.

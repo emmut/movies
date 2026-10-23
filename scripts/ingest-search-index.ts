@@ -1,4 +1,4 @@
-#!/usr/bin/env nub
+#!/usr/bin/env vpx
 
 /**
  * Downloads TMDB's daily id exports (movies, TV series, people) and upserts

@@ -1,8 +1,24 @@
 packages:
   - apps/*
   - packages/*
+# Vite+ owns runtime and package-manager provisioning.
+runtimeOnFail: ignore
+pmOnFail: ignore
+# Preserve the existing one-day delay. This migration explicitly selects 1.4.0,
+# which was published today; keep the exception scoped to that exact release.
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - vite-plus@1.4.0
+  - '@voidzero-dev/vite-plus-core@1.4.0'
+  - '@voidzero-dev/vite-plus-darwin-arm64@1.4.0'
+  - '@voidzero-dev/vite-plus-darwin-x64@1.4.0'
+  - '@voidzero-dev/vite-plus-linux-arm64-gnu@1.4.0'
+  - '@voidzero-dev/vite-plus-linux-arm64-musl@1.4.0'
+  - '@voidzero-dev/vite-plus-linux-x64-gnu@1.4.0'
+  - '@voidzero-dev/vite-plus-linux-x64-musl@1.4.0'
+  - '@voidzero-dev/vite-plus-win32-arm64-msvc@1.4.0'
+  - '@voidzero-dev/vite-plus-win32-x64-msvc@1.4.0'
 allowBuilds:
-  "@nubjs/nub": true
   core-js: true
   esbuild: true
   msw: true
@@ -18,7 +34,6 @@ overrides:
   vite@*: "catalog:"
   vitest@*: "catalog:"
 onlyBuiltDependencies:
-  - "@nubjs/nub"
   - better-sqlite3
   - core-js
   - esbuild

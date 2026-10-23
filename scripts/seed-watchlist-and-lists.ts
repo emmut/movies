@@ -1,4 +1,4 @@
-#!/usr/bin/env nub
+#!/usr/bin/env vpx
 
 /**
  * Seed script for watchlist and lists

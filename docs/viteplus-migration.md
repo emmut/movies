@@ -10,9 +10,12 @@ worktree was clean.
   reading `vp help` and `vp help migrate`. Migration ran from the workspace root
   with `--no-interactive --no-hooks --no-agent --no-editor`.
 - The original Vitest 5.0.0 setup already met the upstream prerequisites;
-  no preliminary upgrade was needed. Node 24.11.1 is supported.
-- Preserved the pnpm 11.1.2 package-manager pin, patches, existing overrides,
-  workspace exports, and build behavior. Kept the migrator's Vite/Vitest
+  no preliminary upgrade was needed. Node 24.11.1 is pinned via `vp env pin`
+  in `.node-version`. Vite+ now manages Node and pnpm; mise was removed and
+  both CI workflows use a commit-pinned `setup-vp` with the shared version pins.
+- Pinned the latest stable pnpm, **12.15.0**, with its registry integrity hash.
+  Preserved patches, existing overrides, workspace exports, and build behavior.
+  Kept the migrator's Vite/Vitest
   catalogs, aliases, overrides, and direct Vitest dependency.
 - Added Vite+ to the root and the two packages whose tests import it. Aligned
   the coverage provider through the generated catalog.
@@ -32,10 +35,26 @@ worktree was clean.
   separate a package from the workspace root, while retaining the web test filter.
 - CI now runs `pnpm exec vp check` and `pnpm test`, retaining the additional
   root/application type checks and existing integration/browser jobs.
-- Kept Nub and Turbo orchestration, Next.js development/production commands,
-  database/cron scripts, Railway infrastructure, and Playwright configuration.
+- Replaced Nub with `vp run` / `vp exec` for tasks and `vpx` for TypeScript
+  utilities. Preserved Node environment-file flags, path aliases, argument
+  forwarding, and Turbo/Next.js orchestration. Drizzle's compiled CLI runs on
+  Node with the same optional environment file. Updated Railway build/start,
+  migrations, cron commands, Playwright startup, CI, shebangs, and documentation;
+  removed Nub's package, mise pin, and build permissions.
   Fallow explicitly ignores the Tailwind lint plugin dependency because it is
   loaded through `lint.jsPlugins` rather than a source import.
+
+pnpm 12 records its package-manager bootstrap metadata in an additional lockfile
+document. Its lockfile verification also enforces the existing one-day release
+delay against Vite+ 1.4.0, which was published on the migration date. The release
+delay now lives in `pnpm-workspace.yaml`, with exceptions limited to the ten
+explicit Vite+ 1.4.0 package/version pairs; all other versions retain the delay.
+`runtimeOnFail: ignore` and `pmOnFail: ignore` give Vite+ sole responsibility for
+Node/pnpm provisioning. Validation used an isolated global Vite+ installation in
+`/tmp`, leaving the user's shell configuration unchanged.
+Fallow currently misses the application lockfile document when checking the
+esbuild override, so that false positive has a scoped suppression; the security
+override itself remains active and the frozen installation validates it.
 
 ## Validation
 
@@ -58,6 +77,31 @@ worktree was clean.
 A coverage run concurrent with a Next.js build hit the existing startup test's
 timing assertion. The complete suite passed when rerun with four workers;
 no test code or timeouts were changed.
+
+The same full suite passed with four workers after removing Nub. Runtime smoke
+checks verified TypeScript enum transformation, root path aliases, top-level
+async execution, arguments, environment-file loading, shell-variable precedence,
+and optional versus required missing environment files. Both `db:migrate` and
+`db:migrate:railway` passed against the temporary database. Disabled title-sync
+and search-ingest entrypoints exited cleanly; seed rejected missing arguments;
+IMDb's entrypoint loaded correctly with network access intentionally intercepted
+before downloading or writing data.
+
+Final validation under Vite+-managed Node 24.11.1 and pnpm 12.15.0 passed the
+frozen install, `pnpm check`, `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`
+(all 546 tests, no skips), `pnpm fallow`, workspace type checks, and the production
+build plus all 72 Chromium/mobile WebKit tests. The workflow YAML parses and all
+four runtime setup jobs use the shared Node/Vite+ pins. Browser validation used
+isolated port 3100 because an existing service on port 3000 did not respond;
+that existing service was left untouched.
+The full coverage suite also passed under the final managed environment with
+all 546 tests and the same coverage percentages listed above.
+
+The repository's [Railway configuration skill](../.agents/skills/railway-config/SKILL.md)
+requires: "After editing `.railway/railway.ts`, run `railway config plan`."
+That read-only plan was attempted for the runtime-command changes but could not
+run because the local Railway CLI is unauthenticated. No configuration was
+applied; Railway-side plan validation remains outstanding.
 
 Initial production/browser attempts were blocked by TMDB HTTP 401. The final
 Playwright-managed production build passed with the updated credentials and
@@ -91,16 +135,18 @@ stopped after validation.
 
 ## Commands
 
-Use the project-local CLI without installing a global runtime manager:
+Use the global Vite+ CLI to manage the pinned environment and run the local
+project toolchain:
 
 ```sh
-pnpm install
-pnpm exec vp check
-pnpm exec vp test run
+vp env install
+vp install
+vp check
+vp test run
 pnpm test:watch
-pnpm exec vp run dev
-pnpm exec vp run build
-pnpm exec vp run <task>
+vp run dev
+vp run build
+vp run <task>
 ```
 
 `vp dev` starts Vite, and `vp build` builds a Vite app. This project needs
