@@ -159,3 +159,28 @@ Guidance: [migration](https://viteplus.dev/guide/migrate),
 [Vitest 5 compatibility](https://viteplus.dev/guide/vitest-v5),
 [upstream Vitest migration](https://vitest.dev/guide/migration/), and
 [tsdown 0.23 release](https://github.com/rolldown/tsdown/releases/tag/v0.23.0).
+
+## Dependency refresh
+
+All direct workspace dependencies now use their latest stable npm releases as
+of October 23, 2026, including Next.js 16.4.3, React 19.3.1, Railway 3.16.0,
+Fallow 3.35.0, and Turbo 2.11.10. Dependencies shared across workspace manifests
+use the default pnpm catalog, so their versions are defined once. The one-day
+release delay remains, with exact package/version exceptions for the selected
+new Next.js, Octicons, and PostHog releases and their required dependencies.
+
+The Next.js scroll patch was removed after all six existing Chromium detail and
+loading-skeleton scroll regressions passed against unpatched Next.js 16.4.3.
+The Railway patch still preserves database deploy settings and has been rebased
+onto 3.16.0, covering ESM and CommonJS exports from both `railway` and
+`railway/iac`. Its 32 regression checks verify sleep settings, resource limits,
+region precedence, generic databases, and default behavior. The IaC compiler
+now lives in Railway CLI (minimum 5.42.1), rather than the SDK.
+
+Validation for this refresh passed frozen installation, the recursive outdated
+check (no outdated packages), `vp check`, lint, root and app type checks, Fallow's
+audit gate, all 578 unit/integration tests with a disposable migrated PostgreSQL
+database, and the production build. All six Chromium scroll regressions passed
+with the compiled public auth URL matching the test server's port. The mobile
+WebKit checks could not launch because this host lacks libicu74 and libflite1.
+The read-only Railway plan remains blocked by missing local authentication.

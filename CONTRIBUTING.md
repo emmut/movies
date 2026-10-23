@@ -11,7 +11,7 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 
 ## Getting started
 
-1. Run `vp env install` and `vp install` to install the pinned runtime, package manager, and dependencies. Vite+ runs tasks and TypeScript scripts on Node; pnpm installs the current Next and Railway dependency patches.
+1. Run `vp env install` and `vp install` to install the pinned runtime, package manager, and dependencies. Vite+ runs tasks and TypeScript scripts on Node; pnpm installs the dependency patches in `pnpm-workspace.yaml`.
 2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. The web app and root-level database/cron commands read this app-local file. `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
 3. Apply the schema to your database: `pnpm db:push`.
 4. Start the dev server: `pnpm dev`.
@@ -38,7 +38,9 @@ The most-used scripts — run `pnpm run` for the full list, which is authoritati
 
 Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` all pass. The corresponding `pnpm run` commands use the same scripts.
 
-Use `pnpm exec vp check` (or `pnpm check`) for formatting, linting, and type-aware checks, `pnpm exec vp test run` for unit tests, and `pnpm test:coverage` for coverage. Formatting retains the existing `apps`, `packages`, and `scripts` scope, plus `vite.config.ts`. The pnpm `packageManager` field remains authoritative for installation; run `pnpm install --frozen-lockfile` in CI.
+Use `pnpm exec vp check` (or `pnpm check`) for formatting, linting, and type-aware checks, `pnpm exec vp test run` for unit tests, and `pnpm test:coverage` for coverage. Formatting covers `apps`, `packages`, `scripts`, patch regression tests, and `vite.config.ts`. The pnpm `packageManager` field remains authoritative for installation; run `pnpm install --frozen-lockfile` in CI.
+
+Dependencies shared by workspaces use `catalog:` references; update their versions in the `pnpm-workspace.yaml` catalog. Dependency patch regression tests live in `patches/` and run with `pnpm test`. Railway SDK 3.16 requires Railway CLI 5.42.1 or newer because the IaC compiler now ships with the CLI.
 
 Use `pnpm test:watch` to watch the full suite or `pnpm --filter @movies/web test:watch` for web tests. The package script delegates to the shared root runner with Vite+'s `vp run -w` workspace selector and a test file filter.
 

@@ -8,8 +8,15 @@ export default defineConfig({
   fmt: {
     singleQuote: true,
     jsxSingleQuote: false,
-    // Match the existing formatter scripts' apps/packages/scripts scope.
-    ignorePatterns: ['/*', '!/apps/', '!/packages/', '!/scripts/', '!/vite.config.ts'],
+    // Include patch regression tests alongside the application and utility code.
+    ignorePatterns: [
+      '/*',
+      '!/apps/',
+      '!/packages/',
+      '!/scripts/',
+      '!/patches/',
+      '!/vite.config.ts',
+    ],
     sortTailwindcss: {
       stylesheet: './apps/web/src/app/globals.css',
       functions: ['cn', 'clsx'],
@@ -35,7 +42,11 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    include: ['apps/web/src/**/*.{test,spec}.{ts,tsx}', 'packages/**/*.{test,spec}.{ts,tsx}'],
+    include: [
+      'apps/web/src/**/*.{test,spec}.{ts,tsx}',
+      'packages/**/*.{test,spec}.{ts,tsx}',
+      'patches/**/*.test.ts',
+    ],
     alias: [
       // The single `@/* -> src/*` tsconfig path mapping, inlined (no plugin/dep).
       { find: /^@\//, replacement: fileURLToPath(new URL('./apps/web/src/', import.meta.url)) },
