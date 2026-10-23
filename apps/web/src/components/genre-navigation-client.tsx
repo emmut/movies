@@ -1,14 +1,5 @@
 'use client';
 
-import { ListFilterIcon } from 'lucide-react';
-import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { type RefObject, useState } from 'react';
-
-import {
-  ClearFiltersButton,
-  CompactFilterControls,
-  getFilterButtonLabel,
-} from '@/components/filters-panel';
 import { Button } from '@movies/ui/components/button';
 import {
   Popover,
@@ -18,6 +9,15 @@ import {
   PopoverTrigger,
 } from '@movies/ui/components/popover';
 import { Separator } from '@movies/ui/components/separator';
+import { ListFilterIcon } from 'lucide-react';
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { type RefObject, useState } from 'react';
+
+import {
+  ClearFiltersButton,
+  CompactFilterControls,
+  getFilterButtonLabel,
+} from '@/components/filters-panel';
 import { WatchProvider } from '@/types/watch-provider';
 
 import Pill from './pill';

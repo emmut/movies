@@ -1,7 +1,7 @@
 import 'server-only';
+import { searchIndex } from '@movies/db/schema/search-index';
 import { sql, SQL } from 'drizzle-orm';
 
-import { searchIndex } from '@movies/db/schema/search-index';
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
 import { getPersonDetails } from '@/lib/persons';

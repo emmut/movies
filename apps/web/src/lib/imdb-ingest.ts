@@ -1,7 +1,6 @@
+import { imdbRatings } from '@movies/db/schema/imdb-ratings';
 import { lt, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-
-import { imdbRatings } from '@movies/db/schema/imdb-ratings';
 
 // No 'server-only' here: the daily ingestion script (scripts/ingest-imdb-ratings.ts)
 // runs under Nub outside the Next.js server runtime.

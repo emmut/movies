@@ -2,8 +2,8 @@ import { Suspense } from 'react';
 
 import Trending from '@/app/trending';
 import ItemGrid from '@/components/item-grid';
-import MediaList from '@/components/media-list';
 import { ItemSlider } from '@/components/item-slider';
+import MediaList from '@/components/media-list';
 
 import { HOME_SECTIONS, MediaSectionConfig, MediaSectionHeader, TrendingHeader } from './sections';
 

@@ -1,12 +1,12 @@
 'use client';
 
+import { DEFAULT_REGION } from '@movies/config/regions';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import ItemCard from '@/components/item-card';
 import { useUserRegion } from '@/hooks/use-user-region';
 import { getHomeMediaList, HomeMediaCategory } from '@/lib/home-media';
 import { queryKeys } from '@/lib/query-keys';
-import { DEFAULT_REGION } from '@movies/config/regions';
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
 

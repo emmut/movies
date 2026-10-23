@@ -1,3 +1,4 @@
+import { Button } from '@movies/ui/components/button';
 import { type ReactNode } from 'react';
 
 import { WatchProvider } from '@/types/watch-provider';
@@ -5,7 +6,6 @@ import { WatchProvider } from '@/types/watch-provider';
 import OriginCountryFilter from './origin-country-filter';
 import RuntimeFilter from './runtime-filter';
 import SortByFilter from './sort-by-filter';
-import { Button } from '@movies/ui/components/button';
 import WatchProviderFilter from './watch-provider-filter';
 
 type FilterControlsBaseProps = {

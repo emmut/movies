@@ -1,10 +1,10 @@
+import { getRegionCodes } from '@movies/config/regions';
+import { listItems, lists } from '@movies/db/schema/lists';
+import { titleAvailability, titleAvailabilitySyncs, titles } from '@movies/db/schema/titles';
 import { and, eq, inArray, isNull, lt, notExists, or, sql, SQL } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { PgColumn } from 'drizzle-orm/pg-core';
 
-import { listItems, lists } from '@movies/db/schema/lists';
-import { titleAvailability, titleAvailabilitySyncs, titles } from '@movies/db/schema/titles';
-import { getRegionCodes } from '@movies/config/regions';
 import type { MovieDetails } from '@/types/movie';
 import type { TvDetails } from '@/types/tv-show';
 import type { RegionWatchProviders } from '@/types/watch-provider';

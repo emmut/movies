@@ -1,9 +1,9 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import { PaginationControls } from '@/components/pagination-controls';
 import { ReviewCard } from '@/components/review-card';
-import { Skeleton } from '@movies/ui/components/skeleton';
 import { getMediaReviews } from '@/lib/media-info';
 import { getMovieDetails } from '@/lib/movies';
 import { getTvShowDetails } from '@/lib/tv-shows';

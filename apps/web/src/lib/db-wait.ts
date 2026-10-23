@@ -17,8 +17,17 @@ export interface WaitForDatabaseOptions {
  * rethrows the last connection error once another attempt would overshoot
  * `timeoutMs`.
  */
-export async function waitForDatabase<T>(tryConnect: () => Promise<T>, options: WaitForDatabaseOptions = {}) {
-  const { timeoutMs = 60_000, intervalMs = 2_000, onRetry, now = Date.now, sleep = defaultSleep } = options;
+export async function waitForDatabase<T>(
+  tryConnect: () => Promise<T>,
+  options: WaitForDatabaseOptions = {},
+) {
+  const {
+    timeoutMs = 60_000,
+    intervalMs = 2_000,
+    onRetry,
+    now = Date.now,
+    sleep = defaultSleep,
+  } = options;
   const deadline = now() + timeoutMs;
 
   for (let attempt = 1; ; attempt++) {

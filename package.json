@@ -9,18 +9,19 @@
     "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
     "build": "nub run lint && nub exec turbo run build --filter=@movies/web --cache-dir=.turbo/cache",
     "start": "nub run --node --filter @movies/web start",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint --fix .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "lint": "vp lint .",
+    "check": "vp check",
+    "lint:fix": "vp lint --fix .",
+    "test": "vp test run",
+    "test:watch": "vp test watch",
+    "test:coverage": "vp test run --coverage",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:install": "playwright install --with-deps chromium webkit",
     "fallow": "fallow audit",
     "fallow:dead-code": "fallow dead-code",
-    "format": "oxfmt --write apps packages scripts",
-    "format:check": "oxfmt --check apps packages scripts",
+    "format": "vp fmt --write",
+    "format:check": "vp fmt --check",
     "db": "nub --env-file-if-exists=apps/web/.env exec drizzle-kit",
     "db:generate": "nub --env-file-if-exists=apps/web/.env exec drizzle-kit generate",
     "db:migrate": "nub --env-file-if-exists=apps/web/.env exec drizzle-kit migrate",
@@ -76,32 +77,19 @@
     "@types/pg": "^8.23.1",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "@vitest/coverage-v8": "^5.0.0",
+    "@vitest/coverage-v8": "catalog:",
     "drizzle-kit": "^0.31.10",
     "eslint-plugin-better-tailwindcss": "^4.7.0",
     "fallow": "3.25.0",
-    "oxfmt": "^0.67.0",
-    "oxlint": "^1.82.0",
-    "oxlint-tsgolint": "^7.0.2001",
     "railway": "3.10.0",
     "shadcn": "^4.21.0",
     "turbo": "2.11.7",
     "typescript": "7.0.2",
-    "vitest": "^5.0.0"
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": "24.x"
   },
-  "packageManager": "pnpm@11.1.2+sha512.415a1cc25974731e75455c1468371be74c5aa5fb7621b50d4056d222451609f11412f23fd602e6169f1e060466641f798597e1be961a10688836a67b16569499",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@nubjs/nub",
-      "better-sqlite3",
-      "core-js",
-      "esbuild",
-      "msw",
-      "sharp",
-      "unrs-resolver"
-    ]
-  }
+  "packageManager": "pnpm@11.1.2+sha512.415a1cc25974731e75455c1468371be74c5aa5fb7621b50d4056d222451609f11412f23fd602e6169f1e060466641f798597e1be961a10688836a67b16569499"
 }

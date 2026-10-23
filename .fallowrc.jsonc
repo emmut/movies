@@ -8,6 +8,8 @@
     "@imgproxy/imgproxy-js-core",
     "pg",
     "@tanstack/react-query-devtools",
+    // Loaded by Oxlint through vite.config.ts's lint.jsPlugins.
+    "eslint-plugin-better-tailwindcss",
   ],
   "duplicates": {
     // Loading skeletons are mirrored per route by App-Router convention, so

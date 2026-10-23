@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 // Concrete env so the module-level consts capture deterministic values at import.
 vi.mock('@/env', () => ({

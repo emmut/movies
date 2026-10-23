@@ -1,8 +1,9 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
+
 import { getSession } from '@/lib/auth-server';
 
 import { UserLogin } from './app-sidebar-user-login';
 import { NavUser } from './nav-user';
-import { Skeleton } from '@movies/ui/components/skeleton';
 
 export async function UserFooter() {
   const session = await getSession();

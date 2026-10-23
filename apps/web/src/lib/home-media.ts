@@ -1,7 +1,8 @@
 'use server';
 
-import { fetchNowPlayingMovies, fetchTopRatedMovies, fetchUpcomingMovies } from '@/lib/movies';
 import { DEFAULT_REGION, regionSchema } from '@movies/config/regions';
+
+import { fetchNowPlayingMovies, fetchTopRatedMovies, fetchUpcomingMovies } from '@/lib/movies';
 import { fetchOnTheAirTvShows, fetchPopularTvShows, fetchTopRatedTvShows } from '@/lib/tv-shows';
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';

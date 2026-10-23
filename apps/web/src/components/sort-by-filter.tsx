@@ -1,7 +1,5 @@
 'use client';
 
-import { parseAsString, useQueryStates } from 'nuqs';
-
 import { Label } from '@movies/ui/components/label';
 import {
   Select,
@@ -11,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movies/ui/components/select';
+import { parseAsString, useQueryStates } from 'nuqs';
 
 type SortByFilterProps = {
   mediaType: 'movie' | 'tv';

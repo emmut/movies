@@ -37,7 +37,7 @@ export function ExternalLinks({
           className="inline-flex items-center gap-2 rounded-lg bg-yellow-600 px-4 py-2 font-semibold text-black transition-colors hover:bg-yellow-700"
           href={`https://imdb.com/${mediaType === 'person' ? 'name' : 'title'}/${imdbId}`}
           rel="noopener noreferrer"
-          target={hasHover ? '_blank' : undefined }
+          target={hasHover ? '_blank' : undefined}
         >
           IMDb
         </a>

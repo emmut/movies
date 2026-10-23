@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('next/server', () => ({ after: vi.fn((fn: () => Promise<void>) => fn()) }));
 vi.mock('@/lib/db', () => ({ db: { tag: 'db' } }));

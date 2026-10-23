@@ -1,9 +1,15 @@
 'use client';
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@movies/ui/components/card';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@movies/ui/components/card';
 import { OAuthLoginButton } from '@/components/oauth-login-button';
 import { signInGitHubSettings, signInSettings } from '@/lib/auth-client';
 

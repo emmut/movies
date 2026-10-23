@@ -1,5 +1,6 @@
-import Poster from '@/components/poster';
 import { Skeleton } from '@movies/ui/components/skeleton';
+
+import Poster from '@/components/poster';
 
 export default function LoadingMovies() {
   return (

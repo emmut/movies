@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 import { MATCH_TIER, matchTier, rankByTitleMatch } from './search-rank';
 

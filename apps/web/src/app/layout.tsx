@@ -1,3 +1,5 @@
+import { Separator } from '@movies/ui/components/separator';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@movies/ui/components/sidebar';
 import { clsx } from 'cn';
 import { Metadata } from 'next';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
@@ -12,8 +14,6 @@ import { BackScrollRestorer } from '@/components/back-scroll-restorer';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
 import { SearchCommand, SearchCommandFallback } from '@/components/search-command';
-import { Separator } from '@movies/ui/components/separator';
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@movies/ui/components/sidebar';
 import { env } from '@/env';
 import { inter } from '@/fonts';
 import { IMAGE_CDN_URL } from '@/lib/constants';

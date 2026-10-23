@@ -1,6 +1,7 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
+
 import { HeaderButtonSkeleton } from '@/components/list-header-skeletons';
 import SectionTitle from '@/components/section-title';
-import { Skeleton } from '@movies/ui/components/skeleton';
 import { LISTS_PER_PAGE } from '@/lib/config';
 
 /**

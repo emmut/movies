@@ -50,7 +50,7 @@ What this unlocks next (sorting and filtering lists in SQL, rendering grids with
 - **Auth**: Better Auth (passkeys, Discord, GitHub)
 - **Images**: imgproxy for signed, resized poster images
 - **Analytics**: PostHog
-- **Tooling**: pnpm, oxlint/oxfmt, Vitest, Playwright, fallow
+- **Tooling**: pnpm, Vite+ (Oxlint, Oxfmt, Vitest), Playwright, fallow
 - **Infrastructure**: Railway (app, imgproxy, nightly IMDb ratings, title-cache, and search-index crons, per-PR preview environments with their own Postgres), configured as code in `.railway/railway.ts`
 
 ## Getting started

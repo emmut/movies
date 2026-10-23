@@ -1,11 +1,10 @@
 'use client';
 
+import { SidebarMenuButton, SidebarMenuItem, useSidebar } from '@movies/ui/components/sidebar';
 import { cn } from 'cn';
 import { Eye, Home, List, Sparkles, Star } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
-import { SidebarMenuButton, SidebarMenuItem, useSidebar } from '@movies/ui/components/sidebar';
 
 // activeClass: how the icon marks the active route. Solid shapes take
 // `fill-current`; outline icons with inner detail (eye) go blobby when

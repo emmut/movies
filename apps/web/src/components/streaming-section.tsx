@@ -1,7 +1,8 @@
-import { StreamingProviders } from '@/components/streaming-providers';
-import { Skeleton } from '@movies/ui/components/skeleton';
-import { getMovieWatchProviders } from '@/lib/movies';
 import type { RegionCode } from '@movies/config/regions';
+import { Skeleton } from '@movies/ui/components/skeleton';
+
+import { StreamingProviders } from '@/components/streaming-providers';
+import { getMovieWatchProviders } from '@/lib/movies';
 import { optional } from '@/lib/tmdb';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
 

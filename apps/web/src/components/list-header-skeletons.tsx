@@ -1,6 +1,5 @@
-import { cn } from 'cn';
-
 import { Skeleton } from '@movies/ui/components/skeleton';
+import { cn } from 'cn';
 
 type HeaderButtonSkeletonProps = {
   label: string;

@@ -1,10 +1,10 @@
 import 'server-only';
-import { sql, SQL } from 'drizzle-orm';
-
+import { DEFAULT_REGION } from '@movies/config/regions';
 import { listItems } from '@movies/db/schema/lists';
 import { titleAvailability } from '@movies/db/schema/titles';
+import { sql, SQL } from 'drizzle-orm';
+
 import { db } from '@/lib/db';
-import { DEFAULT_REGION } from '@movies/config/regions';
 import {
   mapWithConcurrency,
   selectTitlesNeedingAvailability,

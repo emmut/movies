@@ -1,10 +1,10 @@
 import { passkey } from '@better-auth/passkey';
+import * as schema from '@movies/db/schema/auth';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { nextCookies } from 'better-auth/next-js';
 import { anonymous } from 'better-auth/plugins';
 
-import * as schema from '@movies/db/schema/auth';
 import { env } from '@/env';
 import { db } from '@/lib/db';
 

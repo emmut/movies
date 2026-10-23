@@ -1,7 +1,7 @@
 import 'server-only';
+import { listItems, lists } from '@movies/db/schema/lists';
 import { and, eq, sql } from 'drizzle-orm';
 
-import { listItems, lists } from '@movies/db/schema/lists';
 import { db } from '@/lib/db';
 import { listItemOrderingScope, withOrderingLock } from '@/lib/ordering-lock';
 import type { SystemListType } from '@/lib/validations';

@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vite-plus/test';
 
 import { invalidateUserPreferenceQueries } from './query-invalidation';
 import { queryKeys } from './query-keys';

@@ -15,19 +15,21 @@
 
 import { Transform, type TransformCallback } from 'node:stream';
 import { Readable } from 'node:stream';
-import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { pipeline } from 'node:stream/promises';
+import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
+
 import { parse } from 'csv-parse';
 import { drizzle } from 'drizzle-orm/node-postgres';
 
-import { env } from './env';
 import {
   deleteStaleRatings,
   parseRatingRecord,
   upsertRatingsBatch,
   type ImdbRatingRow,
 } from '@/lib/imdb-ingest';
+
+import { env } from './env';
 
 const DATASET_URL = 'https://datasets.imdbws.com/title.ratings.tsv.gz';
 const BATCH_SIZE = 5_000;
@@ -99,9 +101,7 @@ async function main() {
       );
     }
 
-    const nodeStream = Readable.fromWeb(
-      response.body as NodeReadableStream<Uint8Array>,
-    );
+    const nodeStream = Readable.fromWeb(response.body as NodeReadableStream<Uint8Array>);
 
     const gunzipped = nodeStream.pipe(createGunzip());
 

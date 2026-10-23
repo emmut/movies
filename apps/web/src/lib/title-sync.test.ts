@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import { chain } from '@/test/db-chain';
 import type { MovieDetails } from '@/types/movie';

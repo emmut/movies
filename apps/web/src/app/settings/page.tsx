@@ -1,9 +1,15 @@
+import { regions } from '@movies/config/regions';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@movies/ui/components/card';
 import { unstable_noStore as noStore } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@movies/ui/components/card';
 import { getUser } from '@/lib/auth-server';
-import { regions } from '@movies/config/regions';
 import {
   getAllWatchProviders,
   getUserRegion,

@@ -1,7 +1,8 @@
 'use client';
 
-import { OAuthLoginButton } from '@/components/oauth-login-button';
 import { Separator } from '@movies/ui/components/separator';
+
+import { OAuthLoginButton } from '@/components/oauth-login-button';
 
 import { PasskeyLoginForm } from './passkey-login-form';
 

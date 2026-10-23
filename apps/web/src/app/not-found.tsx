@@ -1,8 +1,8 @@
+import { Button } from '@movies/ui/components/button';
 import { Film, Home } from 'lucide-react';
 import Link from 'next/link';
 
 import SearchBox from '@/components/search-box';
-import { Button } from '@movies/ui/components/button';
 
 export default function NotFound() {
   return (

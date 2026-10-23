@@ -11,13 +11,14 @@
  */
 
 import { randomUUID } from 'crypto';
+
+import { user } from '@movies/db/schema/auth';
+import { lists, listItems } from '@movies/db/schema/lists';
 import { and, eq } from 'drizzle-orm';
 
-import { lists, listItems } from '@movies/db/schema/lists';
-import { user } from '@movies/db/schema/auth';
-import { db } from '@/lib/db';
 import { env } from '@/env';
 import { TMDB_API_URL } from '@/lib/constants';
+import { db } from '@/lib/db';
 
 type TmdbMovie = {
   id: number;
@@ -51,23 +52,23 @@ type TmdbPopularPersonsResponse = {
 
 function parseArgs(): { email?: string } {
   const args = process.argv.slice(2);
-  
+
   const emailIndex = args.indexOf('--email');
   const email = emailIndex !== -1 && args[emailIndex + 1] ? args[emailIndex + 1] : undefined;
-  
+
   return { email };
 }
 
 async function getUserOrCreate(email: string) {
   const result = await db.select().from(user).where(eq(user.email, email)).limit(1);
-  
+
   if (result.length > 0) {
     return result[0];
   }
-  
+
   const userId = randomUUID();
   const name = email.split('@')[0];
-  
+
   await db.insert(user).values({
     id: userId,
     name,
@@ -76,38 +77,66 @@ async function getUserOrCreate(email: string) {
     createdAt: new Date(),
     updatedAt: new Date(),
   });
-  
+
   return { id: userId, name, email };
 }
 
 async function fetchTmdbData() {
   console.log('📥 Fetching TMDB data...');
-  
+
   const headers = {
     Authorization: `Bearer ${env.MOVIE_DB_ACCESS_TOKEN}`,
     Accept: 'application/json',
   };
-  
+
   // Fetch multiple pages to get more data
-  const [moviesPage1, moviesPage2, moviesPage3, tvPage1, tvPage2, tvPage3, personsPage1, personsPage2] = await Promise.all([
-    fetch(`${TMDB_API_URL}/trending/movie/day?page=1`, { headers }).then((r) => r.json() as Promise<TmdbTrendingMoviesResponse>),
-    fetch(`${TMDB_API_URL}/trending/movie/day?page=2`, { headers }).then((r) => r.json() as Promise<TmdbTrendingMoviesResponse>),
-    fetch(`${TMDB_API_URL}/trending/movie/day?page=3`, { headers }).then((r) => r.json() as Promise<TmdbTrendingMoviesResponse>),
-    fetch(`${TMDB_API_URL}/trending/tv/day?page=1`, { headers }).then((r) => r.json() as Promise<TmdbTrendingTvResponse>),
-    fetch(`${TMDB_API_URL}/trending/tv/day?page=2`, { headers }).then((r) => r.json() as Promise<TmdbTrendingTvResponse>),
-    fetch(`${TMDB_API_URL}/trending/tv/day?page=3`, { headers }).then((r) => r.json() as Promise<TmdbTrendingTvResponse>),
-    fetch(`${TMDB_API_URL}/person/popular?page=1`, { headers }).then((r) => r.json() as Promise<TmdbPopularPersonsResponse>),
-    fetch(`${TMDB_API_URL}/person/popular?page=2`, { headers }).then((r) => r.json() as Promise<TmdbPopularPersonsResponse>),
+  const [
+    moviesPage1,
+    moviesPage2,
+    moviesPage3,
+    tvPage1,
+    tvPage2,
+    tvPage3,
+    personsPage1,
+    personsPage2,
+  ] = await Promise.all([
+    fetch(`${TMDB_API_URL}/trending/movie/day?page=1`, { headers }).then(
+      (r) => r.json() as Promise<TmdbTrendingMoviesResponse>,
+    ),
+    fetch(`${TMDB_API_URL}/trending/movie/day?page=2`, { headers }).then(
+      (r) => r.json() as Promise<TmdbTrendingMoviesResponse>,
+    ),
+    fetch(`${TMDB_API_URL}/trending/movie/day?page=3`, { headers }).then(
+      (r) => r.json() as Promise<TmdbTrendingMoviesResponse>,
+    ),
+    fetch(`${TMDB_API_URL}/trending/tv/day?page=1`, { headers }).then(
+      (r) => r.json() as Promise<TmdbTrendingTvResponse>,
+    ),
+    fetch(`${TMDB_API_URL}/trending/tv/day?page=2`, { headers }).then(
+      (r) => r.json() as Promise<TmdbTrendingTvResponse>,
+    ),
+    fetch(`${TMDB_API_URL}/trending/tv/day?page=3`, { headers }).then(
+      (r) => r.json() as Promise<TmdbTrendingTvResponse>,
+    ),
+    fetch(`${TMDB_API_URL}/person/popular?page=1`, { headers }).then(
+      (r) => r.json() as Promise<TmdbPopularPersonsResponse>,
+    ),
+    fetch(`${TMDB_API_URL}/person/popular?page=2`, { headers }).then(
+      (r) => r.json() as Promise<TmdbPopularPersonsResponse>,
+    ),
   ]);
-  
-  const movies = [...moviesPage1.results, ...moviesPage2.results, ...moviesPage3.results].slice(0, 60);
+
+  const movies = [...moviesPage1.results, ...moviesPage2.results, ...moviesPage3.results].slice(
+    0,
+    60,
+  );
   const tvShows = [...tvPage1.results, ...tvPage2.results, ...tvPage3.results].slice(0, 60);
   const persons = [...personsPage1.results, ...personsPage2.results].slice(0, 40);
-  
+
   console.log(`   • ${movies.length} movies`);
   console.log(`   • ${tvShows.length} TV shows`);
   console.log(`   • ${persons.length} persons`);
-  
+
   return { movies, tvShows, persons };
 }
 
@@ -164,10 +193,7 @@ async function seedWatchlist(userId: string, movies: TmdbMovie[], tvShows: TmdbT
   ];
 
   for (const item of watchlistItems) {
-    await db
-      .insert(listItems)
-      .values(item)
-      .onConflictDoNothing();
+    await db.insert(listItems).values(item).onConflictDoNothing();
   }
 
   return {
@@ -185,7 +211,7 @@ async function createList(
   items: Array<{ resourceId: number; resourceType: 'movie' | 'tv' | 'person' }>,
 ) {
   const listId = randomUUID();
-  
+
   await db.insert(lists).values({
     id: listId,
     userId,
@@ -195,7 +221,7 @@ async function createList(
     createdAt: new Date(),
     updatedAt: new Date(),
   });
-  
+
   for (const item of items) {
     await db
       .insert(listItems)
@@ -208,7 +234,7 @@ async function createList(
       })
       .onConflictDoNothing();
   }
-  
+
   return { listId, name, emoji, itemCount: items.length };
 }
 
@@ -219,37 +245,25 @@ async function seedLists(
   persons: TmdbPerson[],
 ) {
   const listsCreated = [];
-  
+
   // Favorites - 100 items (mix of movies and TV)
   const favMovies = randomSelect(movies, 60);
   const favTv = randomSelect(tvShows, 40);
-  const favorites = await createList(
-    userId,
-    'Favorites',
-    '🌟',
-    'My favorite movies and shows',
-    [
-      ...favMovies.map((m) => ({ resourceId: m.id, resourceType: 'movie' as const })),
-      ...favTv.map((t) => ({ resourceId: t.id, resourceType: 'tv' as const })),
-    ],
-  );
+  const favorites = await createList(userId, 'Favorites', '🌟', 'My favorite movies and shows', [
+    ...favMovies.map((m) => ({ resourceId: m.id, resourceType: 'movie' as const })),
+    ...favTv.map((t) => ({ resourceId: t.id, resourceType: 'tv' as const })),
+  ]);
   listsCreated.push(favorites);
-  
+
   // To Watch Later - 100 items
   const watchLaterMovies = randomSelect(movies, 60);
   const watchLaterTv = randomSelect(tvShows, 40);
-  const watchLater = await createList(
-    userId,
-    'To Watch Later',
-    '📺',
-    'Trending content to watch',
-    [
-      ...watchLaterMovies.map((m) => ({ resourceId: m.id, resourceType: 'movie' as const })),
-      ...watchLaterTv.map((t) => ({ resourceId: t.id, resourceType: 'tv' as const })),
-    ],
-  );
+  const watchLater = await createList(userId, 'To Watch Later', '📺', 'Trending content to watch', [
+    ...watchLaterMovies.map((m) => ({ resourceId: m.id, resourceType: 'movie' as const })),
+    ...watchLaterTv.map((t) => ({ resourceId: t.id, resourceType: 'tv' as const })),
+  ]);
   listsCreated.push(watchLater);
-  
+
   // Great Performances - 50 items (persons + their works)
   const perfPersons = randomSelect(persons, 20);
   const perfMovies = randomSelect(movies, 20);
@@ -266,7 +280,7 @@ async function seedLists(
     ],
   );
   listsCreated.push(performances);
-  
+
   // Classic Movies - 75 items
   const classicMovies = randomSelect(movies, 75);
   const classics = await createList(
@@ -277,7 +291,7 @@ async function seedLists(
     classicMovies.map((m) => ({ resourceId: m.id, resourceType: 'movie' as const })),
   );
   listsCreated.push(classics);
-  
+
   // TV Binge List - 75 items
   const bingeTv = randomSelect(tvShows, 75);
   const bingeList = await createList(
@@ -288,41 +302,50 @@ async function seedLists(
     bingeTv.map((t) => ({ resourceId: t.id, resourceType: 'tv' as const })),
   );
   listsCreated.push(bingeList);
-  
+
   return listsCreated;
 }
 
 async function main() {
   console.log('🌱 Seeding watchlist and lists...\n');
-  
+
   const args = parseArgs();
-  
+
   if (!args.email) {
     console.error('❌ Email is required');
     console.error('Usage: pnpm seed --email <email>');
     process.exit(1);
   }
-  
+
   const userRecord = await getUserOrCreate(args.email);
   console.log(`👤 User: ${userRecord.id}`);
   console.log(`   Name: ${userRecord.name}`);
   console.log(`   Email: ${userRecord.email}`);
   console.log('');
-  
+
   const tmdbData = await fetchTmdbData();
   console.log('');
-  
+
   const watchlistResult = await seedWatchlist(userRecord.id, tmdbData.movies, tmdbData.tvShows);
-  console.log(`✅ Watchlist: Added ${watchlistResult.total} items (${watchlistResult.movies} movies, ${watchlistResult.tv} TV)`);
-  
-  const listsResult = await seedLists(userRecord.id, tmdbData.movies, tmdbData.tvShows, tmdbData.persons);
+  console.log(
+    `✅ Watchlist: Added ${watchlistResult.total} items (${watchlistResult.movies} movies, ${watchlistResult.tv} TV)`,
+  );
+
+  const listsResult = await seedLists(
+    userRecord.id,
+    tmdbData.movies,
+    tmdbData.tvShows,
+    tmdbData.persons,
+  );
   for (const list of listsResult) {
     console.log(`✅ List: "${list.name}" ${list.emoji} (${list.itemCount} items)`);
   }
-  
+
   console.log('\n🎉 Done!');
   console.log('\n💡 If logged in as this user, refresh the page to see the data.');
-  console.log('   Lists have 50-100 items each for testing pagination (24 items/page = 2-5 pages).\n');
+  console.log(
+    '   Lists have 50-100 items each for testing pagination (24 items/page = 2-5 pages).\n',
+  );
 }
 
 main().catch((error) => {

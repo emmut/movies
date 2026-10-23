@@ -1,12 +1,13 @@
 # Contributing
 
-A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared packages in `packages`, PostgreSQL/Drizzle, and the TMDB API.
+A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared packages in `packages`, PostgreSQL/Drizzle, and the TMDB API. Vite+ 1.4.0 provides testing, linting, formatting, and a local `vp` CLI; its shared configuration lives in `vite.config.ts`.
 
 ## Prerequisites
 
 - **mise** for the pinned Node and Nub versions; pnpm remains available through the `packageManager` field for Railway and direct package-manager commands.
 - A **PostgreSQL** database for local development.
 - A **TMDB API** access token and the other secrets defined in `apps/web/src/env.ts`.
+- Node **24.11.0 or newer within 24.x** for Vite+. The existing mise pin selects Node 24; no global `vp` installation is required.
 
 ## Getting started
 
@@ -36,6 +37,12 @@ The most-used scripts — run `nub run` for the full list, which is authoritativ
 | `nub run ingest:search` | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
 
 Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test`, and `pnpm fallow` all pass. The corresponding `nub run` commands use the same scripts.
+
+Use `pnpm exec vp check` (or `pnpm check`) for formatting, linting, and type-aware checks, `pnpm exec vp test run` for unit tests, and `pnpm test:coverage` for coverage. Formatting retains the existing `apps`, `packages`, and `scripts` scope, plus `vite.config.ts`. The pnpm `packageManager` field remains authoritative for installation; run `pnpm install --frozen-lockfile` in CI.
+
+Use `pnpm test:watch` to watch the full suite or `pnpm --filter @movies/web test:watch` for web tests. The package script delegates to the shared root runner with Vite+'s `vp run -w` workspace selector and a test file filter.
+
+Use `pnpm exec vp run dev` for this project's Docker and Next.js development workflow, `pnpm exec vp run build` for its production build, and `pnpm exec vp run <task>` for any other package script. These retain the existing Nub/Turbo orchestration. Built-in `vp dev` and `vp build` run Vite itself and cannot replace Next.js's server or build. `vp test` runs the built-in Vitest runner; `vp run test` runs the project's one-shot test script. Shared packages export source directly to Next.js and have no separate `vp pack` build.
 
 ## Conventions
 

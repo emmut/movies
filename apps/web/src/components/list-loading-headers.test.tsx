@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 import { ListDetailsContent } from '@/app/lists/[id]/list-details-content';
 import ListDetailsLoading from '@/app/lists/[id]/loading';

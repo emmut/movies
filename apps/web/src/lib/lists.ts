@@ -1,10 +1,10 @@
 'use server';
 
+import { listItems, lists } from '@movies/db/schema/lists';
 import { and, asc, count, desc, eq, sql, SQL } from 'drizzle-orm';
 import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { listItems, lists } from '@movies/db/schema/lists';
 import { requireUser } from '@/lib/auth-server';
 import {
   revalidateUserListCache,

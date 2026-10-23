@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('@/lib/auth-server', () => ({ requireUser: vi.fn() }));
 vi.mock('@/lib/cache-invalidation', () => ({ revalidateUserSystemListCache: vi.fn() }));

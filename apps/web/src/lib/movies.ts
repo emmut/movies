@@ -1,7 +1,7 @@
 import 'server-only';
+import { DEFAULT_REGION } from '@movies/config/regions';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { DEFAULT_REGION } from '@movies/config/regions';
 import type { GenreResponse } from '@/types/genre';
 import {
   MovieCredits,

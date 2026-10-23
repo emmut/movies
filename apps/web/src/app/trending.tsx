@@ -1,7 +1,8 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
+
 import { BackTargetLink } from '@/components/back-target-link';
 import Badge from '@/components/badge';
 import { Imgproxy } from '@/components/image-proxy';
-import { Skeleton } from '@movies/ui/components/skeleton';
 import { fetchTrendingMovies } from '@/lib/movies';
 import { fetchTrendingTvShows } from '@/lib/tv-shows';
 import { formatDateYear } from '@/lib/utils';
