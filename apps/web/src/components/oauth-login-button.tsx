@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@movies/ui/components/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from 'cn';
 import { Loader2, UserIcon } from 'lucide-react';
@@ -9,8 +10,6 @@ import { toast } from 'sonner';
 
 import { signInAnonymous, signInDiscord, signInGitHub } from '@/lib/auth-client';
 import { getSafeRedirectUrl } from '@/lib/utils';
-
-import { Button } from '@movies/ui/components/button';
 
 type AvailableOAuthProviders = 'discord' | 'google' | 'github' | 'anonymous';
 type OAuthLoginButtonProps = VariantProps<typeof oauthButtonVariants> &

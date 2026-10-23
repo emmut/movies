@@ -1,7 +1,6 @@
+import { user } from '@movies/db/schema/auth';
 import { sql } from 'drizzle-orm';
 import { index, integer, pgTable, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core';
-
-import { user } from '@movies/db/schema/auth';
 
 export const lists = pgTable(
   'lists',
@@ -58,10 +57,6 @@ export const listItems = pgTable(
     // The hot read path: page queries filter by list (and resource type for
     // system lists) and sort by position. The unique index above can't serve
     // it — resource_id sits between the filtered columns.
-    index('list_items_list_type_position_idx').on(
-      table.listId,
-      table.resourceType,
-      table.position,
-    ),
+    index('list_items_list_type_position_idx').on(table.listId, table.resourceType, table.position),
   ],
 );

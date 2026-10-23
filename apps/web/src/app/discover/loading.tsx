@@ -1,7 +1,8 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
+
 import Pill from '@/components/pill';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import SectionTitle from '@/components/section-title';
-import { Skeleton } from '@movies/ui/components/skeleton';
 
 // The default (movie) genre set TMDB returns, in order. Rendering the real
 // pill labels via the skeleton variant gives the exact same widths and height

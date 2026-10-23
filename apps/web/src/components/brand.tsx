@@ -1,8 +1,7 @@
+import { useSidebar } from '@movies/ui/components/sidebar';
 import { cn } from 'cn';
 import { Popcorn } from 'lucide-react';
 import Link from 'next/link';
-
-import { useSidebar } from '@movies/ui/components/sidebar';
 type BrandProps = {
   className?: string;
 };

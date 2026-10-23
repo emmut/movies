@@ -1,11 +1,11 @@
 'use client';
 
+import { getRegionCodes, RegionCode } from '@movies/config/regions';
 import { Play, ShoppingCart, TicketCheck, Tv } from 'lucide-react';
 import Image from 'next/image';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 import { RegionSelect } from '@/components/region-select';
-import { getRegionCodes, RegionCode } from '@movies/config/regions';
 import { formatImageUrl } from '@/lib/utils';
 import type { MovieWatchProviders } from '@/types/movie';
 import type { TvWatchProviders } from '@/types/tv-show';

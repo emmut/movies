@@ -1,10 +1,5 @@
 'use client';
 
-import { cn } from 'cn';
-import { Check, Filter } from 'lucide-react';
-import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
-import { ComponentProps, useState } from 'react';
-
 import { Button } from '@movies/ui/components/button';
 import { Input } from '@movies/ui/components/input';
 import { Label } from '@movies/ui/components/label';
@@ -15,6 +10,11 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@movies/ui/components/popover';
+import { cn } from 'cn';
+import { Check, Filter } from 'lucide-react';
+import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
+import { ComponentProps, useState } from 'react';
+
 import {
   getCountryFlag,
   getCountryName,

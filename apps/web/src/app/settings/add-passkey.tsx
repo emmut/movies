@@ -1,9 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { toast } from 'sonner';
-
 import { Button } from '@movies/ui/components/button';
 import {
   Dialog,
@@ -16,6 +12,10 @@ import {
 } from '@movies/ui/components/dialog';
 import { Input } from '@movies/ui/components/input';
 import { Label } from '@movies/ui/components/label';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
 import { addPasskey } from '@/lib/auth-client';
 
 export function AddPasskey() {

@@ -1,8 +1,8 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
 import { Suspense } from 'react';
 
 import ItemCard from '@/components/item-card';
 import { ItemSlider } from '@/components/item-slider';
-import { Skeleton } from '@movies/ui/components/skeleton';
 import { Movie } from '@/types/movie';
 import { TvShow } from '@/types/tv-show';
 

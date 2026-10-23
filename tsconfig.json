@@ -36,10 +36,11 @@
     "apps/web/next.config.ts",
     "packages/**/*.ts",
     "packages/**/*.tsx",
+    "patches/**/*.test.ts",
     "scripts/**/*.ts",
     "e2e/**/*.ts",
     "drizzle.config.ts",
-    "vitest.config.ts",
+    "vite.config.ts",
     "playwright.config.ts",
     ".railway/railway.ts"
   ],

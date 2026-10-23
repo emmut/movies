@@ -2,11 +2,6 @@
 
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from 'cn';
-import { PanelLeftIcon } from 'lucide-react';
-import * as React from 'react';
-
 import { Button } from '@movies/ui/components/button';
 import { Input } from '@movies/ui/components/input';
 import { Separator } from '@movies/ui/components/separator';
@@ -20,6 +15,10 @@ import {
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@movies/ui/components/tooltip';
 import { useIsMobile } from '@movies/ui/hooks/use-mobile';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from 'cn';
+import { PanelLeftIcon } from 'lucide-react';
+import * as React from 'react';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

@@ -1,9 +1,8 @@
 'use client';
 
 import type { DraggableAttributes } from '@dnd-kit/core';
-import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react';
-
 import { Button } from '@movies/ui/components/button';
+import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react';
 
 interface ReorderControlsProps {
   name: string;

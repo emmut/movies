@@ -1,6 +1,7 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
+
 import ItemGrid from '@/components/item-grid';
 import SectionTitle from '@/components/section-title';
-import { Skeleton } from '@movies/ui/components/skeleton';
 
 /**
  * Loading skeleton for the search page.

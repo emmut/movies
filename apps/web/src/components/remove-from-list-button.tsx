@@ -1,12 +1,5 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
-import { X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { MouseEvent, useState } from 'react';
-import { toast } from 'sonner';
-
-import { Button } from '@movies/ui/components/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +11,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@movies/ui/components/alert-dialog';
+import { Button } from '@movies/ui/components/button';
+import { useQueryClient } from '@tanstack/react-query';
+import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { MouseEvent, useState } from 'react';
+import { toast } from 'sonner';
+
 import { removeFromList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 

@@ -22,30 +22,25 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - name: Setup Vite+, Node and pnpm
+        uses: voidzero-dev/setup-vp@68f39c78aaf39be468cabd2afb09c162574c84af # v1.21.2
         with:
-          # Reads engines.node / volta from package.json.
-          node-version-file: package.json
-          cache: pnpm
-
-      - name: Install tools from mise.toml
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+          version-file: pnpm-workspace.yaml
+          node-version-file: .node-version
+          cache: true
+          run-install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: vp install --frozen-lockfile
 
-      - name: Lint
-        run: nub run lint
+      - name: Check formatting, lint & types
+        run: vp check
 
       - name: Typecheck
-        run: nub run check-types
+        run: vp run check-types
 
       - name: Test
-        run: nub run --node test
+        run: vp test
 
   e2e:
     name: E2E (Playwright)
@@ -99,37 +94,33 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v6
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
+      - name: Setup Vite+, Node and pnpm
+        uses: voidzero-dev/setup-vp@68f39c78aaf39be468cabd2afb09c162574c84af # v1.21.2
         with:
-          node-version-file: package.json
-          cache: pnpm
-
-      - name: Install tools from mise.toml
-        uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4
+          version-file: pnpm-workspace.yaml
+          node-version-file: .node-version
+          cache: true
+          run-install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: vp install --frozen-lockfile
 
       # Run the real migration chain (not db:push) so a broken migration fails
       # the PR here instead of a pre-deploy, and e2e exercises the schema that
       # migrations actually produce.
       - name: Apply database migrations
-        run: nub run db:migrate
+        run: vp run db:migrate
 
       - name: Test PostgreSQL fuzzy search
-        run: nub run --node test apps/web/src/lib/search-index.integration.test.ts
+        run: vp test apps/web/src/lib/search-index.integration.test.ts
         env:
           SEARCH_TEST_DATABASE_URL: ${{ env.DATABASE_URL }}
 
       - name: Install Playwright browser
-        run: nub run e2e:install
+        run: vp run e2e:install
 
       - name: Run e2e tests
-        run: nub run --node e2e
+        run: vp run e2e
         env:
           MOVIE_DB_ACCESS_TOKEN: ${{ secrets.MOVIE_DB_ACCESS_TOKEN }}
 

@@ -1,11 +1,6 @@
 'use client';
 
-import { cn } from 'cn';
-import { Check, Filter } from 'lucide-react';
-import Image from 'next/image';
-import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { ComponentProps, useState } from 'react';
-
+import { DEFAULT_REGION } from '@movies/config/regions';
 import { Button } from '@movies/ui/components/button';
 import { Label } from '@movies/ui/components/label';
 import {
@@ -15,7 +10,12 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@movies/ui/components/popover';
-import { DEFAULT_REGION } from '@movies/config/regions';
+import { cn } from 'cn';
+import { Check, Filter } from 'lucide-react';
+import Image from 'next/image';
+import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
+import { ComponentProps, useState } from 'react';
+
 import { formatImageUrl } from '@/lib/utils';
 import { WatchProvider } from '@/types/watch-provider';
 

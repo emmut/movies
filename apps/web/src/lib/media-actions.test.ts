@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('./movies', () => ({ fetchAvailableGenres: vi.fn() }));
 vi.mock('./tv-shows', () => ({ fetchAvailableTvGenres: vi.fn() }));

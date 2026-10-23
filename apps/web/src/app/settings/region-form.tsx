@@ -1,9 +1,6 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
-import { useState, useTransition } from 'react';
-import { toast } from 'sonner';
-
+import type { Region } from '@movies/config/regions';
 import { Button } from '@movies/ui/components/button';
 import { Label } from '@movies/ui/components/label';
 import {
@@ -13,8 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movies/ui/components/select';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState, useTransition } from 'react';
+import { toast } from 'sonner';
+
 import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
-import type { Region } from '@movies/config/regions';
 
 interface RegionFormProps {
   currentRegion: string;

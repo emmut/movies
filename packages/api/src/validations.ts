@@ -1,7 +1,6 @@
-import { z } from 'zod/v4';
-
 import { EMOJI_OPTIONS } from '@movies/config/constants';
 import { regionSchema } from '@movies/config/regions';
+import { z } from 'zod/v4';
 
 /**
  * Validates that a movieId is a valid string that can be converted to a positive integer.

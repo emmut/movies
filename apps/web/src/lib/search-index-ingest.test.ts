@@ -1,6 +1,6 @@
 import { searchIndex } from '@movies/db/schema/search-index';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 import {
   deleteStaleSearchIndexRows,

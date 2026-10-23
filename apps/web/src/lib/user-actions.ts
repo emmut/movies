@@ -2,16 +2,16 @@
 
 import { randomUUID } from 'crypto';
 
+import { DEFAULT_REGION, RegionCode, regionSchema } from '@movies/config/regions';
+import { user } from '@movies/db/schema/auth';
+import { userWatchProviders } from '@movies/db/schema/user-watch-providers';
 import { and, eq, inArray, not } from 'drizzle-orm';
 import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 
-import { user } from '@movies/db/schema/auth';
-import { userWatchProviders } from '@movies/db/schema/user-watch-providers';
 import { getSession } from '@/lib/auth-server';
 import { revalidateUserPreferenceCache } from '@/lib/cache-invalidation';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
-import { DEFAULT_REGION, RegionCode, regionSchema } from '@movies/config/regions';
 import { WatchProvider } from '@/types/watch-provider';
 
 import { MAJOR_STREAMING_PROVIDERS } from './config';

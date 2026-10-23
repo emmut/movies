@@ -1,7 +1,7 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
 import Link from 'next/link';
 
 import { ReviewCard } from '@/components/review-card';
-import { Skeleton } from '@movies/ui/components/skeleton';
 import { getMediaReviews } from '@/lib/media-info';
 import { optional } from '@/lib/tmdb';
 
