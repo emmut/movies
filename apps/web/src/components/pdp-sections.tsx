@@ -39,7 +39,9 @@ function PosterArtwork({
 }
 
 export function ProductionCompanies({ companies = [] }: { companies?: ProductionCompany[] }) {
-  if (!companies.length) return null;
+  if (!companies.length) {
+    return null;
+  }
   return (
     <section className="border-t border-white/10 pt-8">
       <h2 className="mb-5 text-xl font-semibold tracking-tight">Production Companies</h2>
@@ -70,11 +72,15 @@ export async function MovieCollection({
   currentId: number;
 }) {
   const collection = await optional(getCollection(collectionId), null);
-  if (!collection) return null;
+  if (!collection) {
+    return null;
+  }
   const parts = collection.parts
     .filter((part) => part.id !== currentId)
     .sort((a, b) => (a.release_date || '9999').localeCompare(b.release_date || '9999'));
-  if (!parts.length) return null;
+  if (!parts.length) {
+    return null;
+  }
   return (
     <section className="border-t border-white/10 pt-8">
       <h2 className="mb-5 text-xl font-semibold tracking-tight">{collection.name}</h2>
@@ -108,7 +114,9 @@ function EpisodeSummary({
   episode?: Episode | null;
   tvId: number;
 }) {
-  if (!episode) return null;
+  if (!episode) {
+    return null;
+  }
   return (
     <Link
       href={`/tv/${tvId}/season/${episode.season_number}`}
@@ -182,7 +190,9 @@ export async function SeasonEpisodes({
   seasonNumber: number;
 }) {
   const season = await optional(getSeason(tvId, seasonNumber), null);
-  if (!season) return <p>Season information is temporarily unavailable. Please try again.</p>;
+  if (!season) {
+    return <p>Season information is temporarily unavailable. Please try again.</p>;
+  }
   return (
     <section className="space-y-5 border-t border-white/10 pt-8">
       <h1 className="text-2xl font-semibold">{season.name}</h1>
@@ -233,7 +243,9 @@ export async function SeasonEpisodes({
 
 export async function TvRoleCredits({ tvId }: { tvId: number }) {
   const credits = await optional(getAggregateCredits(tvId), null);
-  if (!credits?.cast.length) return null;
+  if (!credits?.cast.length) {
+    return null;
+  }
   return (
     <details className="group rounded-xl border border-white/10 bg-zinc-900/50 p-5 transition-colors open:border-white/20">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-base font-semibold [&::-webkit-details-marker]:hidden">

@@ -4,15 +4,18 @@ import Link from 'next/link';
 import { Imgproxy } from '@/components/image-proxy';
 import { ItemSlider } from '@/components/item-slider';
 import { getPdpExtras } from '@/lib/pdp';
+import {
+  getGalleryImages,
+  getPlayableVideos,
+  getKeywords,
+  getRegionalReleases,
+} from '@/lib/pdp-extra-content';
 import { optional } from '@/lib/tmdb';
-import type { PdpExtras } from '@/types/pdp';
 
-function ImageGallery({ images }: { images: PdpExtras['images'] }) {
-  const pictures = [
-    ...(images?.backdrops ?? []).slice(0, 8),
-    ...(images?.posters ?? []).slice(0, 8),
-  ];
-  if (!pictures.length) return null;
+function ImageGallery({ pictures }: { pictures: ReturnType<typeof getGalleryImages> }) {
+  if (pictures.length === 0) {
+    return null;
+  }
   return (
     <section className="border-t border-white/10 pt-8">
       <h2 className="mb-5 text-xl font-semibold tracking-tight">Images</h2>
@@ -40,12 +43,10 @@ function ImageGallery({ images }: { images: PdpExtras['images'] }) {
   );
 }
 
-function Videos({ videos }: { videos: PdpExtras['videos'] }) {
-  const items =
-    videos?.results
-      .filter((video) => video.site === 'YouTube' && /^[\w-]+$/.test(video.key))
-      .slice(0, 12) ?? [];
-  if (!items.length) return null;
+function Videos({ items }: { items: ReturnType<typeof getPlayableVideos> }) {
+  if (items.length === 0) {
+    return null;
+  }
   return (
     <section className="border-t border-white/10 pt-8">
       <h2 className="mb-5 text-xl font-semibold tracking-tight">Videos</h2>
@@ -79,9 +80,16 @@ function Videos({ videos }: { videos: PdpExtras['videos'] }) {
   );
 }
 
-function Keywords({ keywords, type }: { keywords: PdpExtras['keywords']; type: 'movie' | 'tv' }) {
-  const items = keywords?.keywords ?? keywords?.results ?? [];
-  if (!items.length) return null;
+function Keywords({
+  items,
+  type,
+}: {
+  items: ReturnType<typeof getKeywords>;
+  type: 'movie' | 'tv';
+}) {
+  if (items.length === 0) {
+    return null;
+  }
   return (
     <details className="group rounded-xl border border-white/10 bg-zinc-900/30 p-5">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-base font-semibold [&::-webkit-details-marker]:hidden">
@@ -109,41 +117,25 @@ function Keywords({ keywords, type }: { keywords: PdpExtras['keywords']; type: '
   );
 }
 
-const RELEASE_TYPES: Record<number, string> = {
-  1: 'Premiere',
-  2: 'Limited theatrical',
-  3: 'Theatrical',
-  4: 'Digital',
-  5: 'Physical',
-  6: 'TV',
-};
 function RegionalReleases({
-  releases,
+  dates,
   region,
 }: {
-  releases: PdpExtras['release_dates'];
+  dates: ReturnType<typeof getRegionalReleases>;
   region: string;
 }) {
-  const dates =
-    releases?.results.find((result) => result.iso_3166_1 === region)?.release_dates ?? [];
-  const unique = [
-    ...new Map(
-      dates.map((date) => [`${date.type}:${date.release_date.slice(0, 10)}`, date]),
-    ).values(),
-  ].sort((a, b) => a.release_date.localeCompare(b.release_date));
-  if (!unique.length) return null;
+  if (dates.length === 0) {
+    return null;
+  }
   return (
     <section className="border-t border-white/10 pt-8">
       <h2 className="mb-5 text-xl font-semibold tracking-tight">Release Dates · {region}</h2>
       <ul className="divide-y divide-white/5 rounded-xl border border-white/10 bg-zinc-900/30 px-5">
-        {unique.map((date) => (
-          <li
-            key={`${date.type}:${date.release_date}`}
-            className="flex justify-between gap-4 py-4 text-sm"
-          >
-            <span>{RELEASE_TYPES[date.type] ?? 'Release'}</span>
-            <time className="text-zinc-400 tabular-nums" dateTime={date.release_date}>
-              {date.release_date.slice(0, 10)}
+        {dates.map((release) => (
+          <li key={release.key} className="flex justify-between gap-4 py-4 text-sm">
+            <span>{release.label}</span>
+            <time className="text-zinc-400 tabular-nums" dateTime={release.date}>
+              {release.date}
             </time>
           </li>
         ))}
@@ -162,13 +154,19 @@ export async function PdpAdditionalContent({
   region: string;
 }) {
   const extras = await optional(getPdpExtras(type, id), null);
-  if (!extras) return null;
+  if (!extras) {
+    return null;
+  }
+  const pictures = getGalleryImages(extras.images);
+  const videos = getPlayableVideos(extras.videos);
+  const keywords = getKeywords(extras.keywords);
+  const releaseDates = getRegionalReleases(extras.release_dates, region);
   return (
     <div className="space-y-8">
-      <RegionalReleases releases={extras.release_dates} region={region} />
-      <ImageGallery images={extras.images} />
-      <Videos videos={extras.videos} />
-      <Keywords keywords={extras.keywords} type={type} />
+      <RegionalReleases dates={releaseDates} region={region} />
+      <ImageGallery pictures={pictures} />
+      <Videos items={videos} />
+      <Keywords items={keywords} type={type} />
     </div>
   );
 }

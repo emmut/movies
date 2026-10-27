@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import ItemCard from '@/components/item-card';
 import { loadKeywordSearchParams } from '@/lib/keyword-search-params';
 import { getKeyword, getKeywordTitles } from '@/lib/pdp';
+import { keywordRouteSchema } from '@/lib/pdp-route-params';
 import { optional } from '@/lib/tmdb';
 
 async function KeywordContent({
@@ -71,18 +72,14 @@ export default async function KeywordPage({
     params,
     loadKeywordSearchParams(searchParams),
   ]);
-  if (
-    !/^\d+$/.test(keywordId) ||
-    !Number.isSafeInteger(Number(keywordId)) ||
-    Number(keywordId) < 1 ||
-    !Number.isInteger(page) ||
-    page < 1 ||
-    page > 500
-  )
+  const result = keywordRouteSchema.safeParse({ keywordId, page, mediaType });
+  if (!result.success) {
     notFound();
+  }
+  const route = result.data;
   return (
     <Suspense fallback={<p>Loading titles…</p>}>
-      <KeywordContent id={Number(keywordId)} type={mediaType} page={page} />
+      <KeywordContent id={route.keywordId} type={route.mediaType} page={route.page} />
     </Suspense>
   );
 }
