@@ -5,7 +5,7 @@ import {
   readScrollDimensions,
   restoreScrollPosition,
 } from '@native/lib/scroll-restoration';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 describe('restoring a remembered scroll position', () => {
   it.each([

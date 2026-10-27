@@ -344,7 +344,9 @@ export async function getListDetailsWithResources(
   // Fetch details for paginated items only
   const items = paginatedList.items;
   function resourceIdsOf(resourceType: string) {
-    return items.filter((item) => item.resourceType === resourceType).map((item) => item.resourceId);
+    return items
+      .filter((item) => item.resourceType === resourceType)
+      .map((item) => item.resourceId);
   }
 
   const [movies, tvShows, persons] = await Promise.all([
@@ -449,7 +451,11 @@ export async function addToList(
     // to the same slot.
     await withOrderingLock(listItemOrderingScope(validatedData.listId), async (tx) => {
       // Append to the end of the list's manual ordering.
-      const position = await nextPosition(tx, listItems, eq(listItems.listId, validatedData.listId));
+      const position = await nextPosition(
+        tx,
+        listItems,
+        eq(listItems.listId, validatedData.listId),
+      );
       await tx.insert(listItems).values({
         id: crypto.randomUUID(),
         listId: validatedData.listId,

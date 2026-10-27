@@ -1,5 +1,5 @@
 import { providerIdList, regionOr, scalar } from '@native/lib/search-params';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('native URL search params', () => {
   it('reads the first value of a repeated key', () => {

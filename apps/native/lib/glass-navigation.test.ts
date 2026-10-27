@@ -1,5 +1,5 @@
 import { glassHeaderOptions, navigationColor } from '@native/lib/glass-navigation';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('translucent native catalog navigation', () => {
   it('allows the real iOS glass background to render over content without an opaque header', () => {

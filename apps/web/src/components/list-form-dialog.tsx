@@ -1,8 +1,5 @@
 'use client';
 
-import { type ReactElement, useState } from 'react';
-
-import { ListFormFields } from '@/components/list-form-fields';
 import { Button } from '@movies/ui/components/button';
 import {
   Dialog,
@@ -13,6 +10,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@movies/ui/components/dialog';
+import { type ReactElement, useState } from 'react';
+
+import { ListFormFields } from '@/components/list-form-fields';
 
 export interface ListFormValues {
   name: string;

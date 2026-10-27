@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('next/server', () => ({ after: vi.fn((fn: () => Promise<void>) => fn()) }));
 vi.mock('@/lib/db', () => ({ db: { tag: 'db' } }));
@@ -12,11 +12,11 @@ vi.mock('@movies/db/title-sync', async (importOriginal) => {
   return { ...actual, syncTitle: vi.fn() };
 });
 
+import { syncTitle } from '@movies/db/title-sync';
 import { after } from 'next/server';
 
 import { db } from '@/lib/db';
 import { getMovieDetails, getMovieWatchProviders } from '@/lib/movies';
-import { syncTitle } from '@movies/db/title-sync';
 import { getTvShowDetails, getTvShowWatchProviders } from '@/lib/tv-shows';
 
 import { appTitleSource, scheduleTitleSync } from './title-sync-server';

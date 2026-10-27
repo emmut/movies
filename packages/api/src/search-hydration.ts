@@ -1,5 +1,5 @@
-import { fulfilledValues } from './settled';
 import type { SearchIndexHit } from './search-index-model';
+import { fulfilledValues } from './settled';
 import type { MovieDetails, MultiSearchResult } from './tmdb-types/movie';
 import type { PersonDetails } from './tmdb-types/person';
 import type { TvDetails } from './tmdb-types/tv-show';

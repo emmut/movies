@@ -1,6 +1,6 @@
 import { discoveryInput } from '@movies/api/discover';
 import { createDiscoveryService } from '@server/discovery-service';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 const record = {
   id: 42,

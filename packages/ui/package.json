@@ -12,9 +12,9 @@
     "class-variance-authority": "catalog:",
     "cn": "catalog:",
     "lucide-react": "catalog:",
+    "next": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:",
-    "next": "catalog:"
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "typescript": "catalog:"

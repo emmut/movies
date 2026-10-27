@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+
 import { env } from './src/env.ts';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-expressions

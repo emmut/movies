@@ -1,6 +1,6 @@
 import type { PersonDetail } from '@movies/api/person';
 import { personCreditCount, personFacts, personStats } from '@native/lib/person-model';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 const person: PersonDetail = {
   id: 7,

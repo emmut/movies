@@ -1,7 +1,7 @@
 import type { SessionUser } from '@movies/api/session';
 import { createApp } from '@server/app';
 import { createTestClient, mockServices } from '@server/test-services';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 const user: SessionUser = {
   id: 'owner',
@@ -13,17 +13,15 @@ const user: SessionUser = {
 const itemId = '00000000-0000-4000-8000-000000000001';
 function setup(signedIn = true) {
   const systemLists = {
-    page: vi
-      .fn()
-      .mockResolvedValue({
-        items: [],
-        totalItems: 0,
-        totalPages: 0,
-        currentPage: 1,
-        itemsPerPage: 20,
-        counts: { movie: 0, tv: 0 },
-        unavailableItems: 0,
-      }),
+    page: vi.fn().mockResolvedValue({
+      items: [],
+      totalItems: 0,
+      totalPages: 0,
+      currentPage: 1,
+      itemsPerPage: 20,
+      counts: { movie: 0, tv: 0 },
+      unavailableItems: 0,
+    }),
     memberships: vi.fn().mockResolvedValue({ inWatchlist: true, watched: false }),
     toggle: vi.fn().mockResolvedValue({ action: 'added' }),
     move: vi.fn().mockResolvedValue({ success: true }),

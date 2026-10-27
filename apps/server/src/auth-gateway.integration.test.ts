@@ -1,6 +1,6 @@
 import { createAuthGateway } from '@server/auth-gateway';
 import { Pool } from 'pg';
-import { expect, it } from 'vitest';
+import { expect, it } from 'vite-plus/test';
 import { z } from 'zod';
 
 const authUrl = process.env.AUTH_TEST_WEB_URL;

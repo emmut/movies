@@ -48,7 +48,7 @@ export function DiscoverFilters({
               key={filter}
               accessibilityRole="button"
               accessibilityLabel={item.title}
-              className="min-h-11 justify-center rounded-xl border border-border bg-default px-3"
+              className="bg-default min-h-11 justify-center rounded-xl border border-border px-3"
               onPress={() => setOpen(filter)}
             >
               <Text className="text-foreground">{item.title}</Text>

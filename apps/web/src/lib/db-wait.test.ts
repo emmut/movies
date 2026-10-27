@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 import { waitForDatabase } from './db-wait';
 
@@ -54,7 +54,10 @@ describe('waitForDatabase', () => {
   });
 
   it('sleeps for real between attempts when no sleep is injected', async () => {
-    const tryConnect = vi.fn().mockRejectedValueOnce(new Error('ECONNREFUSED')).mockResolvedValue('ok');
+    const tryConnect = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('ECONNREFUSED'))
+      .mockResolvedValue('ok');
 
     await expect(waitForDatabase(tryConnect, { intervalMs: 1 })).resolves.toBe('ok');
     expect(tryConnect).toHaveBeenCalledTimes(2);

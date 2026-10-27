@@ -1,6 +1,6 @@
 import type { SystemListPage } from '@movies/api/system-lists';
 import { readSystemListState, canReorderSystemList } from '@native/lib/system-list-state';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('native system list context', () => {
   it('uses account region, validates URL bounds and does not apply saved Discover providers implicitly', () => {

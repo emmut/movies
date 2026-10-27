@@ -9,7 +9,7 @@ From the repository root:
 1. `pnpm install`
 2. Copy `apps/server/.env.example` to `apps/server/.env` and set `MOVIE_DB_ACCESS_TOKEN` (the same server token used by the web app).
 3. Copy `apps/native/.env.example` to `apps/native/.env`.
-4. Run `nub run dev` to start Docker, the web app, the API server, and Expo together. To run just the native services, use `nub run dev:api` and `nub run dev:native` in separate terminals.
+4. Run `pnpm dev` to start Docker, the web app, the API server, and Expo together. To run just the native services, use `pnpm dev:api` and `pnpm dev:native` in separate terminals.
 5. Open the Expo development server in Expo Go, an iOS simulator, an Android emulator, or press `w` for the browser.
 
 Leave the public URL overrides empty for local development. The app derives port 3001 (API) and port 3000 (web discovery bridge) from the current browser hostname or Expo's advertised host. A changing Wi-Fi address no longer requires editing `.env`. Explicit URLs still override detection; set these for deployment, an Expo tunnel, or separately hosted services. Restart Expo after changing env values. Public variables contain URLs only; the TMDB token stays in `apps/server/.env`.
@@ -59,9 +59,9 @@ Railway runs the API as the `api` service in production and every PR environment
 
 ## Verify
 
-Run the root lint, typecheck, test and Fallow commands; `nub run check-types` also checks the native and server workspaces. API transport/service tests run with the root Vitest suite.
+Run the root lint, typecheck, test and Fallow commands; `pnpm check-types` also checks the native and server workspaces. API transport/service tests run with the root Vitest suite.
 
-`nub run --filter @movies/native test:e2e` exports the app and runs mobile-viewport browser tests against mocked oRPC responses, including region changes, native movie/TV deep links, back navigation/scroll restoration, missing optional data, loading, errors/retry/not-found and empty homepage results. The preview uses a single-page export and a local server at port 8083 that serves its index for HTML deep links. Browser hosting must supply the same SPA fallback. Install Chromium first with `nub exec playwright install chromium`. This verifies the React Native web runtime; device/simulator smoke testing remains separate.
+`pnpm --filter @movies/native test:e2e` exports the app and runs mobile-viewport browser tests against mocked oRPC responses, including region changes, native movie/TV deep links, back navigation/scroll restoration, missing optional data, loading, errors/retry/not-found and empty homepage results. The preview uses a single-page export and a local server at port 8083 that serves its index for HTML deep links. Browser hosting must supply the same SPA fallback. Install Chromium first with `pnpm exec playwright install chromium`. This verifies the React Native web runtime; device/simulator smoke testing remains separate.
 
 ## Decisions and roadmap
 

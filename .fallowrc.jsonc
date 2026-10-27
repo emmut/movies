@@ -15,9 +15,15 @@
     "expo-web-browser",
     "react-native-web",
     "babel-preset-expo",
+    // Loaded by Oxlint through vite.config.ts's lint.jsPlugins.
+    "eslint-plugin-better-tailwindcss",
   ],
-  // oxfmt loads its TypeScript config as a tooling entry point.
-  "entry": ["oxfmt.config.ts"],
+  "ignoreDependencyOverrides": [
+    // pnpm 12 puts bootstrap dependencies in the first lockfile document;
+    // Fallow misses esbuild in the application document. Keep the security
+    // override; the frozen pnpm install validates the complete lockfile.
+    { "package": "esbuild", "source": "pnpm-workspace.yaml" },
+  ],
   "duplicates": {
     // Loading skeletons are mirrored per route by App-Router convention, so
     // sibling loading.tsx files (movie/tv) will always register as clones.

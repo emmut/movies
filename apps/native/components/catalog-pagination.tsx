@@ -15,7 +15,7 @@ function PageButton({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}
-      className={'min-h-11 justify-center rounded-xl bg-default px-4 ' + opacity}
+      className={'bg-default min-h-11 justify-center rounded-xl px-4 ' + opacity}
       onPress={onPress}
     >
       <Text className="text-foreground">{label}</Text>

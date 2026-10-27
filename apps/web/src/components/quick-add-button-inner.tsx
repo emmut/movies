@@ -1,11 +1,5 @@
 'use client';
 
-import { type Query, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, CircleCheck, Eye, List, ListPlus, Star } from 'lucide-react';
-import { ReactNode, useState } from 'react';
-import { toast } from 'sonner';
-
-import { CreateListDialog } from '@/components/create-list-dialog';
 import { Button } from '@movies/ui/components/button';
 import {
   DropdownMenu,
@@ -15,6 +9,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@movies/ui/components/dropdown-menu';
+import { type Query, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Check, CircleCheck, Eye, List, ListPlus, Star } from 'lucide-react';
+import { ReactNode, useState } from 'react';
+import { toast } from 'sonner';
+
+import { CreateListDialog } from '@/components/create-list-dialog';
 import {
   addToList,
   getUserListsWithStatus,

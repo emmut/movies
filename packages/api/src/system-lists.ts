@@ -3,7 +3,11 @@ import { DEFAULT_REGION } from '@movies/config/regions';
 import { z } from 'zod';
 
 import { mediaCardSchema } from './home';
-import { postgresIntegerIdSchema, regionPreferenceSchema, watchProviderIdSchema } from './preferences';
+import {
+  postgresIntegerIdSchema,
+  regionPreferenceSchema,
+  watchProviderIdSchema,
+} from './preferences';
 import { resourceIdSchema, systemListTypeSchema, watchProviderFilterSchema } from './validations';
 
 export const systemListResourceInput = resourceIdSchema.extend({

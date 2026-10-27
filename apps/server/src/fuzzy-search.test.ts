@@ -1,7 +1,7 @@
 import { createSearchIndexReader } from '@movies/db/search-index';
 import type { Database } from '@server/database';
 import { createFuzzySearch } from '@server/fuzzy-search';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('@movies/db/search-index', () => ({ createSearchIndexReader: vi.fn() }));
 

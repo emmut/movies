@@ -1,15 +1,15 @@
 'use client';
 
-import { LogIn } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from '@movies/ui/components/sidebar';
+import { LogIn } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
 import { createLoginUrl } from '@/lib/utils';
 
 export function UserLogin() {

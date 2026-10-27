@@ -1,6 +1,6 @@
 import { AUTH_CLIENT_IP_HEADER, verifiedAuthRequest } from '@movies/auth/proxy';
 import { createAuthGateway } from '@server/auth-gateway';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 const user = {
   id: 'user-1',

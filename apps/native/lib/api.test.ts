@@ -1,5 +1,5 @@
 import { focusManager, onlineManager } from '@tanstack/react-query';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 
 const native = vi.hoisted(() => ({
   platform: 'web',

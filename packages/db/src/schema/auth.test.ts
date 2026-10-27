@@ -2,7 +2,7 @@ import { passkey as passkeyPlugin } from '@better-auth/passkey';
 import { getAuthTables } from 'better-auth/db';
 import { anonymous } from 'better-auth/plugins';
 import { getTableColumns } from 'drizzle-orm';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 import { account, passkey, session, user, verification } from './auth';
 

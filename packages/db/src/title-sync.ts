@@ -10,7 +10,7 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { QueryBuilder, type PgColumn } from 'drizzle-orm/pg-core';
 
 // No 'server-only' here: the nightly sync (scripts/sync-titles.ts) runs under
-// Nub outside the Next.js server runtime and shares this module with the app.
+// vpx outside the Next.js server runtime and shares this module with the app.
 
 export type TitleMediaType = 'movie' | 'tv';
 

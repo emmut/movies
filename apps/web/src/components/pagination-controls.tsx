@@ -1,11 +1,4 @@
 'use client';
-import { clsx } from 'cn';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { parseAsInteger, useQueryStates } from 'nuqs';
-import { useEffect } from 'react';
-
-import { scheduleScrollToContent, scrollToContentIfScheduled } from '@/lib/scroll-to-content';
-
 import { Input } from '@movies/ui/components/input';
 import {
   Pagination,
@@ -16,6 +9,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@movies/ui/components/pagination';
+import { clsx } from 'cn';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { parseAsInteger, useQueryStates } from 'nuqs';
+import { useEffect } from 'react';
+
+import { scheduleScrollToContent, scrollToContentIfScheduled } from '@/lib/scroll-to-content';
 
 type PaginationControlsProps = {
   totalPages: number;

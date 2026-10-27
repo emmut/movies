@@ -1,11 +1,11 @@
 'use client';
 
-import { cn } from 'cn';
-import type { ChangeEvent } from 'react';
-
 import { Input } from '@movies/ui/components/input';
 import { Label } from '@movies/ui/components/label';
 import { Textarea } from '@movies/ui/components/textarea';
+import { cn } from 'cn';
+import type { ChangeEvent } from 'react';
+
 import { EMOJI_OPTIONS } from '@/lib/config';
 
 type ListFormFieldsProps = {

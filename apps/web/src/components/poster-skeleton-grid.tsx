@@ -1,4 +1,5 @@
 import { Skeleton } from '@movies/ui/components/skeleton';
+
 import { ITEMS_PER_PAGE } from '@/lib/config';
 
 /**

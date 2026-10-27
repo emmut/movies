@@ -1,6 +1,7 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
+
 import { HeaderButtonSkeleton } from '@/components/list-header-skeletons';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
-import { Skeleton } from '@movies/ui/components/skeleton';
 
 /** Shared route and client-query fallback for a custom list detail page. */
 export function ListDetailsLoadingSkeleton() {

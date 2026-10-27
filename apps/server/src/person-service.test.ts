@@ -1,6 +1,6 @@
 import { TmdbRequestError } from '@movies/api/tmdb-fetch';
 import { createPersonService } from '@server/person-service';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 const person = {
   id: 7,

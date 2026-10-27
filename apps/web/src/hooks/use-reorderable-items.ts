@@ -1,10 +1,9 @@
 'use client';
 
 import { arrayMove } from '@dnd-kit/sortable';
+import { sameIdOrder } from '@movies/api/list-order';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-import { sameIdOrder } from '@movies/api/list-order';
 
 type ReorderableItem = { listItemId: string };
 

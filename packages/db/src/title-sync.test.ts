@@ -4,7 +4,7 @@ import type { TvDetails } from '@movies/api/tmdb-types/tv-show';
 import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import { chain } from '@/test/db-chain';
 

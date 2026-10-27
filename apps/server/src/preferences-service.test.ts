@@ -1,7 +1,7 @@
 import { createUserPreferenceStore } from '@movies/db/user-preferences';
 import type { Database } from '@server/database';
 import { createPreferencesService } from '@server/preferences-service';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('@movies/db/user-preferences', () => ({ createUserPreferenceStore: vi.fn() }));
 

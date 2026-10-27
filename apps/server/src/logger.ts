@@ -20,7 +20,8 @@ export function createLogger(level: LoggerOptions['level'], pretty: boolean): Lo
         ignore: 'pid,hostname',
         hideObject: true,
         // Next.js-style request lines: `GET /health 200 in 3ms`; other logs show msg
-        messageFormat: '{if method}{method} {path} {status} in {durationMs}ms{end}{if msg}{msg}{end}',
+        messageFormat:
+          '{if method}{method} {path} {status} in {durationMs}ms{end}{if msg}{msg}{end}',
       },
     },
   });

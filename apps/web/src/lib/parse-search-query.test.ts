@@ -1,5 +1,5 @@
 import { parseSearchQuery } from '@movies/api/parse-search-query';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('parseSearchQuery years', () => {
   it('extracts a trailing year', () => {

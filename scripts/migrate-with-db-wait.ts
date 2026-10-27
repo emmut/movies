@@ -1,4 +1,4 @@
-#!/usr/bin/env nub
+#!/usr/bin/env vpx
 
 /**
  * Waits for the database to accept connections, then applies the committed

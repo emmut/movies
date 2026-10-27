@@ -1,6 +1,10 @@
-import { commitSavedSetting, isUnauthorized, SETTINGS_LOGIN_HREF } from '@native/lib/settings-session';
+import {
+  commitSavedSetting,
+  isUnauthorized,
+  SETTINGS_LOGIN_HREF,
+} from '@native/lib/settings-session';
 import { QueryClient } from '@tanstack/react-query';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 describe('native settings session', () => {
   it('returns to settings after sign-in', () => {

@@ -1,5 +1,5 @@
 import { shouldRememberNavigation } from '@native/lib/navigation-press';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('capturing source scroll before in-app navigation', () => {
   it('captures native touches and ordinary browser/keyboard activations', () => {

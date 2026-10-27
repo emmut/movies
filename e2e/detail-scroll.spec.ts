@@ -94,8 +94,8 @@ test.describe('clamp-window viewport', () => {
   // browser clamps the retained scroll offset to less than the segment's
   // document offset (~80px of header + padding), the segment's top edge stays
   // visible, and Next's stock scroll handler early-exited without scrolling —
-  // fossilizing the offset once the real content streamed in (fixed in
-  // patches/next.patch). At 1480x864 the person skeleton (926px) leaves
+  // fossilizing the offset once the real content streamed in. Next.js 16.4
+  // handles this without a local patch. At 1480x864 the person skeleton (926px) leaves
   // exactly 62px of clamped scroll. Needs streaming latency to reproduce, so
   // the connection is throttled; an instant response commits URL, skeleton,
   // and content together and the bug window never opens.

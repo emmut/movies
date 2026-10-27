@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('@/lib/db', () => ({ db: { transaction: vi.fn() } }));
 vi.mock('@/lib/movies', () => ({ getMovieDetails: vi.fn() }));

@@ -1,5 +1,5 @@
 import { classifySessionChange } from '@native/lib/session-change';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('session change', () => {
   it('treats the first settled session as the baseline', () => {

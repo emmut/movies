@@ -1,5 +1,4 @@
 import 'server-only';
-
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 
 /**

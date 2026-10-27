@@ -2,7 +2,7 @@ import type { SessionUser } from '@movies/api/session';
 import { createApp } from '@server/app';
 import type { AuthGateway } from '@server/auth-gateway';
 import { createTestClient, mockServices } from '@server/test-services';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 const user: SessionUser = {
   id: 'user-1',

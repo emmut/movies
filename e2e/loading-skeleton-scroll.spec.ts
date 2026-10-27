@@ -6,10 +6,10 @@ import { MOVIE_PATH } from './helpers';
 // loading.tsx boundary showed the skeleton still scrolled down, then visibly
 // jumped to the top only once the real content streamed in.
 //
-// Next assigns the navigation's scroll intent to the new leaf CacheNode, whose
-// scroll handler lives inside the segment's still-pending RSC payload — so
-// nothing scrolled while the skeleton was on screen (fixed in
-// patches/next.patch by running the scroll handler over the loading fallback).
+// Older Next.js releases assigned the scroll intent to a leaf CacheNode whose
+// handler was inside the pending RSC payload. Next.js 16.4 wraps the loading
+// boundary with its scroll handler, so the local dependency patch is no longer
+// needed. Keep this regression test to verify upstream behavior.
 // This pins the invariant: the viewport is at the top WHILE the skeleton is
 // still visible, not merely after the content replaces it.
 //

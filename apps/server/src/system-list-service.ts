@@ -1,7 +1,7 @@
 import 'server-only';
 import { selectWatchProviders } from '@movies/api/preferences';
-import { fulfilledValues } from '@movies/api/settled';
 import type { SystemListService } from '@movies/api/router';
+import { fulfilledValues } from '@movies/api/settled';
 import { parseWatchProviderFilter, type SystemListToggleInput } from '@movies/api/system-lists';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
 import type { MovieDetails } from '@movies/api/tmdb-types/movie';
@@ -49,7 +49,10 @@ export function createSystemListService(
   const preferences = createUserPreferenceStore(database);
 
   /** TMDB card for a list row; rejects when TMDB answers for a different title. */
-  async function hydrateCard(row: { id: string; resourceId: number }, resourceType: 'movie' | 'tv') {
+  async function hydrateCard(
+    row: { id: string; resourceId: number },
+    resourceType: 'movie' | 'tv',
+  ) {
     const raw = tmdbCardSchema.parse(await fetchTmdb('/' + resourceType + '/' + row.resourceId));
     if (raw.id !== row.resourceId) {
       throw new Error('Unexpected title identifier');

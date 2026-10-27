@@ -1,8 +1,8 @@
 import 'server-only';
+import { imdbRatings } from '@movies/db/schema/imdb-ratings';
 import { eq } from 'drizzle-orm';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { imdbRatings } from '@movies/db/schema/imdb-ratings';
 import { db } from '@/lib/db';
 
 import { CACHE_TAGS } from './cache-tags';

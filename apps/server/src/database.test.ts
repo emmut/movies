@@ -1,6 +1,6 @@
 import { createDatabase, requireDatabase } from '@server/database';
 import { drizzle } from 'drizzle-orm/node-postgres';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('drizzle-orm/node-postgres', () => ({ drizzle: vi.fn() }));
 

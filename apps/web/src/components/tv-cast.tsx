@@ -1,6 +1,6 @@
 import { CastSlider } from '@/components/cast-slider';
-import { getTvShowCredits } from '@/lib/tv-shows';
 import { optional } from '@/lib/tmdb';
+import { getTvShowCredits } from '@/lib/tv-shows';
 
 /**
  * Billed cast for a TV show. Fetched independently so a slow or failed

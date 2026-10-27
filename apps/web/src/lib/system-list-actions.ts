@@ -1,16 +1,15 @@
 'use server';
 
 import 'server-only';
-
+import { systemListToggleInput } from '@movies/api/system-lists';
+import type { SystemListType } from '@movies/api/validations';
+import { createSystemListStore } from '@movies/db/system-lists';
 import { revalidatePath } from 'next/cache';
 
 import { requireUser } from '@/lib/auth-server';
 import { revalidateUserSystemListCache } from '@/lib/cache-invalidation';
-import { createSystemListStore } from '@movies/db/system-lists';
 import { db } from '@/lib/db';
 import { scheduleTitleSync } from '@/lib/title-sync-server';
-import { systemListToggleInput } from '@movies/api/system-lists';
-import type { SystemListType } from '@movies/api/validations';
 
 const { toggleSystemListRow } = createSystemListStore(db);
 

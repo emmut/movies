@@ -1,9 +1,5 @@
 'use client';
 
-import type * as React from 'react';
-
-import Brand from '@/components/brand';
-import { NavLink, NavLinkFallback } from '@/components/nav-link';
 import {
   Sidebar,
   SidebarContent,
@@ -13,6 +9,10 @@ import {
   SidebarMenu,
   SidebarRail,
 } from '@movies/ui/components/sidebar';
+import type * as React from 'react';
+
+import Brand from '@/components/brand';
+import { NavLink, NavLinkFallback } from '@/components/nav-link';
 
 const navItems = [
   {

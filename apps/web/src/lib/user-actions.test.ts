@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('@/lib/db', () => ({
   db: { update: vi.fn(), insert: vi.fn(), delete: vi.fn(), select: vi.fn(), transaction: vi.fn() },

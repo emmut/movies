@@ -1,5 +1,5 @@
 import { AUTH_CLIENT_IP_HEADER, authProxyHeaders } from '@movies/auth/proxy';
-import { beforeEach, expect, it, vi } from 'vitest';
+import { beforeEach, expect, it, vi } from 'vite-plus/test';
 
 const secret = 'a-shared-auth-secret-of-at-least-32-characters';
 const { get, post } = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));

@@ -7,5 +7,7 @@
     "./redirect": "./src/redirect.ts",
     "./proxy": "./src/proxy.ts"
   },
-  "dependencies": { "server-only": "catalog:" }
+  "dependencies": {
+    "server-only": "catalog:"
+  }
 }

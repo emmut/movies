@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
 
 import { createListItemOrderingStore, ListItemNotFoundError } from './list-item-order';
 import { createSystemListStore } from './system-lists';

@@ -1,6 +1,6 @@
 import { discoveryInput } from '@movies/api/discover';
 import { filterSpec } from '@native/lib/discover-filters';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 const options = {
   genres: [{ id: 12, name: 'Adventure' }],

@@ -50,7 +50,10 @@ export function createOrderingLock(db: NodePgDatabase) {
  * uses it can't interleave with another writer.
  */
 export async function nextPosition(tx: OrderingTx, table: OrderedTable, where: SQL | undefined) {
-  const rows = await tx.select({ lastPosition: max(table.position) }).from(table).where(where);
+  const rows = await tx
+    .select({ lastPosition: max(table.position) })
+    .from(table)
+    .where(where);
   const lastPosition = rows[0]?.lastPosition ?? 0;
   return lastPosition + 1;
 }

@@ -1,5 +1,5 @@
 import { routeUrl } from '@native/lib/route-url';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('native sign-in return URLs', () => {
   it('preserves country and query values without repeating dynamic route parameters', () => {

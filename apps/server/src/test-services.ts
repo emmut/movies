@@ -2,7 +2,7 @@ import type { AppRouterClient, AppServices } from '@movies/api/router';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import type { createApp } from '@server/app';
-import { vi } from 'vitest';
+import { vi } from 'vite-plus/test';
 
 /** Every host service as an inert mock; tests replace the ones they exercise. */
 export function mockServices(overrides: Partial<AppServices> = {}): AppServices {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 const withOrderingLock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/lib/db', () => ({ db: { select: vi.fn(), insert: vi.fn(), delete: vi.fn() } }));
@@ -9,16 +9,18 @@ vi.mock('@movies/db/ordering-lock', async (importOriginal) => {
   const { db } = await import('@/lib/db');
   return {
     ...actual,
-    createOrderingLock: () => withOrderingLock.mockImplementation((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
+    createOrderingLock: () =>
+      withOrderingLock.mockImplementation((_scope: string, fn: (tx: unknown) => unknown) => fn(db)),
   };
 });
 
-import { db } from '@/lib/db';
-
-import { chain } from '@/test/db-chain';
-
 import { createSystemListStore } from '@movies/db/system-lists';
-const { getOrCreateSystemListId, getSystemListId, toggleSystemListRow } = createSystemListStore(db as never);
+
+import { db } from '@/lib/db';
+import { chain } from '@/test/db-chain';
+const { getOrCreateSystemListId, getSystemListId, toggleSystemListRow } = createSystemListStore(
+  db as never,
+);
 
 beforeEach(() => {
   vi.clearAllMocks();

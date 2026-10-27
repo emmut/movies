@@ -1,4 +1,4 @@
-#!/usr/bin/env nub
+#!/usr/bin/env vpx
 
 /**
  * Refreshes the local title cache — `titles`, `title_availability` — for every
@@ -18,7 +18,6 @@
  */
 
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
-
 import {
   AVAILABILITY_MAX_AGE_MS,
   mapWithConcurrency,

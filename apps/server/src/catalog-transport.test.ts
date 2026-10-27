@@ -2,7 +2,7 @@ import { TmdbRequestError } from '@movies/api/tmdb-fetch';
 import { createApp } from '@server/app';
 import { createCatalogService } from '@server/catalog-service';
 import { createTestClient, mockServices } from '@server/test-services';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 function setup() {
   const fetchTmdb = vi

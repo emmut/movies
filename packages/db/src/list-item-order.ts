@@ -4,7 +4,12 @@ import type { SystemListType } from '@movies/api/validations';
 import { listItems, lists } from '@movies/db/schema/lists';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { createOrderingLock, listItemOrderingScope, rewriteListItemPositions } from './ordering-lock';
+
+import {
+  createOrderingLock,
+  listItemOrderingScope,
+  rewriteListItemPositions,
+} from './ordering-lock';
 
 export class ListItemNotFoundError extends Error {
   constructor() {

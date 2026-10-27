@@ -3,7 +3,7 @@ import { ListItemNotFoundError } from '@movies/db/list-item-order';
 import type { Database } from '@server/database';
 import { createSystemListService } from '@server/system-list-service';
 import { sql } from 'drizzle-orm';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 const mocks = vi.hoisted(() => ({
   store: {

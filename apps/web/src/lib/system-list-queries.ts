@@ -2,9 +2,9 @@
 
 import 'server-only';
 import { fulfilledValues } from '@movies/api/settled';
+import { parseWatchProviderFilter } from '@movies/api/system-lists';
 import { MovieDetails } from '@movies/api/tmdb-types/movie';
 import { TvDetails } from '@movies/api/tmdb-types/tv-show';
-import { parseWatchProviderFilter } from '@movies/api/system-lists';
 import { createSystemListStore } from '@movies/db/system-lists';
 import { cacheLife, cacheTag } from 'next/cache';
 
@@ -82,7 +82,12 @@ async function getCachedSystemListMembership(
       resourceType,
     });
 
-    return await systemLists.membership(userId, listType, validatedResourceId.resourceId, validatedResourceId.resourceType);
+    return await systemLists.membership(
+      userId,
+      listType,
+      validatedResourceId.resourceId,
+      validatedResourceId.resourceType,
+    );
   } catch (error) {
     console.error(`Error checking ${listType}:`, error);
     return false;
@@ -159,7 +164,14 @@ async function queryPageWithResourceDetails(
   page: number,
   providerFilter: WatchProviderFilter | null,
 ) {
-  const result = await systemLists.pageRows(userId, listType, resourceType, page, providerFilter, ensureAvailabilityKnown);
+  const result = await systemLists.pageRows(
+    userId,
+    listType,
+    resourceType,
+    page,
+    providerFilter,
+    ensureAvailabilityKnown,
+  );
   return { ...result, items: await hydrateResourceDetails(result.items, resourceType) };
 }
 

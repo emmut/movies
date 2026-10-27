@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('@/components/quick-add-button', () => ({ QuickAddButton: () => null }));
 vi.mock('@/components/remove-from-list-button', () => ({ RemoveFromListButton: () => null }));

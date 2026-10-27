@@ -1,6 +1,6 @@
 import { HOME_SECTIONS } from '@movies/api/home';
 import { createHomeService } from '@server/home-service';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 const movie = {
   id: 1,

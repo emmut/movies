@@ -1,5 +1,8 @@
 'use client';
 
+import { Dialog, DialogContent, DialogTitle } from '@movies/ui/components/dialog';
+import { Input } from '@movies/ui/components/input';
+import { Kbd } from '@movies/ui/components/kbd';
 import { cn } from 'cn';
 import { Search as SearchIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -11,9 +14,6 @@ import { flushSync } from 'react-dom';
 import Badge from '@/components/badge';
 import ClientImage from '@/components/client-image';
 import Spinner from '@/components/spinner';
-import { Dialog, DialogContent, DialogTitle } from '@movies/ui/components/dialog';
-import { Input } from '@movies/ui/components/input';
-import { Kbd } from '@movies/ui/components/kbd';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useSearchSuggestions } from '@/hooks/use-search-query';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
@@ -392,11 +392,7 @@ export function SearchCommand() {
           className="top-24 translate-y-0 gap-0 overflow-hidden p-0 sm:max-w-lg"
         >
           <DialogTitle className="sr-only">Search</DialogTitle>
-          <SearchCommandPanel
-            inputRef={inputRef}
-            onNavigate={navigate}
-            urlQuery={currentQuery}
-          />
+          <SearchCommandPanel inputRef={inputRef} onNavigate={navigate} urlQuery={currentQuery} />
         </DialogContent>
       </Dialog>
     </>

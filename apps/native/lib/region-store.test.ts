@@ -1,5 +1,5 @@
 import { createRegionStore, resolveRegion } from '@native/lib/region-store';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 describe('session region', () => {
   it('defaults to Sweden and keeps the selection between screen subscriptions', () => {

@@ -1,5 +1,5 @@
 import { authClientIp } from '@server/auth-client-ip';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('auth ingress identity', () => {
   it('uses the transport peer on direct hosts and ignores forged headers', () => {

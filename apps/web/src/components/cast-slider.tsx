@@ -1,9 +1,9 @@
+import { Skeleton } from '@movies/ui/components/skeleton';
 import { Users } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import { Imgproxy } from '@/components/image-proxy';
 import { ItemSlider } from '@/components/item-slider';
-import { Skeleton } from '@movies/ui/components/skeleton';
 
 // Structural shape shared by movie `CastMember` and TV `Cast`; kept minimal so
 // both credit types satisfy it without coupling this component to either.

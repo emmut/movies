@@ -1,6 +1,5 @@
-import { integer, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
-
 import { user } from '@movies/db/schema/auth';
+import { integer, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 export const userWatchProviders = pgTable(
   'user_watch_providers',

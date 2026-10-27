@@ -1,5 +1,5 @@
 import { readDiscoverState, toggleSelection } from '@native/lib/discover-state';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('native discovery URL state', () => {
   it('defaults malformed bounds, type and sort without crashing a deep link', () => {

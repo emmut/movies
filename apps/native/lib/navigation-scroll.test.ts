@@ -1,5 +1,5 @@
 import { captureActiveScroll, registerScrollCapture } from '@native/lib/navigation-scroll';
-import { expect, it, vi } from 'vitest';
+import { expect, it, vi } from 'vite-plus/test';
 
 it('captures the current screen before a tab action and ignores a stale blur cleanup', () => {
   const first = vi.fn();

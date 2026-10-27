@@ -1,13 +1,11 @@
 'use client';
 
+import { Button } from '@movies/ui/components/button';
 import { ChevronLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { scheduleBackScrollRestore } from '@/lib/back-scroll';
-
 import { useBackTarget } from '@/hooks/use-back-target';
-
-import { Button } from '@movies/ui/components/button';
+import { scheduleBackScrollRestore } from '@/lib/back-scroll';
 
 /**
  * Deterministic back button for detail pages. Navigates to the URL recorded

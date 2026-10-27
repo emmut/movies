@@ -1,10 +1,10 @@
-#!/usr/bin/env nub
+#!/usr/bin/env vpx
 
 /**
  * Script to list all available watch providers from TMDB API
  *
- * Usage: nub run list-providers [region]
- * Example: nub run list-providers SE
+ * Usage: pnpm list-providers [region]
+ * Example: pnpm list-providers SE
  */
 
 const TMDB_API_URL = 'https://api.themoviedb.org/3';
@@ -111,7 +111,7 @@ async function main() {
       console.log('');
       console.log('💡 Available regions (examples):');
       console.log('   SE (Sweden), US (United States), GB (United Kingdom)');
-      console.log('   Usage: nub run list-providers SE');
+      console.log('   Usage: pnpm list-providers SE');
     }
   } catch (error) {
     console.error('❌ Error:', error instanceof Error ? error.message : String(error));

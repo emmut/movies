@@ -1,5 +1,5 @@
 import { buildDiscoverSearchParams, MIN_RUNTIME_FILTER_MINUTES } from '@movies/api/discover-params';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { DEFAULT_REGION } from './regions';

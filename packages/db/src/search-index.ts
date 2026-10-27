@@ -101,10 +101,7 @@ type FuzzyRow = {
 export function createSearchIndexReader<TSchema extends Record<string, unknown>>(
   db: NodePgDatabase<TSchema>,
 ) {
-  async function searchIndexFuzzy(
-    query: string,
-    options: SearchIndexOptions,
-  ) {
+  async function searchIndexFuzzy(query: string, options: SearchIndexOptions) {
     const folded = normalizeSearchTitle(query);
     if (folded.length < MIN_FUZZY_QUERY_LENGTH) {
       return [];

@@ -4,7 +4,7 @@ import { createApp } from '@server/app';
 import { createRequestLogger } from '@server/logger';
 import { mockServices } from '@server/test-services';
 import { pino, type Logger } from 'pino';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 type LogLine = {
   method: string;

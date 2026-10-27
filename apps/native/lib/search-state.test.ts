@@ -1,6 +1,6 @@
 import { catalogPath } from '@native/lib/catalog-navigation';
 import { readSearchState } from '@native/lib/search-state';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('native search context', () => {
   it('keeps media choice before a query has been submitted', () => {

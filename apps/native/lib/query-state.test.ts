@@ -1,5 +1,5 @@
 import { combineQueryStates } from '@native/lib/query-state';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 describe('dependent account queries', () => {
   it('shows a recoverable failure even while another dependency is pending', () => {

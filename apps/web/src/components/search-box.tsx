@@ -1,8 +1,8 @@
 'use client';
 
+import { Button } from '@movies/ui/components/button';
 import { Search } from 'lucide-react';
 
-import { Button } from '@movies/ui/components/button';
 import SearchIcon from '@/icons/SearchIcon';
 import { MediaType } from '@/types/media-type';
 

@@ -28,7 +28,7 @@ function LoginIntroduction() {
         <Text className="text-center text-muted">{LOGIN_COPY.subtitle}</Text>
       </View>
       {LOGIN_FEATURES.map((feature) => (
-        <View key={feature.id} className="gap-1 rounded-xl border border-border bg-default p-4">
+        <View key={feature.id} className="bg-default gap-1 rounded-xl border border-border p-4">
           <Text className="font-semibold text-foreground">{feature.title}</Text>
           <Text className="text-sm text-muted">{feature.description}</Text>
         </View>

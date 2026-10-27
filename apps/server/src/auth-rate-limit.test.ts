@@ -3,7 +3,7 @@ import { createAuthGateway } from '@server/auth-gateway';
 import { betterAuth } from 'better-auth';
 import { memoryAdapter } from 'better-auth/adapters/memory';
 import { anonymous } from 'better-auth/plugins';
-import { expect, it } from 'vitest';
+import { expect, it } from 'vite-plus/test';
 
 it('preserves distinct client limits through the gateway without accepting caller IP spoofing', async () => {
   const secret = 'a-shared-auth-secret-of-at-least-32-characters';

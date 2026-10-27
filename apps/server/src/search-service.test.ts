@@ -1,6 +1,6 @@
 import { searchInput } from '@movies/api/search';
 import { createSearchService } from '@server/search-service';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 const movie = {
   id: 42,
@@ -119,18 +119,16 @@ describe('native search service', () => {
   });
   it('hydrates index-only typo matches with the same shared fallback behavior', async () => {
     const fetcher = vi.fn().mockResolvedValueOnce(page([])).mockResolvedValueOnce(movie);
-    const fuzzy = vi
-      .fn()
-      .mockResolvedValue([
-        {
-          tmdbId: 42,
-          mediaType: 'movie',
-          title: 'Alien',
-          popularity: 10,
-          similarity: 0.7,
-          score: 1,
-        },
-      ]);
+    const fuzzy = vi.fn().mockResolvedValue([
+      {
+        tmdbId: 42,
+        mediaType: 'movie',
+        title: 'Alien',
+        popularity: 10,
+        similarity: 0.7,
+        score: 1,
+      },
+    ]);
     const result = await createSearchService(fetcher, fuzzy).list(
       searchInput.parse({ query: 'alieen' }),
     );

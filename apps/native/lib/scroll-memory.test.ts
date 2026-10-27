@@ -1,5 +1,5 @@
 import { createScrollMemory } from '@native/lib/scroll-memory';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vite-plus/test';
 
 describe('scroll memory across pages and navigation entries', () => {
   it('starts new pages at zero and restores earlier pages independently', () => {

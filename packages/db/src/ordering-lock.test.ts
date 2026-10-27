@@ -1,5 +1,3 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
 import {
   createOrderingLock,
   listItemOrderingScope,
@@ -11,6 +9,7 @@ import {
 import { listItems, lists } from '@movies/db/schema/lists';
 import { eq, type SQL } from 'drizzle-orm';
 import { PgDialect } from 'drizzle-orm/pg-core';
+import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import { chain } from '@/test/db-chain';
 const db = { transaction: vi.fn() };
@@ -72,7 +71,9 @@ describe('nextPosition', () => {
   it('appends after the highest existing position', async () => {
     const select = vi.fn(() => chain([{ lastPosition: 4 }]));
 
-    await expect(nextPosition({ select } as never, listItems, eq(listItems.listId, 'list-1'))).resolves.toBe(5);
+    await expect(
+      nextPosition({ select } as never, listItems, eq(listItems.listId, 'list-1')),
+    ).resolves.toBe(5);
   });
 
   it('starts at 1 for an empty ordering', async () => {

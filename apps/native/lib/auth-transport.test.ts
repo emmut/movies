@@ -1,5 +1,5 @@
 import { createAuthenticatedFetch } from '@native/lib/auth-transport';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 describe('native session transport', () => {
   it('uses browser credentials without exposing a secure cookie to JavaScript headers', async () => {

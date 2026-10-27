@@ -2,7 +2,7 @@ import type { MovieWatchProviders } from '@movies/api/tmdb-types/movie';
 import type { SearchedPerson } from '@movies/api/tmdb-types/person';
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 import PersonCard from './person-card';
 import { StreamingProviders } from './streaming-providers';

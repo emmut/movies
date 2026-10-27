@@ -1,6 +1,6 @@
 import { TmdbRequestError } from '@movies/api/tmdb-fetch';
 import { createCatalogService } from '@server/catalog-service';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 const movie = {
   id: 42,
