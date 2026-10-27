@@ -285,6 +285,13 @@ export default async function TvShowPage(props: TvShowPageProps) {
             </div>
           )}
 
+          <TvSeasons
+            tvId={tvId}
+            seasons={tvShow.seasons}
+            next={tvShow.next_episode_to_air}
+            latest={tvShow.last_episode_to_air}
+          />
+
           <Suspense fallback={<CastSliderSkeleton />}>
             <TvCast tvId={tvId} />
           </Suspense>
@@ -294,12 +301,6 @@ export default async function TvShowPage(props: TvShowPageProps) {
           </Suspense>
 
           <ProductionCompanies companies={tvShow.production_companies} />
-          <TvSeasons
-            tvId={tvId}
-            seasons={tvShow.seasons}
-            next={tvShow.next_episode_to_air}
-            latest={tvShow.last_episode_to_air}
-          />
           <Suspense fallback={null}>
             <TvRoleCredits tvId={tvId} />
           </Suspense>
