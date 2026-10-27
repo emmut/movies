@@ -8,7 +8,7 @@ import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ListErrorState } from '@/components/list-error-state';
 import { ListItemsGrid } from '@/components/list-items-grid';
@@ -64,7 +64,7 @@ export function SystemListContent({
   watchProviders,
   userRegion,
 }: SystemListContentProps) {
-  const [urlState] = useQueryStates(
+  const [urlState, setUrlState] = useQueryStates(
     {
       mediaType: parseAsString.withDefault('movie'),
       page: parseAsInteger.withDefault(1),
@@ -122,7 +122,19 @@ export function SystemListContent({
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
 
-  const offset = (page - 1) * ITEMS_PER_PAGE;
+  // A removal on another client can shrink the list while this URL still
+  // points at its old last page. Use the page actually returned by the store.
+  const currentPage = paginatedData?.currentPage ?? page;
+  const isPageReconciled = currentPage === page;
+  const canReorder = !isProviderFiltered && !isLoading && !isError && isPageReconciled;
+
+  useEffect(() => {
+    if (!isError && !isPageReconciled) {
+      void setUrlState({ page: currentPage }, { history: 'replace' });
+    }
+  }, [currentPage, isError, isPageReconciled, setUrlState]);
+
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   const totalForMedia = mediaType === 'movie' ? totalMovies : totalTvShows;
 
   const { localItems, isPending, move } = useReorderableItems(
@@ -146,7 +158,7 @@ export function SystemListContent({
         onToggleEditing={() => setIsEditing((value) => !value)}
         watchProviders={watchProviders}
         userRegion={userRegion}
-        isProviderFiltered={isProviderFiltered}
+        canReorder={canReorder}
       />
 
       <SystemListBody
@@ -161,7 +173,7 @@ export function SystemListContent({
         totalPages={totalPages}
         itemCount={totalForMedia}
         offset={offset}
-        isEditing={isEditing && !isProviderFiltered}
+        isEditing={isEditing && canReorder}
         isPending={isPending}
         onMove={move}
       />
@@ -178,7 +190,7 @@ function SystemListHeader({
   onToggleEditing,
   watchProviders,
   userRegion,
-  isProviderFiltered,
+  canReorder,
 }: {
   listType: SystemListType;
   mediaType: 'movie' | 'tv';
@@ -188,7 +200,7 @@ function SystemListHeader({
   onToggleEditing: () => void;
   watchProviders: WatchProvider[];
   userRegion: string;
-  isProviderFiltered: boolean;
+  canReorder: boolean;
 }) {
   const totalItems = totalMovies + totalTvShows;
 
@@ -213,7 +225,7 @@ function SystemListHeader({
               positions in the full manual order. */}
           <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
           <ReorderButtonSlot
-            isAvailable={totalItems > 0 && !isProviderFiltered}
+            isAvailable={totalItems > 0 && canReorder}
             isEditing={isEditing}
             onToggleEditing={onToggleEditing}
           />
