@@ -11,6 +11,22 @@ function setup() {
   return { fetcher, app, client };
 }
 describe('supporting RPC transport', () => {
+  it.each(['movie', 'tv'] as const)(
+    'roundtrips %s credits through the public contract',
+    async (type) => {
+      const { client, fetcher } = setup();
+      fetcher.mockResolvedValueOnce({
+        cast: [{ id: 7, credit_id: 'a', name: 'Actor', character: 'Lead' }],
+        crew: [],
+      });
+      expect(await client.catalog.credits({ id: 42, type })).toEqual({
+        cast: [{ id: 7, creditId: 'a', name: 'Actor', role: 'Lead', profileUrl: null }],
+        directors: [],
+        writers: [],
+      });
+      expect(fetcher).toHaveBeenCalledWith(`/${type}/42/credits`);
+    },
+  );
   it('roundtrips trailer, provider and related outputs with canonical defaults', async () => {
     const { client, fetcher } = setup();
     expect(await client.catalog.trailer({ id: 42, type: 'movie' })).toBeNull();
@@ -28,6 +44,8 @@ describe('supporting RPC transport', () => {
   });
   it.each([
     ['trailer', { id: -1, type: 'movie' }],
+    ['credits', { id: 0, type: 'movie' }],
+    ['credits', { id: 42, type: 'person' }],
     ['trailer', { id: 42, type: 'person' }],
     ['providers', { id: 42, type: 'movie', region: 'XX' }],
     ['related', { id: 42, type: 'tv', kind: 'invalid' }],
@@ -44,6 +62,9 @@ describe('supporting RPC transport', () => {
   it('does not expose private upstream failures', async () => {
     const { client, fetcher } = setup();
     fetcher.mockRejectedValue(new Error('private upstream secret'));
+    await expect(client.catalog.credits({ id: 42, type: 'movie' })).rejects.toThrow(
+      'Internal server error',
+    );
     await expect(client.catalog.trailer({ id: 42, type: 'tv' })).rejects.toThrow(
       'Internal server error',
     );

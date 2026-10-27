@@ -4,7 +4,13 @@ import { describe, expect, it, vi } from 'vite-plus/test';
 
 function setup() {
   const home = { list: vi.fn().mockResolvedValue([]), trending: vi.fn().mockResolvedValue([]) };
-  const catalog = { details: vi.fn(), trailer: vi.fn(), providers: vi.fn(), related: vi.fn() };
+  const catalog = {
+    credits: vi.fn(),
+    details: vi.fn(),
+    trailer: vi.fn(),
+    providers: vi.fn(),
+    related: vi.fn(),
+  };
   const app = createApp(mockServices({ home, catalog }), 'http://localhost:8081');
   const client = createTestClient(app);
   return { home, catalog, app, client };

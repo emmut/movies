@@ -5,6 +5,20 @@ import { mediaCardSchema } from './home';
 
 export const catalogTitleInput = catalogDetailInput.omit({ region: true });
 export type CatalogTitleInput = z.infer<typeof catalogTitleInput>;
+const creditPersonSchema = z.object({
+  creditId: z.string(),
+  id: z.number().int().positive(),
+  name: z.string(),
+  role: z.string(),
+  profileUrl: z.string().url().nullable(),
+});
+export type CreditPerson = z.infer<typeof creditPersonSchema>;
+export const catalogCreditsSchema = z.object({
+  cast: z.array(creditPersonSchema),
+  directors: z.array(creditPersonSchema),
+  writers: z.array(creditPersonSchema),
+});
+export type CatalogCredits = z.infer<typeof catalogCreditsSchema>;
 export const catalogRelatedInput = catalogDetailInput.extend({
   kind: z.enum(['similar', 'recommendations']),
 });

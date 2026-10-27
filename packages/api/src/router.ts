@@ -9,6 +9,8 @@ import {
 } from './catalog';
 import {
   catalogTitleInput,
+  catalogCreditsSchema,
+  type CatalogCredits,
   catalogRelatedInput,
   trailerSchema,
   providerGroupsSchema,
@@ -72,6 +74,7 @@ export type HomeService = {
   trending(input: z.infer<typeof trendingInput>): Promise<MediaCard[]>;
 };
 export type CatalogService = {
+  credits(input: CatalogTitleInput): Promise<CatalogCredits>;
   details(input: CatalogDetailInput): Promise<CatalogDetail>;
   trailer(input: CatalogTitleInput): Promise<Trailer>;
   providers(input: CatalogDetailInput): Promise<ProviderGroups>;
@@ -211,6 +214,10 @@ export const appRouter = {
       .handler(({ input, context }) => context.discovery.options(input)),
   },
   catalog: {
+    credits: procedure
+      .input(catalogTitleInput)
+      .output(catalogCreditsSchema)
+      .handler(({ input, context }) => context.catalog.credits(input)),
     trailer: procedure
       .input(catalogTitleInput)
       .output(trailerSchema)

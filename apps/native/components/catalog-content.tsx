@@ -1,5 +1,6 @@
 import type { CatalogDetail } from '@movies/api/catalog';
 import { CatalogArtwork } from '@native/components/catalog-artwork';
+import { CatalogCredits } from '@native/components/catalog-credits';
 import { CatalogFacts, CatalogHeading, CatalogStats } from '@native/components/catalog-metadata';
 import { CatalogProviders } from '@native/components/catalog-providers';
 import { CatalogRelated } from '@native/components/catalog-related';
@@ -94,6 +95,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
             </Text>
           </View>
           <CatalogFacts item={item} />
+          <CatalogCredits input={input} />
           <CatalogProviders input={input} />
           <CatalogRelated input={input} kind="similar" />
           <CatalogRelated input={input} kind="recommendations" />

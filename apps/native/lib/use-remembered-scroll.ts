@@ -1,4 +1,5 @@
 import { registerScrollCapture } from '@native/lib/navigation-scroll';
+import { scrollEntryIdentity } from '@native/lib/scroll-entry';
 import { createScrollMemory } from '@native/lib/scroll-memory';
 import {
   canRestoreScroll,
@@ -8,7 +9,8 @@ import {
   restoreScrollPosition,
 } from '@native/lib/scroll-restoration';
 import { useFocusEffect, useRoute } from 'expo-router';
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 import type {
   FlatList,
   LayoutChangeEvent,
@@ -19,13 +21,24 @@ import type {
 
 const positions = new Map<string, number>();
 
+function scrollEntry(routeKey: string) {
+  const historyState =
+    Platform.OS === 'web' && typeof window !== 'undefined' ? window.history.state : undefined;
+  return { routeKey, identity: scrollEntryIdentity(routeKey, historyState) };
+}
+
 /** Remember the focused screen, ignoring zero-offset events while it is hidden. */
 export function useRememberedScroll<
   T extends ScrollView | Pick<FlatList<unknown>, 'scrollToOffset' | 'getScrollableNode'> =
     ScrollView,
 >(key: string, scope: 'screen' | 'entry' = 'screen') {
   const route = useRoute();
-  const positionKey = scope === 'entry' ? route.key + ':' + key : key;
+  // Capture browser history identity once per route, including when this screen is kept mounted.
+  const [entry, setEntry] = useState(() => scrollEntry(route.key));
+  if (entry.routeKey !== route.key) {
+    setEntry(scrollEntry(route.key));
+  }
+  const positionKey = scope === 'entry' ? entry.identity + ':' + key : key;
   const ref = useRef<T>(null);
   const memory = useRef(createScrollMemory(positionKey, positions));
   const bottomInset = useRef(0);

@@ -55,6 +55,14 @@ export function detailFixture(type: 'movie' | 'tv'): CatalogDetail {
 }
 
 export async function mockEmptySupport({ page }: { page: Page }) {
+  // Initial stack routes can mount Home behind a deep link. Keep fixture tests independent
+  // of a live API's trending data; individual Home tests install their own responses later.
+  await page.route('**/rpc/home/*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({ json: { json: [] }, headers: corsHeaders });
+  });
   await page.route('**/api/auth/get-session*', async (route) => {
     if (await preflight(route)) {
       return;
@@ -64,12 +72,15 @@ export async function mockEmptySupport({ page }: { page: Page }) {
       headers: corsHeaders,
     });
   });
-  await page.route(/\/rpc\/catalog\/(trailer|providers|related)(?:\?|$)/, async (route) => {
+  await page.route(/\/rpc\/catalog\/(trailer|providers|related|credits)(?:\?|$)/, async (route) => {
     if (await preflight(route)) {
       return;
     }
     const path = new URL(route.request().url()).pathname;
     let response: unknown = [];
+    if (path.endsWith('/credits')) {
+      response = { cast: [], directors: [], writers: [] };
+    }
     if (path.endsWith('/trailer')) {
       response = null;
     }
