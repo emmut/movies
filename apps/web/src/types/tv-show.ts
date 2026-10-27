@@ -4,6 +4,10 @@ import { Genre } from './genre';
 import { RegionWatchProviders } from './watch-provider';
 
 export type TvDetails = {
+  production_companies?: import('./pdp').ProductionCompany[];
+  seasons?: import('./pdp').SeasonSummary[];
+  next_episode_to_air?: import('./pdp').Episode | null;
+  last_episode_to_air?: import('./pdp').Episode | null;
   id: number;
   name: string;
   origin_country: string[];

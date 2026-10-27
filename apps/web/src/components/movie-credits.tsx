@@ -87,6 +87,21 @@ export async function MovieCredits({ movieId }: { movieId: number }) {
         </div>
       )}
 
+      <details className="rounded-lg bg-zinc-900 p-4">
+        <summary className="cursor-pointer text-xl font-semibold">Full Crew</summary>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          {credits.crew.map((person) => (
+            <li key={person.credit_id}>
+              <BackTargetLink href={`/person/${person.id}`} className="font-medium hover:underline">
+                {person.name}
+              </BackTargetLink>
+              <p className="text-sm text-zinc-400">
+                {person.job} · {person.department}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </details>
       <CastSlider cast={credits.cast} />
     </>
   );

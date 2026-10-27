@@ -11,6 +11,8 @@ import { MovieCredits } from '@/components/movie-credits';
 import { MovieFacts } from '@/components/movie-facts';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
+import { PdpAdditionalContent } from '@/components/pdp-extras';
+import { MovieCollection, ProductionCompanies } from '@/components/pdp-sections';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
 import { RatingsCard } from '@/components/ratings-card';
@@ -179,6 +181,16 @@ export default async function MoviePage(props: MoviePageProps) {
 
           <Suspense fallback={<StreamingSectionSkeleton />}>
             <StreamingSection resourceId={movieId} resourceType="movie" userRegion={userRegion} />
+          </Suspense>
+
+          <ProductionCompanies companies={movie.production_companies} />
+          {movie.belongs_to_collection && (
+            <Suspense fallback={null}>
+              <MovieCollection collectionId={movie.belongs_to_collection.id} currentId={movieId} />
+            </Suspense>
+          )}
+          <Suspense fallback={null}>
+            <PdpAdditionalContent type="movie" id={movieId} region={userRegion} />
           </Suspense>
 
           <OtherContent

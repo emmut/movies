@@ -10,6 +10,8 @@ import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
+import { PdpAdditionalContent } from '@/components/pdp-extras';
+import { ProductionCompanies, TvSeasons, TvRoleCredits } from '@/components/pdp-sections';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
 import { RatingsCard } from '@/components/ratings-card';
@@ -289,6 +291,20 @@ export default async function TvShowPage(props: TvShowPageProps) {
 
           <Suspense fallback={<StreamingSectionSkeleton />}>
             <StreamingSection resourceId={tvId} resourceType="tv" userRegion={userRegion} />
+          </Suspense>
+
+          <ProductionCompanies companies={tvShow.production_companies} />
+          <TvSeasons
+            tvId={tvId}
+            seasons={tvShow.seasons}
+            next={tvShow.next_episode_to_air}
+            latest={tvShow.last_episode_to_air}
+          />
+          <Suspense fallback={null}>
+            <TvRoleCredits tvId={tvId} />
+          </Suspense>
+          <Suspense fallback={null}>
+            <PdpAdditionalContent type="tv" id={tvId} region={userRegion} />
           </Suspense>
 
           <OtherContent

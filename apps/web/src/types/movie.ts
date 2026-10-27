@@ -25,6 +25,8 @@ export type Movie = {
 };
 
 export type MovieDetails = {
+  production_companies?: import('./pdp').ProductionCompany[];
+  belongs_to_collection?: { id: number; name: string } | null;
   adult: boolean;
   backdrop_path: string;
   budget: number;
