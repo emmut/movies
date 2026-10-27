@@ -38,7 +38,7 @@ function PosterArtwork({
   );
 }
 
-export function ProductionCompanies({ companies = [] }: { companies?: ProductionCompany[] }) {
+export function ProductionCompanies({ companies }: { companies: ProductionCompany[] }) {
   if (!companies.length) {
     return null;
   }
@@ -56,7 +56,9 @@ export function ProductionCompanies({ companies = [] }: { companies?: Production
                 <Imgproxy src={company.logo_path} alt="" width={70} height={35} />
               </div>
             )}
-            <span className="text-sm font-medium text-zinc-300">{company.name}</span>
+            <span className="min-w-0 text-sm font-medium wrap-anywhere text-zinc-300">
+              {company.name}
+            </span>
           </div>
         ))}
       </div>
@@ -92,10 +94,10 @@ export async function MovieCollection({
             className="group w-36 shrink-0 snap-start space-y-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-40"
           >
             <PosterArtwork path={part.poster_path} title={part.title} type="movie" />
-            <p className="line-clamp-2 text-sm leading-snug font-medium text-zinc-200 group-hover:text-white">
+            <p className="line-clamp-2 text-sm leading-snug font-medium wrap-anywhere text-zinc-200 group-hover:text-white">
               {part.title}
             </p>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm wrap-anywhere text-zinc-400">
               {part.release_date?.slice(0, 4) || 'Release date TBA'}
             </p>
           </BackTargetLink>
@@ -111,7 +113,7 @@ function EpisodeSummary({
   tvId,
 }: {
   label: string;
-  episode?: Episode | null;
+  episode: Episode | null;
   tvId: number;
 }) {
   if (!episode) {
@@ -140,14 +142,14 @@ function EpisodeSummary({
 
 export function TvSeasons({
   tvId,
-  seasons = [],
+  seasons,
   next,
   latest,
 }: {
   tvId: number;
-  seasons?: SeasonSummary[];
-  next?: Episode | null;
-  latest?: Episode | null;
+  seasons: SeasonSummary[];
+  next: Episode | null;
+  latest: Episode | null;
 }) {
   return (
     <section className="space-y-5 border-t border-white/10 pt-8">
@@ -169,10 +171,10 @@ export function TvSeasons({
             className="group w-36 shrink-0 snap-start space-y-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-40"
           >
             <PosterArtwork path={season.poster_path} title={season.name} type="tv" />
-            <p className="text-sm font-medium text-zinc-200 group-hover:text-white">
+            <p className="line-clamp-2 text-sm font-medium wrap-anywhere text-zinc-200 group-hover:text-white">
               {season.name}
             </p>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm wrap-anywhere text-zinc-400">
               {season.episode_count} episodes · {season.air_date?.slice(0, 4) || 'TBA'}
             </p>
           </Link>
@@ -196,7 +198,7 @@ export async function SeasonEpisodes({
   return (
     <section className="space-y-5 border-t border-white/10 pt-8">
       <h1 className="text-2xl font-semibold">{season.name}</h1>
-      <p className="text-sm text-zinc-400">
+      <p className="text-sm wrap-anywhere text-zinc-400">
         Expand an episode to reveal its title, image, and description.
       </p>
       {season.episodes.map((episode) => (
@@ -228,7 +230,7 @@ export async function SeasonEpisodes({
               />
             )}
             <p className="text-zinc-300">{episode.overview || 'No description available.'}</p>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm wrap-anywhere text-zinc-400">
               {episode.runtime ? `${episode.runtime} min · ` : ''}
               {episode.vote_count > 0
                 ? `${episode.vote_average.toFixed(1)}/10 (${episode.vote_count} votes)`
@@ -261,7 +263,7 @@ export async function TvRoleCredits({ tvId }: { tvId: number }) {
             <BackTargetLink href={`/person/${person.id}`} className="font-medium hover:underline">
               {person.name}
             </BackTargetLink>
-            <p className="text-sm text-zinc-400">
+            <p className="text-sm wrap-anywhere text-zinc-400">
               {person.roles
                 .map(
                   (role) => `${role.character || 'Unknown role'} (${role.episode_count} episodes)`,

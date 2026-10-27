@@ -109,7 +109,7 @@ export default async function MoviePage(props: MoviePageProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <Poster poster_path={poster_path} title={title} />
 
-        <div className="@container space-y-6 lg:col-span-8">
+        <div className="@container min-w-0 space-y-6 lg:col-span-8">
           <ItemHeader
             title={title}
             tagline={tagline}
@@ -183,7 +183,6 @@ export default async function MoviePage(props: MoviePageProps) {
             <StreamingSection resourceId={movieId} resourceType="movie" userRegion={userRegion} />
           </Suspense>
 
-          <ProductionCompanies companies={movie.production_companies} />
           {movie.belongs_to_collection && (
             <Suspense fallback={null}>
               <MovieCollection collectionId={movie.belongs_to_collection.id} currentId={movieId} />
@@ -204,6 +203,8 @@ export default async function MoviePage(props: MoviePageProps) {
           <Suspense fallback={<ReviewsSectionSkeleton />}>
             <ReviewsSection mediaType="movie" mediaId={movieId} />
           </Suspense>
+
+          <ProductionCompanies companies={movie.production_companies} />
 
           <ExternalLinks
             imdbId={movie.imdb_id}

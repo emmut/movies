@@ -122,7 +122,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <Poster poster_path={poster_path} title={name} />
 
-        <div className="@container space-y-6 lg:col-span-8">
+        <div className="@container min-w-0 space-y-6 lg:col-span-8">
           <ItemHeader
             title={name}
             tagline={tagline}
@@ -300,7 +300,6 @@ export default async function TvShowPage(props: TvShowPageProps) {
             <StreamingSection resourceId={tvId} resourceType="tv" userRegion={userRegion} />
           </Suspense>
 
-          <ProductionCompanies companies={tvShow.production_companies} />
           <Suspense fallback={null}>
             <TvRoleCredits tvId={tvId} />
           </Suspense>
@@ -319,6 +318,8 @@ export default async function TvShowPage(props: TvShowPageProps) {
           <Suspense fallback={<ReviewsSectionSkeleton />}>
             <ReviewsSection mediaType="tv" mediaId={tvId} />
           </Suspense>
+
+          <ProductionCompanies companies={tvShow.production_companies} />
 
           <ExternalLinks tmdbId={tvId} homepage={homepage} mediaType="tv" imdbId={imdbId} />
         </div>

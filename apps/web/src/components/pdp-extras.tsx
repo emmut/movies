@@ -63,7 +63,9 @@ function Videos({ items }: { items: ReturnType<typeof getPlayableVideos> }) {
               <Play className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="line-clamp-2 text-sm leading-relaxed font-medium">{video.name}</p>
+              <p className="line-clamp-2 text-sm leading-relaxed font-medium wrap-anywhere">
+                {video.name}
+              </p>
               <p className="text-sm text-zinc-400">
                 {video.type}
                 {video.official ? ' · Official' : ''} · YouTube
@@ -107,7 +109,7 @@ function Keywords({
           <Link
             key={keyword.id}
             href={`/keyword/${keyword.id}?mediaType=${type}`}
-            className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-300 transition-colors hover:border-blue-400/40 hover:text-white focus-visible:ring-2 focus-visible:ring-blue-400"
+            className="max-w-full rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs wrap-anywhere text-zinc-300 transition-colors hover:border-blue-400/40 hover:text-white focus-visible:ring-2 focus-visible:ring-blue-400"
           >
             {keyword.name}
           </Link>

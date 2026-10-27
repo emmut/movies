@@ -1,7 +1,9 @@
 import 'server-only';
 import { cacheLife, cacheTag } from 'next/cache';
 
+import type { Movie } from '@/types/movie';
 import type { AggregateCredits, CollectionDetails, PdpExtras, SeasonDetails } from '@/types/pdp';
+import type { TvShow } from '@/types/tv-show';
 
 import { CACHE_TAGS } from './cache-tags';
 import { tmdbFetch } from './tmdb';
@@ -50,7 +52,7 @@ export async function getKeywordTitles(id: number, type: 'movie' | 'tv', page: n
   'use cache: remote';
   cacheLife('hours');
   return tmdbFetch<{
-    results: (import('@/types/movie').Movie | import('@/types/tv-show').TvShow)[];
+    results: (Movie | TvShow)[];
     total_pages: number;
   }>(`/discover/${type}`, {
     searchParams: { with_keywords: id, page, include_adult: 'false', sort_by: 'popularity.desc' },

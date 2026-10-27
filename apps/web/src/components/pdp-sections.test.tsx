@@ -20,8 +20,10 @@ import {
 beforeEach(() => vi.clearAllMocks());
 describe('PDP sections', () => {
   it('hides absent production companies and missing episode data', () => {
-    expect(renderToStaticMarkup(<ProductionCompanies />)).toBe('');
-    const html = renderToStaticMarkup(<TvSeasons tvId={1} />);
+    expect(renderToStaticMarkup(<ProductionCompanies companies={[]} />)).toBe('');
+    const html = renderToStaticMarkup(
+      <TvSeasons tvId={1} seasons={[]} next={null} latest={null} />,
+    );
     expect(html).not.toContain('Next Episode');
     expect(html).not.toContain('Latest Episode');
   });

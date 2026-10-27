@@ -1,13 +1,14 @@
 import { RegionCode } from '@movies/config/regions';
 
 import { Genre } from './genre';
+import type { ProductionCompany, SeasonSummary, Episode } from './pdp';
 import { RegionWatchProviders } from './watch-provider';
 
 export type TvDetails = {
-  production_companies?: import('./pdp').ProductionCompany[];
-  seasons?: import('./pdp').SeasonSummary[];
-  next_episode_to_air?: import('./pdp').Episode | null;
-  last_episode_to_air?: import('./pdp').Episode | null;
+  production_companies: ProductionCompany[];
+  seasons: SeasonSummary[];
+  next_episode_to_air: Episode | null;
+  last_episode_to_air: Episode | null;
   id: number;
   name: string;
   origin_country: string[];
