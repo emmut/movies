@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { BackTargetLink } from '@/components/back-target-link';
 import { Imgproxy } from '@/components/image-proxy';
 import { getAggregateCredits, getCollection, getSeason } from '@/lib/pdp';
 import { optional } from '@/lib/tmdb';
@@ -44,7 +45,11 @@ export async function MovieCollection({
       <h2 className="mb-3 text-xl font-semibold">{collection.name}</h2>
       <div className="flex gap-4 overflow-x-auto pb-3">
         {parts.map((part) => (
-          <Link key={part.id} href={`/movie/${part.id}`} className="w-36 shrink-0 space-y-2">
+          <BackTargetLink
+            key={part.id}
+            href={`/movie/${part.id}`}
+            className="w-36 shrink-0 space-y-2"
+          >
             {part.poster_path && (
               <Imgproxy
                 src={part.poster_path}
@@ -58,7 +63,7 @@ export async function MovieCollection({
             <p className="text-sm text-zinc-400">
               {part.release_date?.slice(0, 4) || 'Release date TBA'}
             </p>
-          </Link>
+          </BackTargetLink>
         ))}
       </div>
     </section>
@@ -190,9 +195,9 @@ export async function TvRoleCredits({ tvId }: { tvId: number }) {
       <ul className="mt-4 space-y-3">
         {credits.cast.map((person) => (
           <li key={person.id}>
-            <Link href={`/person/${person.id}`} className="font-medium hover:underline">
+            <BackTargetLink href={`/person/${person.id}`} className="font-medium hover:underline">
               {person.name}
-            </Link>
+            </BackTargetLink>
             <p className="text-sm text-zinc-400">
               {person.roles
                 .map(

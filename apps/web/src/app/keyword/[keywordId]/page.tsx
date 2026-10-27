@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
 import ItemCard from '@/components/item-card';
+import { loadKeywordSearchParams } from '@/lib/keyword-search-params';
 import { getKeyword, getKeywordTitles } from '@/lib/pdp';
 import { optional } from '@/lib/tmdb';
 
@@ -64,10 +65,12 @@ export default async function KeywordPage({
   searchParams,
 }: {
   params: Promise<{ keywordId: string }>;
-  searchParams: Promise<{ mediaType?: string; page?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [{ keywordId }, search] = await Promise.all([params, searchParams]);
-  const page = Number(search.page ?? 1);
+  const [{ keywordId }, { page, mediaType }] = await Promise.all([
+    params,
+    loadKeywordSearchParams(searchParams),
+  ]);
   if (
     !/^\d+$/.test(keywordId) ||
     !Number.isSafeInteger(Number(keywordId)) ||
@@ -79,11 +82,7 @@ export default async function KeywordPage({
     notFound();
   return (
     <Suspense fallback={<p>Loading titles…</p>}>
-      <KeywordContent
-        id={Number(keywordId)}
-        type={search.mediaType === 'tv' ? 'tv' : 'movie'}
-        page={page}
-      />
+      <KeywordContent id={Number(keywordId)} type={mediaType} page={page} />
     </Suspense>
   );
 }

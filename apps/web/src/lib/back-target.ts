@@ -96,6 +96,7 @@ export function sanitizeBackHref(candidate: unknown) {
     case '':
     case 'search':
     case 'discover':
+    case 'keyword':
     case 'watchlist':
     case 'watched':
     case 'lists':

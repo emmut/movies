@@ -6,6 +6,7 @@ vi.mock('@/lib/pdp', () => ({
   getCollection: vi.fn(),
   getAggregateCredits: vi.fn(),
 }));
+import { BackTargetLink } from '@/components/back-target-link';
 import { getAggregateCredits, getCollection, getSeason } from '@/lib/pdp';
 
 import {
@@ -60,7 +61,9 @@ describe('PDP sections', () => {
         { id: 2, title: 'Earlier', release_date: '2010-01-01', poster_path: null },
       ],
     });
-    const html = renderToStaticMarkup(await MovieCollection({ collectionId: 1, currentId: 1 }));
+    const section = await MovieCollection({ collectionId: 1, currentId: 1 });
+    expect(section?.props.children[1].props.children[0].type).toBe(BackTargetLink);
+    const html = renderToStaticMarkup(section);
     expect(html).not.toContain('Current');
     expect(html.indexOf('Earlier')).toBeLessThan(html.indexOf('Later'));
     expect(html).toContain('/movie/2');
@@ -76,7 +79,11 @@ describe('PDP sections', () => {
         },
       ],
     });
-    const html = renderToStaticMarkup(await TvRoleCredits({ tvId: 1 }));
+    const section = await TvRoleCredits({ tvId: 1 });
+    expect(section?.props.children[1].props.children[0].props.children[0].type).toBe(
+      BackTargetLink,
+    );
+    const html = renderToStaticMarkup(section);
     expect(html).toContain('/person/42');
     expect(html).toContain('Detective (3 episodes)');
     expect(html).toContain('3 episodes total');
