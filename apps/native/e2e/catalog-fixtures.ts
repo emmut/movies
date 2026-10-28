@@ -51,6 +51,7 @@ export function detailFixture(type: 'movie' | 'tv'): CatalogDetail {
     episodeRuntimes: [45],
     lastAirDate: '2026-10-11',
     networks: ['A network'],
+    creators: [],
   };
 }
 

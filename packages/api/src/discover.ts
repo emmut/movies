@@ -1,3 +1,4 @@
+import { isOriginCountryCode } from '@movies/config/countries';
 import { DEFAULT_REGION, regionSchema } from '@movies/config/regions';
 import { z } from 'zod';
 
@@ -16,7 +17,12 @@ export const discoveryInput = discoveryOptionsInput
     genreIds: selectionIds.default([]),
     providerIds: z.array(watchProviderIdSchema).default([]),
     originCountries: z
-      .array(z.string().regex(/^[A-Z]{2}$/))
+      .array(
+        z
+          .string()
+          .regex(/^[A-Z]{2}$/)
+          .refine(isOriginCountryCode, 'Unsupported origin country'),
+      )
       .max(50)
       .default([]),
     sortBy: z.string().default('popularity.desc'),

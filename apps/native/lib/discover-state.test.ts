@@ -2,6 +2,14 @@ import { readDiscoverState, toggleSelection } from '@native/lib/discover-state';
 import { describe, expect, it } from 'vite-plus/test';
 
 describe('native discovery URL state', () => {
+  it('shares web normalization, deduplication and ISO validation for country links', () => {
+    expect(
+      readDiscoverState(
+        { with_origin_country: ' us |ZZ|SE|us|USA|se', mediaType: 'tv', watch_region: 'US' },
+        'SE',
+      ),
+    ).toMatchObject({ originCountries: ['US', 'SE'], type: 'tv', region: 'US' });
+  });
   it('defaults malformed bounds, type and sort without crashing a deep link', () => {
     expect(
       readDiscoverState(

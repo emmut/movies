@@ -11,6 +11,8 @@ import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { StatGrid } from '@native/components/stat-grid';
 import { orpc } from '@native/lib/api';
 import { personCreditCount, personFacts, personStats } from '@native/lib/person-model';
+import { useRegion } from '@native/lib/preferences';
+import { regionOr } from '@native/lib/search-params';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { Image as NativeImage } from 'expo-image';
@@ -25,9 +27,11 @@ const SafeAreaView = withUniwind(NativeSafeAreaView);
 function PersonFilmography({
   title,
   query,
+  region,
 }: {
   title: string;
   query: UseQueryResult<MediaCard[]>;
+  region: string;
 }) {
   if (query.data?.length === 0) {
     return null;
@@ -45,7 +49,7 @@ function PersonFilmography({
           void query.refetch();
         }}
       />
-      {query.data ? <MediaPosterRow items={query.data} /> : null}
+      {query.data ? <MediaPosterRow items={query.data} region={region} /> : null}
     </View>
   );
 }
@@ -94,7 +98,7 @@ function PersonStatistics({
   const credits = personCreditCount(movie.data, tv.data);
   return <StatGrid stats={personStats(person, credits)} />;
 }
-function PersonContent({ person }: { person: PersonDetail }) {
+function PersonContent({ person, region }: { person: PersonDetail; region: string }) {
   const movie = useQuery(
     orpc.person.credits.queryOptions({ input: { id: person.id, type: 'movie' }, retry: false }),
   );
@@ -144,8 +148,8 @@ function PersonContent({ person }: { person: PersonDetail }) {
           </Text>
         </View>
         <FactGrid facts={personFacts(person)} />
-        <PersonFilmography title="Movies" query={movie} />
-        <PersonFilmography title="TV Shows" query={tv} />
+        <PersonFilmography title="Movies" query={movie} region={region} />
+        <PersonFilmography title="TV Shows" query={tv} region={region} />
         <PersonSources person={person} />
       </ScrollView>
     </ScrollNavigationProvider>
@@ -188,7 +192,7 @@ function PersonLoadError({ error, retry }: { error: Error; retry: () => Promise<
   );
 }
 
-function PersonQuery({ id }: { id: number }) {
+function PersonQuery({ id, region }: { id: number; region: string }) {
   const query = useQuery(orpc.person.details.queryOptions({ input: { id }, retry: false }));
   if (query.isPending) {
     return (
@@ -203,16 +207,21 @@ function PersonQuery({ id }: { id: number }) {
   return (
     <>
       <Stack.Screen options={{ title: query.data.name }} />
-      <PersonContent person={query.data} />
+      <PersonContent person={query.data} region={region} />
     </>
   );
 }
 export function PersonScreen() {
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; region?: string }>();
+  const region = useRegion();
   const input = personInput.safeParse({ id: parseCatalogId(params.id) });
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']} collapsable={false}>
-      {input.success ? <PersonQuery id={input.data.id} /> : <PersonNotFound />}
+      {input.success ? (
+        <PersonQuery id={input.data.id} region={regionOr(params.region, region)} />
+      ) : (
+        <PersonNotFound />
+      )}
       <BottomNavigation />
     </SafeAreaView>
   );

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vite-plus/test';
+import { describe, expect, it, vi } from 'vite-plus/test';
 
 import {
   curatedOriginCountries,
@@ -8,9 +8,15 @@ import {
   getVisibleOriginCountries,
   originCountries,
   sanitizeOriginCountryCodes,
+  isOriginCountryCode,
 } from './countries';
 
 describe('originCountries', () => {
+  it('recognizes only known uppercase ISO codes at the API boundary', () => {
+    expect(isOriginCountryCode('US')).toBe(true);
+    expect(isOriginCountryCode('ZZ')).toBe(false);
+    expect(isOriginCountryCode('us')).toBe(false);
+  });
   it('contains unique, well-formed ISO 3166-1 alpha-2 codes', () => {
     expect(new Set(originCountries).size).toBe(originCountries.length);
     for (const code of originCountries) {
@@ -99,4 +105,16 @@ describe('getVisibleOriginCountries', () => {
   it('does not duplicate selected codes already in the list', () => {
     expect(getVisibleOriginCountries('', ['SE'])).toEqual(curatedOriginCountries);
   });
+});
+
+it('falls back to the code on platforms without Intl.DisplayNames', async () => {
+  vi.resetModules();
+  vi.stubGlobal('Intl', { DisplayNames: undefined });
+  try {
+    const countries = await import('./countries');
+    expect(countries.getCountryName('SE')).toBe('SE');
+  } finally {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  }
 });

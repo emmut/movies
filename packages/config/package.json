@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./regions": "./regions.ts",
+    "./countries": "./countries.ts",
     "./constants": "./constants.ts",
     "./search-title": "./search-title.ts",
     "./native-auth": "./native-auth.ts",

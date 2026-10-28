@@ -1,6 +1,7 @@
 import { DEFAULT_REGION, regionSchema } from '@movies/config/regions';
 import { z } from 'zod';
 
+import { creditPersonSchema } from './credits';
 import { mediaCardSchema } from './home';
 
 export const catalogDetailInput = z.object({
@@ -38,6 +39,7 @@ export const catalogDetailSchema = z.discriminatedUnion('type', [
     episodeRuntimes: z.array(z.number().int().nonnegative()),
     lastAirDate: z.string(),
     networks: z.array(z.string()),
+    creators: z.array(creditPersonSchema).default([]),
   }),
 ]);
 export type CatalogDetail = z.infer<typeof catalogDetailSchema>;

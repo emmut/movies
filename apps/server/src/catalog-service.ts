@@ -47,6 +47,16 @@ const detailsSchema = z.object({
   episode_run_time: z.array(z.number().int().nonnegative()).default([]),
   last_air_date: text,
   networks: z.array(z.object({ name: z.string() })).default([]),
+  created_by: z
+    .array(
+      z.object({
+        id: z.number().int().positive(),
+        credit_id: text,
+        name: z.string(),
+        profile_path: text,
+      }),
+    )
+    .default([]),
 });
 
 function publicHomepage(value: string) {
@@ -144,6 +154,13 @@ export function createCatalogService(fetchTmdb: TmdbFetch): CatalogService {
         episodeRuntimes: item.episode_run_time,
         lastAirDate: item.last_air_date,
         networks: item.networks.map((network) => network.name),
+        creators: item.created_by.map((person) => ({
+          id: person.id,
+          creditId: person.credit_id || 'creator:' + person.id,
+          name: person.name,
+          role: 'Creator',
+          profileUrl: tmdbImageUrl(person.profile_path, 'w185'),
+        })),
       };
     },
   };

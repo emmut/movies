@@ -84,6 +84,7 @@ describe('discovery service', () => {
       return [
         { iso_3166_1: 'US', english_name: 'United States' },
         { iso_3166_1: 'SE', english_name: 'Sweden' },
+        { iso_3166_1: 'ZZ', english_name: 'Unsupported country' },
       ];
     });
     const result = await createDiscoveryService(fetcher).options({ type: 'tv', region: 'US' });

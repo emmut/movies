@@ -12,6 +12,19 @@ function setup() {
   return { app, client, discovery };
 }
 describe('discovery RPC transport', () => {
+  it.each(['ZZ', 'us'])(
+    'rejects unsupported origin country %s before the service runs',
+    async (country) => {
+      const { app, discovery } = setup();
+      const response = await app.request('/rpc/discovery/list', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ json: { originCountries: [country] } }),
+      });
+      expect(response.status).toBe(400);
+      expect(discovery.list).not.toHaveBeenCalled();
+    },
+  );
   it('roundtrips native list/options calls with canonical defaults', async () => {
     const { client, discovery } = setup();
     expect(await client.discovery.list({})).toEqual({ items: [], totalPages: 0, totalResults: 0 });

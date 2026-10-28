@@ -28,6 +28,7 @@ const movie: Extract<CatalogDetail, { type: 'movie' }> = {
 const series: Extract<CatalogDetail, { type: 'tv' }> = {
   ...movie,
   type: 'tv',
+  creators: [],
   originalTitle: 'Original series',
   seasons: 3,
   episodes: 24,

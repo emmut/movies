@@ -1,3 +1,4 @@
+import { originCountries as knownCountries } from '@movies/config/countries';
 import {
   corsHeaders,
   detailFixture,
@@ -311,13 +312,9 @@ test('unavailable selected providers remain visible and can be removed', async (
 });
 
 test('country selection limits explain disabled additions and permit removal', async ({ page }) => {
-  const countries = Array.from({ length: 51 }, (_, index) => ({
-    code:
-      'A' +
-      String.fromCharCode(65 + Math.floor(index / 26)) +
-      String.fromCharCode(65 + (index % 26)),
-    name: 'Country ' + index,
-  })).map((country) => ({ ...country, code: country.code.slice(1) }));
+  const countries = knownCountries
+    .slice(0, 51)
+    .map((code, index) => ({ code, name: 'Country ' + index }));
   await page.route('**/rpc/discovery/options*', async (route) => {
     if (await preflight(route)) {
       return;

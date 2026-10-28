@@ -124,7 +124,7 @@ test('movie and person results retain their search query/page on browser back', 
 test('person filmography opens native movie details and restores the person', async ({ page }) => {
   await page.goto('/search/person/7');
   await page.getByRole('link', { name: 'Open Alien, Movie' }).click();
-  await expect(page).toHaveURL(/\/search\/movie\/42$/);
+  await expect(page).toHaveURL(/\/search\/movie\/42\?region=SE$/);
   await page.goBack();
   await expect(page).toHaveURL(/\/search\/person\/7$/);
   await expect(page.getByText('A performer biography.')).toBeAttached();

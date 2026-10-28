@@ -2,6 +2,7 @@ import 'server-only';
 import { buildDiscoverSearchParams } from '@movies/api/discover-params';
 import type { DiscoveryService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
+import { isOriginCountryCode } from '@movies/config/countries';
 import { tmdbCardSchema, toMediaCard } from '@server/media-card';
 import { readWatchProviders, toProviderChoices } from '@server/watch-provider-options';
 import { z } from 'zod';
@@ -53,6 +54,7 @@ export function createDiscoveryService(fetchTmdb: TmdbFetch): DiscoveryService {
         ),
         countries: countrySchema
           .parse(countryData)
+          .filter((country) => isOriginCountryCode(country.iso_3166_1))
           .map((country) => ({ code: country.iso_3166_1, name: country.english_name }))
           .sort((a, b) => a.name.localeCompare(b.name)),
       };

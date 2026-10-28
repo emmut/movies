@@ -1,6 +1,7 @@
 import { discoveryInput, type DiscoveryInput } from '@movies/api/discover';
 import { MOVIE_SORT_OPTIONS, TV_SORT_OPTIONS } from '@movies/api/discover-options';
 import { resolveWatchProviderIds } from '@movies/api/preferences';
+import { sanitizeOriginCountryCodes } from '@movies/config/countries';
 import {
   providerIdList,
   regionOr,
@@ -30,10 +31,7 @@ function sortForType(type: 'movie' | 'tv', value: Params[string]) {
   return options.find((option) => option.value === scalar(value))?.value ?? 'popularity.desc';
 }
 function countryCodes(value: Params[string]) {
-  return (scalar(value) ?? '')
-    .split(/[|,]/)
-    .filter((code) => /^[A-Z]{2}$/.test(code))
-    .slice(0, 50);
+  return sanitizeOriginCountryCodes((scalar(value) ?? '').split(/[|,]/)).slice(0, 50);
 }
 export function readDiscoverState(
   params: Params,

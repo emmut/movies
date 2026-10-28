@@ -275,11 +275,18 @@ export const curatedOriginCountries = [
 
 const originCountrySet = new Set(originCountries);
 
-const countryDisplayNames = new Intl.DisplayNames(['en'], { type: 'region' });
+export function isOriginCountryCode(code: string) {
+  return originCountrySet.has(code);
+}
+
+const countryDisplayNames =
+  typeof Intl.DisplayNames === 'function'
+    ? new Intl.DisplayNames(['en'], { type: 'region' })
+    : undefined;
 
 export function getCountryName(code: string) {
   try {
-    return countryDisplayNames.of(code) ?? code;
+    return countryDisplayNames?.of(code) ?? code;
   } catch {
     // Intl.DisplayNames.of throws a RangeError on syntactically invalid codes
     // (hand-edited URLs); fall back to the raw code instead of crashing.
@@ -300,9 +307,7 @@ export function getCountryFlag(code: string) {
  * UI nor leak garbage into the TMDb query.
  */
 export function sanitizeOriginCountryCodes(codes: string[]) {
-  return [...new Set(codes.map((code) => code.trim().toUpperCase()))].filter((code) =>
-    originCountrySet.has(code),
-  );
+  return [...new Set(codes.map((code) => code.trim().toUpperCase()))].filter(isOriginCountryCode);
 }
 
 /**

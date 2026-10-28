@@ -202,3 +202,33 @@ describe('catalog service', () => {
     ).rejects.toThrow();
   });
 });
+
+it('normalizes TV creators from title details while preserving billed order and photo fallbacks', async () => {
+  const fetcher = vi.fn().mockImplementation(async (path: string) => {
+    if (path.endsWith('/content_ratings')) {
+      return { results: [] };
+    }
+    return {
+      id: 42,
+      name: 'A series',
+      created_by: [
+        { id: 7, credit_id: 'creator-7', name: 'First creator', profile_path: '/profile.jpg' },
+        { id: 8, name: 'Second creator', profile_path: null },
+      ],
+    };
+  });
+  const result = await createCatalogService(fetcher).details({ id: 42, type: 'tv', region: 'US' });
+  expect(result).toMatchObject({
+    creators: [
+      {
+        id: 7,
+        creditId: 'creator-7',
+        name: 'First creator',
+        role: 'Creator',
+        profileUrl: 'https://image.tmdb.org/t/p/w185/profile.jpg',
+      },
+      { id: 8, creditId: 'creator:8', name: 'Second creator', role: 'Creator', profileUrl: null },
+    ],
+  });
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});

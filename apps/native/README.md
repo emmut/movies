@@ -37,7 +37,8 @@ The API defaults to port 3001. Local development permits localhost and private L
 - Private preference query keys include the account identity, so late saves from a previous session cannot seed another account’s cache.
 - Movie director/writer credits and movie/TV cast use portrait cards and native person links in every source stack, with independent loading/retry and missing-photo fallbacks.
 - Expandable movie/TV review previews and paginated native review pages preserve their source tab, region and title reading position, with source links and independent loading/retry.
-- IMDb ratings, origin-country links, TV creators and custom-list quick actions remain pending.
+- TV creators share the existing person-card treatment. Movie/TV country pills open native discovery with country/media/region filters; creator/cast → person → filmography retains that region.
+- IMDb ratings and custom-list quick actions remain pending.
 
 Native styling uses Tailwind/Uniwind, including content containers and third-party components adapted with `withUniwind`.
 

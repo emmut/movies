@@ -2,11 +2,13 @@ import type { CatalogDetail } from '@movies/api/catalog';
 import { CatalogArtwork } from '@native/components/catalog-artwork';
 import { CatalogCredits } from '@native/components/catalog-credits';
 import { CatalogFacts, CatalogHeading, CatalogStats } from '@native/components/catalog-metadata';
+import { CatalogOriginCountries } from '@native/components/catalog-origin-countries';
 import { CatalogProviders } from '@native/components/catalog-providers';
 import { CatalogRelated } from '@native/components/catalog-related';
 import { CatalogReviews } from '@native/components/catalog-reviews';
 import { CatalogTrailer } from '@native/components/catalog-trailer';
 import { ExternalLink } from '@native/components/external-link';
+import { PersonCreditGroup } from '@native/components/person-credits';
 import {
   ScrollNavigationProvider,
   useScrollNavigation,
@@ -87,6 +89,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
           <SystemListActions input={{ resourceId: item.id, resourceType: item.type }} />
           <CatalogTrailer input={{ id: item.id, type: item.type }} title={item.title} />
           <Genres item={item} />
+          <CatalogOriginCountries item={item} region={region} />
           <View className="gap-3">
             <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
               Overview
@@ -96,6 +99,14 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
             </Text>
           </View>
           <CatalogFacts item={item} />
+          {item.type === 'tv' ? (
+            <PersonCreditGroup
+              title="Created By"
+              people={item.creators ?? []}
+              compact
+              region={region}
+            />
+          ) : null}
           <CatalogCredits input={input} />
           <CatalogProviders input={input} />
           <CatalogRelated input={input} kind="similar" />
