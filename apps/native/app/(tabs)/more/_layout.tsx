@@ -9,6 +9,10 @@ export default function MoreLayout() {
       <Stack.Screen name="watchlist" options={{ title: 'Watchlist', headerBackTitle: 'More' }} />
       <Stack.Screen name="watched" options={{ title: 'Watched', headerBackTitle: 'More' }} />
       <Stack.Screen name="[type]/[id]" options={{ title: 'Title', headerBackTitle: 'Back' }} />
+      <Stack.Screen
+        name="[type]/[id]/reviews"
+        options={{ title: 'Reviews', headerBackTitle: 'Back' }}
+      />
       <Stack.Screen name="settings" options={{ title: 'Settings', headerBackTitle: 'More' }} />
     </Stack>
   );

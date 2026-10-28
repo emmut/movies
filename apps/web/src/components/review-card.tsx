@@ -1,7 +1,7 @@
+import type { TmdbReview } from '@movies/api/reviews';
 import { Star } from 'lucide-react';
 
 import { ExpandableText } from '@/components/expandable-text';
-import type { TmdbReview } from '@/types/review';
 
 type ReviewCardProps = {
   review: TmdbReview;

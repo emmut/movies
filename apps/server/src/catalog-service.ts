@@ -10,6 +10,7 @@ import type { CatalogService } from '@movies/api/router';
 import { TmdbRequestError, type TmdbFetch } from '@movies/api/tmdb-fetch';
 import { ORPCError } from '@orpc/server';
 import { createCatalogCreditsService } from '@server/catalog-credits-service';
+import { createCatalogReviewsService } from '@server/catalog-reviews-service';
 import { createCatalogSupportService } from '@server/catalog-support-service';
 import { tmdbImageUrl } from '@server/media-card';
 import { z } from 'zod';
@@ -101,6 +102,7 @@ export function createCatalogService(fetchTmdb: TmdbFetch): CatalogService {
   return {
     ...createCatalogSupportService(fetchTmdb),
     ...createCatalogCreditsService(fetchTmdb),
+    ...createCatalogReviewsService(fetchTmdb),
     async details(input): Promise<CatalogDetail> {
       const [item, rating] = await Promise.all([
         loadDetails(fetchTmdb, input),

@@ -26,6 +26,7 @@ export function mockServices(overrides: Partial<AppServices> = {}): AppServices 
     discovery: { list: vi.fn(), options: vi.fn() },
     home: { list: vi.fn(), trending: vi.fn() },
     catalog: {
+      reviews: vi.fn(),
       credits: vi.fn(),
       details: vi.fn(),
       trailer: vi.fn(),

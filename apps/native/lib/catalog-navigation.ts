@@ -10,3 +10,7 @@ export function catalogPath(source: string) {
   }
   return '/[type]/[id]' as const;
 }
+
+export function catalogReviewsPath(source: string) {
+  return `${catalogPath(source)}/reviews` as const;
+}

@@ -47,6 +47,7 @@ import {
   type ProviderPreference,
   type ProviderChoice,
 } from './preferences';
+import { reviewsInput, reviewsPageSchema, type ReviewsInput, type ReviewsPage } from './reviews';
 import { searchInput, searchPageSchema, type SearchInput, type SearchPage } from './search';
 import { sessionUserSchema, type SessionUser } from './session';
 import {
@@ -74,6 +75,7 @@ export type HomeService = {
   trending(input: z.infer<typeof trendingInput>): Promise<MediaCard[]>;
 };
 export type CatalogService = {
+  reviews(input: ReviewsInput): Promise<ReviewsPage>;
   credits(input: CatalogTitleInput): Promise<CatalogCredits>;
   details(input: CatalogDetailInput): Promise<CatalogDetail>;
   trailer(input: CatalogTitleInput): Promise<Trailer>;
@@ -214,6 +216,10 @@ export const appRouter = {
       .handler(({ input, context }) => context.discovery.options(input)),
   },
   catalog: {
+    reviews: procedure
+      .input(reviewsInput)
+      .output(reviewsPageSchema)
+      .handler(({ input, context }) => context.catalog.reviews(input)),
     credits: procedure
       .input(catalogTitleInput)
       .output(catalogCreditsSchema)

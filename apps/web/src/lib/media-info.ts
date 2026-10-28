@@ -4,9 +4,8 @@ import type {
   TvContentRatingsResponse,
 } from '@movies/api/certifications';
 import { pickMovieCertification, pickTvCertification } from '@movies/api/certifications';
+import type { TmdbReviewsResponse } from '@movies/api/reviews';
 import { cacheLife, cacheTag } from 'next/cache';
-
-import type { TmdbReviewsResponse } from '@/types/review';
 
 import { CACHE_TAGS } from './cache-tags';
 import { tmdbFetch } from './tmdb';

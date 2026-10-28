@@ -1,6 +1,7 @@
 import {
   ArrowDown,
   ArrowUp,
+  ArrowUpRight,
   Calendar,
   Check,
   ChevronDown,
@@ -33,6 +34,7 @@ function styledIcon(component: LucideIcon) {
 
 export const ArrowDownIcon = styledIcon(ArrowDown);
 export const ArrowUpIcon = styledIcon(ArrowUp);
+export const ArrowUpRightIcon = styledIcon(ArrowUpRight);
 export const CalendarIcon = styledIcon(Calendar);
 export const CheckIcon = styledIcon(Check);
 export const ChevronDownIcon = styledIcon(ChevronDown);

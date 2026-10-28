@@ -4,6 +4,7 @@ import { CatalogCredits } from '@native/components/catalog-credits';
 import { CatalogFacts, CatalogHeading, CatalogStats } from '@native/components/catalog-metadata';
 import { CatalogProviders } from '@native/components/catalog-providers';
 import { CatalogRelated } from '@native/components/catalog-related';
+import { CatalogReviews } from '@native/components/catalog-reviews';
 import { CatalogTrailer } from '@native/components/catalog-trailer';
 import { ExternalLink } from '@native/components/external-link';
 import {
@@ -99,6 +100,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
           <CatalogProviders input={input} />
           <CatalogRelated input={input} kind="similar" />
           <CatalogRelated input={input} kind="recommendations" />
+          <CatalogReviews input={input} />
           <View className="flex-row flex-wrap gap-2">
             <ExternalLink href={`https://www.themoviedb.org/${item.type}/${item.id}`}>
               TMDB

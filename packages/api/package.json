@@ -8,6 +8,7 @@
     "./formatting": "./src/formatting.ts",
     "./catalog-support": "./src/catalog-support.ts",
     "./catalog": "./src/catalog.ts",
+    "./reviews": "./src/reviews.ts",
     "./certifications": "./src/certifications.ts",
     "./home": "./src/home.ts",
     "./router": "./src/router.ts",

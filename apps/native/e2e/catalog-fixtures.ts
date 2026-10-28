@@ -72,27 +72,33 @@ export async function mockEmptySupport({ page }: { page: Page }) {
       headers: corsHeaders,
     });
   });
-  await page.route(/\/rpc\/catalog\/(trailer|providers|related|credits)(?:\?|$)/, async (route) => {
-    if (await preflight(route)) {
-      return;
-    }
-    const path = new URL(route.request().url()).pathname;
-    let response: unknown = [];
-    if (path.endsWith('/credits')) {
-      response = { cast: [], directors: [], writers: [] };
-    }
-    if (path.endsWith('/trailer')) {
-      response = null;
-    }
-    if (path.endsWith('/providers')) {
-      response = {
-        link: 'https://www.themoviedb.org/movie/42/watch',
-        free: [],
-        streaming: [],
-        rent: [],
-        buy: [],
-      };
-    }
-    await route.fulfill({ json: { json: response }, headers: corsHeaders });
-  });
+  await page.route(
+    /\/rpc\/catalog\/(trailer|providers|related|credits|reviews)(?:\?|$)/,
+    async (route) => {
+      if (await preflight(route)) {
+        return;
+      }
+      const path = new URL(route.request().url()).pathname;
+      let response: unknown = [];
+      if (path.endsWith('/reviews')) {
+        response = { reviews: [], page: 1, totalPages: 0, totalResults: 0 };
+      }
+      if (path.endsWith('/credits')) {
+        response = { cast: [], directors: [], writers: [] };
+      }
+      if (path.endsWith('/trailer')) {
+        response = null;
+      }
+      if (path.endsWith('/providers')) {
+        response = {
+          link: 'https://www.themoviedb.org/movie/42/watch',
+          free: [],
+          streaming: [],
+          rent: [],
+          buy: [],
+        };
+      }
+      await route.fulfill({ json: { json: response }, headers: corsHeaders });
+    },
+  );
 }
