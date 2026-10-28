@@ -1,18 +1,35 @@
 import type { CatalogDetail } from '@movies/api/catalog';
-import { formatCurrency, formatRuntime } from '@movies/api/formatting';
+import { formatCompactNumber, formatCurrency, formatRuntime } from '@movies/api/formatting';
 import { displayRating } from '@movies/api/home';
+import type { ImdbRating } from '@movies/api/imdb';
 
 type Fact = { label: string; value: string };
-export type CatalogStat = Fact & { accent: 'yellow' | 'blue' | 'green' | 'purple' };
+export type CatalogStat = Fact & {
+  accent: 'yellow' | 'blue' | 'green' | 'purple';
+  description?: string;
+};
 
-export function catalogStats(item: CatalogDetail): CatalogStat[] {
-  const stats: CatalogStat[] = [
-    {
-      label: 'TMDB Rating',
-      value: displayRating(item.rating).toFixed(1),
-      accent: 'yellow',
-    },
-  ];
+function ratingStat(item: CatalogDetail, imdb: ImdbRating | null): CatalogStat {
+  const score = displayRating(item.rating).toFixed(1);
+  const stat: CatalogStat = {
+    label: 'TMDB Rating',
+    value: score,
+    accent: 'yellow',
+    description: item.voteCount.toLocaleString('en-US') + ' votes',
+  };
+  if (!imdb) {
+    return stat;
+  }
+  return {
+    ...stat,
+    label: 'TMDB / IMDb',
+    value: `${score} / ${imdb.rating}`,
+    description: `${formatCompactNumber(item.voteCount)} / ${formatCompactNumber(imdb.numVotes)} votes`,
+  };
+}
+
+export function catalogStats(item: CatalogDetail, imdb: ImdbRating | null = null): CatalogStat[] {
+  const stats: CatalogStat[] = [ratingStat(item, imdb)];
   if (item.type === 'movie' && item.runtime && item.runtime > 0) {
     stats.push({ label: 'Runtime', value: formatRuntime(item.runtime), accent: 'blue' });
   }

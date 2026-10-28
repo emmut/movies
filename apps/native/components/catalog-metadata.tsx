@@ -1,5 +1,6 @@
 import type { CatalogDetail } from '@movies/api/catalog';
 import { formatCertification } from '@movies/api/certifications';
+import type { ImdbRating } from '@movies/api/imdb';
 import { FactGrid } from '@native/components/fact-grid';
 import { MediaBadge } from '@native/components/media-badge';
 import { StatGrid } from '@native/components/stat-grid';
@@ -26,14 +27,14 @@ export function CatalogHeading({ item, region }: { item: CatalogDetail; region: 
   );
 }
 
-export function CatalogStats({ item }: { item: CatalogDetail }) {
-  const stats = catalogStats(item).map((stat) => {
-    if (stat.label !== 'TMDB Rating') {
-      return stat;
-    }
-    return { ...stat, description: item.voteCount.toLocaleString('en-US') + ' votes' };
-  });
-  return <StatGrid stats={stats} />;
+export function CatalogStats({
+  item,
+  imdb = null,
+}: {
+  item: CatalogDetail;
+  imdb?: ImdbRating | null;
+}) {
+  return <StatGrid stats={catalogStats(item, imdb)} />;
 }
 
 export function CatalogFacts({ item }: { item: CatalogDetail }) {

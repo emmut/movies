@@ -5,6 +5,7 @@ import {
   preflight,
   readInput,
 } from '@native/e2e/catalog-fixtures';
+import { textContrastRatios } from '@native/e2e/contrast';
 import { expect, test } from '@playwright/test';
 
 const longContent =
@@ -257,30 +258,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
     const card = page.getByTestId('catalog-scroll').getByTestId('review-review-a');
     await card.scrollIntoViewIfNeeded();
     await expect(card.getByText('First reviewer', { exact: true })).toBeVisible();
-    const contrast = await card.evaluate((element) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1;
-      canvas.height = 1;
-      const context = canvas.getContext('2d')!;
-      function luminance(color: string) {
-        context.fillStyle = getComputedStyle(element).backgroundColor;
-        context.fillRect(0, 0, 1, 1);
-        context.fillStyle = color;
-        context.fillRect(0, 0, 1, 1);
-        const channels = [...context.getImageData(0, 0, 1, 1).data].slice(0, 3).map((value) => {
-          const normalized = value / 255;
-          return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
-        });
-        return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
-      }
-      const background = luminance(getComputedStyle(element).backgroundColor);
-      return [...element.querySelectorAll('[dir="auto"]')].map((text) => {
-        const foreground = luminance(getComputedStyle(text).color);
-        return (
-          (Math.max(foreground, background) + 0.05) / (Math.min(foreground, background) + 0.05)
-        );
-      });
-    });
+    const contrast = await textContrastRatios(card);
     expect(contrast.length).toBeGreaterThan(0);
     for (const ratio of contrast) {
       expect(ratio).toBeGreaterThanOrEqual(4.5);

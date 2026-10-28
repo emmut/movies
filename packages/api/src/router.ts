@@ -31,6 +31,7 @@ import {
   type DiscoveryOptions,
 } from './discover';
 import { homeListInput, trendingInput, mediaCardSchema, type MediaCard } from './home';
+import { catalogImdbSchema, type CatalogImdb } from './imdb';
 import {
   personInput,
   personCreditsInput,
@@ -75,6 +76,7 @@ export type HomeService = {
   trending(input: z.infer<typeof trendingInput>): Promise<MediaCard[]>;
 };
 export type CatalogService = {
+  imdb(input: CatalogTitleInput): Promise<CatalogImdb>;
   reviews(input: ReviewsInput): Promise<ReviewsPage>;
   credits(input: CatalogTitleInput): Promise<CatalogCredits>;
   details(input: CatalogDetailInput): Promise<CatalogDetail>;
@@ -216,6 +218,10 @@ export const appRouter = {
       .handler(({ input, context }) => context.discovery.options(input)),
   },
   catalog: {
+    imdb: procedure
+      .input(catalogTitleInput)
+      .output(catalogImdbSchema)
+      .handler(({ input, context }) => context.catalog.imdb(input)),
     reviews: procedure
       .input(reviewsInput)
       .output(reviewsPageSchema)

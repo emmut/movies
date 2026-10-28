@@ -6,6 +6,7 @@ import { CatalogOriginCountries } from '@native/components/catalog-origin-countr
 import { CatalogProviders } from '@native/components/catalog-providers';
 import { CatalogRelated } from '@native/components/catalog-related';
 import { CatalogReviews } from '@native/components/catalog-reviews';
+import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { CatalogTrailer } from '@native/components/catalog-trailer';
 import { ExternalLink } from '@native/components/external-link';
 import { PersonCreditGroup } from '@native/components/person-credits';
@@ -14,7 +15,9 @@ import {
   useScrollNavigation,
 } from '@native/components/scroll-navigation';
 import { SystemListActions } from '@native/components/system-list-actions';
+import { orpc } from '@native/lib/api';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -54,6 +57,9 @@ function Genres({ item }: { item: CatalogDetail }) {
 }
 
 export function CatalogContent({ item, region }: { item: CatalogDetail; region: string }) {
+  const imdb = useQuery(
+    orpc.catalog.imdb.queryOptions({ input: { id: item.id, type: item.type }, retry: false }),
+  );
   const {
     ref: scrollRef,
     onScroll: rememberScroll,
@@ -85,7 +91,15 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
         <CatalogArtwork item={item} />
         <View className="gap-6 px-4">
           <CatalogHeading item={item} region={region} />
-          <CatalogStats item={item} />
+          <CatalogStats item={item} imdb={imdb.data?.rating} />
+          <CatalogSectionState
+            label="IMDb rating"
+            pending={imdb.isFetching && imdb.data?.ratingUnavailable === true}
+            failed={imdb.isError || imdb.data?.ratingUnavailable === true}
+            retry={() => {
+              void imdb.refetch();
+            }}
+          />
           <SystemListActions input={{ resourceId: item.id, resourceType: item.type }} />
           <CatalogTrailer input={{ id: item.id, type: item.type }} title={item.title} />
           <Genres item={item} />
@@ -113,6 +127,11 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
           <CatalogRelated input={input} kind="recommendations" />
           <CatalogReviews input={input} />
           <View className="flex-row flex-wrap gap-2">
+            {imdb.data?.url ? (
+              <ExternalLink href={imdb.data.url} prominent>
+                IMDb
+              </ExternalLink>
+            ) : null}
             <ExternalLink href={`https://www.themoviedb.org/${item.type}/${item.id}`}>
               TMDB
             </ExternalLink>

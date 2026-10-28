@@ -12,16 +12,6 @@ export function formatImageUrl(path: string | null, width = 500) {
 }
 
 /**
- * Formats a count in compact notation for tight UI spots, e.g. 30755 → "30.8K"
- * and 3206008 → "3.2M".
- */
-export function formatCompactNumber(value: number) {
-  return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(
-    value,
-  );
-}
-
-/**
  * Removes duplicate items by ID from an array and sorts the result by descending popularity and date.
  *
  * Items with the same ID are deduplicated, keeping the first occurrence. Sorting is performed first by the `popularity` property in descending order, then by date (as extracted by `getDateString`) in descending order. If a date is missing or invalid, it defaults to "1900-01-01".

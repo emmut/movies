@@ -74,13 +74,16 @@ export async function mockEmptySupport({ page }: { page: Page }) {
     });
   });
   await page.route(
-    /\/rpc\/catalog\/(trailer|providers|related|credits|reviews)(?:\?|$)/,
+    /\/rpc\/catalog\/(trailer|providers|related|credits|reviews|imdb)(?:\?|$)/,
     async (route) => {
       if (await preflight(route)) {
         return;
       }
       const path = new URL(route.request().url()).pathname;
       let response: unknown = [];
+      if (path.endsWith('/imdb')) {
+        response = { url: null, rating: null, ratingUnavailable: false };
+      }
       if (path.endsWith('/reviews')) {
         response = { reviews: [], page: 1, totalPages: 0, totalResults: 0 };
       }

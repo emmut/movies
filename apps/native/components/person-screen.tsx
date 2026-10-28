@@ -75,7 +75,11 @@ function PersonSources({ person }: { person: PersonDetail }) {
   return (
     <View className="flex-row flex-wrap gap-2">
       <ExternalLink href={'https://www.themoviedb.org/person/' + person.id}>TMDB</ExternalLink>
-      {person.imdbUrl ? <ExternalLink href={person.imdbUrl}>IMDb</ExternalLink> : null}
+      {person.imdbUrl ? (
+        <ExternalLink href={person.imdbUrl} prominent>
+          IMDb
+        </ExternalLink>
+      ) : null}
       {person.homepage ? (
         <ExternalLink href={person.homepage}>Official website</ExternalLink>
       ) : null}

@@ -9,6 +9,7 @@
     "./catalog-support": "./src/catalog-support.ts",
     "./catalog": "./src/catalog.ts",
     "./credits": "./src/credits.ts",
+    "./imdb": "./src/imdb.ts",
     "./reviews": "./src/reviews.ts",
     "./certifications": "./src/certifications.ts",
     "./home": "./src/home.ts",

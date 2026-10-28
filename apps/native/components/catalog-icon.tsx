@@ -11,6 +11,7 @@ import {
 
 const icons: Record<string, typeof StarIcon | undefined> = {
   'TMDB Rating': StarIcon,
+  'TMDB / IMDb': StarIcon,
   Runtime: ClockIcon,
   Seasons: TvIcon,
   Streaming: TvIcon,

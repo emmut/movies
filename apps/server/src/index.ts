@@ -3,6 +3,7 @@ import 'varlock/auto-load';
 import { serve } from '@hono/node-server';
 import { getConnInfo } from '@hono/node-server/conninfo';
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
+import { createImdbRatingStore } from '@movies/db/imdb-ratings';
 import { createApp } from '@server/app';
 import { authClientIp } from '@server/auth-client-ip';
 import { createAuthGateway } from '@server/auth-gateway';
@@ -48,7 +49,12 @@ const app = createApp(
     search: createSearchService(fetchTmdb, createFuzzySearch(database)),
     person: createPersonService(fetchTmdb),
     home: createHomeService(fetchTmdb),
-    catalog: createCatalogService(fetchTmdb),
+    catalog: createCatalogService(fetchTmdb, {
+      readRating: database ? createImdbRatingStore(database).read : undefined,
+      onRatingError(error, input) {
+        logger.error({ err: error, ...input }, 'Could not load IMDb rating');
+      },
+    }),
     discovery: createDiscoveryService(fetchTmdb),
   },
   resolveCorsOrigin(),

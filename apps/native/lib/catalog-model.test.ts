@@ -39,7 +39,7 @@ const series: Extract<CatalogDetail, { type: 'tv' }> = {
 describe('catalog presentation', () => {
   it('matches movie score, runtime, date and popularity cards', () => {
     expect(catalogStats(movie)).toEqual([
-      { label: 'TMDB Rating', value: '8.3', accent: 'yellow' },
+      { label: 'TMDB Rating', value: '8.3', accent: 'yellow', description: '100 votes' },
       { label: 'Runtime', value: '2h 5m', accent: 'blue' },
       { label: 'Released', value: '2026', accent: 'green' },
       { label: 'Popularity', value: '16', accent: 'purple' },
@@ -100,4 +100,19 @@ it('hides a TV original name identical to its title', () => {
   expect(
     catalogFacts({ ...series, originalTitle: series.title }).map((fact) => fact.label),
   ).not.toContain('Original Name');
+});
+
+it('combines IMDb and TMDB scores in one card using canonical compact vote counts', () => {
+  expect(
+    catalogStats({ ...movie, voteCount: 1200 }, { rating: 8.7, numVotes: 3206008 })[0],
+  ).toEqual({
+    label: 'TMDB / IMDb',
+    value: '8.3 / 8.7',
+    description: '1.2K / 3.2M votes',
+    accent: 'yellow',
+  });
+  expect(catalogStats({ ...movie, voteCount: 1200 }, { rating: 0, numVotes: 0 })[0]).toMatchObject({
+    value: '8.3 / 0',
+    description: '1.2K / 0 votes',
+  });
 });

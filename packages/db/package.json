@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./schema/*": "./src/schema/*.ts",
+    "./imdb-ratings": "./src/imdb-ratings.ts",
     "./search-index": "./src/search-index.ts",
     "./user-preferences": "./src/user-preferences.ts",
     "./title-sync": "./src/title-sync.ts",
