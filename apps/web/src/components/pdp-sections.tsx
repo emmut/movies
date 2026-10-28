@@ -2,6 +2,7 @@ import { ArrowUpRight, CalendarDays, ChevronDown, Film, Tv } from 'lucide-react'
 import Link from 'next/link';
 
 import { BackTargetLink } from '@/components/back-target-link';
+import { EpisodeGrid } from '@/components/episode-grid';
 import { Imgproxy } from '@/components/image-proxy';
 import { ItemSlider } from '@/components/item-slider';
 import { getAggregateCredits, getCollection, getSeason } from '@/lib/pdp';
@@ -195,51 +196,33 @@ export async function SeasonEpisodes({
   if (!season) {
     return <p>Season information is temporarily unavailable. Please try again.</p>;
   }
+  const items = season.episodes.map((episode) => ({
+    episode,
+    artwork: episode.still_path ? (
+      <Imgproxy
+        src={episode.still_path}
+        alt={episode.name}
+        width={640}
+        height={360}
+        className="h-full w-full object-cover"
+      />
+    ) : (
+      <Film className="h-8 w-8 text-zinc-600" aria-label="No episode image available" />
+    ),
+  }));
   return (
-    <section className="space-y-5 border-t border-white/10 pt-8">
-      <h1 className="text-2xl font-semibold">{season.name}</h1>
-      <p className="text-sm wrap-anywhere text-zinc-400">
-        Expand an episode to reveal its title, image, and description.
-      </p>
-      {season.episodes.map((episode) => (
-        <details
-          key={episode.id}
-          className="group rounded-xl border border-white/10 bg-zinc-900/50 p-5 transition-colors open:border-white/20"
-        >
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
-            <span>
-              Episode {episode.episode_number}{' '}
-              <span className="ml-2 font-normal text-zinc-500">
-                {episode.air_date || 'Air date TBA'}
-              </span>
-            </span>
-            <ChevronDown
-              className="h-4 w-4 shrink-0 text-zinc-500 transition-transform group-open:rotate-180"
-              aria-hidden="true"
-            />
-          </summary>
-          <div className="mt-5 space-y-4 border-t border-white/10 pt-5">
-            <h2 className="text-lg font-semibold">{episode.name}</h2>
-            {episode.still_path && (
-              <Imgproxy
-                src={episode.still_path}
-                alt={episode.name}
-                width={480}
-                height={270}
-                className="rounded-lg"
-              />
-            )}
-            <p className="text-zinc-300">{episode.overview || 'No description available.'}</p>
-            <p className="text-sm wrap-anywhere text-zinc-400">
-              {episode.runtime ? `${episode.runtime} min · ` : ''}
-              {episode.vote_count > 0
-                ? `${episode.vote_average.toFixed(1)}/10 (${episode.vote_count} votes)`
-                : 'Not yet rated'}
-            </p>
-          </div>
-        </details>
-      ))}
-    </section>
+    <div className="space-y-8">
+      <header className="space-y-3 rounded-2xl border border-white/10 bg-linear-to-br from-zinc-800/70 to-zinc-900/30 p-6 sm:p-8">
+        <p className="text-xs font-medium tracking-widest text-zinc-500 uppercase">Season guide</p>
+        <h1 className="text-3xl font-bold tracking-tight wrap-anywhere sm:text-4xl">
+          {season.name}
+        </h1>
+        <p className="text-sm text-zinc-400">
+          {season.episodes.length} episodes · Browse the season at your own pace.
+        </p>
+      </header>
+      <EpisodeGrid items={items} />
+    </div>
   );
 }
 

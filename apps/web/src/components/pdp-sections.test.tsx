@@ -27,7 +27,7 @@ describe('PDP sections', () => {
     expect(html).not.toContain('Next Episode');
     expect(html).not.toContain('Latest Episode');
   });
-  it('keeps episode spoilers inside collapsed details and handles unknown runtime/rating', async () => {
+  it('hides episode spoilers behind card reveal controls and handles unknown runtime/rating', async () => {
     vi.mocked(getSeason).mockResolvedValue({
       name: 'Specials',
       episodes: [
@@ -46,11 +46,11 @@ describe('PDP sections', () => {
       ],
     });
     const html = renderToStaticMarkup(await SeasonEpisodes({ tvId: 1, seasonNumber: 0 }));
-    expect(html).toContain('<details');
-    expect(html).not.toContain('open=""');
-    const summary = html.match(/<summary[^>]*>(.*?)<\/summary>/)?.[1];
-    expect(summary).toContain('Episode 1');
-    expect(summary).not.toContain('Spoiler');
+    expect(html).toContain('data-slot="card"');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('Reveal episode');
+    expect(html).not.toContain('Spoiler title');
+    expect(html).not.toContain('Spoiler plot');
     expect(html).toContain('Not yet rated');
     expect(html).not.toContain('null min');
   });
