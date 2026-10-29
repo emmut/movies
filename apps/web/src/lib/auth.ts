@@ -60,16 +60,11 @@ export const auth = betterAuth({
     expo(),
     anonymous({
       onLinkAccount: async ({ anonymousUser, newUser }) => {
-        try {
-          // Lazy import: system-list.ts is server-only and would break
-          // better-auth CLI commands (e.g. `auth generate`) that load this
-          // config in plain Node.
-          const { createSystemListStore } = await import('@movies/db/system-lists');
-          const { transferSystemListItems } = createSystemListStore(db);
-          await transferSystemListItems(anonymousUser.user.id, newUser.user.id);
-        } catch (error) {
-          console.error('Failed to link your account:', error);
-        }
+        // Keep this lazy: auth config is also loaded by the schema CLI outside Next.
+        const { createAnonymousAccountTransfer } = await import('@movies/db/account-transfer');
+        const transfer = createAnonymousAccountTransfer(db);
+        // Throw on failure: Better Auth must retain the source guest instead of deleting its lists.
+        await transfer(anonymousUser.user.id, newUser.user.id);
       },
     }),
     passkey(),

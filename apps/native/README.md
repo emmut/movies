@@ -39,7 +39,7 @@ The API defaults to port 3001. Local development permits localhost and private L
 - Expandable movie/TV review previews and paginated native review pages preserve their source tab, region and title reading position, with source links and independent loading/retry.
 - TV creators share the existing person-card treatment. Movie/TV country pills open native discovery with country/media/region filters; creator/cast → person → filmography retains that region.
 - Optional IMDb scores/votes share the web ratings store; native combines them with TMDB, retains source links on missing ratings, and offers independent retry on failure. The API needs the same DATABASE_URL and ingested IMDb table as web for these ratings.
-- Custom-list quick actions, account linking/passkeys and device/release verification remain pending.
+- Account linking/passkeys and device/release verification remain pending.
 
 Native styling uses Tailwind/Uniwind, including content containers and third-party components adapted with `withUniwind`.
 

@@ -6,6 +6,13 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 /** The transaction handle `withOrderingLock` hands to its callback. */
 export type OrderingTx = Parameters<Parameters<NodePgDatabase['transaction']>[0]>[0];
 
+/** Acquire several ordering scopes in a stable order to avoid opposing transfers deadlocking. */
+export async function lockOrderingScopes(tx: OrderingTx, scopes: string[]) {
+  for (const scope of [...new Set(scopes)].sort()) {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${scope}, 0))`);
+  }
+}
+
 /** A table with a manual `position` ordering keyed by a text `id`. */
 type OrderedTable = typeof lists | typeof listItems;
 
@@ -38,7 +45,7 @@ export function createOrderingLock(db: NodePgDatabase) {
     fn: (tx: OrderingTx) => Promise<T>,
   ): Promise<T> {
     return await db.transaction(async (tx) => {
-      await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${scope}, 0))`);
+      await lockOrderingScopes(tx, [scope]);
       return await fn(tx);
     });
   };

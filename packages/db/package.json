@@ -13,7 +13,8 @@
     "./system-lists": "./src/system-lists.ts",
     "./title-availability": "./src/title-availability.ts",
     "./list-item-order": "./src/list-item-order.ts",
-    "./custom-lists": "./src/custom-lists.ts"
+    "./custom-lists": "./src/custom-lists.ts",
+    "./account-transfer": "./src/account-transfer.ts"
   },
   "dependencies": {
     "@better-auth/passkey": "catalog:",
