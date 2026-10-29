@@ -9,7 +9,8 @@
     "./constants": "./constants.ts",
     "./search-title": "./search-title.ts",
     "./native-auth": "./native-auth.ts",
-    "./login": "./login.ts"
+    "./login": "./login.ts",
+    "./passkeys": "./passkeys.ts"
   },
   "dependencies": {
     "zod": "catalog:"

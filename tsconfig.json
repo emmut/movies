@@ -38,7 +38,8 @@
     "drizzle.config.ts",
     "vite.config.ts",
     "playwright.config.ts",
-    ".railway/railway.ts"
+    ".railway/railway.ts",
+    "apps/web/src/app/.well-known/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

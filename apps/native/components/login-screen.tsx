@@ -1,11 +1,12 @@
 import { getSafeRedirectUrl } from '@movies/auth/redirect';
 import { LOGIN_COPY, LOGIN_FEATURES } from '@movies/config/login';
 import { authClient } from '@native/lib/auth-client';
+import { isPasskeySupported } from '@native/lib/passkeys';
 import { runSignIn } from '@native/lib/sign-in';
 import type { SignInMethod } from '@native/lib/sign-in-flow';
 import { Stack, useLocalSearchParams, useRouter, Redirect, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -38,7 +39,7 @@ function LoginIntroduction() {
   );
 }
 function passkeyUnavailable(method: Method) {
-  return method === 'passkey' && Platform.OS !== 'web';
+  return method === 'passkey' && !isPasskeySupported();
 }
 function loginButtonTextClass(method: Method) {
   return method === 'passkey' ? 'text-foreground' : 'text-white';
@@ -76,7 +77,7 @@ function LoginMethod({
       </Pressable>
       {unavailable ? (
         <Text className="text-sm text-muted">
-          Passkeys are not available in this app yet. Continue with Discord or GitHub for now.
+          Passkeys aren’t available here. Continue with Discord or GitHub.
         </Text>
       ) : null}
     </View>

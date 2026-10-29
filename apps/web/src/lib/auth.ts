@@ -11,6 +11,7 @@ import { anonymous } from 'better-auth/plugins';
 
 import { env } from '@/env';
 import { db } from '@/lib/db';
+import { passkeyOrigins } from '@/lib/passkey-origins';
 
 export const auth = betterAuth({
   baseURL: env.NEXT_PUBLIC_BASE_URL,
@@ -67,7 +68,14 @@ export const auth = betterAuth({
         await transfer(anonymousUser.user.id, newUser.user.id);
       },
     }),
-    passkey(),
+    passkey({
+      rpName: 'Movies',
+      origin: passkeyOrigins(
+        env.NEXT_PUBLIC_BASE_URL,
+        env.PASSKEY_ANDROID_FINGERPRINTS,
+        process.env.NODE_ENV === 'development',
+      ),
+    }),
     nextCookies(),
   ],
 });

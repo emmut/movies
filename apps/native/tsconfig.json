@@ -5,7 +5,8 @@
     "types": ["node", "react"],
     "paths": {
       "@native/*": ["./*"]
-    }
+    },
+    "allowImportingTsExtensions": true
   },
   "include": ["**/*.ts", "**/*.tsx"]
 }

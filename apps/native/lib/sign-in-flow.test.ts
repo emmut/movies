@@ -12,8 +12,8 @@ describe('native sign-in completion', () => {
       expect(current).toHaveBeenCalledOnce();
     },
   );
-  it.each(['discord', 'github'] as const)(
-    'keeps an existing anonymous account intact on cancelled %s OAuth',
+  it.each(['discord', 'github', 'passkey'] as const)(
+    'does not claim an existing anonymous session completed %s authentication',
     async (method) => {
       const flow = createSignInFlow({
         signIn: async () => ({ error: null }),

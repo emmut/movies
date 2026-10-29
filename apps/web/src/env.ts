@@ -1,8 +1,11 @@
+import { appleTeamIdSchema, androidFingerprintsSchema } from '@movies/config/passkeys';
 import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod/v4';
 
 export const env = createEnv({
   server: {
+    PASSKEY_APPLE_TEAM_ID: appleTeamIdSchema.optional(),
+    PASSKEY_ANDROID_FINGERPRINTS: androidFingerprintsSchema,
     TMDB_API_URL_OVERRIDE: z.url({ protocol: /^https?$/ }).optional(),
     MOVIE_DB_ACCESS_TOKEN: z.string().min(1),
     BETTER_AUTH_SECRET: z.string().min(1),
@@ -44,6 +47,8 @@ export const env = createEnv({
   },
 
   runtimeEnv: {
+    PASSKEY_APPLE_TEAM_ID: process.env.PASSKEY_APPLE_TEAM_ID,
+    PASSKEY_ANDROID_FINGERPRINTS: process.env.PASSKEY_ANDROID_FINGERPRINTS,
     TMDB_API_URL_OVERRIDE: process.env.TMDB_API_URL_OVERRIDE,
     MOVIE_DB_ACCESS_TOKEN: process.env.MOVIE_DB_ACCESS_TOKEN,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,

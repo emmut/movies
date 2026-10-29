@@ -1,5 +1,8 @@
 import { getRegionByCode, type RegionCode } from '@movies/config/regions';
 import { BottomNavigation } from '@native/components/bottom-navigation';
+import { ChevronDownIcon } from '@native/components/icons';
+import { LinkAccountSettings } from '@native/components/link-account-settings';
+import { PasskeySettings } from '@native/components/passkey-settings';
 import { ProviderSettings } from '@native/components/provider-settings';
 import { RegionPicker } from '@native/components/region-picker';
 import { SettingsSaveButton, SettingsSaveFeedback } from '@native/components/settings-controls';
@@ -85,7 +88,7 @@ function RegionSelect({
         onPress={() => setPickerOpen(true)}
       >
         <Text className="text-foreground">{name}</Text>
-        <Text className="text-muted">⌄</Text>
+        <ChevronDownIcon className="size-4 text-muted" accessible={false} />
       </Pressable>
       <RegionPicker
         visible={pickerOpen}
@@ -121,7 +124,7 @@ function RegionReadError({ error, retry }: { error: Error; retry: () => void }) 
   return <SettingsError message="Couldn’t load region settings." retry={retry} />;
 }
 
-function RegionSettings({ userId }: { userId: string }) {
+function RegionSettings({ userId, anonymous }: { userId: string; anonymous: boolean }) {
   const query = useQuery(accountRegionQueryOptions(userId, { retry: false }));
   if (query.isPending) {
     return <ActivityIndicator accessibilityLabel="Loading region settings" />;
@@ -144,6 +147,7 @@ function RegionSettings({ userId }: { userId: string }) {
       header={
         <>
           <SettingsIntroduction />
+          {anonymous ? <LinkAccountSettings /> : <PasskeySettings userId={userId} />}
           <RegionForm currentRegion={query.data.region} userId={userId} />
         </>
       }
@@ -169,7 +173,13 @@ function AccountSettings() {
   if (!session.data) {
     return <Redirect href={SETTINGS_LOGIN_HREF} />;
   }
-  return <RegionSettings key={session.data.user.id} userId={session.data.user.id} />;
+  return (
+    <RegionSettings
+      key={session.data.user.id}
+      userId={session.data.user.id}
+      anonymous={Boolean(session.data.user.isAnonymous)}
+    />
+  );
 }
 
 function SettingsIntroduction() {
