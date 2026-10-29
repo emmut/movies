@@ -1,15 +1,9 @@
-import { ArrowUpRight, ChevronDown, Play } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowUpRight, Play } from 'lucide-react';
 
 import { Imgproxy } from '@/components/image-proxy';
 import { ItemSlider } from '@/components/item-slider';
 import { getPdpExtras } from '@/lib/pdp';
-import {
-  getGalleryImages,
-  getPlayableVideos,
-  getKeywords,
-  getRegionalReleases,
-} from '@/lib/pdp-extra-content';
+import { getGalleryImages, getPlayableVideos, getRegionalReleases } from '@/lib/pdp-extra-content';
 import { optional } from '@/lib/tmdb';
 
 function ImageGallery({ pictures }: { pictures: ReturnType<typeof getGalleryImages> }) {
@@ -82,43 +76,6 @@ function Videos({ items }: { items: ReturnType<typeof getPlayableVideos> }) {
   );
 }
 
-function Keywords({
-  items,
-  type,
-}: {
-  items: ReturnType<typeof getKeywords>;
-  type: 'movie' | 'tv';
-}) {
-  if (items.length === 0) {
-    return null;
-  }
-  return (
-    <details className="group rounded-xl border border-white/10 bg-zinc-900/30 p-5">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-base font-semibold [&::-webkit-details-marker]:hidden">
-        <span>
-          Themes &amp; Keywords{' '}
-          <span className="ml-2 text-xs font-normal text-zinc-500">Spoilers</span>
-        </span>
-        <ChevronDown
-          className="h-4 w-4 shrink-0 text-zinc-500 transition-transform group-open:rotate-180"
-          aria-hidden="true"
-        />
-      </summary>
-      <div className="mt-5 flex flex-wrap gap-2 border-t border-white/10 pt-5">
-        {items.map((keyword) => (
-          <Link
-            key={keyword.id}
-            href={`/keyword/${keyword.id}?mediaType=${type}`}
-            className="max-w-full rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs wrap-anywhere text-zinc-300 transition-colors hover:border-blue-400/40 hover:text-white focus-visible:ring-2 focus-visible:ring-blue-400"
-          >
-            {keyword.name}
-          </Link>
-        ))}
-      </div>
-    </details>
-  );
-}
-
 function RegionalReleases({
   dates,
   region,
@@ -161,14 +118,12 @@ export async function PdpAdditionalContent({
   }
   const pictures = getGalleryImages(extras.images);
   const videos = getPlayableVideos(extras.videos);
-  const keywords = getKeywords(extras.keywords);
   const releaseDates = getRegionalReleases(extras.release_dates, region);
   return (
     <div className="space-y-8">
       <RegionalReleases dates={releaseDates} region={region} />
       <ImageGallery pictures={pictures} />
       <Videos items={videos} />
-      <Keywords items={keywords} type={type} />
     </div>
   );
 }

@@ -44,21 +44,16 @@ describe('additional PDP content', () => {
     expect(html).not.toContain('2020-01-01');
     expect(html.match(/<li /g)).toHaveLength(1);
   });
-  it.each(['movie', 'tv'] as const)(
-    'links %s keywords to discovery and hides spoilers by default',
-    async (type) => {
-      vi.mocked(getPdpExtras).mockResolvedValue({
-        keywords:
-          type === 'movie'
-            ? { keywords: [{ id: 10, name: 'Time travel' }] }
-            : { results: [{ id: 10, name: 'Time travel' }] },
-      });
-      const html = renderToStaticMarkup(await PdpAdditionalContent({ type, id: 1, region: 'SE' }));
-      expect(html).toContain(`/keyword/10?mediaType=${type}`);
-      expect(html).toContain('<details');
-      expect(html).not.toContain('open=""');
-    },
-  );
+  it('leaves keywords to the main details section', async () => {
+    vi.mocked(getPdpExtras).mockResolvedValue({
+      keywords: { keywords: [{ id: 10, name: 'Time travel' }] },
+    });
+    const html = renderToStaticMarkup(
+      await PdpAdditionalContent({ type: 'movie', id: 1, region: 'SE' }),
+    );
+    expect(html).not.toContain('Time travel');
+    expect(html).not.toContain('/keyword/10');
+  });
   it('hides unsupported video hosts and invalid YouTube keys', async () => {
     const video = {
       id: '1',

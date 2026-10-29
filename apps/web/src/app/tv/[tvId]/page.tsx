@@ -11,6 +11,7 @@ import ItemHeader from '@/components/item-header';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
 import { PdpAdditionalContent } from '@/components/pdp-extras';
+import { PdpKeywords } from '@/components/pdp-keywords';
 import { TvSeasons } from '@/components/pdp-sections';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
@@ -252,6 +253,9 @@ export default async function TvShowPage(props: TvShowPageProps) {
                 </div>
               )}
               <ProductionCompanies companies={tvShow.production_companies} />
+              <Suspense fallback={null}>
+                <PdpKeywords type="tv" id={tvId} />
+              </Suspense>
             </div>
           </div>
 
