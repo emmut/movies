@@ -13,9 +13,3 @@ export const serverUrl = resolveServiceUrl({
   expoHost,
   port: 3001,
 });
-export const webUrl = resolveServiceUrl({
-  explicitUrl: ENV.EXPO_PUBLIC_WEB_URL,
-  browserOrigin,
-  expoHost,
-  port: 3000,
-});

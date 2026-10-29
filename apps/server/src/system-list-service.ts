@@ -1,30 +1,20 @@
-import 'server-only';
 import { selectWatchProviders } from '@movies/api/preferences';
+import 'server-only';
 import type { SystemListService } from '@movies/api/router';
 import { fulfilledValues } from '@movies/api/settled';
 import { parseWatchProviderFilter, type SystemListToggleInput } from '@movies/api/system-lists';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
-import type { MovieDetails } from '@movies/api/tmdb-types/movie';
-import type { TvDetails } from '@movies/api/tmdb-types/tv-show';
 import { ITEMS_PER_PAGE } from '@movies/config/constants';
 import { createListItemOrderingStore, ListItemNotFoundError } from '@movies/db/list-item-order';
 import { createSystemListStore } from '@movies/db/system-lists';
 import { ensureTitleAvailability } from '@movies/db/title-availability';
-import { syncTitle, type TitleSource } from '@movies/db/title-sync';
+import { syncTitle } from '@movies/db/title-sync';
 import { createUserPreferenceStore } from '@movies/db/user-preferences';
 import { ORPCError } from '@orpc/server';
 import { requireDatabase, type Database } from '@server/database';
 import { tmdbCardSchema, toMediaCard } from '@server/media-card';
+import { createTitleSource } from '@server/title-source';
 import { readWatchProviders, toProviderChoices } from '@server/watch-provider-options';
-
-function titleSource(fetchTmdb: TmdbFetch): TitleSource {
-  return {
-    movieDetails: (id) => fetchTmdb<MovieDetails>('/movie/' + id),
-    tvDetails: (id) => fetchTmdb<TvDetails>('/tv/' + id),
-    movieWatchProviders: (id) => fetchTmdb('/movie/' + id + '/watch/providers'),
-    tvWatchProviders: (id) => fetchTmdb('/tv/' + id + '/watch/providers'),
-  };
-}
 
 const unavailable = requireDatabase('System lists');
 
@@ -45,7 +35,7 @@ export function createSystemListService(
   }
   const store = createSystemListStore(database);
   const order = createListItemOrderingStore(database);
-  const source = titleSource(fetchTmdb);
+  const source = createTitleSource(fetchTmdb);
   const preferences = createUserPreferenceStore(database);
 
   /** TMDB card for a list row; rejects when TMDB answers for a different title. */

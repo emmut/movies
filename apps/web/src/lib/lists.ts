@@ -1,20 +1,9 @@
 'use server';
 
-import { moveIdToIndex } from '@movies/api/list-order';
-import { pageWindow } from '@movies/api/paginate';
 import { fulfilledValues } from '@movies/api/settled';
 import { parseWatchProviderFilter } from '@movies/api/system-lists';
+import { createCustomListStore } from '@movies/db/custom-lists';
 import { createListItemOrderingStore } from '@movies/db/list-item-order';
-import {
-  createOrderingLock,
-  listItemOrderingScope,
-  listOrderingScope,
-  nextPosition,
-  rewriteListPositions,
-} from '@movies/db/ordering-lock';
-import { listItems, lists } from '@movies/db/schema/lists';
-import { streamableOnProviders } from '@movies/db/title-availability';
-import { and, asc, count, desc, eq, sql, type SQL } from 'drizzle-orm';
 import { cacheLife, cacheTag, revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -44,7 +33,7 @@ import {
 } from '@/lib/validations';
 import { ensureAvailabilityKnown } from '@/lib/watch-provider-availability';
 
-import { ITEMS_PER_PAGE, LISTS_PER_PAGE } from './config';
+import { LISTS_PER_PAGE } from './config';
 
 export interface LocalList {
   id: string;
@@ -62,54 +51,8 @@ export interface LocalList {
   }>;
 }
 
-const withOrderingLock = createOrderingLock(db);
+const customLists = createCustomListStore(db, ensureAvailabilityKnown);
 const listItemOrdering = createListItemOrderingStore(db);
-
-const CUSTOM_LIST_TYPE = 'custom' as const;
-
-/**
- * Scopes every lists query to the user's custom lists, excluding system lists
- * like the watchlist (which has its own UI and must never surface here).
- */
-function ownedCustomListsFilter(userId: string) {
-  return and(eq(lists.userId, userId), eq(lists.type, CUSTOM_LIST_TYPE));
-}
-
-/**
- * Canonical sort for a user's custom lists: the manual `position` first, with
- * newest-first as a tiebreak for rows that predate manual ordering (all 0).
- * Every query that renders lists must use this so reordering stays coherent.
- */
-function manualListOrder() {
-  return [asc(lists.position), desc(lists.createdAt)];
-}
-
-/**
- * Canonical sort for the items in a list: the manual `position` first, with
- * newest-first as a tiebreak for rows that predate manual ordering (all 0).
- * Every query that renders list items must use this so reordering stays
- * coherent.
- */
-function itemManualOrder() {
-  return [asc(listItems.position), desc(listItems.createdAt)];
-}
-
-/**
- * Asserts that a custom list exists and belongs to the given user.
- *
- * @throws {Error} 'List not found' when the list does not exist, is owned by
- * another user, or is a system list (e.g. the watchlist).
- */
-async function assertCustomListOwnership(listId: string, userId: string) {
-  const [{ count: ownedCount }] = await db
-    .select({ count: count() })
-    .from(lists)
-    .where(and(eq(lists.id, listId), ownedCustomListsFilter(userId)));
-
-  if (ownedCount === 0) {
-    throw new Error('List not found');
-  }
-}
 
 /**
  * Returns the custom list with the given id if it exists and is owned by the
@@ -122,13 +65,7 @@ export async function getOwnedCustomList(listId: string): Promise<{ id: string }
     return null;
   }
 
-  const result = await db
-    .select({ id: lists.id })
-    .from(lists)
-    .where(and(eq(lists.id, listId), ownedCustomListsFilter(user.id)))
-    .limit(1);
-
-  return result[0] ?? null;
+  return customLists.owned(user.id, listId);
 }
 
 export async function getUserListCount() {
@@ -143,12 +80,7 @@ async function getCachedUserListCount(userId: string) {
   cacheLife('privateShort');
 
   try {
-    const rows = await db
-      .select({ count: count() })
-      .from(lists)
-      .where(ownedCustomListsFilter(userId));
-
-    return rows[0]?.count ?? 0;
+    return await customLists.total(userId);
   } catch (error) {
     console.error('Error fetching user list count:', error);
     return 0;
@@ -170,37 +102,7 @@ export async function getUserListsPaginated(page: number = 1) {
   }
 
   try {
-    const totalCountResult = await db
-      .select({ count: count() })
-      .from(lists)
-      .where(ownedCustomListsFilter(user.id));
-
-    const totalItems = totalCountResult[0]?.count ?? 0;
-    const { offset, ...pagination } = pageWindow(totalItems, page, LISTS_PER_PAGE);
-
-    if (totalItems === 0) {
-      return { lists: [], ...pagination };
-    }
-
-    const listsWithCounts = await db
-      .select({
-        id: lists.id,
-        name: lists.name,
-        description: lists.description,
-        emoji: lists.emoji,
-        createdAt: lists.createdAt,
-        updatedAt: lists.updatedAt,
-        itemCount: count(listItems.id),
-      })
-      .from(lists)
-      .leftJoin(listItems, eq(lists.id, listItems.listId))
-      .where(ownedCustomListsFilter(user.id))
-      .groupBy(lists.id)
-      .orderBy(...manualListOrder())
-      .limit(LISTS_PER_PAGE)
-      .offset(offset);
-
-    return { lists: listsWithCounts, ...pagination };
+    return await customLists.index(user.id, page);
   } catch (error) {
     console.error('Error fetching paginated user lists:', error);
     const currentPage = Math.max(1, page);
@@ -231,13 +133,7 @@ async function getListDetailsPaginated(
 
   validateListDetailsParams(listId, page);
 
-  const list = await fetchOwnedCustomListRow(listId, user.id);
-
-  if (providerFilter) {
-    return await queryProviderFilteredListPage(list, page, providerFilter);
-  }
-
-  return await queryUnfilteredListPage(list, page);
+  return customLists.pageRows(user.id, listId, page, providerFilter);
 }
 
 function validateListDetailsParams(listId: string, page: number) {
@@ -248,76 +144,6 @@ function validateListDetailsParams(listId: string, page: number) {
   if (!pageSchema.safeParse(page).success) {
     redirect(`/lists/${listId}`);
   }
-}
-
-/** @throws {Error} 'List not found' unless the list is an owned custom list. */
-async function fetchOwnedCustomListRow(listId: string, userId: string) {
-  const listResult = await db
-    .select()
-    .from(lists)
-    .where(and(eq(lists.id, listId), ownedCustomListsFilter(userId)));
-
-  if (listResult.length === 0) {
-    throw new Error('List not found');
-  }
-
-  return listResult[0];
-}
-
-/** Number of `list_items` rows matching `where`. */
-async function countListItems(where: SQL | undefined) {
-  const rows = await db.select({ count: count() }).from(listItems).where(where);
-  return rows[0]?.count ?? 0;
-}
-
-/** One page of the list items matching `where`, in manual order. */
-async function selectListItemsPage(where: SQL | undefined, totalItems: number, page: number) {
-  const { offset, ...pagination } = pageWindow(totalItems, page, ITEMS_PER_PAGE);
-  if (totalItems === 0) {
-    return { items: [], ...pagination };
-  }
-
-  const items = await db
-    .select()
-    .from(listItems)
-    .where(where)
-    .orderBy(...itemManualOrder())
-    .limit(ITEMS_PER_PAGE)
-    .offset(offset);
-  return { items, ...pagination };
-}
-
-async function queryUnfilteredListPage(list: typeof lists.$inferSelect, page: number) {
-  const where = eq(listItems.listId, list.id);
-  const totalItems = await countListItems(where);
-  const itemsPage = await selectListItemsPage(where, totalItems, page);
-
-  return { ...list, ...itemsPage, itemCount: totalItems };
-}
-
-/**
- * Stream-provider-filtered page of a custom list. Availability is cached
- * locally (see `title_availability`), so the filter is a predicate on the
- * items query and counting and paging stay in the database; person items
- * never match. Rows that predate the cache are synced first. `itemCount`
- * stays the unfiltered total so headers and delete confirmations keep
- * describing the whole list, while the pagination metadata reflects the
- * filtered set.
- */
-async function queryProviderFilteredListPage(
-  list: typeof lists.$inferSelect,
-  page: number,
-  providerFilter: WatchProviderFilter,
-) {
-  const scope = eq(listItems.listId, list.id);
-  await ensureAvailabilityKnown(scope);
-
-  const where = and(scope, streamableOnProviders(providerFilter));
-  const itemCount = await countListItems(scope);
-  const totalItems = await countListItems(where);
-  const itemsPage = await selectListItemsPage(where, totalItems, page);
-
-  return { ...list, ...itemsPage, itemCount };
 }
 
 /**
@@ -407,22 +233,12 @@ export async function createList(name: string, description: string = '', emoji: 
     emoji,
   });
 
-  const listId = crypto.randomUUID();
-
-  // Locked so concurrent creates can't read the same max(position) and append
-  // to the same slot.
-  await withOrderingLock(listOrderingScope(user.id), async (tx) => {
-    // Append to the end of the user's manual ordering.
-    const position = await nextPosition(tx, lists, ownedCustomListsFilter(user.id));
-    await tx.insert(lists).values({
-      id: listId,
-      userId: user.id,
-      name: validatedData.name,
-      description: validatedData.description,
-      emoji: validatedData.emoji,
-      position,
-    });
-  });
+  const { listId } = await customLists.create(
+    user.id,
+    validatedData.name,
+    validatedData.description,
+    validatedData.emoji,
+  );
 
   revalidateUserListCache(user.id, listId);
 
@@ -444,32 +260,12 @@ export async function addToList(
     resourceType: mediaType,
   });
 
-  await assertCustomListOwnership(validatedData.listId, user.id);
-
-  try {
-    // Locked so concurrent adds can't read the same max(position) and append
-    // to the same slot.
-    await withOrderingLock(listItemOrderingScope(validatedData.listId), async (tx) => {
-      // Append to the end of the list's manual ordering.
-      const position = await nextPosition(
-        tx,
-        listItems,
-        eq(listItems.listId, validatedData.listId),
-      );
-      await tx.insert(listItems).values({
-        id: crypto.randomUUID(),
-        listId: validatedData.listId,
-        resourceId: validatedData.resourceId,
-        resourceType: validatedData.resourceType,
-        position,
-      });
-    });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('unique')) {
-      throw new Error('Item already in list');
-    }
-    throw error;
-  }
+  await customLists.add(
+    user.id,
+    validatedData.listId,
+    validatedData.resourceId,
+    validatedData.resourceType,
+  );
 
   // Write the title's details and availability through to the local cache so
   // the provider filter can answer from SQL without a TMDB round-trip.
@@ -495,17 +291,12 @@ export async function removeFromList(
     resourceType: mediaType,
   });
 
-  await assertCustomListOwnership(validatedData.listId, user.id);
-
-  await db
-    .delete(listItems)
-    .where(
-      and(
-        eq(listItems.listId, validatedData.listId),
-        eq(listItems.resourceId, validatedData.resourceId),
-        eq(listItems.resourceType, validatedData.resourceType),
-      ),
-    );
+  await customLists.remove(
+    user.id,
+    validatedData.listId,
+    validatedData.resourceId,
+    validatedData.resourceType,
+  );
 
   revalidateUserListCache(user.id, validatedData.listId);
   revalidateUserListStatusCache(user.id, validatedData.resourceType, validatedData.resourceId);
@@ -521,9 +312,7 @@ export async function deleteList(listId: string) {
     throw new Error('Invalid list ID');
   }
 
-  await assertCustomListOwnership(listId, user.id);
-
-  await db.delete(lists).where(eq(lists.id, listId));
+  await customLists.delete(user.id, listId);
 
   revalidateUserListCache(user.id, listId);
 
@@ -545,17 +334,13 @@ export async function updateList(
     emoji,
   });
 
-  await assertCustomListOwnership(validatedData.listId, user.id);
-
-  await db
-    .update(lists)
-    .set({
-      name: validatedData.name,
-      description: validatedData.description,
-      emoji: validatedData.emoji,
-      updatedAt: new Date(),
-    })
-    .where(eq(lists.id, validatedData.listId));
+  await customLists.update(
+    user.id,
+    validatedData.listId,
+    validatedData.name,
+    validatedData.description,
+    validatedData.emoji,
+  );
 
   revalidateUserListCache(user.id, validatedData.listId);
 
@@ -575,27 +360,7 @@ export async function moveList(listId: string, position: number) {
 
   const validatedData = moveListSchema.parse({ listId, position });
 
-  // The current order is read and rewritten under one lock so a concurrent
-  // move can't compute from a stale snapshot and overwrite this one.
-  await withOrderingLock(listOrderingScope(user.id), async (tx) => {
-    const orderedRows = await tx
-      .select({ id: lists.id })
-      .from(lists)
-      .where(ownedCustomListsFilter(user.id))
-      .orderBy(...manualListOrder());
-
-    const orderedIds = moveIdToIndex(
-      orderedRows.map((row) => row.id),
-      validatedData.listId,
-      validatedData.position,
-    );
-
-    if (orderedIds === null) {
-      throw new Error('List not found');
-    }
-
-    await rewriteListPositions(tx, user.id, orderedIds);
-  });
+  await customLists.move(user.id, validatedData.listId, validatedData.position);
 
   revalidateUserListCache(user.id);
 
@@ -660,34 +425,7 @@ async function getCachedUserListsWithStatus(
   cacheLife('privateShort');
 
   try {
-    const listsWithStatusAndCounts = await db
-      .select({
-        id: lists.id,
-        name: lists.name,
-        description: lists.description,
-        emoji: lists.emoji,
-        createdAt: lists.createdAt,
-        updatedAt: lists.updatedAt,
-        itemCount: count(listItems.id),
-        hasItem: sql<boolean>`bool_or(
-          ${listItems.resourceId} = ${mediaId} AND
-          ${listItems.resourceType} = ${mediaType}
-        )`.mapWith(Boolean),
-      })
-      .from(lists)
-      .leftJoin(listItems, eq(lists.id, listItems.listId))
-      .where(ownedCustomListsFilter(userId))
-      .groupBy(
-        lists.id,
-        lists.name,
-        lists.description,
-        lists.emoji,
-        lists.createdAt,
-        lists.updatedAt,
-      )
-      .orderBy(...manualListOrder());
-
-    return listsWithStatusAndCounts;
+    return await customLists.status(userId, mediaId, mediaType);
   } catch (error) {
     console.error('Error fetching user lists with status:', error);
     throw new Error('Failed to fetch user lists');

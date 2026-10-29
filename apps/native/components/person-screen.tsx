@@ -3,6 +3,7 @@ import type { MediaCard } from '@movies/api/home';
 import { personInput, type PersonDetail } from '@movies/api/person';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
+import { CustomListActions } from '@native/components/custom-list-picker';
 import { ExternalLink } from '@native/components/external-link';
 import { FactGrid } from '@native/components/fact-grid';
 import { MediaBadge } from '@native/components/media-badge';
@@ -142,6 +143,7 @@ function PersonContent({ person, region }: { person: PersonDetail; region: strin
             <MediaBadge type="person" />
           </View>
         </View>
+        <CustomListActions input={{ resourceId: person.id, resourceType: 'person' }} />
         <PersonStatistics person={person} movie={movie} tv={tv} />
         <View className="gap-3">
           <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">

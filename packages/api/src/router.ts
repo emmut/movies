@@ -20,6 +20,7 @@ import {
   type Trailer,
   type ProviderGroups,
 } from './catalog-support';
+import { customListContracts, type CustomListService } from './custom-lists';
 import {
   discoveryInput,
   discoveryOptionsInput,
@@ -109,6 +110,7 @@ export type SystemListService = {
   move(userId: string, input: SystemListMoveInput): Promise<SystemListMoveResult>;
 };
 export type AppServices = {
+  customLists: CustomListService;
   systemLists: SystemListService;
   preferences: PreferencesService;
   person: PersonService;
@@ -139,6 +141,88 @@ const authedProcedure = procedure
   });
 
 export const appRouter = {
+  customLists: {
+    index: authedProcedure
+      .input(customListContracts.index.input)
+      .output(customListContracts.index.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.index(context.user.id, input)),
+    details: authedProcedure
+      .input(customListContracts.details.input)
+      .output(customListContracts.details.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.details(context.user.id, input)),
+    create: authedProcedure
+      .input(customListContracts.create.input)
+      .output(customListContracts.create.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.create(context.user.id, input)),
+    update: authedProcedure
+      .input(customListContracts.update.input)
+      .output(customListContracts.update.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.update(context.user.id, input)),
+    delete: authedProcedure
+      .input(customListContracts.delete.input)
+      .output(customListContracts.delete.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.delete(context.user.id, input)),
+    add: authedProcedure
+      .input(customListContracts.add.input)
+      .output(customListContracts.add.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.add(context.user.id, input)),
+    remove: authedProcedure
+      .input(customListContracts.remove.input)
+      .output(customListContracts.remove.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.remove(context.user.id, input)),
+    status: authedProcedure
+      .input(customListContracts.status.input)
+      .output(customListContracts.status.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.status(context.user.id, input)),
+    move: authedProcedure
+      .input(customListContracts.move.input)
+      .output(customListContracts.move.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.move(context.user.id, input)),
+    moveItem: authedProcedure
+      .input(customListContracts.moveItem.input)
+      .output(customListContracts.moveItem.output)
+      .errors({
+        NOT_FOUND: { message: 'List or item not found' },
+        CONFLICT: { message: 'Item already in list' },
+      })
+      .handler(({ input, context }) => context.customLists.moveItem(context.user.id, input)),
+  },
   systemLists: {
     options: authedProcedure
       .input(regionPreferenceSchema)

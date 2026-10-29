@@ -15,7 +15,7 @@ export function SystemListFilters({
   userId,
   change,
 }: {
-  input: SystemListPageInput;
+  input: Pick<SystemListPageInput, 'region' | 'providerIds'>;
   userId: string;
   change: (params: Record<string, string>) => void;
 }) {

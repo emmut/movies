@@ -32,7 +32,7 @@ function Portrait({ person, compact }: { person: CreditPerson; compact: boolean 
   );
 }
 
-function PersonCredit({
+export function PersonCredit({
   person,
   compact,
   region,

@@ -1,6 +1,6 @@
+import { serve } from '@hono/node-server';
 import 'server-only';
 import 'varlock/auto-load';
-import { serve } from '@hono/node-server';
 import { getConnInfo } from '@hono/node-server/conninfo';
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
 import { createImdbRatingStore } from '@movies/db/imdb-ratings';
@@ -8,6 +8,7 @@ import { createApp } from '@server/app';
 import { authClientIp } from '@server/auth-client-ip';
 import { createAuthGateway } from '@server/auth-gateway';
 import { createCatalogService } from '@server/catalog-service';
+import { createCustomListService } from '@server/custom-list-service';
 import { createDatabase } from '@server/database';
 import { createDiscoveryService } from '@server/discovery-service';
 import { ENV } from '@server/env';
@@ -39,6 +40,9 @@ function resolveCorsOrigin() {
 
 const app = createApp(
   {
+    customLists: createCustomListService(database, fetchTmdb, (error) => {
+      logger.error({ err: error }, 'Could not sync custom-list title');
+    }),
     systemLists: createSystemListService(database, fetchTmdb, (error, input) => {
       logger.error(
         { err: error, resourceType: input.resourceType, resourceId: input.resourceId },

@@ -71,7 +71,7 @@ export default function More() {
           <Pressable
             key={item.id}
             accessibilityRole="link"
-            accessibilityLabel={item.id !== 'lists' ? item.label : item.label + ' (opens browser)'}
+            accessibilityLabel={item.label}
             className="bg-default min-h-14 justify-center rounded-xl border border-border px-4"
             onPress={() => select(item.id)}
           >

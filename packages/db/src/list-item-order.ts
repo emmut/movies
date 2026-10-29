@@ -22,7 +22,7 @@ type MoveInput = {
   itemId: string;
   position: number;
   resourceType?: 'movie' | 'tv' | 'person';
-  listType?: SystemListType;
+  listType?: SystemListType | 'custom';
 };
 
 /** Host/session validation happens before this ownership-scoped transaction. */

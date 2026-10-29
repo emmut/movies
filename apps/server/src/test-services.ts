@@ -7,6 +7,18 @@ import { vi } from 'vite-plus/test';
 /** Every host service as an inert mock; tests replace the ones they exercise. */
 export function mockServices(overrides: Partial<AppServices> = {}): AppServices {
   return {
+    customLists: {
+      index: vi.fn(),
+      details: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      add: vi.fn(),
+      remove: vi.fn(),
+      status: vi.fn(),
+      move: vi.fn(),
+      moveItem: vi.fn(),
+    },
     systemLists: {
       options: vi.fn(),
       page: vi.fn(),

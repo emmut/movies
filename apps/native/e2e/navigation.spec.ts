@@ -65,7 +65,7 @@ test('keeps only Home, Discover, Search and overflow at the bottom', async ({ pa
   for (const name of ['Watchlist', 'Watched', 'Lists', 'Settings', 'Sign in']) {
     await expect(
       page.getByRole('link', {
-        name: name === 'Lists' ? name + ' (opens browser)' : name,
+        name,
         exact: true,
       }),
     ).toBeVisible();
@@ -92,13 +92,11 @@ for (const destination of ['Discover', 'Search'] as const) {
   });
 }
 
-test('More exposes the selected browser workflow', async ({ page }) => {
-  await page.goto('/');
-  await page.getByRole('button', { name: 'More navigation', exact: true }).click();
-  const popup = page.waitForEvent('popup');
-  await page.getByRole('link', { name: 'Lists (opens browser)', exact: true }).click();
-  await expect(await popup).toHaveURL('http://localhost:3000/lists');
-  await expect(page).toHaveURL(/localhost:8083\/more$/);
+test('More opens Lists natively and preserves the sign-in return destination', async ({ page }) => {
+  await page.goto('/more');
+  await page.getByRole('link', { name: 'Lists', exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?redirect_url=%2Fmore%2Flists$/);
+  expect(page.context().pages()).toHaveLength(1);
 });
 
 test('detail screens retain the dock and Home returns to the native homepage', async ({ page }) => {
@@ -129,7 +127,7 @@ test('More tab shell exposes every secondary workflow', async ({ page }) => {
   for (const name of ['Watchlist', 'Watched', 'Lists', 'Settings', 'Sign in']) {
     await expect(
       page.getByRole('link', {
-        name: name === 'Lists' ? name + ' (opens browser)' : name,
+        name,
         exact: true,
       }),
     ).toBeVisible();

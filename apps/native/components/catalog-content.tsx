@@ -8,6 +8,7 @@ import { CatalogRelated } from '@native/components/catalog-related';
 import { CatalogReviews } from '@native/components/catalog-reviews';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { CatalogTrailer } from '@native/components/catalog-trailer';
+import { CustomListActions } from '@native/components/custom-list-picker';
 import { ExternalLink } from '@native/components/external-link';
 import { PersonCreditGroup } from '@native/components/person-credits';
 import {
@@ -101,6 +102,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
             }}
           />
           <SystemListActions input={{ resourceId: item.id, resourceType: item.type }} />
+          <CustomListActions input={{ resourceId: item.id, resourceType: item.type }} />
           <CatalogTrailer input={{ id: item.id, type: item.type }} title={item.title} />
           <Genres item={item} />
           <CatalogOriginCountries item={item} region={region} />

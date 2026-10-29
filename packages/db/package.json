@@ -12,7 +12,8 @@
     "./ordering-lock": "./src/ordering-lock.ts",
     "./system-lists": "./src/system-lists.ts",
     "./title-availability": "./src/title-availability.ts",
-    "./list-item-order": "./src/list-item-order.ts"
+    "./list-item-order": "./src/list-item-order.ts",
+    "./custom-lists": "./src/custom-lists.ts"
   },
   "dependencies": {
     "@better-auth/passkey": "catalog:",

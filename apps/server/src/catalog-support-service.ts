@@ -7,7 +7,7 @@ import {
 } from '@movies/api/catalog-support';
 import type { CatalogService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
-import { tmdbImageUrl, toMediaCard } from '@server/media-card';
+import { tmdbImageUrl, toMediaCard, tmdbCardSchema } from '@server/media-card';
 import { z } from 'zod';
 
 const videosSchema = z.object({
@@ -26,20 +26,7 @@ const regionProvidersSchema = z.object({
   buy: z.array(providerSchema).default([]),
 });
 const providersSchema = z.object({ results: z.record(z.string(), regionProvidersSchema) });
-const cardsSchema = z.object({
-  results: z.array(
-    z.object({
-      id: z.number().int().positive(),
-      title: z.string().optional(),
-      name: z.string().optional(),
-      release_date: z.string().optional(),
-      first_air_date: z.string().optional(),
-      poster_path: z.string().nullable().default(null),
-      backdrop_path: z.string().nullable().default(null),
-      vote_average: z.number().default(0),
-    }),
-  ),
-});
+const cardsSchema = z.object({ results: z.array(tmdbCardSchema) });
 
 function watchLink(link: string | undefined, { id, type }: CatalogDetailInput) {
   if (link) {

@@ -33,7 +33,8 @@
     "./paginate": "./src/paginate.ts",
     "./system-lists": "./src/system-lists.ts",
     "./system-list-copy": "./src/system-list-copy.ts",
-    "./settled": "./src/settled.ts"
+    "./settled": "./src/settled.ts",
+    "./custom-lists": "./src/custom-lists.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

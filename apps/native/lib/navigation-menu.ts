@@ -16,7 +16,6 @@ export const PRIMARY_MENU_ITEMS = [
   },
 ] as const;
 
-// Items without a `nativePath` open their real web workflow until ported.
 export const MORE_MENU_ITEMS = [
   {
     id: 'watchlist',
@@ -26,7 +25,7 @@ export const MORE_MENU_ITEMS = [
     nativePath: '/more/watchlist',
   },
   { id: 'watched', label: 'Watched', symbol: 'eye', path: '/watched', nativePath: '/more/watched' },
-  { id: 'lists', label: 'Lists', symbol: 'list.bullet', path: '/lists' },
+  { id: 'lists', label: 'Lists', symbol: 'list.bullet', path: '/lists', nativePath: '/more/lists' },
   {
     id: 'settings',
     label: 'Settings',
@@ -45,15 +44,8 @@ export const MORE_MENU_ITEMS = [
 const allItems = [...PRIMARY_MENU_ITEMS, ...MORE_MENU_ITEMS];
 type MenuItem = (typeof allItems)[number];
 export type NativeMenuPath = Extract<MenuItem, { nativePath: string }>['nativePath'];
-type MenuDestination = { kind: 'native'; path: NativeMenuPath } | { kind: 'browser'; url: string };
-
-export function getMenuDestination(id: string, webBaseUrl: string): MenuDestination | null {
+type MenuDestination = { kind: 'native'; path: NativeMenuPath };
+export function getMenuDestination(id: string): MenuDestination | null {
   const item = allItems.find((entry) => entry.id === id);
-  if (!item) {
-    return null;
-  }
-  if ('nativePath' in item) {
-    return { kind: 'native', path: item.nativePath };
-  }
-  return { kind: 'browser', url: `${webBaseUrl.replace(/\/$/, '')}${item.path}` };
+  return item ? { kind: 'native', path: item.nativePath } : null;
 }

@@ -1,5 +1,6 @@
 import type { SystemListPage } from '@movies/api/system-lists';
-import { readSystemListState, canReorderSystemList } from '@native/lib/system-list-state';
+import { canReorderList } from '@native/lib/list-page-state';
+import { readSystemListState } from '@native/lib/system-list-state';
 import { describe, expect, it } from 'vite-plus/test';
 
 describe('native system list context', () => {
@@ -37,10 +38,10 @@ describe('native system list context', () => {
       counts: { movie: 21, tv: 0 },
       unavailableItems: 0,
     };
-    expect(canReorderSystemList(input, result, false)).toBe(true);
-    expect(canReorderSystemList({ ...input, providerIds: [8] }, result, false)).toBe(false);
-    expect(canReorderSystemList(input, result, true)).toBe(false);
-    expect(canReorderSystemList(input, { ...result, unavailableItems: 1 }, false)).toBe(false);
-    expect(canReorderSystemList(input, { ...result, totalItems: 0 }, false)).toBe(false);
+    expect(canReorderList(input, result, false)).toBe(true);
+    expect(canReorderList({ ...input, providerIds: [8] }, result, false)).toBe(false);
+    expect(canReorderList(input, result, true)).toBe(false);
+    expect(canReorderList(input, { ...result, unavailableItems: 1 }, false)).toBe(false);
+    expect(canReorderList(input, { ...result, totalItems: 0 }, false)).toBe(false);
   });
 });

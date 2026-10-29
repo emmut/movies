@@ -5,7 +5,7 @@ import {
 } from '@movies/api/system-list-copy';
 import type { SystemListPage, SystemListPageInput } from '@movies/api/system-lists';
 import type { SystemListType } from '@movies/api/validations';
-import { BottomNavigation } from '@native/components/bottom-navigation';
+import { AccountScreen } from '@native/components/account-screen';
 import { ArrowUpIcon, ArrowDownIcon } from '@native/components/icons';
 import { MediaPoster } from '@native/components/media-poster';
 import { ScreenQueryState } from '@native/components/screen-query-state';
@@ -13,19 +13,15 @@ import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { SystemListFilters } from '@native/components/system-list-filters';
 import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc, queryClient } from '@native/lib/api';
-import { authClient } from '@native/lib/auth-client';
+import { canReorderList } from '@native/lib/list-page-state';
 import { accountRegionQueryOptions } from '@native/lib/preferences';
-import { readSystemListState, canReorderSystemList } from '@native/lib/system-list-state';
-import { useCurrentUrl } from '@native/lib/use-current-url';
+import { readSystemListState } from '@native/lib/system-list-state';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
-import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
-import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
-import { withUniwind } from 'uniwind';
 
-const SafeAreaView = withUniwind(NativeSafeAreaView);
 type Entry = SystemListPage['items'][number];
 function title(listType: SystemListType) {
   return SYSTEM_LIST_COPY[listType].title;
@@ -253,7 +249,7 @@ function ListGrid({
       },
     }),
   );
-  const reorderDisabled = !canReorderSystemList(input, result, stale);
+  const reorderDisabled = !canReorderList(input, result, stale);
   const offset = (result.currentPage - 1) * result.itemsPerPage;
   return (
     <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
@@ -377,33 +373,10 @@ function RegionalList({ listType, userId }: { listType: SystemListType; userId: 
   return <ListQuery input={input} userId={userId} change={(values) => router.setParams(values)} />;
 }
 
-function ListSession({ listType }: { listType: SystemListType }) {
-  const session = authClient.useSession();
-  const returnUrl = useCurrentUrl();
-  if (session.isPending || session.error) {
-    return (
-      <ScreenQueryState
-        label="your session"
-        failed={Boolean(session.error)}
-        retry={() => {
-          void session.refetch();
-        }}
-      />
-    );
-  }
-  if (!session.data) {
-    return <Redirect href={{ pathname: '/login', params: { redirect_url: returnUrl } }} />;
-  }
-  return (
-    <RegionalList key={session.data.user.id} listType={listType} userId={session.data.user.id} />
-  );
-}
-
 export function SystemListScreen({ listType }: { listType: SystemListType }) {
   return (
-    <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']}>
-      <ListSession listType={listType} />
-      <BottomNavigation />
-    </SafeAreaView>
+    <AccountScreen>
+      {(userId) => <RegionalList listType={listType} userId={userId} />}
+    </AccountScreen>
   );
 }

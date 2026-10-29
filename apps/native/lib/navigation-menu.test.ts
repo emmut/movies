@@ -17,42 +17,34 @@ describe('native navigation menu destinations', () => {
     ]);
   });
   it('returns native Home without needing a browser URL', () => {
-    expect(getMenuDestination('home', '')).toEqual({ kind: 'native', path: '/' });
+    expect(getMenuDestination('home')).toEqual({ kind: 'native', path: '/' });
   });
-  it.each(MORE_MENU_ITEMS.filter((item) => item.id === 'lists'))(
-    'opens the existing $label workflow until it is ported',
-    (item) => {
-      expect(getMenuDestination(item.id, 'https://movies.example/')).toEqual({
-        kind: 'browser',
-        url: `https://movies.example${item.path}`,
-      });
-    },
-  );
+  it('routes Lists natively', () => {
+    expect(getMenuDestination('lists')).toEqual({ kind: 'native', path: '/more/lists' });
+  });
   it('routes Discover natively', () => {
-    expect(getMenuDestination('discover', '')).toEqual({ kind: 'native', path: '/discover' });
+    expect(getMenuDestination('discover')).toEqual({ kind: 'native', path: '/discover' });
   });
   it('routes Sign in natively', () => {
-    expect(getMenuDestination('login', '')).toEqual({ kind: 'native', path: '/login' });
+    expect(getMenuDestination('login')).toEqual({ kind: 'native', path: '/login' });
   });
   it('routes Search natively', () => {
-    expect(getMenuDestination('search', '')).toEqual({ kind: 'native', path: '/search' });
+    expect(getMenuDestination('search')).toEqual({ kind: 'native', path: '/search' });
   });
   it('routes Settings natively', () => {
-    expect(getMenuDestination('settings', '')).toEqual({ kind: 'native', path: '/more/settings' });
+    expect(getMenuDestination('settings')).toEqual({ kind: 'native', path: '/more/settings' });
   });
   it('does not treat arbitrary OS action IDs as links', () => {
-    expect(getMenuDestination('https://attacker.example', 'https://movies.example')).toBeNull();
+    expect(getMenuDestination('https://attacker.example')).toBeNull();
   });
 });
 
 it.each(['watchlist', 'watched'])('routes %s natively', (id) => {
-  expect(getMenuDestination(id, '')).toEqual({ kind: 'native', path: '/more/' + id });
+  expect(getMenuDestination(id)).toEqual({ kind: 'native', path: '/more/' + id });
 });
 
-it('opens only items without a native screen in the browser', () => {
-  const items = [...PRIMARY_MENU_ITEMS, ...MORE_MENU_ITEMS];
-  const browserIds = items
-    .filter((item) => getMenuDestination(item.id, 'https://movies.example')?.kind === 'browser')
-    .map((item) => item.id);
-  expect(browserIds).toEqual(['lists']);
+it('keeps every menu workflow native', () => {
+  for (const item of [...PRIMARY_MENU_ITEMS, ...MORE_MENU_ITEMS]) {
+    expect(getMenuDestination(item.id)?.kind).toBe('native');
+  }
 });
