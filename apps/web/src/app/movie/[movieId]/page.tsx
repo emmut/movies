@@ -12,7 +12,7 @@ import { MovieFacts } from '@/components/movie-facts';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
 import { PdpAdditionalContent } from '@/components/pdp-extras';
-import { MovieCollection, ProductionCompanies } from '@/components/pdp-sections';
+import { MovieCollection } from '@/components/pdp-sections';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
 import { RatingsCard } from '@/components/ratings-card';
@@ -203,8 +203,6 @@ export default async function MoviePage(props: MoviePageProps) {
           <Suspense fallback={<ReviewsSectionSkeleton />}>
             <ReviewsSection mediaType="movie" mediaId={movieId} />
           </Suspense>
-
-          <ProductionCompanies companies={movie.production_companies} />
 
           <ExternalLinks
             imdbId={movie.imdb_id}

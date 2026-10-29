@@ -40,6 +40,7 @@ export type AggregateCredits = {
   cast: {
     id: number;
     name: string;
+    profile_path: string | null;
     total_episode_count: number;
     roles: { character: string; episode_count: number }[];
   }[];

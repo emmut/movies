@@ -11,9 +11,10 @@ import ItemHeader from '@/components/item-header';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
 import { PdpAdditionalContent } from '@/components/pdp-extras';
-import { ProductionCompanies, TvSeasons, TvRoleCredits } from '@/components/pdp-sections';
+import { TvSeasons } from '@/components/pdp-sections';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
+import { ProductionCompanies } from '@/components/production-companies';
 import { RatingsCard } from '@/components/ratings-card';
 import { ReviewsSection, ReviewsSectionSkeleton } from '@/components/reviews-section';
 import { StreamingSection, StreamingSectionSkeleton } from '@/components/streaming-section';
@@ -250,6 +251,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
                   <p>{networks.map((network) => network.name).join(', ')}</p>
                 </div>
               )}
+              <ProductionCompanies companies={tvShow.production_companies} />
             </div>
           </div>
 
@@ -301,9 +303,6 @@ export default async function TvShowPage(props: TvShowPageProps) {
           </Suspense>
 
           <Suspense fallback={null}>
-            <TvRoleCredits tvId={tvId} />
-          </Suspense>
-          <Suspense fallback={null}>
             <PdpAdditionalContent type="tv" id={tvId} region={userRegion} />
           </Suspense>
 
@@ -318,8 +317,6 @@ export default async function TvShowPage(props: TvShowPageProps) {
           <Suspense fallback={<ReviewsSectionSkeleton />}>
             <ReviewsSection mediaType="tv" mediaId={tvId} />
           </Suspense>
-
-          <ProductionCompanies companies={tvShow.production_companies} />
 
           <ExternalLinks tmdbId={tvId} homepage={homepage} mediaType="tv" imdbId={imdbId} />
         </div>

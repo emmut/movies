@@ -102,7 +102,7 @@ export async function MovieCredits({ movieId }: { movieId: number }) {
           ))}
         </ul>
       </details>
-      <CastSlider cast={credits.cast} />
+      <CastSlider cast={credits.cast.map((person) => ({ ...person, episodeCount: null }))} />
     </>
   );
 }

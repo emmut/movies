@@ -4,23 +4,15 @@ vi.mock('@/components/image-proxy', () => ({ Imgproxy: () => null }));
 vi.mock('@/lib/pdp', () => ({
   getSeason: vi.fn(),
   getCollection: vi.fn(),
-  getAggregateCredits: vi.fn(),
 }));
 import { BackTargetLink } from '@/components/back-target-link';
-import { getAggregateCredits, getCollection, getSeason } from '@/lib/pdp';
+import { getCollection, getSeason } from '@/lib/pdp';
 
-import {
-  MovieCollection,
-  ProductionCompanies,
-  SeasonEpisodes,
-  TvRoleCredits,
-  TvSeasons,
-} from './pdp-sections';
+import { MovieCollection, SeasonEpisodes, TvSeasons } from './pdp-sections';
 
 beforeEach(() => vi.clearAllMocks());
 describe('PDP sections', () => {
-  it('hides absent production companies and missing episode data', () => {
-    expect(renderToStaticMarkup(<ProductionCompanies companies={[]} />)).toBe('');
+  it('hides missing episode data', () => {
     const html = renderToStaticMarkup(
       <TvSeasons tvId={1} seasons={[]} next={null} latest={null} />,
     );
@@ -69,26 +61,6 @@ describe('PDP sections', () => {
     expect(html).not.toContain('Current');
     expect(html.indexOf('Earlier')).toBeLessThan(html.indexOf('Later'));
     expect(html).toContain('/movie/2');
-  });
-  it('renders aggregate roles and total episode counts with person links', async () => {
-    vi.mocked(getAggregateCredits).mockResolvedValue({
-      cast: [
-        {
-          id: 42,
-          name: 'Actor',
-          roles: [{ character: 'Detective', episode_count: 3 }],
-          total_episode_count: 3,
-        },
-      ],
-    });
-    const section = await TvRoleCredits({ tvId: 1 });
-    expect(section?.props.children[1].props.children[0].props.children[0].type).toBe(
-      BackTargetLink,
-    );
-    const html = renderToStaticMarkup(section);
-    expect(html).toContain('/person/42');
-    expect(html).toContain('Detective (3 episodes)');
-    expect(html).toContain('3 episodes total');
   });
   it('degrades failed optional sections without throwing', async () => {
     vi.mocked(getSeason).mockRejectedValue(new Error('Unavailable'));
