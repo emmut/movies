@@ -22,6 +22,19 @@ export async function openDiscoverFilters(page: Page) {
   return panel;
 }
 
+export async function closeDiscoverFilters(page: Page) {
+  const trigger = page.getByRole('button', { name: /^(?:More filters|Filters)(?: \(\d+\))?$/i });
+  // Outside clicks can already have closed the popover while its exit animation
+  // keeps Show results visible. The trigger reflects the actual open state.
+  if (await trigger.getAttribute('aria-expanded') === 'true') {
+    await trigger.click();
+  }
+  const panel = page.locator('[data-slot="popover-content"]').filter({
+    has: page.getByRole('heading', { name: /^(?:More filters|Filters)$/i }),
+  });
+  await expect(panel).not.toBeVisible();
+}
+
 export async function openDiscoverTags(page: Page) {
   await expect(page.getByRole('navigation', { name: 'Discover filters', exact: true })).toBeVisible();
   const trigger = page.getByRole('button', { name: /^Tags(?: \(\d+\))?$/ });

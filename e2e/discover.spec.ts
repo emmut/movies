@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { openDiscoverFilters } from './helpers';
+import { closeDiscoverFilters, openDiscoverFilters } from './helpers';
 
 // End-to-end coverage for the discover page. These exercise the client-side
 // URL-state machine (nuqs) that drives React Query refetches: genre pills,
@@ -210,11 +210,11 @@ test.describe('genre navigation', () => {
       has: page.getByRole('heading', { name: /^filters$/i }),
     });
     await expect(genrePopover.getByRole('heading', { name: /^genres$/i })).toBeVisible();
-    const [sortBounds, runtimeBounds] = await Promise.all([
-      genrePopover.getByLabel('Sort By').boundingBox(),
-      genrePopover.getByLabel('Runtime').boundingBox(),
-    ]);
-    expect(sortBounds?.y).toBe(runtimeBounds?.y);
+    // Read both controls in the same animation frame. Separate boundingBox
+    // calls can sample different points in the popover's opening animation.
+    await expect.poll(() => genrePopover.locator('[data-slot="select-trigger"]').evaluateAll(([sort, runtime]) =>
+      Math.abs(sort.getBoundingClientRect().top - runtime.getBoundingClientRect().top),
+    )).toBeLessThan(1);
     await expect
       .poll(async () => (await mediaTypeToggle.boundingBox())?.x)
       .toBe(mediaTypeXBeforeOpen);
@@ -303,10 +303,7 @@ test.describe('sidebar navigation', () => {
     await openDiscoverFilters(page);
     await page.getByRole('button', { name: /^comedy$/i }).click();
     await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
-    const showResults = page.getByRole('button', { name: 'Show results', exact: true });
-    if (await showResults.isVisible()) {
-      await showResults.click();
-    }
+    await closeDiscoverFilters(page);
     await page.getByRole('button', { name: /go to next page/i }).click();
     await waitForDiscoverUrl(page, /page=2/);
     await expect(activePageNumber).toHaveText('2', { timeout: 15_000 });
@@ -416,10 +413,7 @@ test.describe('filters', () => {
     await selectOption(page, 'Runtime', 'Up to 90 min');
     await waitForDiscoverUrl(page, /runtime=90/);
 
-    const showResults = page.getByRole('button', { name: 'Show results', exact: true });
-    if (await showResults.isVisible()) {
-      await showResults.click();
-    }
+    await closeDiscoverFilters(page);
     await page.getByRole('button', { name: '2', exact: true }).click();
     await waitForDiscoverUrl(page, /page=2/);
 

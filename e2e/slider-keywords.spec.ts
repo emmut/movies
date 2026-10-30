@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { MOVIE_PATH, openDiscoverFilters } from './helpers';
+import { MOVIE_PATH, closeDiscoverFilters, openDiscoverFilters } from './helpers';
 
 test.setTimeout(60_000);
 
@@ -72,10 +72,7 @@ test('Discover keyword links retain the keyword through paging and media changes
   await expect(page).toHaveURL(/\/discover\?keywordId=818&mediaType=movie&page=2/, { timeout: 15_000 });
   await openDiscoverFilters(page);
   await expect(page.getByRole('button', { name: /^Remove keyword / })).toBeVisible();
-  const showResults = page.getByRole('button', { name: 'Show results', exact: true });
-  if (await showResults.isVisible()) {
-    await showResults.click();
-  }
+  await closeDiscoverFilters(page);
   await expect(page.locator('#content a[href^="/movie/"]').first()).toBeVisible();
   await page.getByRole('button', { name: /go to next page/i }).click();
   await expect(page).toHaveURL(/page=3/);
