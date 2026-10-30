@@ -47,6 +47,7 @@ type DiscoverViewState = {
   activeFilterCount: number;
   clearFilters: () => Promise<URLSearchParams>;
   removeKeyword: (id: number) => void;
+  addKeyword: (id: number) => void;
 };
 
 function useDiscoverViewState(userRegion: string, userWatchProviders: number[]): DiscoverViewState {
@@ -90,6 +91,12 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
 
   return {
     keywordIds: urlState.keywordIds,
+    addKeyword(id) {
+      if (urlState.keywordIds.includes(id)) {
+        return;
+      }
+      void setUrlState({ keywordIds: [...urlState.keywordIds, id], page: 1 }, { shallow: false });
+    },
     removeKeyword(id) {
       void setUrlState({
         keywordIds: urlState.keywordIds.filter((keywordId) => keywordId !== id),
@@ -216,6 +223,7 @@ export function DiscoverContent({
     activeFilterCount,
     clearFilters,
     removeKeyword,
+    addKeyword,
   } = useDiscoverViewState(userRegion, userWatchProviders);
   const genres = mediaType === 'movie' ? movieGenres : tvGenres;
   const query = {
@@ -248,6 +256,7 @@ export function DiscoverContent({
       <DiscoverKeywords
         keywords={keywords.filter((keyword) => keywordIds.includes(keyword.id))}
         onRemove={removeKeyword}
+        onAdd={addKeyword}
       />
 
       <div

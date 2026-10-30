@@ -86,6 +86,7 @@ export const queryKeys = {
   search: {
     all: ['search'] as const,
     lists: () => [...queryKeys.search.all, 'list'] as const,
+    keywords: (query: string) => [...queryKeys.search.lists(), 'keywords', query] as const,
     movies: (query: string, page: number) =>
       [...queryKeys.search.lists(), 'movies', query, page] as const,
     tvShows: (query: string, page: number) =>
