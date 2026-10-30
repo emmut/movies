@@ -45,7 +45,7 @@ export function KeywordBubbles({
       <Button
         variant="ghost"
         size="sm"
-        className="mt-2 text-zinc-400"
+        className="mt-2 h-auto px-4 py-2 text-zinc-400"
         aria-expanded={expanded}
         aria-controls={contentId}
         onClick={() => setExpanded((current) => !current)}
