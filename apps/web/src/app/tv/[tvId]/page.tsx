@@ -253,11 +253,12 @@ export default async function TvShowPage(props: TvShowPageProps) {
                 </div>
               )}
               <ProductionCompanies companies={tvShow.production_companies} />
-              <Suspense fallback={null}>
-                <PdpKeywords type="tv" id={tvId} />
-              </Suspense>
             </div>
           </div>
+
+          <Suspense fallback={null}>
+            <PdpKeywords type="tv" id={tvId} />
+          </Suspense>
 
           <Suspense fallback={null}>
             <PdpImages type="tv" id={tvId} title={name} />

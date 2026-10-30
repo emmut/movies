@@ -1,7 +1,5 @@
 import { DollarSign } from 'lucide-react';
-import { Suspense } from 'react';
 
-import { PdpKeywords } from '@/components/pdp-keywords';
 import { ProductionCompanies } from '@/components/production-companies';
 import { formatCurrency } from '@/lib/utils';
 import type { MovieDetails } from '@/types/movie';
@@ -86,9 +84,6 @@ export function MovieFacts({ movie }: { movie: MovieDetails }) {
         <TextFact label="Release Date" value={release_date} fallback="Not available" />
         <TextFact label="Languages" value={languages} />
         <ProductionCompanies companies={movie.production_companies} />
-        <Suspense fallback={null}>
-          <PdpKeywords type="movie" id={movie.id} />
-        </Suspense>
       </div>
 
       <div className="space-y-4">

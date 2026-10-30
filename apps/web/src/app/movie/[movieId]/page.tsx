@@ -14,6 +14,7 @@ import { MovieReleases } from '@/components/movie-releases';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
 import { PdpImages } from '@/components/pdp-images';
+import { PdpKeywords } from '@/components/pdp-keywords';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
 import { RatingsCard } from '@/components/ratings-card';
@@ -175,6 +176,10 @@ export default async function MoviePage(props: MoviePageProps) {
           </div>
 
           <MovieFacts movie={movie} />
+
+          <Suspense fallback={null}>
+            <PdpKeywords type="movie" id={movieId} />
+          </Suspense>
 
           <Suspense fallback={null}>
             <PdpImages type="movie" id={movieId} title={title} />
