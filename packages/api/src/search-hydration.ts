@@ -4,14 +4,20 @@ import type { MovieDetails, MultiSearchResult } from './tmdb-types/movie';
 import type { PersonDetails } from './tmdb-types/person';
 import type { TvDetails } from './tmdb-types/tv-show';
 
+type MovieSearchDetails = Omit<MovieDetails, 'production_companies' | 'belongs_to_collection'>;
+type TvSearchDetails = Omit<
+  TvDetails,
+  'production_companies' | 'seasons' | 'next_episode_to_air' | 'last_episode_to_air'
+>;
+
 export type SearchDetailSources = {
-  movie(id: number): Promise<MovieDetails>;
-  tv(id: number): Promise<TvDetails>;
+  movie(id: number): Promise<MovieSearchDetails>;
+  tv(id: number): Promise<TvSearchDetails>;
   person(id: number): Promise<PersonDetails>;
 };
 export function createSearchHydrator(sources: SearchDetailSources) {
   const { movie: getMovieDetails, tv: getTvShowDetails, person: getPersonDetails } = sources;
-  function movieResult(details: MovieDetails): MultiSearchResult {
+  function movieResult(details: MovieSearchDetails): MultiSearchResult {
     return {
       adult: details.adult,
       backdrop_path: details.backdrop_path,
@@ -31,7 +37,7 @@ export function createSearchHydrator(sources: SearchDetailSources) {
     };
   }
 
-  function tvResult(details: TvDetails): MultiSearchResult {
+  function tvResult(details: TvSearchDetails): MultiSearchResult {
     return {
       id: details.id,
       name: details.name,

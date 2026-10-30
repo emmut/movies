@@ -4,22 +4,13 @@ import { Users } from 'lucide-react';
 import { BackTargetLink } from '@/components/back-target-link';
 import { Imgproxy } from '@/components/image-proxy';
 import { ItemSlider } from '@/components/item-slider';
-
-// Structural shape shared by movie `CastMember` and TV `Cast`; kept minimal so
-// both credit types satisfy it without coupling this component to either.
-type CastSliderMember = {
-  credit_id: string;
-  id: number;
-  name: string;
-  character: string;
-  profile_path: string | null;
-};
+import type { CastMemberSummary } from '@movies/api/tmdb-types/pdp';
 
 /**
  * Horizontal slider of billed cast, each linking to the person page. Renders
  * nothing when the cast list is empty.
  */
-export function CastSlider({ cast }: { cast: CastSliderMember[] }) {
+export function CastSlider({ cast }: { cast: CastMemberSummary[] }) {
   if (cast.length === 0) {
     return null;
   }
@@ -30,7 +21,7 @@ export function CastSlider({ cast }: { cast: CastSliderMember[] }) {
       <ItemSlider>
         {cast.map((person) => (
           <BackTargetLink
-            key={person.credit_id}
+            key={person.id}
             href={`/person/${person.id}`}
             className="w-32 shrink-0 transition-transform hover:scale-105"
           >
@@ -49,8 +40,20 @@ export function CastSlider({ cast }: { cast: CastSliderMember[] }) {
                 </div>
               )}
             </div>
-            <h3 className="line-clamp-2 text-sm font-medium hover:text-white">{person.name}</h3>
-            <p className="line-clamp-2 text-xs text-zinc-400">{person.character}</p>
+            <h3 className="line-clamp-2 text-sm font-medium wrap-anywhere hover:text-white">
+              {person.name}
+            </h3>
+            <p
+              className="line-clamp-2 text-xs wrap-anywhere text-zinc-400"
+              title={person.character}
+            >
+              {person.character}
+            </p>
+            {person.episodeCount !== null && person.episodeCount > 0 && (
+              <p className="mt-1 text-xs text-zinc-500">
+                {person.episodeCount} {person.episodeCount === 1 ? 'episode' : 'episodes'}
+              </p>
+            )}
           </BackTargetLink>
         ))}
       </ItemSlider>

@@ -1,5 +1,4 @@
 import 'server-only';
-import { pickYoutubeTrailer, type TmdbVideoResponse } from '@movies/api/catalog-support';
 import { buildDiscoverSearchParams } from '@movies/api/discover-params';
 import type { GenreResponse } from '@movies/api/tmdb-types/genre';
 import {
@@ -219,31 +218,6 @@ export async function fetchAvailableTvGenres() {
     errorMessage: 'Error loading TV genres',
   });
   return tvGenres.genres;
-}
-
-/**
- * Retrieves the YouTube video key for a trailer or teaser of a TV show by its TMDb ID.
- *
- * Searches for a video of type "Trailer" or "Teaser" hosted on YouTube. Returns the video key if found, or null if no suitable video exists or an error occurs.
- *
- * @param tvId - The TMDb ID of the TV show
- * @returns The YouTube video key for the trailer or teaser, or null if not found
- */
-export async function getTvShowTrailer(tvId: number) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.tv.trailer(tvId));
-  cacheLife('hours');
-
-  try {
-    const data = await tmdbFetch<TmdbVideoResponse>(`/tv/${tvId}/videos`, {
-      errorMessage: 'Failed to fetch trailer',
-    });
-
-    return pickYoutubeTrailer(data.results);
-  } catch (error) {
-    console.error('Error fetching trailer:', error);
-    return null;
-  }
 }
 
 export async function getTvShowSimilar(tvId: number, userRegion?: string) {

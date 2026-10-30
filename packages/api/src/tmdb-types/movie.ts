@@ -1,6 +1,7 @@
 import { RegionCode } from '@movies/config/regions';
 
 import { Genre } from './genre';
+import type { ProductionCompany } from './pdp';
 import { SearchedPerson } from './person';
 import { TvShow } from './tv-show';
 import { RegionWatchProviders } from './watch-provider';
@@ -25,6 +26,8 @@ export type Movie = {
 };
 
 export type MovieDetails = {
+  production_companies: ProductionCompany[];
+  belongs_to_collection: { id: number; name: string } | null;
   adult: boolean;
   backdrop_path: string;
   budget: number;

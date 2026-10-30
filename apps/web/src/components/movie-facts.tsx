@@ -2,6 +2,8 @@ import { formatCurrency } from '@movies/api/formatting';
 import type { MovieDetails } from '@movies/api/tmdb-types/movie';
 import { DollarSign } from 'lucide-react';
 
+import { ProductionCompanies } from '@/components/production-companies';
+
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
@@ -81,6 +83,7 @@ export function MovieFacts({ movie }: { movie: MovieDetails }) {
         <TextFact label="Original Title" value={original_title} />
         <TextFact label="Release Date" value={release_date} fallback="Not available" />
         <TextFact label="Languages" value={languages} />
+        <ProductionCompanies companies={movie.production_companies} />
       </div>
 
       <div className="space-y-4">

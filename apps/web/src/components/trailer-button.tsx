@@ -1,61 +1,71 @@
 'use client';
 
-import { Button } from '@movies/ui/components/button';
-import { Dialog, DialogContent, DialogTitle } from '@movies/ui/components/dialog';
+import { buttonVariants } from '@movies/ui/components/button';
 import { cn } from 'cn';
-import { PlayCircle } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowUpRight, PlayCircle } from 'lucide-react';
 
-interface TrailerButtonProps {
-  title: string;
-  trailerKey: string;
-  mediaType: 'movie' | 'tv';
+import { MediaViewer, MediaViewerTrigger } from '@/components/media-viewer';
+import type { TmdbVideo } from '@movies/api/catalog-support';
+
+function VideoPlayer({ video, title }: { video: TmdbVideo; title: string }) {
+  return (
+    <div className="flex h-full w-full max-w-7xl flex-col items-center gap-3">
+      <iframe
+        className="min-h-0 w-full flex-1"
+        src={`https://www.youtube-nocookie.com/embed/${video.key}?autoplay=1&rel=0`}
+        title={`${title} — ${video.name}`}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+      <a
+        href={`https://www.youtube.com/watch?v=${video.key}`}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
+      >
+        Watch on YouTube <ArrowUpRight className="size-3" aria-hidden="true" />
+      </a>
+    </div>
+  );
 }
 
-/**
- * Renders a button that opens a dialog to play a movie trailer in an embedded YouTube player.
- *
- * @param title - The title of the movie, used for dialog accessibility and iframe title
- * @param trailerKey - The YouTube video key for the trailer to embed
- * @param mediaType - The type of media (movie or tv)
- * @returns A React element containing the play button and trailer dialog
- */
-export function TrailerButton({ title, trailerKey, mediaType }: TrailerButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleClick = () => {
-    setIsOpen(true);
-  };
+export function TrailerButton({
+  title,
+  videos,
+  mediaType,
+}: {
+  title: string;
+  videos: TmdbVideo[];
+  mediaType: 'movie' | 'tv';
+}) {
+  const hasTrailer = videos.some((video) => video.type === 'Trailer' || video.type === 'Teaser');
+  const label = hasTrailer ? 'Play Trailer' : 'Watch Videos';
+  const slides = videos.map((video) => ({
+    id: video.id,
+    title: `${video.name} · ${video.type}${video.official ? ' · Official' : ''}`,
+    content: <VideoPlayer video={video} title={title} />,
+  }));
 
   return (
-    <>
-      <Button
-        onClick={handleClick}
+    <MediaViewer title={`${title} — Videos`} items={slides}>
+      <MediaViewerTrigger
+        index={0}
+        label={`${label}${videos.length > 1 ? ` (${videos.length} videos)` : ''}`}
         className={cn(
-          mediaType === 'movie' && 'bg-yellow-600 hover:bg-yellow-700',
-          mediaType === 'tv' && 'bg-red-600 text-neutral-50 hover:bg-red-700',
+          buttonVariants({ size: 'sm' }),
+          mediaType === 'movie'
+            ? 'bg-yellow-600 hover:bg-yellow-700'
+            : 'bg-red-600 text-neutral-50 hover:bg-red-700',
         )}
-        size="sm"
       >
-        <PlayCircle className="h-2 w-2" />
-        Play Trailer
-      </Button>
-
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[min(98vw,1440px)]">
-          <DialogTitle className="sr-only">{title} - Trailer</DialogTitle>
-          <div className="aspect-video">
-            <iframe
-              width="100%"
-              height="100%"
-              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
-              title={`${title} - Trailer`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        <PlayCircle aria-hidden="true" />
+        {label}
+        {videos.length > 1 && (
+          <span className="ml-1 border-l border-white/20 pl-2 text-xs opacity-75">
+            {videos.length} videos
+          </span>
+        )}
+      </MediaViewerTrigger>
+    </MediaViewer>
   );
 }
