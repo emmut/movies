@@ -1,9 +1,13 @@
 import 'server-only';
+import type { Movie } from '@movies/api/tmdb-types/movie';
+import type {
+  AggregateCredits,
+  CollectionDetails,
+  PdpExtras,
+  SeasonDetails,
+} from '@movies/api/tmdb-types/pdp';
+import type { TvShow } from '@movies/api/tmdb-types/tv-show';
 import { cacheLife, cacheTag } from 'next/cache';
-
-import type { Movie } from '@/types/movie';
-import type { AggregateCredits, CollectionDetails, PdpExtras, SeasonDetails } from '@/types/pdp';
-import type { TvShow } from '@/types/tv-show';
 
 import { CACHE_TAGS } from './cache-tags';
 import { tmdbFetch } from './tmdb';

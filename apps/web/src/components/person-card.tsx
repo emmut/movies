@@ -1,10 +1,10 @@
+import { PersonDetails, SearchedPerson } from '@movies/api/tmdb-types/person';
 import { cn } from 'cn';
 import { User } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
 import { formatImageUrl } from '@/lib/utils';
-import { PersonDetails, SearchedPerson } from '@/types/person';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 
 import Badge from './badge';
@@ -20,6 +20,64 @@ type PersonCardProps = {
   /** Load the photo eagerly with high priority — for above-the-fold cards (LCP). */
   eagerImage?: boolean;
 };
+
+function PersonArtwork({
+  person,
+  eager,
+}: {
+  person: SearchedPerson | PersonDetails;
+  eager: boolean;
+}) {
+  const profileImageUrls = (person as { profileImageUrls?: ProxyImageUrls }).profileImageUrls;
+  return (
+    <>
+      {person.profile_path ? (
+        <ClientImage
+          imageUrls={profileImageUrls}
+          fallbackSrc={
+            person.profile_path.startsWith('http')
+              ? person.profile_path
+              : formatImageUrl(person.profile_path, 500)
+          }
+          alt={person.name}
+          className="h-full w-full object-cover"
+          eager={eager}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-zinc-800">
+          <div className="text-center text-zinc-400">
+            <div className="mb-2 text-4xl">
+              <User className="mx-auto h-12 w-12" />
+            </div>
+            <div className="text-sm font-semibold">No Photo</div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+function PersonMetadata({ person }: { person: SearchedPerson | PersonDetails }) {
+  // Handle both SearchedPerson and PersonDetails
+  const knownFor =
+    'known_for' in person
+      ? person.known_for
+          .slice(0, 2)
+          .map((item) => item.title || item.name)
+          .join(', ')
+      : null;
+
+  return (
+    <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
+      <div className="inset-0 bg-linear-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100" />
+
+      <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{person.name}</h3>
+      <div className="text-xs text-zinc-300">
+        <div className="mb-1">{person.known_for_department}</div>
+        {knownFor && <div className="line-clamp-1 text-zinc-400">Known for: {knownFor}</div>}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Displays a card for a person with profile image, name, and known for department.
@@ -37,17 +95,7 @@ export default function PersonCard({
   showListButton = true,
   eagerImage = false,
 }: PersonCardProps) {
-  const profileImageUrls = (person as { profileImageUrls?: ProxyImageUrls }).profileImageUrls;
   const href = `/person/${person.id}`;
-
-  // Handle both SearchedPerson and PersonDetails
-  const knownFor =
-    'known_for' in person
-      ? person.known_for
-          .slice(0, 2)
-          .map((item) => item.title || item.name)
-          .join(', ')
-      : null;
 
   return (
     <div
@@ -58,40 +106,10 @@ export default function PersonCard({
     >
       <BackTargetLink href={href}>
         <div className="relative h-full w-full">
-          {person.profile_path ? (
-            <ClientImage
-              imageUrls={profileImageUrls}
-              fallbackSrc={
-                person.profile_path.startsWith('http')
-                  ? person.profile_path
-                  : formatImageUrl(person.profile_path, 500)
-              }
-              alt={person.name}
-              className="h-full w-full object-cover"
-              eager={eagerImage}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-zinc-800">
-              <div className="text-center text-zinc-400">
-                <div className="mb-2 text-4xl">
-                  <User className="mx-auto h-12 w-12" />
-                </div>
-                <div className="text-sm font-semibold">No Photo</div>
-              </div>
-            </div>
-          )}
-
+          <PersonArtwork person={person} eager={eagerImage} />
           <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100" />
 
-          <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
-            <div className="inset-0 bg-linear-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100" />
-
-            <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{person.name}</h3>
-            <div className="text-xs text-zinc-300">
-              <div className="mb-1">{person.known_for_department}</div>
-              {knownFor && <div className="line-clamp-1 text-zinc-400">Known for: {knownFor}</div>}
-            </div>
-          </div>
+          <PersonMetadata person={person} />
 
           <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
             <Badge variant="blue">Person</Badge>

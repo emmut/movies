@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+import { z } from 'zod';
 
 // A stable TMDB movie id used across the logged-in specs. Inception (27205) has
 // long existed and won't 404, so the detail page renders deterministically.
@@ -13,12 +14,34 @@ export const MOVIE_PATH = `/movie/${MOVIE_ID}`;
  * @param page - The Playwright page.
  * @param redirectTo - Where to land after sign-in (defaults to home).
  */
-export async function signInAnonymously(page: Page, redirectTo = '/') {
+export async function signInAnonymously(
+  page: Page,
+  redirectTo = '/',
+  onCreated?: (userId: string) => Promise<void>,
+) {
   const loginUrl =
     redirectTo === '/' ? '/login' : `/login?redirect_url=${encodeURIComponent(redirectTo)}`;
   await page.goto(loginUrl);
 
-  await page.getByRole('button', { name: /continue as anonymous/i }).click();
+  const capture = onCreated
+    ? page
+        .waitForResponse(
+          (response) =>
+            response.request().method() === 'POST' &&
+            new URL(response.url()).pathname === '/api/auth/sign-in/anonymous' &&
+            response.ok(),
+        )
+        .then(async (response) => {
+          const created = z
+            .object({ user: z.object({ id: z.string().min(1), isAnonymous: z.literal(true) }) })
+            .parse(await response.json());
+          await onCreated(created.user.id);
+        })
+    : Promise.resolve();
+  await Promise.all([
+    page.getByRole('button', { name: /continue as anonymous/i }).click(),
+    capture,
+  ]);
 
   // The client redirects away from /login once the session cookie is set.
   await page.waitForURL((url) => !url.pathname.startsWith('/login'), { timeout: 15_000 });

@@ -30,3 +30,15 @@ export async function invalidateUserPreferenceQueries(
 
   await Promise.all(invalidations);
 }
+
+/** Another client may change account data while this browser is in the background. */
+export async function invalidateAccountQueriesOnReturn(queryClient: QueryClient) {
+  const scopes = [
+    queryKeys.user.all,
+    queryKeys.home.all,
+    queryKeys.watchlist.all,
+    queryKeys.watched.all,
+    queryKeys.lists.all,
+  ];
+  await Promise.all(scopes.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
+}

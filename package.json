@@ -4,13 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vp run dev:docker:up && vp exec -- turbo run dev --filter=@movies/web --cache-dir=.turbo/cache",
+    "dev": "vp run dev:docker:up && vp exec -- turbo run dev --cache-dir=.turbo/cache",
     "dev:docker:up": "docker compose -f docker-compose.dev.yml up -d",
     "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
     "build": "vp run lint && vp exec -- turbo run build --filter=@movies/web --cache-dir=.turbo/cache",
     "start": "vp run @movies/web#start",
     "lint": "vp lint .",
-    "check": "vp check",
     "lint:fix": "vp lint --fix .",
     "test": "vp test run",
     "test:watch": "vp test watch",
@@ -33,7 +32,12 @@
     "sync:titles": "vpx --env-file-if-exists=apps/web/.env scripts/sync-titles.ts",
     "ingest:search": "vpx --env-file-if-exists=apps/web/.env scripts/ingest-search-index.ts",
     "list-providers": "vpx --env-file-if-exists=apps/web/.env scripts/list-watch-providers.ts",
-    "check-types": "tsc --noEmit && vp exec -- turbo run check-types --filter=@movies/web --cache-dir=.turbo/cache"
+    "check-types": "tsc --noEmit && vp exec -- turbo run check-types --filter=@movies/web --filter=@movies/native --filter=@movies/server --cache-dir=.turbo/cache",
+    "dev:native": "vp run @movies/native#dev",
+    "dev:api": "vp run @movies/server#dev",
+    "env:generate": "varlock codegen --path ./apps/native/ && varlock codegen --path ./apps/server/",
+    "postinstall": "vp run env:generate",
+    "check": "vp check"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
@@ -43,6 +47,7 @@
     "@dnd-kit/utilities": "catalog:",
     "@imgproxy/imgproxy-js-core": "catalog:",
     "@imgproxy/imgproxy-node": "catalog:",
+    "@movies/api": "workspace:*",
     "@movies/db": "workspace:*",
     "@primer/octicons-react": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
@@ -69,11 +74,11 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "catalog:",
     "@tanstack/react-query-devtools": "^5.104.5",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "catalog:",
-    "@types/pg": "^8.23.1",
+    "@types/pg": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitest/coverage-v8": "catalog:",
@@ -84,8 +89,9 @@
     "shadcn": "^4.22.1",
     "turbo": "2.11.10",
     "typescript": "catalog:",
-    "vite-plus": "catalog:",
-    "vitest": "catalog:"
+    "varlock": "catalog:",
+    "vitest": "catalog:",
+    "vite-plus": "catalog:"
   },
   "engines": {
     "node": "24.x"

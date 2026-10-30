@@ -1,0 +1,152 @@
+import type { CatalogDetail } from '@movies/api/catalog';
+import { CatalogArtwork } from '@native/components/catalog-artwork';
+import { CatalogCredits } from '@native/components/catalog-credits';
+import { CatalogFacts, CatalogHeading, CatalogStats } from '@native/components/catalog-metadata';
+import { CatalogOriginCountries } from '@native/components/catalog-origin-countries';
+import { CatalogProviders } from '@native/components/catalog-providers';
+import { CatalogRelated } from '@native/components/catalog-related';
+import { CatalogReviews } from '@native/components/catalog-reviews';
+import { CatalogSectionState } from '@native/components/catalog-section-state';
+import { CatalogTrailer } from '@native/components/catalog-trailer';
+import { CustomListActions } from '@native/components/custom-list-picker';
+import { ExternalLink } from '@native/components/external-link';
+import { PdpSections } from '@native/components/pdp-sections';
+import { PersonCreditGroup } from '@native/components/person-credits';
+import {
+  ScrollNavigationProvider,
+  useScrollNavigation,
+} from '@native/components/scroll-navigation';
+import { SystemListActions } from '@native/components/system-list-actions';
+import { orpc } from '@native/lib/api';
+import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'expo-router';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+
+function Genres({ item }: { item: CatalogDetail }) {
+  const navigationPress = useScrollNavigation();
+  if (item.genres.length === 0) {
+    return null;
+  }
+  return (
+    <View className="gap-3">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
+        Genres
+      </Text>
+      <View className="flex-row flex-wrap gap-2">
+        {item.genres.map((genre) => (
+          <Link
+            key={genre.id}
+            href={{
+              pathname: '/discover',
+              params: { genreId: String(genre.id), mediaType: item.type },
+            }}
+            asChild
+          >
+            <Pressable
+              {...navigationPress}
+              accessibilityRole="link"
+              accessibilityLabel={'Discover ' + genre.name}
+              className="bg-default min-h-11 justify-center rounded-lg border border-border px-3"
+            >
+              <Text className="text-sm text-foreground">{genre.name}</Text>
+            </Pressable>
+          </Link>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+export function CatalogContent({ item, region }: { item: CatalogDetail; region: string }) {
+  const imdb = useQuery(
+    orpc.catalog.imdb.queryOptions({ input: { id: item.id, type: item.type }, retry: false }),
+  );
+  const {
+    ref: scrollRef,
+    onScroll: rememberScroll,
+    onContentSizeChange: restoreScroll,
+    onLayout,
+    onScrollBeginDrag,
+    captureBeforeNavigation,
+    cancelBeforeNavigation,
+  } = useRememberedScroll('catalog:' + item.type + ':' + item.id, 'entry');
+  const input = { id: item.id, type: item.type, region };
+  const noOverview =
+    item.type === 'movie'
+      ? 'No overview available for this movie.'
+      : 'No overview available for this TV show.';
+  return (
+    <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
+      <ScrollView
+        ref={scrollRef}
+        testID="catalog-scroll"
+        onScroll={rememberScroll}
+        onContentSizeChange={restoreScroll}
+        onLayout={onLayout}
+        onScrollBeginDrag={onScrollBeginDrag}
+        onTouchMove={onScrollBeginDrag}
+        scrollEventThrottle={16}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerClassName="gap-8 pt-4 pb-12"
+      >
+        <CatalogArtwork item={item} />
+        <View className="gap-6 px-4">
+          <CatalogHeading item={item} region={region} />
+          <CatalogStats item={item} imdb={imdb.data?.rating} />
+          <CatalogSectionState
+            label="IMDb rating"
+            pending={imdb.isFetching && imdb.data?.ratingUnavailable === true}
+            failed={imdb.isError || imdb.data?.ratingUnavailable === true}
+            retry={() => {
+              void imdb.refetch();
+            }}
+          />
+          <SystemListActions input={{ resourceId: item.id, resourceType: item.type }} />
+          <CustomListActions input={{ resourceId: item.id, resourceType: item.type }} />
+          <CatalogTrailer input={{ id: item.id, type: item.type }} title={item.title} />
+          <Genres item={item} />
+          <CatalogOriginCountries item={item} region={region} />
+          <View className="gap-3">
+            <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
+              Overview
+            </Text>
+            <Text className="text-base leading-relaxed text-foreground">
+              {item.overview || noOverview}
+            </Text>
+          </View>
+          <CatalogFacts item={item} />
+          <PdpSections input={input} title={item.title} />
+          {item.type === 'tv' ? (
+            <PersonCreditGroup
+              title="Created By"
+              people={item.creators ?? []}
+              compact
+              region={region}
+            />
+          ) : null}
+          <PdpSections input={input} title={item.title} part="seasons" />
+          <CatalogCredits input={input} />
+          <CatalogProviders input={input} />
+          <PdpSections input={input} title={item.title} part="availability" />
+          <CatalogRelated input={input} kind="similar" />
+          <CatalogRelated input={input} kind="recommendations" />
+          <CatalogReviews input={input} />
+          <View className="flex-row flex-wrap gap-2">
+            {imdb.data?.url ? (
+              <ExternalLink href={imdb.data.url} prominent>
+                IMDb
+              </ExternalLink>
+            ) : null}
+            <ExternalLink href={`https://www.themoviedb.org/${item.type}/${item.id}`}>
+              TMDB
+            </ExternalLink>
+            {item.homepage ? (
+              <ExternalLink href={item.homepage}>Official website</ExternalLink>
+            ) : null}
+          </View>
+        </View>
+      </ScrollView>
+    </ScrollNavigationProvider>
+  );
+}

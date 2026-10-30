@@ -1,3 +1,4 @@
+import { getGalleryImages } from '@movies/api/pdp-extra-content';
 import { Expand } from 'lucide-react';
 
 import ClientImage from '@/components/client-image';
@@ -5,7 +6,6 @@ import { ItemSlider } from '@/components/item-slider';
 import { MediaViewer, MediaViewerTrigger } from '@/components/media-viewer';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { getPdpExtras } from '@/lib/pdp';
-import { getGalleryImages } from '@/lib/pdp-extra-content';
 import { optional } from '@/lib/tmdb';
 
 export async function PdpImages({

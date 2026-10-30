@@ -1,5 +1,11 @@
 'use client';
 
+import {
+  getAdjacentMediaIndex,
+  getKeyboardMediaDirection,
+  getSwipeMediaDirection,
+  type MediaDirection,
+} from '@movies/api/media-navigation';
 import { Button } from '@movies/ui/components/button';
 import {
   Dialog,
@@ -18,13 +24,6 @@ import {
   type ReactNode,
   type TouchEvent,
 } from 'react';
-
-import {
-  getAdjacentMediaIndex,
-  getKeyboardMediaDirection,
-  getSwipeMediaDirection,
-  type MediaDirection,
-} from '@/lib/media-navigation';
 
 export type MediaSlide = { id: string; title: string; content: ReactNode };
 

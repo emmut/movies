@@ -1,5 +1,6 @@
 'use client';
 
+import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { DEFAULT_REGION } from '@movies/config/regions';
 import { Button } from '@movies/ui/components/button';
 import { Label } from '@movies/ui/components/label';
@@ -17,7 +18,6 @@ import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'n
 import { ComponentProps, useState } from 'react';
 
 import { formatImageUrl } from '@/lib/utils';
-import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFilterProps {
   providers: WatchProvider[];

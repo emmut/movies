@@ -1,3 +1,4 @@
+import { deduplicateAndSortByPopularity } from '@movies/api/filmography';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 
 import Badge from '@/components/badge';
@@ -10,7 +11,6 @@ import { QuickAddButton } from '@/components/quick-add-button';
 import { getUser } from '@/lib/auth-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
 import { optional } from '@/lib/tmdb';
-import { deduplicateAndSortByPopularity } from '@/lib/utils';
 
 type PersonPageProps = {
   params: Promise<{

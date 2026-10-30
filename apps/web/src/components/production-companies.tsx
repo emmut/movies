@@ -1,4 +1,4 @@
-import type { ProductionCompany } from '@/types/pdp';
+import type { ProductionCompany } from '@movies/api/tmdb-types/pdp';
 
 export function ProductionCompanies({ companies }: { companies: ProductionCompany[] }) {
   if (companies.length === 0) {

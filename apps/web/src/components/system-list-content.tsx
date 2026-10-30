@@ -1,9 +1,14 @@
 'use client';
 
+import {
+  SYSTEM_LIST_COPY as CONTENT_COPY,
+  SYSTEM_LIST_MEDIA as MEDIA_META,
+} from '@movies/api/system-list-copy';
+import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { ListErrorState } from '@/components/list-error-state';
 import { ListItemsGrid } from '@/components/list-items-grid';
@@ -24,43 +29,6 @@ import {
 } from '@/lib/system-list-queries';
 import type { SystemListType } from '@/lib/validations';
 import { activeWatchProviderFilter } from '@/lib/watch-provider-search-params';
-import type { WatchProvider } from '@/types/watch-provider';
-
-const CONTENT_COPY: Record<
-  SystemListType,
-  {
-    title: string;
-    countNoun: string;
-    emptyTitleAll: string;
-    emptyTitleMedia: (mediaLabel: string) => string;
-    emptyHintAll: (mediaLabel: string) => string;
-    emptyHintMedia: (mediaLabel: string) => string;
-  }
-> = {
-  watchlist: {
-    title: 'My Watchlist',
-    countNoun: 'saved',
-    emptyTitleAll: 'Your watchlist is empty',
-    emptyTitleMedia: (mediaLabel) => `No ${mediaLabel} in your watchlist`,
-    emptyHintAll: (mediaLabel) =>
-      `Start adding ${mediaLabel} by clicking the star on any detail page`,
-    emptyHintMedia: (mediaLabel) => `Add some ${mediaLabel} to see them here`,
-  },
-  watched: {
-    title: 'Watched',
-    countNoun: 'watched',
-    emptyTitleAll: "You haven't watched anything yet",
-    emptyTitleMedia: (mediaLabel) => `No ${mediaLabel} watched yet`,
-    emptyHintAll: (mediaLabel) =>
-      `Mark ${mediaLabel} as watched from any detail page to track them here`,
-    emptyHintMedia: (mediaLabel) => `Mark some ${mediaLabel} as watched to see them here`,
-  },
-};
-
-const MEDIA_META = {
-  movie: { emoji: '🎬', label: 'movies', exploreLabel: 'Explore Movies', countNoun: 'movie' },
-  tv: { emoji: '📺', label: 'TV shows', exploreLabel: 'Explore TV Shows', countNoun: 'TV show' },
-} as const;
 
 // React Query timings shared by the prefetches and the client queries so
 // hydration and refetching agree; system lists change infrequently.
@@ -96,7 +64,7 @@ export function SystemListContent({
   watchProviders,
   userRegion,
 }: SystemListContentProps) {
-  const [urlState] = useQueryStates(
+  const [urlState, setUrlState] = useQueryStates(
     {
       mediaType: parseAsString.withDefault('movie'),
       page: parseAsInteger.withDefault(1),
@@ -154,7 +122,19 @@ export function SystemListContent({
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
 
-  const offset = (page - 1) * ITEMS_PER_PAGE;
+  // A removal on another client can shrink the list while this URL still
+  // points at its old last page. Use the page actually returned by the store.
+  const currentPage = paginatedData?.currentPage ?? page;
+  const isPageReconciled = currentPage === page;
+  const canReorder = !isProviderFiltered && !isLoading && !isError && isPageReconciled;
+
+  useEffect(() => {
+    if (!isError && !isPageReconciled) {
+      void setUrlState({ page: currentPage }, { history: 'replace' });
+    }
+  }, [currentPage, isError, isPageReconciled, setUrlState]);
+
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   const totalForMedia = mediaType === 'movie' ? totalMovies : totalTvShows;
 
   const { localItems, isPending, move } = useReorderableItems(
@@ -178,7 +158,7 @@ export function SystemListContent({
         onToggleEditing={() => setIsEditing((value) => !value)}
         watchProviders={watchProviders}
         userRegion={userRegion}
-        isProviderFiltered={isProviderFiltered}
+        canReorder={canReorder}
       />
 
       <SystemListBody
@@ -193,7 +173,7 @@ export function SystemListContent({
         totalPages={totalPages}
         itemCount={totalForMedia}
         offset={offset}
-        isEditing={isEditing && !isProviderFiltered}
+        isEditing={isEditing && canReorder}
         isPending={isPending}
         onMove={move}
       />
@@ -210,7 +190,7 @@ function SystemListHeader({
   onToggleEditing,
   watchProviders,
   userRegion,
-  isProviderFiltered,
+  canReorder,
 }: {
   listType: SystemListType;
   mediaType: 'movie' | 'tv';
@@ -220,7 +200,7 @@ function SystemListHeader({
   onToggleEditing: () => void;
   watchProviders: WatchProvider[];
   userRegion: string;
-  isProviderFiltered: boolean;
+  canReorder: boolean;
 }) {
   const totalItems = totalMovies + totalTvShows;
 
@@ -245,7 +225,7 @@ function SystemListHeader({
               positions in the full manual order. */}
           <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
           <ReorderButtonSlot
-            isAvailable={totalItems > 0 && !isProviderFiltered}
+            isAvailable={totalItems > 0 && canReorder}
             isEditing={isEditing}
             onToggleEditing={onToggleEditing}
           />

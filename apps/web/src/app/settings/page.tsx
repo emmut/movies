@@ -96,6 +96,7 @@ export default async function SettingsPage(props: SettingsPageProps) {
         </CardHeader>
         <CardContent>
           <RegionForm
+            key={currentRegion}
             currentRegion={currentRegion}
             regions={regions}
             updateRegionAction={updateUserRegion}
@@ -104,6 +105,7 @@ export default async function SettingsPage(props: SettingsPageProps) {
       </Card>
 
       <WatchProviderForm
+        key={currentRegion + ':' + userWatchProviders.join(',')}
         availableProviders={allWatchProviders}
         userProviders={userWatchProviders}
       />

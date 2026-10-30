@@ -1,5 +1,6 @@
 'use client';
 
+import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
 import {
   Popover,
@@ -18,7 +19,6 @@ import {
   CompactFilterControls,
   getFilterButtonLabel,
 } from '@/components/filters-panel';
-import { WatchProvider } from '@/types/watch-provider';
 
 import Pill from './pill';
 

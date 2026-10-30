@@ -1,5 +1,9 @@
 'use client';
 
+import { getWatchProvidersString } from '@movies/api/preferences';
+import type { Genre } from '@movies/api/tmdb-types/genre';
+import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
+import { getOriginCountryString } from '@movies/config/countries';
 import {
   parseAsArrayOf,
   parseAsInteger,
@@ -15,13 +19,7 @@ import { GenreNavigationClient } from '@/components/genre-navigation-client';
 import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
-import { getOriginCountryString } from '@/lib/countries';
-import {
-  getWatchProvidersString,
-  parseAsPipeSeparatedArrayOfIntegers,
-} from '@/lib/watch-provider-search-params';
-import type { Genre } from '@/types/genre';
-import { WatchProvider } from '@/types/watch-provider';
+import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 
 import Pagination from './pagination';
 

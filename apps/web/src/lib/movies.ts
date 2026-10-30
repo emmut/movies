@@ -1,8 +1,6 @@
 import 'server-only';
-import { DEFAULT_REGION } from '@movies/config/regions';
-import { cacheLife, cacheTag } from 'next/cache';
-
-import type { GenreResponse } from '@/types/genre';
+import { buildDiscoverSearchParams } from '@movies/api/discover-params';
+import type { GenreResponse } from '@movies/api/tmdb-types/genre';
 import {
   MovieCredits,
   MovieDetails,
@@ -10,10 +8,11 @@ import {
   MovieResponse,
   MovieSimilar,
   MovieWatchProviders,
-} from '@/types/movie';
+} from '@movies/api/tmdb-types/movie';
+import { DEFAULT_REGION } from '@movies/config/regions';
+import { cacheLife, cacheTag } from 'next/cache';
 
 import { CACHE_TAGS } from './cache-tags';
-import { buildDiscoverSearchParams } from './discover-params';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
 
 /**

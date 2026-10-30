@@ -54,6 +54,13 @@ onlyBuiltDependencies:
   - sharp
   - unrs-resolver
 catalog:
+  "@better-auth/expo": 1.7.12
+  "@orpc/client": ^1.15.0
+  "@orpc/server": ^1.15.0
+  "@playwright/test": ^1.64.1
+  "@types/pg": ^8.23.1
+  "server-only": ^0.0.1
+  "varlock": 1.18.0
   "@base-ui/react": ^1.9.0
   "@better-auth/passkey": ^1.7.12
   "@dnd-kit/core": ^6.3.1

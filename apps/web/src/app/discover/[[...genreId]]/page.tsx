@@ -1,8 +1,9 @@
+import { getWatchProvidersString } from '@movies/api/preferences';
+import { getOriginCountryString } from '@movies/config/countries';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
 import { Suspense } from 'react';
 
 import { getUser } from '@/lib/auth-server';
-import { getOriginCountryString } from '@/lib/countries';
 import { getDiscoverMedia } from '@/lib/discover-client';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
 import { fetchAvailableGenres } from '@/lib/movies';
@@ -10,7 +11,6 @@ import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
 import { fetchAvailableTvGenres } from '@/lib/tv-shows';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
-import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
 
 import DiscoverLoading from '../loading';
 import { DiscoverContent } from './discover-content';

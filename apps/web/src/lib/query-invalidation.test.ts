@@ -44,3 +44,22 @@ describe('invalidateUserPreferenceQueries', () => {
     expect(isInvalidated(queryClient, unrelatedKey)).toBe(false);
   });
 });
+
+it('refreshes account collections and memberships on browser return without invalidating catalog/search', async () => {
+  const { invalidateAccountQueriesOnReturn } = await import('./query-invalidation');
+  const client = new QueryClient();
+  const scopedKeys = [
+    queryKeys.watchlist.count('movie'),
+    queryKeys.watched.count('tv'),
+    queryKeys.lists.withStatus(42, 'movie'),
+  ];
+  for (const key of scopedKeys) {
+    client.setQueryData(key, []);
+  }
+  client.setQueryData(unrelatedKey, []);
+  await invalidateAccountQueriesOnReturn(client);
+  for (const key of scopedKeys) {
+    expect(isInvalidated(client, key)).toBe(true);
+  }
+  expect(isInvalidated(client, unrelatedKey)).toBe(false);
+});

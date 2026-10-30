@@ -1,5 +1,5 @@
-import { Movie } from '@/types/movie';
-import { TvShow } from '@/types/tv-show';
+import { Movie } from '@movies/api/tmdb-types/movie';
+import { TvShow } from '@movies/api/tmdb-types/tv-show';
 
 import ItemCard from './item-card';
 
@@ -21,7 +21,7 @@ type ItemGridProps = {
 // the LCP image doesn't wait for the browser's lazy-load scan.
 const EAGER_IMAGE_COUNT = 4;
 
-export function ItemGrid({ resources, type, userId }: ItemGridProps) {
+function ItemGrid({ resources, type, userId }: ItemGridProps) {
   const resourceName = type === 'movie' ? 'movies' : 'TV shows';
 
   return (

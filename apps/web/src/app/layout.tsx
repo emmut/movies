@@ -90,7 +90,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 <Footer />
               </SidebarInset>
             </SidebarProvider>
-            <LoginToastHandler />
+            {/* The client-only toast can bail out of server rendering independently of the route. */}
+            <Suspense fallback={null}>
+              <LoginToastHandler />
+            </Suspense>
             {/* usePathname is URL data — needs a boundary under cacheComponents. */}
             <Suspense fallback={null}>
               <BackScrollRestorer />

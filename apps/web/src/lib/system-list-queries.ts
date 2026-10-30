@@ -1,7 +1,11 @@
 'use server';
 
-import { listItems, lists } from '@movies/db/schema/lists';
-import { and, asc, count, desc, eq, SQL } from 'drizzle-orm';
+import 'server-only';
+import { fulfilledValues } from '@movies/api/settled';
+import { parseWatchProviderFilter } from '@movies/api/system-lists';
+import { MovieDetails } from '@movies/api/tmdb-types/movie';
+import { TvDetails } from '@movies/api/tmdb-types/tv-show';
+import { createSystemListStore } from '@movies/db/system-lists';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import { getUser } from '@/lib/auth-server';
@@ -9,7 +13,6 @@ import { SYSTEM_LIST_CACHE_TAGS } from '@/lib/cache-tags';
 import { db } from '@/lib/db';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { getMovieDetails } from '@/lib/movies';
-import { pageWindow } from '@/lib/paginate';
 import {
   pageSchema,
   resourceIdSchema,
@@ -18,14 +21,8 @@ import {
   systemListTypeSchema,
   WatchProviderFilter,
 } from '@/lib/validations';
-import {
-  ensureAvailabilityKnown,
-  parseWatchProviderFilter,
-  streamableOnProviders,
-} from '@/lib/watch-provider-availability';
-import { MovieDetails } from '@/types/movie';
+import { ensureAvailabilityKnown } from '@/lib/watch-provider-availability';
 import type { ProxyImageUrls } from '@/types/proxy-image';
-import { TvDetails } from '@/types/tv-show';
 
 import { ITEMS_PER_PAGE } from './config';
 import { getTvShowDetails } from './tv-shows';
@@ -46,13 +43,7 @@ export type SystemListItem =
   | (MovieDetails & SystemListItemFields<'movie'>)
   | (TvDetails & SystemListItemFields<'tv'>);
 
-/**
- * Filters list_items joined with lists down to the user's system list of the
- * given type. Use with a `listItems` innerJoin on `lists`.
- */
-function systemListItemsFilter(userId: string, listType: SystemListType): SQL | undefined {
-  return and(eq(lists.userId, userId), eq(lists.type, listType));
-}
+const systemLists = createSystemListStore(db);
 
 /**
  * Checks if a specific resource is present in the authenticated user's system
@@ -91,20 +82,12 @@ async function getCachedSystemListMembership(
       resourceType,
     });
 
-    const result = await db
-      .select({ id: listItems.id })
-      .from(listItems)
-      .innerJoin(lists, eq(listItems.listId, lists.id))
-      .where(
-        and(
-          systemListItemsFilter(userId, listType),
-          eq(listItems.resourceId, validatedResourceId.resourceId),
-          eq(listItems.resourceType, validatedResourceId.resourceType),
-        ),
-      )
-      .limit(1);
-
-    return result.length > 0;
+    return await systemLists.membership(
+      userId,
+      listType,
+      validatedResourceId.resourceId,
+      validatedResourceId.resourceType,
+    );
   } catch (error) {
     console.error(`Error checking ${listType}:`, error);
     return false;
@@ -181,85 +164,15 @@ async function queryPageWithResourceDetails(
   page: number,
   providerFilter: WatchProviderFilter | null,
 ) {
-  const filter = and(
-    systemListItemsFilter(userId, listType),
-    eq(listItems.resourceType, resourceType),
+  const result = await systemLists.pageRows(
+    userId,
+    listType,
+    resourceType,
+    page,
+    providerFilter,
+    ensureAvailabilityKnown,
   );
-
-  if (providerFilter) {
-    return await queryProviderFilteredPage(filter, resourceType, page, providerFilter);
-  }
-
-  const totalItems = await countSystemListRows(filter);
-  if (totalItems === 0) {
-    return emptyPage(page);
-  }
-
-  const rows = await selectSystemListRows(filter)
-    .limit(ITEMS_PER_PAGE)
-    .offset((page - 1) * ITEMS_PER_PAGE);
-
-  return {
-    items: await hydrateResourceDetails(rows, resourceType),
-    totalItems,
-    totalPages: Math.ceil(totalItems / ITEMS_PER_PAGE),
-    currentPage: page,
-    itemsPerPage: ITEMS_PER_PAGE,
-  };
-}
-
-async function countSystemListRows(filter: SQL | undefined) {
-  const totalCountResult = await db
-    .select({ count: count() })
-    .from(listItems)
-    .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(filter);
-
-  return totalCountResult[0]?.count || 0;
-}
-
-function selectSystemListRows(filter: SQL | undefined) {
-  return db
-    .select({
-      id: listItems.id,
-      resourceId: listItems.resourceId,
-      resourceType: listItems.resourceType,
-      createdAt: listItems.createdAt,
-    })
-    .from(listItems)
-    .innerJoin(lists, eq(listItems.listId, lists.id))
-    .where(filter)
-    .orderBy(asc(listItems.position), desc(listItems.createdAt));
-}
-
-/**
- * Stream-provider-filtered page. Availability is cached locally (see
- * `title_availability`), so the filter is a predicate on the same query as
- * the unfiltered path and counting and paging stay in the database. Rows
- * that predate the cache are synced first; pagination metadata reflects the
- * filtered set, with the page clamped to the last one.
- */
-async function queryProviderFilteredPage(
-  filter: SQL | undefined,
-  resourceType: 'movie' | 'tv',
-  page: number,
-  providerFilter: WatchProviderFilter,
-) {
-  await ensureAvailabilityKnown(filter);
-
-  const where = and(filter, streamableOnProviders(providerFilter));
-  const totalItems = await countSystemListRows(where);
-  if (totalItems === 0) {
-    return emptyPage(page);
-  }
-
-  const { offset, ...pagination } = pageWindow(totalItems, page, ITEMS_PER_PAGE);
-  const rows = await selectSystemListRows(where).limit(ITEMS_PER_PAGE).offset(offset);
-
-  return {
-    items: await hydrateResourceDetails(rows, resourceType),
-    ...pagination,
-  };
+  return { ...result, items: await hydrateResourceDetails(result.items, resourceType) };
 }
 
 type SystemListItemRow = {
@@ -298,14 +211,13 @@ async function hydrateResourceDetails(
   rows: SystemListItemRow[],
   resourceType: 'movie' | 'tv',
 ): Promise<SystemListItem[]> {
-  const settled = await Promise.allSettled(rows.map((row) => fetchListItem(row, resourceType)));
-
-  return settled.filter((result) => result.status === 'fulfilled').map((result) => result.value);
+  return await fulfilledValues(rows, (row) => fetchListItem(row, resourceType));
 }
 
 function emptyPage(page: number) {
+  const items: SystemListItem[] = [];
   return {
-    items: [] as SystemListItem[],
+    items,
     totalItems: 0,
     totalPages: 0,
     currentPage: page,
@@ -342,15 +254,7 @@ async function getCachedSystemListCount(
   cacheLife('privateShort');
 
   try {
-    const result = await db
-      .select({ count: count() })
-      .from(listItems)
-      .innerJoin(lists, eq(listItems.listId, lists.id))
-      .where(
-        and(systemListItemsFilter(userId, listType), eq(listItems.resourceType, resourceType)),
-      );
-
-    return result[0]?.count || 0;
+    return await systemLists.countItems(userId, listType, resourceType);
   } catch (error) {
     console.error(`Error counting ${listType} items:`, error);
     return 0;

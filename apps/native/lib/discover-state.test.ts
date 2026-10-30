@@ -1,0 +1,82 @@
+import { readDiscoverState, toggleSelection } from '@native/lib/discover-state';
+import { describe, expect, it } from 'vite-plus/test';
+
+describe('native discovery URL state', () => {
+  it('shares web normalization, deduplication and ISO validation for country links', () => {
+    expect(
+      readDiscoverState(
+        { with_origin_country: ' us |ZZ|SE|us|USA|se', mediaType: 'tv', watch_region: 'US' },
+        'SE',
+      ),
+    ).toMatchObject({ originCountries: ['US', 'SE'], type: 'tv', region: 'US' });
+  });
+  it('defaults malformed bounds, type and sort without crashing a deep link', () => {
+    expect(
+      readDiscoverState(
+        { page: '501', mediaType: 'person', sort_by: 'invalid', runtime: '-1', watch_region: 'XX' },
+        'SE',
+      ),
+    ).toMatchObject({
+      page: 1,
+      type: 'movie',
+      sortBy: 'popularity.desc',
+      runtime: undefined,
+      region: 'SE',
+    });
+  });
+  it('preserves filter values and the historical genre URL key', () => {
+    expect(
+      readDiscoverState(
+        {
+          genreId: ['12,28'],
+          page: '2',
+          runtime: '90',
+          mediaType: 'tv',
+          sort_by: 'first_air_date.desc',
+          with_watch_providers: '8|9',
+          with_origin_country: 'SE|US',
+          watch_region: 'US',
+        },
+        'SE',
+      ),
+    ).toEqual({
+      page: 2,
+      type: 'tv',
+      genreIds: [12, 28],
+      providerIds: [8, 9],
+      originCountries: ['SE', 'US'],
+      runtime: 90,
+      region: 'US',
+      sortBy: 'first_air_date.desc',
+    });
+  });
+  it('clears region back to session region and ignores malformed selection values', () => {
+    expect(
+      readDiscoverState(
+        { watch_region: '', genreId: '-1,abc,0,12', with_origin_country: 'USA|SE' },
+        'US',
+      ),
+    ).toMatchObject({ region: 'US', genreIds: [12], originCountries: ['SE'] });
+  });
+  it('retains other selected options when toggling one on or off', () => {
+    expect(toggleSelection(['8'], '9')).toEqual(['8', '9']);
+    expect(toggleSelection(['8', '9'], '8')).toEqual(['9']);
+  });
+});
+
+it('keeps removals available at the selection limit and refuses extra additions', () => {
+  const selected = Array.from({ length: 50 }, (_, index) => String(index + 1));
+  expect(toggleSelection(selected, '51', 50)).toEqual(selected);
+  expect(toggleSelection(selected, '1', 50)).toHaveLength(49);
+  expect(toggleSelection(['1'], '2', 50)).toEqual(['1', '2']);
+});
+
+it('uses account provider defaults after empty/cleared filters, without dropping a large selection', () => {
+  const saved = Array.from({ length: 70 }, (_, index) => index + 1);
+  expect(readDiscoverState({}, 'NO', saved).providerIds).toEqual(saved);
+  expect(readDiscoverState({ with_watch_providers: '' }, 'NO', [8]).providerIds).toEqual([8]);
+  expect(readDiscoverState({ with_watch_providers: '9' }, 'NO', [8]).providerIds).toEqual([9]);
+  expect(
+    readDiscoverState({ with_watch_providers: '9,2147483648' }, 'NO', [8]).providerIds,
+  ).toEqual([9]);
+});

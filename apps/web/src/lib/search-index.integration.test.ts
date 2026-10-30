@@ -15,12 +15,13 @@ vi.mock('./tmdb', () => ({
 }));
 
 import { searchIndex } from '@movies/db/schema/search-index';
+import { FUZZY_QUERY_TIMEOUT_MS } from '@movies/db/search-index';
 
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
 
 import { getSearchMovies, getSearchMulti, getSearchSuggestions } from './search';
-import { FUZZY_QUERY_TIMEOUT_MS, searchIndexFuzzy } from './search-index';
+import { searchIndexFuzzy } from './search-index';
 import { tmdbFetch } from './tmdb';
 
 // Run against a migrated PostgreSQL database. Temporary tables keep fixtures

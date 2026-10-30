@@ -1,9 +1,9 @@
 import 'server-only';
+import { isTitleMediaType, syncTitle, type TitleSource } from '@movies/db/title-sync';
 import { after } from 'next/server';
 
 import { db } from '@/lib/db';
 import { getMovieDetails, getMovieWatchProviders } from '@/lib/movies';
-import { isTitleMediaType, syncTitle, type TitleSource } from '@/lib/title-sync';
 import { getTvShowDetails, getTvShowWatchProviders } from '@/lib/tv-shows';
 
 /**

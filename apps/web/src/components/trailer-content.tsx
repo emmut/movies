@@ -1,5 +1,6 @@
+import { getPlayableVideos } from '@movies/api/pdp-extra-content';
+
 import { getPdpExtras } from '@/lib/pdp';
-import { getPlayableVideos } from '@/lib/pdp-extra-content';
 import { optional } from '@/lib/tmdb';
 
 import { TrailerButton } from './trailer-button';

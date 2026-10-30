@@ -1,6 +1,5 @@
+import { MATCH_TIER, matchTier, rankByTitleMatch } from '@movies/api/search-rank';
 import { describe, expect, it } from 'vite-plus/test';
-
-import { MATCH_TIER, matchTier, rankByTitleMatch } from './search-rank';
 
 describe('matchTier', () => {
   it('grades exact, word-prefix, prefix, contains and none', () => {

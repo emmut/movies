@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./redirect": "./src/redirect.ts"
+    "./redirect": "./src/redirect.ts",
+    "./proxy": "./src/proxy.ts"
   },
-  "dependencies": {}
+  "dependencies": {
+    "server-only": "catalog:"
+  }
 }
