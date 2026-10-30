@@ -60,7 +60,9 @@ export function FilterControls({
   const id = useId();
   return (
     <div className="grid grid-cols-1 gap-4 @[30rem]:grid-cols-2">
-      {includeSort && <SortByFilter mediaType={mediaType} controlId={`${id}-sort`} />}
+      {includeSort && (
+        <SortByFilter mediaType={mediaType} controlId={`${id}-sort`} compact={false} />
+      )}
       <RuntimeFilter controlId={`${id}-runtime`} />
       <OriginCountryFilter controlId={`${id}-country`} />
       <WatchProviderFilter
@@ -100,7 +102,7 @@ export function FilterCount({ count }: { count: number }) {
   );
 }
 
-export function MoreFilters({
+export function AdditionalFilters({
   mediaType,
   watchProviders,
   userRegion,
@@ -112,14 +114,14 @@ export function MoreFilters({
       <PopoverTrigger
         ref={triggerRef}
         render={<Button variant="outline" />}
-        aria-label={activeCount > 0 ? `More filters (${activeCount})` : 'More filters'}
+        aria-label={getFilterButtonLabel(activeCount)}
         className={cn(
-          'relative h-8 gap-2 px-3',
+          'relative h-10 gap-2 px-4',
           activeCount > 0 && 'border-primary/40 bg-primary/5',
         )}
       >
         <ListFilterIcon className="size-4" aria-hidden="true" />
-        More filters
+        Filters
         <FilterCount count={activeCount} />
       </PopoverTrigger>
       <PopoverContent
@@ -128,7 +130,7 @@ export function MoreFilters({
         className="@container max-h-(--available-height) w-80 max-w-(--available-width) gap-5 overflow-y-auto p-5"
       >
         <PopoverHeader>
-          <PopoverTitle>More filters</PopoverTitle>
+          <PopoverTitle>Filters</PopoverTitle>
         </PopoverHeader>
         <FilterControls
           includeSort={false}

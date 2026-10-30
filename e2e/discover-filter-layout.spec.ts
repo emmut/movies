@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 
-import { openDiscoverFilters } from './helpers';
+import { closeDiscoverFilters, openDiscoverFilters, openDiscoverGenres } from './helpers';
 
-for (const width of [1220, 390]) {
+for (const width of [1220, 390, 320]) {
   test.describe(`Compact Discover filters at ${width}px`, () => {
     test.use({ viewport: { width, height: 844 } });
 
@@ -48,55 +48,56 @@ for (const width of [1220, 390]) {
 }
 
 for (const width of [1440, 1920]) {
-  test.describe(`Desktop Discover filters at ${width}px`, () => {
+  test.describe(`Compact desktop Discover toolbar at ${width}px`, () => {
     test.use({ viewport: { width, height: 1080 } });
-
-    test('puts sort and secondary filters last, keeping genres and tags visible', async ({ page }) => {
+    test('hides full facet lists and keeps controls on one row with removable selections below', async ({ page }) => {
       await page.goto('/discover?genreId=35&keywordId=818&runtime=90&sort_by=vote_average.desc');
-      await expect(page.getByRole('button', { name: /^Filters/ })).toBeHidden();
       const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
-      const sort = nav.getByLabel('Sort By');
-      await expect(sort).toBeVisible();
-      await expect(nav.getByLabel('Runtime')).toHaveCount(0);
-      await expect(nav.getByRole('button', { name: 'Origin Country', exact: true })).toHaveCount(0);
-      await expect(nav.getByRole('button', { name: 'Watch Providers', exact: true })).toHaveCount(0);
+      const genres = nav.getByRole('button', { name: 'Genres (1)', exact: true });
       const tags = nav.getByRole('button', { name: 'Tags (1)', exact: true });
-      const genre = nav.getByRole('button', { name: 'Comedy', exact: true });
-      await expect(genre).toHaveAttribute('aria-pressed', 'true');
-      expect((await tags.boundingBox())!.y).toBeGreaterThan((await genre.boundingBox())!.y);
-      expect((await sort.boundingBox())!.y).toBeGreaterThan((await tags.boundingBox())!.y);
-      const more = nav.getByRole('button', { name: 'More filters (1)', exact: true });
-      await expect(more.locator('[data-slot="filter-count"]')).toHaveText('1');
-      const secondaryPanel = await openDiscoverFilters(page);
-      await expect(secondaryPanel.getByLabel('Runtime')).toContainText('Up to 90 min');
-      await expect(secondaryPanel.getByRole('button', { name: 'Origin Country', exact: true })).toBeVisible();
-      await expect(secondaryPanel.getByRole('button', { name: 'Watch Providers', exact: true })).toBeVisible();
-      await expect(secondaryPanel.getByLabel('Sort By')).toHaveCount(0);
-      await secondaryPanel.getByLabel('Runtime').click();
-      await page.getByRole('option', { name: 'Any', exact: true }).click();
-      await expect(more).toHaveCount(0);
-      await expect(nav.getByRole('button', { name: 'More filters', exact: true }).locator('[data-slot="filter-count"]')).toHaveCount(0);
-      await secondaryPanel.getByLabel('Runtime').click();
-      await page.getByRole('option', { name: 'Up to 90 min', exact: true }).click();
-      await expect(more).toBeVisible();
-      await secondaryPanel.getByRole('button', { name: 'Show results', exact: true }).click();
-      await expect(more).toBeFocused();
-      const selectedTag = nav.getByRole('button', { name: 'Remove keyword based on novel or book', exact: true });
-      await expect(selectedTag).toBeVisible();
+      const filters = nav.getByRole('button', { name: 'Filters (1)', exact: true });
+      const sort = nav.getByLabel('Sort By');
+      for (const control of [genres, tags, filters, sort]) {
+        await expect(control).toBeVisible();
+      }
+      await expect(page.getByRole('button', { name: 'Comedy', exact: true })).toHaveCount(0);
       await expect(page.getByRole('combobox', { name: 'Search tags' })).toHaveCount(0);
-      await tags.click();
-      const popup = page.locator('[data-slot="popover-content"]').filter({ has: page.getByRole('heading', { name: 'Themes & Keywords', exact: true }) });
-      await expect(popup.getByRole('combobox', { name: 'Search tags' })).toBeFocused();
-      await expect(popup.getByLabel('Sort By')).toHaveCount(0);
-      await expect(popup.getByRole('button', { name: 'Comedy', exact: true })).toHaveCount(0);
+      await expect(page.getByLabel('Runtime')).toHaveCount(0);
+      const centers = await nav.evaluate((element) => {
+        const controls = [...element.querySelectorAll('button')].filter((button) => button.checkVisibility() && button.getAttribute('aria-haspopup'));
+        return controls.map((button) => { const rect = button.getBoundingClientRect(); return rect.top + rect.height / 2; });
+      });
+      expect(Math.max(...centers) - Math.min(...centers)).toBeLessThan(1);
+      const removeGenre = nav.getByRole('button', { name: 'Remove genre Comedy', exact: true });
+      const removeTag = nav.getByRole('button', { name: 'Remove keyword based on novel or book', exact: true });
+      await expect(removeGenre).toBeVisible();
+      await expect(removeTag).toBeVisible();
+      expect((await removeGenre.boundingBox())!.y).toBeGreaterThan((await genres.boundingBox())!.y);
+      const genrePanel = await openDiscoverGenres(page);
+      await expect(genrePanel.getByRole('button', { name: 'Comedy', exact: true })).toHaveAttribute('aria-pressed', 'true');
+      await expect(genrePanel.getByRole('button', { name: 'Action', exact: true })).toBeVisible();
+      await expect(genrePanel.getByRole('combobox')).toHaveCount(0);
       await page.keyboard.press('Escape');
-      await expect(tags).toBeFocused();
-      await selectedTag.click();
+      await expect(genres).toBeFocused();
+      await removeGenre.click();
+      await expect(page).not.toHaveURL(/genreId=/);
+      await expect(page).toHaveURL(/keywordId=818/);
+      await expect(page).toHaveURL(/runtime=90/);
+      await expect(nav.getByRole('button', { name: 'Genres', exact: true }).locator('[data-slot="filter-count"]')).toHaveCount(0);
+      const filterPanel = await openDiscoverFilters(page);
+      await expect(filterPanel.getByLabel('Runtime')).toContainText('Up to 90 min');
+      await expect(filterPanel.getByRole('button', { name: 'Origin Country', exact: true })).toBeVisible();
+      await expect(filterPanel.getByRole('button', { name: 'Watch Providers', exact: true })).toBeVisible();
+      await expect(filterPanel.getByLabel('Sort By')).toHaveCount(0);
+      await closeDiscoverFilters(page);
+      await tags.click();
+      await expect(page.getByRole('combobox', { name: 'Search tags' })).toBeFocused();
+      await closeDiscoverFilters(page);
+      await removeTag.click();
       await expect(page).not.toHaveURL(/keywordId=/);
-      await expect(page).toHaveURL(/genreId=35/);
       await expect(page).toHaveURL(/runtime=90/);
       await nav.getByRole('button', { name: 'Clear all', exact: true }).click();
-      await expect(page).not.toHaveURL(/genreId=|runtime=/);
+      await expect(page).not.toHaveURL(/runtime=|sort_by=/);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
       const duplicateIds = await page.evaluate(() => {
         const ids = [...document.querySelectorAll('[id]')].map((element) => element.id);
@@ -113,6 +114,10 @@ test('closes open popovers when resizing hides their triggers', async ({ page })
   const panel = await openDiscoverFilters(page);
   await page.setViewportSize({ width: 1920, height: 1080 });
   await expect(panel).not.toBeVisible();
+  const genresPanel = await openDiscoverGenres(page);
+  await page.setViewportSize({ width: 390, height: 900 });
+  await expect(genresPanel).not.toBeVisible();
+  await page.setViewportSize({ width: 1920, height: 1080 });
   const secondaryPanel = await openDiscoverFilters(page);
   await page.setViewportSize({ width: 390, height: 900 });
   await expect(secondaryPanel).not.toBeVisible();

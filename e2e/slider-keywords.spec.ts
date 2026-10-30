@@ -18,6 +18,11 @@ for (const width of [1280, 390]) {
         const startFade = slider.locator('[data-slot="slider-fade-start"]');
         const endFade = slider.locator('[data-slot="slider-fade-end"]');
 
+        // A visible streamed slider can still be waiting for hydration. Use
+        // its real control before testing programmatic scroll positions.
+        await slider.getByRole('button', { name: 'Next slide', exact: true }).click();
+        await expect.poll(() => track.evaluate((element) => element.scrollLeft), { timeout: 15_000 }).toBeGreaterThan(0);
+
         await track.evaluate((element) => element.scrollTo({ left: 0, behavior: 'instant' }));
         await expect(startFade).toHaveCount(0);
         await expect(endFade).toHaveCount(1);

@@ -8,7 +8,7 @@ export const MOVIE_PATH = `/movie/${MOVIE_ID}`;
 export async function openDiscoverFilters(page: Page) {
   const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
   await expect(nav).toBeVisible();
-  const trigger = page.getByRole('button', { name: /^(?:More filters|Filters)(?: \(\d+\))?$/i });
+  const trigger = page.getByRole('button', { name: /^Filters(?: \(\d+\))?$/i });
   if (!(await trigger.isVisible())) {
     return nav;
   }
@@ -16,23 +16,42 @@ export async function openDiscoverFilters(page: Page) {
     await trigger.click();
   }
   const panel = page.locator('[data-slot="popover-content"]').filter({
-    has: page.getByRole('heading', { name: /^(?:More filters|Filters)$/i }),
+    has: page.getByRole('heading', { name: /^Filters$/i }),
   });
   await expect(panel).toBeVisible();
   return panel;
 }
 
 export async function closeDiscoverFilters(page: Page) {
-  const trigger = page.getByRole('button', { name: /^(?:More filters|Filters)(?: \(\d+\))?$/i });
-  // Outside clicks can already have closed the popover while its exit animation
-  // keeps Show results visible. The trigger reflects the actual open state.
-  if (await trigger.getAttribute('aria-expanded') === 'true') {
+  const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
+  const triggers = nav.getByRole('button', { name: /^(?:Genres|Tags|Filters)(?: \(\d+\))?$/i });
+  // Read actual open state rather than clicking buttons in an exit animation.
+  for (const trigger of await triggers.all()) {
+    if (await trigger.getAttribute('aria-expanded') === 'true') {
+      await trigger.click();
+    }
+  }
+  const panels = page.locator('[data-slot="popover-content"]').filter({
+    has: page.getByRole('heading', { name: /^(?:Genres|Themes & Keywords|Filters)$/i }),
+  });
+  await expect(panels.filter({ visible: true })).toHaveCount(0);
+}
+
+export async function openDiscoverGenres(page: Page) {
+  const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
+  await expect(nav).toBeVisible();
+  const trigger = nav.getByRole('button', { name: /^Genres(?: \(\d+\))?$/ });
+  if (!(await trigger.isVisible())) {
+    return openDiscoverFilters(page);
+  }
+  if (await trigger.getAttribute('aria-expanded') !== 'true') {
     await trigger.click();
   }
   const panel = page.locator('[data-slot="popover-content"]').filter({
-    has: page.getByRole('heading', { name: /^(?:More filters|Filters)$/i }),
+    has: page.getByRole('heading', { name: 'Genres', exact: true }),
   });
-  await expect(panel).not.toBeVisible();
+  await expect(panel).toBeVisible();
+  return panel;
 }
 
 export async function openDiscoverTags(page: Page) {

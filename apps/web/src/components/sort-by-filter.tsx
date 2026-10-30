@@ -9,11 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movies/ui/components/select';
+import { cn } from 'cn';
+import { ArrowDownWideNarrow } from 'lucide-react';
 import { parseAsString, useQueryStates } from 'nuqs';
 
 type SortByFilterProps = {
   mediaType: 'movie' | 'tv';
-  controlId?: string;
+  controlId: string;
+  compact: boolean;
 };
 
 const MOVIE_SORT_OPTIONS = [
@@ -48,10 +51,7 @@ const TV_SORT_OPTIONS = [
  *
  * @param mediaType - Whether to show movie or TV sort options.
  */
-export default function SortByFilter({
-  mediaType,
-  controlId = 'select-sort-option',
-}: SortByFilterProps) {
+export default function SortByFilter({ mediaType, controlId, compact }: SortByFilterProps) {
   const [urlState, setUrlState] = useQueryStates({
     sort_by: parseAsString,
     page: parseAsString.withDefault('1'),
@@ -76,11 +76,17 @@ export default function SortByFilter({
 
   return (
     <div className="min-w-54">
-      <Label className="mb-2 text-muted-foreground" htmlFor={controlId}>
+      <Label
+        className={cn('text-muted-foreground', compact ? 'sr-only' : 'mb-2')}
+        htmlFor={controlId}
+      >
         Sort By
       </Label>
       <Select id={controlId} value={currentSortOption?.value} onValueChange={handleSortChange}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger className={cn('w-full', compact && 'data-[size=default]:h-10')}>
+          {compact && (
+            <ArrowDownWideNarrow className="size-4 text-muted-foreground" aria-hidden="true" />
+          )}
           <SelectValue placeholder="Select sort option">{currentSortOption?.label}</SelectValue>
         </SelectTrigger>
         <SelectContent>

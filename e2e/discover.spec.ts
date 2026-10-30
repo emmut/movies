@@ -1,6 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 
-import { closeDiscoverFilters, openDiscoverFilters } from './helpers';
+import { closeDiscoverFilters, openDiscoverFilters, openDiscoverGenres } from './helpers';
 
 // End-to-end coverage for the discover page. These exercise the client-side
 // URL-state machine (nuqs) that drives React Query refetches: genre pills,
@@ -24,7 +24,7 @@ async function expectDiscoverShell(page: Page) {
   await expect(page.getByRole('button', { name: /^movies$/i })).toBeVisible();
   await expect(page.getByRole('button', { name: /^tv shows$/i })).toBeVisible();
 
-  await expect(page.getByRole('button', { name: /^(?:filters|tags)(?: \(\d+\))?$/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^filters(?: \(\d+\))?$/i })).toBeVisible();
   await expect(page.locator('#content')).toBeVisible();
 }
 
@@ -54,7 +54,7 @@ test.describe('discover page shell', () => {
 
     expect(response?.ok()).toBeTruthy();
     await expectDiscoverShell(page);
-    await openDiscoverFilters(page);
+    await openDiscoverGenres(page);
     await expect(page.getByRole('button', { name: /action/i })).toBeVisible();
     await expectResultsSettled(page, 'movie');
   });
@@ -103,6 +103,7 @@ test.describe('deep links', () => {
     await expectDiscoverShell(page);
     await openDiscoverFilters(page);
     await expect(page.getByLabel('Sort By').filter({ visible: true })).toContainText(/rating \(high to low\)/i);
+    await openDiscoverGenres(page);
     await expect(
       page.getByRole('button', { name: /^comedy$/i }).locator('[data-active="true"]'),
     ).toBeVisible();
@@ -242,7 +243,7 @@ test.describe('genre navigation', () => {
     await page.goto(discoverUrl({ page: '2' }));
     await expectDiscoverShell(page);
 
-    await openDiscoverFilters(page);
+    await openDiscoverGenres(page);
     await page.getByRole('button', { name: /^comedy$/i }).click();
 
     await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
@@ -254,7 +255,7 @@ test.describe('genre navigation', () => {
     await expectDiscoverShell(page);
     await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
 
-    await openDiscoverFilters(page);
+    await openDiscoverGenres(page);
     await page.getByRole('button', { name: /^comedy$/i }).click();
 
     await expect(page).not.toHaveURL(new RegExp(`genreId=${SHARED_GENRE_ID}`));
@@ -300,7 +301,7 @@ test.describe('sidebar navigation', () => {
     // historically left stale state behind.
     await page.getByRole('button', { name: /^tv shows$/i }).click();
     await waitForDiscoverUrl(page, /mediaType=tv/);
-    await openDiscoverFilters(page);
+    await openDiscoverGenres(page);
     await page.getByRole('button', { name: /^comedy$/i }).click();
     await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
     await closeDiscoverFilters(page);
