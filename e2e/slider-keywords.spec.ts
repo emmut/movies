@@ -65,8 +65,8 @@ test('keyword bubbles open Discover with a removable named filter', async ({ pag
   await expect(remove).toBeVisible();
 });
 
-test('legacy keyword links reuse Discover and retain the keyword through paging and media changes', async ({ page }) => {
-  await page.goto('/keyword/818?mediaType=movie&page=2');
+test('Discover keyword links retain the keyword through paging and media changes', async ({ page }) => {
+  await page.goto('/discover?keywordId=818&mediaType=movie&page=2');
   await expect(page).toHaveURL(/\/discover\?keywordId=818&mediaType=movie&page=2/, { timeout: 15_000 });
   await expect(page.getByRole('button', { name: /^Remove keyword / })).toBeVisible();
   await expect(page.locator('#content a[href^="/movie/"]').first()).toBeVisible();

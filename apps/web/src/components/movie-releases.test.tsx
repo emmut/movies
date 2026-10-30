@@ -51,6 +51,6 @@ describe('Movie release dates', () => {
     });
     const html = renderToStaticMarkup(await MovieReleases({ movieId: 1, region: 'SE' }));
     expect(html).not.toContain('Time travel');
-    expect(html).not.toContain('/keyword/10');
+    expect(html).not.toContain('/discover?keywordId=10');
   });
 });
