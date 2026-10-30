@@ -1,16 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-import { openDiscoverFilters } from './helpers';
+import { openDiscoverTags } from './helpers';
 
 test.setTimeout(60_000);
 
-for (const width of [1280, 390]) {
+for (const width of [1920, 1280, 390]) {
   test.describe(`Discover tag search at ${width}px`, () => {
     test.use({ viewport: { width, height: 900 } });
 
     test('adds tags without a PDP and preserves filters, pagination and history', async ({ page }) => {
       await page.goto('/discover?mediaType=tv&genreId=35&sort_by=vote_count.desc&page=2');
-      await openDiscoverFilters(page);
+      await openDiscoverTags(page);
       const input = page.getByRole('combobox', { name: 'Search tags' });
       await expect(input).toBeVisible();
       await input.fill('time travel');
@@ -53,7 +53,7 @@ for (const width of [1280, 390]) {
 
 test('shows a failed tag search and retries successfully', async ({ page }) => {
   await page.goto('/discover');
-  await openDiscoverFilters(page);
+  await openDiscoverTags(page);
   const input = page.getByRole('combobox', { name: 'Search tags' });
   await expect(input).toBeVisible();
   let failSearch = true;

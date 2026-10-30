@@ -6,7 +6,12 @@ export const MOVIE_ID = 27205;
 export const MOVIE_PATH = `/movie/${MOVIE_ID}`;
 
 export async function openDiscoverFilters(page: Page) {
+  const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
+  await expect(nav).toBeVisible();
   const trigger = page.getByRole('button', { name: /^Filters(?: \(\d+\))?$/i });
+  if (!(await trigger.isVisible())) {
+    return nav;
+  }
   if (await trigger.getAttribute('aria-expanded') !== 'true') {
     await trigger.click();
   }
@@ -15,6 +20,17 @@ export async function openDiscoverFilters(page: Page) {
   });
   await expect(panel).toBeVisible();
   return panel;
+}
+
+export async function openDiscoverTags(page: Page) {
+  await expect(page.getByRole('navigation', { name: 'Discover filters', exact: true })).toBeVisible();
+  const trigger = page.getByRole('button', { name: /^Tags(?: \(\d+\))?$/ });
+  if (await trigger.isVisible()) {
+    await trigger.click();
+  } else {
+    await openDiscoverFilters(page);
+  }
+  await expect(page.getByRole('combobox', { name: 'Search tags' })).toBeVisible();
 }
 
 /**

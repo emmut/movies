@@ -7,10 +7,9 @@ import {
   parseAsStringLiteral,
   useQueryStates,
 } from 'nuqs';
-import { type ReactNode, useRef } from 'react';
+import { useRef } from 'react';
 
 import DiscoverGrid from '@/components/discover-grid';
-import { DiscoverKeywords } from '@/components/discover-keywords';
 import { getActiveFilterCount } from '@/components/filters-panel';
 import { GenreNavigationClient } from '@/components/genre-navigation-client';
 import MediaTypeSelector from '@/components/media-type-selector';
@@ -20,6 +19,7 @@ import { getOriginCountryString } from '@/lib/countries';
 import { getDiscoverWatchProviders } from '@/lib/discover-params';
 import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import type { Genre } from '@/types/genre';
+import type { Keyword } from '@/types/keyword';
 import { WatchProvider } from '@/types/watch-provider';
 
 import Pagination from './pagination';
@@ -146,7 +146,9 @@ type DiscoverToolbarProps = {
   filteredWatchProviders: WatchProvider[];
   userRegion: string;
   activeFilterCount: number;
-  keywordControls: ReactNode;
+  keywords: Keyword[];
+  onAddKeyword: (id: number) => void;
+  onRemoveKeyword: (id: number) => void;
   onClearFilters: () => Promise<URLSearchParams>;
 };
 
@@ -158,35 +160,34 @@ function DiscoverToolbar({
   filteredWatchProviders,
   userRegion,
   activeFilterCount,
-  keywordControls,
+  keywords,
+  onAddKeyword,
+  onRemoveKeyword,
   onClearFilters,
 }: DiscoverToolbarProps) {
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div
-      ref={toolbarRef}
-      className="@container relative mt-6 flex flex-wrap items-center justify-between gap-4"
-    >
-      <div className="min-w-0">
-        <GenreNavigationClient
-          keywordControls={keywordControls}
-          genres={genres}
-          mediaType={mediaType}
-          watchProviders={filteredWatchProviders}
-          userRegion={userRegion}
-          activeFilterCount={activeFilterCount}
-          portalContainer={toolbarRef}
-          onClearFilters={onClearFilters}
-        />
-      </div>
-      <div className="ml-auto">
-        <MediaTypeSelector
-          currentMediaType={mediaType}
-          movieGenres={movieGenres}
-          tvGenres={tvGenres}
-        />
-      </div>
+    <div ref={toolbarRef} className="relative mt-6">
+      <GenreNavigationClient
+        keywords={keywords}
+        onAddKeyword={onAddKeyword}
+        onRemoveKeyword={onRemoveKeyword}
+        genres={genres}
+        mediaType={mediaType}
+        watchProviders={filteredWatchProviders}
+        userRegion={userRegion}
+        activeFilterCount={activeFilterCount}
+        portalContainer={toolbarRef}
+        onClearFilters={onClearFilters}
+        mediaTypeControls={
+          <MediaTypeSelector
+            currentMediaType={mediaType}
+            movieGenres={movieGenres}
+            tvGenres={tvGenres}
+          />
+        }
+      />
     </div>
   );
 }
@@ -243,13 +244,9 @@ export function DiscoverContent({
         filteredWatchProviders={filteredWatchProviders}
         userRegion={watchRegion}
         activeFilterCount={activeFilterCount}
-        keywordControls={
-          <DiscoverKeywords
-            keywords={keywords.filter((keyword) => keywordIds.includes(keyword.id))}
-            onRemove={removeKeyword}
-            onAdd={addKeyword}
-          />
-        }
+        keywords={keywords.filter((keyword) => keywordIds.includes(keyword.id))}
+        onAddKeyword={addKeyword}
+        onRemoveKeyword={removeKeyword}
         onClearFilters={clearFilters}
       />
 

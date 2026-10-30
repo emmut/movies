@@ -1,4 +1,6 @@
 import { Button } from '@movies/ui/components/button';
+import { cn } from 'cn';
+import { useId } from 'react';
 
 import { WatchProvider } from '@/types/watch-provider';
 
@@ -38,13 +40,28 @@ export function getFilterButtonLabel(activeFilterCount: number) {
   return activeFilterCount === 0 ? 'Filters' : `Filters (${activeFilterCount})`;
 }
 
-export function FilterControls({ mediaType, watchProviders, userRegion }: FilterControlsBaseProps) {
+export function FilterControls({
+  mediaType,
+  watchProviders,
+  userRegion,
+  layout,
+}: FilterControlsBaseProps & { layout: 'panel' | 'toolbar' }) {
+  const id = useId();
   return (
-    <div className="grid grid-cols-1 gap-4 @[30rem]:grid-cols-2">
-      <SortByFilter mediaType={mediaType} />
-      <RuntimeFilter />
-      <OriginCountryFilter />
-      <WatchProviderFilter providers={watchProviders} userRegion={userRegion} />
+    <div
+      className={cn(
+        'grid gap-4',
+        layout === 'toolbar' ? 'grid-cols-4' : 'grid-cols-1 @[30rem]:grid-cols-2',
+      )}
+    >
+      <SortByFilter mediaType={mediaType} controlId={`${id}-sort`} />
+      <RuntimeFilter controlId={`${id}-runtime`} />
+      <OriginCountryFilter controlId={`${id}-country`} />
+      <WatchProviderFilter
+        providers={watchProviders}
+        userRegion={userRegion}
+        controlId={`${id}-providers`}
+      />
     </div>
   );
 }
@@ -59,5 +76,20 @@ export function ClearFiltersButton({ hasSelection, onClear }: ClearFiltersButton
     <Button variant="ghost" size="sm" disabled={!hasSelection} onClick={onClear}>
       Clear all
     </Button>
+  );
+}
+
+export function FilterCount({ count }: { count: number }) {
+  if (count === 0) {
+    return null;
+  }
+  return (
+    <span
+      data-slot="filter-count"
+      aria-hidden="true"
+      className="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground tabular-nums ring-2 ring-background"
+    >
+      {count}
+    </span>
   );
 }

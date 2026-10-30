@@ -24,13 +24,13 @@ async function expectDiscoverShell(page: Page) {
   await expect(page.getByRole('button', { name: /^movies$/i })).toBeVisible();
   await expect(page.getByRole('button', { name: /^tv shows$/i })).toBeVisible();
 
-  await expect(page.getByRole('button', { name: /^filters(?: \(\d+\))?$/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^(?:filters|tags)(?: \(\d+\))?$/i })).toBeVisible();
   await expect(page.locator('#content')).toBeVisible();
 }
 
 async function selectOption(page: Page, label: string, option: string) {
   await openDiscoverFilters(page);
-  await page.getByLabel(label).click();
+  await page.getByLabel(label).filter({ visible: true }).click();
   await page.getByRole('option', { name: option }).click();
 }
 
@@ -91,7 +91,7 @@ test.describe('deep links', () => {
     await expectDiscoverShell(page);
     await expect(page.getByRole('button', { name: /^tv shows$/i })).toHaveClass(/bg-white/);
     await openDiscoverFilters(page);
-    await expect(page.getByLabel('Runtime')).toContainText(/up to 90 min/i);
+    await expect(page.getByLabel('Runtime').filter({ visible: true })).toContainText(/up to 90 min/i);
     await waitForDiscoverUrl(page, /mediaType=tv/);
     await waitForDiscoverUrl(page, /page=2/);
     await expectResultsSettled(page, 'tv');
@@ -102,7 +102,7 @@ test.describe('deep links', () => {
 
     await expectDiscoverShell(page);
     await openDiscoverFilters(page);
-    await expect(page.getByLabel('Sort By')).toContainText(/rating \(high to low\)/i);
+    await expect(page.getByLabel('Sort By').filter({ visible: true })).toContainText(/rating \(high to low\)/i);
     await expect(
       page.getByRole('button', { name: /^comedy$/i }).locator('[data-active="true"]'),
     ).toBeVisible();
@@ -260,7 +260,7 @@ test.describe('genre navigation', () => {
     await expect(page).not.toHaveURL(new RegExp(`genreId=${SHARED_GENRE_ID}`));
   });
 
-  test('clears every filter from the desktop dropdown', async ({ page }) => {
+  test('clears every filter from the desktop toolbar', async ({ page }) => {
     await page.goto(
       discoverUrl({
         genreId: SHARED_GENRE_ID,
@@ -274,16 +274,8 @@ test.describe('genre navigation', () => {
     await openDiscoverFilters(page);
     const watchProviders = page.getByRole('button', { name: /^watch providers$/i });
     const clearButton = page.getByRole('button', { name: /^clear all$/i });
-    const [watchProviderBounds, clearButtonBounds] = await Promise.all([
-      watchProviders.boundingBox(),
-      clearButton.boundingBox(),
-    ]);
-
-    expect(watchProviderBounds).not.toBeNull();
-    expect(clearButtonBounds).not.toBeNull();
-    expect((clearButtonBounds?.y ?? 0) + (clearButtonBounds?.height ?? 0)).toBeLessThan(
-      watchProviderBounds?.y ?? 0,
-    );
+    await expect(watchProviders).toBeVisible();
+    await expect(clearButton).toBeEnabled();
 
     await clearButton.click();
 
@@ -311,7 +303,10 @@ test.describe('sidebar navigation', () => {
     await openDiscoverFilters(page);
     await page.getByRole('button', { name: /^comedy$/i }).click();
     await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
-    await page.getByRole('button', { name: 'Show results', exact: true }).click();
+    const showResults = page.getByRole('button', { name: 'Show results', exact: true });
+    if (await showResults.isVisible()) {
+      await showResults.click();
+    }
     await page.getByRole('button', { name: /go to next page/i }).click();
     await waitForDiscoverUrl(page, /page=2/);
     await expect(activePageNumber).toHaveText('2', { timeout: 15_000 });
@@ -421,7 +416,10 @@ test.describe('filters', () => {
     await selectOption(page, 'Runtime', 'Up to 90 min');
     await waitForDiscoverUrl(page, /runtime=90/);
 
-    await page.getByRole('button', { name: 'Show results', exact: true }).click();
+    const showResults = page.getByRole('button', { name: 'Show results', exact: true });
+    if (await showResults.isVisible()) {
+      await showResults.click();
+    }
     await page.getByRole('button', { name: '2', exact: true }).click();
     await waitForDiscoverUrl(page, /page=2/);
 
@@ -443,7 +441,7 @@ test.describe('filters', () => {
     await page.goto(discoverUrl({ runtime: '90' }));
     await expectDiscoverShell(page);
     await openDiscoverFilters(page);
-    await expect(page.getByLabel('Runtime')).toContainText(/up to 90 min/i);
+    await expect(page.getByLabel('Runtime').filter({ visible: true })).toContainText(/up to 90 min/i);
 
     await selectOption(page, 'Runtime', 'Any');
 

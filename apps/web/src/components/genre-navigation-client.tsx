@@ -14,11 +14,16 @@ import { ListFilterIcon } from 'lucide-react';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { type ReactNode, type RefObject, useState } from 'react';
 
+import { DiscoverKeywords, KeywordSelection } from '@/components/discover-keywords';
+import { DiscoverTagFilter } from '@/components/discover-tag-filter';
 import {
   ClearFiltersButton,
+  FilterCount,
   FilterControls,
   getFilterButtonLabel,
 } from '@/components/filters-panel';
+import { useResponsivePopover } from '@/hooks/use-responsive-popover';
+import type { Keyword } from '@/types/keyword';
 import { WatchProvider } from '@/types/watch-provider';
 
 import Pill from './pill';
@@ -75,6 +80,30 @@ function GenrePill({ active, genreName, onToggle }: GenrePillProps) {
   );
 }
 
+function GenreList({
+  genres,
+  selectedIds,
+  onToggle,
+}: {
+  genres: Genre[];
+  selectedIds: number[];
+  onToggle: (id: number) => void;
+}) {
+  return (
+    <ul className="flex flex-wrap gap-2" aria-label="Genres">
+      {genres.map((genre) => (
+        <li key={genre.id}>
+          <GenrePill
+            active={selectedIds.includes(genre.id)}
+            genreName={genre.name}
+            onToggle={() => onToggle(genre.id)}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 type FilterDropdownProps = {
   genres: Genre[];
   mediaType: 'movie' | 'tv';
@@ -100,10 +129,11 @@ function FilterDropdown({
   onClear,
   onToggleGenre,
 }: FilterDropdownProps) {
-  const [open, setOpen] = useState(false);
+  const { open, setOpen, triggerRef } = useResponsivePopover();
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
+        ref={triggerRef}
         render={<Button variant="outline" />}
         aria-label={getFilterButtonLabel(activeFilterCount)}
         className={cn(
@@ -113,15 +143,7 @@ function FilterDropdown({
       >
         <ListFilterIcon className="size-4" aria-hidden="true" />
         Filters
-        {activeFilterCount > 0 && (
-          <span
-            data-slot="filter-count"
-            aria-hidden="true"
-            className="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground tabular-nums ring-2 ring-background"
-          >
-            {activeFilterCount}
-          </span>
-        )}
+        <FilterCount count={activeFilterCount} />
       </PopoverTrigger>
       <PopoverContent
         align="start"
@@ -136,17 +158,7 @@ function FilterDropdown({
         <div className="@container min-h-0 space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-5">
           <section className="space-y-3" aria-label="Genres">
             <h3 className="text-sm font-medium text-muted-foreground">Genres</h3>
-            <ul className="flex flex-wrap gap-2">
-              {genres.map((genre) => (
-                <li key={genre.id}>
-                  <GenrePill
-                    active={selectedGenreIds.includes(genre.id)}
-                    genreName={genre.name}
-                    onToggle={() => onToggleGenre(genre.id)}
-                  />
-                </li>
-              ))}
-            </ul>
+            <GenreList genres={genres} selectedIds={selectedGenreIds} onToggle={onToggleGenre} />
           </section>
           <Separator />
           {keywordControls}
@@ -154,6 +166,7 @@ function FilterDropdown({
           <section className="space-y-3" aria-label="More filters">
             <h3 className="text-sm font-medium text-muted-foreground">More filters</h3>
             <FilterControls
+              layout="panel"
               mediaType={mediaType}
               watchProviders={watchProviders}
               userRegion={userRegion}
@@ -178,7 +191,10 @@ type GenreNavigationClientProps = {
   activeFilterCount: number;
   portalContainer: RefObject<HTMLElement | null>;
   onClearFilters: () => Promise<URLSearchParams>;
-  keywordControls: ReactNode;
+  keywords: Keyword[];
+  onAddKeyword: (id: number) => void;
+  onRemoveKeyword: (id: number) => void;
+  mediaTypeControls: ReactNode;
 };
 
 export function GenreNavigationClient({
@@ -189,7 +205,10 @@ export function GenreNavigationClient({
   activeFilterCount,
   portalContainer,
   onClearFilters,
-  keywordControls,
+  keywords,
+  onAddKeyword,
+  onRemoveKeyword,
+  mediaTypeControls,
 }: GenreNavigationClientProps) {
   const [urlState, setUrlState] = useQueryStates(
     {
@@ -232,19 +251,51 @@ export function GenreNavigationClient({
   }
 
   return (
-    <nav aria-label="Discover filters">
-      <FilterDropdown
-        genres={genres}
-        mediaType={mediaType}
-        watchProviders={watchProviders}
-        userRegion={userRegion}
-        activeFilterCount={totalActiveFilterCount}
-        portalContainer={portalContainer}
-        selectedGenreIds={selectedGenreIds}
-        keywordControls={keywordControls}
-        onClear={handleClearAllFilters}
-        onToggleGenre={handleGenreToggle}
-      />
+    <nav aria-label="Discover filters" className="space-y-5">
+      <div className="hidden @[60rem]:block">
+        <FilterControls
+          layout="toolbar"
+          mediaType={mediaType}
+          watchProviders={watchProviders}
+          userRegion={userRegion}
+        />
+      </div>
+      <div className="hidden @[60rem]:block">
+        <GenreList genres={genres} selectedIds={selectedGenreIds} onToggle={handleGenreToggle} />
+      </div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="@[60rem]:hidden">
+          <FilterDropdown
+            genres={genres}
+            mediaType={mediaType}
+            watchProviders={watchProviders}
+            userRegion={userRegion}
+            activeFilterCount={totalActiveFilterCount}
+            portalContainer={portalContainer}
+            selectedGenreIds={selectedGenreIds}
+            keywordControls={
+              <DiscoverKeywords
+                keywords={keywords}
+                onAdd={onAddKeyword}
+                onRemove={onRemoveKeyword}
+              />
+            }
+            onClear={handleClearAllFilters}
+            onToggleGenre={handleGenreToggle}
+          />
+        </div>
+        <div className="hidden min-w-0 flex-1 flex-wrap items-center gap-3 @[60rem]:flex">
+          <DiscoverTagFilter
+            selectedIds={keywords.map((keyword) => keyword.id)}
+            onSelect={onAddKeyword}
+          />
+          <KeywordSelection keywords={keywords} onRemove={onRemoveKeyword} />
+          {totalActiveFilterCount > 0 && (
+            <ClearFiltersButton hasSelection onClear={handleClearAllFilters} />
+          )}
+        </div>
+        <div className="ml-auto shrink-0">{mediaTypeControls}</div>
+      </div>
     </nav>
   );
 }
