@@ -11,6 +11,7 @@ import { TmdbRequestError, type TmdbFetch } from '@movies/api/tmdb-fetch';
 import { ORPCError } from '@orpc/server';
 import { createCatalogCreditsService } from '@server/catalog-credits-service';
 import { createCatalogImdbService, type CatalogImdbOptions } from '@server/catalog-imdb-service';
+import { createCatalogPdpService } from '@server/catalog-pdp-service';
 import { createCatalogReviewsService } from '@server/catalog-reviews-service';
 import { createCatalogSupportService } from '@server/catalog-support-service';
 import { tmdbImageUrl } from '@server/media-card';
@@ -115,6 +116,7 @@ export function createCatalogService(
 ): CatalogService {
   return {
     ...createCatalogSupportService(fetchTmdb),
+    ...createCatalogPdpService(fetchTmdb),
     ...createCatalogCreditsService(fetchTmdb),
     ...createCatalogImdbService(fetchTmdb, imdbOptions),
     ...createCatalogReviewsService(fetchTmdb),

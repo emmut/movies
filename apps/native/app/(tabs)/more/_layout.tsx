@@ -18,6 +18,8 @@ export default function MoreLayout() {
         name="[type]/[id]/reviews"
         options={{ title: 'Reviews', headerBackTitle: 'Back' }}
       />
+      <Stack.Screen name="keyword/[keywordId]" options={{ title: 'Themes & Keywords' }} />
+      <Stack.Screen name="[type]/[id]/season/[season]" options={{ title: 'Season guide' }} />
       <Stack.Screen name="settings" options={{ title: 'Settings', headerBackTitle: 'More' }} />
     </Stack>
   );

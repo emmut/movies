@@ -1,5 +1,6 @@
+import { getRegionalReleases } from '@movies/api/pdp-extra-content';
+
 import { getPdpExtras } from '@/lib/pdp';
-import { getRegionalReleases } from '@/lib/pdp-extra-content';
 import { optional } from '@/lib/tmdb';
 
 export async function MovieReleases({ movieId, region }: { movieId: number; region: string }) {

@@ -1,9 +1,9 @@
+import { getBilledCastMembers } from '@movies/api/cast-members';
 import { Users } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import { CastSlider } from '@/components/cast-slider';
 import { Imgproxy } from '@/components/image-proxy';
-import { getBilledCastMembers } from '@/lib/cast-members';
 import { getMovieCredits } from '@/lib/movies';
 import { optional } from '@/lib/tmdb';
 

@@ -10,6 +10,7 @@ import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { CatalogTrailer } from '@native/components/catalog-trailer';
 import { CustomListActions } from '@native/components/custom-list-picker';
 import { ExternalLink } from '@native/components/external-link';
+import { PdpSections } from '@native/components/pdp-sections';
 import { PersonCreditGroup } from '@native/components/person-credits';
 import {
   ScrollNavigationProvider,
@@ -115,6 +116,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
             </Text>
           </View>
           <CatalogFacts item={item} />
+          <PdpSections input={input} title={item.title} />
           {item.type === 'tv' ? (
             <PersonCreditGroup
               title="Created By"
@@ -123,8 +125,10 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
               region={region}
             />
           ) : null}
+          <PdpSections input={input} title={item.title} part="seasons" />
           <CatalogCredits input={input} />
           <CatalogProviders input={input} />
+          <PdpSections input={input} title={item.title} part="availability" />
           <CatalogRelated input={input} kind="similar" />
           <CatalogRelated input={input} kind="recommendations" />
           <CatalogReviews input={input} />

@@ -15,11 +15,12 @@ describe('supporting RPC transport', () => {
     'roundtrips %s credits through the public contract',
     async (type) => {
       const { client, fetcher } = setup();
-      fetcher.mockResolvedValueOnce({
+      fetcher.mockResolvedValue({
         cast: [{ id: 7, credit_id: 'a', name: 'Actor', character: 'Lead' }],
         crew: [],
       });
       expect(await client.catalog.credits({ id: 42, type })).toEqual({
+        ...(type === 'movie' ? { crew: [] } : {}),
         cast: [{ id: 7, creditId: 'a', name: 'Actor', role: 'Lead', profileUrl: null }],
         directors: [],
         writers: [],

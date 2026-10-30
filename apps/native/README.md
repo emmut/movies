@@ -126,3 +126,7 @@ The `preview` EAS profile creates an internal build (Android APK); `production` 
 On the web auth host configure `PASSKEY_APPLE_TEAM_ID` and comma-separated `PASSKEY_ANDROID_FINGERPRINTS` using the actual signing identities. The public association endpoints remain unavailable until configured. Native and web use `com.movies.app`; do not substitute example signing values. The host must serve both well-known association paths over HTTPS. Native Android origins are derived from those fingerprints by the canonical auth service.
 
 No EAS project/signing credentials or signed-device acceptance is implied by local exports. Validate account linking, passkey creation/sign-in/deletion, secure-session restart, deep-link return and cancellation on both actual platforms before release. See `docs/native-app-parity.md` for validation evidence and outstanding acceptance.
+
+### Detail-page additions from main #355
+
+Native movie/TV pages now include image/video browsing, themes/keyword discovery, production companies, collections, regional releases and TV season guides with spoiler controls. Seasons/keywords stay in their source tab; source watch region survives title navigation. Series cast uses aggregate roles/episode counts with billed fallback, and movie Full Crew expands to native person links. Web/API/native share the pure selection rules and raw PDP types. Additional supporting data has its own retries. Browser workflows and live local TMDB/API checks are recorded in the parity checklist; signed-device acceptance is still required.

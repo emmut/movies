@@ -145,3 +145,6 @@ Native custom-list workflows were implemented in the 2026-10-29 slice. Every pri
 
 
 Native account-security settings are now implemented locally (2026-10-29): anonymous provider linking, passkey metadata/create/delete and capability-aware sign-in. EAS preview/production profiles and optional association endpoints are prepared. See the parity checklist for the 1,128-unit/148-browser baseline and live WebAuthn evidence. Real signing identities, hosted configuration and signed-device/release acceptance remain required; the roadmap is not complete.
+
+
+Main #355 was integrated on 2026-10-30. Its enriched detail content now has native counterparts: galleries/videos, keywords, companies, collections/releases, seasons/episodes with spoiler controls, aggregate TV cast and full movie crew. The parity checklist records shared-module ownership, input/output validation, mobile-browser coverage and live API evidence. This advances the baseline without claiming signed-device/release acceptance.

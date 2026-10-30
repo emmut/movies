@@ -63,6 +63,9 @@ export function PersonCredit({
           <Text numberOfLines={2} className="text-sm font-medium text-foreground">
             {person.name}
           </Text>
+          {person.episodeCount !== undefined ? (
+            <Text className="text-xs text-muted">{person.episodeCount} episodes</Text>
+          ) : null}
           {person.role ? (
             <Text numberOfLines={2} className="text-xs text-muted">
               {person.role}

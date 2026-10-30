@@ -35,7 +35,11 @@
     "./system-list-copy": "./src/system-list-copy.ts",
     "./settled": "./src/settled.ts",
     "./custom-lists": "./src/custom-lists.ts",
-    "./passkeys": "./src/passkeys.ts"
+    "./passkeys": "./src/passkeys.ts",
+    "./pdp-extra-content": "./src/pdp-extra-content.ts",
+    "./media-navigation": "./src/media-navigation.ts",
+    "./cast-members": "./src/cast-members.ts",
+    "./pdp": "./src/pdp.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

@@ -34,6 +34,16 @@ import {
 import { homeListInput, trendingInput, mediaCardSchema, type MediaCard } from './home';
 import { catalogImdbSchema, type CatalogImdb } from './imdb';
 import {
+  pdpExtrasSchema,
+  seasonInput,
+  seasonPageSchema,
+  collectionPageSchema,
+  pdpEntityInput,
+  keywordInput,
+  keywordPageSchema,
+  type PdpService,
+} from './pdp';
+import {
   personInput,
   personCreditsInput,
   personDetailSchema,
@@ -76,7 +86,7 @@ export type HomeService = {
   list(input: z.infer<typeof homeListInput>): Promise<MediaCard[]>;
   trending(input: z.infer<typeof trendingInput>): Promise<MediaCard[]>;
 };
-export type CatalogService = {
+export type CatalogService = PdpService & {
   imdb(input: CatalogTitleInput): Promise<CatalogImdb>;
   reviews(input: ReviewsInput): Promise<ReviewsPage>;
   credits(input: CatalogTitleInput): Promise<CatalogCredits>;
@@ -302,6 +312,22 @@ export const appRouter = {
       .handler(({ input, context }) => context.discovery.options(input)),
   },
   catalog: {
+    extras: procedure
+      .input(catalogDetailInput)
+      .output(pdpExtrasSchema)
+      .handler(({ input, context }) => context.catalog.extras(input)),
+    season: procedure
+      .input(seasonInput)
+      .output(seasonPageSchema)
+      .handler(({ input, context }) => context.catalog.season(input)),
+    collection: procedure
+      .input(pdpEntityInput)
+      .output(collectionPageSchema)
+      .handler(({ input, context }) => context.catalog.collection(input)),
+    keyword: procedure
+      .input(keywordInput)
+      .output(keywordPageSchema)
+      .handler(({ input, context }) => context.catalog.keyword(input)),
     imdb: procedure
       .input(catalogTitleInput)
       .output(catalogImdbSchema)

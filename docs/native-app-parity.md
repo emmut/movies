@@ -384,3 +384,21 @@ Full parity remains open: actual Apple Team ID and Android signing SHA-256 finge
 
 
 CI follow-up: the search skeleton test now isolates authenticated card actions, matching the existing homepage skeleton fixture. Layout assertions remain intact and pass without `NEXT_PUBLIC_BASE_URL`. Railway's PR infrastructure workflow succeeded for this slice; a fresh hosted health probe was blocked by the execution environment's CONNECT proxy (403), so it supplies no current hosted-health evidence.
+
+
+## Enriched PDP parity after main #355 — 2026-10-30
+
+Integrated main `8d0306d` into the native branch. Conflict resolution retains shared currency/TMDB types and the new web Production Companies field; legacy trailer fetchers were removed after web adopted appended videos. New PDP types live in `@movies/api/tmdb-types/pdp`. Search hydration deliberately depends only on fields used for search results. The integration baseline passed 1,199 unit tests, all workspace typechecks, lint and the Fallow gate.
+
+The running web Matrix, Game of Thrones and Season 1 screens supplied the new visual/product baseline. Native now includes production-company names, Themes & Keywords, image thumbnails/full-screen browsing, additional videos, collection cards and regional release dates. Its season guide includes specials (season zero), next/latest airings, season posters/counts/dates, episode runtime and votes, with titles/images/descriptions hidden until individual or global reveal. Collection cards show available metadata without invented ratings. Movie Full Crew expands into native person links. Series cast shares aggregate roles/episode counts and falls back to billed credits when aggregate data is unavailable.
+
+Native keyword discovery offers movie/TV switching, pagination, genuine empty/error/retry states and native title links. Keyword/season routes exist in Home, Discover, Search and More stacks, preserving the explicit watch region through keyword/title/person navigation. Keyword reading position uses the existing entry-scoped scroll memory. Additional information and collection requests retry without replacing core details. Galleries start at the selected item, wrap at either end, support touch navigation, unload the previous video and close back to the title. Controls use Lucide icons.
+
+Web and native/API consume the same gallery limit, video ordering/deduplication, keyword extraction, regional release and series-role rules directly from shared modules. Public RPC input/output validation covers positive IDs, nonnegative season numbers, canonical 11-character YouTube keys and keyword pages 1–500. Malformed/mismatched upstream data fails rather than becoming a fabricated empty success.
+
+Evidence: 1,206 unit tests passed (31 opt-in skipped); all 160 native browser workflows passed. Twelve new mobile-browser workflows cover media selection/wrapping/close, collection navigation, all four season/keyword stacks, spoiler reveal/hide, pagination/type switching, empty/retry/invalid routes, full crew, aggregate cast presentation and both themes. Spoiler/gallery button text measures 18.1:1 in light and 14.5:1 in dark. Live native/Hono/TMDB checks browsed Matrix images and opened Game of Thrones Season 1, with names hidden until reveal and no uncaught page errors. The live extras response returned 4 companies, 16 images, 12 videos, 18 keywords, a collection and 3 regional releases. Screenshots are under `/tmp/pr350-main-web-*`, `/tmp/pr350-native-{season,gallery}-*` and `/tmp/pr350-live-native-*`.
+
+Physical iOS/Android playback, gestures, screen-reader behavior, secure-storage restart, signed passkeys/OAuth and release acceptance remain unverified. Real signing identifiers/build access and a permitted hosted endpoint are still required; local browser evidence does not close the full parity roadmap.
+
+
+Final verification for this slice: web/iOS/Android exports passed, root/native/server/web typechecks passed, lint retained five existing web warnings, and the Fallow gate passed with advisory findings. The final 12 PDP workflows passed again after collection-card and video-validation fixes. Native bundles are in `/tmp/pr350-pdp-platforms`. The existing 22 PR review threads remained resolved at the read-only recheck.

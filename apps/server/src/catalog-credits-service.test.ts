@@ -17,6 +17,7 @@ describe('catalog credits service', () => {
       const result = await createCatalogCreditsService(fetcher).credits({ id: 42, type });
       expect(fetcher).toHaveBeenCalledWith(`/${type}/42/credits`);
       expect(result).toEqual({
+        ...(type === 'movie' ? { crew: [] } : {}),
         cast: [
           {
             id: 7,
@@ -41,6 +42,7 @@ describe('catalog credits service', () => {
     });
     const service = createCatalogCreditsService(fetcher);
     const result = await service.credits({ id: 42, type: 'movie' });
+    expect(result.crew?.map((item) => item.role)).toEqual(jobs);
     expect(result.directors.map((item) => item.role)).toEqual(['Director']);
     expect(result.writers.map((item) => item.role)).toEqual([
       'Writer',
@@ -69,6 +71,7 @@ describe('catalog credits service', () => {
       .mockRejectedValueOnce(new Error('upstream failure'));
     const service = createCatalogCreditsService(fetcher);
     expect(await service.credits({ id: 42, type: 'movie' })).toEqual({
+      crew: [],
       cast: [],
       directors: [],
       writers: [],
@@ -76,4 +79,27 @@ describe('catalog credits service', () => {
     await expect(service.credits({ id: 42, type: 'movie' })).rejects.toThrow();
     await expect(service.credits({ id: 42, type: 'movie' })).rejects.toThrow('upstream failure');
   });
+});
+
+it('uses series-wide aggregate roles and episode counts before billed fallback', async () => {
+  const fetcher = vi.fn().mockResolvedValue({
+    cast: [
+      {
+        id: 7,
+        name: 'Performer',
+        profile_path: null,
+        total_episode_count: 8,
+        roles: [
+          { character: 'Lead', episode_count: 7 },
+          { character: 'Lead', episode_count: 1 },
+        ],
+      },
+    ],
+  });
+  const result = await createCatalogCreditsService(fetcher).credits({ id: 42, type: 'tv' });
+  expect(fetcher).toHaveBeenCalledTimes(1);
+  expect(fetcher).toHaveBeenCalledWith('/tv/42/aggregate_credits');
+  expect(result.cast).toEqual([
+    { id: 7, creditId: '7', name: 'Performer', role: 'Lead', profileUrl: null, episodeCount: 8 },
+  ]);
 });

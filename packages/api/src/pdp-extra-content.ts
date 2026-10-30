@@ -1,9 +1,8 @@
+import { youtubeKeySchema, type TmdbVideo } from '@movies/api/catalog-support';
 import type { PdpExtras } from '@movies/api/tmdb-types/pdp';
-import type { TmdbVideo } from '@movies/api/catalog-support';
 
 const GALLERY_IMAGES_PER_TYPE = 8;
 const MAX_VIDEOS = 12;
-const YOUTUBE_KEY_PATTERN = /^[\w-]+$/;
 const VIDEO_TYPE_PRIORITY = new Map([
   ['Trailer', 0],
   ['Teaser', 1],
@@ -27,7 +26,7 @@ export function getGalleryImages(images: PdpExtras['images']) {
 }
 
 function isPlayableVideo(video: TmdbVideo) {
-  return video.site === 'YouTube' && YOUTUBE_KEY_PATTERN.test(video.key);
+  return video.site === 'YouTube' && youtubeKeySchema.safeParse(video.key).success;
 }
 
 function videoPriority(video: TmdbVideo) {
@@ -41,7 +40,7 @@ export function getPlayableVideos(videos: PdpExtras['videos']) {
   }
   const sorted = videos.results
     .filter(isPlayableVideo)
-    .toSorted((a, b) => videoPriority(a) - videoPriority(b));
+    .sort((a, b) => videoPriority(a) - videoPriority(b));
   const unique = new Map<string, TmdbVideo>();
   for (const video of sorted) {
     if (!unique.has(video.key)) {

@@ -10,6 +10,7 @@ export const catalogCreditsSchema = z.object({
   cast: z.array(creditPersonSchema),
   directors: z.array(creditPersonSchema),
   writers: z.array(creditPersonSchema),
+  crew: z.array(creditPersonSchema).optional(),
 });
 export type CatalogCredits = z.infer<typeof catalogCreditsSchema>;
 export const catalogRelatedInput = catalogDetailInput.extend({

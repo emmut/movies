@@ -5,6 +5,8 @@ import {
   Calendar,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Ellipsis,
   Play,
@@ -37,6 +39,8 @@ export const ArrowUpIcon = styledIcon(ArrowUp);
 export const ArrowUpRightIcon = styledIcon(ArrowUpRight);
 export const CalendarIcon = styledIcon(Calendar);
 export const CheckIcon = styledIcon(Check);
+export const ChevronLeftIcon = styledIcon(ChevronLeft);
+export const ChevronRightIcon = styledIcon(ChevronRight);
 export const ChevronDownIcon = styledIcon(ChevronDown);
 export const ClockIcon = styledIcon(Clock);
 export const EllipsisIcon = styledIcon(Ellipsis);

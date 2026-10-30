@@ -1,6 +1,5 @@
-import { describe, expect, it } from 'vite-plus/test';
-
 import type { TmdbVideo } from '@movies/api/catalog-support';
+import { describe, expect, it } from 'vite-plus/test';
 
 import {
   getGalleryImages,
@@ -12,7 +11,7 @@ import {
 function video(overrides: Partial<TmdbVideo> = {}): TmdbVideo {
   return {
     id: '1',
-    key: 'valid-key',
+    key: 'valid-key01',
     site: 'YouTube',
     name: 'Trailer',
     type: 'Trailer',
@@ -42,8 +41,16 @@ describe('PDP content preparation', () => {
     expect(backdrops).toHaveLength(10);
   });
   it('filters unsupported videos before applying the display limit', () => {
-    const invalid = [video({ site: 'Vimeo' }), video({ key: 'invalid?key' }), video({ key: '' })];
-    const valid = Array.from({ length: 15 }, (_, i) => video({ id: String(i), key: `video-${i}` }));
+    const invalid = [
+      video({ site: 'Vimeo' }),
+      video({ key: 'invalid?key' }),
+      video({ key: '' }),
+      video({ key: 'short' }),
+      video({ key: 'abcdefghijkl' }),
+    ];
+    const valid = Array.from({ length: 15 }, (_, i) =>
+      video({ id: String(i), key: 'video-' + String(i).padStart(5, '0') }),
+    );
     expect(getPlayableVideos({ id: 1, results: [...invalid, ...valid] })).toEqual(
       valid.slice(0, 12),
     );
@@ -55,10 +62,10 @@ describe('PDP content preparation', () => {
     expect(getKeywords({})).toEqual([]);
   });
   it('opens on an official trailer and deduplicates videos before applying the limit', () => {
-    const extra = video({ id: 'extra', key: 'extra', type: 'Featurette' });
-    const teaser = video({ id: 'teaser', key: 'teaser', type: 'Teaser' });
-    const unofficial = video({ id: 'unofficial', key: 'trailer', official: false });
-    const trailer = video({ id: 'official', key: 'trailer' });
+    const extra = video({ id: 'extra', key: 'extra-key01', type: 'Featurette' });
+    const teaser = video({ id: 'teaser', key: 'teaser-key1', type: 'Teaser' });
+    const unofficial = video({ id: 'unofficial', key: 'trailer-key', official: false });
+    const trailer = video({ id: 'official', key: 'trailer-key' });
     expect(getPlayableVideos({ id: 1, results: [extra, teaser, unofficial, trailer] })).toEqual([
       trailer,
       teaser,

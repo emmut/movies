@@ -28,6 +28,8 @@ export function CatalogStack({ title }: { title: string }) {
     >
       <Stack.Screen name="index" options={{ headerShown: false, title }} />
       <Stack.Screen name="[type]/[id]" options={{ title: 'Title', headerBackTitle: title }} />
+      <Stack.Screen name="keyword/[keywordId]" options={{ title: 'Themes & Keywords' }} />
+      <Stack.Screen name="[type]/[id]/season/[season]" options={{ title: 'Season guide' }} />
       <Stack.Screen name="[type]/[id]/reviews" options={{ title: 'Reviews' }} />
     </Stack>
   );

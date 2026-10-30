@@ -1,5 +1,6 @@
 import type { CatalogTitleInput } from '@movies/api/catalog-support';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
+import { PlayIcon } from '@native/components/icons';
 import { TrailerPlayer } from '@native/components/trailer-player';
 import { orpc } from '@native/lib/api';
 import { useQuery } from '@tanstack/react-query';
@@ -58,9 +59,10 @@ function TrailerAction({
         accessibilityRole="button"
         accessibilityLabel={`Play Trailer for ${title}`}
         onPress={() => setOpen(true)}
-        className={`min-h-11 justify-center self-start rounded-lg px-4 py-2 ${buttonColor}`}
+        className={`min-h-11 flex-row items-center justify-center gap-2 self-start rounded-lg px-4 py-2 ${buttonColor}`}
       >
-        <Text className="font-semibold text-white">▷ Play Trailer</Text>
+        <PlayIcon className="size-5 text-white" />
+        <Text className="font-semibold text-white">Play Trailer</Text>
       </Pressable>
       {open ? (
         <TrailerSheet videoKey={videoKey} title={title} onClose={() => setOpen(false)} />
