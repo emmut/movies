@@ -1,11 +1,10 @@
 'use client';
 
+import type { Episode } from '@movies/api/tmdb-types/pdp';
 import { Button } from '@movies/ui/components/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@movies/ui/components/card';
 import { Clock, Eye, EyeOff, Film, Star } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
-
-import type { Episode } from '@movies/api/tmdb-types/pdp';
 
 type EpisodeItem = { episode: Episode; artwork: ReactNode };
 
