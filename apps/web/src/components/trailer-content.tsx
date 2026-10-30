@@ -1,31 +1,24 @@
-import { getMovieTrailer } from '@/lib/movies';
-import { getTvShowTrailer } from '@/lib/tv-shows';
+import { getPdpExtras } from '@/lib/pdp';
+import { getPlayableVideos } from '@/lib/pdp-extra-content';
+import { optional } from '@/lib/tmdb';
 
 import { TrailerButton } from './trailer-button';
 
-type TrailerContentProps = {
+/** Streams the trailer and additional videos without blocking the title details. */
+export async function TrailerContent({
+  mediaType,
+  mediaId,
+  title,
+}: {
   mediaType: 'movie' | 'tv';
   mediaId: number;
   title: string;
-};
-
-/**
- * Asynchronously fetches and displays a trailer button for a movie or TV show.
- *
- * Depending on the provided media type and ID, retrieves the trailer key and renders a `TrailerButton` component. Returns `null` if no trailer is available. Callers wrap it in `Suspense` so the trailer lookup never blocks the page shell.
- *
- * @param mediaType - Specifies whether the media is a 'movie' or 'tv'
- * @param mediaId - The unique identifier for the movie or TV show
- * @param movieTitle - The title of the movie or TV show
- * @returns A JSX element containing the trailer button, or `null` if no trailer is found
- */
-export async function TrailerContent({ mediaType, mediaId, title }: TrailerContentProps) {
-  const trailerData =
-    mediaType === 'movie' ? await getMovieTrailer(mediaId) : await getTvShowTrailer(mediaId);
-
-  if (!trailerData) {
+}) {
+  const extras = await optional(getPdpExtras(mediaType, mediaId), null);
+  const videos = getPlayableVideos(extras?.videos);
+  if (videos.length === 0) {
     return null;
   }
 
-  return <TrailerButton trailerKey={trailerData} title={title} mediaType={mediaType} />;
+  return <TrailerButton videos={videos} title={title} mediaType={mediaType} />;
 }

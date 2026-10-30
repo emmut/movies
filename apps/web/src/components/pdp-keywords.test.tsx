@@ -5,14 +5,14 @@ vi.mock('@/lib/pdp', () => ({ getPdpExtras: vi.fn() }));
 
 import { getPdpExtras } from '@/lib/pdp';
 
+import { KeywordBubbles } from './keyword-bubbles';
 import { PdpKeywords } from './pdp-keywords';
-import Pill from './pill';
 
 beforeEach(() => vi.clearAllMocks());
 
 describe('PDP keywords', () => {
   it.each(['movie', 'tv'] as const)(
-    'shows %s keyword links without an accordion using Discover pills',
+    'renders %s keywords as collapsed silhouettes without an accordion',
     async (type) => {
       vi.mocked(getPdpExtras).mockResolvedValue({
         keywords:
@@ -30,9 +30,10 @@ describe('PDP keywords', () => {
       expect(html).toContain('Themes &amp; Keywords');
       expect(html).not.toContain('<details');
       expect(html).not.toContain('<summary');
-      expect(section?.props.children[1].props.children[0].props.children.props.children.type).toBe(
-        Pill,
-      );
+      expect(section?.type).toBe(KeywordBubbles);
+      expect(html).toContain('aria-expanded="false"');
+      expect(html).toContain('aria-hidden="true"');
+      expect(html).toContain('inert=""');
     },
   );
 

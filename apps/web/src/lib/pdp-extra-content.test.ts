@@ -43,7 +43,7 @@ describe('PDP content preparation', () => {
   });
   it('filters unsupported videos before applying the display limit', () => {
     const invalid = [video({ site: 'Vimeo' }), video({ key: 'invalid?key' }), video({ key: '' })];
-    const valid = Array.from({ length: 15 }, (_, i) => video({ id: String(i) }));
+    const valid = Array.from({ length: 15 }, (_, i) => video({ id: String(i), key: `video-${i}` }));
     expect(getPlayableVideos({ id: 1, results: [...invalid, ...valid] })).toEqual(
       valid.slice(0, 12),
     );
@@ -53,6 +53,17 @@ describe('PDP content preparation', () => {
     expect(getKeywords({ keywords })).toEqual(keywords);
     expect(getKeywords({ results: keywords })).toEqual(keywords);
     expect(getKeywords({})).toEqual([]);
+  });
+  it('opens on an official trailer and deduplicates videos before applying the limit', () => {
+    const extra = video({ id: 'extra', key: 'extra', type: 'Featurette' });
+    const teaser = video({ id: 'teaser', key: 'teaser', type: 'Teaser' });
+    const unofficial = video({ id: 'unofficial', key: 'trailer', official: false });
+    const trailer = video({ id: 'official', key: 'trailer' });
+    expect(getPlayableVideos({ id: 1, results: [extra, teaser, unofficial, trailer] })).toEqual([
+      trailer,
+      teaser,
+      extra,
+    ]);
   });
   it('deduplicates by release type and day, sorts dates, and preserves distinct formats', () => {
     function release(type: number, date: string) {

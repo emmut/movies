@@ -54,34 +54,4 @@ describe('additional PDP content', () => {
     expect(html).not.toContain('Time travel');
     expect(html).not.toContain('/keyword/10');
   });
-  it('hides unsupported video hosts and invalid YouTube keys', async () => {
-    const video = {
-      id: '1',
-      key: 'valid-key',
-      name: 'Featurette',
-      type: 'Featurette',
-      site: 'YouTube',
-      official: true,
-      published_at: '',
-      size: 1080,
-      iso_639_1: 'en',
-      iso_3166_1: 'US',
-    };
-    vi.mocked(getPdpExtras).mockResolvedValue({
-      videos: {
-        id: 1,
-        results: [
-          video,
-          { ...video, id: '2', site: 'Vimeo', name: 'Unsupported' },
-          { ...video, id: '3', key: 'bad?key', name: 'Invalid' },
-        ],
-      },
-    });
-    const html = renderToStaticMarkup(
-      await PdpAdditionalContent({ type: 'movie', id: 1, region: 'SE' }),
-    );
-    expect(html).toContain('https://www.youtube.com/watch?v=valid-key');
-    expect(html).not.toContain('Unsupported');
-    expect(html).not.toContain('Invalid');
-  });
 });

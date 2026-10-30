@@ -26,11 +26,25 @@ function isPlayableVideo(video: TmdbVideo) {
   return video.site === 'YouTube' && YOUTUBE_KEY_PATTERN.test(video.key);
 }
 
+function videoPriority(video: TmdbVideo) {
+  const type = video.type === 'Trailer' ? 0 : video.type === 'Teaser' ? 1 : 2;
+  return type * 2 + (video.official ? 0 : 1);
+}
+
 export function getPlayableVideos(videos: PdpExtras['videos']) {
   if (!videos) {
     return [];
   }
-  return videos.results.filter(isPlayableVideo).slice(0, MAX_VIDEOS);
+  const sorted = videos.results
+    .filter(isPlayableVideo)
+    .toSorted((a, b) => videoPriority(a) - videoPriority(b));
+  const unique = new Map<string, TmdbVideo>();
+  for (const video of sorted) {
+    if (!unique.has(video.key)) {
+      unique.set(video.key, video);
+    }
+  }
+  return [...unique.values()].slice(0, MAX_VIDEOS);
 }
 
 export function getKeywords(keywords: PdpExtras['keywords']) {

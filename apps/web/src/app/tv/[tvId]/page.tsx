@@ -10,7 +10,7 @@ import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
-import { PdpAdditionalContent } from '@/components/pdp-extras';
+import { PdpImages } from '@/components/pdp-images';
 import { PdpKeywords } from '@/components/pdp-keywords';
 import { TvSeasons } from '@/components/pdp-sections';
 import Pill from '@/components/pill';
@@ -259,6 +259,10 @@ export default async function TvShowPage(props: TvShowPageProps) {
             </div>
           </div>
 
+          <Suspense fallback={null}>
+            <PdpImages type="tv" id={tvId} title={name} />
+          </Suspense>
+
           {created_by.length > 0 && (
             <div>
               <h2 className="mb-4 text-xl font-semibold">Created By</h2>
@@ -304,10 +308,6 @@ export default async function TvShowPage(props: TvShowPageProps) {
 
           <Suspense fallback={<StreamingSectionSkeleton />}>
             <StreamingSection resourceId={tvId} resourceType="tv" userRegion={userRegion} />
-          </Suspense>
-
-          <Suspense fallback={null}>
-            <PdpAdditionalContent type="tv" id={tvId} region={userRegion} />
           </Suspense>
 
           <OtherContent

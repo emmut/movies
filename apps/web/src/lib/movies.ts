@@ -11,7 +11,6 @@ import {
   MovieSimilar,
   MovieWatchProviders,
 } from '@/types/movie';
-import { TmdbVideoResponse } from '@/types/tmdb-video';
 
 import { CACHE_TAGS } from './cache-tags';
 import { buildDiscoverSearchParams } from './discover-params';
@@ -217,39 +216,6 @@ export async function getMovieWatchProviders(movieId: number) {
   return {
     results: watchProviders.results,
   };
-}
-
-/**
- * Retrieves the YouTube trailer or teaser key for a specific movie by its ID.
- *
- * Searches for a video of type "Trailer" or "Teaser" hosted on YouTube. Returns the video key if found, or null if no suitable trailer is available or if the fetch fails.
- *
- * @param movieId - The TMDb ID of the movie to fetch the trailer for
- * @returns The YouTube video key for the trailer or teaser, or null if not found
- */
-export async function getMovieTrailer(movieId: number) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.movie.trailer(movieId));
-  cacheLife('hours');
-
-  try {
-    const data = await tmdbFetch<TmdbVideoResponse>(`/movie/${movieId}/videos`, {
-      errorMessage: 'Failed to fetch trailer',
-    });
-
-    const trailer = data.results.find(
-      (video) => (video.type === 'Trailer' || video.type === 'Teaser') && video.site === 'YouTube',
-    );
-
-    if (!trailer) {
-      return null;
-    }
-
-    return trailer.key;
-  } catch (error) {
-    console.error('Error fetching trailer:', error);
-    return null;
-  }
 }
 
 export async function getMovieRecommendations(movieId: number, userRegion?: string) {
