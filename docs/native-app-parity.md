@@ -402,3 +402,16 @@ Physical iOS/Android playback, gestures, screen-reader behavior, secure-storage 
 
 
 Final verification for this slice: web/iOS/Android exports passed, root/native/server/web typechecks passed, lint retained five existing web warnings, and the Fallow gate passed with advisory findings. The final 12 PDP workflows passed again after collection-card and video-validation fixes. Native bundles are in `/tmp/pr350-pdp-platforms`. The existing 22 PR review threads remained resolved at the read-only recheck.
+
+
+## Expo 58 and store-icon readiness — 2026-10-30
+
+Upgraded native to Expo 58.0.21, React Native 0.88.1 and the SDK's bundled React/module versions. Updated scroll instance references and optional review footer typing for the new RN declarations. Matched the RN Metro peer and pinned the Expo auth client to the existing 1.7.12 auth stack; package peer validation is clean. The online Expo dependency check was blocked by the environment proxy; its offline bundled-version check reported dependencies up to date.
+
+An actual native Hermes export rejected oRPC's async rest/destructured parameter syntax. Explicit Babel parameter/destructuring transforms resolved the compiler failure, and web/iOS/Android exports passed together. This is JavaScript/Hermes export evidence, not an Xcode/Gradle signed-device build. SDK 57 binaries must be rebuilt for the SDK 58 native dependencies.
+
+Added an opaque square 1024×1024 icon and a padded transparent Android adaptive foreground using the existing Movies popcorn brand. Public Expo config resolves both assets, their dimensions/alpha channels were inspected, and the iOS icon has no baked rounded corners. No store registration or App Review approval is implied.
+
+The initial SDK 58 browser run passed 156 workflows and exposed four synchronization failures. Logs showed an outgoing screen's button being selected, reload/URL reads occurring before navigation completed, and a background-network-idle barrier. Tests now await the destination URL, select the visible destination control and await the specific response/render. All functional assertions and timeouts remain intact. Each of the four affected workflows passed three focused reruns.
+
+The owner has been asked to choose the public name and app ID (proposal: `Movies by Emmut`, `com.emmut.movies`). Existing `Movies` / `com.movies.app` values remain until that decision and store-registration checks; changing identity also requires coordinated passkey associations, signing and OAuth configuration. iOS 27, signed-device and App Review acceptance remain open.

@@ -9,7 +9,7 @@ import {
   restoreScrollPosition,
 } from '@native/lib/scroll-restoration';
 import { useFocusEffect, useRoute } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, type ComponentRef } from 'react';
 import { Platform } from 'react-native';
 import type {
   FlatList,
@@ -29,8 +29,11 @@ function scrollEntry(routeKey: string) {
 
 /** Remember the focused screen, ignoring zero-offset events while it is hidden. */
 export function useRememberedScroll<
-  T extends ScrollView | Pick<FlatList<unknown>, 'scrollToOffset' | 'getScrollableNode'> =
-    ScrollView,
+  T extends
+    | ComponentRef<typeof ScrollView>
+    | Pick<FlatList<unknown>, 'scrollToOffset' | 'getScrollableNode'> = ComponentRef<
+    typeof ScrollView
+  >,
 >(key: string, scope: 'screen' | 'entry' = 'screen') {
   const route = useRoute();
   // Capture browser history identity once per route, including when this screen is kept mounted.

@@ -1,6 +1,6 @@
 # Movies native
 
-The homepage and core movie/TV details, built with the reference project's Expo SDK 57, Expo Router, HeroUI Native/Uniwind and TanStack Query setup.
+The homepage and core movie/TV details, built with the reference project's architecture, upgraded to Expo SDK 58, Expo Router, HeroUI Native/Uniwind and TanStack Query setup.
 
 ## Run
 
@@ -130,3 +130,13 @@ No EAS project/signing credentials or signed-device acceptance is implied by loc
 ### Detail-page additions from main #355
 
 Native movie/TV pages now include image/video browsing, themes/keyword discovery, production companies, collections, regional releases and TV season guides with spoiler controls. Seasons/keywords stay in their source tab; source watch region survives title navigation. Series cast uses aggregate roles/episode counts with billed fallback, and movie Full Crew expands to native person links. Web/API/native share the pure selection rules and raw PDP types. Additional supporting data has its own retries. Browser workflows and live local TMDB/API checks are recorded in the parity checklist; signed-device acceptance is still required.
+
+### Expo 58 and store assets
+
+Native uses Expo SDK 58 and its compatible React Native 0.88 module versions. React Native 0.88 scroll references use the component instance type; review-list footers follow the updated optional-component type. The Better Auth Expo client is pinned to match the existing 1.7.12 auth stack, and the RN Metro configuration matches 0.88.1.
+
+`assets/icon.png` is an opaque square 1024×1024 rendering of the existing web popcorn brand. `assets/adaptive-icon.png` supplies Android's padded transparent foreground; Expo config sets its background separately. Platforms apply their own icon masks. No store registration, signing identity, display-name availability or App Review approval is implied. See the roadmap's identity decision and device acceptance requirements before submission.
+
+The Expo 58 Hermes export exposed oRPC async rest/destructured parameters that the compiler rejected. Explicit Babel parameter/destructuring transforms retain the existing protocol while emitting compatible syntax; web/iOS/Android exports pass with that configuration. Do not remove these transforms without checking the native Hermes exports.
+
+SDK 57 native binaries cannot receive this SDK 58 upgrade as a JavaScript-only update. Install an SDK 58-compatible Expo Go for supported development workflows, or rebuild the development/preview binary with the matching native modules. Signed passkeys still require a custom signed build and the real domain/signing associations.

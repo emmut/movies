@@ -384,6 +384,7 @@ test('inline list sign-in preserves the explicit title country through authentic
   });
   await page.goto('/discover/movie/42?region=US');
   await page.getByRole('link', { name: 'Sign in to manage your lists', exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?/);
   expect(new URL(page.url()).searchParams.get('redirect_url')).toBe('/discover/movie/42?region=US');
   await page.getByRole('button', { name: 'Continue as anonymous', exact: true }).click();
   await expect(page).toHaveURL('http://localhost:8083/discover/movie/42?region=US');

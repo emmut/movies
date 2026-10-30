@@ -186,8 +186,14 @@ test('a late provider save cannot overwrite the next account’s private cache',
   const readsBeforeOldResponse = secondReads;
   const oldResponse = page.waitForResponse((response) => response.url().endsWith('/setProviders'));
   finishSave();
-  await oldResponse;
-  await page.waitForLoadState('networkidle');
+  await (await oldResponse).finished();
+  // Wait for response handlers and the subsequent render, independent of background requests.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
   await expect(page.getByRole('checkbox', { name: 'Netflix', exact: true })).not.toBeChecked();
   expect(secondReads).toBe(readsBeforeOldResponse);
 });

@@ -127,6 +127,7 @@ test('failed saves without any account data restore the prior session region', a
   ).toBeVisible();
   await expect(page.getByRole('button', { name: /Region: Sweden/ })).toBeEnabled();
   await page.getByRole('button', { name: 'More navigation', exact: true }).click();
-  await page.getByRole('button', { name: 'Home', exact: true }).click();
+  await expect(page).toHaveURL(/\/more$/);
+  await page.getByRole('button', { name: 'Home', exact: true }).filter({ visible: true }).click();
   await expect(page.getByRole('button', { name: /Region: Sweden/ })).toBeEnabled();
 });

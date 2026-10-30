@@ -11,11 +11,16 @@
       "bundleIdentifier": "com.movies.app"
     },
     "android": {
-      "package": "com.movies.app"
+      "package": "com.movies.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFA500"
+      }
     },
     "web": {
       "bundler": "metro",
       "output": "single"
-    }
+    },
+    "icon": "./assets/icon.png"
   }
 }

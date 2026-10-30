@@ -97,7 +97,7 @@ function ReviewsResults({ input, region }: { input: ReviewsInput; region: string
             totalPages={data.totalPages}
             onChange={(page) => router.setParams({ page: String(page) })}
           />
-        ) : null
+        ) : undefined
       }
     />
   );

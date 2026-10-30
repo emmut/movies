@@ -54,7 +54,7 @@ onlyBuiltDependencies:
   - sharp
   - unrs-resolver
 catalog:
-  "@better-auth/expo": ^1.7.12
+  "@better-auth/expo": 1.7.12
   "@orpc/client": ^1.15.0
   "@orpc/server": ^1.15.0
   "@playwright/test": ^1.64.1

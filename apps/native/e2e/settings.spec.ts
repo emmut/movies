@@ -32,6 +32,7 @@ test('More opens native Settings; region drafts save explicitly and survive relo
   await page.goBack();
   await expect(page).toHaveURL(/\/more$/);
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await expect(page).toHaveURL(/\/more\/settings$/);
   await page.reload();
   await expect(page.getByRole('button', { name: 'Region: Denmark', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'More navigation', exact: true }).click();
