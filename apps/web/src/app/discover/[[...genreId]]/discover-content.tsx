@@ -17,10 +17,8 @@ import MediaTypeSelector from '@/components/media-type-selector';
 import SectionTitle from '@/components/section-title';
 import SkipToElement from '@/components/skip-to-element';
 import { getOriginCountryString } from '@/lib/countries';
-import {
-  getWatchProvidersString,
-  parseAsPipeSeparatedArrayOfIntegers,
-} from '@/lib/watch-provider-search-params';
+import { getDiscoverWatchProviders } from '@/lib/discover-params';
+import { parseAsPipeSeparatedArrayOfIntegers } from '@/lib/watch-provider-search-params';
 import type { Genre } from '@/types/genre';
 import { WatchProvider } from '@/types/watch-provider';
 
@@ -102,12 +100,12 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
     genreIds: urlState.genreIds,
     mediaType: urlState.mediaType,
     sortBy: urlState.sort_by,
-    // Same fallback the server prefetch applies (URL selection, else the
-    // user's saved providers): a different value here changes the React Query
+    // Use the same provider selection as the server: a different value changes the query
     // key, orphans the dehydrated data, and refetches with the wrong filter.
-    watchProviders: getWatchProvidersString(
+    watchProviders: getDiscoverWatchProviders(
       urlState.with_watch_providers ?? [],
       userWatchProviders,
+      urlState.keywordIds,
     ),
     watchRegion: urlState.watch_region ?? userRegion,
     runtimeLte: urlState.runtimeLte ?? undefined,

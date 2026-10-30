@@ -2,10 +2,26 @@ import { describe, expect, it } from 'vite-plus/test';
 
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { MIN_RUNTIME_FILTER_MINUTES } from './constants';
-import { buildDiscoverSearchParams } from './discover-params';
+import { buildDiscoverSearchParams, getDiscoverWatchProviders } from './discover-params';
 import { DEFAULT_REGION } from './regions';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
+
+describe('getDiscoverWatchProviders', () => {
+  it.each([
+    { url: [], saved: [8, 9], keywords: [818], expected: undefined },
+    { url: [337, 15], saved: [8, 9], keywords: [818], expected: '337|15' },
+    { url: [], saved: [8, 9], keywords: [], expected: '8|9' },
+    { url: [337], saved: [8, 9], keywords: [], expected: '337' },
+    { url: [], saved: [], keywords: [818], expected: undefined },
+    { url: [], saved: [], keywords: [], expected: undefined },
+  ])(
+    'resolves URL $url, saved $saved and keywords $keywords',
+    ({ url, saved, keywords, expected }) => {
+      expect(getDiscoverWatchProviders(url, saved, keywords)).toBe(expected);
+    },
+  );
+});
 
 describe('buildDiscoverSearchParams', () => {
   it('combines keywords with genres, pagination and explicit provider filters', () => {

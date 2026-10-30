@@ -1,8 +1,18 @@
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { MIN_RUNTIME_FILTER_MINUTES } from './constants';
 import { DEFAULT_REGION } from './regions';
+import { getWatchProvidersString } from './watch-provider-search-params';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
+
+/** Keyword archives only use providers explicitly selected in the URL. */
+export function getDiscoverWatchProviders(
+  urlProviders: number[],
+  savedProviders: number[],
+  keywordIds: number[],
+) {
+  return getWatchProvidersString(urlProviders, keywordIds.length > 0 ? [] : savedProviders);
+}
 
 export type DiscoverParams = {
   keywordIds: number[];

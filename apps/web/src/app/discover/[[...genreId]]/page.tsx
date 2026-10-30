@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { getUser } from '@/lib/auth-server';
 import { getOriginCountryString } from '@/lib/countries';
 import { getDiscoverMedia } from '@/lib/discover-client';
-import type { DiscoverParams } from '@/lib/discover-params';
+import { getDiscoverWatchProviders, type DiscoverParams } from '@/lib/discover-params';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
 import { fetchAvailableGenres } from '@/lib/movies';
 import { getKeyword } from '@/lib/pdp';
@@ -13,7 +13,6 @@ import { queryKeys } from '@/lib/query-keys';
 import { optional } from '@/lib/tmdb';
 import { fetchAvailableTvGenres } from '@/lib/tv-shows';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
-import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
 
 import DiscoverLoading from '../loading';
 import { DiscoverContent } from './discover-content';
@@ -74,9 +73,10 @@ async function DiscoverWithGenre(props: DiscoverWithGenreParams) {
   ]);
   const watchRegion = discoverParams.watch_region ?? userRegion;
 
-  const watchProviders = getWatchProvidersString(
+  const watchProviders = getDiscoverWatchProviders(
     discoverParams.with_watch_providers,
     userWatchProviders,
+    discoverParams.keywordIds,
   );
 
   // Prefetch data on the server for React Query
