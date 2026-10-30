@@ -3,16 +3,9 @@
  * Provides type-safe, hierarchical query keys for consistent caching and invalidation.
  */
 
-type DiscoverParams = {
-  genreIds: number[];
-  page: number;
-  mediaType: 'movie' | 'tv';
-  sortBy?: string;
-  watchProviders?: string;
-  watchRegion?: string;
-  withRuntimeLte?: number;
-  withOriginCountry?: string;
-};
+import type { DiscoverParams as DiscoverFilters } from './discover-params';
+
+type DiscoverParams = DiscoverFilters & { mediaType: 'movie' | 'tv' };
 
 // Key factory shared by the system lists (watchlist, watched) so both expose
 // the same hierarchy under their own root.
@@ -68,6 +61,7 @@ export const queryKeys = {
         ...queryKeys.discover.lists(),
         'movies',
         params.genreIds,
+        params.keywordIds,
         params.page,
         params.sortBy,
         params.watchProviders,
@@ -80,6 +74,7 @@ export const queryKeys = {
         ...queryKeys.discover.lists(),
         'tv',
         params.genreIds,
+        params.keywordIds,
         params.page,
         params.sortBy,
         params.watchProviders,

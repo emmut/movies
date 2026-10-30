@@ -4,10 +4,13 @@ import { Suspense } from 'react';
 import { getUser } from '@/lib/auth-server';
 import { getOriginCountryString } from '@/lib/countries';
 import { getDiscoverMedia } from '@/lib/discover-client';
+import type { DiscoverParams } from '@/lib/discover-params';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
 import { fetchAvailableGenres } from '@/lib/movies';
+import { getKeyword } from '@/lib/pdp';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
+import { optional } from '@/lib/tmdb';
 import { fetchAvailableTvGenres } from '@/lib/tv-shows';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import { getWatchProvidersString } from '@/lib/watch-provider-search-params';
@@ -19,6 +22,7 @@ type DiscoverWithGenreParams = {
   searchParams: Promise<{
     page?: string;
     genreId?: string;
+    keywordId?: string;
     mediaType?: string;
     sort_by?: string;
     with_watch_providers?: string;
@@ -28,52 +32,17 @@ type DiscoverWithGenreParams = {
   }>;
 };
 
-type DiscoverQueryParams = Awaited<ReturnType<typeof loadDiscoverSearchParams>> & {
-  watchProviders?: string;
-  watchRegion: string;
-  withRuntimeLte?: number;
-  withOriginCountry?: string;
-};
-
-function getDiscoverQueryKey({
-  mediaType,
-  genreIds,
-  page,
-  sort_by: sortBy,
-  watchProviders,
-  watchRegion,
-  withRuntimeLte,
-  withOriginCountry,
-}: DiscoverQueryParams) {
-  const params = {
-    genreIds,
-    page,
-    sortBy,
-    watchProviders,
-    watchRegion,
-    withRuntimeLte,
-    withOriginCountry,
-  };
-
-  return mediaType === 'movie'
-    ? queryKeys.discover.movies(params)
-    : queryKeys.discover.tvShows(params);
-}
-
-async function prefetchDiscoverMedia(queryClient: QueryClient, params: DiscoverQueryParams) {
+async function prefetchDiscoverMedia(
+  queryClient: QueryClient,
+  mediaType: 'movie' | 'tv',
+  params: DiscoverParams,
+) {
   await queryClient.prefetchQuery({
-    queryKey: getDiscoverQueryKey(params),
-    queryFn: () =>
-      getDiscoverMedia(
-        params.mediaType,
-        params.genreIds,
-        params.page,
-        params.sort_by,
-        params.watchProviders,
-        params.watchRegion,
-        params.withRuntimeLte,
-        params.withOriginCountry,
-      ),
+    queryKey:
+      mediaType === 'movie'
+        ? queryKeys.discover.movies(params)
+        : queryKeys.discover.tvShows(params),
+    queryFn: () => getDiscoverMedia(mediaType, params),
   });
 }
 
@@ -112,10 +81,19 @@ async function DiscoverWithGenre(props: DiscoverWithGenreParams) {
 
   // Prefetch data on the server for React Query
   const queryClient = getQueryClient();
-  const [filteredWatchProviders] = await Promise.all([
+  const [filteredWatchProviders, keywords] = await Promise.all([
     getWatchProviders(watchRegion, userWatchProviders),
-    prefetchDiscoverMedia(queryClient, {
-      ...discoverParams,
+    Promise.all(
+      discoverParams.keywordIds.map(async (id) => {
+        const keyword = await optional(getKeyword(id), null);
+        return { id, name: keyword?.name ?? `Keyword ${id}` };
+      }),
+    ),
+    prefetchDiscoverMedia(queryClient, discoverParams.mediaType, {
+      genreIds: discoverParams.genreIds,
+      keywordIds: discoverParams.keywordIds,
+      page: discoverParams.page,
+      sortBy: discoverParams.sort_by,
       watchProviders,
       watchRegion,
       withRuntimeLte: discoverParams.runtime ?? undefined,
@@ -126,6 +104,7 @@ async function DiscoverWithGenre(props: DiscoverWithGenreParams) {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <DiscoverContent
+        keywords={keywords}
         filteredWatchProviders={filteredWatchProviders}
         userRegion={watchRegion}
         userWatchProviders={userWatchProviders}

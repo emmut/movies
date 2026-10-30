@@ -10,6 +10,7 @@ import {
 import { useRef } from 'react';
 
 import DiscoverGrid from '@/components/discover-grid';
+import { DiscoverKeywords } from '@/components/discover-keywords';
 import FiltersPanel, { getActiveFilterCount } from '@/components/filters-panel';
 import { GenreNavigationClient } from '@/components/genre-navigation-client';
 import MediaTypeSelector from '@/components/media-type-selector';
@@ -26,6 +27,7 @@ import { WatchProvider } from '@/types/watch-provider';
 import Pagination from './pagination';
 
 type DiscoverContentProps = {
+  keywords: { id: number; name: string }[];
   filteredWatchProviders: WatchProvider[];
   userRegion: string;
   userWatchProviders: number[];
@@ -37,6 +39,7 @@ type DiscoverContentProps = {
 type DiscoverViewState = {
   page: number;
   genreIds: number[];
+  keywordIds: number[];
   mediaType: 'movie' | 'tv';
   sortBy: string;
   watchProviders?: string;
@@ -45,12 +48,14 @@ type DiscoverViewState = {
   originCountry?: string;
   activeFilterCount: number;
   clearFilters: () => Promise<URLSearchParams>;
+  removeKeyword: (id: number) => void;
 };
 
 function useDiscoverViewState(userRegion: string, userWatchProviders: number[]): DiscoverViewState {
   const [urlState, setUrlState] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
+      keywordIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       genreIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
       sort_by: parseAsString.withDefault('popularity.desc'),
@@ -63,6 +68,7 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
       urlKeys: {
         runtimeLte: 'runtime',
         genreIds: 'genreId',
+        keywordIds: 'keywordId',
       },
       history: 'push',
     },
@@ -72,6 +78,7 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
     return setUrlState(
       {
         genreIds: null,
+        keywordIds: null,
         sort_by: null,
         runtimeLte: null,
         with_origin_country: null,
@@ -84,6 +91,13 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
   }
 
   return {
+    keywordIds: urlState.keywordIds,
+    removeKeyword(id) {
+      void setUrlState({
+        keywordIds: urlState.keywordIds.filter((keywordId) => keywordId !== id),
+        page: 1,
+      });
+    },
     page: urlState.page,
     genreIds: urlState.genreIds,
     mediaType: urlState.mediaType,
@@ -98,12 +112,14 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
     watchRegion: urlState.watch_region ?? userRegion,
     runtimeLte: urlState.runtimeLte ?? undefined,
     originCountry: getOriginCountryString(urlState.with_origin_country),
-    activeFilterCount: getActiveFilterCount({
-      sortBy: urlState.sort_by,
-      runtimeLte: urlState.runtimeLte,
-      originCountries: urlState.with_origin_country,
-      watchProviders: urlState.with_watch_providers,
-    }),
+    activeFilterCount:
+      urlState.keywordIds.length +
+      getActiveFilterCount({
+        sortBy: urlState.sort_by,
+        runtimeLte: urlState.runtimeLte,
+        originCountries: urlState.with_origin_country,
+        watchProviders: urlState.with_watch_providers,
+      }),
     clearFilters,
   };
 }
@@ -176,46 +192,12 @@ function DiscoverToolbar({
   );
 }
 
-type DiscoverResultsProps = Omit<DiscoverViewState, 'activeFilterCount' | 'clearFilters'> & {
-  userId?: string;
-};
-
-function DiscoverResults({
-  page,
-  genreIds,
-  mediaType,
-  sortBy,
-  watchProviders,
-  watchRegion,
-  runtimeLte,
-  originCountry,
-  userId,
-}: DiscoverResultsProps) {
-  return (
-    <div
-      id="content"
-      className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
-    >
-      <DiscoverGrid
-        currentGenreIds={genreIds}
-        currentPage={page}
-        mediaType={mediaType}
-        sortBy={sortBy}
-        watchProviders={watchProviders}
-        watchRegion={watchRegion}
-        runtimeLte={runtimeLte}
-        originCountry={originCountry}
-        userId={userId}
-      />
-    </div>
-  );
-}
-
 /**
  * Client component that handles the discover page content with React Query.
  * Uses nuqs to manage URL state, which automatically triggers React Query refetches.
  */
 export function DiscoverContent({
+  keywords,
   filteredWatchProviders,
   userRegion,
   userWatchProviders,
@@ -226,6 +208,7 @@ export function DiscoverContent({
   const {
     page,
     genreIds,
+    keywordIds,
     mediaType,
     sortBy,
     watchProviders,
@@ -234,8 +217,20 @@ export function DiscoverContent({
     originCountry,
     activeFilterCount,
     clearFilters,
+    removeKeyword,
   } = useDiscoverViewState(userRegion, userWatchProviders);
   const genres = mediaType === 'movie' ? movieGenres : tvGenres;
+  const query = {
+    page,
+    genreIds,
+    keywordIds,
+    mediaType,
+    sortBy,
+    watchProviders,
+    watchRegion,
+    runtimeLte,
+    originCountry,
+  };
 
   return (
     <div className="@container w-full">
@@ -252,28 +247,18 @@ export function DiscoverContent({
         onClearFilters={clearFilters}
       />
 
-      <DiscoverResults
-        page={page}
-        genreIds={genreIds}
-        mediaType={mediaType}
-        sortBy={sortBy}
-        watchProviders={watchProviders}
-        watchRegion={watchRegion}
-        runtimeLte={runtimeLte}
-        originCountry={originCountry}
-        userId={userId}
+      <DiscoverKeywords
+        keywords={keywords.filter((keyword) => keywordIds.includes(keyword.id))}
+        onRemove={removeKeyword}
       />
 
-      <Pagination
-        currentGenreIds={genreIds}
-        currentPage={page}
-        mediaType={mediaType}
-        sortBy={sortBy}
-        watchProviders={watchProviders}
-        watchRegion={watchRegion}
-        runtimeLte={runtimeLte}
-        originCountry={originCountry}
-      />
+      <div
+        id="content"
+        className="mt-7 grid scroll-m-5 grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5"
+      >
+        <DiscoverGrid query={query} userId={userId} />
+      </div>
+      <Pagination query={query} />
     </div>
   );
 }
