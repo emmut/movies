@@ -5,6 +5,18 @@ import { expect, type Page } from '@playwright/test';
 export const MOVIE_ID = 27205;
 export const MOVIE_PATH = `/movie/${MOVIE_ID}`;
 
+export async function openDiscoverFilters(page: Page) {
+  const trigger = page.getByRole('button', { name: /^Filters(?: \(\d+\))?$/i });
+  if (await trigger.getAttribute('aria-expanded') !== 'true') {
+    await trigger.click();
+  }
+  const panel = page.locator('[data-slot="popover-content"]').filter({
+    has: page.getByRole('heading', { name: 'Filters', exact: true }),
+  });
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
 /**
  * Signs in as a fresh anonymous user via the login page's "Continue as
  * anonymous" button. Each call mints a brand-new anonymous account, so tests

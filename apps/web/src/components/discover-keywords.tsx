@@ -14,8 +14,8 @@ export function DiscoverKeywords({
   onRemove: (id: number) => void;
 }) {
   return (
-    <section className="mt-5 space-y-3" aria-label="Themes & Keywords">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <section className="space-y-3" aria-label="Themes & Keywords">
+      <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Themes &amp; Keywords</h2>
         <KeywordSearch selectedIds={keywords.map((keyword) => keyword.id)} onSelect={onAdd} />
       </div>

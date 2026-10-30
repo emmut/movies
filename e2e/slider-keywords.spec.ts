@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { MOVIE_PATH } from './helpers';
+import { MOVIE_PATH, openDiscoverFilters } from './helpers';
 
 test.setTimeout(60_000);
 
@@ -55,6 +55,7 @@ test('keyword bubbles open Discover with a removable named filter', async ({ pag
   await keyword.click();
   await expect(page).toHaveURL(new RegExp(href!.replace(/[?]/g, '\\?')), { timeout: 15_000 });
   await expect(page.getByRole('heading', { name: 'Discover', exact: true })).toBeVisible();
+  await openDiscoverFilters(page);
   const remove = page.getByRole('button', { name: `Remove keyword ${name}`, exact: true });
   await expect(remove).toBeVisible();
   await expect(page.locator('#content a[href^="/movie/"]').first()).toBeVisible();
@@ -62,13 +63,16 @@ test('keyword bubbles open Discover with a removable named filter', async ({ pag
   await expect(page).not.toHaveURL(/keywordId=/);
   await expect(remove).toHaveCount(0);
   await page.goBack();
+  await openDiscoverFilters(page);
   await expect(remove).toBeVisible();
 });
 
 test('Discover keyword links retain the keyword through paging and media changes', async ({ page }) => {
   await page.goto('/discover?keywordId=818&mediaType=movie&page=2');
   await expect(page).toHaveURL(/\/discover\?keywordId=818&mediaType=movie&page=2/, { timeout: 15_000 });
+  await openDiscoverFilters(page);
   await expect(page.getByRole('button', { name: /^Remove keyword / })).toBeVisible();
+  await page.getByRole('button', { name: 'Show results', exact: true }).click();
   await expect(page.locator('#content a[href^="/movie/"]').first()).toBeVisible();
   await page.getByRole('button', { name: /go to next page/i }).click();
   await expect(page).toHaveURL(/page=3/);
@@ -82,11 +86,8 @@ test('Discover keyword links retain the keyword through paging and media changes
 
 test('Clear all removes keyword filters too', async ({ page }) => {
   await page.goto('/discover?keywordId=818');
+  await openDiscoverFilters(page);
   await expect(page.getByRole('button', { name: /^Remove keyword / })).toBeVisible();
-  const compact = page.getByRole('button', { name: /^Filters \(/ });
-  if (await compact.isVisible()) {
-    await compact.click();
-  }
   await page.getByRole('button', { name: 'Clear all', exact: true }).filter({ visible: true }).click();
   await expect(page).not.toHaveURL(/keywordId=/);
   await expect(page.getByRole('button', { name: /^Remove keyword / })).toHaveCount(0);

@@ -9,13 +9,14 @@ import {
   PopoverTrigger,
 } from '@movies/ui/components/popover';
 import { Separator } from '@movies/ui/components/separator';
+import { cn } from 'cn';
 import { ListFilterIcon } from 'lucide-react';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { type RefObject, useState } from 'react';
+import { type ReactNode, type RefObject, useState } from 'react';
 
 import {
   ClearFiltersButton,
-  CompactFilterControls,
+  FilterControls,
   getFilterButtonLabel,
 } from '@/components/filters-panel';
 import { WatchProvider } from '@/types/watch-provider';
@@ -82,6 +83,7 @@ type FilterDropdownProps = {
   activeFilterCount: number;
   portalContainer: RefObject<HTMLElement | null>;
   selectedGenreIds: number[];
+  keywordControls: ReactNode;
   onClear: () => void;
   onToggleGenre: (genreId: number) => void;
 };
@@ -94,55 +96,75 @@ function FilterDropdown({
   activeFilterCount,
   portalContainer,
   selectedGenreIds,
+  keywordControls,
   onClear,
   onToggleGenre,
 }: FilterDropdownProps) {
+  const [open, setOpen] = useState(false);
   return (
-    <Popover>
-      <PopoverTrigger render={<Button variant="outline" />}>
-        <ListFilterIcon data-icon="inline-start" />
-        {getFilterButtonLabel(activeFilterCount)}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={<Button variant="outline" />}
+        aria-label={getFilterButtonLabel(activeFilterCount)}
+        className={cn(
+          'relative h-10 gap-2 px-4',
+          activeFilterCount > 0 && 'border-primary/40 bg-primary/5',
+        )}
+      >
+        <ListFilterIcon className="size-4" aria-hidden="true" />
+        Filters
+        {activeFilterCount > 0 && (
+          <span
+            data-slot="filter-count"
+            aria-hidden="true"
+            className="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground tabular-nums ring-2 ring-background"
+          >
+            {activeFilterCount}
+          </span>
+        )}
       </PopoverTrigger>
       <PopoverContent
         align="start"
         sideOffset={12}
         portalContainer={portalContainer}
-        className="w-query-container gap-3 p-3"
+        className="max-h-(--available-height) w-query-container max-w-2xl gap-0 overflow-hidden rounded-xl p-0"
       >
-        <PopoverHeader className="flex-row items-center justify-between">
-          <PopoverTitle>Filters</PopoverTitle>
+        <PopoverHeader className="shrink-0 flex-row items-center justify-between border-b border-border px-5 py-4">
+          <PopoverTitle className="text-base">Filters</PopoverTitle>
           <ClearFiltersButton hasSelection={activeFilterCount > 0} onClear={onClear} />
         </PopoverHeader>
-
-        <section className="flex flex-col gap-2" aria-labelledby="genre-filter-heading">
-          <h3 id="genre-filter-heading" className="text-sm font-medium">
-            Genres
-          </h3>
-          <ul className="flex flex-wrap gap-2">
-            {genres.map((genre) => (
-              <li key={genre.id}>
-                <GenrePill
-                  active={selectedGenreIds.includes(genre.id)}
-                  genreName={genre.name}
-                  onToggle={() => onToggleGenre(genre.id)}
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <Separator />
-
-        <section className="@container flex flex-col gap-2" aria-labelledby="filter-fields-heading">
-          <h3 id="filter-fields-heading" className="text-sm font-medium">
-            More filters
-          </h3>
-          <CompactFilterControls
-            mediaType={mediaType}
-            watchProviders={watchProviders}
-            userRegion={userRegion}
-          />
-        </section>
+        <div className="@container min-h-0 space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-5">
+          {keywordControls}
+          <Separator />
+          <section className="space-y-3" aria-label="Genres">
+            <h3 className="text-sm font-medium text-muted-foreground">Genres</h3>
+            <ul className="flex flex-wrap gap-2">
+              {genres.map((genre) => (
+                <li key={genre.id}>
+                  <GenrePill
+                    active={selectedGenreIds.includes(genre.id)}
+                    genreName={genre.name}
+                    onToggle={() => onToggleGenre(genre.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+          <Separator />
+          <section className="space-y-3" aria-label="More filters">
+            <h3 className="text-sm font-medium text-muted-foreground">More filters</h3>
+            <FilterControls
+              mediaType={mediaType}
+              watchProviders={watchProviders}
+              userRegion={userRegion}
+            />
+          </section>
+        </div>
+        <div className="flex shrink-0 justify-end border-t border-border px-5 py-4">
+          <Button className="h-10 w-full px-5 sm:w-auto" onClick={() => setOpen(false)}>
+            Show results
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
@@ -156,6 +178,7 @@ type GenreNavigationClientProps = {
   activeFilterCount: number;
   portalContainer: RefObject<HTMLElement | null>;
   onClearFilters: () => Promise<URLSearchParams>;
+  keywordControls: ReactNode;
 };
 
 export function GenreNavigationClient({
@@ -166,6 +189,7 @@ export function GenreNavigationClient({
   activeFilterCount,
   portalContainer,
   onClearFilters,
+  keywordControls,
 }: GenreNavigationClientProps) {
   const [urlState, setUrlState] = useQueryStates(
     {
@@ -208,34 +232,19 @@ export function GenreNavigationClient({
   }
 
   return (
-    <nav aria-label="Discover filters" className="min-w-0">
-      <div className="@[60rem]:hidden">
-        <FilterDropdown
-          genres={genres}
-          mediaType={mediaType}
-          watchProviders={watchProviders}
-          userRegion={userRegion}
-          activeFilterCount={totalActiveFilterCount}
-          portalContainer={portalContainer}
-          selectedGenreIds={selectedGenreIds}
-          onClear={handleClearAllFilters}
-          onToggleGenre={handleGenreToggle}
-        />
-      </div>
-
-      <div className="hidden @[60rem]:block">
-        <ul className="flex max-w-full flex-wrap gap-2 pt-3">
-          {genres.map((genre) => (
-            <li key={genre.id}>
-              <GenrePill
-                active={selectedGenreIds.includes(genre.id)}
-                genreName={genre.name}
-                onToggle={() => handleGenreToggle(genre.id)}
-              />
-            </li>
-          ))}
-        </ul>
-      </div>
+    <nav aria-label="Discover filters">
+      <FilterDropdown
+        genres={genres}
+        mediaType={mediaType}
+        watchProviders={watchProviders}
+        userRegion={userRegion}
+        activeFilterCount={totalActiveFilterCount}
+        portalContainer={portalContainer}
+        selectedGenreIds={selectedGenreIds}
+        keywordControls={keywordControls}
+        onClear={handleClearAllFilters}
+        onToggleGenre={handleGenreToggle}
+      />
     </nav>
   );
 }
