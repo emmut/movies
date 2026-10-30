@@ -117,7 +117,14 @@ test.describe('clamp-window viewport', () => {
       uploadThroughput: 1024 * 1024,
     });
 
-    await expectNavigationLandsAtTop(page, page.locator('a[href^="/person/"]').last(), /\/person\/\d+/);
+    const castCard = page
+      .getByRole('heading', { name: 'Cast', exact: true })
+      .locator('..')
+      .locator('a[href^="/person/"]')
+      .first();
+    await expect(castCard).toBeVisible({ timeout: 15_000 });
+
+    await expectNavigationLandsAtTop(page, castCard, /\/person\/\d+/);
   });
 });
 

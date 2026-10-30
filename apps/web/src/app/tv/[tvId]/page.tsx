@@ -10,13 +10,17 @@ import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
+import { PdpImages } from '@/components/pdp-images';
+import { PdpKeywords } from '@/components/pdp-keywords';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
+import { ProductionCompanies } from '@/components/production-companies';
 import { RatingsCard } from '@/components/ratings-card';
 import { ReviewsSection, ReviewsSectionSkeleton } from '@/components/reviews-section';
 import { StreamingSection, StreamingSectionSkeleton } from '@/components/streaming-section';
 import { TrailerContent } from '@/components/trailer-content';
 import { TvCast } from '@/components/tv-cast';
+import { TvSeasons } from '@/components/tv-seasons';
 import { getUser } from '@/lib/auth-server';
 import { formatCertification } from '@/lib/certifications';
 import { getImdbRating } from '@/lib/imdb';
@@ -120,7 +124,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <Poster poster_path={poster_path} title={name} />
 
-        <div className="@container space-y-6 lg:col-span-8">
+        <div className="@container min-w-0 space-y-6 lg:col-span-8">
           <ItemHeader
             title={name}
             tagline={tagline}
@@ -248,8 +252,17 @@ export default async function TvShowPage(props: TvShowPageProps) {
                   <p>{networks.map((network) => network.name).join(', ')}</p>
                 </div>
               )}
+              <ProductionCompanies companies={tvShow.production_companies} />
             </div>
           </div>
+
+          <Suspense fallback={null}>
+            <PdpKeywords type="tv" id={tvId} />
+          </Suspense>
+
+          <Suspense fallback={null}>
+            <PdpImages type="tv" id={tvId} title={name} />
+          </Suspense>
 
           {created_by.length > 0 && (
             <div>
@@ -282,6 +295,13 @@ export default async function TvShowPage(props: TvShowPageProps) {
               </div>
             </div>
           )}
+
+          <TvSeasons
+            tvId={tvId}
+            seasons={tvShow.seasons}
+            next={tvShow.next_episode_to_air}
+            latest={tvShow.last_episode_to_air}
+          />
 
           <Suspense fallback={<CastSliderSkeleton />}>
             <TvCast tvId={tvId} />

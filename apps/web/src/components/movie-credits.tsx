@@ -3,6 +3,7 @@ import { Users } from 'lucide-react';
 import { BackTargetLink } from '@/components/back-target-link';
 import { CastSlider } from '@/components/cast-slider';
 import { Imgproxy } from '@/components/image-proxy';
+import { getBilledCastMembers } from '@/lib/cast-members';
 import { getMovieCredits } from '@/lib/movies';
 import { optional } from '@/lib/tmdb';
 
@@ -87,7 +88,22 @@ export async function MovieCredits({ movieId }: { movieId: number }) {
         </div>
       )}
 
-      <CastSlider cast={credits.cast} />
+      <details className="rounded-lg bg-zinc-900 p-4">
+        <summary className="cursor-pointer text-xl font-semibold">Full Crew</summary>
+        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+          {credits.crew.map((person) => (
+            <li key={person.credit_id}>
+              <BackTargetLink href={`/person/${person.id}`} className="font-medium hover:underline">
+                {person.name}
+              </BackTargetLink>
+              <p className="text-sm text-zinc-400">
+                {person.job} · {person.department}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </details>
+      <CastSlider cast={getBilledCastMembers(credits.cast)} />
     </>
   );
 }

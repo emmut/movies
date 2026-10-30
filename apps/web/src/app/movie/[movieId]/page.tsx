@@ -7,10 +7,14 @@ import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
+import { MovieCollection } from '@/components/movie-collection';
 import { MovieCredits } from '@/components/movie-credits';
 import { MovieFacts } from '@/components/movie-facts';
+import { MovieReleases } from '@/components/movie-releases';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
+import { PdpImages } from '@/components/pdp-images';
+import { PdpKeywords } from '@/components/pdp-keywords';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
 import { RatingsCard } from '@/components/ratings-card';
@@ -107,7 +111,7 @@ export default async function MoviePage(props: MoviePageProps) {
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-12">
         <Poster poster_path={poster_path} title={title} />
 
-        <div className="@container space-y-6 lg:col-span-8">
+        <div className="@container min-w-0 space-y-6 lg:col-span-8">
           <ItemHeader
             title={title}
             tagline={tagline}
@@ -173,12 +177,29 @@ export default async function MoviePage(props: MoviePageProps) {
 
           <MovieFacts movie={movie} />
 
+          <Suspense fallback={null}>
+            <PdpKeywords type="movie" id={movieId} />
+          </Suspense>
+
+          <Suspense fallback={null}>
+            <PdpImages type="movie" id={movieId} title={title} />
+          </Suspense>
+
           <Suspense fallback={<CastSliderSkeleton />}>
             <MovieCredits movieId={movieId} />
           </Suspense>
 
           <Suspense fallback={<StreamingSectionSkeleton />}>
             <StreamingSection resourceId={movieId} resourceType="movie" userRegion={userRegion} />
+          </Suspense>
+
+          {movie.belongs_to_collection && (
+            <Suspense fallback={null}>
+              <MovieCollection collectionId={movie.belongs_to_collection.id} currentId={movieId} />
+            </Suspense>
+          )}
+          <Suspense fallback={null}>
+            <MovieReleases movieId={movieId} region={userRegion} />
           </Suspense>
 
           <OtherContent
