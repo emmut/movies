@@ -134,8 +134,6 @@ function FilterDropdown({
           <ClearFiltersButton hasSelection={activeFilterCount > 0} onClear={onClear} />
         </PopoverHeader>
         <div className="@container min-h-0 space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-5">
-          {keywordControls}
-          <Separator />
           <section className="space-y-3" aria-label="Genres">
             <h3 className="text-sm font-medium text-muted-foreground">Genres</h3>
             <ul className="flex flex-wrap gap-2">
@@ -150,6 +148,8 @@ function FilterDropdown({
               ))}
             </ul>
           </section>
+          <Separator />
+          {keywordControls}
           <Separator />
           <section className="space-y-3" aria-label="More filters">
             <h3 className="text-sm font-medium text-muted-foreground">More filters</h3>
