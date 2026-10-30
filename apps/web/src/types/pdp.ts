@@ -45,3 +45,11 @@ export type AggregateCredits = {
     roles: { character: string; episode_count: number }[];
   }[];
 };
+
+export type CastMemberSummary = {
+  id: number;
+  name: string;
+  character: string;
+  profile_path: string | null;
+  episodeCount: number | null;
+};

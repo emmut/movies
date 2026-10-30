@@ -12,7 +12,6 @@ import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
 import { PdpImages } from '@/components/pdp-images';
 import { PdpKeywords } from '@/components/pdp-keywords';
-import { TvSeasons } from '@/components/pdp-sections';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
 import { ProductionCompanies } from '@/components/production-companies';
@@ -21,6 +20,7 @@ import { ReviewsSection, ReviewsSectionSkeleton } from '@/components/reviews-sec
 import { StreamingSection, StreamingSectionSkeleton } from '@/components/streaming-section';
 import { TrailerContent } from '@/components/trailer-content';
 import { TvCast } from '@/components/tv-cast';
+import { TvSeasons } from '@/components/tv-seasons';
 import { getUser } from '@/lib/auth-server';
 import { formatCertification } from '@/lib/certifications';
 import { getImdbRating } from '@/lib/imdb';

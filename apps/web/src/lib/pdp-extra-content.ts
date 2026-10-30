@@ -4,6 +4,10 @@ import type { TmdbVideo } from '@/types/tmdb-video';
 const GALLERY_IMAGES_PER_TYPE = 8;
 const MAX_VIDEOS = 12;
 const YOUTUBE_KEY_PATTERN = /^[\w-]+$/;
+const VIDEO_TYPE_PRIORITY = new Map([
+  ['Trailer', 0],
+  ['Teaser', 1],
+]);
 const RELEASE_TYPES: Record<number, string> = {
   1: 'Premiere',
   2: 'Limited theatrical',
@@ -27,7 +31,7 @@ function isPlayableVideo(video: TmdbVideo) {
 }
 
 function videoPriority(video: TmdbVideo) {
-  const type = video.type === 'Trailer' ? 0 : video.type === 'Teaser' ? 1 : 2;
+  const type = VIDEO_TYPE_PRIORITY.get(video.type) ?? 2;
   return type * 2 + (video.official ? 0 : 1);
 }
 

@@ -7,13 +7,13 @@ import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
+import { MovieCollection } from '@/components/movie-collection';
 import { MovieCredits } from '@/components/movie-credits';
 import { MovieFacts } from '@/components/movie-facts';
+import { MovieReleases } from '@/components/movie-releases';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
-import { PdpAdditionalContent } from '@/components/pdp-extras';
 import { PdpImages } from '@/components/pdp-images';
-import { MovieCollection } from '@/components/pdp-sections';
 import Pill from '@/components/pill';
 import Poster from '@/components/poster';
 import { RatingsCard } from '@/components/ratings-card';
@@ -194,7 +194,7 @@ export default async function MoviePage(props: MoviePageProps) {
             </Suspense>
           )}
           <Suspense fallback={null}>
-            <PdpAdditionalContent type="movie" id={movieId} region={userRegion} />
+            <MovieReleases movieId={movieId} region={userRegion} />
           </Suspense>
 
           <OtherContent

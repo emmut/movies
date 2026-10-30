@@ -14,9 +14,17 @@ import {
   useContext,
   useRef,
   useState,
+  type KeyboardEvent,
   type ReactNode,
   type TouchEvent,
 } from 'react';
+
+import {
+  getAdjacentMediaIndex,
+  getKeyboardMediaDirection,
+  getSwipeMediaDirection,
+  type MediaDirection,
+} from '@/lib/media-navigation';
 
 export type MediaSlide = { id: string; title: string; content: ReactNode };
 
@@ -50,7 +58,7 @@ function MediaViewport({
   onMove,
 }: {
   slide: MediaSlide;
-  onMove: (direction: number) => void;
+  onMove: (direction: MediaDirection) => void;
 }) {
   const touchStart = useRef<number | null>(null);
 
@@ -61,9 +69,9 @@ function MediaViewport({
     if (start === null || !touch) {
       return;
     }
-    const distance = start - touch.clientX;
-    if (Math.abs(distance) >= 60) {
-      onMove(distance > 0 ? 1 : -1);
+    const direction = getSwipeMediaDirection(start, touch.clientX);
+    if (direction) {
+      onMove(direction);
     }
   }
 
@@ -94,7 +102,7 @@ function MediaControls({
   title: string;
   index: number;
   count: number;
-  onMove: (direction: number) => void;
+  onMove: (direction: MediaDirection) => void;
 }) {
   return (
     <div className="shrink-0 space-y-2 px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-8">
@@ -108,7 +116,7 @@ function MediaControls({
           className="size-11"
           aria-label="Previous media"
           disabled={count < 2}
-          onClick={() => onMove(-1)}
+          onClick={() => onMove('previous')}
         >
           <ChevronLeft aria-hidden="true" />
         </Button>
@@ -126,7 +134,7 @@ function MediaControls({
           className="size-11"
           aria-label="Next media"
           disabled={count < 2}
-          onClick={() => onMove(1)}
+          onClick={() => onMove('next')}
         >
           <ChevronRight aria-hidden="true" />
         </Button>
@@ -147,32 +155,35 @@ export function MediaViewer({
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const selected = selectedIndex === null ? null : items[selectedIndex];
 
-  function moveSlide(direction: number) {
+  function moveSlide(direction: MediaDirection) {
     setSelectedIndex((current) =>
-      current === null ? null : (current + direction + items.length) % items.length,
+      current === null ? null : getAdjacentMediaIndex(current, items.length, direction),
     );
+  }
+
+  function handleOpenChange(open: boolean) {
+    if (!open) {
+      setSelectedIndex(null);
+    }
+  }
+
+  function handleKeyDown(event: KeyboardEvent) {
+    const direction = getKeyboardMediaDirection(event.key);
+    if (!direction) {
+      return;
+    }
+    event.preventDefault();
+    moveSlide(direction);
   }
 
   return (
     <MediaViewerContext value={setSelectedIndex}>
-      <Dialog
-        open={selectedIndex !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedIndex(null);
-          }
-        }}
-      >
+      <Dialog open={selectedIndex !== null} onOpenChange={handleOpenChange}>
         {children}
         <DialogContent
           showCloseButton={false}
           className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none bg-black p-0 text-white ring-0 sm:max-w-none"
-          onKeyDown={(event) => {
-            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-              event.preventDefault();
-              moveSlide(event.key === 'ArrowRight' ? 1 : -1);
-            }
-          }}
+          onKeyDown={handleKeyDown}
         >
           <div className="flex shrink-0 items-center justify-between gap-4 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 sm:px-8">
             <DialogTitle className="min-w-0 truncate text-base leading-normal">{title}</DialogTitle>

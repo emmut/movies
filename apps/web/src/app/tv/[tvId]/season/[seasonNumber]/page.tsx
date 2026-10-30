@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 
-import { SeasonEpisodes } from '@/components/pdp-sections';
+import { SeasonEpisodes } from '@/components/season-episodes';
 import { seasonRouteSchema } from '@/lib/pdp-route-params';
 
 async function SeasonContent({

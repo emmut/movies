@@ -1,18 +1,21 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
-vi.mock('@/components/image-proxy', () => ({ Imgproxy: () => null }));
 vi.mock('@/lib/pdp', () => ({ getPdpExtras: vi.fn() }));
 import { getPdpExtras } from '@/lib/pdp';
 
-import { PdpAdditionalContent } from './pdp-extras';
+import { MovieReleases } from './movie-releases';
 
 beforeEach(() => vi.clearAllMocks());
-describe('additional PDP content', () => {
+describe('Movie release dates', () => {
+  it('hides unavailable release dates without breaking the page', async () => {
+    vi.mocked(getPdpExtras).mockRejectedValue(new Error('Unavailable'));
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(await MovieReleases({ movieId: 1, region: 'SE' })).toBeNull();
+    log.mockRestore();
+  });
   it('hides empty or missing appended responses', async () => {
     vi.mocked(getPdpExtras).mockResolvedValue({});
-    const html = renderToStaticMarkup(
-      await PdpAdditionalContent({ type: 'movie', id: 1, region: 'SE' }),
-    );
+    const html = renderToStaticMarkup(await MovieReleases({ movieId: 1, region: 'SE' }));
     expect(html).not.toContain('<section');
     expect(html).not.toContain('<details');
   });
@@ -37,9 +40,7 @@ describe('additional PDP content', () => {
         ],
       },
     });
-    const html = renderToStaticMarkup(
-      await PdpAdditionalContent({ type: 'movie', id: 1, region: 'SE' }),
-    );
+    const html = renderToStaticMarkup(await MovieReleases({ movieId: 1, region: 'SE' }));
     expect(html).toContain('Digital');
     expect(html).not.toContain('2020-01-01');
     expect(html.match(/<li /g)).toHaveLength(1);
@@ -48,9 +49,7 @@ describe('additional PDP content', () => {
     vi.mocked(getPdpExtras).mockResolvedValue({
       keywords: { keywords: [{ id: 10, name: 'Time travel' }] },
     });
-    const html = renderToStaticMarkup(
-      await PdpAdditionalContent({ type: 'movie', id: 1, region: 'SE' }),
-    );
+    const html = renderToStaticMarkup(await MovieReleases({ movieId: 1, region: 'SE' }));
     expect(html).not.toContain('Time travel');
     expect(html).not.toContain('/keyword/10');
   });

@@ -4,21 +4,13 @@ import { Users } from 'lucide-react';
 import { BackTargetLink } from '@/components/back-target-link';
 import { Imgproxy } from '@/components/image-proxy';
 import { ItemSlider } from '@/components/item-slider';
-
-// Shared card data normalized by the movie and TV credit sections.
-type CastSliderMember = {
-  id: number;
-  name: string;
-  character: string;
-  profile_path: string | null;
-  episodeCount: number | null;
-};
+import type { CastMemberSummary } from '@/types/pdp';
 
 /**
  * Horizontal slider of billed cast, each linking to the person page. Renders
  * nothing when the cast list is empty.
  */
-export function CastSlider({ cast }: { cast: CastSliderMember[] }) {
+export function CastSlider({ cast }: { cast: CastMemberSummary[] }) {
   if (cast.length === 0) {
     return null;
   }

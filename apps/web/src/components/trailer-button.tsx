@@ -7,6 +7,28 @@ import { ArrowUpRight, PlayCircle } from 'lucide-react';
 import { MediaViewer, MediaViewerTrigger } from '@/components/media-viewer';
 import type { TmdbVideo } from '@/types/tmdb-video';
 
+function VideoPlayer({ video, title }: { video: TmdbVideo; title: string }) {
+  return (
+    <div className="flex h-full w-full max-w-7xl flex-col items-center gap-3">
+      <iframe
+        className="min-h-0 w-full flex-1"
+        src={`https://www.youtube-nocookie.com/embed/${video.key}?autoplay=1&rel=0`}
+        title={`${title} — ${video.name}`}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+      <a
+        href={`https://www.youtube.com/watch?v=${video.key}`}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
+      >
+        Watch on YouTube <ArrowUpRight className="size-3" aria-hidden="true" />
+      </a>
+    </div>
+  );
+}
+
 export function TrailerButton({
   title,
   videos,
@@ -21,25 +43,7 @@ export function TrailerButton({
   const slides = videos.map((video) => ({
     id: video.id,
     title: `${video.name} · ${video.type}${video.official ? ' · Official' : ''}`,
-    content: (
-      <div className="flex h-full w-full max-w-7xl flex-col items-center gap-3">
-        <iframe
-          className="min-h-0 w-full flex-1"
-          src={`https://www.youtube-nocookie.com/embed/${video.key}?autoplay=1&rel=0`}
-          title={`${title} — ${video.name}`}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
-        <a
-          href={`https://www.youtube.com/watch?v=${video.key}`}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-white"
-        >
-          Watch on YouTube <ArrowUpRight className="size-3" aria-hidden="true" />
-        </a>
-      </div>
-    ),
+    content: <VideoPlayer video={video} title={title} />,
   }));
 
   return (

@@ -2,13 +2,9 @@ import { getPdpExtras } from '@/lib/pdp';
 import { getRegionalReleases } from '@/lib/pdp-extra-content';
 import { optional } from '@/lib/tmdb';
 
-function RegionalReleases({
-  dates,
-  region,
-}: {
-  dates: ReturnType<typeof getRegionalReleases>;
-  region: string;
-}) {
+export async function MovieReleases({ movieId, region }: { movieId: number; region: string }) {
+  const extras = await optional(getPdpExtras('movie', movieId), null);
+  const dates = getRegionalReleases(extras?.release_dates, region);
   if (dates.length === 0) {
     return null;
   }
@@ -27,21 +23,4 @@ function RegionalReleases({
       </ul>
     </section>
   );
-}
-
-export async function PdpAdditionalContent({
-  type,
-  id,
-  region,
-}: {
-  type: 'movie' | 'tv';
-  id: number;
-  region: string;
-}) {
-  const extras = await optional(getPdpExtras(type, id), null);
-  if (!extras) {
-    return null;
-  }
-  const releaseDates = getRegionalReleases(extras.release_dates, region);
-  return <RegionalReleases dates={releaseDates} region={region} />;
 }

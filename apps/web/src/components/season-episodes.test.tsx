@@ -1,24 +1,15 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
-vi.mock('@/components/image-proxy', () => ({ Imgproxy: () => null }));
-vi.mock('@/lib/pdp', () => ({
-  getSeason: vi.fn(),
-  getCollection: vi.fn(),
-}));
-import { BackTargetLink } from '@/components/back-target-link';
-import { getCollection, getSeason } from '@/lib/pdp';
 
-import { MovieCollection, SeasonEpisodes, TvSeasons } from './pdp-sections';
+vi.mock('@/components/image-proxy', () => ({ Imgproxy: () => null }));
+vi.mock('@/lib/pdp', () => ({ getSeason: vi.fn() }));
+
+import { getSeason } from '@/lib/pdp';
+
+import { SeasonEpisodes } from './season-episodes';
 
 beforeEach(() => vi.clearAllMocks());
-describe('PDP sections', () => {
-  it('hides missing episode data', () => {
-    const html = renderToStaticMarkup(
-      <TvSeasons tvId={1} seasons={[]} next={null} latest={null} />,
-    );
-    expect(html).not.toContain('Next Episode');
-    expect(html).not.toContain('Latest Episode');
-  });
+describe('Season episodes', () => {
   it('hides episode spoilers behind card reveal controls and handles unknown runtime/rating', async () => {
     vi.mocked(getSeason).mockResolvedValue({
       name: 'Specials',
@@ -45,22 +36,6 @@ describe('PDP sections', () => {
     expect(html).not.toContain('Spoiler plot');
     expect(html).toContain('Not yet rated');
     expect(html).not.toContain('null min');
-  });
-  it('excludes the current movie and orders other collection movies chronologically', async () => {
-    vi.mocked(getCollection).mockResolvedValue({
-      name: 'Collection',
-      parts: [
-        { id: 1, title: 'Current', release_date: '2000-01-01', poster_path: null },
-        { id: 3, title: 'Later', release_date: '2020-01-01', poster_path: null },
-        { id: 2, title: 'Earlier', release_date: '2010-01-01', poster_path: null },
-      ],
-    });
-    const section = await MovieCollection({ collectionId: 1, currentId: 1 });
-    expect(section?.props.children[1].props.children[0].type).toBe(BackTargetLink);
-    const html = renderToStaticMarkup(section);
-    expect(html).not.toContain('Current');
-    expect(html.indexOf('Earlier')).toBeLessThan(html.indexOf('Later'));
-    expect(html).toContain('/movie/2');
   });
   it('degrades failed optional sections without throwing', async () => {
     vi.mocked(getSeason).mockRejectedValue(new Error('Unavailable'));
