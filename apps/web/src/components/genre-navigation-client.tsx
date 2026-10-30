@@ -21,12 +21,14 @@ import {
   FilterCount,
   FilterControls,
   getFilterButtonLabel,
+  MoreFilters,
 } from '@/components/filters-panel';
 import { useResponsivePopover } from '@/hooks/use-responsive-popover';
 import type { Keyword } from '@/types/keyword';
 import { WatchProvider } from '@/types/watch-provider';
 
 import Pill from './pill';
+import SortByFilter from './sort-by-filter';
 
 type Genre = {
   id: number;
@@ -166,7 +168,7 @@ function FilterDropdown({
           <section className="space-y-3" aria-label="More filters">
             <h3 className="text-sm font-medium text-muted-foreground">More filters</h3>
             <FilterControls
-              layout="panel"
+              includeSort
               mediaType={mediaType}
               watchProviders={watchProviders}
               userRegion={userRegion}
@@ -189,6 +191,7 @@ type GenreNavigationClientProps = {
   watchProviders: WatchProvider[];
   userRegion: string;
   activeFilterCount: number;
+  additionalFilterCount: number;
   portalContainer: RefObject<HTMLElement | null>;
   onClearFilters: () => Promise<URLSearchParams>;
   keywords: Keyword[];
@@ -203,6 +206,7 @@ export function GenreNavigationClient({
   watchProviders,
   userRegion,
   activeFilterCount,
+  additionalFilterCount,
   portalContainer,
   onClearFilters,
   keywords,
@@ -253,14 +257,6 @@ export function GenreNavigationClient({
   return (
     <nav aria-label="Discover filters" className="space-y-5">
       <div className="hidden @[60rem]:block">
-        <FilterControls
-          layout="toolbar"
-          mediaType={mediaType}
-          watchProviders={watchProviders}
-          userRegion={userRegion}
-        />
-      </div>
-      <div className="hidden @[60rem]:block">
         <GenreList genres={genres} selectedIds={selectedGenreIds} onToggle={handleGenreToggle} />
       </div>
       <div className="flex items-start justify-between gap-4">
@@ -290,11 +286,23 @@ export function GenreNavigationClient({
             onSelect={onAddKeyword}
           />
           <KeywordSelection keywords={keywords} onRemove={onRemoveKeyword} />
+        </div>
+        <div className="ml-auto shrink-0 @[60rem]:hidden">{mediaTypeControls}</div>
+      </div>
+      <div className="hidden items-end justify-between gap-4 border-t border-border pt-4 @[60rem]:flex">
+        <div className="flex items-end gap-3">
+          <SortByFilter mediaType={mediaType} controlId="discover-desktop-sort" />
+          <MoreFilters
+            mediaType={mediaType}
+            watchProviders={watchProviders}
+            userRegion={userRegion}
+            activeCount={additionalFilterCount}
+          />
           {totalActiveFilterCount > 0 && (
             <ClearFiltersButton hasSelection onClear={handleClearAllFilters} />
           )}
         </div>
-        <div className="ml-auto shrink-0">{mediaTypeControls}</div>
+        <div className="shrink-0">{mediaTypeControls}</div>
       </div>
     </nav>
   );

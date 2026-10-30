@@ -8,7 +8,7 @@ export const MOVIE_PATH = `/movie/${MOVIE_ID}`;
 export async function openDiscoverFilters(page: Page) {
   const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
   await expect(nav).toBeVisible();
-  const trigger = page.getByRole('button', { name: /^Filters(?: \(\d+\))?$/i });
+  const trigger = page.getByRole('button', { name: /^(?:More filters|Filters)(?: \(\d+\))?$/i });
   if (!(await trigger.isVisible())) {
     return nav;
   }
@@ -16,7 +16,7 @@ export async function openDiscoverFilters(page: Page) {
     await trigger.click();
   }
   const panel = page.locator('[data-slot="popover-content"]').filter({
-    has: page.getByRole('heading', { name: 'Filters', exact: true }),
+    has: page.getByRole('heading', { name: /^(?:More filters|Filters)$/i }),
   });
   await expect(panel).toBeVisible();
   return panel;

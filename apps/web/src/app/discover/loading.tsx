@@ -11,18 +11,18 @@ export default function DiscoverLoading() {
         <SectionTitle>Discover</SectionTitle>
       </div>
       <div className="mt-6 hidden space-y-5 @[60rem]:block" aria-hidden="true">
-        <div className="grid grid-cols-4 gap-4">
-          {Array.from({ length: 4 }, (_, index) => (
-            <div key={index} className="space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-8 w-full" />
-            </div>
-          ))}
-        </div>
         <Skeleton className="h-16 w-full" />
-      </div>
-      <div className="relative mt-6 flex flex-wrap items-center justify-between gap-4 @[60rem]:mt-5">
         <Skeleton className="h-10 w-24" />
+      </div>
+      <div className="relative mt-6 flex flex-wrap items-center justify-between gap-4 @[60rem]:mt-5 @[60rem]:border-t @[60rem]:border-border @[60rem]:pt-4">
+        <Skeleton className="h-10 w-24 @[60rem]:hidden" />
+        <div className="hidden items-end gap-3 @[60rem]:flex" aria-hidden="true">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-8 w-54" />
+          </div>
+          <Skeleton className="h-8 w-32" />
+        </div>
         <div className="ml-auto flex gap-1 rounded-lg bg-muted/60 p-1">
           <Skeleton className="h-9 w-24 rounded-md" />
           <Skeleton className="h-9 w-24 rounded-md" />

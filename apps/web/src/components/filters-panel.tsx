@@ -1,7 +1,16 @@
 import { Button } from '@movies/ui/components/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@movies/ui/components/popover';
 import { cn } from 'cn';
+import { ListFilterIcon } from 'lucide-react';
 import { useId } from 'react';
 
+import { useResponsivePopover } from '@/hooks/use-responsive-popover';
 import { WatchProvider } from '@/types/watch-provider';
 
 import OriginCountryFilter from './origin-country-filter';
@@ -22,18 +31,20 @@ type ActiveFilterState = {
   watchProviders: number[] | null;
 };
 
-export function getActiveFilterCount({
-  sortBy,
+export function getAdditionalFilterCount({
   runtimeLte,
   originCountries,
   watchProviders,
-}: ActiveFilterState) {
+}: Omit<ActiveFilterState, 'sortBy'>) {
   return (
-    Number(sortBy !== 'popularity.desc') +
     Number((runtimeLte ?? 0) > 0) +
     Number(originCountries.length > 0) +
     Number((watchProviders?.length ?? 0) > 0)
   );
+}
+
+export function getActiveFilterCount(state: ActiveFilterState) {
+  return Number(state.sortBy !== 'popularity.desc') + getAdditionalFilterCount(state);
 }
 
 export function getFilterButtonLabel(activeFilterCount: number) {
@@ -44,17 +55,12 @@ export function FilterControls({
   mediaType,
   watchProviders,
   userRegion,
-  layout,
-}: FilterControlsBaseProps & { layout: 'panel' | 'toolbar' }) {
+  includeSort,
+}: FilterControlsBaseProps & { includeSort: boolean }) {
   const id = useId();
   return (
-    <div
-      className={cn(
-        'grid gap-4',
-        layout === 'toolbar' ? 'grid-cols-4' : 'grid-cols-1 @[30rem]:grid-cols-2',
-      )}
-    >
-      <SortByFilter mediaType={mediaType} controlId={`${id}-sort`} />
+    <div className="grid grid-cols-1 gap-4 @[30rem]:grid-cols-2">
+      {includeSort && <SortByFilter mediaType={mediaType} controlId={`${id}-sort`} />}
       <RuntimeFilter controlId={`${id}-runtime`} />
       <OriginCountryFilter controlId={`${id}-country`} />
       <WatchProviderFilter
@@ -91,5 +97,51 @@ export function FilterCount({ count }: { count: number }) {
     >
       {count}
     </span>
+  );
+}
+
+export function MoreFilters({
+  mediaType,
+  watchProviders,
+  userRegion,
+  activeCount,
+}: FilterControlsBaseProps & { activeCount: number }) {
+  const { open, setOpen, triggerRef } = useResponsivePopover();
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        ref={triggerRef}
+        render={<Button variant="outline" />}
+        aria-label={activeCount > 0 ? `More filters (${activeCount})` : 'More filters'}
+        className={cn(
+          'relative h-8 gap-2 px-3',
+          activeCount > 0 && 'border-primary/40 bg-primary/5',
+        )}
+      >
+        <ListFilterIcon className="size-4" aria-hidden="true" />
+        More filters
+        <FilterCount count={activeCount} />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={12}
+        className="@container max-h-(--available-height) w-80 max-w-(--available-width) gap-5 overflow-y-auto p-5"
+      >
+        <PopoverHeader>
+          <PopoverTitle>More filters</PopoverTitle>
+        </PopoverHeader>
+        <FilterControls
+          includeSort={false}
+          mediaType={mediaType}
+          watchProviders={watchProviders}
+          userRegion={userRegion}
+        />
+        <div className="flex justify-end">
+          <Button size="sm" onClick={() => setOpen(false)}>
+            Show results
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

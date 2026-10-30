@@ -51,27 +51,36 @@ for (const width of [1440, 1920]) {
   test.describe(`Desktop Discover filters at ${width}px`, () => {
     test.use({ viewport: { width, height: 1080 } });
 
-    test('keeps controls and selected tags visible with a focused search popover', async ({ page }) => {
-      await page.goto('/discover?genreId=35&keywordId=818&runtime=90');
+    test('puts sort and secondary filters last, keeping genres and tags visible', async ({ page }) => {
+      await page.goto('/discover?genreId=35&keywordId=818&runtime=90&sort_by=vote_average.desc');
       await expect(page.getByRole('button', { name: /^Filters/ })).toBeHidden();
       const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
       const sort = nav.getByLabel('Sort By');
-      const runtime = nav.getByLabel('Runtime');
-      const country = nav.getByRole('button', { name: 'Origin Country', exact: true });
-      const providers = nav.getByRole('button', { name: 'Watch Providers', exact: true });
-      const controls = [sort, runtime, country, providers];
-      for (const control of controls) {
-        await expect(control).toBeVisible();
-      }
-      const bounds = await Promise.all(controls.map((control) => control.boundingBox()));
-      expect(new Set(bounds.map((rect) => Math.round(rect!.y))).size).toBe(1);
-      for (let index = 1; index < bounds.length; index++) {
-        expect(bounds[index]!.x).toBeGreaterThan(bounds[index - 1]!.x + bounds[index - 1]!.width);
-      }
+      await expect(sort).toBeVisible();
+      await expect(nav.getByLabel('Runtime')).toHaveCount(0);
+      await expect(nav.getByRole('button', { name: 'Origin Country', exact: true })).toHaveCount(0);
+      await expect(nav.getByRole('button', { name: 'Watch Providers', exact: true })).toHaveCount(0);
       const tags = nav.getByRole('button', { name: 'Tags (1)', exact: true });
       const genre = nav.getByRole('button', { name: 'Comedy', exact: true });
       await expect(genre).toHaveAttribute('aria-pressed', 'true');
       expect((await tags.boundingBox())!.y).toBeGreaterThan((await genre.boundingBox())!.y);
+      expect((await sort.boundingBox())!.y).toBeGreaterThan((await tags.boundingBox())!.y);
+      const more = nav.getByRole('button', { name: 'More filters (1)', exact: true });
+      await expect(more.locator('[data-slot="filter-count"]')).toHaveText('1');
+      const secondaryPanel = await openDiscoverFilters(page);
+      await expect(secondaryPanel.getByLabel('Runtime')).toContainText('Up to 90 min');
+      await expect(secondaryPanel.getByRole('button', { name: 'Origin Country', exact: true })).toBeVisible();
+      await expect(secondaryPanel.getByRole('button', { name: 'Watch Providers', exact: true })).toBeVisible();
+      await expect(secondaryPanel.getByLabel('Sort By')).toHaveCount(0);
+      await secondaryPanel.getByLabel('Runtime').click();
+      await page.getByRole('option', { name: 'Any', exact: true }).click();
+      await expect(more).toHaveCount(0);
+      await expect(nav.getByRole('button', { name: 'More filters', exact: true }).locator('[data-slot="filter-count"]')).toHaveCount(0);
+      await secondaryPanel.getByLabel('Runtime').click();
+      await page.getByRole('option', { name: 'Up to 90 min', exact: true }).click();
+      await expect(more).toBeVisible();
+      await secondaryPanel.getByRole('button', { name: 'Show results', exact: true }).click();
+      await expect(more).toBeFocused();
       const selectedTag = nav.getByRole('button', { name: 'Remove keyword based on novel or book', exact: true });
       await expect(selectedTag).toBeVisible();
       await expect(page.getByRole('combobox', { name: 'Search tags' })).toHaveCount(0);
@@ -104,6 +113,10 @@ test('closes open popovers when resizing hides their triggers', async ({ page })
   const panel = await openDiscoverFilters(page);
   await page.setViewportSize({ width: 1920, height: 1080 });
   await expect(panel).not.toBeVisible();
+  const secondaryPanel = await openDiscoverFilters(page);
+  await page.setViewportSize({ width: 390, height: 900 });
+  await expect(secondaryPanel).not.toBeVisible();
+  await page.setViewportSize({ width: 1920, height: 1080 });
   await page.getByRole('button', { name: 'Tags', exact: true }).click();
   const input = page.getByRole('combobox', { name: 'Search tags' });
   await input.fill('time travel');
