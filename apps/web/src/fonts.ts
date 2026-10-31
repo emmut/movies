@@ -1,10 +1,10 @@
 import { Inter } from 'next/font/google';
 import localFont from 'next/font/local';
 
-// Outline glyphs work even on TV browsers without color-emoji font support.
+// Self-host color emoji for devices without a native emoji font.
 export const emoji = localFont({
-  src: './fonts/NotoEmoji.ttf',
-  weight: '300 700',
+  src: './fonts/NotoColorEmoji.woff2',
+  weight: '400',
   variable: '--font-emoji',
   display: 'swap',
   preload: false,

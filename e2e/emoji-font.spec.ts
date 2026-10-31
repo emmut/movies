@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('emoji use the bundled font in inherited and explicit sans-serif text', async ({ page }) => {
+test('emoji render in color with the bundled font in inherited and sans-serif text', async ({ page }) => {
   await page.goto('/');
 
   await page.evaluate(async () => {
@@ -32,9 +32,30 @@ test('emoji use the bundled font in inherited and explicit sans-serif text', asy
     const { fonts } = await session.send('CSS.getPlatformFontsForNode', { nodeId });
     expect(fonts).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ familyName: 'Noto Emoji', isCustomFont: true }),
+        expect.objectContaining({ familyName: 'Noto Color Emoji', isCustomFont: true }),
       ]),
     );
   }
   await session.detach();
+
+  const hasColor = await page.evaluate(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 100;
+    const context = canvas.getContext('2d')!;
+    context.font = `64px ${getComputedStyle(document.querySelector('#emoji-inherited')!).fontFamily}`;
+    context.fillText('😀', 0, 70);
+    const { data } = context.getImageData(0, 0, 100, 100);
+    for (let i = 0; i < data.length; i += 4) {
+      if (
+        data[i + 3] > 128 &&
+        Math.max(data[i], data[i + 1], data[i + 2]) -
+          Math.min(data[i], data[i + 1], data[i + 2]) >
+          30
+      ) {
+        return true;
+      }
+    }
+    return false;
+  });
+  expect(hasColor).toBe(true);
 });
