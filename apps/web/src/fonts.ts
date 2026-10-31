@@ -15,9 +15,9 @@ export const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   fallback: [
-    '"Apple Color Emoji"',
-    '"Segoe UI Emoji"',
-    '"Noto Color Emoji"',
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Noto Color Emoji',
     'var(--font-emoji)',
     'sans-serif',
   ],
