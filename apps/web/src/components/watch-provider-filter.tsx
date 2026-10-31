@@ -40,7 +40,7 @@ function PanelTrigger({ selectedCount, controlId, className, ...props }: Trigger
     <Button
       {...props}
       variant="outline"
-      className={cn('w-full justify-between', className)}
+      className={cn('w-full justify-between max-md:min-h-11', className)}
       id={controlId}
     >
       <Filter className="mr-2 h-4 w-4" />
