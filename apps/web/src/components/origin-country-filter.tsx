@@ -37,7 +37,7 @@ function CountryTrigger({ selected, controlId, className, ...props }: TriggerPro
     <Button
       {...props}
       variant="outline"
-      className={cn('w-full justify-between', className)}
+      className={cn('w-full justify-between max-md:min-h-11', className)}
       id={controlId}
     >
       <Filter className="mr-2 h-4 w-4 shrink-0" />
@@ -129,6 +129,7 @@ export default function OriginCountryFilter({
             </div>
             <Input
               type="search"
+              className="max-md:min-h-11"
               placeholder="Search all countries"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -149,7 +150,7 @@ export default function OriginCountryFilter({
                     type="button"
                     key={code}
                     aria-pressed={isSelected}
-                    className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
+                    className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent max-md:min-h-11 ${
                       isSelected ? 'bg-accent' : ''
                     }`}
                     onClick={() => toggleCountry(code)}

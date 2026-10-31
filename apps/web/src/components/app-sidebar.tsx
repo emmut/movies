@@ -58,7 +58,7 @@ export function AppSidebar({ navigation, userNav, userFooter, ...props }: AppSid
         </nav>
       </SidebarContent>
       <SidebarRail />
-      <SidebarFooter>{userFooter}</SidebarFooter>
+      <SidebarFooter className="p-3 md:p-2">{userFooter}</SidebarFooter>
     </Sidebar>
   );
 }

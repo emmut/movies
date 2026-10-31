@@ -262,14 +262,28 @@ export function QuickAddButtonInner({
         <DropdownMenuTrigger
           render={
             <Button
-              variant="glass"
-              size="icon"
+              variant={showWatchlist ? 'glass' : 'outline'}
+              className={
+                showWatchlist
+                  ? 'size-11 bg-transparent p-0 hover:bg-transparent md:size-10'
+                  : 'size-11 gap-2 p-0 sm:h-10 sm:w-auto sm:px-3'
+              }
               disabled={isPending}
               aria-label={showWatchlist ? 'Quick add' : 'Add to list'}
+              title={showWatchlist ? 'Quick add' : 'Add to list'}
             />
           }
         >
-          <List className="h-4 w-4" />
+          {showWatchlist ? (
+            <span className="flex size-8 items-center justify-center rounded-lg bg-white/20 transition-colors group-hover/button:bg-white/30 group-aria-expanded/button:bg-white/30">
+              <List className="size-4" aria-hidden="true" />
+            </span>
+          ) : (
+            <>
+              <List className="size-5 sm:size-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Add to list</span>
+            </>
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-52">
           {showWatchlist && (

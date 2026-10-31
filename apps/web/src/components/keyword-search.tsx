@@ -54,7 +54,7 @@ export function KeywordSearch({
           aria-hidden="true"
         />
         <Combobox.Input
-          render={<Input className="h-9 pl-9" />}
+          render={<Input className="h-9 pl-9 max-md:min-h-11" />}
           aria-label="Search tags"
           placeholder="Search tags…"
           maxLength={100}
@@ -113,7 +113,7 @@ function KeywordSearchPopup({
               <Combobox.Item
                 key={keyword.id}
                 value={keyword}
-                className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                className="flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground max-md:min-h-11"
               >
                 <Tag className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <span className="wrap-anywhere">{keyword.name}</span>
