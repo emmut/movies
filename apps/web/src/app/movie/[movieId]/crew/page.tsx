@@ -9,7 +9,9 @@ import type { CrewMember } from '@/types/movie';
 export default async function MovieCrewPage({ params }: { params: Promise<{ movieId: string }> }) {
   const { movieId } = await params;
   const id = Number(movieId);
-  if (!Number.isSafeInteger(id) || id <= 0) notFound();
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    notFound();
+  }
 
   const [movie, credits] = await Promise.all([getMovieDetails(id), getMovieCredits(id)]);
   const departments = new Map<string, CrewMember[]>();
