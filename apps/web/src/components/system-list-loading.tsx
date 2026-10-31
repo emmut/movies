@@ -1,9 +1,12 @@
 import { Skeleton } from '@movies/ui/components/skeleton';
+import { Filter } from 'lucide-react';
 
 import {
   HeaderButtonSkeleton,
   MediaTypeSelectorSkeleton,
+  ToolbarButtonSkeleton,
 } from '@/components/list-header-skeletons';
+import { ListToolbarRow } from '@/components/list-toolbar-row';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import SectionTitle from '@/components/section-title';
 
@@ -32,14 +35,18 @@ export function SystemListLoading({ title }: SystemListLoadingProps) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <HeaderButtonSkeleton label="Providers" slot="watch-provider-filter-skeleton" />
-            <HeaderButtonSkeleton label="Reorder items" slot="reorder-button-skeleton" />
-          </div>
-
-          <MediaTypeSelectorSkeleton />
-        </div>
+        <ListToolbarRow
+          filters={
+            <>
+              <MediaTypeSelectorSkeleton />
+              <ToolbarButtonSkeleton slot="watch-provider-filter-skeleton">
+                <Filter className="size-4" />
+                Providers
+              </ToolbarButtonSkeleton>
+            </>
+          }
+          actions={<HeaderButtonSkeleton label="Reorder items" slot="reorder-button-skeleton" />}
+        />
       </div>
 
       <PosterSkeletonGrid />

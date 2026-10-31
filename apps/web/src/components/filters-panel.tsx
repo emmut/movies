@@ -10,6 +10,7 @@ import { cn } from 'cn';
 import { ListFilterIcon } from 'lucide-react';
 import { useId } from 'react';
 
+import { FilterCount } from '@/components/filter-count';
 import { useResponsivePopover } from '@/hooks/use-responsive-popover';
 import { WatchProvider } from '@/types/watch-provider';
 
@@ -84,21 +85,6 @@ export function ClearFiltersButton({ hasSelection, onClear }: ClearFiltersButton
     <Button variant="ghost" size="sm" disabled={!hasSelection} onClick={onClear}>
       Clear all
     </Button>
-  );
-}
-
-export function FilterCount({ count }: { count: number }) {
-  if (count === 0) {
-    return null;
-  }
-  return (
-    <span
-      data-slot="filter-count"
-      aria-hidden="true"
-      className="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground tabular-nums ring-2 ring-background"
-    >
-      {count}
-    </span>
   );
 }
 

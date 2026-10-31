@@ -1,6 +1,8 @@
 import { Skeleton } from '@movies/ui/components/skeleton';
+import { Filter } from 'lucide-react';
 
-import { HeaderButtonSkeleton } from '@/components/list-header-skeletons';
+import { HeaderButtonSkeleton, ToolbarButtonSkeleton } from '@/components/list-header-skeletons';
+import { ListToolbarRow } from '@/components/list-toolbar-row';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 
 /** Shared route and client-query fallback for a custom list detail page. */
@@ -15,25 +17,29 @@ export function ListDetailsLoadingSkeleton() {
           <Skeleton className="h-4 w-3/4" />
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <HeaderButtonSkeleton label="Providers" slot="watch-provider-filter-skeleton" />
-            <HeaderButtonSkeleton label="Reorder items" slot="reorder-button-skeleton" />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <HeaderButtonSkeleton
-              label="Edit List"
-              slot="edit-list-button-skeleton"
-              iconMarginEnd
-            />
-            <HeaderButtonSkeleton
-              label="Delete List"
-              slot="delete-list-button-skeleton"
-              iconMarginEnd
-            />
-          </div>
-        </div>
+        <ListToolbarRow
+          filters={
+            <ToolbarButtonSkeleton slot="watch-provider-filter-skeleton">
+              <Filter className="size-4" />
+              Providers
+            </ToolbarButtonSkeleton>
+          }
+          actions={
+            <>
+              <HeaderButtonSkeleton label="Reorder items" slot="reorder-button-skeleton" />
+              <HeaderButtonSkeleton
+                label="Edit List"
+                slot="edit-list-button-skeleton"
+                iconMarginEnd
+              />
+              <HeaderButtonSkeleton
+                label="Delete List"
+                slot="delete-list-button-skeleton"
+                iconMarginEnd
+              />
+            </>
+          }
+        />
       </div>
 
       <PosterSkeletonGrid />

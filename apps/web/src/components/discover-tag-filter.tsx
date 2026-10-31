@@ -10,7 +10,7 @@ import {
 import { cn } from 'cn';
 import { ChevronDown, Tag } from 'lucide-react';
 
-import { FilterCount } from '@/components/filters-panel';
+import { FilterCount } from '@/components/filter-count';
 import { KeywordSearch } from '@/components/keyword-search';
 import { useResponsivePopover } from '@/hooks/use-responsive-popover';
 

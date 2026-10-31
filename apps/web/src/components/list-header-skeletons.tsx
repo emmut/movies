@@ -1,5 +1,6 @@
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { cn } from 'cn';
+import type { ReactNode } from 'react';
 
 type HeaderButtonSkeletonProps = {
   label: string;
@@ -84,6 +85,20 @@ function MediaTypeButtonSkeleton({ label }: { label: string }) {
     <div className="relative flex h-9 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium">
       <span className="invisible size-4" />
       <span className="invisible">{label}</span>
+      <Skeleton className="absolute inset-0" />
+    </div>
+  );
+}
+
+/** Reserves the exact intrinsic box of a labelless filter toolbar button. */
+export function ToolbarButtonSkeleton({ slot, children }: { slot: string; children: ReactNode }) {
+  return (
+    <div
+      data-slot={slot}
+      aria-hidden="true"
+      className="relative inline-flex h-10 shrink-0 items-center rounded-lg border border-transparent px-4 text-sm font-medium whitespace-nowrap"
+    >
+      <span className="invisible inline-flex items-center gap-2">{children}</span>
       <Skeleton className="absolute inset-0" />
     </div>
   );

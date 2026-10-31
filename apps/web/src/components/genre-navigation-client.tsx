@@ -16,9 +16,9 @@ import { type ReactNode, type RefObject, useState } from 'react';
 
 import { DiscoverKeywords } from '@/components/discover-keywords';
 import { DiscoverTagFilter } from '@/components/discover-tag-filter';
+import { FilterCount } from '@/components/filter-count';
 import {
   ClearFiltersButton,
-  FilterCount,
   FilterControls,
   getFilterButtonLabel,
   AdditionalFilters,

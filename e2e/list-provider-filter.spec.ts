@@ -11,7 +11,11 @@ test('keeps the provider filter open while filtering a custom list', async ({ pa
   await page.getByRole('button', { name: /create new list/i }).click();
   await page.getByLabel('Name').fill(listName);
   await page.getByRole('button', { name: 'Create List', exact: true }).click();
-  await page.getByRole('link', { name: new RegExp(listName, 'i') }).click();
+  const listCard = page.getByRole('link', { name: new RegExp(listName, 'i') });
+  await expect(listCard).toBeVisible();
+  // The create action refreshes the overview; enter the committed URL so that
+  // refresh cannot interrupt the filtering test's setup navigation.
+  await page.goto((await listCard.getAttribute('href'))!);
 
   const listDetails = page.locator('[data-slot="list-details"]');
   await expect(listDetails).toHaveAttribute('aria-busy', 'false');

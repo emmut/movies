@@ -10,10 +10,10 @@ import { EditListDialog } from '@/components/edit-list-dialog';
 import { ListDetailsLoadingSkeleton } from '@/components/list-details-loading';
 import { ListErrorState } from '@/components/list-error-state';
 import { ListItemsGrid } from '@/components/list-items-grid';
+import { ListToolbar } from '@/components/list-toolbar';
 import { PaginationControls } from '@/components/pagination-controls';
 import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
-import WatchProviderFilter from '@/components/watch-provider-filter';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
 import { moveListItem } from '@/lib/lists';
@@ -144,6 +144,7 @@ function ListDetailsView({
 }: ListDetailsViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
+  // Reorder only the current unfiltered page, whose offsets match the full list.
   const canReorder = !isProviderFiltered && !isPlaceholderData;
 
   const offset = (page - 1) * ITEMS_PER_PAGE;
@@ -264,35 +265,32 @@ function ListDetailsHeader({
         {listDescription && <p className="line-clamp-2 text-muted-foreground">{listDescription}</p>}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Reordering is disabled for filtered views and while retained query
-              data belongs to the previous page/filter. In either case, the
-              visible rows and current page offset do not map to the same
-              positions in the full manual order. */}
-          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
-          <ReorderButtonSlot
-            isAvailable={itemCount > 0 && canReorder}
-            isEditing={isEditing}
-            onToggleEditing={onToggleEditing}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <EditListDialog
-            listId={listId}
-            listName={listName}
-            listDescription={listDescription}
-            listEmoji={listEmoji}
-          />
-          <DeleteListButton
-            listId={listId}
-            listName={listName}
-            itemCount={itemCount}
-            redirectAfterDelete={true}
-          />
-        </div>
-      </div>
+      <ListToolbar
+        watchProviders={watchProviders}
+        userRegion={userRegion}
+        mediaTypeControls={null}
+        actions={
+          <>
+            <ReorderButtonSlot
+              isAvailable={itemCount > 0 && canReorder}
+              isEditing={isEditing}
+              onToggleEditing={onToggleEditing}
+            />
+            <EditListDialog
+              listId={listId}
+              listName={listName}
+              listDescription={listDescription}
+              listEmoji={listEmoji}
+            />
+            <DeleteListButton
+              listId={listId}
+              listName={listName}
+              itemCount={itemCount}
+              redirectAfterDelete
+            />
+          </>
+        }
+      />
     </div>
   );
 }

@@ -7,12 +7,12 @@ import { useState } from 'react';
 
 import { ListErrorState } from '@/components/list-error-state';
 import { ListItemsGrid } from '@/components/list-items-grid';
+import { ListToolbar } from '@/components/list-toolbar';
 import MediaTypeSelector from '@/components/media-type-selector';
 import { PaginationControls } from '@/components/pagination-controls';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
-import WatchProviderFilter from '@/components/watch-provider-filter';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
 import { moveListItem } from '@/lib/lists';
@@ -223,6 +223,8 @@ function SystemListHeader({
   isProviderFiltered: boolean;
 }) {
   const totalItems = totalMovies + totalTvShows;
+  // Filtered rows do not map to contiguous positions in the manual order.
+  const canReorder = totalItems > 0 && !isProviderFiltered;
 
   return (
     <div className="mb-8 flex flex-col gap-4">
@@ -238,21 +240,18 @@ function SystemListHeader({
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Reordering a provider-filtered view is disabled: the visible rows
-              are a non-contiguous slice, so page offsets no longer map to
-              positions in the full manual order. */}
-          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
+      <ListToolbar
+        watchProviders={watchProviders}
+        userRegion={userRegion}
+        mediaTypeControls={<MediaTypeSelector currentMediaType={mediaType} />}
+        actions={
           <ReorderButtonSlot
-            isAvailable={totalItems > 0 && !isProviderFiltered}
+            isAvailable={canReorder}
             isEditing={isEditing}
             onToggleEditing={onToggleEditing}
           />
-        </div>
-
-        <MediaTypeSelector currentMediaType={mediaType} />
-      </div>
+        }
+      />
     </div>
   );
 }

@@ -8,14 +8,14 @@ export function SelectedFilterChips({
   onRemove,
 }: {
   items: { id: number; name: string }[];
-  kind: 'genre' | 'keyword';
+  kind: 'genre' | 'keyword' | 'provider';
   onRemove: (id: number) => void;
 }) {
   if (items.length === 0) {
     return null;
   }
   return (
-    <div className="flex flex-wrap gap-2" aria-label={`Selected ${kind}s`}>
+    <fieldset className="flex min-w-0 flex-wrap gap-2" aria-label={`Selected ${kind}s`}>
       {items.map((item) => (
         <button
           key={item.id}
@@ -30,6 +30,6 @@ export function SelectedFilterChips({
           </Pill>
         </button>
       ))}
-    </div>
+    </fieldset>
   );
 }

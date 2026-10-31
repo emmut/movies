@@ -1,6 +1,5 @@
 'use client';
 
-import { DEFAULT_REGION } from '@movies/config/regions';
 import { Button } from '@movies/ui/components/button';
 import { Label } from '@movies/ui/components/label';
 import {
@@ -13,9 +12,10 @@ import {
 import { cn } from 'cn';
 import { Check, Filter } from 'lucide-react';
 import Image from 'next/image';
-import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { ComponentProps, useState } from 'react';
 
+import { FilterCount } from '@/components/filter-count';
+import { useWatchProviderSelection } from '@/hooks/use-watch-provider-selection';
 import { formatImageUrl } from '@/lib/utils';
 import { WatchProvider } from '@/types/watch-provider';
 
@@ -24,8 +24,7 @@ interface WatchProviderFilterProps {
   userRegion: string;
   controlId?: string;
   /**
-   * Renders a small labelless trigger that sits inline with `size="sm"`
-   * header buttons (list pages) instead of the labeled panel field (discover).
+   * Renders a labelless toolbar trigger for list pages instead of a labeled field.
    */
   compact?: boolean;
 }
@@ -55,14 +54,18 @@ function PanelTrigger({ selectedCount, controlId, className, ...props }: Trigger
 /** List-header trigger: compact button with a count badge when active. */
 function CompactTrigger({ selectedCount, ...props }: TriggerProps) {
   return (
-    <Button {...props} variant="outline" size="sm">
-      <Filter className="h-4 w-4" />
-      Providers
-      {selectedCount > 0 && (
-        <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
-          {selectedCount}
-        </span>
+    <Button
+      {...props}
+      variant="outline"
+      aria-label={selectedCount > 0 ? `Providers (${selectedCount})` : 'Providers'}
+      className={cn(
+        'relative h-10 gap-2 px-4',
+        selectedCount > 0 && 'border-primary/40 bg-primary/5',
       )}
+    >
+      <Filter className="size-4" aria-hidden="true" />
+      Providers
+      <FilterCount count={selectedCount} />
     </Button>
   );
 }
@@ -80,41 +83,10 @@ export default function WatchProviderFilter({
   controlId = 'watch-providers',
   compact = false,
 }: WatchProviderFilterProps) {
-  const [{ with_watch_providers }, setParams] = useQueryStates({
-    with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
-    watch_region: parseAsString.withDefault(DEFAULT_REGION),
-    page: parseAsString.withDefault('1'),
-  });
-
-  const selectedProviders = with_watch_providers || [];
-
+  const { selectedProviders, toggleProvider, clearProviders } =
+    useWatchProviderSelection(userRegion);
   const [isOpen, setIsOpen] = useState(false);
   const [brokenImages, setBrokenImages] = useState(new Set<number>());
-
-  function updateSelectedProviders(providerId: number) {
-    const newProviders = selectedProviders.includes(providerId)
-      ? selectedProviders.filter((id) => id !== providerId)
-      : [...selectedProviders, providerId];
-
-    updateUrl(newProviders);
-  }
-
-  function updateUrl(providerIds: number[]) {
-    setParams(
-      {
-        with_watch_providers: providerIds.length > 0 ? providerIds : null,
-        watch_region: providerIds.length > 0 ? userRegion : null,
-        page: '1',
-      },
-      {
-        shallow: false,
-      },
-    );
-  }
-
-  function clearAllProviders() {
-    updateUrl([]);
-  }
 
   function handleImageError(providerId: number) {
     setBrokenImages((prev) => new Set([...prev, providerId]));
@@ -137,13 +109,13 @@ export default function WatchProviderFilter({
         align={compact ? 'start' : 'end'}
         side="bottom"
         sideOffset={10}
-        className="max-h-[60dvh] overflow-auto"
+        className="max-h-(--available-height) w-80 max-w-(--available-width) gap-4 overflow-auto p-4"
       >
         <PopoverHeader>
           <div className="flex items-baseline justify-between">
             <PopoverTitle className="py-1">Watch Providers</PopoverTitle>
             {selectedCount > 0 && (
-              <Button variant="ghost" size="sm" onClick={clearAllProviders} className="text-xs">
+              <Button variant="ghost" size="sm" onClick={clearProviders} className="text-xs">
                 Clear all
               </Button>
             )}
@@ -164,10 +136,12 @@ export default function WatchProviderFilter({
                 <button
                   type="button"
                   key={provider.provider_id}
+                  aria-label={provider.provider_name}
+                  aria-pressed={isSelected}
                   className={`flex cursor-pointer items-center space-x-3 rounded-md p-2 transition-colors hover:bg-accent ${
                     isSelected ? 'bg-accent' : ''
                   }`}
-                  onClick={() => updateSelectedProviders(provider.provider_id)}
+                  onClick={() => toggleProvider(provider.provider_id)}
                 >
                   <div className="shrink-0">
                     {imageError ? (
