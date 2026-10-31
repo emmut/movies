@@ -11,10 +11,10 @@ export default function Brand({ className }: BrandProps) {
   return (
     <Link
       href="/"
-      className={cn('flex items-center gap-2 px-2 py-1', className)}
+      className={cn('flex min-h-11 items-center gap-2 px-2 py-1', className)}
       onClick={() => setOpenMobile(false)}
     >
-      <Popcorn className="h-6 w-6" />
+      <Popcorn className="size-8 shrink-0" aria-hidden="true" />
       <span className="pt-0.5 font-light">Movies</span>
     </Link>
   );

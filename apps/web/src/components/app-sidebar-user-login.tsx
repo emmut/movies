@@ -25,10 +25,10 @@ export function UserLogin() {
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton
-          className="h-11 rounded-lg px-4 text-base md:h-10 md:text-sm [&_svg]:size-5 md:[&_svg]:size-4.5"
+          className="h-11 rounded-lg px-4 text-base md:h-10 md:text-sm"
           render={<Link href={loginUrl} onClick={() => setOpenMobile(false)} />}
         >
-          <LogIn aria-hidden="true" />
+          <LogIn className="h-4 w-4" />
           <span>Login</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
