@@ -9,44 +9,36 @@ type HeaderButtonSkeletonProps = {
   iconMarginEnd?: boolean;
 };
 
-type HeaderButtonFrameProps = HeaderButtonSkeletonProps & {
+/** Matches header actions: an icon on mobile, with a label on wider screens. */
+export function ListHeaderActionPlaceholder({
+  label,
+  slot,
+  showSkeleton,
+}: {
+  label: string;
+  slot: string;
   showSkeleton: boolean;
-};
+}) {
+  return (
+    <div
+      data-slot={slot}
+      aria-hidden="true"
+      className="relative inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-transparent text-sm font-medium whitespace-nowrap sm:h-10 sm:w-auto sm:px-3"
+    >
+      <span className="invisible size-4" />
+      <span className="invisible hidden sm:inline">{label}</span>
+      {showSkeleton && <Skeleton className="absolute inset-0" />}
+    </div>
+  );
+}
 
-/**
- * Button-shaped placeholder whose invisible contents reserve the same width as
- * the loaded icon-and-label button. This keeps flex wrapping identical while
- * the route streams in.
- */
+/** Reserves the intrinsic width of a loaded icon-and-label button. */
 export function HeaderButtonSkeleton({
   label,
   slot,
   size = 'sm',
   iconMarginEnd = false,
 }: HeaderButtonSkeletonProps) {
-  return (
-    <HeaderButtonFrame
-      label={label}
-      slot={slot}
-      size={size}
-      iconMarginEnd={iconMarginEnd}
-      showSkeleton
-    />
-  );
-}
-
-/** Invisible loaded-state spacer for a conditionally unavailable button. */
-export function HeaderButtonSpacer(props: HeaderButtonSkeletonProps) {
-  return <HeaderButtonFrame {...props} showSkeleton={false} />;
-}
-
-function HeaderButtonFrame({
-  label,
-  slot,
-  size = 'sm',
-  iconMarginEnd = false,
-  showSkeleton,
-}: HeaderButtonFrameProps) {
   const sizeClassName =
     size === 'default' ? 'h-8 gap-1.5 px-2.5 text-sm' : 'h-7 gap-1 px-2.5 text-[0.8rem]';
 
@@ -61,7 +53,7 @@ function HeaderButtonFrame({
     >
       <span className={cn('invisible size-4', iconMarginEnd && 'mr-2')} />
       <span className="invisible">{label}</span>
-      {showSkeleton && <Skeleton className="absolute inset-0" />}
+      <Skeleton className="absolute inset-0" />
     </div>
   );
 }

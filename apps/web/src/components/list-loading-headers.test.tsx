@@ -75,13 +75,16 @@ describe('list loading headers', () => {
     expect(markup).toContain('data-slot="watch-provider-filter-skeleton"');
     expect(markup).toContain('data-slot="reorder-button-skeleton"');
     expect(markup).toContain('data-slot="media-type-selector-skeleton"');
-    expect(markup).toContain('h-7');
+    expect(markup).toContain('size-11');
     expect(markup).toContain('h-10');
     expect(markup.indexOf('data-slot="media-type-selector-skeleton"')).toBeLessThan(
       markup.indexOf('data-slot="watch-provider-filter-skeleton"'),
     );
     expect(markup).toContain('data-slot="list-toolbar-controls"');
     expect(markup).toContain('h-9');
+    expect(markup.indexOf('data-slot="reorder-button-skeleton"')).toBeLessThan(
+      markup.indexOf('data-slot="media-type-selector-skeleton"'),
+    );
   });
 
   it('matches Discover media and facet controls and allows narrow-screen wrapping', () => {
@@ -111,6 +114,9 @@ describe('list loading headers', () => {
     expect(markup).toContain('data-slot="reorder-button-skeleton"');
     expect(markup).toContain('data-slot="edit-list-button-skeleton"');
     expect(markup).toContain('data-slot="delete-list-button-skeleton"');
+    expect(markup.indexOf('data-slot="delete-list-button-skeleton"')).toBeLessThan(
+      markup.indexOf('data-slot="watch-provider-filter-skeleton"'),
+    );
   });
 
   it('renders a custom list description in the loaded header', () => {
@@ -125,6 +131,9 @@ describe('list loading headers', () => {
 
     expect(markup).toContain(list.description);
     expect(markup).toContain('class="h-12 overflow-hidden"');
+    expect(markup).toContain('data-slot="list-header-row"');
+    expect(markup.indexOf('Reorder items')).toBeLessThan(markup.indexOf('Providers'));
+    expect(markup.indexOf('Delete List')).toBeLessThan(markup.indexOf(list.description));
   });
 
   it('disables reordering while retained custom-list data is displayed', () => {

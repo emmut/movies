@@ -6,6 +6,7 @@ import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'n
 import { useState } from 'react';
 
 import { ListErrorState } from '@/components/list-error-state';
+import { ListHeaderRow } from '@/components/list-header-row';
 import { ListItemsGrid } from '@/components/list-items-grid';
 import { ListToolbar } from '@/components/list-toolbar';
 import MediaTypeSelector from '@/components/media-type-selector';
@@ -229,8 +230,17 @@ function SystemListHeader({
   return (
     <div className="mb-8 flex flex-col gap-4">
       <div>
-        <div className="mb-2 flex items-center gap-4">
-          <SectionTitle>{CONTENT_COPY[listType].title}</SectionTitle>
+        <div className="mb-2">
+          <ListHeaderRow
+            title={<SectionTitle>{CONTENT_COPY[listType].title}</SectionTitle>}
+            actions={
+              <ReorderButtonSlot
+                isAvailable={canReorder}
+                isEditing={isEditing}
+                onToggleEditing={onToggleEditing}
+              />
+            }
+          />
         </div>
         <SystemListCounts
           listType={listType}
@@ -244,13 +254,6 @@ function SystemListHeader({
         watchProviders={watchProviders}
         userRegion={userRegion}
         mediaTypeControls={<MediaTypeSelector currentMediaType={mediaType} />}
-        actions={
-          <ReorderButtonSlot
-            isAvailable={canReorder}
-            isEditing={isEditing}
-            onToggleEditing={onToggleEditing}
-          />
-        }
       />
     </div>
   );

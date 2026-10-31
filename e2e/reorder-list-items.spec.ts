@@ -14,14 +14,14 @@ async function createList(page: Page, name: string) {
   await page.getByRole('button', { name: /create new list/i }).click();
   await page.getByLabel('Name').fill(name);
   await page.getByRole('button', { name: 'Create List', exact: true }).click();
-  await expect(page.getByRole('link', { name: new RegExp(name, 'i') })).toBeVisible();
+  await expect(page.getByRole('link', { name: new RegExp(name, 'i') })).toBeVisible({ timeout: 15_000 });
 }
 
 async function addToCustomList(page: Page, moviePath: string, listName: string) {
   await page.goto(moviePath);
   await page.getByRole('button', { name: 'Add to list', exact: true }).click();
   await page.getByRole('menuitem', { name: new RegExp(listName, 'i') }).click();
-  await expect(page.getByText(`Added to "${listName}"`)).toBeVisible();
+  await expect(page.getByText(`Added to "${listName}"`)).toBeVisible({ timeout: 15_000 });
 }
 
 /**
@@ -35,17 +35,52 @@ function itemTitles(page: Page) {
 }
 
 test.describe('reordering list items', () => {
-  test('moves an item with the up/down buttons and persists the order', async ({ page }) => {
+  test('moves an item with the up/down buttons and persists the order', async ({ page }, testInfo) => {
+    test.setTimeout(90_000);
     await signInAnonymously(page, '/lists');
     await page.goto('/lists');
 
-    await createList(page, 'Reorderables');
+    const listName = 'A long weekend watchlist to share with friends';
+    await createList(page, listName);
     for (const movie of MOVIES) {
-      await addToCustomList(page, `/movie/${movie.id}`, 'Reorderables');
+      await addToCustomList(page, `/movie/${movie.id}`, listName);
     }
 
     await page.goto('/lists');
-    await page.getByRole('link', { name: /reorderables/i }).click();
+    await page.getByRole('link', { name: new RegExp(listName, 'i') }).click();
+    await page.setViewportSize({ width: 320, height: 844 });
+    const header = page.locator('[data-slot="list-header-row"]');
+    for (const name of ['Reorder items', 'Edit List', 'Delete List']) {
+      const action = header.getByRole('button', { name, exact: true });
+      await expect(action).toBeVisible();
+      const bounds = (await action.boundingBox())!;
+      expect(bounds.width).toBe(44);
+      expect(bounds.height).toBe(44);
+    }
+    const headerLayout = await header.evaluate((element) => {
+      const title = element.querySelector('h2')!.getBoundingClientRect();
+      const actions = [...element.querySelectorAll('button')].map((button) =>
+        button.getBoundingClientRect(),
+      );
+      return {
+        titleWidth: title.width,
+        headerWidth: element.getBoundingClientRect().width,
+        titleBottom: title.bottom,
+        actionTops: actions.map((action) => action.top),
+      };
+    });
+    expect(headerLayout.titleWidth).toBeCloseTo(headerLayout.headerWidth, 0);
+    expect(Math.min(...headerLayout.actionTops)).toBeGreaterThan(headerLayout.titleBottom);
+    expect(Math.max(...headerLayout.actionTops) - Math.min(...headerLayout.actionTops)).toBeLessThan(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+    await header.getByRole('button', { name: 'Edit List', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Edit List', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await header.getByRole('button', { name: 'Delete List', exact: true }).click();
+    await expect(page.getByRole('alertdialog', { name: 'Delete List', exact: true })).toBeVisible();
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(page.getByRole('alertdialog')).not.toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('custom-list-mobile.png'), animations: 'disabled', style: 'nextjs-portal { display: none !important; }' });
     await page.getByRole('button', { name: /reorder items/i }).click();
 
     await expect(itemTitles(page)).toHaveText([

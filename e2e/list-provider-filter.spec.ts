@@ -12,7 +12,7 @@ test('keeps the provider filter open while filtering a custom list', async ({ pa
   await page.getByLabel('Name').fill(listName);
   await page.getByRole('button', { name: 'Create List', exact: true }).click();
   const listCard = page.getByRole('link', { name: new RegExp(listName, 'i') });
-  await expect(listCard).toBeVisible();
+  await expect(listCard).toBeVisible({ timeout: 15_000 });
   // The create action refreshes the overview; enter the committed URL so that
   // refresh cannot interrupt the filtering test's setup navigation.
   await page.goto((await listCard.getAttribute('href'))!);

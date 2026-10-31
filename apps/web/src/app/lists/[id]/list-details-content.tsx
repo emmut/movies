@@ -1,6 +1,8 @@
 'use client';
 
+import { Button } from '@movies/ui/components/button';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useState } from 'react';
@@ -9,6 +11,7 @@ import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
 import { ListDetailsLoadingSkeleton } from '@/components/list-details-loading';
 import { ListErrorState } from '@/components/list-error-state';
+import { ListHeaderRow } from '@/components/list-header-row';
 import { ListItemsGrid } from '@/components/list-items-grid';
 import { ListToolbar } from '@/components/list-toolbar';
 import { PaginationControls } from '@/components/pagination-controls';
@@ -259,16 +262,8 @@ function ListDetailsHeader({
 }: ListDetailsHeaderProps) {
   return (
     <div className="mb-8 flex flex-col gap-4">
-      <SectionTitle>{listName}</SectionTitle>
-
-      <div className="h-12 overflow-hidden">
-        {listDescription && <p className="line-clamp-2 text-muted-foreground">{listDescription}</p>}
-      </div>
-
-      <ListToolbar
-        watchProviders={watchProviders}
-        userRegion={userRegion}
-        mediaTypeControls={null}
+      <ListHeaderRow
+        title={<SectionTitle>{listName}</SectionTitle>}
         actions={
           <>
             <ReorderButtonSlot
@@ -281,15 +276,45 @@ function ListDetailsHeader({
               listName={listName}
               listDescription={listDescription}
               listEmoji={listEmoji}
-            />
+            >
+              <Button
+                variant="outline"
+                className="size-11 gap-2 p-0 sm:h-10 sm:w-auto sm:px-3"
+                aria-label="Edit List"
+                title="Edit List"
+              >
+                <Edit className="size-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Edit</span>
+              </Button>
+            </EditListDialog>
             <DeleteListButton
               listId={listId}
               listName={listName}
               itemCount={itemCount}
               redirectAfterDelete
-            />
+            >
+              <Button
+                variant="ghost"
+                className="size-11 gap-2 p-0 text-muted-foreground hover:text-destructive sm:h-10 sm:w-auto sm:px-3"
+                aria-label="Delete List"
+                title="Delete List"
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Delete</span>
+              </Button>
+            </DeleteListButton>
           </>
         }
+      />
+
+      <div className="h-12 overflow-hidden">
+        {listDescription && <p className="line-clamp-2 text-muted-foreground">{listDescription}</p>}
+      </div>
+
+      <ListToolbar
+        watchProviders={watchProviders}
+        userRegion={userRegion}
+        mediaTypeControls={null}
       />
     </div>
   );

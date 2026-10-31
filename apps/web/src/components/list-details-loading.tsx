@@ -1,7 +1,11 @@
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { Filter } from 'lucide-react';
 
-import { HeaderButtonSkeleton, ToolbarButtonSkeleton } from '@/components/list-header-skeletons';
+import { ListHeaderRow } from '@/components/list-header-row';
+import {
+  ListHeaderActionPlaceholder,
+  ToolbarButtonSkeleton,
+} from '@/components/list-header-skeletons';
 import { ListToolbarRow } from '@/components/list-toolbar-row';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 
@@ -10,36 +14,40 @@ export function ListDetailsLoadingSkeleton() {
   return (
     <div className="@container w-full">
       <div className="mb-8 flex flex-col gap-4">
-        <Skeleton className="h-9 w-64" />
+        <ListHeaderRow
+          title={<Skeleton className="h-9 w-64 max-w-full" />}
+          actions={
+            <>
+              <ListHeaderActionPlaceholder
+                label="Reorder"
+                slot="reorder-button-skeleton"
+                showSkeleton
+              />
+              <ListHeaderActionPlaceholder
+                label="Edit"
+                slot="edit-list-button-skeleton"
+                showSkeleton
+              />
+              <ListHeaderActionPlaceholder
+                label="Delete"
+                slot="delete-list-button-skeleton"
+                showSkeleton
+              />
+            </>
+          }
+        />
 
         <div data-slot="list-description-skeleton" className="flex h-12 flex-col gap-2">
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-3/4" />
         </div>
 
-        <ListToolbarRow
-          filters={
-            <ToolbarButtonSkeleton slot="watch-provider-filter-skeleton">
-              <Filter className="size-4" />
-              Providers
-            </ToolbarButtonSkeleton>
-          }
-          actions={
-            <>
-              <HeaderButtonSkeleton label="Reorder items" slot="reorder-button-skeleton" />
-              <HeaderButtonSkeleton
-                label="Edit List"
-                slot="edit-list-button-skeleton"
-                iconMarginEnd
-              />
-              <HeaderButtonSkeleton
-                label="Delete List"
-                slot="delete-list-button-skeleton"
-                iconMarginEnd
-              />
-            </>
-          }
-        />
+        <ListToolbarRow>
+          <ToolbarButtonSkeleton slot="watch-provider-filter-skeleton">
+            <Filter className="size-4" />
+            Providers
+          </ToolbarButtonSkeleton>
+        </ListToolbarRow>
       </div>
 
       <PosterSkeletonGrid />

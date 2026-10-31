@@ -10,12 +10,10 @@ export function ListToolbar({
   watchProviders,
   userRegion,
   mediaTypeControls,
-  actions,
 }: {
   watchProviders: WatchProvider[];
   userRegion: string;
   mediaTypeControls: ReactNode;
-  actions: ReactNode;
 }) {
   const { selectedProviders, toggleProvider } = useWatchProviderSelection(userRegion);
   const selected = selectedProviders.map((id) => ({
@@ -27,15 +25,10 @@ export function ListToolbar({
 
   return (
     <div data-slot="list-toolbar" className="space-y-4">
-      <ListToolbarRow
-        filters={
-          <>
-            {mediaTypeControls}
-            <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
-          </>
-        }
-        actions={actions}
-      />
+      <ListToolbarRow>
+        {mediaTypeControls}
+        <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
+      </ListToolbarRow>
       <SelectedFilterChips items={selected} kind="provider" onRemove={toggleProvider} />
     </div>
   );

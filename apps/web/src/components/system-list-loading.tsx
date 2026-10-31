@@ -1,8 +1,9 @@
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { Filter } from 'lucide-react';
 
+import { ListHeaderRow } from '@/components/list-header-row';
 import {
-  HeaderButtonSkeleton,
+  ListHeaderActionPlaceholder,
   MediaTypeSelectorSkeleton,
   ToolbarButtonSkeleton,
 } from '@/components/list-header-skeletons';
@@ -26,8 +27,17 @@ export function SystemListLoading({ title }: SystemListLoadingProps) {
     <div className="@container w-full">
       <div className="mb-8 flex flex-col gap-4">
         <div>
-          <div className="mb-2 flex items-center gap-4">
-            <SectionTitle>{title}</SectionTitle>
+          <div className="mb-2">
+            <ListHeaderRow
+              title={<SectionTitle>{title}</SectionTitle>}
+              actions={
+                <ListHeaderActionPlaceholder
+                  label="Reorder"
+                  slot="reorder-button-skeleton"
+                  showSkeleton
+                />
+              }
+            />
           </div>
           <div className="flex h-6 items-center gap-2">
             <Skeleton className="h-4 w-28" />
@@ -35,18 +45,13 @@ export function SystemListLoading({ title }: SystemListLoadingProps) {
           </div>
         </div>
 
-        <ListToolbarRow
-          filters={
-            <>
-              <MediaTypeSelectorSkeleton />
-              <ToolbarButtonSkeleton slot="watch-provider-filter-skeleton">
-                <Filter className="size-4" />
-                Providers
-              </ToolbarButtonSkeleton>
-            </>
-          }
-          actions={<HeaderButtonSkeleton label="Reorder items" slot="reorder-button-skeleton" />}
-        />
+        <ListToolbarRow>
+          <MediaTypeSelectorSkeleton />
+          <ToolbarButtonSkeleton slot="watch-provider-filter-skeleton">
+            <Filter className="size-4" />
+            Providers
+          </ToolbarButtonSkeleton>
+        </ListToolbarRow>
       </div>
 
       <PosterSkeletonGrid />
