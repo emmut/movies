@@ -1,6 +1,17 @@
 import { Button } from '@movies/ui/components/button';
-import { type ReactNode } from 'react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from '@movies/ui/components/popover';
+import { cn } from 'cn';
+import { ListFilterIcon } from 'lucide-react';
+import { useId } from 'react';
 
+import { FilterCount } from '@/components/filter-count';
+import { useResponsivePopover } from '@/hooks/use-responsive-popover';
 import { WatchProvider } from '@/types/watch-provider';
 
 import OriginCountryFilter from './origin-country-filter';
@@ -14,17 +25,6 @@ type FilterControlsBaseProps = {
   userRegion: string;
 };
 
-type FiltersPanelProps = FilterControlsBaseProps & {
-  hasActiveFilters: boolean;
-  onClearFilters: () => Promise<URLSearchParams>;
-};
-
-type FilterControlsProps = FilterControlsBaseProps & {
-  controlIdSuffix?: string;
-  grouped?: boolean;
-  trailingControl?: ReactNode;
-};
-
 type ActiveFilterState = {
   sortBy: string;
   runtimeLte: number | null;
@@ -32,91 +32,46 @@ type ActiveFilterState = {
   watchProviders: number[] | null;
 };
 
-export function getActiveFilterCount({
-  sortBy,
+export function getAdditionalFilterCount({
   runtimeLte,
   originCountries,
   watchProviders,
-}: ActiveFilterState) {
+}: Omit<ActiveFilterState, 'sortBy'>) {
   return (
-    Number(sortBy !== 'popularity.desc') +
     Number((runtimeLte ?? 0) > 0) +
     Number(originCountries.length > 0) +
     Number((watchProviders?.length ?? 0) > 0)
   );
 }
 
+export function getActiveFilterCount(state: ActiveFilterState) {
+  return Number(state.sortBy !== 'popularity.desc') + getAdditionalFilterCount(state);
+}
+
 export function getFilterButtonLabel(activeFilterCount: number) {
   return activeFilterCount === 0 ? 'Filters' : `Filters (${activeFilterCount})`;
 }
 
-export function CompactFilterControls({
+export function FilterControls({
   mediaType,
   watchProviders,
   userRegion,
-}: FilterControlsBaseProps) {
+  includeSort,
+}: FilterControlsBaseProps & { includeSort: boolean }) {
+  const id = useId();
   return (
-    <div className="grid grid-cols-1 gap-3 @[30rem]:grid-cols-2">
-      <FilterControls
-        mediaType={mediaType}
-        watchProviders={watchProviders}
+    <div className="grid grid-cols-1 gap-4 @[30rem]:grid-cols-2">
+      {includeSort && (
+        <SortByFilter mediaType={mediaType} controlId={`${id}-sort`} compact={false} />
+      )}
+      <RuntimeFilter controlId={`${id}-runtime`} />
+      <OriginCountryFilter controlId={`${id}-country`} />
+      <WatchProviderFilter
+        providers={watchProviders}
         userRegion={userRegion}
-        controlIdSuffix="compact"
+        controlId={`${id}-providers`}
       />
     </div>
-  );
-}
-
-function FilterControls({
-  mediaType,
-  watchProviders,
-  userRegion,
-  controlIdSuffix,
-  grouped = false,
-  trailingControl,
-}: FilterControlsProps) {
-  const suffix = controlIdSuffix ? `-${controlIdSuffix}` : '';
-  const sortByFilter = (
-    <SortByFilter mediaType={mediaType} controlId={`select-sort-option${suffix}`} />
-  );
-  const runtimeFilter = <RuntimeFilter controlId={`runtime-filter${suffix}`} />;
-  const originCountryFilter = <OriginCountryFilter controlId={`origin-country${suffix}`} />;
-  const watchProviderFilter = (
-    <WatchProviderFilter
-      providers={watchProviders}
-      userRegion={userRegion}
-      controlId={`watch-providers${suffix}`}
-    />
-  );
-
-  if (grouped) {
-    return (
-      <>
-        {trailingControl ? (
-          <div className="flex basis-full items-center justify-between">
-            <h2 className="text-sm font-medium">More filters</h2>
-            {trailingControl}
-          </div>
-        ) : null}
-        <div className="flex items-end gap-4">
-          {sortByFilter}
-          {runtimeFilter}
-        </div>
-        <div className="flex items-end gap-4">
-          {originCountryFilter}
-          {watchProviderFilter}
-        </div>
-      </>
-    );
-  }
-
-  return (
-    <>
-      {sortByFilter}
-      {runtimeFilter}
-      {originCountryFilter}
-      {watchProviderFilter}
-    </>
   );
 }
 
@@ -133,37 +88,48 @@ export function ClearFiltersButton({ hasSelection, onClear }: ClearFiltersButton
   );
 }
 
-/**
- * Renders a panel containing all available filters for movies or TV shows.
- *
- * Combines sorting, watch provider, and other filter options in a responsive layout.
- *
- * @param mediaType - Whether to show movie or TV filters.
- * @param watchProviders - Available watch providers for the user's region.
- * @param userRegion - The user's region code.
- */
-export default function FiltersPanel({
+export function AdditionalFilters({
   mediaType,
   watchProviders,
   userRegion,
-  hasActiveFilters,
-  onClearFilters,
-}: FiltersPanelProps) {
-  function handleClearFilters() {
-    void onClearFilters();
-  }
-
+  activeCount,
+}: FilterControlsBaseProps & { activeCount: number }) {
+  const { open, setOpen, triggerRef } = useResponsivePopover();
   return (
-    <div className="order-3 hidden basis-full flex-wrap items-end justify-between gap-x-4 gap-y-1 @[60rem]:flex">
-      <FilterControls
-        mediaType={mediaType}
-        watchProviders={watchProviders}
-        userRegion={userRegion}
-        grouped
-        trailingControl={
-          <ClearFiltersButton hasSelection={hasActiveFilters} onClear={handleClearFilters} />
-        }
-      />
-    </div>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        ref={triggerRef}
+        render={<Button variant="outline" />}
+        aria-label={getFilterButtonLabel(activeCount)}
+        className={cn(
+          'relative h-10 gap-2 px-4',
+          activeCount > 0 && 'border-primary/40 bg-primary/5',
+        )}
+      >
+        <ListFilterIcon className="size-4" aria-hidden="true" />
+        Filters
+        <FilterCount count={activeCount} />
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={12}
+        className="@container max-h-(--available-height) w-80 max-w-(--available-width) gap-5 overflow-y-auto p-5"
+      >
+        <PopoverHeader>
+          <PopoverTitle>Filters</PopoverTitle>
+        </PopoverHeader>
+        <FilterControls
+          includeSort={false}
+          mediaType={mediaType}
+          watchProviders={watchProviders}
+          userRegion={userRegion}
+        />
+        <div className="flex justify-end">
+          <Button size="sm" onClick={() => setOpen(false)}>
+            Show results
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

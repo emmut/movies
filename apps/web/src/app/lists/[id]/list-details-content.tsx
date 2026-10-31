@@ -1,6 +1,8 @@
 'use client';
 
+import { Button } from '@movies/ui/components/button';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useState } from 'react';
@@ -9,11 +11,12 @@ import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
 import { ListDetailsLoadingSkeleton } from '@/components/list-details-loading';
 import { ListErrorState } from '@/components/list-error-state';
+import { ListHeaderRow } from '@/components/list-header-row';
 import { ListItemsGrid } from '@/components/list-items-grid';
+import { ListToolbar } from '@/components/list-toolbar';
 import { PaginationControls } from '@/components/pagination-controls';
 import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
-import WatchProviderFilter from '@/components/watch-provider-filter';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
 import { moveListItem } from '@/lib/lists';
@@ -144,6 +147,7 @@ function ListDetailsView({
 }: ListDetailsViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
+  // Reorder only the current unfiltered page, whose offsets match the full list.
   const canReorder = !isProviderFiltered && !isPlaceholderData;
 
   const offset = (page - 1) * ITEMS_PER_PAGE;
@@ -258,41 +262,60 @@ function ListDetailsHeader({
 }: ListDetailsHeaderProps) {
   return (
     <div className="mb-8 flex flex-col gap-4">
-      <SectionTitle>{listName}</SectionTitle>
+      <ListHeaderRow
+        title={<SectionTitle>{listName}</SectionTitle>}
+        actions={
+          <>
+            <ReorderButtonSlot
+              isAvailable={itemCount > 0 && canReorder}
+              isEditing={isEditing}
+              onToggleEditing={onToggleEditing}
+            />
+            <EditListDialog
+              listId={listId}
+              listName={listName}
+              listDescription={listDescription}
+              listEmoji={listEmoji}
+            >
+              <Button
+                variant="outline"
+                className="size-11 gap-2 p-0 sm:h-10 sm:w-auto sm:px-3"
+                aria-label="Edit List"
+                title="Edit List"
+              >
+                <Edit className="size-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Edit</span>
+              </Button>
+            </EditListDialog>
+            <DeleteListButton
+              listId={listId}
+              listName={listName}
+              itemCount={itemCount}
+              redirectAfterDelete
+            >
+              <Button
+                variant="ghost"
+                className="size-11 gap-2 p-0 text-muted-foreground hover:text-destructive sm:h-10 sm:w-auto sm:px-3"
+                aria-label="Delete List"
+                title="Delete List"
+              >
+                <Trash2 className="size-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Delete</span>
+              </Button>
+            </DeleteListButton>
+          </>
+        }
+      />
 
       <div className="h-12 overflow-hidden">
         {listDescription && <p className="line-clamp-2 text-muted-foreground">{listDescription}</p>}
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Reordering is disabled for filtered views and while retained query
-              data belongs to the previous page/filter. In either case, the
-              visible rows and current page offset do not map to the same
-              positions in the full manual order. */}
-          <WatchProviderFilter providers={watchProviders} userRegion={userRegion} compact />
-          <ReorderButtonSlot
-            isAvailable={itemCount > 0 && canReorder}
-            isEditing={isEditing}
-            onToggleEditing={onToggleEditing}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <EditListDialog
-            listId={listId}
-            listName={listName}
-            listDescription={listDescription}
-            listEmoji={listEmoji}
-          />
-          <DeleteListButton
-            listId={listId}
-            listName={listName}
-            itemCount={itemCount}
-            redirectAfterDelete={true}
-          />
-        </div>
-      </div>
+      <ListToolbar
+        watchProviders={watchProviders}
+        userRegion={userRegion}
+        mediaTypeControls={null}
+      />
     </div>
   );
 }

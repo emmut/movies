@@ -13,7 +13,7 @@ import {
 } from '@/types/movie';
 
 import { CACHE_TAGS } from './cache-tags';
-import { buildDiscoverSearchParams } from './discover-params';
+import { buildDiscoverSearchParams, type DiscoverParams } from './discover-params';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
 
 /**
@@ -49,42 +49,14 @@ export async function fetchAvailableGenres() {
   return movies.genres;
 }
 
-/**
- * Fetches movies from TMDb based on discovery criteria such as genre, page, sorting, watch providers, and region.
- *
- * @param genreIds - Genre IDs to filter movies by (any may match); empty for no genre filter
- * @param page - The page number of results to fetch (default is 1)
- * @param sortBy - Optional sorting criteria (e.g., 'popularity.desc')
- * @param watchProviders - Optional pipe-separated list of watch provider IDs
- * @param watchRegion - Optional region code for watch providers
- * @param withRuntimeLte - Optional maximum runtime filter (less than or equal to)
- * @param withOriginCountry - Optional pipe-separated list of origin country codes
- * @returns An object containing the array of discovered movies and the total number of result pages (capped at 500)
- * @throws Error if the fetch request fails
- */
-export async function fetchDiscoverMovies(
-  genreIds: number[],
-  page: number = 1,
-  sortBy?: string,
-  watchProviders?: string,
-  watchRegion?: string,
-  withRuntimeLte?: number,
-  withOriginCountry?: string,
-) {
+/** Fetches discovered movies with shared filters and caps pagination at 500. */
+export async function fetchDiscoverMovies(params: DiscoverParams) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.discover.movies);
   cacheLife('minutes');
 
   const searchParams = {
-    ...buildDiscoverSearchParams({
-      genreIds,
-      page,
-      sortBy,
-      watchProviders,
-      watchRegion,
-      withRuntimeLte,
-      withOriginCountry,
-    }),
+    ...buildDiscoverSearchParams(params),
     include_video: 'false',
   };
 

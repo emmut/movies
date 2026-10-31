@@ -5,6 +5,66 @@ import { expect, type Page } from '@playwright/test';
 export const MOVIE_ID = 27205;
 export const MOVIE_PATH = `/movie/${MOVIE_ID}`;
 
+export async function openDiscoverFilters(page: Page) {
+  const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
+  await expect(nav).toBeVisible();
+  const trigger = page.getByRole('button', { name: /^Filters(?: \(\d+\))?$/i });
+  if (!(await trigger.isVisible())) {
+    return nav;
+  }
+  if (await trigger.getAttribute('aria-expanded') !== 'true') {
+    await trigger.click();
+  }
+  const panel = page.locator('[data-slot="popover-content"]').filter({
+    has: page.getByRole('heading', { name: /^Filters$/i }),
+  });
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
+export async function closeDiscoverFilters(page: Page) {
+  const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
+  const triggers = nav.getByRole('button', { name: /^(?:Genres|Tags|Filters)(?: \(\d+\))?$/i });
+  // Read actual open state rather than clicking buttons in an exit animation.
+  for (const trigger of await triggers.all()) {
+    if (await trigger.getAttribute('aria-expanded') === 'true') {
+      await trigger.click();
+    }
+  }
+  const panels = page.locator('[data-slot="popover-content"]').filter({
+    has: page.getByRole('heading', { name: /^(?:Genres|Themes & Keywords|Filters)$/i }),
+  });
+  await expect(panels.filter({ visible: true })).toHaveCount(0);
+}
+
+export async function openDiscoverGenres(page: Page) {
+  const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
+  await expect(nav).toBeVisible();
+  const trigger = nav.getByRole('button', { name: /^Genres(?: \(\d+\))?$/ });
+  if (!(await trigger.isVisible())) {
+    return openDiscoverFilters(page);
+  }
+  if (await trigger.getAttribute('aria-expanded') !== 'true') {
+    await trigger.click();
+  }
+  const panel = page.locator('[data-slot="popover-content"]').filter({
+    has: page.getByRole('heading', { name: 'Genres', exact: true }),
+  });
+  await expect(panel).toBeVisible();
+  return panel;
+}
+
+export async function openDiscoverTags(page: Page) {
+  await expect(page.getByRole('navigation', { name: 'Discover filters', exact: true })).toBeVisible();
+  const trigger = page.getByRole('button', { name: /^Tags(?: \(\d+\))?$/ });
+  if (await trigger.isVisible()) {
+    await trigger.click();
+  } else {
+    await openDiscoverFilters(page);
+  }
+  await expect(page.getByRole('combobox', { name: 'Search tags' })).toBeVisible();
+}
+
 /**
  * Signs in as a fresh anonymous user via the login page's "Continue as
  * anonymous" button. Each call mints a brand-new anonymous account, so tests

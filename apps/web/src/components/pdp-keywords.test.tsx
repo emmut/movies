@@ -25,7 +25,7 @@ describe('PDP keywords', () => {
       const html = renderToStaticMarkup(section);
 
       expect(getPdpExtras).toHaveBeenCalledWith(type, 1);
-      expect(html).toContain(`/keyword/10?mediaType=${type}`);
+      expect(html).toContain(`/discover?keywordId=10&amp;mediaType=${type}`);
       expect(html).toContain('Time travel');
       expect(html).toContain('Themes &amp; Keywords');
       expect(html).not.toContain('<details');

@@ -5,9 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { getDiscoverMedia } from '@/lib/discover-client';
 import { queryKeys } from '@/lib/query-keys';
 
-type UseDiscoverMediaParams = {
+export type DiscoverMediaParams = {
   mediaType: 'movie' | 'tv';
   genreIds: number[];
+  keywordIds: number[];
   page: number;
   sortBy?: string;
   watchProviders?: string;
@@ -26,45 +27,30 @@ type UseDiscoverMediaParams = {
 export function useDiscoverMedia({
   mediaType,
   genreIds,
+  keywordIds,
   page,
   sortBy,
   watchProviders,
   watchRegion,
   runtimeLte,
   originCountry,
-}: UseDiscoverMediaParams) {
+}: DiscoverMediaParams) {
+  const params = {
+    genreIds,
+    keywordIds,
+    page,
+    sortBy,
+    watchProviders,
+    watchRegion,
+    withRuntimeLte: runtimeLte,
+    withOriginCountry: originCountry,
+  };
   return useQuery({
     queryKey:
       mediaType === 'movie'
-        ? queryKeys.discover.movies({
-            genreIds,
-            page,
-            sortBy,
-            watchProviders,
-            watchRegion,
-            withRuntimeLte: runtimeLte,
-            withOriginCountry: originCountry,
-          })
-        : queryKeys.discover.tvShows({
-            genreIds,
-            page,
-            sortBy,
-            watchProviders,
-            watchRegion,
-            withRuntimeLte: runtimeLte,
-            withOriginCountry: originCountry,
-          }),
-    queryFn: () =>
-      getDiscoverMedia(
-        mediaType,
-        genreIds,
-        page,
-        sortBy,
-        watchProviders,
-        watchRegion,
-        runtimeLte,
-        originCountry,
-      ),
-    staleTime: 60 * 1000, // 1 minute
+        ? queryKeys.discover.movies(params)
+        : queryKeys.discover.tvShows(params),
+    queryFn: () => getDiscoverMedia(mediaType, params),
+    staleTime: 60 * 1000,
   });
 }

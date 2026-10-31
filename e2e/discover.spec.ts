@@ -1,5 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
+import { closeDiscoverFilters, openDiscoverFilters, openDiscoverGenres } from './helpers';
+
 // End-to-end coverage for the discover page. These exercise the client-side
 // URL-state machine (nuqs) that drives React Query refetches: genre pills,
 // the media-type toggle, sort/runtime selects, watch-provider popover, and
@@ -22,24 +24,13 @@ async function expectDiscoverShell(page: Page) {
   await expect(page.getByRole('button', { name: /^movies$/i })).toBeVisible();
   await expect(page.getByRole('button', { name: /^tv shows$/i })).toBeVisible();
 
-  const compactFilters = page.getByRole('button', { name: /^filters(?: \(\d+\))?$/i });
-  if (await compactFilters.isVisible()) {
-    await expect(compactFilters).toBeVisible();
-    await expect(page.locator('#content')).toBeVisible();
-    return;
-  }
-
-  await expect(page.getByText(/^sort by$/i)).toBeVisible();
-  await expect(page.getByText(/^runtime$/i)).toBeVisible();
-  // The trigger's accessible name comes from its associated label ("Watch
-  // Providers"); "Select watch providers" is only its visible value text.
-  await expect(page.getByRole('button', { name: /^watch providers$/i })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^origin country$/i })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^filters(?: \(\d+\))?$/i })).toBeVisible();
   await expect(page.locator('#content')).toBeVisible();
 }
 
 async function selectOption(page: Page, label: string, option: string) {
-  await page.getByLabel(label).click();
+  await openDiscoverFilters(page);
+  await page.getByLabel(label).filter({ visible: true }).click();
   await page.getByRole('option', { name: option }).click();
 }
 
@@ -63,6 +54,7 @@ test.describe('discover page shell', () => {
 
     expect(response?.ok()).toBeTruthy();
     await expectDiscoverShell(page);
+    await openDiscoverGenres(page);
     await expect(page.getByRole('button', { name: /action/i })).toBeVisible();
     await expectResultsSettled(page, 'movie');
   });
@@ -98,7 +90,8 @@ test.describe('deep links', () => {
 
     await expectDiscoverShell(page);
     await expect(page.getByRole('button', { name: /^tv shows$/i })).toHaveClass(/bg-white/);
-    await expect(page.getByLabel('Runtime')).toContainText(/up to 90 min/i);
+    await openDiscoverFilters(page);
+    await expect(page.getByLabel('Runtime').filter({ visible: true })).toContainText(/up to 90 min/i);
     await waitForDiscoverUrl(page, /mediaType=tv/);
     await waitForDiscoverUrl(page, /page=2/);
     await expectResultsSettled(page, 'tv');
@@ -108,7 +101,9 @@ test.describe('deep links', () => {
     await page.goto(discoverUrl({ genreId: SHARED_GENRE_ID, sort_by: 'vote_average.desc' }));
 
     await expectDiscoverShell(page);
-    await expect(page.getByLabel('Sort By')).toContainText(/rating \(high to low\)/i);
+    await openDiscoverFilters(page);
+    await expect(page.getByLabel('Sort By').filter({ visible: true })).toContainText(/rating \(high to low\)/i);
+    await openDiscoverGenres(page);
     await expect(
       page.getByRole('button', { name: /^comedy$/i }).locator('[data-active="true"]'),
     ).toBeVisible();
@@ -216,34 +211,24 @@ test.describe('genre navigation', () => {
       has: page.getByRole('heading', { name: /^filters$/i }),
     });
     await expect(genrePopover.getByRole('heading', { name: /^genres$/i })).toBeVisible();
-    const [sortBounds, runtimeBounds] = await Promise.all([
-      genrePopover.getByLabel('Sort By').boundingBox(),
-      genrePopover.getByLabel('Runtime').boundingBox(),
-    ]);
-    expect(sortBounds?.y).toBe(runtimeBounds?.y);
+    // Read both controls in the same animation frame. Separate boundingBox
+    // calls can sample different points in the popover's opening animation.
+    await expect.poll(() => genrePopover.locator('[data-slot="select-trigger"]').evaluateAll(([sort, runtime]) =>
+      Math.abs(sort.getBoundingClientRect().top - runtime.getBoundingClientRect().top),
+    )).toBeLessThan(1);
     await expect
       .poll(async () => (await mediaTypeToggle.boundingBox())?.x)
       .toBe(mediaTypeXBeforeOpen);
 
-    // Poll: the popover opens with a zoom-in animation, so its bounding box
-    // is scaled down until the animation finishes.
-    await expect
-      .poll(async () => {
-        const [popoverBounds, resultsBounds] = await Promise.all([
-          genrePopover.boundingBox(),
-          page.locator('#content').boundingBox(),
-        ]);
-        if (!popoverBounds || !resultsBounds) return Number.POSITIVE_INFINITY;
-        return Math.abs(popoverBounds.width - resultsBounds.width);
-      })
-      .toBeLessThan(1);
+    await expect.poll(async () => Math.round((await genrePopover.boundingBox())?.width ?? 0)).toBe(672);
 
     const comedyFilter = genrePopover.getByRole('button', { name: /^comedy$/i });
     await comedyFilter.click();
     await expect(comedyFilter).toHaveAttribute('aria-pressed', 'true');
 
     await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
-    await expect(filtersButton).toHaveText('Filters (1)');
+    await expect(filtersButton).toHaveAccessibleName('Filters (1)');
+    await expect(filtersButton.locator('[data-slot="filter-count"]')).toHaveText('1');
 
     const clearButton = genrePopover.getByRole('button', { name: /^clear all$/i });
     await clearButton.click();
@@ -258,6 +243,7 @@ test.describe('genre navigation', () => {
     await page.goto(discoverUrl({ page: '2' }));
     await expectDiscoverShell(page);
 
+    await openDiscoverGenres(page);
     await page.getByRole('button', { name: /^comedy$/i }).click();
 
     await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
@@ -269,12 +255,13 @@ test.describe('genre navigation', () => {
     await expectDiscoverShell(page);
     await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
 
+    await openDiscoverGenres(page);
     await page.getByRole('button', { name: /^comedy$/i }).click();
 
     await expect(page).not.toHaveURL(new RegExp(`genreId=${SHARED_GENRE_ID}`));
   });
 
-  test('clears every filter from the desktop clear row', async ({ page }) => {
+  test('clears every filter from the desktop toolbar', async ({ page }) => {
     await page.goto(
       discoverUrl({
         genreId: SHARED_GENRE_ID,
@@ -285,18 +272,11 @@ test.describe('genre navigation', () => {
     );
     await expectDiscoverShell(page);
 
+    await openDiscoverFilters(page);
     const watchProviders = page.getByRole('button', { name: /^watch providers$/i });
     const clearButton = page.getByRole('button', { name: /^clear all$/i });
-    const [watchProviderBounds, clearButtonBounds] = await Promise.all([
-      watchProviders.boundingBox(),
-      clearButton.boundingBox(),
-    ]);
-
-    expect(watchProviderBounds).not.toBeNull();
-    expect(clearButtonBounds).not.toBeNull();
-    expect((clearButtonBounds?.y ?? 0) + (clearButtonBounds?.height ?? 0)).toBeLessThan(
-      watchProviderBounds?.y ?? 0,
-    );
+    await expect(watchProviders).toBeVisible();
+    await expect(clearButton).toBeEnabled();
 
     await clearButton.click();
 
@@ -321,8 +301,10 @@ test.describe('sidebar navigation', () => {
     // historically left stale state behind.
     await page.getByRole('button', { name: /^tv shows$/i }).click();
     await waitForDiscoverUrl(page, /mediaType=tv/);
+    await openDiscoverGenres(page);
     await page.getByRole('button', { name: /^comedy$/i }).click();
     await waitForDiscoverUrl(page, new RegExp(`genreId=${SHARED_GENRE_ID}`));
+    await closeDiscoverFilters(page);
     await page.getByRole('button', { name: /go to next page/i }).click();
     await waitForDiscoverUrl(page, /page=2/);
     await expect(activePageNumber).toHaveText('2', { timeout: 15_000 });
@@ -432,6 +414,7 @@ test.describe('filters', () => {
     await selectOption(page, 'Runtime', 'Up to 90 min');
     await waitForDiscoverUrl(page, /runtime=90/);
 
+    await closeDiscoverFilters(page);
     await page.getByRole('button', { name: '2', exact: true }).click();
     await waitForDiscoverUrl(page, /page=2/);
 
@@ -452,7 +435,8 @@ test.describe('filters', () => {
   test('clearing the runtime filter removes it from the URL', async ({ page }) => {
     await page.goto(discoverUrl({ runtime: '90' }));
     await expectDiscoverShell(page);
-    await expect(page.getByLabel('Runtime')).toContainText(/up to 90 min/i);
+    await openDiscoverFilters(page);
+    await expect(page.getByLabel('Runtime').filter({ visible: true })).toContainText(/up to 90 min/i);
 
     await selectOption(page, 'Runtime', 'Any');
 
@@ -463,10 +447,12 @@ test.describe('filters', () => {
     await page.goto('/discover');
     await expectDiscoverShell(page);
 
+    await openDiscoverFilters(page);
     const trigger = page.getByRole('button', { name: /^watch providers$/i });
     await trigger.click();
 
-    const providers = page.locator('[data-slot="popover-content"] button').filter({
+    const providerPanel = page.locator('[data-slot="popover-content"]').filter({ has: page.getByRole('heading', { name: 'Watch Providers', exact: true }) });
+    const providers = providerPanel.getByRole('button').filter({
       hasNotText: /clear all/i,
     });
 
@@ -479,10 +465,7 @@ test.describe('filters', () => {
     // The trigger's visible value reflects the selection count.
     await expect(trigger).toContainText(/1 provider selected/i);
 
-    await page
-      .locator('[data-slot="popover-content"]')
-      .getByRole('button', { name: /clear all/i })
-      .click();
+    await providerPanel.getByRole('button', { name: /clear all/i }).click();
 
     await expect(page).not.toHaveURL(/with_watch_providers=/);
   });
@@ -491,10 +474,11 @@ test.describe('filters', () => {
     await page.goto('/discover');
     await expectDiscoverShell(page);
 
+    await openDiscoverFilters(page);
     const trigger = page.getByRole('button', { name: /^origin country$/i });
     await trigger.click();
 
-    const popover = page.locator('[data-slot="popover-content"]');
+    const popover = page.locator('[data-slot="popover-content"]').filter({ has: page.getByPlaceholder(/search all countries/i) });
     await popover.getByRole('button', { name: /^sweden$/i }).click();
     await waitForDiscoverUrl(page, /with_origin_country=SE/);
     // A single selection shows the country name instead of a count.

@@ -1,10 +1,21 @@
 import { MAJOR_STREAMING_PROVIDERS } from './config';
 import { MIN_RUNTIME_FILTER_MINUTES } from './constants';
 import { DEFAULT_REGION } from './regions';
+import { getWatchProvidersString } from './watch-provider-search-params';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
-type DiscoverParams = {
+/** Keyword archives only use providers explicitly selected in the URL. */
+export function getDiscoverWatchProviders(
+  urlProviders: number[],
+  savedProviders: number[],
+  keywordIds: number[],
+) {
+  return getWatchProvidersString(urlProviders, keywordIds.length > 0 ? [] : savedProviders);
+}
+
+export type DiscoverParams = {
+  keywordIds: number[];
   genreIds: number[];
   page: number;
   sortBy?: string;
@@ -18,10 +29,11 @@ type DiscoverParams = {
  * Builds the TMDb `/discover` query parameters shared by the movie and TV show
  * discover endpoints. Applies the genre, watch-provider, and runtime filters,
  * falling back to the major streaming providers and default region when no
- * explicit watch-provider filter is given — unless an origin-country filter
+ * explicit watch-provider filter is given — unless a country or keyword filter
  * is active, in which case results stay unrestricted by provider.
  */
 export function buildDiscoverSearchParams({
+  keywordIds,
   genreIds,
   page,
   sortBy,
@@ -45,6 +57,10 @@ export function buildDiscoverSearchParams({
     params.with_genres = genreIds.join('|');
   }
 
+  if (keywordIds.length > 0) {
+    params.with_keywords = keywordIds.join('|');
+  }
+
   if (withOriginCountry) {
     params.with_origin_country = withOriginCountry;
   }
@@ -52,10 +68,9 @@ export function buildDiscoverSearchParams({
   if (watchProviders && watchRegion) {
     params.with_watch_providers = watchProviders;
     params.watch_region = watchRegion;
-  } else if (!withOriginCountry) {
-    // Origin-country filtering skips the major-provider fallback: most of a
-    // country's catalog isn't on the big streamers in the default region, so
-    // keeping the fallback would hollow out the results.
+  } else if (!withOriginCountry && keywordIds.length === 0) {
+    // Country and keyword browsing include the full catalog unless a provider
+    // is explicitly selected.
     params.with_watch_providers = majorProviders;
     params.watch_region = watchRegion ?? DEFAULT_REGION;
   }

@@ -13,7 +13,7 @@ import {
 } from '@/types/tv-show';
 
 import { CACHE_TAGS } from './cache-tags';
-import { buildDiscoverSearchParams } from './discover-params';
+import { buildDiscoverSearchParams, type DiscoverParams } from './discover-params';
 import { DEFAULT_REGION } from './regions';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
 
@@ -78,44 +78,13 @@ export async function getTvShowWatchProviders(tvId: number) {
   };
 }
 
-/**
- * Retrieves a paginated list of TV shows filtered by genre, sort order, watch providers, and region for the default region.
- *
- * Returns an object containing the list of TV shows and the total number of pages (capped at 500).
- *
- * @param genreIds - Genre IDs to filter TV shows by (any may match); empty to include all genres.
- * @param page - The page number to retrieve (default is 1).
- * @param sortBy - Optional sort order for the TV shows.
- * @param watchProviders - Optional watch provider filter.
- * @param watchRegion - Optional region filter for watch providers.
- * @param withRuntimeLte - Optional maximum runtime filter (less than or equal to).
- * @param withOriginCountry - Optional pipe-separated list of origin country codes.
- * @returns An object with the filtered TV shows and the total number of pages (maximum 500).
- *
- * @throws {Error} If the TV show discovery data cannot be loaded from the API.
- */
-export async function fetchDiscoverTvShows(
-  genreIds: number[],
-  page: number = 1,
-  sortBy?: string,
-  watchProviders?: string,
-  watchRegion?: string,
-  withRuntimeLte?: number,
-  withOriginCountry?: string,
-) {
+/** Fetches discovered TV shows with shared filters and caps pagination at 500. */
+export async function fetchDiscoverTvShows(params: DiscoverParams) {
   'use cache: remote';
   cacheTag(CACHE_TAGS.public.discover.tv);
   cacheLife('minutes');
 
-  const searchParams = buildDiscoverSearchParams({
-    genreIds,
-    page,
-    sortBy,
-    watchProviders,
-    watchRegion,
-    withRuntimeLte,
-    withOriginCountry,
-  });
+  const searchParams = buildDiscoverSearchParams(params);
 
   const tvShows = await tmdbFetch<TvResponse>('/discover/tv', {
     searchParams,
