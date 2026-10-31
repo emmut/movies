@@ -45,7 +45,7 @@ export function ListFormFields({
                 type="button"
                 onClick={() => onEmojiChange(option)}
                 className={cn(
-                  'rounded p-2 text-xl transition-colors hover:bg-muted',
+                  'flex h-10 w-full min-w-0 items-center justify-center rounded p-0 text-xl leading-none transition-colors hover:bg-muted',
                   emoji === option && 'bg-primary text-primary-foreground',
                 )}
                 disabled={disabled}

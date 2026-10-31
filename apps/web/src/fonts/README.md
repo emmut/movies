@@ -11,3 +11,7 @@ demand rather than preloaded on every page.
 
 Inter stays the primary font. The emoji fallback is also included in Tailwind's
 `font-sans` stack so controls that explicitly select sans-serif retain it.
+Native Apple Color Emoji, Segoe UI Emoji, and Noto Color Emoji come before the
+bundled font, preserving the platform's emoji appearance and avoiding a font
+download when the device already supports the requested emoji. Devices without
+those fonts use the bundled fallback.
