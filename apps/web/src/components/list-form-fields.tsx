@@ -34,26 +34,30 @@ export function ListFormFields({
   return (
     <div className="grid gap-4 py-4">
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="emoji" className="text-right">
+        <span id="emoji-label" className="text-right text-sm leading-none font-medium">
           Emoji
-        </Label>
+        </span>
         <div className="col-span-3">
-          <div className="grid max-h-32 grid-cols-6 gap-2 overflow-y-auto rounded-md border p-2">
+          <fieldset
+            aria-labelledby="emoji-label"
+            className="grid max-h-32 min-w-0 grid-cols-[repeat(auto-fit,minmax(2.75rem,1fr))] gap-2 overflow-y-auto rounded-md border p-2"
+          >
             {EMOJI_OPTIONS.map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => onEmojiChange(option)}
                 className={cn(
-                  'rounded p-2 text-xl transition-colors hover:bg-muted',
+                  'flex min-h-11 min-w-11 items-center justify-center rounded p-2 transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                   emoji === option && 'bg-primary text-primary-foreground',
                 )}
                 disabled={disabled}
+                aria-pressed={emoji === option}
               >
-                {option}
+                <span className="block text-xl leading-none">{option}</span>
               </button>
             ))}
-          </div>
+          </fieldset>
           <p className="mt-1 text-sm text-muted-foreground">Selected: {emoji}</p>
         </div>
       </div>
