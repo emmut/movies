@@ -6,13 +6,14 @@ import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@movies/ui/components/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from 'cn';
-import { Check, Edit, GripVertical, Trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
+import { ReorderButton } from '@/components/reorder-button';
 import { ReorderControls } from '@/components/reorder-controls';
 import { useReorderSensors } from '@/hooks/use-reorder-sensors';
 import { sameIdOrder } from '@/lib/list-order';
@@ -224,24 +225,11 @@ export function ListsGrid({ lists, offset, totalCount }: ListsGridProps) {
   return (
     <div>
       <div className="mb-4 flex items-center justify-end">
-        <Button
-          variant={isEditing ? 'default' : 'secondary'}
-          size="sm"
-          onClick={() => setIsEditing((value) => !value)}
-          aria-pressed={isEditing}
-        >
-          {isEditing ? (
-            <>
-              <Check className="h-4 w-4" />
-              Done
-            </>
-          ) : (
-            <>
-              <GripVertical className="h-4 w-4" />
-              Reorder lists
-            </>
-          )}
-        </Button>
+        <ReorderButton
+          isEditing={isEditing}
+          onToggleEditing={() => setIsEditing((value) => !value)}
+          reorderLabel="Reorder lists"
+        />
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
