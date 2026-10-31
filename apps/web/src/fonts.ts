@@ -14,5 +14,11 @@ export const emoji = localFont({
 export const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
-  fallback: ['var(--font-emoji)', 'sans-serif'],
+  fallback: [
+    '"Apple Color Emoji"',
+    '"Segoe UI Emoji"',
+    '"Noto Color Emoji"',
+    'var(--font-emoji)',
+    'sans-serif',
+  ],
 });
