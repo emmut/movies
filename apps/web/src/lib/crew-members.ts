@@ -8,7 +8,7 @@ export function groupCrewMembers(crew: CrewMember[]) {
   >();
   for (const person of crew) {
     const existing = people.get(person.id);
-    if (existing) {
+    if (existing !== undefined) {
       if (!existing.jobs.includes(person.job)) {
         existing.jobs.push(person.job);
       }

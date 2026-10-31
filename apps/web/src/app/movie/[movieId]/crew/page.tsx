@@ -16,7 +16,7 @@ export default async function MovieCrewPage({ params }: { params: Promise<{ movi
   const [movie, credits] = await Promise.all([getMovieDetails(id), getMovieCredits(id)]);
   const departments = new Map<string, CrewMember[]>();
   for (const person of credits.crew) {
-    const department = person.department || 'Other';
+    const department = person.department === '' ? 'Other' : person.department;
     const members = departments.get(department) ?? [];
     members.push(person);
     departments.set(department, members);

@@ -16,7 +16,7 @@ export function CrewList({ crew }: { crew: CrewMember[] }) {
             className="flex h-full items-center gap-3 rounded-md py-3 pr-2 transition-colors hover:bg-zinc-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-800">
-              {person.profile_path ? (
+              {person.profile_path !== null && person.profile_path !== '' ? (
                 <Imgproxy
                   src={person.profile_path}
                   alt=""
