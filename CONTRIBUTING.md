@@ -78,3 +78,18 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - **Fallow audit** — fails only on findings newly introduced relative to the merge-base.
 
 The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test apps/web/src/lib/search-index.integration.test.ts`; fixtures use a temporary table.
+
+## Direct streaming links
+
+The watch section resolves TMDB's `wikidata_id`, reads the item's Wikidata claims,
+and builds provider title URLs from validated identifiers. No paid service or
+additional API key is required. Restricted deployments must allow outbound HTTPS
+to `www.wikidata.org`; otherwise the section keeps the labelled TMDB fallback.
+TMDB external IDs share an hourly cache with the IMDb reader. Wikidata links
+refresh daily, with a seven-day maximum lifetime and a three-second request timeout.
+Watch options render as soon as availability is ready; optional direct links
+stream in afterwards. Region changes use the already fetched
+links and TMDB's regional availability without extra Wikidata requests.
+
+Supported properties, market restrictions, attribution requirements and the
+TMDB policy review are documented in [streaming-links.md](docs/streaming-links.md).

@@ -1,10 +1,13 @@
 import type { RegionCode } from '@movies/config/regions';
 import { Skeleton } from '@movies/ui/components/skeleton';
+import { Suspense, type ComponentProps } from 'react';
 
 import { StreamingProviders } from '@/components/streaming-providers';
 import { getMovieWatchProviders } from '@/lib/movies';
 import { optional } from '@/lib/tmdb';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
+import { getWikidataWatchLinks } from '@/lib/wikidata';
+import type { DirectWatchLink } from '@/types/watch-provider';
 
 type StreamingSectionProps = {
   resourceId: number;
@@ -26,16 +29,25 @@ export async function StreamingSection({
     resourceType === 'movie'
       ? getMovieWatchProviders(resourceId)
       : getTvShowWatchProviders(resourceId);
+  const directLinks = getWikidataWatchLinks(resourceType, resourceId);
   const watchProviders = await optional(providers, { results: {} });
+  const props = { watchProviders, resourceId, resourceType, userRegion };
 
   return (
-    <StreamingProviders
-      watchProviders={watchProviders}
-      resourceId={resourceId}
-      resourceType={resourceType}
-      userRegion={userRegion}
-    />
+    <Suspense fallback={<StreamingProviders {...props} directLinks={undefined} />}>
+      <ProvidersWithDirectLinks {...props} directLinks={directLinks} />
+    </Suspense>
   );
+}
+
+/** Enhance the already visible availability when the optional lookup finishes. */
+async function ProvidersWithDirectLinks({
+  directLinks,
+  ...props
+}: Omit<ComponentProps<typeof StreamingProviders>, 'directLinks'> & {
+  directLinks: Promise<DirectWatchLink[]>;
+}) {
+  return <StreamingProviders {...props} directLinks={await directLinks} />;
 }
 
 /** Placeholder shown while {@link StreamingSection} streams in. */

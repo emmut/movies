@@ -3,7 +3,6 @@ import { cacheLife, cacheTag } from 'next/cache';
 
 import type { GenreResponse } from '@/types/genre';
 import {
-  TmdbExternalIdsResponse,
   TvCredits,
   TvDetails,
   TvRecommendations,
@@ -16,6 +15,7 @@ import { CACHE_TAGS } from './cache-tags';
 import { buildDiscoverSearchParams, type DiscoverParams } from './discover-params';
 import { DEFAULT_REGION } from './regions';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
+import { getTmdbExternalIds } from './tmdb-external-ids';
 
 /**
  * Fetches detailed information for a TV show from TMDb by its ID.
@@ -215,12 +215,6 @@ export async function getTvShowRecommendations(tvId: number, userRegion?: string
 }
 
 export async function getTvShowImdbId(tvId: number) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.tv.imdbId(tvId));
-  cacheLife('hours');
-
-  const data = await tmdbFetch<TmdbExternalIdsResponse>(`/tv/${tvId}/external_ids`, {
-    errorMessage: 'Failed loading TV show IMDB ID',
-  });
+  const data = await getTmdbExternalIds('tv', tvId);
   return data.imdb_id;
 }
