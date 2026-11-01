@@ -34,7 +34,7 @@ export async function StreamingSection({
   const props = { watchProviders, resourceId, resourceType, userRegion };
 
   return (
-    <Suspense fallback={<StreamingProviders {...props} />}>
+    <Suspense fallback={<StreamingProviders {...props} directLinks={undefined} />}>
       <ProvidersWithDirectLinks {...props} directLinks={directLinks} />
     </Suspense>
   );

@@ -34,7 +34,7 @@ const offerGroups = [
 
 type StreamingProvidersProps = {
   watchProviders: MovieWatchProviders | TvWatchProviders;
-  directLinks?: DirectWatchLink[];
+  directLinks: DirectWatchLink[] | undefined;
   resourceId: number;
   resourceType: 'movie' | 'tv';
   userRegion: RegionCode;
