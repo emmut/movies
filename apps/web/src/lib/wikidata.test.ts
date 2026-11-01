@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
-vi.mock('@/lib/tmdb', () => ({ tmdbFetch: vi.fn() }));
+vi.mock('@/lib/tmdb-external-ids', () => ({ getTmdbExternalIds: vi.fn() }));
 vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
 
-import { tmdbFetch } from '@/lib/tmdb';
+import { getTmdbExternalIds } from '@/lib/tmdb-external-ids';
 
 import { getWikidataWatchLinks } from './wikidata';
 
@@ -30,7 +30,10 @@ const body = {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubGlobal('fetch', fetchMock);
-  vi.mocked(tmdbFetch).mockResolvedValue({ wikidata_id: 'Q19798734' });
+  vi.mocked(getTmdbExternalIds).mockResolvedValue({
+    imdb_id: 'tt4574334',
+    wikidata_id: 'Q19798734',
+  });
   fetchMock.mockResolvedValue(Response.json(body));
   vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
@@ -51,7 +54,7 @@ describe('Wikidata title lookup', () => {
           url: 'https://www.netflix.com/title/80057281',
         },
       ]);
-      expect(tmdbFetch).toHaveBeenCalledWith(`/${type}/66732/external_ids`);
+      expect(getTmdbExternalIds).toHaveBeenCalledExactlyOnceWith(type, 66732);
       const [url, options] = fetchMock.mock.calls[0];
       expect(url.origin).toBe('https://www.wikidata.org');
       expect(url.searchParams.get('ids')).toBe('Q19798734');
@@ -65,7 +68,10 @@ describe('Wikidata title lookup', () => {
   it.each([null, undefined, '', 'Q0', 'Q123/../../evil', 'https://evil.com'])(
     'skips Wikidata for missing or invalid item IDs: %s',
     async (wikidata_id) => {
-      vi.mocked(tmdbFetch).mockResolvedValue({ wikidata_id });
+      vi.mocked(getTmdbExternalIds).mockResolvedValue({
+        imdb_id: null,
+        wikidata_id: wikidata_id ?? null,
+      });
       expect(await getWikidataWatchLinks('movie', 1)).toEqual([]);
       expect(fetchMock).not.toHaveBeenCalled();
     },
@@ -98,7 +104,7 @@ describe('Wikidata title lookup', () => {
   });
 
   it('falls back without leaking upstream errors if TMDB fails', async () => {
-    vi.mocked(tmdbFetch).mockRejectedValue(new Error('sensitive upstream detail'));
+    vi.mocked(getTmdbExternalIds).mockRejectedValue(new Error('sensitive upstream detail'));
     expect(await getWikidataWatchLinks('tv', 1)).toEqual([]);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(console.warn).toHaveBeenCalledWith(

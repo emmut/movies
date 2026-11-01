@@ -35,11 +35,13 @@ explicitly labelled TMDB watch links. Free and ad-supported availability remains
 visible with the same fallback. Coverage is incomplete: the property examples
 are useful validation cases, not a measured catalogue-wide coverage percentage.
 
-The external-ID response is cached daily and tagged with the title's details tag.
+One hourly external-ID response cache serves both the IMDb and Wikidata readers,
+tagged with the title's details tag and, for TV, the existing IMDb-ID tag.
 Wikidata links revalidate daily with a seven-day maximum lifetime. Failures are
 caught outside the cached functions. The Wikidata request has a three-second
-abort timeout; it does not block the rest of the title page, which streams the
-watch section independently. Restricted deployments must allow `www.wikidata.org`.
+abort timeout. Availability and labelled TMDB watch options render as soon as
+the provider lookup completes; a nested Suspense boundary streams in direct
+links independently, so even a slow external-ID lookup cannot delay availability. Restricted deployments must allow `www.wikidata.org`.
 
 ## TMDB policy review — 2026-11-01
 

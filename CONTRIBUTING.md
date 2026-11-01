@@ -85,8 +85,10 @@ The watch section resolves TMDB's `wikidata_id`, reads the item's Wikidata claim
 and builds provider title URLs from validated identifiers. No paid service or
 additional API key is required. Restricted deployments must allow outbound HTTPS
 to `www.wikidata.org`; otherwise the section keeps the labelled TMDB fallback.
-Identifiers refresh daily, with a seven-day maximum cache lifetime and a
-three-second Wikidata request timeout. Region changes use the already fetched
+TMDB external IDs share an hourly cache with the IMDb reader. Wikidata links
+refresh daily, with a seven-day maximum lifetime and a three-second request timeout.
+Watch options render as soon as availability is ready; optional direct links
+stream in afterwards. Region changes use the already fetched
 links and TMDB's regional availability without extra Wikidata requests.
 
 Supported properties, market restrictions, attribution requirements and the

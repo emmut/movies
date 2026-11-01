@@ -1,9 +1,8 @@
 import 'server-only';
-import { cacheLife, cacheTag } from 'next/cache';
+import { cacheLife } from 'next/cache';
 import { z } from 'zod';
 
-import { CACHE_TAGS } from '@/lib/cache-tags';
-import { tmdbFetch } from '@/lib/tmdb';
+import { getTmdbExternalIds } from '@/lib/tmdb-external-ids';
 import { buildWikidataWatchLinks } from '@/lib/wikidata-watch-links';
 import type { DirectWatchLink } from '@/types/watch-provider';
 
@@ -11,10 +10,7 @@ const itemIdSchema = z.string().regex(/^Q[1-9]\d*$/);
 const entitySchema = z.object({ claims: z.record(z.string(), z.unknown()) });
 
 async function getWikidataId(type: 'movie' | 'tv', id: number) {
-  'use cache: remote';
-  cacheLife('days');
-  cacheTag(CACHE_TAGS.public[type].details(id));
-  const data = await tmdbFetch<{ wikidata_id?: unknown }>(`/${type}/${id}/external_ids`);
+  const data = await getTmdbExternalIds(type, id);
   const parsed = itemIdSchema.safeParse(data.wikidata_id);
   return parsed.success ? parsed.data : null;
 }
