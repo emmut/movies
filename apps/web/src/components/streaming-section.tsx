@@ -5,6 +5,7 @@ import { StreamingProviders } from '@/components/streaming-providers';
 import { getMovieWatchProviders } from '@/lib/movies';
 import { optional } from '@/lib/tmdb';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
+import { getWikidataWatchLinks } from '@/lib/wikidata';
 
 type StreamingSectionProps = {
   resourceId: number;
@@ -26,11 +27,15 @@ export async function StreamingSection({
     resourceType === 'movie'
       ? getMovieWatchProviders(resourceId)
       : getTvShowWatchProviders(resourceId);
-  const watchProviders = await optional(providers, { results: {} });
+  const [watchProviders, directLinks] = await Promise.all([
+    optional(providers, { results: {} }),
+    getWikidataWatchLinks(resourceType, resourceId),
+  ]);
 
   return (
     <StreamingProviders
       watchProviders={watchProviders}
+      directLinks={directLinks}
       resourceId={resourceId}
       resourceType={resourceType}
       userRegion={userRegion}
