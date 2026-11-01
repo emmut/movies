@@ -78,7 +78,7 @@ catalog:
   "nuqs": ^2.10.2
   "pg": ^8.23.1
   "postcss": 8.5.31
-  "posthog-js": ^1.438.21
+  "posthog-js": ^1.441.2
   "posthog-node": ^5.57.1
   "react": 19.3.1
   "react-dom": 19.3.1
