@@ -4,6 +4,7 @@ import { z } from 'zod/v4';
 export const env = createEnv({
   server: {
     MOVIE_DB_ACCESS_TOKEN: z.string().min(1),
+    WATCHMODE_API_KEY: z.string().min(1).optional(),
     BETTER_AUTH_SECRET: z.string().min(1),
     BETTER_AUTH_TRUSTED_ORIGIN: z.string().min(1).optional(),
     DATABASE_URL: z.url(),
@@ -44,6 +45,7 @@ export const env = createEnv({
 
   runtimeEnv: {
     MOVIE_DB_ACCESS_TOKEN: process.env.MOVIE_DB_ACCESS_TOKEN,
+    WATCHMODE_API_KEY: process.env.WATCHMODE_API_KEY || undefined,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_TRUSTED_ORIGIN: process.env.BETTER_AUTH_TRUSTED_ORIGIN,
     DATABASE_URL: process.env.DATABASE_URL,

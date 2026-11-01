@@ -78,3 +78,24 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - **Fallow audit** — fails only on findings newly introduced relative to the merge-base.
 
 The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test apps/web/src/lib/search-index.integration.test.ts`; fixtures use a temporary table.
+
+## Direct streaming links
+
+Set the optional server-only `WATCHMODE_API_KEY` to enable title-specific provider links.
+Allow outbound HTTPS to `api.watchmode.com` in the deployment network policy. The app
+uses Watchmode's [title sources endpoint](https://api.watchmode.com/use-cases/imdb-tmdb-ids)
+with TMDB movie/TV identifiers (2 credits per uncached lookup), fetching all countries
+included in the account's plan. Results are cached for an hour with a maximum lifetime
+of 24 hours; changing the selected region does not make another API request.
+
+TMDB/JustWatch remains the availability source. A direct link is used only when the
+provider name, country, and offer type match; channel bundles and ad tiers are not
+collapsed into the base service. Missing keys, unsupported countries, missing links,
+timeouts and upstream failures retain explicitly labelled TMDB watch options. Links
+are supplied by the API rather than guessed from title names or scraped from TMDB.
+
+The UI retains JustWatch/TMDB attribution and credits Watchmode when its links are
+shown. Choose a Watchmode plan appropriate for your use: its Developer plan is for
+non-commercial use, requires attribution, and covers up to three countries. Review
+[Watchmode's terms](https://api.watchmode.com/tc) when enabling the integration. Remove
+any cached Watchmode data if the account is cancelled or terminated.
