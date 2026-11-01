@@ -99,8 +99,11 @@ describe('Wikidata provider identifiers', () => {
     ['P1874', '123'],
     ['P13902', 'page-f6174ebf-cb92-453c-a52b-62bb3576e402'],
     ['P13902', 'legacy-disney-id'],
+    ['P13902', 'entity-f6174ebf-cb92-053c-a52b-62bb3576e402'],
     ['P9586', 'umc.cmc.invalid'],
     ['P6466', 'not-a-uuid'],
+    ['P6466', 'e47078f3-1c0e-09a8-9da9-c571a7a20fec'],
+    ['P6466', 'e47078f3-1c0e-49a8-0da9-c571a7a20fec'],
     ['P8055', 'B07ZPDN57Q?redirect=evil'],
   ])('rejects malformed or unsafe identifiers for %s: %s', (property, value) => {
     expect(buildWikidataWatchLinks({ [property]: [statement(value)] }, 'movie')).toEqual([]);
