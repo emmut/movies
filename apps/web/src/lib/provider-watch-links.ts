@@ -1,22 +1,21 @@
 import 'server-only';
-import { getPopcornTimeWatchLinks } from '@/lib/popcorntime';
+import { getPopcornTimeAvailability } from '@/lib/popcorntime';
 import { getWikidataWatchLinks } from '@/lib/wikidata';
-import type { RegionWatchProviders, ResolvedWatchLink } from '@/types/watch-provider';
+import type { ProviderWatchOptions } from '@/types/watch-provider';
 
-/** First matching provider/market/offer wins; Wikidata fills individual Popcorn Time gaps. */
-export async function getProviderWatchLinks(
+/** Load independent Popcorn Time offers and Wikidata links for TMDB fallback offers. */
+export async function getProviderWatchOptions(
   type: 'movie' | 'tv',
   id: number,
   title: string,
   region: string,
-  providers: RegionWatchProviders | undefined,
-): Promise<ResolvedWatchLink[]> {
-  const [primary, fallback] = await Promise.all([
-    getPopcornTimeWatchLinks(type, id, title, region, providers),
+): Promise<ProviderWatchOptions> {
+  const [popcornTime, fallback] = await Promise.all([
+    getPopcornTimeAvailability(type, id, title, region),
     getWikidataWatchLinks(type, id),
   ]);
-  return [
-    ...primary.map((link) => ({ ...link, source: 'popcorntime' as const })),
-    ...fallback.map((link) => ({ ...link, source: 'wikidata' as const })),
-  ];
+  return {
+    popcornTime,
+    directLinks: fallback.map((link) => ({ ...link, source: 'wikidata' as const })),
+  };
 }

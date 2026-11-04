@@ -3,8 +3,8 @@ import { cacheLife } from 'next/cache';
 import { z } from 'zod';
 
 import { env } from '@/env';
-import { buildPopcornTimeWatchLinks } from '@/lib/popcorntime-watch-links';
-import type { DirectWatchLink, RegionWatchProviders } from '@/types/watch-provider';
+import { buildPopcornTimeAvailability } from '@/lib/popcorntime-watch-links';
+import type { PopcornTimeAvailability } from '@/types/watch-provider';
 
 const mediaIdSchema = z.string().regex(/^[a-zA-Z0-9_-]{1,128}$/);
 const candidateSchema = z.object({ id: mediaIdSchema, kind: z.enum(['movie', 'tv_show']) });
@@ -32,7 +32,13 @@ async function getProviderRegistry(region: string) {
   cacheLife({ stale: 3600, revalidate: 86400, expire: 172800 });
   return z
     .object({ country: z.literal(region), providers: z.array(z.unknown()) })
-    .parse(await request('providers', { country: region }, AbortSignal.timeout(4000)));
+    .parse(
+      await request(
+        'providers',
+        { country: region, hide_children: 'false' },
+        AbortSignal.timeout(4000),
+      ),
+    );
 }
 
 async function getTitleOffers(type: 'movie' | 'tv', id: number, title: string, region: string) {
@@ -70,30 +76,28 @@ async function getTitleOffers(type: 'movie' | 'tv', id: number, title: string, r
 }
 
 /** Optional primary link source. Missing credentials and upstream failures keep Wikidata usable. */
-export async function getPopcornTimeWatchLinks(
+export async function getPopcornTimeAvailability(
   type: 'movie' | 'tv',
   id: number,
   title: string,
   region: string,
-  providers: RegionWatchProviders | undefined,
-): Promise<DirectWatchLink[]> {
-  if (!env.POPCORNTIME_API_KEY || !providers) return [];
+): Promise<PopcornTimeAvailability | null> {
+  if (!env.POPCORNTIME_API_KEY) return null;
   try {
     const [offers, registry] = await Promise.all([
       getTitleOffers(type, id, title, region),
       getProviderRegistry(region),
     ]);
-    if (offers === null) return [];
-    return buildPopcornTimeWatchLinks(
+    if (offers === null) return null;
+    return buildPopcornTimeAvailability(
       registry,
       offers,
-      providers,
       region,
       new Date().toISOString().slice(0, 10),
     );
   } catch {
     // Never log upstream bodies/URLs: they may contain credentials or account details.
     console.warn('Popcorn Time title links unavailable; using fallback links.');
-    return [];
+    return null;
   }
 }

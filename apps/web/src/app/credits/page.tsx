@@ -38,12 +38,12 @@ export default function CreditsPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Popcorn Time</h2>
         <p className="text-sm text-zinc-400">
-          Provider title links may be supplied by{' '}
+          Regional offers and provider title links may be supplied by{' '}
           <a href="https://popcorntime.app" className="underline">
             Popcorn Time
           </a>
           . These links redirect to streaming providers and may include affiliate attribution.
-          Regional availability is provided separately by JustWatch via TMDB.
+          Additional availability comes from JustWatch via TMDB.
         </p>
       </section>
       <section className="space-y-3">
@@ -57,8 +57,7 @@ export default function CreditsPage() {
           <a href="https://www.wikidata.org/wiki/Wikidata:Licensing" className="underline">
             CC0
           </a>
-          . These identifiers help us link directly to titles; regional availability comes from
-          JustWatch via TMDB.
+          . These identifiers help us link directly to titles listed by JustWatch via TMDB.
         </p>
       </section>
       <section className="space-y-3">

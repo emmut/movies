@@ -81,12 +81,15 @@ The PostgreSQL search regression tests run in the e2e CI job after migrations. R
 
 ## Direct streaming links
 
-Provider title links prefer Popcorn Time when `POPCORNTIME_API_KEY` is configured.
-Search candidates must expose the exact TMDB ID and matching movie/TV type before
-their regional redirect tokens can be used. Wikidata fills individual missing
-links; missing credentials, unknown providers and upstream failures retain this
-fallback and the labelled TMDB option. Regional availability still comes from
-TMDB/JustWatch. No provider or aggregator pages are scraped.
+Popcorn Time supplies country-specific offers and direct provider links when
+`POPCORNTIME_API_KEY` is configured. All valid returned registry providers are
+supported without a TMDB provider mapping, including ad tiers, child providers
+and explicit channel/add-on pairs. All documented offer types are displayed;
+future or unspecified types use “Other options”. Search candidates must expose
+the exact TMDB ID and matching movie/TV type before their offers can be used.
+TMDB/JustWatch fills availability gaps and Wikidata supplies supported direct
+links for those fallback offers. Missing credentials and upstream failures retain
+this fallback and the labelled TMDB option. No provider or aggregator pages are scraped.
 
 Restricted deployments need outbound HTTPS to `api.popcorntime.app` and
 `www.wikidata.org`. Popcorn Time title lookups revalidate every 15 minutes with a

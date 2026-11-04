@@ -4,10 +4,10 @@ import { Suspense, type ComponentProps } from 'react';
 
 import { StreamingProviders } from '@/components/streaming-providers';
 import { getMovieWatchProviders } from '@/lib/movies';
-import { getProviderWatchLinks } from '@/lib/provider-watch-links';
+import { getProviderWatchOptions } from '@/lib/provider-watch-links';
 import { optional } from '@/lib/tmdb';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
-import type { ResolvedWatchLink } from '@/types/watch-provider';
+import type { ProviderWatchOptions } from '@/types/watch-provider';
 
 type StreamingSectionProps = {
   resourceId: number;
@@ -39,30 +39,27 @@ export async function StreamingSection({
   ]);
   const region =
     (typeof params.region === 'string' && getRegionByCode(params.region)?.code) || userRegion;
-  const directLinks = getProviderWatchLinks(
-    resourceType,
-    resourceId,
-    resourceTitle,
-    region,
-    watchProviders.results?.[region],
-  );
+  const options = getProviderWatchOptions(resourceType, resourceId, resourceTitle, region);
   const props = { watchProviders, resourceId, resourceType, userRegion };
 
   return (
-    <Suspense key={region} fallback={<StreamingProviders {...props} directLinks={undefined} />}>
-      <ProvidersWithDirectLinks {...props} directLinks={directLinks} />
+    <Suspense
+      key={region}
+      fallback={<StreamingProviders {...props} directLinks={undefined} popcornTime={undefined} />}
+    >
+      <ProvidersWithOptions {...props} options={options} />
     </Suspense>
   );
 }
 
 /** Enhance the already visible availability when the optional lookup finishes. */
-async function ProvidersWithDirectLinks({
-  directLinks,
+async function ProvidersWithOptions({
+  options,
   ...props
-}: Omit<ComponentProps<typeof StreamingProviders>, 'directLinks'> & {
-  directLinks: Promise<ResolvedWatchLink[]>;
+}: Omit<ComponentProps<typeof StreamingProviders>, 'directLinks' | 'popcornTime'> & {
+  options: Promise<ProviderWatchOptions>;
 }) {
-  return <StreamingProviders {...props} directLinks={await directLinks} />;
+  return <StreamingProviders {...props} {...await options} />;
 }
 
 /** Placeholder shown while {@link StreamingSection} streams in. */

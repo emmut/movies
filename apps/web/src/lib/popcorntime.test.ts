@@ -6,19 +6,8 @@ const { testEnv } = vi.hoisted(() => ({
 }));
 vi.mock('@/env', () => ({ env: testEnv }));
 
-import { getPopcornTimeWatchLinks } from './popcorntime';
+import { getPopcornTimeAvailability } from './popcorntime';
 
-const availability = {
-  link: 'https://www.themoviedb.org/movie/1051896/watch',
-  flatrate: [
-    {
-      provider_id: 119,
-      provider_name: 'Amazon Prime Video',
-      logo_path: '/p.png',
-      display_priority: 1,
-    },
-  ],
-};
 const token = '3xK9mPv2bQ7nRtYs';
 const media = {
   id: 'movie1',
@@ -74,8 +63,8 @@ afterEach(() => {
 
 describe('Popcorn Time lookup', () => {
   it('verifies the exact TMDB identity before fetching a region-specific token', async () => {
-    const links = await getPopcornTimeWatchLinks('movie', 1051896, 'Arcadian', 'SE', availability);
-    expect(links[0]?.url).toBe(`https://popcorntime.app/go/${token}?platform=web`);
+    const links = await getPopcornTimeAvailability('movie', 1051896, 'Arcadian', 'SE');
+    expect(links?.offers[0]?.url).toBe(`https://popcorntime.app/go/${token}`);
     expect(fetchMock).toHaveBeenCalledTimes(4);
     const calls = fetchMock.mock.calls.map(([url, init]) => ({ url: new URL(String(url)), init }));
     const query = calls.find((call) => call.url.pathname === '/v1/search')!;
@@ -106,21 +95,23 @@ describe('Popcorn Time lookup', () => {
       '/v1/search': { results: [{ id: 'movie1', kind: 'tv_show' }] },
       '/v1/media/movie1': { ...media, content_type: 'tv_show' },
     });
-    expect(await getPopcornTimeWatchLinks('tv', 1051896, 'Show', 'SE', availability)).toHaveLength(
-      1,
-    );
+    expect((await getPopcornTimeAvailability('tv', 1051896, 'Show', 'SE'))?.offers).toHaveLength(1);
     expect(new URL(String(fetchMock.mock.calls[0][0])).searchParams.get('kind')).toBe('tv_show');
   });
 
   it.each(['', undefined])('makes no requests without an API key: %s', async (key) => {
     testEnv.POPCORNTIME_API_KEY = key;
-    expect(await getPopcornTimeWatchLinks('movie', 1, 'Title', 'SE', availability)).toEqual([]);
+    expect(await getPopcornTimeAvailability('movie', 1, 'Title', 'SE')).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('makes no requests when TMDB has no offers for the selected region', async () => {
-    expect(await getPopcornTimeWatchLinks('movie', 1, 'Title', 'SE', undefined)).toEqual([]);
-    expect(fetchMock).not.toHaveBeenCalled();
+  it('loads providers without requiring any TMDB availability or provider mapping', async () => {
+    const result = await getPopcornTimeAvailability('movie', 1051896, 'Arcadian', 'SE');
+    expect(result?.offers[0]?.providerName).toBe('Prime Video');
+    const call = fetchMock.mock.calls.find(
+      ([url]) => new URL(String(url)).pathname === '/v1/providers',
+    )!;
+    expect(new URL(String(call[0])).searchParams.get('hide_children')).toBe('false');
   });
 
   it.each([
@@ -133,9 +124,7 @@ describe('Popcorn Time lookup', () => {
     null,
   ])('rejects a plausible search result without unambiguous exact identity: %j', async (detail) => {
     useResponses({ '/v1/media/movie1': detail });
-    expect(
-      await getPopcornTimeWatchLinks('movie', 1051896, 'Arcadian', 'SE', availability),
-    ).toEqual([]);
+    expect(await getPopcornTimeAvailability('movie', 1051896, 'Arcadian', 'SE')).toBeNull();
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/links'))).toBe(false);
   });
 
@@ -152,9 +141,7 @@ describe('Popcorn Time lookup', () => {
       '/v1/media/movie2': { ...media, id: 'movie2' },
       '/v1/media/movie3': { ...media, id: 'movie3' },
     });
-    expect(
-      await getPopcornTimeWatchLinks('movie', 1051896, 'Arcadian', 'SE', availability),
-    ).toEqual([]);
+    expect(await getPopcornTimeAvailability('movie', 1051896, 'Arcadian', 'SE')).toBeNull();
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('movie4'))).toBe(false);
   });
 
@@ -164,9 +151,7 @@ describe('Popcorn Time lookup', () => {
         results: [null, { id: '../other', kind: 'movie' }, { id: 'movie1', kind: 'tv_show' }],
       },
     });
-    expect(
-      await getPopcornTimeWatchLinks('movie', 1051896, 'Arcadian', 'SE', availability),
-    ).toEqual([]);
+    expect(await getPopcornTimeAvailability('movie', 1051896, 'Arcadian', 'SE')).toBeNull();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -174,9 +159,7 @@ describe('Popcorn Time lookup', () => {
     'falls back without retries or sensitive logs on HTTP %i',
     async (status) => {
       fetchMock.mockImplementation(async () => response({ secret: 'upstream-body' }, status));
-      expect(
-        await getPopcornTimeWatchLinks('movie', 1051896, 'Arcadian', 'SE', availability),
-      ).toEqual([]);
+      expect(await getPopcornTimeAvailability('movie', 1051896, 'Arcadian', 'SE')).toBeNull();
       expect(fetchMock).toHaveBeenCalledTimes(2);
       expect(console.warn).toHaveBeenCalledWith(
         'Popcorn Time title links unavailable; using fallback links.',
@@ -186,13 +169,9 @@ describe('Popcorn Time lookup', () => {
 
   it('falls back on network errors and malformed JSON', async () => {
     fetchMock.mockRejectedValueOnce(new Error('network'));
-    expect(
-      await getPopcornTimeWatchLinks('movie', 1051896, 'Arcadian', 'SE', availability),
-    ).toEqual([]);
+    expect(await getPopcornTimeAvailability('movie', 1051896, 'Arcadian', 'SE')).toBeNull();
     fetchMock.mockImplementation(async () => new Response('{bad json'));
-    expect(
-      await getPopcornTimeWatchLinks('movie', 1051896, 'Arcadian', 'SE', availability),
-    ).toEqual([]);
+    expect(await getPopcornTimeAvailability('movie', 1051896, 'Arcadian', 'SE')).toBeNull();
   });
 
   it('falls back when the shared request deadline aborts', async () => {
@@ -206,8 +185,8 @@ describe('Popcorn Time lookup', () => {
           });
         }),
     );
-    const pending = getPopcornTimeWatchLinks('movie', 1051896, 'Arcadian', 'SE', availability);
+    const pending = getPopcornTimeAvailability('movie', 1051896, 'Arcadian', 'SE');
     controller.abort();
-    expect(await pending).toEqual([]);
+    expect(await pending).toBeNull();
   });
 });

@@ -1,67 +1,58 @@
 import { z } from 'zod';
 
-import type { DirectWatchLink, RegionWatchProviders, WatchOfferType } from '@/types/watch-provider';
+import type { PopcornTimeAvailability, StreamingOffer } from '@/types/watch-provider';
 
 const providerSchema = z.object({
   id: z.string().min(1),
-  name: z.string().min(1),
-  parent_id: z.string().nullable(),
+  name: z.string().trim().min(1),
+  parent_id: z.string().min(1).nullable(),
+  logo: z.string().nullish(),
 });
+const offerTypeSchema = z.enum([
+  'flatrate',
+  'rent',
+  'buy',
+  'free',
+  'ads',
+  'cinema',
+  'fast',
+  'flatrate_and_buy',
+]);
 const linkSchema = z.object({
-  provider_id: z.string(),
-  addon_provider_id: z.string().nullable(),
+  provider_id: z.string().min(1),
+  addon_provider_id: z.string().min(1).nullable(),
   link_token: z.string().regex(/^[1-9A-HJ-NP-Za-km-z]{16,4096}$/),
   price_types: z.array(z.string()).nullable(),
-  platforms: z.array(z.string()).nullish(),
   available_from: z.iso.date().nullish(),
   available_to: z.iso.date().nullish(),
 });
+type Provider = z.infer<typeof providerSchema>;
 
-const offerTypes = ['flatrate', 'rent', 'buy', 'free', 'ads'] as const;
-// Aliases apply only within the exact offer type and selected-region availability.
-// Ad tiers and channel bundles deliberately do not share these aliases.
-const aliases: Record<number, string[]> = {
-  2: ['appletv', 'appletvstore', 'itunes'],
-  9: ['amazonprimevideo', 'primevideo'],
-  10: ['amazonvideo'],
-  119: ['amazonprimevideo', 'primevideo'],
-  350: ['appletv', 'appletvplus'],
-};
-
-function normalizeName(name: string) {
-  return name
-    .toLowerCase()
-    .replaceAll('+', 'plus')
-    .replace(/[^a-z0-9]/g, '');
+function safeLogo(value: string | null | undefined) {
+  const parsed = z.url().safeParse(value);
+  if (!parsed.success) return null;
+  const url = new URL(parsed.data);
+  return url.protocol === 'https:' && !url.username && !url.password ? url.href : null;
 }
 
-function matchingProviderIds(name: string, type: WatchOfferType, providers: RegionWatchProviders) {
-  const normalized = normalizeName(name);
-  return (providers[type] ?? [])
-    .filter((provider) =>
-      [normalizeName(provider.provider_name), ...(aliases[provider.provider_id] ?? [])].includes(
-        normalized,
-      ),
-    )
-    .map((provider) => provider.provider_id);
-}
-
-function getProviderNames(providerData: unknown, region: string) {
+function getRegistry(providerData: unknown, region: string) {
   const registry = z
     .object({ country: z.literal(region), providers: z.array(z.unknown()) })
     .safeParse(providerData);
   if (!registry.success) return null;
-
-  const names = new Map<string, string[]>();
+  const entries = new Map<string, Provider[]>();
   for (const raw of registry.data.providers) {
     const result = providerSchema.safeParse(raw);
-    if (result.success && result.data.parent_id === null) {
-      const { id, name } = result.data;
-      names.set(id, [...(names.get(id) ?? []), name]);
+    if (result.success) {
+      const provider = result.data;
+      entries.set(provider.id, [...(entries.get(provider.id) ?? []), provider]);
     }
   }
-
-  return names;
+  return new Map(
+    [...entries].flatMap(([id, providers]) =>
+      providers.length === 1 ? [[id, providers[0]] as const] : [],
+    ),
+  );
 }
 
 function isAvailable(link: z.infer<typeof linkSchema>, today: string) {
@@ -71,61 +62,60 @@ function isAvailable(link: z.infer<typeof linkSchema>, today: string) {
   );
 }
 
-function getDirectOffer(raw: unknown, today: string) {
-  const result = linkSchema.safeParse(raw);
-  if (!result.success) return null;
-  const link = result.data;
-  if (link.addon_provider_id !== null || !isAvailable(link, today)) return null;
-  if (link.platforms != null && !link.platforms.includes('web')) return null;
-  return link;
+/** Resolve both channel encodings: a child provider, or an explicit host/add-on pair. */
+function getProviderContext(link: z.infer<typeof linkSchema>, registry: Map<string, Provider>) {
+  const listed = registry.get(link.provider_id);
+  if (!listed) return null;
+  const provider = link.addon_provider_id ? registry.get(link.addon_provider_id) : listed;
+  if (!provider) return null;
+  const hostId = link.addon_provider_id ? listed.id : provider.parent_id;
+  if (hostId === null) return { provider, host: null };
+  const host = registry.get(hostId);
+  if (!host || host.id === provider.id) return null;
+  if (provider.parent_id !== null && provider.parent_id !== host.id) return null;
+  return { provider, host };
 }
 
-function matchOffers(
-  link: z.infer<typeof linkSchema>,
-  name: string,
-  providers: RegionWatchProviders,
-  region: string,
-): DirectWatchLink[] {
-  return offerTypes.flatMap((type) => {
-    if (!link.price_types?.includes(type)) return [];
-    const ids = matchingProviderIds(name, type, providers);
-    if (ids.length !== 1) return [];
-    return [
-      {
-        providerId: ids[0],
-        regions: [region],
-        types: [type],
-        url: `https://popcorntime.app/go/${link.link_token}?platform=web`,
-      },
-    ];
+function getOffers(raw: unknown, registry: Map<string, Provider>, today: string): StreamingOffer[] {
+  const parsed = linkSchema.safeParse(raw);
+  if (!parsed.success || !isAvailable(parsed.data, today)) return [];
+  const link = parsed.data;
+  const context = getProviderContext(link, registry);
+  if (!context) return [];
+  const { provider, host } = context;
+  const types = link.price_types?.length ? link.price_types : ['other'];
+  return types.map((value) => {
+    const type = offerTypeSchema.safeParse(value);
+    return {
+      providerId: `popcorntime:${host?.id ?? ''}:${provider.id}`,
+      providerName: provider.name,
+      via: host?.name ?? null,
+      logo: safeLogo(provider.logo),
+      type: type.success ? type.data : 'other',
+      // The token itself represents a web URL; native-platform metadata is optional.
+      url: `https://popcorntime.app/go/${link.link_token}`,
+      source: 'popcorntime' as const,
+      availabilitySource: 'popcorntime' as const,
+    };
   });
 }
 
-/** Match validated direct offers to TMDB availability, never to a similarly named channel. */
-export function buildPopcornTimeWatchLinks(
+/** Every registered provider is eligible; no TMDB IDs, names or service allowlist required. */
+export function buildPopcornTimeAvailability(
   providerData: unknown,
   linkData: unknown,
-  providers: RegionWatchProviders,
   region: string,
   today: string,
-): DirectWatchLink[] {
-  const names = getProviderNames(providerData, region);
-  if (!names || !Array.isArray(linkData)) return [];
-  const candidates = linkData.flatMap((raw) => {
-    const link = getDirectOffer(raw, today);
-    if (!link) return [];
-    const providerNames = names.get(link.provider_id);
-    return providerNames?.length === 1
-      ? matchOffers(link, providerNames[0], providers, region)
-      : [];
-  });
-  const matches = new Map<string, DirectWatchLink[]>();
-  for (const candidate of candidates) {
-    const key = `${candidate.providerId}:${candidate.types[0]}`;
-    matches.set(key, [...(matches.get(key) ?? []), candidate]);
+): PopcornTimeAvailability {
+  const registry = getRegistry(providerData, region);
+  if (!registry || !Array.isArray(linkData)) return { region, offers: [] };
+  const offers = new Map<string, StreamingOffer>();
+  for (const raw of linkData) {
+    for (const offer of getOffers(raw, registry, today)) {
+      // Keep distinct valid editions/qualities; identical rows need only one card.
+      const key = `${offer.providerId}:${offer.type}:${offer.url}`;
+      offers.set(key, offer);
+    }
   }
-  // Quality duplicates may share one token; different editions/tokens are ambiguous.
-  return [...matches.values()].flatMap((candidates) =>
-    new Set(candidates.map((candidate) => candidate.url)).size === 1 ? [candidates[0]] : [],
-  );
+  return { region, offers: [...offers.values()] };
 }

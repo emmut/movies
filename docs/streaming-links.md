@@ -1,11 +1,12 @@
 # Direct provider title links
 
-The app uses TMDB/JustWatch for country-specific availability. Provider title
-links prefer Popcorn Time, with Wikidata filling individual gaps. A title identifier does not establish a streaming
-licence, price, subscription entitlement, or regional availability. The UI only
-uses a direct link for a matching TMDB provider and allowed offer type in the
-selected country. Provider pages may still require login or be unavailable in the
-viewer's actual location.
+Popcorn Time supplies country-specific offers and provider title links when its
+optional API key is configured. Every valid provider returned by its registry is
+eligible, including services absent from TMDB, ad tiers and channel bundles.
+TMDB/JustWatch offers fill gaps; Wikidata supplies direct links for supported
+TMDB fallback offers. A title identifier alone never establishes availability,
+price or subscription entitlement. Provider pages may require login or be
+unavailable in the viewer's actual location.
 
 ## Popcorn Time primary links
 
@@ -22,19 +23,31 @@ collection of final redirect destinations.
    the expected content type and the same candidate ID. Conflicting or missing
    identity data retains the fallback. The documented API does not expose a
    direct TMDB lookup route; only verified search results are accepted.
-3. Read that media item's links and the selected country's provider registry.
-   Match registry names to a provider in the same TMDB country and offer group.
-   Explicit aliases cover Prime Video and Apple's store/subscription naming.
-   Unknown names, ambiguous matches, channel add-ons and child providers are
-   skipped. Ad tiers do not inherit base-service aliases.
-4. Accept only validated base58 tokens, supported offer types and web-compatible
-   links whose availability dates allow use today. An expiry date equal to today
-   is excluded conservatively. Unsupported combined/cinema/FAST offer types are
-   not inferred as subscription or free offers. Duplicate quality rows sharing
-   a token are collapsed; conflicting tokens for one provider/offer are skipped.
-5. Link to `https://popcorntime.app/go/{token}?platform=web`, as described in the
+3. Read that media item's country-specific links and the country's full provider
+   registry with `hide_children=false`. Resolve provider IDs directly from this
+   registry, without a service allowlist or mapping to TMDB IDs/names. Preserve
+   child providers and explicit host/add-on pairs, displaying the host as
+   “Provider via Host”. Reject missing or contradictory provider relationships.
+4. Accept validated base58 tokens whose availability dates allow use today. An
+   expiry date equal to today is excluded conservatively. Display all documented
+   offer types: subscription, rent, buy, free, ads, cinema, FAST/live channels and
+   subscription-or-purchase. Missing or future price types appear as “Other
+   options”. Optional native-platform metadata does not exclude a web token.
+   Duplicate provider/type/token rows collapse; distinct tokens remain available.
+   Missing or invalid logos use a placeholder without dropping the provider.
+5. Link to `https://popcorntime.app/go/{token}`, whose default is the token's web
+   destination, as described in the
    [redirect documentation](https://docs.popcorntime.app/developers/link-tokens/).
-   Only an exact provider/country/offer match takes precedence over Wikidata.
+6. Add TMDB offers not covered by a same-name, same-type standalone Popcorn Time
+   offer. Names use Unicode-preserving normalization; channel bundles never
+   suppress standalone services. Name aliases may leave duplicate cards, but
+   never prevent a Popcorn Time provider from appearing. A TMDB fallback offer
+   uses Wikidata when a matching provider, country and offer link exists, otherwise
+   the labelled title-specific TMDB watch URL.
+
+New registry providers require no code changes. The implementation supports all
+valid returned providers; the upstream catalogue's completeness remains unmeasured.
+Wikidata fallback coverage remains the smaller explicit set documented below.
 
 Successful title lookups (including ordinary no-match results) revalidate after
 15 minutes and expire after one hour. Country provider registries revalidate
@@ -47,10 +60,12 @@ fully cold lookup, including up to three identity checks; cached registries and
 title results reduce repeat calls. The documented 60 requests/minute account
 limit can still produce 429s on bursts; these fall back without retrying.
 
-Availability streams immediately with labelled TMDB links, independently of
-both optional sources. Country changes perform a server refresh; Popcorn Time
+TMDB availability streams first with labelled TMDB links, independently of
+both optional sources. Popcorn Time offers still appear when TMDB returns no
+providers or its availability lookup fails. Country changes perform a server refresh; Popcorn Time
 links from the previous country cannot be reused while new data arrives. The
-source credit reflects only links actually displayed. `/credits` also explains
+optional-source credits reflect displayed offers and links; JustWatch/TMDB
+attribution and a separate TMDB watch link remain visible. `/credits` also explains
 Popcorn Time's provider redirects and potential affiliate attribution.
 
 ### Access and live verification — 2026-11-04
@@ -68,8 +83,9 @@ not in the outbound allowlist. Live requests and redirect destinations were not
 verified. Tests use the documented request/response contract and mocked failures.
 Before marking the integration ready:
 
-- Confirm the configured API host, `external_ids` source labels, provider names,
-  response envelopes, date formats and redirect route against live responses.
+- Confirm the configured API host, `external_ids` source labels, provider registry
+  fields, both channel/add-on encodings, response envelopes, price types, date
+  formats and redirect route against live responses.
 - Test `movie/1051896` (Arcadian), `movie/1284041` (The Last House), and a TV title
   in Sweden and another supported country; verify correct work, market and offer.
 - Confirm actual provider coverage, attribution, cache/retention rules and token
