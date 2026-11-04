@@ -36,6 +36,7 @@ import {
 import { getUserRegion } from '@/lib/user-actions';
 
 type TvShowPageProps = {
+  searchParams: Promise<{ region?: string | string[] }>;
   params: Promise<{
     tvId: string;
   }>;
@@ -308,7 +309,13 @@ export default async function TvShowPage(props: TvShowPageProps) {
           </Suspense>
 
           <Suspense fallback={<StreamingSectionSkeleton />}>
-            <StreamingSection resourceId={tvId} resourceType="tv" userRegion={userRegion} />
+            <StreamingSection
+              resourceId={tvId}
+              resourceType="tv"
+              resourceTitle={name}
+              userRegion={userRegion}
+              searchParams={props.searchParams}
+            />
           </Suspense>
 
           <OtherContent

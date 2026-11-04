@@ -1,18 +1,20 @@
-import type { RegionCode } from '@movies/config/regions';
+import { getRegionByCode, type RegionCode } from '@movies/config/regions';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { Suspense, type ComponentProps } from 'react';
 
 import { StreamingProviders } from '@/components/streaming-providers';
 import { getMovieWatchProviders } from '@/lib/movies';
+import { getProviderWatchLinks } from '@/lib/provider-watch-links';
 import { optional } from '@/lib/tmdb';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
-import { getWikidataWatchLinks } from '@/lib/wikidata';
-import type { DirectWatchLink } from '@/types/watch-provider';
+import type { ResolvedWatchLink } from '@/types/watch-provider';
 
 type StreamingSectionProps = {
   resourceId: number;
   resourceType: 'movie' | 'tv';
   userRegion: RegionCode;
+  resourceTitle: string;
+  searchParams: Promise<{ region?: string | string[] }>;
 };
 
 /**
@@ -24,17 +26,30 @@ export async function StreamingSection({
   resourceId,
   resourceType,
   userRegion,
+  resourceTitle,
+  searchParams,
 }: StreamingSectionProps) {
   const providers =
     resourceType === 'movie'
       ? getMovieWatchProviders(resourceId)
       : getTvShowWatchProviders(resourceId);
-  const directLinks = getWikidataWatchLinks(resourceType, resourceId);
-  const watchProviders = await optional(providers, { results: {} });
+  const [watchProviders, params] = await Promise.all([
+    optional(providers, { results: {} }),
+    searchParams,
+  ]);
+  const region =
+    (typeof params.region === 'string' && getRegionByCode(params.region)?.code) || userRegion;
+  const directLinks = getProviderWatchLinks(
+    resourceType,
+    resourceId,
+    resourceTitle,
+    region,
+    watchProviders.results?.[region],
+  );
   const props = { watchProviders, resourceId, resourceType, userRegion };
 
   return (
-    <Suspense fallback={<StreamingProviders {...props} directLinks={undefined} />}>
+    <Suspense key={region} fallback={<StreamingProviders {...props} directLinks={undefined} />}>
       <ProvidersWithDirectLinks {...props} directLinks={directLinks} />
     </Suspense>
   );
@@ -45,7 +60,7 @@ async function ProvidersWithDirectLinks({
   directLinks,
   ...props
 }: Omit<ComponentProps<typeof StreamingProviders>, 'directLinks'> & {
-  directLinks: Promise<DirectWatchLink[]>;
+  directLinks: Promise<ResolvedWatchLink[]>;
 }) {
   return <StreamingProviders {...props} directLinks={await directLinks} />;
 }

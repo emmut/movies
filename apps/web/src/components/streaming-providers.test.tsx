@@ -10,7 +10,7 @@ vi.mock('@/lib/utils', () => ({ formatImageUrl: () => 'https://image.tmdb.org/lo
 
 import { useQueryState } from 'nuqs';
 
-import type { DirectWatchLink, WatchOfferType } from '@/types/watch-provider';
+import type { ResolvedWatchLink, WatchOfferType } from '@/types/watch-provider';
 
 import { StreamingProviders } from './streaming-providers';
 
@@ -20,13 +20,14 @@ const provider = {
   logo_path: '/logo.png',
   display_priority: 1,
 };
-const offer: DirectWatchLink = {
+const offer: ResolvedWatchLink = {
+  source: 'wikidata',
   providerId: 8,
   types: ['flatrate'],
   url: 'https://www.netflix.com/title/123',
 };
 
-function render(offers: DirectWatchLink[] = [], type: WatchOfferType = 'flatrate') {
+function render(offers: ResolvedWatchLink[] = [], type: WatchOfferType = 'flatrate') {
   return renderToStaticMarkup(
     <StreamingProviders
       watchProviders={{
@@ -60,6 +61,51 @@ describe('streaming provider destinations', () => {
     expect(html).toContain('View options on TMDB');
     expect(html).not.toContain('Watch on Netflix');
     expect(html).not.toContain('Wikidata');
+  });
+
+  it('credits Popcorn Time when its token wins and hides an unused Wikidata fallback', () => {
+    const primary: ResolvedWatchLink = {
+      ...offer,
+      source: 'popcorntime',
+      regions: ['US'],
+      url: 'https://popcorntime.app/go/3xK9mPv2bQ7nRtYs?platform=web',
+    };
+    const html = render([primary, offer]);
+    expect(html).toContain('href="https://popcorntime.app/go/3xK9mPv2bQ7nRtYs?platform=web"');
+    expect(html).toContain('Popcorn Time');
+    expect(html).not.toContain('Wikidata');
+    expect(html).toContain('JustWatch');
+  });
+
+  it('credits Wikidata after a country change when the Popcorn token belongs to another market', () => {
+    vi.mocked(useQueryState).mockReturnValue(['SE', vi.fn()]);
+    const html = renderToStaticMarkup(
+      <StreamingProviders
+        watchProviders={{
+          results: {
+            SE: {
+              link: 'https://www.themoviedb.org/movie/1/watch?locale=SE',
+              flatrate: [provider],
+            },
+          },
+        }}
+        directLinks={[
+          {
+            ...offer,
+            source: 'popcorntime',
+            regions: ['US'],
+            url: 'https://popcorntime.app/go/3xK9mPv2bQ7nRtYs',
+          },
+          offer,
+        ]}
+        resourceId={1}
+        resourceType="movie"
+        userRegion="US"
+      />,
+    );
+    expect(html).toContain(`href="${offer.url}"`);
+    expect(html).toContain('Wikidata');
+    expect(html).not.toContain('Popcorn Time');
   });
 
   it('does not reuse links from a different region after region changes', () => {

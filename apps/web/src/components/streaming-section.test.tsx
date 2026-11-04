@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('@/lib/movies', () => ({ getMovieWatchProviders: vi.fn() }));
 vi.mock('@/lib/tv-shows', () => ({ getTvShowWatchProviders: vi.fn() }));
-vi.mock('@/lib/wikidata', () => ({ getWikidataWatchLinks: vi.fn() }));
+vi.mock('@/lib/provider-watch-links', () => ({ getProviderWatchLinks: vi.fn() }));
 vi.mock('@/lib/tmdb', () => ({
   optional: async (promise: Promise<unknown>, fallback: unknown) => promise.catch(() => fallback),
 }));
@@ -16,7 +16,7 @@ vi.mock('@/components/streaming-providers', () => ({
     directLinks = [],
   }: {
     watchProviders: { results: Record<string, unknown> };
-    directLinks?: DirectWatchLink[];
+    directLinks?: ResolvedWatchLink[];
   }) => (
     <section>
       <span>{Object.keys(watchProviders.results).join(',') || 'No services available'}</span>
@@ -28,15 +28,21 @@ vi.mock('@/components/streaming-providers', () => ({
 }));
 
 import { getMovieWatchProviders } from '@/lib/movies';
+import { getProviderWatchLinks } from '@/lib/provider-watch-links';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
-import { getWikidataWatchLinks } from '@/lib/wikidata';
-import type { DirectWatchLink } from '@/types/watch-provider';
+import type { ResolvedWatchLink } from '@/types/watch-provider';
 
 import { StreamingSection } from './streaming-section';
 
 const providers = { results: { US: { link: 'https://www.themoviedb.org/movie/123/watch' } } };
-const links: DirectWatchLink[] = [
-  { providerId: 8, types: ['flatrate'], url: 'https://www.netflix.com/title/80057281' },
+const sectionProps = { resourceTitle: 'Title', searchParams: Promise.resolve({}) };
+const links: ResolvedWatchLink[] = [
+  {
+    source: 'popcorntime',
+    providerId: 8,
+    types: ['flatrate'],
+    url: 'https://www.netflix.com/title/80057281',
+  },
 ];
 
 function streamSection(section: ReactNode) {
@@ -72,14 +78,25 @@ describe('streaming section', () => {
       const getProviders =
         resourceType === 'movie' ? getMovieWatchProviders : getTvShowWatchProviders;
       vi.mocked(getProviders).mockResolvedValue(providers);
-      const pending = Promise.withResolvers<DirectWatchLink[]>();
-      vi.mocked(getWikidataWatchLinks).mockReturnValue(pending.promise);
-      const section = await StreamingSection({ resourceType, resourceId: 123, userRegion: 'US' });
+      const pending = Promise.withResolvers<ResolvedWatchLink[]>();
+      vi.mocked(getProviderWatchLinks).mockReturnValue(pending.promise);
+      const section = await StreamingSection({
+        ...sectionProps,
+        resourceType,
+        resourceId: 123,
+        userRegion: 'US',
+      });
       const stream = streamSection(section);
       await stream.shell;
       await stream.firstChunk;
       expect(getProviders).toHaveBeenCalledWith(123);
-      expect(getWikidataWatchLinks).toHaveBeenCalledWith(resourceType, 123);
+      expect(getProviderWatchLinks).toHaveBeenCalledWith(
+        resourceType,
+        123,
+        'Title',
+        'US',
+        providers.results.US,
+      );
       expect(stream.html()).toContain('View options on TMDB');
       expect(stream.html()).toContain('US');
       expect(stream.html()).not.toContain(links[0].url);
@@ -92,9 +109,14 @@ describe('streaming section', () => {
 
   it('keeps watch options usable when the optional lookup returns no links', async () => {
     vi.mocked(getMovieWatchProviders).mockResolvedValue(providers);
-    vi.mocked(getWikidataWatchLinks).mockResolvedValue([]);
+    vi.mocked(getProviderWatchLinks).mockResolvedValue([]);
     const stream = streamSection(
-      await StreamingSection({ resourceType: 'movie', resourceId: 123, userRegion: 'US' }),
+      await StreamingSection({
+        ...sectionProps,
+        resourceType: 'movie',
+        resourceId: 123,
+        userRegion: 'US',
+      }),
     );
     await stream.complete;
     expect(stream.html()).toContain('View options on TMDB');
@@ -103,11 +125,54 @@ describe('streaming section', () => {
 
   it('preserves the availability fallback if TMDB fails', async () => {
     vi.mocked(getMovieWatchProviders).mockRejectedValue(new Error('unavailable'));
-    vi.mocked(getWikidataWatchLinks).mockResolvedValue([]);
+    vi.mocked(getProviderWatchLinks).mockResolvedValue([]);
     const stream = streamSection(
-      await StreamingSection({ resourceType: 'movie', resourceId: 1, userRegion: 'SE' }),
+      await StreamingSection({
+        ...sectionProps,
+        resourceType: 'movie',
+        resourceId: 1,
+        userRegion: 'SE',
+      }),
     );
     await stream.complete;
     expect(stream.html()).toContain('No services available');
   });
+
+  it('resolves links for the URL-selected region instead of the stored preference', async () => {
+    const se = { link: 'https://www.themoviedb.org/movie/123/watch?locale=SE' };
+    vi.mocked(getMovieWatchProviders).mockResolvedValue({
+      results: { ...providers.results, SE: se },
+    });
+    vi.mocked(getProviderWatchLinks).mockResolvedValue([]);
+    await StreamingSection({
+      ...sectionProps,
+      resourceType: 'movie',
+      resourceId: 123,
+      userRegion: 'US',
+      searchParams: Promise.resolve({ region: 'SE' }),
+    });
+    expect(getProviderWatchLinks).toHaveBeenCalledWith('movie', 123, 'Title', 'SE', se);
+  });
+
+  it.each(['invalid', ['SE', 'US']])(
+    'ignores invalid/ambiguous country query values: %j',
+    async (region) => {
+      vi.mocked(getMovieWatchProviders).mockResolvedValue(providers);
+      vi.mocked(getProviderWatchLinks).mockResolvedValue([]);
+      await StreamingSection({
+        ...sectionProps,
+        resourceType: 'movie',
+        resourceId: 123,
+        userRegion: 'US',
+        searchParams: Promise.resolve({ region }),
+      });
+      expect(getProviderWatchLinks).toHaveBeenCalledWith(
+        'movie',
+        123,
+        'Title',
+        'US',
+        providers.results.US,
+      );
+    },
+  );
 });

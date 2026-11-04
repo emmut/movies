@@ -63,7 +63,9 @@ function RegionSelectItem({
 export function RegionSelect({ defaultValue, allRegionProviders }: RegionSelectProps) {
   const [region, setRegion] = useQueryState(
     'region',
-    parseAsStringLiteral(regionCodes).withDefault(defaultValue ?? DEFAULT_REGION),
+    parseAsStringLiteral(regionCodes)
+      .withDefault(defaultValue ?? DEFAULT_REGION)
+      .withOptions({ shallow: false }),
   );
 
   function handleValueChange(value: string | null) {

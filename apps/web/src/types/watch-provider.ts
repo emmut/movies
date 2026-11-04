@@ -22,3 +22,7 @@ export type DirectWatchLink = {
   types: WatchOfferType[];
   url: string;
 };
+
+export type ResolvedWatchLink = DirectWatchLink & {
+  source: 'popcorntime' | 'wikidata';
+};
