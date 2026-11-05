@@ -43,6 +43,13 @@ afterEach(() => {
 });
 
 describe('Wikidata title lookup', () => {
+  it('evaluates local, US and GB claims from one fetch, keeping foreign candidates scoped', async () => {
+    const links = await getWikidataWatchLinks('tv', 66732, 'SE');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(links.filter((link) => link.regions?.includes('SE'))).toHaveLength(3);
+    expect(links.filter((link) => link.regions?.includes('US'))).toHaveLength(3);
+    expect(links.filter((link) => link.regions?.includes('GB'))).toHaveLength(3);
+  });
   it.each(['movie', 'tv'] as const)(
     'resolves %s through TMDB external IDs, not a name search',
     async (type) => {
@@ -97,7 +104,7 @@ describe('Wikidata title lookup', () => {
             },
           }),
         );
-      expect(await getWikidataWatchLinks(type, 66732, 'US')).toHaveLength(3);
+      expect(await getWikidataWatchLinks(type, 66732, 'US')).toHaveLength(6);
       expect(fetchMock.mock.calls[0][0].searchParams.get('srsearch')).toBe(
         `haswbstatement:${property}=66732`,
       );
@@ -199,7 +206,7 @@ describe('Wikidata title lookup', () => {
   it('falls back on timeouts and can retry next time', async () => {
     fetchMock.mockRejectedValueOnce(new DOMException('timeout', 'TimeoutError'));
     expect(await getWikidataWatchLinks('tv', 1, 'US')).toEqual([]);
-    expect(await getWikidataWatchLinks('tv', 1, 'US')).toHaveLength(3);
+    expect(await getWikidataWatchLinks('tv', 1, 'US')).toHaveLength(6);
   });
 
   it('recovers a missing mapping through an exact IMDb claim when no TMDB claim exists', async () => {
@@ -227,7 +234,7 @@ describe('Wikidata title lookup', () => {
           },
         }),
       );
-    expect(await getWikidataWatchLinks('tv', 66732, 'SE')).toHaveLength(3);
+    expect(await getWikidataWatchLinks('tv', 66732, 'SE')).toHaveLength(9);
     expect(fetchMock.mock.calls[0][0].searchParams.get('srsearch')).toBe(
       'haswbstatement:P4983=66732 OR haswbstatement:P345=tt4574334',
     );
@@ -240,7 +247,7 @@ describe('Wikidata title lookup', () => {
         entities: { Q99: body.entities.Q19798734 },
       }),
     );
-    expect(await getWikidataWatchLinks('tv', 66732, 'SE')).toHaveLength(3);
+    expect(await getWikidataWatchLinks('tv', 66732, 'SE')).toHaveLength(9);
     expect(fetchMock.mock.calls[0][0].searchParams.get('redirects')).toBe('yes');
   });
 

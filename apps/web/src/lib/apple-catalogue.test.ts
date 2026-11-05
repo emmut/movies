@@ -30,10 +30,11 @@ const fetchMock = vi.fn();
 beforeEach(() => {
   vi.resetModules();
   vi.clearAllMocks();
-  vi.spyOn(Date, 'now').mockReturnValue(100000);
+  vi.useFakeTimers();
+  vi.setSystemTime(100000);
   vi.spyOn(console, 'warn').mockImplementation(() => {});
   vi.stubGlobal('fetch', fetchMock);
-  fetchMock.mockResolvedValue(Response.json({ results: [movie] }));
+  fetchMock.mockImplementation(async () => Response.json({ results: [movie] }));
   vi.mocked(getMovieCredits).mockResolvedValue({
     id: 1051896,
     cast: [],
@@ -55,6 +56,7 @@ beforeEach(() => {
   });
 });
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -137,14 +139,15 @@ describe('Apple catalogue fetch fallback', () => {
     },
   );
 
-  it('limits process-local cold requests and permits a later request', async () => {
+  it('spaces process-local requests while allowing sequential country fallbacks', async () => {
     const { getAppleCatalogueLinks } = await import('./apple-catalogue');
     expect(await getAppleCatalogueLinks(context, 'SE')).toHaveLength(1);
-    expect(await getAppleCatalogueLinks(context, 'US')).toEqual([]);
+    const fallback = getAppleCatalogueLinks(context, 'US');
+    await vi.advanceTimersByTimeAsync(0);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(console.warn).not.toHaveBeenCalled();
-    vi.mocked(Date.now).mockReturnValue(103100);
-    await getAppleCatalogueLinks(context, 'US');
+    await vi.advanceTimersByTimeAsync(3100);
+    expect(await fallback).toEqual([]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -152,10 +155,40 @@ describe('Apple catalogue fetch fallback', () => {
     const { getAppleCatalogueLinks } = await import('./apple-catalogue');
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 429 }));
     expect(await getAppleCatalogueLinks(context, 'SE')).toEqual([]);
-    vi.mocked(Date.now).mockReturnValue(104000);
+    vi.setSystemTime(104000);
     expect(await getAppleCatalogueLinks(context, 'SE')).toEqual([]);
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    vi.mocked(Date.now).mockReturnValue(160000);
+    vi.setSystemTime(160000);
     expect(await getAppleCatalogueLinks(context, 'SE')).toHaveLength(1);
+  });
+
+  it('bounds the waiting queue without bursting requests', async () => {
+    const { getAppleCatalogueLinks } = await import('./apple-catalogue');
+    await getAppleCatalogueLinks(context, 'SE');
+    const second = getAppleCatalogueLinks(context, 'US');
+    const third = getAppleCatalogueLinks(context, 'GB');
+    const excess = getAppleCatalogueLinks(context, 'DE');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(await excess).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(6200);
+    await Promise.all([second, third]);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(console.warn).not.toHaveBeenCalled();
+  });
+
+  it('cancels an already queued lookup when a preceding request receives 429', async () => {
+    const { getAppleCatalogueLinks } = await import('./apple-catalogue');
+    const response = Promise.withResolvers<Response>();
+    fetchMock.mockReturnValueOnce(response.promise);
+    const first = getAppleCatalogueLinks(context, 'SE');
+    await vi.advanceTimersByTimeAsync(0);
+    const queued = getAppleCatalogueLinks(context, 'US');
+    await vi.advanceTimersByTimeAsync(0);
+    response.resolve(new Response(null, { status: 429 }));
+    expect(await first).toEqual([]);
+    await vi.advanceTimersByTimeAsync(3100);
+    expect(await queued).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

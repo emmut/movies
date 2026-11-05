@@ -47,6 +47,36 @@ function render(offers: ResolvedWatchLink[] = [], type: WatchOfferType = 'flatra
 beforeEach(() => vi.mocked(useQueryState).mockReturnValue(['US', vi.fn()]));
 
 describe('streaming provider destinations', () => {
+  it.each([
+    ['US', 'US'],
+    ['GB', 'UK'],
+  ] as const)(
+    'labels a %s fallback while keeping local availability and attribution',
+    (fallbackRegion, country) => {
+      vi.mocked(useQueryState).mockReturnValue(['SE', vi.fn()]);
+      const html = renderToStaticMarkup(
+        <StreamingProviders
+          watchProviders={{
+            results: {
+              SE: {
+                link: 'https://www.themoviedb.org/movie/1/watch?locale=SE',
+                flatrate: [provider],
+              },
+            },
+          }}
+          directLinks={[{ ...offer, regions: ['SE'], fallbackRegion }]}
+          resourceId={1}
+          resourceType="movie"
+          userRegion="SE"
+        />,
+      );
+      expect(html).toContain(`Watch on Netflix (${country} catalogue)`);
+      expect(html).toContain('US/UK catalogue links may have different availability or prices.');
+      expect(html).toContain('locale=SE');
+      expect(html).toContain('JustWatch');
+      expect(html).toContain('Wikidata');
+    },
+  );
   it('credits only the winning source for an actual displayed offer', () => {
     const homepage = { ...offer, source: 'tmdb-homepage' as const };
     const html = render([homepage, offer]);

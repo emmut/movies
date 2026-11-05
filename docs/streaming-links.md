@@ -47,9 +47,11 @@ provider, country and offer type, and always retains a labelled TMDB fallback.
    countryless identifier URLs; explicit country qualifiers still apply, and
    only TMDB-reported offers are linked. Host/trailing-slash aliases are
    compared as one destination without hiding different title IDs.
-7. Return links scoped to the selected country. Changing countries refreshes the
-   server section; stale links cannot be used in the new country. TMDB options
-   render before Wikidata settles, so optional lookups do not delay availability.
+7. Evaluate selected-country, US and GB candidates from the same claims response.
+   Every candidate retains its lookup country. Only local candidates can render
+   initially; foreign candidates require the explicit fallback stage below.
+   Changing countries refreshes the server section and discards old display scopes.
+   TMDB options render before optional lookups settle.
 
 ## Free fallback sources
 
@@ -66,7 +68,8 @@ results must match the normalized localized/original title, exact release year
 and a director from the existing TMDB credits API. TV results must match the show
 name and first-season year and provide a genuine `artistViewUrl` series page;
 a season or episode destination is rejected. Edition conflicts, other hosts,
-unsafe URLs and cross-country links retain TMDB options. Returned title URLs are
+unsafe URLs and results from a different storefront than the requested lookup
+retain fallback. Returned title URLs are
 validated and canonicalized; no provider slug is invented.
 
 This lookup grants only store rent/buy destinations, never Apple TV subscription
@@ -78,9 +81,11 @@ links; JustWatch/TMDB attribution and the title-specific TMDB watch link remain.
 Apple documents approximately 20 calls per minute and recommends caching.
 Metadata revalidates daily with a seven-day maximum lifetime, keyed by title,
 resource type and storefront. Requests have a three-second deadline and no
-immediate retry. A per-process guard spaces cold requests by at least 3.1 seconds;
-excess requests skip the optional source rather than queueing. HTTP 429 starts a
-60-second process cooldown. This is **not a distributed quota guarantee** across
+immediate retry. A per-process queue spaces cold requests by at least 3.1 seconds,
+with at most two waiting reservations; excess requests skip the optional source.
+This permits sequential local/US/GB requests instead of skipping both fallback
+lookups immediately after a local miss. HTTP 429 starts a 60-second process cooldown,
+also checked before already queued requests dispatch. This is **not a distributed quota guarantee** across
 replicas; additional instances share cached results but can issue distinct cold
 requests. Restricted deployments need outbound HTTPS to `itunes.apple.com`.
 Failures escape the cache and retain existing options. Only destination metadata
@@ -92,8 +97,35 @@ Review the API's linked terms before changing this scope.
 For the reported `tv/100088` (The Last of Us), a live TMDB check on 2026-11-05
 listed Swedish HBO Max, HBO Max Amazon Channel, SF Anytime purchase and Amazon
 Video purchase offers. Apple Store was absent. The homepage is an HBO title page;
-these extra sources cannot create the missing Amazon/channel/SF Anytime title
-IDs. This title can therefore still have only its HBO direct destination.
+the local Apple lookup cannot supply those other provider destinations. US/GB
+Wikidata candidates may add labelled foreign links if their data contains the
+exact provider/offer identity; that has not been verified live here.
+
+## Local first, then US and GB
+
+Resolution is per provider and offer: local Wikidata, reviewed homepage and Apple
+lookup all take priority over every US source; all US sources precede GB sources.
+Already resolved local or US offers are never replaced by a later market. The
+selected market is deduplicated: US users can fall back to GB, and GB users to US.
+A missing local Apple rent link does not replace an already resolved local buy link.
+
+Only providers and offer types reported by TMDB for the selected country can
+receive a fallback. The app does not fetch or import foreign availability or
+substitute a subscription/standalone identity for a store/channel offer. Wikidata
+claims are fetched once, including when the request fails; regional filtering is
+performed in memory rather than retrying the same item request for US and GB.
+The existing TMDB homepage is evaluated under each market's reviewed rules, not
+rewritten into a guessed regional URL. Apple queries the actual US/GB storefront
+only if its local Store offer still has no destination.
+
+Accepted foreign URLs retain their original country and title ID. They are never
+rewritten to pretend to be local. Display scoping is separate: the fallback is
+attached only to the unresolved selected-country offer, with `fallbackRegion`
+recording its lookup market. Buttons show `(US catalogue)` or `(UK catalogue)`
+and explain that availability or prices can differ. Even countryless IDs found
+through this fallback carry that label. TMDB's selected-country watch link and
+availability attribution remain available. Ordinary links remain visible while
+country fallback requests finish. Failed or unmatchable sources retain TMDB options.
 
 ## Provider registry
 
@@ -155,7 +187,7 @@ identifier-backed services above.
 | YouTube / YouTube Free | 192, 235 | Movie `watch?v=…` URL in **P953 only**, free/ads; P1651 and ordinary URL claims often identify trailers and are excluded |
 | Viaplay | 76 | Country-specific title/store pages; subscription and transactional paths stay separate |
 | SF Anytime | 426 | Localized movie/TV title paths; rent/buy |
-| Rakuten TV | 35 | Country-specific movie/TV title paths; never another country's URL |
+| Rakuten TV | 35 | Country-specific movie/TV title paths; foreign fallbacks retain their actual country and label |
 | TV4 Play | 1944 | Swedish programme title IDs |
 | Cineasterna | 496 | Swedish title pages |
 | SkyShowtime | 1773 | Country-specific movie/TV title pages |
@@ -222,7 +254,7 @@ identifier, redirect and URL rules. It needs the existing TMDB access token and
 network access to both APIs. The main summary measures Wikidata only; a separate
 `homepageSummary` measures validated TMDB homepages independently, even if
 Wikidata fails. Counts can overlap and must not be added. The audit does not
-query Apple. It reports per-provider direct/total offer counts,
+query Apple or measure the US/GB fallback stages. It reports per-provider direct/total offer counts,
 the proportion of titles with at least one direct link, relevant properties
 present on each item, missing identities and lookup failures separately.
 

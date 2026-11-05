@@ -102,8 +102,13 @@ provider title route. Apple Store rent/buy gaps can use Apple's key-free catalog
 API at `itunes.apple.com`, with storefront, exact title/year and movie director
 matching. Season/episode URLs cannot stand in for a series. These fallbacks never
 add availability, subscription or channel offers. Catalogue metadata revalidates
-daily; a process-local request guard and 429 cooldown limit cold requests (not a
-distributed quota guarantee). No Apple artwork or previews are used.
+daily; a bounded process-local queue spaces requests and honors a 429 cooldown
+(not a distributed quota guarantee). No Apple artwork or previews are used.
+After all local sources settle, unresolved local provider/offer buttons can use
+US sources, then GB. Foreign URLs retain their storefront and display a US/UK
+catalogue label. They never add foreign availability or replace a local match.
+Wikidata's three-market candidates reuse one claims fetch. Existing options
+remain visible while optional country fallback lookups finish.
 Unsupported or ambiguous destinations retain the explicit TMDB watch-options
 fallback. Standalone IDs are not assigned to channel bundles. No pages are scraped
 and no Wikidata statements are written.
@@ -115,6 +120,6 @@ Measure offer-level coverage with
 `vpx --env-file-if-exists=apps/web/.env scripts/audit-watch-links.ts SE`.
 The JSON report distinguishes missing source data from failed/unmeasured API
 lookups, with independent homepage coverage reported separately. It does not
-query Apple, and the two source counts can overlap. Supported-provider counts do
+query Apple or measure US/GB fallback stages, and source counts can overlap. Supported-provider counts do
 not indicate a catalogue hit rate. See the
 measurement notes in `docs/streaming-links.md`.

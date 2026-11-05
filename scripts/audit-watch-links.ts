@@ -231,7 +231,7 @@ async function main() {
         capturedAt: new Date().toISOString(),
         region,
         scope:
-          'Independent Wikidata and TMDB-homepage coverage; Apple catalogue is not queried by this audit. Source counts may overlap.',
+          'Independent Wikidata and TMDB-homepage coverage; Apple catalogue and US/GB fallback stages are not measured by this audit. Source counts may overlap.',
         summary: summarizeWatchLinkCoverage(rows),
         homepageSummary: summarizeWatchLinkCoverage(
           rows.map((row) => ({

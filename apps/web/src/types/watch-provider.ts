@@ -25,6 +25,7 @@ export type DirectWatchLink = {
 
 export type ResolvedWatchLink = DirectWatchLink & {
   source: 'wikidata' | 'tmdb-homepage' | 'apple';
+  fallbackRegion?: 'US' | 'GB';
 };
 
 export type WatchTitleContext = {

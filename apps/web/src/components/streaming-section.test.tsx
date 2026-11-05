@@ -8,6 +8,7 @@ vi.mock('@/lib/movies', () => ({ getMovieWatchProviders: vi.fn() }));
 vi.mock('@/lib/tv-shows', () => ({ getTvShowWatchProviders: vi.fn() }));
 vi.mock('@/lib/wikidata', () => ({ getWikidataWatchLinks: vi.fn() }));
 vi.mock('@/lib/apple-catalogue', () => ({ getAppleCatalogueLinks: vi.fn() }));
+vi.mock('@/lib/watch-link-fallbacks', () => ({ getMarketFallbackWatchLinks: vi.fn() }));
 vi.mock('@/lib/tmdb', () => ({
   optional: async (promise: Promise<unknown>, fallback: unknown) => promise.catch(() => fallback),
 }));
@@ -31,6 +32,7 @@ vi.mock('@/components/streaming-providers', () => ({
 import { getAppleCatalogueLinks } from '@/lib/apple-catalogue';
 import { getMovieWatchProviders } from '@/lib/movies';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
+import { getMarketFallbackWatchLinks } from '@/lib/watch-link-fallbacks';
 import { getWikidataWatchLinks } from '@/lib/wikidata';
 import type { DirectWatchLink } from '@/types/watch-provider';
 
@@ -65,9 +67,67 @@ function streamSection(section: ReactNode) {
   return { shell, firstChunk, complete, html: () => html };
 }
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(getMarketFallbackWatchLinks).mockImplementation(
+    async (_context, _region, _providers, links) => links,
+  );
+});
 
 describe('streaming section', () => {
+  it('keeps local links visible while country fallbacks stream in', async () => {
+    const provider = {
+      provider_id: 2,
+      provider_name: 'Apple TV Store',
+      logo_path: '/logo.png',
+      display_priority: 1,
+    };
+    vi.mocked(getMovieWatchProviders).mockResolvedValue({
+      results: { SE: { link: 'https://www.themoviedb.org/movie/123/watch', buy: [provider] } },
+    });
+    vi.mocked(getWikidataWatchLinks).mockResolvedValue([]);
+    vi.mocked(getAppleCatalogueLinks).mockResolvedValue([]);
+    const pending = Promise.withResolvers<import('@/types/watch-provider').ResolvedWatchLink[]>();
+    vi.mocked(getMarketFallbackWatchLinks).mockReturnValue(pending.promise);
+    const titleContext = {
+      type: 'movie' as const,
+      id: 123,
+      title: 'Example',
+      originalTitle: 'Example',
+      releaseDate: '2024-01-01',
+      homepage: null,
+    };
+    const stream = streamSection(
+      await StreamingSection({
+        resourceType: 'movie',
+        resourceId: 123,
+        userRegion: 'SE',
+        searchParams: Promise.resolve({}),
+        titleContext,
+      }),
+    );
+    await stream.firstChunk;
+    expect(stream.html()).toContain('View options on TMDB');
+    const url = 'https://itunes.apple.com/us/movie/id1735930123';
+    pending.resolve([
+      {
+        providerId: 2,
+        types: ['buy'],
+        regions: ['SE'],
+        source: 'apple',
+        fallbackRegion: 'US',
+        url,
+      },
+    ]);
+    await stream.complete;
+    expect(stream.html()).toContain(url);
+    expect(getMarketFallbackWatchLinks).toHaveBeenCalledWith(
+      titleContext,
+      'SE',
+      expect.objectContaining({ buy: [provider] }),
+      [],
+    );
+  });
   it('renders a reviewed homepage while Wikidata is pending', async () => {
     vi.mocked(getMovieWatchProviders).mockResolvedValue(providers);
     const pending = Promise.withResolvers<DirectWatchLink[]>();
@@ -128,6 +188,7 @@ describe('streaming section', () => {
     );
     await stream.firstChunk;
     expect(stream.html()).toContain('View options on TMDB');
+    expect(getMarketFallbackWatchLinks).not.toHaveBeenCalled();
     const url = 'https://itunes.apple.com/se/movie/id1735930123';
     pending.resolve([{ providerId: 2, types: ['buy'], regions: ['SE'], url }]);
     await stream.complete;

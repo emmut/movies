@@ -2,6 +2,7 @@ import 'server-only';
 import { cacheLife } from 'next/cache';
 import { z } from 'zod';
 
+import { watchLinkFallbackRegions } from '@/lib/provider-link-sources';
 import { getTmdbExternalIds } from '@/lib/tmdb-external-ids';
 import {
   canonicalWikidataItem,
@@ -68,7 +69,7 @@ async function getClaimsByIdentity(type: 'movie' | 'tv', id: number, imdbId: str
   return matchesWikidataIdentity(claims, type, id, imdbId) ? claims : null;
 }
 
-/** Availability comes from TMDB; Wikidata supplies identifiers/official title URLs without an API key. */
+/** Fetch once and evaluate local/US/GB identities. Foreign candidates stay scoped until explicitly labelled as fallbacks. */
 export async function getWikidataWatchLinks(
   type: 'movie' | 'tv',
   id: number,
@@ -81,8 +82,11 @@ export async function getWikidataWatchLinks(
       ? await getEntityClaims(itemId.data)
       : await getClaimsByIdentity(type, id, externalIds.imdb_id);
     // Evaluate dates outside the raw-claims cache; yesterday's valid link can expire today.
+    const today = new Date().toISOString().slice(0, 10);
     return claims
-      ? buildWikidataWatchLinks(claims, type, region, new Date().toISOString().slice(0, 10))
+      ? [region, ...watchLinkFallbackRegions(region)].flatMap((country) =>
+          buildWikidataWatchLinks(claims, type, country, today),
+        )
       : [];
   } catch (error) {
     // Public resource IDs/status codes only: never log upstream bodies or arbitrary error messages.

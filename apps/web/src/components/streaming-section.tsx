@@ -9,9 +9,11 @@ import {
   homepageWatchLinks,
   primaryWatchLinks,
   needsAppleCatalogue,
+  unresolvedWatchOffers,
 } from '@/lib/provider-link-sources';
 import { optional } from '@/lib/tmdb';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
+import { getMarketFallbackWatchLinks } from '@/lib/watch-link-fallbacks';
 import { getWikidataWatchLinks } from '@/lib/wikidata';
 import type { DirectWatchLink, ResolvedWatchLink, WatchTitleContext } from '@/types/watch-provider';
 
@@ -76,13 +78,19 @@ async function ProvidersWithDirectLinks({
   region: RegionCode;
 }) {
   const links = primaryWatchLinks(await directLinks, homepage);
-  if (!titleContext || !needsAppleCatalogue(props.watchProviders.results[region], links, region)) {
-    return <StreamingProviders {...props} directLinks={links} />;
-  }
-  const apple = getAppleCatalogueLinks(titleContext, region);
+  const apple =
+    titleContext && needsAppleCatalogue(props.watchProviders.results[region], links, region)
+      ? getAppleCatalogueLinks(titleContext, region)
+      : Promise.resolve([]);
   return (
     <Suspense fallback={<StreamingProviders {...props} directLinks={links} />}>
-      <ProvidersWithAppleLinks {...props} links={links} apple={apple} />
+      <ProvidersWithAppleLinks
+        {...props}
+        links={links}
+        apple={apple}
+        region={region}
+        titleContext={titleContext}
+      />
     </Suspense>
   );
 }
@@ -90,16 +98,38 @@ async function ProvidersWithDirectLinks({
 async function ProvidersWithAppleLinks({
   links,
   apple,
+  region,
+  titleContext,
   ...props
 }: Omit<ComponentProps<typeof StreamingProviders>, 'directLinks'> & {
   links: ResolvedWatchLink[];
   apple: Promise<DirectWatchLink[]>;
+  region: RegionCode;
+  titleContext: WatchTitleContext | undefined;
 }) {
   const directLinks = [
     ...links,
     ...(await apple).map((link) => ({ ...link, source: 'apple' as const })),
   ];
-  return <StreamingProviders {...props} directLinks={directLinks} />;
+  const providers = props.watchProviders.results[region];
+  if (!unresolvedWatchOffers(providers, directLinks, region).length) {
+    return <StreamingProviders {...props} directLinks={directLinks} />;
+  }
+  const fallback = getMarketFallbackWatchLinks(titleContext, region, providers, directLinks);
+  return (
+    <Suspense fallback={<StreamingProviders {...props} directLinks={directLinks} />}>
+      <ProvidersWithMarketFallbackLinks {...props} links={fallback} />
+    </Suspense>
+  );
+}
+
+async function ProvidersWithMarketFallbackLinks({
+  links,
+  ...props
+}: Omit<ComponentProps<typeof StreamingProviders>, 'directLinks'> & {
+  links: Promise<ResolvedWatchLink[]>;
+}) {
+  return <StreamingProviders {...props} directLinks={await links} />;
 }
 
 /** Placeholder shown while {@link StreamingSection} streams in. */

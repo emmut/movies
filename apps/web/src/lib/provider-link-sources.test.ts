@@ -7,6 +7,9 @@ import {
   homepageWatchLinks,
   needsAppleCatalogue,
   primaryWatchLinks,
+  unresolvedWatchOffers,
+  watchLinkFallbackRegions,
+  appendMarketFallbackLinks,
 } from './provider-link-sources';
 
 const context: WatchTitleContext = {
@@ -31,6 +34,40 @@ const apple: DirectWatchLink = {
 };
 
 describe('free direct-link sources', () => {
+  it('tries US then GB, without querying the selected market twice', () => {
+    expect(watchLinkFallbackRegions('SE')).toEqual(['US', 'GB']);
+    expect(watchLinkFallbackRegions('US')).toEqual(['GB']);
+    expect(watchLinkFallbackRegions('GB')).toEqual(['US']);
+  });
+
+  it('tracks gaps per local provider and offer, without importing foreign availability', () => {
+    const providers = {
+      link: 'https://www.themoviedb.org/movie/1/watch',
+      rent: [store],
+      buy: [store],
+    };
+    expect(unresolvedWatchOffers(providers, [{ ...apple, types: ['rent'] }], 'SE')).toEqual([
+      { providerId: 2, type: 'buy' },
+    ]);
+    expect(unresolvedWatchOffers(providers, [apple], 'SE')).toEqual([]);
+    expect(unresolvedWatchOffers(undefined, [apple], 'US')).toEqual([]);
+  });
+
+  it('rejects candidates from a different fallback market and retains actual foreign URLs', () => {
+    const providers = { link: 'https://www.themoviedb.org/movie/1/watch', buy: [store] };
+    const candidates = [
+      {
+        ...apple,
+        regions: ['US'],
+        url: 'https://itunes.apple.com/us/movie/id1735930123',
+        source: 'apple' as const,
+      },
+    ];
+    expect(appendMarketFallbackLinks([], candidates, providers, 'SE', 'GB')).toEqual([]);
+    expect(appendMarketFallbackLinks([], candidates, providers, 'SE', 'US')).toEqual([
+      { ...candidates[0], regions: ['SE'], types: ['buy'], fallbackRegion: 'US' },
+    ]);
+  });
   it('accepts only reviewed provider title routes from TMDB homepages', () => {
     expect(homepageWatchLinks(context, 'SE')).toContainEqual({
       providerId: 8,
