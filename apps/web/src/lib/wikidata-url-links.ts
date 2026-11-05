@@ -155,7 +155,7 @@ function urlRules(type: 'movie' | 'tv'): UrlRule[] {
       regions: ['SE'],
     },
     {
-      hosts: ['www.skyshowtime.com', 'skyshowtime.com', 'www.paramountplus.com'],
+      hosts: ['www.skyshowtime.com', 'skyshowtime.com'],
       path: new RegExp(`^/[a-z]{2}/stream/${paths.sky}/${slug}/${slug}/?$`),
       providerIds: [1773],
       types: ['flatrate'],
@@ -368,7 +368,6 @@ function urlRegion(url: URL) {
   // These services put an ISO country (not merely a language) in their title URLs.
   if (
     [
-      'tv.apple.com',
       'www.rakuten.tv',
       'rakuten.tv',
       'www.skyshowtime.com',
@@ -482,8 +481,9 @@ function storeUrlLinks(
 }
 
 function linksFromUrl(value: string, property: string, type: 'movie' | 'tv', region: string) {
-  const url = safeUrl(value);
-  if (!url || !validUrlIdentifier(url)) return [];
+  const parsed = safeUrl(value);
+  if (!parsed || !validUrlIdentifier(parsed)) return [];
+  const url = canonicalTitleUrl(parsed, type);
   const country = urlRegion(url);
   if (country && country !== region) return [];
   return [
@@ -491,6 +491,33 @@ function linksFromUrl(value: string, property: string, type: 'movie' | 'tv', reg
     ...matchedUrlLinks(url, type, region),
     ...storeUrlLinks(url, property, type, region),
   ];
+}
+
+/** Extract the same global title ID used by P9586/P9751/P1874, rather than treating locale paths as separate editions. */
+function canonicalTitleUrl(url: URL, type: 'movie' | 'tv') {
+  if (url.hostname === 'tv.apple.com') {
+    const path = type === 'movie' ? 'movie' : 'show';
+    const match = url.pathname.match(
+      new RegExp(`^/(?:[a-z]{2}/)?${path}/(?:${slug}/)?(umc\\.cmc\\.[a-z0-9]{22,25})/?$`),
+    );
+    if (match) return new URL(`https://tv.apple.com/${path}/${match[1]}`);
+  }
+  if (['www.netflix.com', 'netflix.com'].includes(url.hostname)) {
+    const match = url.pathname.match(
+      /^\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?(?:title|watch)\/(\d{6,8})\/?$/,
+    );
+    if (match) return new URL(`https://www.netflix.com/title/${match[1]}`);
+  }
+  return url;
+}
+
+/** Compare aliases without rewriting the actual validated destination (including required Plex fragments). */
+function destinationIdentity(value: string) {
+  const url = new URL(value);
+  if (url.hash) return url.href;
+  url.hostname = url.hostname.replace(/^www\./, '');
+  url.pathname = url.pathname.replace(/\/$/, '') || '/';
+  return url.href;
 }
 
 function matchedUrlLinks(url: URL, type: 'movie' | 'tv', region: string): DirectWatchLink[] {
@@ -519,7 +546,11 @@ export function wikidataUrlLinks(
 ): DirectWatchLink[] {
   const groups = new Map<
     string,
-    { link: DirectWatchLink; statements: ReturnType<typeof wikidataStatements> }
+    {
+      link: DirectWatchLink;
+      statements: ReturnType<typeof wikidataStatements>;
+      destinations: Map<string, string>;
+    }
   >();
   for (const property of ['P856', 'P953', 'P973']) {
     for (const statement of wikidataStatements(claims[property], 'url', region, today)) {
@@ -529,15 +560,19 @@ export function wikidataUrlLinks(
           const group = groups.get(key) ?? {
             link: { ...link, types: [offerType] },
             statements: [],
+            destinations: new Map<string, string>(),
           };
-          group.statements.push({ ...statement, value: link.url });
+          const identity = destinationIdentity(link.url);
+          group.statements.push({ ...statement, value: identity });
+          group.destinations.set(identity, link.url);
           groups.set(key, group);
         }
       }
     }
   }
-  return [...groups.values()].flatMap(({ link, statements }) => {
-    const url = uniqueWikidataValue(statements);
+  return [...groups.values()].flatMap(({ link, statements, destinations }) => {
+    const identity = uniqueWikidataValue(statements);
+    const url = identity ? destinations.get(identity) : undefined;
     return url ? [{ ...link, url }] : [];
   });
 }

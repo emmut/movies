@@ -200,6 +200,56 @@ describe('Wikidata official provider URLs', () => {
     expect(build('https://vimeo.com/12345678', 'movie', 'US', 'P856')).toEqual([]);
     expect(build('https://vimeo.com/0', 'movie', 'US', 'P953')).toEqual([]);
   });
+  it('extracts an Apple title identity from a foreign storefront URL without reusing its market', () => {
+    const links = build(`https://tv.apple.com/us/movie/my-film/${apple}`, 'movie', 'SE');
+    expect(getDirectWatchUrl(links, 2, 'SE', 'rent')).toBe(`https://tv.apple.com/movie/${apple}`);
+    expect(getDirectWatchUrl(links, 350, 'SE', 'flatrate')).toBe(
+      `https://tv.apple.com/movie/${apple}`,
+    );
+    expect(getDirectWatchUrl(links, 2, 'US', 'rent')).toBeUndefined();
+  });
+
+  it('deduplicates presentation aliases without hiding genuine edition conflicts', () => {
+    const claims = {
+      P856: [
+        statement('https://netflix.com/us/title/80057281'),
+        statement('https://www.netflix.com/watch/80057281/'),
+      ],
+      P973: [statement('https://www.netflix.com/title/80057281?tracking=1')],
+    };
+    const links = buildWikidataWatchLinks(claims, 'movie', 'SE', '2026-11-05');
+    expect(getDirectWatchUrl(links, 8, 'SE', 'flatrate')).toBe(
+      'https://www.netflix.com/title/80057281',
+    );
+    const slashes = buildWikidataWatchLinks(
+      {
+        P856: [
+          statement('https://mubi.com/films/oldboy'),
+          statement('https://www.mubi.com/films/oldboy/'),
+        ],
+      },
+      'movie',
+      'SE',
+      '2026-11-05',
+    );
+    expect(getDirectWatchUrl(slashes, 11, 'SE', 'flatrate')).toBeTruthy();
+  });
+
+  it('keeps explicit country qualifiers and different title IDs restrictive', () => {
+    const claims = {
+      P856: [
+        statement(`https://tv.apple.com/us/movie/my-film/${apple}`, 'normal', {
+          P17: [{ snaktype: 'value', datavalue: { value: { id: 'Q30' } } }],
+        }),
+      ],
+    };
+    expect(buildWikidataWatchLinks(claims, 'movie', 'SE', '2026-11-05')).toEqual([]);
+  });
+
+  it('never treats a Paramount URL as a SkyShowtime destination', () => {
+    expect(build('https://www.paramountplus.com/se/stream/movies/my-film/abc123')).toEqual([]);
+  });
+
   it('prefers structured identifiers over official URL fallbacks for the same provider', () => {
     const claims = {
       P1874: [
@@ -280,7 +330,6 @@ describe('Wikidata official provider URLs', () => {
   });
 
   it.each([
-    ['https://tv.apple.com/us/movie/my-film/' + apple, 'movie', 'SE'],
     ['https://www.rakuten.tv/de/movies/my-film', 'movie', 'SE'],
     ['https://viaplay.no/store/arcadian-2024', 'movie', 'SE'],
     ['https://www.skyshowtime.com/no/stream/movies/my-film/abc123', 'movie', 'SE'],

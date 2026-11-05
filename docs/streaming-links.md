@@ -11,9 +11,12 @@ provider, country and offer type, and always retains a labelled TMDB fallback.
 1. Fetch TMDB's `/{movie|tv}/{id}/external_ids` using the existing client and use
    its exact Wikidata `Q` identifier.
 2. If that identifier is absent/invalid, use Wikidata's Action API search with
-   `haswbstatement:P4947={id}` for movies or `haswbstatement:P4983={id}` for TV.
+   `haswbstatement:P4947={id}` for movies or `haswbstatement:P4983={id}` for TV,
+   with an exact P345 IMDb alternative when TMDB supplies a valid IMDb ID.
    Read at most two results. Require exactly one candidate and verify its claims
-   contain a unique exact ID in the correct namespace before using it. Never
+   contain a unique exact ID before using it. A mismatching TMDB ID or another
+   resource namespace cannot be overridden by an IMDb match. Item merges follow
+   only the validated redirect chain from the requested Q identifier. Never
    match titles by name or assume a movie/TV ID is interchangeable. This is a
    read-only lookup; it does not add or edit Wikidata statements.
 3. Fetch the item's claims with `wbgetentities`, an identifying User-Agent and
@@ -27,7 +30,8 @@ provider, country and offer type, and always retains a labelled TMDB fallback.
 5. Evaluate supported country and time qualifiers before rank selection. An
    applicable local statement takes precedence over an unqualified one;
    preferred rank then takes precedence over normal rank. Conflicting remaining
-   values abstain for that provider. Language/name annotations are accepted;
+   values abstain for that provider/offer, including URL fallbacks: a valid URL
+   cannot restore an identifier rejected for conflicting editions. Language/name annotations are accepted;
    multiple different identifiers still abstain. Unknown qualifiers, unknown
    country IDs, non-Gregorian/imprecise dates, deprecated and non-value statements
    retain the fallback. Start dates are inclusive; end dates are conservatively
@@ -36,8 +40,12 @@ provider, country and offer type, and always retains a labelled TMDB fallback.
    reviewed provider URL with tracking/query/fragment data removed. Only required
    Google Play/YouTube identifiers and the documented Plex fragment are retained.
    Reject credentials, non-standard ports, unsafe schemes, routing escapes and
-   encoded separators. ISO country prefixes on Apple, Rakuten, SkyShowtime and
-   Paramount URLs, and country-specific Viaplay hosts, constrain the destination.
+   encoded separators. ISO country prefixes on Rakuten, SkyShowtime and Paramount URLs, and
+   country-specific Viaplay hosts, constrain the destination. Apple UMC title IDs
+   and Netflix title IDs are extracted from locale URLs into their published
+   countryless identifier URLs; explicit country qualifiers still apply, and
+   only TMDB-reported offers are linked. Host/trailing-slash aliases are
+   compared as one destination without hiding different title IDs.
 7. Return links scoped to the selected country. Changing countries refreshes the
    server section; stale links cannot be used in the new country. TMDB options
    render before Wikidata settles, so optional lookups do not delay availability.
@@ -149,6 +157,48 @@ inside the remote-cache boundary. Restricted deployments need outbound HTTPS to
 `www.wikidata.org`; there is no SPARQL endpoint or extra credential dependency.
 An ordinary lookup needs one Wikidata request on a cold entity cache; a missing
 TMDB Wikidata ID needs at most a reverse-search request and one entity request.
+
+## Measuring hit rate
+
+Provider support is a capability count, not a catalogue hit rate. Measure actual
+provider/offer buttons in a selected country instead:
+
+```sh
+vpx --env-file-if-exists=apps/web/.env scripts/audit-watch-links.ts SE > watch-link-audit.json
+vpx --env-file-if-exists=apps/web/.env scripts/audit-watch-links.ts SE movie/1051896 tv/66732
+```
+
+The default is a fixed nine-title sample (including the two reported movies and
+well-known film/TV controls); explicit resource arguments support up to 30 titles.
+The script performs serial read-only requests and uses the production matcher,
+identifier, redirect and URL rules. It needs the existing TMDB access token and
+network access to both APIs. It reports per-provider direct/total offer counts,
+the proportion of titles with at least one direct link, relevant properties
+present on each item, missing identities and lookup failures separately.
+
+Failed API requests are **unmeasured**, not counted as missing Wikidata data.
+Rates are `null` when no offers can be measured. Exit code 2 indicates incomplete
+lookups, 1 a fatal setup/input/TMDB error, and 0 completed lookups (which can still
+contain missing items or links). Run `vpx` directly when redirecting JSON, so
+package-manager lifecycle output cannot contaminate the report. Failure warnings
+in the app include public resource IDs and HTTP status when available, without
+logging upstream bodies or arbitrary error text.
+
+The earlier saved nine-title Sweden sample contained 55 regional offers: 44
+were Apple Store, Viaplay, Rakuten, SF Anytime, Amazon Video or Blockbuster.
+Adding niche-provider adapters alone does not establish a gain for those
+frequent gaps. Wikipedia article checks for Arcadian, Sinners, Ted Lasso and
+Severance did not demonstrate an incremental source: the first two exposed no
+provider title link in their external-links sections, while Apple pages for the
+shows overlapped known candidates. These are small diagnostic samples, not a
+measured catalogue-wide coverage percentage.
+
+A smoke audit on 2026-11-05 loaded Arcadian's 11 current Swedish TMDB offers, but
+Wikidata was unreachable under the workspace policy. It correctly reported
+one lookup failure, 11 unmeasured offers and `null` rates. This does not establish
+a production hit rate or an improvement percentage. More provider/title data is
+still needed where Wikidata contains no usable destination; no searches of Apple
+or other external catalogues have been enabled in this PR.
 
 ## Validation — 2026-11-05
 

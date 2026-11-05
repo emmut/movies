@@ -202,12 +202,64 @@ describe('Wikidata title lookup', () => {
     expect(await getWikidataWatchLinks('tv', 1, 'US')).toHaveLength(3);
   });
 
+  it('recovers a missing mapping through an exact IMDb claim when no TMDB claim exists', async () => {
+    vi.mocked(getTmdbExternalIds).mockResolvedValue({ imdb_id: 'tt4574334', wikidata_id: null });
+    fetchMock
+      .mockResolvedValueOnce(Response.json({ query: { search: [{ title: 'Q19798734' }] } }))
+      .mockResolvedValueOnce(
+        Response.json({
+          entities: {
+            Q19798734: {
+              claims: {
+                ...body.entities.Q19798734.claims,
+                P345: [
+                  {
+                    rank: 'normal',
+                    mainsnak: {
+                      snaktype: 'value',
+                      datatype: 'external-id',
+                      datavalue: { value: 'tt4574334' },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      );
+    expect(await getWikidataWatchLinks('tv', 66732, 'SE')).toHaveLength(3);
+    expect(fetchMock.mock.calls[0][0].searchParams.get('srsearch')).toBe(
+      'haswbstatement:P4983=66732 OR haswbstatement:P345=tt4574334',
+    );
+  });
+
+  it('reads the canonical entity after a Wikidata merge instead of losing its links', async () => {
+    fetchMock.mockResolvedValue(
+      Response.json({
+        redirects: [{ from: 'Q19798734', to: 'Q99' }],
+        entities: { Q99: body.entities.Q19798734 },
+      }),
+    );
+    expect(await getWikidataWatchLinks('tv', 66732, 'SE')).toHaveLength(3);
+    expect(fetchMock.mock.calls[0][0].searchParams.get('redirects')).toBe('yes');
+  });
+
+  it('logs HTTP status without upstream response text or credentials', async () => {
+    fetchMock.mockResolvedValue(new Response('sensitive upstream response', { status: 403 }));
+    expect(await getWikidataWatchLinks('movie', 1, 'SE')).toEqual([]);
+    expect(console.warn).toHaveBeenCalledWith(
+      'Wikidata title links unavailable; using TMDB watch options.',
+      { type: 'movie', id: 1, reason: 'http', status: 403 },
+    );
+  });
+
   it('falls back without leaking upstream errors if TMDB fails', async () => {
     vi.mocked(getTmdbExternalIds).mockRejectedValue(new Error('sensitive upstream detail'));
     expect(await getWikidataWatchLinks('tv', 1, 'US')).toEqual([]);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(console.warn).toHaveBeenCalledWith(
       'Wikidata title links unavailable; using TMDB watch options.',
+      { type: 'tv', id: 1, reason: 'request_or_data', status: undefined },
     );
   });
 });

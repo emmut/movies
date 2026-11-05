@@ -237,4 +237,15 @@ describe('Wikidata provider identifiers', () => {
     ).toEqual([11]);
     expect(build({})).toEqual([]);
   });
+  it('retains fallback for conflicting identifiers even when a valid URL could restore them', () => {
+    const claims = {
+      P1874: [statement('80057281'), statement('12345678')],
+      P856: [statement('https://www.netflix.com/title/80057281', 'normal', undefined, 'url')],
+      P7299: [statement('114')],
+    };
+    const links = build(claims, 'movie', 'SE');
+    expect(getDirectWatchUrl(links, 8, 'SE', 'flatrate')).toBeUndefined();
+    expect(getDirectWatchUrl(links, 1796, 'SE', 'flatrate')).toBeUndefined();
+    expect(getDirectWatchUrl(links, 11, 'SE', 'flatrate')).toBeTruthy();
+  });
 });

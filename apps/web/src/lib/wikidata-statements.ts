@@ -136,12 +136,18 @@ export function wikidataStatements(
   });
 }
 
-export function uniqueWikidataValue(statements: ReturnType<typeof wikidataStatements>) {
+function selectedValues(statements: ReturnType<typeof wikidataStatements>) {
   const local = statements.filter((statement) => statement.local);
   const scoped = local.length ? local : statements;
   const preferred = scoped.filter((statement) => statement.rank === 'preferred');
-  const values = [
-    ...new Set((preferred.length ? preferred : scoped).map((statement) => statement.value)),
-  ];
+  return [...new Set((preferred.length ? preferred : scoped).map((statement) => statement.value))];
+}
+
+export function uniqueWikidataValue(statements: ReturnType<typeof wikidataStatements>) {
+  const values = selectedValues(statements);
   return values.length === 1 ? values[0] : undefined;
+}
+
+export function hasConflictingWikidataValues(statements: ReturnType<typeof wikidataStatements>) {
+  return selectedValues(statements).length > 1;
 }

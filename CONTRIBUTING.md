@@ -87,7 +87,9 @@ registry covers 35 identifier properties and 65 TMDB provider IDs/variants,
 including regional services and ad tiers. It also reads P856/P953/P973 URLs for
 services without dedicated identifier properties. No extra API key is required.
 Missing TMDB Wikidata IDs can be recovered through a unique, verified exact
-movie/TV ID statement lookup; title names are never used for identity matching.
+movie/TV or IMDb statement lookup; title names are never used for identity matching.
+Merged Q identifiers and localized Apple/Netflix URL aliases are resolved without
+assigning another country’s offer or accepting conflicting title IDs.
 
 Supported country/date qualifiers are evaluated before rank and ambiguity
 selection. Country changes refresh the server section; cached raw Wikidata claims
@@ -101,3 +103,9 @@ and no Wikidata statements are written.
 
 Supported properties, market restrictions, attribution requirements and the
 TMDB policy review are documented in [streaming-links.md](docs/streaming-links.md).
+
+Measure offer-level coverage with
+`vpx --env-file-if-exists=apps/web/.env scripts/audit-watch-links.ts SE`.
+The JSON report distinguishes missing source data from failed/unmeasured API
+lookups; supported-provider counts do not indicate a catalogue hit rate. See the
+measurement notes in `docs/streaming-links.md`.

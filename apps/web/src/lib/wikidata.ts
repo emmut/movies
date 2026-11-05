@@ -3,11 +3,22 @@ import { cacheLife } from 'next/cache';
 import { z } from 'zod';
 
 import { getTmdbExternalIds } from '@/lib/tmdb-external-ids';
+import {
+  canonicalWikidataItem,
+  matchesWikidataIdentity,
+  wikidataIdentitySearch,
+} from '@/lib/wikidata-identity';
 import { buildWikidataWatchLinks } from '@/lib/wikidata-watch-links';
 import type { DirectWatchLink } from '@/types/watch-provider';
 
 const itemIdSchema = z.string().regex(/^Q[1-9]\d*$/);
 const claimsSchema = z.record(z.string(), z.unknown());
+
+class WikidataHttpError extends Error {
+  constructor(readonly status: number) {
+    super('Wikidata request failed');
+  }
+}
 
 async function request(params: Record<string, string>) {
   const url = new URL('https://www.wikidata.org/w/api.php');
@@ -21,7 +32,7 @@ async function request(params: Record<string, string>) {
     cache: 'no-store',
     signal: AbortSignal.timeout(3000),
   });
-  if (!response.ok) throw new Error(`Wikidata request failed (${response.status})`);
+  if (!response.ok) throw new WikidataHttpError(response.status);
   return response.json() as Promise<unknown>;
 }
 
@@ -29,34 +40,17 @@ async function getEntityClaims(itemId: string) {
   'use cache: remote';
   cacheLife({ stale: 3600, revalidate: 86400, expire: 604800 });
   const data = z
-    .object({ entities: z.record(z.string(), z.unknown()) })
-    .parse(await request({ action: 'wbgetentities', ids: itemId, props: 'claims' }));
-  return z.object({ claims: claimsSchema }).parse(data.entities[itemId]).claims;
+    .object({ entities: z.record(z.string(), z.unknown()), redirects: z.unknown().optional() })
+    .parse(
+      await request({ action: 'wbgetentities', ids: itemId, props: 'claims', redirects: 'yes' }),
+    );
+  const canonical = canonicalWikidataItem(itemId, data.redirects);
+  return z.object({ claims: claimsSchema }).parse(data.entities[canonical]).claims;
 }
 
-function hasExactTmdbId(claims: Record<string, unknown>, property: string, id: number) {
-  const snak = z.object({
-    rank: z.enum(['normal', 'preferred']),
-    mainsnak: z.object({
-      snaktype: z.literal('value'),
-      datatype: z.literal('external-id'),
-      datavalue: z.object({ value: z.string() }),
-    }),
-  });
-  const values = claims[property];
-  if (!Array.isArray(values)) return false;
-  const identifiers = values.flatMap((value) => {
-    const parsed = snak.safeParse(value);
-    return parsed.success ? [parsed.data.mainsnak.datavalue.value] : [];
-  });
-  const unique = [...new Set(identifiers)];
-  return unique.length === 1 && unique[0] === String(id);
-}
-
-async function getClaimsByTmdbId(type: 'movie' | 'tv', id: number) {
+async function getClaimsByIdentity(type: 'movie' | 'tv', id: number, imdbId: string | null) {
   'use cache: remote';
   cacheLife({ stale: 3600, revalidate: 86400, expire: 604800 });
-  const property = type === 'movie' ? 'P4947' : 'P4983';
   const data = z
     .object({ query: z.object({ search: z.array(z.object({ title: itemIdSchema })) }) })
     .parse(
@@ -64,14 +58,14 @@ async function getClaimsByTmdbId(type: 'movie' | 'tv', id: number) {
         action: 'query',
         list: 'search',
         srnamespace: '0',
-        srsearch: `haswbstatement:${property}=${id}`,
+        srsearch: wikidataIdentitySearch(type, id, imdbId),
         srlimit: '2',
       }),
     );
   if (data.query.search.length !== 1) return null;
   const claims = await getEntityClaims(data.query.search[0].title);
   // Search is only discovery: require an exact, non-deprecated ID in the correct movie/TV namespace.
-  return hasExactTmdbId(claims, property, id) ? claims : null;
+  return matchesWikidataIdentity(claims, type, id, imdbId) ? claims : null;
 }
 
 /** Availability comes from TMDB; Wikidata supplies identifiers/official title URLs without an API key. */
@@ -85,13 +79,19 @@ export async function getWikidataWatchLinks(
     const itemId = itemIdSchema.safeParse(externalIds.wikidata_id);
     const claims = itemId.success
       ? await getEntityClaims(itemId.data)
-      : await getClaimsByTmdbId(type, id);
+      : await getClaimsByIdentity(type, id, externalIds.imdb_id);
     // Evaluate dates outside the raw-claims cache; yesterday's valid link can expire today.
     return claims
       ? buildWikidataWatchLinks(claims, type, region, new Date().toISOString().slice(0, 10))
       : [];
-  } catch {
-    console.warn('Wikidata title links unavailable; using TMDB watch options.');
+  } catch (error) {
+    // Public resource IDs/status codes only: never log upstream bodies or arbitrary error messages.
+    console.warn('Wikidata title links unavailable; using TMDB watch options.', {
+      type,
+      id,
+      reason: error instanceof WikidataHttpError ? 'http' : 'request_or_data',
+      status: error instanceof WikidataHttpError ? error.status : undefined,
+    });
     return [];
   }
 }
