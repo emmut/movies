@@ -3,6 +3,7 @@
 /** Read-only benchmark: vpx --env-file-if-exists=apps/web/.env scripts/audit-watch-links.ts SE [movie/1051896 ...]. */
 import { z } from 'zod';
 
+import { homepageWatchLinks } from '../apps/web/src/lib/provider-link-sources';
 import {
   summarizeWatchLinkCoverage,
   type WatchLinkAuditRow,
@@ -49,6 +50,11 @@ type ExternalIds = { wikidata_id?: string | null; imdb_id: string | null };
 type Title = {
   title?: string;
   name?: string;
+  original_title?: string;
+  original_name?: string;
+  release_date?: string;
+  first_air_date?: string;
+  homepage?: string | null;
   external_ids?: ExternalIds;
   'watch/providers'?: { results?: Record<string, RegionWatchProviders> };
 };
@@ -183,6 +189,21 @@ async function auditTitle(resource: string, region: string) {
   };
   return {
     ...row,
+    homepageOffers: offerResults(
+      selectedProviders(title, region),
+      homepageWatchLinks(
+        {
+          type,
+          id,
+          title: titleLabel(title, resource),
+          originalTitle: title.original_title ?? title.original_name ?? '',
+          releaseDate: title.release_date ?? title.first_air_date ?? '',
+          homepage: title.homepage ?? null,
+        },
+        region,
+      ),
+      region,
+    ),
     failure: lookup.failure,
     presentProperties: presentProperties(type, lookup.claims),
   };
@@ -209,7 +230,16 @@ async function main() {
       {
         capturedAt: new Date().toISOString(),
         region,
+        scope:
+          'Independent Wikidata and TMDB-homepage coverage; Apple catalogue is not queried by this audit. Source counts may overlap.',
         summary: summarizeWatchLinkCoverage(rows),
+        homepageSummary: summarizeWatchLinkCoverage(
+          rows.map((row) => ({
+            ...row,
+            status: 'resolved' as const,
+            offers: row.homepageOffers,
+          })),
+        ),
         rows,
       },
       null,

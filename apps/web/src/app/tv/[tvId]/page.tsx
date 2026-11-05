@@ -314,6 +314,14 @@ export default async function TvShowPage(props: TvShowPageProps) {
               resourceType="tv"
               userRegion={userRegion}
               searchParams={props.searchParams}
+              titleContext={{
+                type: 'tv',
+                id: tvId,
+                title: tvShow.name,
+                originalTitle: tvShow.original_name,
+                releaseDate: tvShow.first_air_date,
+                homepage: tvShow.homepage,
+              }}
             />
           </Suspense>
 

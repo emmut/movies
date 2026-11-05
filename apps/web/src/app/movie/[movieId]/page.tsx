@@ -196,6 +196,14 @@ export default async function MoviePage(props: MoviePageProps) {
               resourceType="movie"
               userRegion={userRegion}
               searchParams={props.searchParams}
+              titleContext={{
+                type: 'movie',
+                id: movieId,
+                title: movie.title,
+                originalTitle: movie.original_title,
+                releaseDate: movie.release_date,
+                homepage: movie.homepage,
+              }}
             />
           </Suspense>
 

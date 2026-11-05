@@ -7,10 +7,10 @@ import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 import { RegionSelect } from '@/components/region-select';
 import { formatImageUrl } from '@/lib/utils';
-import { getDirectWatchUrl, getTmdbWatchUrl } from '@/lib/watch-links';
+import { getDirectWatchLink, getDirectWatchUrl, getTmdbWatchUrl } from '@/lib/watch-links';
 import type { MovieWatchProviders } from '@/types/movie';
 import type { TvWatchProviders } from '@/types/tv-show';
-import type { DirectWatchLink, WatchOfferType } from '@/types/watch-provider';
+import type { ResolvedWatchLink, WatchOfferType } from '@/types/watch-provider';
 
 const offerGroups = [
   { type: 'free', title: 'Free', action: 'Watch', Icon: TicketCheck, color: 'text-blue-500' },
@@ -34,7 +34,7 @@ const offerGroups = [
 
 type StreamingProvidersProps = {
   watchProviders: MovieWatchProviders | TvWatchProviders;
-  directLinks: DirectWatchLink[] | undefined;
+  directLinks: ResolvedWatchLink[] | undefined;
   resourceId: number;
   resourceType: 'movie' | 'tv';
   userRegion: RegionCode;
@@ -53,9 +53,12 @@ export function StreamingProviders({
   const regionProviders = watchProviders.results?.[region];
   const watchUrl = getTmdbWatchUrl(resourceType, resourceId, region, regionProviders?.link);
   const groups = offerGroups.filter((group) => (regionProviders?.[group.type]?.length ?? 0) > 0);
-  const hasDirectLinks = groups.some((group) =>
-    regionProviders?.[group.type]?.some((provider) =>
-      getDirectWatchUrl(directLinks, provider.provider_id, region, group.type),
+  const sources = new Set(
+    groups.flatMap((group) =>
+      (regionProviders?.[group.type] ?? []).flatMap((provider) => {
+        const link = getDirectWatchLink(directLinks, provider.provider_id, region, group.type);
+        return link ? [link.source] : [];
+      }),
     ),
   );
 
@@ -149,7 +152,7 @@ export function StreamingProviders({
           >
             TMDB
           </a>
-          {hasDirectLinks && (
+          {sources.has('wikidata') && (
             <>
               <span>· Links:</span>
               <a
@@ -159,6 +162,19 @@ export function StreamingProviders({
                 className="underline hover:text-white"
               >
                 Wikidata
+              </a>
+            </>
+          )}
+          {sources.has('apple') && (
+            <>
+              <span>· Links:</span>
+              <a
+                href="https://www.apple.com/apple-tv-app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-white"
+              >
+                Apple
               </a>
             </>
           )}

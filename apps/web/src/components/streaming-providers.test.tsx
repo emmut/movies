@@ -11,7 +11,7 @@ vi.mock('@/lib/utils', () => ({ formatImageUrl: () => 'https://image.tmdb.org/lo
 import { useQueryState } from 'nuqs';
 
 import { buildWikidataWatchLinks } from '@/lib/wikidata-watch-links';
-import type { DirectWatchLink, WatchOfferType } from '@/types/watch-provider';
+import type { ResolvedWatchLink, WatchOfferType } from '@/types/watch-provider';
 
 import { StreamingProviders } from './streaming-providers';
 
@@ -21,13 +21,14 @@ const provider = {
   logo_path: '/logo.png',
   display_priority: 1,
 };
-const offer: DirectWatchLink = {
+const offer: ResolvedWatchLink = {
+  source: 'wikidata',
   providerId: 8,
   types: ['flatrate'],
   url: 'https://www.netflix.com/title/123',
 };
 
-function render(offers: DirectWatchLink[] = [], type: WatchOfferType = 'flatrate') {
+function render(offers: ResolvedWatchLink[] = [], type: WatchOfferType = 'flatrate') {
   return renderToStaticMarkup(
     <StreamingProviders
       watchProviders={{
@@ -46,6 +47,47 @@ function render(offers: DirectWatchLink[] = [], type: WatchOfferType = 'flatrate
 beforeEach(() => vi.mocked(useQueryState).mockReturnValue(['US', vi.fn()]));
 
 describe('streaming provider destinations', () => {
+  it('credits only the winning source for an actual displayed offer', () => {
+    const homepage = { ...offer, source: 'tmdb-homepage' as const };
+    const html = render([homepage, offer]);
+    expect(html).toContain(offer.url);
+    expect(html).toContain('JustWatch');
+    expect(html).toContain('TMDB');
+    expect(html).not.toContain('Wikidata');
+    expect(render([{ ...offer, providerId: 999 }])).not.toContain('Wikidata');
+  });
+
+  it('credits Apple when its store destination is used and preserves availability attribution', () => {
+    const html = renderToStaticMarkup(
+      <StreamingProviders
+        watchProviders={{
+          results: {
+            US: {
+              link: 'https://www.themoviedb.org/movie/1/watch',
+              buy: [{ ...provider, provider_id: 2, provider_name: 'Apple TV Store' }],
+            },
+          },
+        }}
+        directLinks={[
+          {
+            providerId: 2,
+            types: ['rent', 'buy'],
+            source: 'apple',
+            regions: ['US'],
+            url: 'https://itunes.apple.com/us/movie/id1735930123',
+          },
+        ]}
+        resourceId={1}
+        resourceType="movie"
+        userRegion="US"
+      />,
+    );
+    expect(html).toContain('Buy on Apple TV Store');
+    expect(html).toContain('https://www.apple.com/apple-tv-app/');
+    expect(html).toContain('JustWatch');
+    expect(html).toContain('View all watch options on TMDB');
+    expect(html).not.toContain('Wikidata');
+  });
   it('links directly and credits both availability and link sources', () => {
     const html = render([offer]);
     expect(html).toContain(`href="${offer.url}"`);
@@ -124,7 +166,7 @@ describe('streaming provider destinations', () => {
             },
           },
         }}
-        directLinks={links}
+        directLinks={links.map((link) => ({ ...link, source: 'wikidata' as const }))}
         resourceId={1}
         resourceType="movie"
         userRegion="SE"

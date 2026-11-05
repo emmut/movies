@@ -2,7 +2,8 @@
 
 TMDB/JustWatch determines which services and offers are available in the selected
 country. Wikidata supplies optional provider title identifiers and official title
-URLs. No additional account or API key is required. A title link never creates
+URLs, supplemented by reviewed TMDB title homepages and Apple Store catalogue
+lookup. No additional account or API key is required. A title link never creates
 an availability or subscription claim: the UI uses it only for the matching TMDB
 provider, country and offer type, and always retains a labelled TMDB fallback.
 
@@ -49,6 +50,52 @@ provider, country and offer type, and always retains a labelled TMDB fallback.
 7. Return links scoped to the selected country. Changing countries refreshes the
    server section; stale links cannot be used in the new country. TMDB options
    render before Wikidata settles, so optional lookups do not delay availability.
+
+## Free fallback sources
+
+Wikidata remains first in priority. The already-loaded TMDB `homepage` field is
+accepted only when its URL matches the same reviewed provider host/title rules.
+Marketing, generic homepages and arbitrary article links do not qualify. Homepage
+links are visible while Wikidata loads; they require no additional TMDB request.
+
+If a reported Apple TV Store (provider **2**) rent/buy offer still lacks a link,
+the server queries Apple's [Search API](https://performance-partners.apple.com/search-api)
+with the selected ISO country, `limit=25`, and the movie or TV-season entity.
+It accepts only one unambiguous destination in that exact storefront. Movie
+results must match the normalized localized/original title, exact release year
+and a director from the existing TMDB credits API. TV results must match the show
+name and first-season year and provide a genuine `artistViewUrl` series page;
+a season or episode destination is rejected. Edition conflicts, other hosts,
+unsafe URLs and cross-country links retain TMDB options. Returned title URLs are
+validated and canonicalized; no provider slug is invented.
+
+This lookup grants only store rent/buy destinations, never Apple TV subscription
+(provider 350) or an Apple channel bundle. It never adds an offer absent from
+TMDB. Existing links remain visible under a nested Suspense boundary while the
+catalogue request runs. The attribution row credits the source of actual selected
+links; JustWatch/TMDB attribution and the title-specific TMDB watch link remain.
+
+Apple documents approximately 20 calls per minute and recommends caching.
+Metadata revalidates daily with a seven-day maximum lifetime, keyed by title,
+resource type and storefront. Requests have a three-second deadline and no
+immediate retry. A per-process guard spaces cold requests by at least 3.1 seconds;
+excess requests skip the optional source rather than queueing. HTTP 429 starts a
+60-second process cooldown. This is **not a distributed quota guarantee** across
+replicas; additional instances share cached results but can issue distinct cold
+requests. Restricted deployments need outbound HTTPS to `itunes.apple.com`.
+Failures escape the cache and retain existing options. Only destination metadata
+is retained; artwork, audio and previews are stripped before caching and are not
+displayed. The implementation uses links to promote the corresponding Apple
+store content; it does not claim permission for other uses of Apple's assets.
+Review the API's linked terms before changing this scope.
+
+For the reported `tv/100088` (The Last of Us), a live TMDB check on 2026-11-05
+listed Swedish HBO Max, HBO Max Amazon Channel, SF Anytime purchase and Amazon
+Video purchase offers. Apple Store was absent. The homepage is an HBO title page;
+these extra sources cannot create the missing Amazon/channel/SF Anytime title
+IDs. This title can therefore still have only its HBO direct destination.
+
+## Provider registry
 
 The registry covers **65 current TMDB provider IDs/variants**, checked against
 TMDB's movie/TV provider catalogues on 2026-11-05. It has **35 dedicated external-ID
@@ -172,7 +219,10 @@ The default is a fixed nine-title sample (including the two reported movies and
 well-known film/TV controls); explicit resource arguments support up to 30 titles.
 The script performs serial read-only requests and uses the production matcher,
 identifier, redirect and URL rules. It needs the existing TMDB access token and
-network access to both APIs. It reports per-provider direct/total offer counts,
+network access to both APIs. The main summary measures Wikidata only; a separate
+`homepageSummary` measures validated TMDB homepages independently, even if
+Wikidata fails. Counts can overlap and must not be added. The audit does not
+query Apple. It reports per-provider direct/total offer counts,
 the proportion of titles with at least one direct link, relevant properties
 present on each item, missing identities and lookup failures separately.
 
@@ -193,12 +243,21 @@ provider title link in their external-links sections, while Apple pages for the
 shows overlapped known candidates. These are small diagnostic samples, not a
 measured catalogue-wide coverage percentage.
 
+The production homepage matcher was also run against 30 saved live TMDB title
+records. Five titles in Sweden and seven in the US had at least one matching
+homepage provider reported as available. This is a provider-level diagnostic;
+the saved records do not retain offer types, and these links may already exist
+in Wikidata. It does not establish an incremental gain or Apple lookup coverage.
+
 A smoke audit on 2026-11-05 loaded Arcadian's 11 current Swedish TMDB offers, but
 Wikidata was unreachable under the workspace policy. It correctly reported
 one lookup failure, 11 unmeasured offers and `null` rates. This does not establish
 a production hit rate or an improvement percentage. More provider/title data is
-still needed where Wikidata contains no usable destination; no searches of Apple
-or other external catalogues have been enabled in this PR.
+still needed where these sources contain no usable destination. The Apple fallback
+was added after this smoke audit and has not been live-measured: `itunes.apple.com`
+is also outside the workspace outbound policy. Matching, request parameters,
+failures and UI behavior are covered by fixtures based on Apple’s published API
+contract; there is no verified catalogue-wide improvement percentage.
 
 ## Validation — 2026-11-05
 
@@ -239,11 +298,13 @@ Reviewed the official public documentation:
   and [TV external IDs](https://developer.themoviedb.org/reference/tv-series-external-ids)
   document Wikidata IDs as supported external identifiers.
 
-Implementation assessment: direct links derived independently from Wikidata identifiers/official title URLs are
+Implementation assessment: direct links derived from Wikidata identifiers, reviewed
+TMDB title homepages and independently matched Apple catalogue destinations are
 consistent with the retrieved public watch-provider and attribution documentation.
 The UI preserves a separate, visible title-specific TMDB watch link even when all
 provider buttons link directly, credits JustWatch via TMDB, and adds Wikidata
-credit when its identifiers are used. This is an assessment of those documented
+credit when its identifiers are used, or Apple credit when its catalogue is used.
+This is an assessment of those documented
 requirements, not a claim of TMDB endorsement or a complete legal determination.
 
 Verification limit: the full [TMDB API Terms of Use](https://www.themoviedb.org/api-terms-of-use)

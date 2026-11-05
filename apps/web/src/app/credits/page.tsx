@@ -51,6 +51,16 @@ export default function CreditsPage() {
         </p>
       </section>
       <section className="space-y-3">
+        <h2 className="text-xl font-semibold">Apple</h2>
+        <p className="text-sm text-zinc-400">
+          Some Apple TV Store destinations are matched using{' '}
+          <a href="https://performance-partners.apple.com/search-api" className="underline">
+            Apple’s catalogue search
+          </a>
+          . Store availability comes from JustWatch via TMDB.
+        </p>
+      </section>
+      <section className="space-y-3">
         <h2 className="text-xl font-semibold">IMDb</h2>
         <p className="text-sm text-zinc-400">
           Ratings information courtesy of{' '}

@@ -87,7 +87,7 @@ registry covers 35 identifier properties and 65 TMDB provider IDs/variants,
 including regional services and ad tiers. It also reads P856/P953/P973 URLs for
 services without dedicated identifier properties. No extra API key is required.
 Missing TMDB Wikidata IDs can be recovered through a unique, verified exact
-movie/TV or IMDb statement lookup; title names are never used for identity matching.
+movie/TV or IMDb statement lookup; title names are never used for Wikidata identity matching.
 Merged Q identifiers and localized Apple/Netflix URL aliases are resolved without
 assigning another country’s offer or accepting conflicting title IDs.
 
@@ -97,6 +97,13 @@ remain reusable across countries. Claims and reverse lookups revalidate daily
 with a seven-day maximum lifetime; each request has a three-second timeout and
 no immediate retries. Watch options render before the optional lookup finishes.
 Restricted deployments must allow outbound HTTPS to `www.wikidata.org`.
+Remaining gaps can use the existing TMDB title homepage if it matches a reviewed
+provider title route. Apple Store rent/buy gaps can use Apple's key-free catalogue
+API at `itunes.apple.com`, with storefront, exact title/year and movie director
+matching. Season/episode URLs cannot stand in for a series. These fallbacks never
+add availability, subscription or channel offers. Catalogue metadata revalidates
+daily; a process-local request guard and 429 cooldown limit cold requests (not a
+distributed quota guarantee). No Apple artwork or previews are used.
 Unsupported or ambiguous destinations retain the explicit TMDB watch-options
 fallback. Standalone IDs are not assigned to channel bundles. No pages are scraped
 and no Wikidata statements are written.
@@ -107,5 +114,7 @@ TMDB policy review are documented in [streaming-links.md](docs/streaming-links.m
 Measure offer-level coverage with
 `vpx --env-file-if-exists=apps/web/.env scripts/audit-watch-links.ts SE`.
 The JSON report distinguishes missing source data from failed/unmeasured API
-lookups; supported-provider counts do not indicate a catalogue hit rate. See the
+lookups, with independent homepage coverage reported separately. It does not
+query Apple, and the two source counts can overlap. Supported-provider counts do
+not indicate a catalogue hit rate. See the
 measurement notes in `docs/streaming-links.md`.

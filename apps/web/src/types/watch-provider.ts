@@ -22,3 +22,16 @@ export type DirectWatchLink = {
   types: WatchOfferType[];
   url: string;
 };
+
+export type ResolvedWatchLink = DirectWatchLink & {
+  source: 'wikidata' | 'tmdb-homepage' | 'apple';
+};
+
+export type WatchTitleContext = {
+  type: 'movie' | 'tv';
+  id: number;
+  title: string;
+  originalTitle: string;
+  releaseDate: string;
+  homepage: string | null;
+};

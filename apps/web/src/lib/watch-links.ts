@@ -7,12 +7,21 @@ export function getDirectWatchUrl(
   region: string,
   type: WatchOfferType,
 ) {
+  return getDirectWatchLink(links, providerId, region, type)?.url;
+}
+
+export function getDirectWatchLink<T extends DirectWatchLink>(
+  links: T[],
+  providerId: number,
+  region: string,
+  type: WatchOfferType,
+) {
   return links.find(
     (link) =>
       link.providerId === providerId &&
       (!link.regions || link.regions.includes(region)) &&
       link.types.includes(type),
-  )?.url;
+  );
 }
 
 export function getTmdbWatchUrl(type: 'movie' | 'tv', id: number, region: string, link?: string) {

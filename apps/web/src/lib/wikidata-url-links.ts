@@ -493,6 +493,11 @@ function linksFromUrl(value: string, property: string, type: 'movie' | 'tv', reg
   ];
 }
 
+/** Validate an exact title homepage from another trusted title record using the same provider rules. */
+export function reviewedProviderUrlLinks(value: string, type: 'movie' | 'tv', region: string) {
+  return linksFromUrl(value, 'P856', type, region);
+}
+
 /** Extract the same global title ID used by P9586/P9751/P1874, rather than treating locale paths as separate editions. */
 function canonicalTitleUrl(url: URL, type: 'movie' | 'tv') {
   if (url.hostname === 'tv.apple.com') {
