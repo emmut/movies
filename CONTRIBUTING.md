@@ -81,15 +81,23 @@ The PostgreSQL search regression tests run in the e2e CI job after migrations. R
 
 ## Direct streaming links
 
-The watch section resolves TMDB's `wikidata_id`, reads the item's Wikidata claims,
-and builds provider title URLs from validated identifiers. No paid service or
-additional API key is required. Restricted deployments must allow outbound HTTPS
-to `www.wikidata.org`; otherwise the section keeps the labelled TMDB fallback.
-TMDB external IDs share an hourly cache with the IMDb reader. Wikidata links
-refresh daily, with a seven-day maximum lifetime and a three-second request timeout.
-Watch options render as soon as availability is ready; optional direct links
-stream in afterwards. Region changes use the already fetched
-links and TMDB's regional availability without extra Wikidata requests.
+The watch section uses TMDB/JustWatch for country-specific availability and
+Wikidata for provider title identifiers and reviewed official title URLs. The
+registry covers 35 identifier properties and 65 TMDB provider IDs/variants,
+including regional services and ad tiers. It also reads P856/P953/P973 URLs for
+services without dedicated identifier properties. No extra API key is required.
+Missing TMDB Wikidata IDs can be recovered through a unique, verified exact
+movie/TV ID statement lookup; title names are never used for identity matching.
+
+Supported country/date qualifiers are evaluated before rank and ambiguity
+selection. Country changes refresh the server section; cached raw Wikidata claims
+remain reusable across countries. Claims and reverse lookups revalidate daily
+with a seven-day maximum lifetime; each request has a three-second timeout and
+no immediate retries. Watch options render before the optional lookup finishes.
+Restricted deployments must allow outbound HTTPS to `www.wikidata.org`.
+Unsupported or ambiguous destinations retain the explicit TMDB watch-options
+fallback. Standalone IDs are not assigned to channel bundles. No pages are scraped
+and no Wikidata statements are written.
 
 Supported properties, market restrictions, attribution requirements and the
 TMDB policy review are documented in [streaming-links.md](docs/streaming-links.md).

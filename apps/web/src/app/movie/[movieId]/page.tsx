@@ -32,6 +32,7 @@ import { getUserRegion } from '@/lib/user-actions';
 import { formatRuntime } from '@/lib/utils';
 
 type MoviePageProps = {
+  searchParams: Promise<{ region?: string | string[] }>;
   params: Promise<{
     movieId: string;
   }>;
@@ -190,7 +191,12 @@ export default async function MoviePage(props: MoviePageProps) {
           </Suspense>
 
           <Suspense fallback={<StreamingSectionSkeleton />}>
-            <StreamingSection resourceId={movieId} resourceType="movie" userRegion={userRegion} />
+            <StreamingSection
+              resourceId={movieId}
+              resourceType="movie"
+              userRegion={userRegion}
+              searchParams={props.searchParams}
+            />
           </Suspense>
 
           {movie.belongs_to_collection && (

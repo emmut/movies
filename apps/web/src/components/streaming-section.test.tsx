@@ -74,12 +74,17 @@ describe('streaming section', () => {
       vi.mocked(getProviders).mockResolvedValue(providers);
       const pending = Promise.withResolvers<DirectWatchLink[]>();
       vi.mocked(getWikidataWatchLinks).mockReturnValue(pending.promise);
-      const section = await StreamingSection({ resourceType, resourceId: 123, userRegion: 'US' });
+      const section = await StreamingSection({
+        resourceType,
+        resourceId: 123,
+        userRegion: 'US',
+        searchParams: Promise.resolve({}),
+      });
       const stream = streamSection(section);
       await stream.shell;
       await stream.firstChunk;
       expect(getProviders).toHaveBeenCalledWith(123);
-      expect(getWikidataWatchLinks).toHaveBeenCalledWith(resourceType, 123);
+      expect(getWikidataWatchLinks).toHaveBeenCalledWith(resourceType, 123, 'US');
       expect(stream.html()).toContain('View options on TMDB');
       expect(stream.html()).toContain('US');
       expect(stream.html()).not.toContain(links[0].url);
@@ -94,7 +99,12 @@ describe('streaming section', () => {
     vi.mocked(getMovieWatchProviders).mockResolvedValue(providers);
     vi.mocked(getWikidataWatchLinks).mockResolvedValue([]);
     const stream = streamSection(
-      await StreamingSection({ resourceType: 'movie', resourceId: 123, userRegion: 'US' }),
+      await StreamingSection({
+        resourceType: 'movie',
+        resourceId: 123,
+        userRegion: 'US',
+        searchParams: Promise.resolve({}),
+      }),
     );
     await stream.complete;
     expect(stream.html()).toContain('View options on TMDB');
@@ -105,9 +115,39 @@ describe('streaming section', () => {
     vi.mocked(getMovieWatchProviders).mockRejectedValue(new Error('unavailable'));
     vi.mocked(getWikidataWatchLinks).mockResolvedValue([]);
     const stream = streamSection(
-      await StreamingSection({ resourceType: 'movie', resourceId: 1, userRegion: 'SE' }),
+      await StreamingSection({
+        resourceType: 'movie',
+        resourceId: 1,
+        userRegion: 'SE',
+        searchParams: Promise.resolve({}),
+      }),
     );
     await stream.complete;
     expect(stream.html()).toContain('No services available');
   });
+  it('refreshes the selected market instead of using the stored preference', async () => {
+    vi.mocked(getMovieWatchProviders).mockResolvedValue(providers);
+    vi.mocked(getWikidataWatchLinks).mockResolvedValue([]);
+    await StreamingSection({
+      resourceType: 'movie',
+      resourceId: 123,
+      userRegion: 'US',
+      searchParams: Promise.resolve({ region: 'SE' }),
+    });
+    expect(getWikidataWatchLinks).toHaveBeenCalledWith('movie', 123, 'SE');
+  });
+  it.each(['invalid', ['SE', 'US']])(
+    'ignores invalid/ambiguous region query values: %j',
+    async (region) => {
+      vi.mocked(getMovieWatchProviders).mockResolvedValue(providers);
+      vi.mocked(getWikidataWatchLinks).mockResolvedValue([]);
+      await StreamingSection({
+        resourceType: 'movie',
+        resourceId: 123,
+        userRegion: 'US',
+        searchParams: Promise.resolve({ region }),
+      });
+      expect(getWikidataWatchLinks).toHaveBeenCalledWith('movie', 123, 'US');
+    },
+  );
 });

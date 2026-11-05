@@ -10,6 +10,7 @@ vi.mock('@/lib/utils', () => ({ formatImageUrl: () => 'https://image.tmdb.org/lo
 
 import { useQueryState } from 'nuqs';
 
+import { buildWikidataWatchLinks } from '@/lib/wikidata-watch-links';
 import type { DirectWatchLink, WatchOfferType } from '@/types/watch-provider';
 
 import { StreamingProviders } from './streaming-providers';
@@ -85,5 +86,81 @@ describe('streaming provider destinations', () => {
   ] as const)('labels %s links accurately', (type, action) => {
     expect(render([{ ...offer, types: [type] }], type)).toContain(`${action} on Netflix`);
     expect(render([offer], type)).toContain('View options on TMDB');
+  });
+
+  it('renders expanded Nordic and international links only for reported TMDB offers', () => {
+    vi.mocked(useQueryState).mockReturnValue(['SE', vi.fn()]);
+    function item(value: string, datatype = 'external-id') {
+      return { rank: 'normal', mainsnak: { snaktype: 'value', datatype, datavalue: { value } } };
+    }
+    const links = buildWikidataWatchLinks(
+      {
+        P14440: [item('0PKD430VQU4ALLISBLIAGREZ99')],
+        P1874: [item('80057281')],
+        P6817: [item('my-film')],
+        P7299: [item('114')],
+        P856: [item('https://www.sfanytime.com/sv/movie/my-film', 'url')],
+      },
+      'movie',
+      'SE',
+      '2026-11-05',
+    );
+    function entry(id: number, name: string) {
+      return { ...provider, provider_id: id, provider_name: name };
+    }
+    const html = renderToStaticMarkup(
+      <StreamingProviders
+        watchProviders={{
+          results: {
+            SE: {
+              link: 'https://www.themoviedb.org/movie/1/watch?locale=SE',
+              flatrate: [
+                entry(119, 'Amazon Prime Video'),
+                entry(1796, 'Netflix Standard with Ads'),
+                entry(201, 'MUBI Amazon Channel'),
+              ],
+              free: [entry(493, 'SVT Play')],
+              rent: [entry(426, 'SF Anytime')],
+            },
+          },
+        }}
+        directLinks={links}
+        resourceId={1}
+        resourceType="movie"
+        userRegion="SE"
+      />,
+    );
+    expect(html).toContain('Watch on Amazon Prime Video');
+    expect(html).toContain('Watch on Netflix Standard with Ads');
+    expect(html).toContain('Watch on SVT Play');
+    expect(html).toContain('Rent on SF Anytime');
+    expect(html).toContain('View options on TMDB for MUBI Amazon Channel');
+    expect(html).not.toContain('https://mubi.com/films/114');
+    expect(html).toContain('JustWatch');
+    expect(html).toContain('Wikidata');
+  });
+
+  it('keeps a regional TMDB offer visible while the previous country’s links are discarded', () => {
+    vi.mocked(useQueryState).mockReturnValue(['SE', vi.fn()]);
+    const html = renderToStaticMarkup(
+      <StreamingProviders
+        watchProviders={{
+          results: {
+            SE: {
+              link: 'https://www.themoviedb.org/movie/1/watch?locale=SE',
+              flatrate: [provider],
+            },
+          },
+        }}
+        directLinks={[{ ...offer, regions: ['US'] }]}
+        resourceId={1}
+        resourceType="movie"
+        userRegion="US"
+      />,
+    );
+    expect(html).toContain('Netflix');
+    expect(html).toContain('View options on TMDB');
+    expect(html).not.toContain(offer.url);
+    expect(html).not.toContain('Wikidata');
   });
 });

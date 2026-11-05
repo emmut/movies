@@ -38,7 +38,7 @@ export default function CreditsPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Wikidata</h2>
         <p className="text-sm text-zinc-400">
-          Some provider title identifiers come from{' '}
+          Provider title identifiers and some official title URLs come from{' '}
           <a href="https://www.wikidata.org" className="underline">
             Wikidata
           </a>
@@ -46,8 +46,8 @@ export default function CreditsPage() {
           <a href="https://www.wikidata.org/wiki/Wikidata:Licensing" className="underline">
             CC0
           </a>
-          . These identifiers help us link directly to titles; regional availability comes from
-          JustWatch via TMDB.
+          . These data help us link directly to titles; regional availability comes from JustWatch
+          via TMDB.
         </p>
       </section>
       <section className="space-y-3">

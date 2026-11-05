@@ -1,4 +1,4 @@
-import type { RegionCode } from '@movies/config/regions';
+import { getRegionByCode, type RegionCode } from '@movies/config/regions';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { Suspense, type ComponentProps } from 'react';
 
@@ -13,6 +13,7 @@ type StreamingSectionProps = {
   resourceId: number;
   resourceType: 'movie' | 'tv';
   userRegion: RegionCode;
+  searchParams: Promise<{ region?: string | string[] }>;
 };
 
 /**
@@ -24,17 +25,23 @@ export async function StreamingSection({
   resourceId,
   resourceType,
   userRegion,
+  searchParams,
 }: StreamingSectionProps) {
   const providers =
     resourceType === 'movie'
       ? getMovieWatchProviders(resourceId)
       : getTvShowWatchProviders(resourceId);
-  const directLinks = getWikidataWatchLinks(resourceType, resourceId);
-  const watchProviders = await optional(providers, { results: {} });
+  const [watchProviders, params] = await Promise.all([
+    optional(providers, { results: {} }),
+    searchParams,
+  ]);
+  const region =
+    (typeof params.region === 'string' && getRegionByCode(params.region)?.code) || userRegion;
+  const directLinks = getWikidataWatchLinks(resourceType, resourceId, region);
   const props = { watchProviders, resourceId, resourceType, userRegion };
 
   return (
-    <Suspense fallback={<StreamingProviders {...props} directLinks={undefined} />}>
+    <Suspense key={region} fallback={<StreamingProviders {...props} directLinks={undefined} />}>
       <ProvidersWithDirectLinks {...props} directLinks={directLinks} />
     </Suspense>
   );
