@@ -21,6 +21,7 @@ const provider = {
   display_priority: 1,
 };
 const offer: DirectWatchLink = {
+  source: 'wikidata',
   providerId: 8,
   types: ['flatrate'],
   url: 'https://www.netflix.com/title/123',
@@ -45,6 +46,30 @@ function render(offers: DirectWatchLink[] = [], type: WatchOfferType = 'flatrate
 beforeEach(() => vi.mocked(useQueryState).mockReturnValue(['US', vi.fn()]));
 
 describe('streaming provider destinations', () => {
+  it('uses Popcorn Time only for a matching TMDB country, provider and offer', () => {
+    const popcorn: DirectWatchLink = {
+      ...offer,
+      source: 'popcorntime',
+      regions: ['US'],
+      url: 'https://popcorntime.app/go/test-token',
+    };
+    const html = render([popcorn, offer]);
+    expect(html).toContain(`href="${popcorn.url}"`);
+    expect(html).toContain('Popcorn Time');
+    expect(html).not.toContain('Wikidata');
+    expect(html).toContain('JustWatch');
+    expect(html).toContain('View all watch options on TMDB');
+    for (const change of [
+      { providerId: 426 },
+      { regions: ['SE'] },
+      { types: ['rent'] as WatchOfferType[] },
+    ]) {
+      const fallback = render([{ ...popcorn, ...change }]);
+      expect(fallback).not.toContain(popcorn.url);
+      expect(fallback).not.toContain('Popcorn Time');
+      expect(fallback).toContain('View options on TMDB');
+    }
+  });
   it('links directly and credits both availability and link sources', () => {
     const html = render([offer]);
     expect(html).toContain(`href="${offer.url}"`);

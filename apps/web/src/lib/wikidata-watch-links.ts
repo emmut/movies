@@ -120,6 +120,7 @@ export function buildWikidataWatchLinks(
       return [];
     }
     return rule.providerIds.map((providerId) => ({
+      source: 'wikidata',
       providerId,
       url: `${rule.prefix}${id}`,
       types: rule.types,

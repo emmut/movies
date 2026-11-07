@@ -51,6 +51,17 @@ export default function CreditsPage() {
         </p>
       </section>
       <section className="space-y-3">
+        <h2 className="text-xl font-semibold">Popcorn Time</h2>
+        <p className="text-sm text-zinc-400">
+          Some provider links use{' '}
+          <a href="https://popcorntime.app" className="underline">
+            Popcorn Time
+          </a>{' '}
+          catalogue snapshots and its redirect service, which may add affiliate parameters. Regional
+          availability is provided by JustWatch via TMDB.
+        </p>
+      </section>
+      <section className="space-y-3">
         <h2 className="text-xl font-semibold">IMDb</h2>
         <p className="text-sm text-zinc-400">
           Ratings information courtesy of{' '}

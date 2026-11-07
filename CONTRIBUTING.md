@@ -81,9 +81,11 @@ The PostgreSQL search regression tests run in the e2e CI job after migrations. R
 
 ## Direct streaming links
 
-The watch section resolves TMDB's `wikidata_id`, reads the item's Wikidata claims,
-and builds provider title URLs from validated identifiers. No paid service or
-additional API key is required. Restricted deployments must allow outbound HTTPS
+The watch section first uses optional, imported Popcorn Time links for exact
+country/provider/offer matches, then resolves TMDB's `wikidata_id` and builds
+provider title URLs from validated Wikidata identifiers. The Popcorn Time cron
+requires its own API key; Wikidata needs no additional key. Regional availability
+always comes from TMDB. Restricted deployments must allow outbound HTTPS
 to `www.wikidata.org`; otherwise the section keeps the labelled TMDB fallback.
 TMDB external IDs share an hourly cache with the IMDb reader. Wikidata links
 refresh daily, with a seven-day maximum lifetime and a three-second request timeout.

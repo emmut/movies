@@ -307,6 +307,9 @@ importers:
       '@imgproxy/imgproxy-node':
         specifier: 'catalog:'
         version: 1.1.0
+      '@movies/config':
+        specifier: workspace:*
+        version: link:packages/config
       '@movies/db':
         specifier: workspace:*
         version: link:packages/db
@@ -340,6 +343,12 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.4(@types/better-sqlite3@9.6.0)(@types/pg@8.23.1)(kysely@0.29.7)(pg@8.23.1)
+      hyparquet:
+        specifier: 1.32.0
+        version: 1.32.0
+      hyparquet-compressors:
+        specifier: 1.1.3
+        version: 1.1.3
       lucide-react:
         specifier: 'catalog:'
         version: 1.70.0(@types/react@19.3.0)(react@19.3.1)
@@ -3050,6 +3059,9 @@ packages:
   fuzzysort@3.1.0:
     resolution: {integrity: sha512-sR9BNCjBg6LNgwvxlBd0sBABvQitkLzoVY9MYYROQVX/FvfJ4Mai9LsGhDgd8qYdds0bY77VzYd5iuB+v5rwQQ==}
 
+  fzstd@0.1.1:
+    resolution: {integrity: sha512-dkuVSOKKwh3eas5VkJy1AW1vFpet8TA/fGmVA5krThl8YcOVE/8ZIoEA1+U1vEn5ckxxhLirSdY837azmbaNHA==}
+
   gensync@1.0.0-beta.2:
     resolution: {integrity: sha512-3hN7NaskYvMDLQY55gnW3NQ+mesEAepTqlg+VEbj7zzqEMBVNhzcGYYeqFo/TlYz6eQiFcp1HcsCZO+nGgS8zg==}
     engines: {node: '>=6.9.0'}
@@ -3100,6 +3112,15 @@ packages:
   human-signals@8.0.1:
     resolution: {integrity: sha512-eKCa6bwnJhvxj14kZk5NCPc6Hb6BdsU9DZcOnmQKSnO1VKrfV0zCvtttPZUsBvjmNDn8rpcJfpwSYnHBjc95MQ==}
     engines: {node: '>=18.18.0'}
+
+  hyparquet-compressors@1.1.3:
+    resolution: {integrity: sha512-QqObpH8Vu1NKF5qzv7yWwgVso8sQE6irx0L5+WZ5QQ+xXnCQE5/X9K8hzYD6Z4wVjTmsMnZUO1vbutXLhU9AFQ==}
+
+  hyparquet@1.32.0:
+    resolution: {integrity: sha512-SpkvdfgQjcdCJA+MTzo0WSreLLy/aLRYs3xetk1SsuFvq8vF+J/97OaRnZhf+p5Nx3J27i9FhSC0bJ5eQZG/7Q==}
+
+  hysnappy@1.1.1:
+    resolution: {integrity: sha512-/V9XcN2NtRyWjR4LYMfvnvasVVF8jbT/ej0eofBQjZel91E3D813FQ3mQC6gDSMMTCq/FJh28XHeyqr3I/oBRw==}
 
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
@@ -6117,6 +6138,8 @@ snapshots:
 
   fuzzysort@3.1.0: {}
 
+  fzstd@0.1.1: {}
+
   gensync@1.0.0-beta.2: {}
 
   get-east-asian-width@1.7.0: {}
@@ -6151,6 +6174,15 @@ snapshots:
   human-signals@2.1.0: {}
 
   human-signals@8.0.1: {}
+
+  hyparquet-compressors@1.1.3:
+    dependencies:
+      fzstd: 0.1.1
+      hysnappy: 1.1.1
+
+  hyparquet@1.32.0: {}
+
+  hysnappy@1.1.1: {}
 
   ignore@5.3.2: {}
 

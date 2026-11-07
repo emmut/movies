@@ -21,6 +21,7 @@ function currentGitBranch() {
 
 export default defineRailway((ctx) => {
   const prod = ctx.isEnvironment("production");
+  const appSource = github("emmut/movies", prod ? {} : { branch: currentGitBranch() });
 
   // Railway provisions this volume with the managed Postgres; declare it so
   // plans don't try to delete it or shrink it.
@@ -100,7 +101,7 @@ export default defineRailway((ctx) => {
 
   const movies = service("movies", {
     // PR environments track their PR branch; plan/apply for them must run from that branch's checkout.
-    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    source: appSource,
     // Runs before each deploy; a non-zero exit aborts the deploy and keeps the
     // old version live. Both environments apply committed migrations — PR
     // databases start empty and the chain builds them from scratch. The
@@ -149,7 +150,7 @@ export default defineRailway((ctx) => {
     // commit and then the infra apply redeploys it at main, cancelling the
     // first — and Railway reports that cancelled deployment as a failed PR
     // check. Pinning the branch keeps the single deployment green.
-    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    source: appSource,
     // The cron only needs dependencies + Vite+. Railpack's default web build
     // would run `next build`, which fails env validation
     // since this service only has DATABASE_URL.
@@ -174,7 +175,7 @@ export default defineRailway((ctx) => {
   // Availability rows go stale after ~20h, so a run every night refreshes all
   // of them; details only weekly.
   const titleSync = service("title-sync", {
-    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    source: appSource,
     build: { buildCommand: "echo 'skipping app build — cron runs vpx directly'" },
     deploy: {
       startCommand: "./node_modules/.bin/vpx scripts/sync-titles.ts",
@@ -200,7 +201,7 @@ export default defineRailway((ctx) => {
   // UTC, so run an hour later. Only needs the database: the exports are
   // public files, not API calls.
   const searchIndexIngest = service("search-index-ingest", {
-    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    source: appSource,
     build: { buildCommand: "echo 'skipping app build — cron runs vpx directly'" },
     deploy: {
       startCommand: "./node_modules/.bin/vpx scripts/ingest-search-index.ts",
@@ -219,7 +220,27 @@ export default defineRailway((ctx) => {
     },
   });
 
+  // Daily retry of the weekly catalogue, after the documented Saturday export.
+  // Parquet files use ephemeral disk; only validated destinations live in Postgres.
+  const popcorntimeIngest = service("popcorntime-ingest", {
+    source: appSource,
+    build: { buildCommand: "echo 'skipping app build — cron runs vpx directly'" },
+    deploy: {
+      startCommand: "./node_modules/.bin/vpx scripts/ingest-popcorntime.ts",
+      cronSchedule: "0 8 * * *",
+      restartPolicyType: "NEVER",
+      limitOverride: { containers: { cpu: 1, memoryBytes: 1 * GB_IN_BYTES } },
+    },
+    env: {
+      DATABASE_URL: db.env.DATABASE_URL,
+      // Empty on initial provisioning. Set the key on this service in Railway;
+      // preserve it on subsequent applies and keep it out of the web service.
+      POPCORNTIME_API_KEY: preserve(),
+      POPCORNTIME_INGEST_ENABLED: prod ? "true" : "false",
+    },
+  });
+
   return project("movies", {
-    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest, titleSync, searchIndexIngest],
+    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest, titleSync, searchIndexIngest, popcorntimeIngest],
   });
 });

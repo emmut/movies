@@ -36,6 +36,13 @@ railway config apply
 
 ## Notes
 
+- `popcorntime-ingest` imports supplemental provider destinations into the same
+  environment's Postgres. Its API key is a preserved service variable; set it in
+  Railway after provisioning. Production runs daily, previews leave imports
+  disabled. Files use temporary disk and require no persistent volume. The web
+  service continues to use TMDB for availability. See
+  [streaming-links.md](../docs/streaming-links.md) for setup and validation limits.
+
 - PR CI sets `RAILWAY_BOOTSTRAP_POSTGRES=true` only when the preview lacks `postgres-db`, so the first IaC apply creates the database with credentials. Later applies use the existing image-backed service declaration.
 
 - `railway config plan` is safe and does not change Railway.

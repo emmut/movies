@@ -1,13 +1,84 @@
 # Direct provider title links
 
-The app uses TMDB/JustWatch for country-specific availability and Wikidata only
-for provider title identifiers. A title identifier does not establish a streaming
+The app uses TMDB/JustWatch for country-specific availability, with Popcorn Time
+snapshots and Wikidata supplying optional title destinations. A title identifier does not establish a streaming
 licence, price, subscription entitlement, or regional availability. The UI only
 uses a direct link for a matching TMDB provider and allowed offer type in the
 selected country. Provider pages may still require login or be unavailable in the
 viewer's actual location.
 
-## Data flow and coverage
+## Popcorn Time snapshot links
+
+The `popcorntime-ingest` Railway service imports country files into the existing
+environment's Postgres, in `popcorntime_snapshots` and `popcorntime_links`. It runs
+daily to pick up weekly releases and retry failed countries; preview imports are
+disabled. Downloads use temporary disk and are removed on exit, so no additional
+bucket or persistent volume is needed.
+
+The importer joins `metadata/core/media_details.parquet` to each
+`country=XX/links.parquet` by Popcorn Time media ID, retaining the exact TMDB ID and
+movie/TV type. Provider IDs are mapped through the provider registry's **exact**
+names and a reviewed allowlist in `scripts/popcorntime/providers.ts`. Unknown or
+ambiguous providers, add-on channels, season/episode links, unsupported offer
+types, conflicting tokens, and ambiguous title crosswalks stay unresolved. Apple
+TV subscription and store names are intentionally separate; an ambiguous
+`Apple TV` registry entry is not mapped. Extending coverage requires an explicit
+provider rule, not fuzzy matching.
+
+The web server reads imported tokens and constructs the documented
+`https://popcorntime.app/go/{token}` destination. Popcorn Time resolves the token
+on click; its redirect service may add affiliate parameters. Credentials are used
+only by the importer and are never sent to the browser. The app neither decrypts
+tokens nor follows redirects to collect raw provider URLs.
+
+These links take precedence over Wikidata only for the exact country, TMDB
+provider ID and offer type. TMDB still decides which buttons appear; importing a
+link cannot add availability. Only the sources actually used by visible buttons
+are credited. Missing or failed imports retain Wikidata and the labelled TMDB
+fallback. Optional lookups stream after availability, with an hourly database
+cache. Expired offers, future offers and releases older than 21 days are excluded
+from new lookups; cached results expire within one hour.
+
+Before replacing a country's records, the importer downloads that release's
+files, checks manifest sizes, reads the Parquet schemas and validates mappings.
+Replacement and the release marker commit in one transaction, protected by an
+advisory lock. Errors preserve the previous complete country import; the job
+continues other countries and exits unsuccessfully so failed countries are
+retried. A release marker skips countries already imported. A failed or empty
+catalogue never deletes the previous import.
+
+Downloads are authenticated only against the documented first-party
+`api.popcorntime.app/v1/snapshots/file/...` endpoint. Unexpected download hosts or
+redirects fail closed, without forwarding the API key. If the upstream download
+contract changes, update the validator after checking the published contract.
+
+### Setup and validation
+
+1. Deploy migration `0019_popcorntime_links.sql` through the normal web pre-deploy.
+2. Obtain an API key through the [community portal](https://community.popcorntime.app).
+   Set `POPCORNTIME_API_KEY` on the **popcorntime-ingest** Railway service.
+3. Production enables `POPCORNTIME_INGEST_ENABLED`; previews leave it off. For a
+   manual import, set the key, flag and `DATABASE_URL`, then run
+   `pnpm ingest:popcorntime`. The importer does not need the web app's other secrets.
+4. Restricted importer environments must allow `api.popcorntime.app`; users need
+   access to `popcorntime.app` and the destination providers when clicking.
+
+The importer follows the [snapshot API](https://docs.popcorntime.app/developers/snapshots/),
+[schema](https://docs.popcorntime.app/developers/parquet-schema/) and
+[link token](https://docs.popcorntime.app/developers/link-tokens/) documentation.
+The snapshot documentation describes a separate Popcorn Time Open Data License,
+free for personal, research and non-commercial use; commercial use requires a
+separate licence. Importing the files does not establish commercial usage rights.
+
+Tests cover actual Zstandard-compressed Parquet fixtures, import transactions,
+rollback, per-country retries, freshness, matching and source attribution. The
+PostgreSQL suite runs in CI against an isolated schema. Live snapshot imports and
+redirect destinations still need verification with a configured API key: this
+workspace has no Popcorn Time credential and its outbound policy blocks the API.
+The documentation's displayed March 2026 release is not treated as proof of a
+current release; the importer checks the live manifest's publication timestamp.
+
+## Wikidata data flow and coverage
 
 1. Fetch `/{movie|tv}/{id}/external_ids` through the existing authenticated TMDB
    client. Accept only an exact Wikidata `Q` identifier; never match titles by name.

@@ -38,6 +38,26 @@ pnpm ingest:search
 
 Needs `DATABASE_URL` and `SEARCH_INDEX_INGEST_ENABLED=true` (from `apps/web/.env` locally; without the flag the script exits immediately) plus the `pg_trgm` extension, which migration `0015` creates (`0017` replaces the GiST index with GIN for filtered search). Runs daily in production as the `search-index-ingest` Railway cron service (09:00 UTC, after TMDB publishes at 08:00), where the Railway config sets the flag; preview environments leave it off. Without a run the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
 
+## Import Popcorn Time Links
+
+`pnpm ingest:popcorntime` imports optional title destinations into
+`popcorntime_links` and records complete country releases in
+`popcorntime_snapshots`. Requires `DATABASE_URL`, `POPCORNTIME_API_KEY` and
+`POPCORNTIME_INGEST_ENABLED=true`; the disabled default exits without requesting
+data. Credentials belong on the Railway `popcorntime-ingest` service, whose daily
+cron retries the latest weekly release. Previews leave the importer disabled.
+
+Completed country releases are skipped. Downloads use temporary disk; each
+country replaces its rows atomically only after parsing and validation. Failed
+countries preserve their previous import and are retried next run. TMDB continues
+to determine regional availability; these records only supply matching links.
+See [streaming-links.md](../docs/streaming-links.md) for supported mappings,
+freshness limits, download restrictions, licensing and initial setup.
+
+Run the PostgreSQL regressions against a **test database** with
+`POPCORNTIME_TEST_DATABASE_URL=... pnpm test scripts/popcorntime/store.integration.test.ts`.
+The suite creates and drops its own isolated schema.
+
 ## List Watch Providers
 
 Script to list all available watch providers from TMDB API.

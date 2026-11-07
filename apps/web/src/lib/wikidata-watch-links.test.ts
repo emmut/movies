@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test';
 
-import { getDirectWatchUrl } from './watch-links';
+import { getDirectWatchLink } from './watch-links';
 import { buildWikidataWatchLinks } from './wikidata-watch-links';
 
 function statement(value: string, rank = 'normal', qualifiers?: Record<string, unknown>) {
@@ -46,21 +46,21 @@ describe('Wikidata provider identifiers', () => {
       { P9586: [statement(appleId)], P8055: [statement('B07ZPDN57Q')] },
       'movie',
     );
-    expect(getDirectWatchUrl(links, 350, 'SE', 'flatrate')).toContain('tv.apple.com/movie/');
-    expect(getDirectWatchUrl(links, 2, 'SE', 'rent')).toContain('tv.apple.com/movie/');
-    expect(getDirectWatchUrl(links, 350, 'SE', 'rent')).toBeUndefined();
-    expect(getDirectWatchUrl(links, 2, 'SE', 'flatrate')).toBeUndefined();
-    expect(getDirectWatchUrl(links, 9, 'US', 'flatrate')).toContain('amazon.com');
-    expect(getDirectWatchUrl(links, 10, 'US', 'buy')).toContain('amazon.com');
-    expect(getDirectWatchUrl(links, 9, 'SE', 'flatrate')).toBeUndefined();
-    expect(getDirectWatchUrl(links, 10, 'GB', 'rent')).toBeUndefined();
-    expect(getDirectWatchUrl(links, 119, 'US', 'flatrate')).toBeUndefined();
+    expect(getDirectWatchLink(links, 350, 'SE', 'flatrate')?.url).toContain('tv.apple.com/movie/');
+    expect(getDirectWatchLink(links, 2, 'SE', 'rent')?.url).toContain('tv.apple.com/movie/');
+    expect(getDirectWatchLink(links, 350, 'SE', 'rent')?.url).toBeUndefined();
+    expect(getDirectWatchLink(links, 2, 'SE', 'flatrate')?.url).toBeUndefined();
+    expect(getDirectWatchLink(links, 9, 'US', 'flatrate')?.url).toContain('amazon.com');
+    expect(getDirectWatchLink(links, 10, 'US', 'buy')?.url).toContain('amazon.com');
+    expect(getDirectWatchLink(links, 9, 'SE', 'flatrate')?.url).toBeUndefined();
+    expect(getDirectWatchLink(links, 10, 'GB', 'rent')?.url).toBeUndefined();
+    expect(getDirectWatchLink(links, 119, 'US', 'flatrate')?.url).toBeUndefined();
   });
 
   it('restricts Hulu to the US', () => {
     const links = buildWikidataWatchLinks({ P6467: [statement(huluId)] }, 'tv');
-    expect(getDirectWatchUrl(links, 15, 'US', 'flatrate')).toContain('hulu.com');
-    expect(getDirectWatchUrl(links, 15, 'JP', 'flatrate')).toBeUndefined();
+    expect(getDirectWatchLink(links, 15, 'US', 'flatrate')?.url).toContain('hulu.com');
+    expect(getDirectWatchLink(links, 15, 'JP', 'flatrate')?.url).toBeUndefined();
   });
 
   it('prefers preferred statements, deduplicates identical IDs and skips conflicts', () => {
