@@ -30,7 +30,7 @@ export type SearchIndexOptions = {
 // well. Shorter queries stay with TMDB.
 export const MIN_FUZZY_QUERY_LENGTH = 3;
 
-// Similar candidates retained per match operator before re-ranking.
+// Candidates retained per match operator before re-ranking.
 export const CANDIDATE_LIMIT = 40;
 
 // Candidates below this similarity are noise for a nonsense query; matches the
@@ -49,15 +49,17 @@ export const FUZZY_QUERY_TIMEOUT_MS = 1500;
 /**
  * Fuzzy search over the index, as one statement.
  *
- * GIN-backed similarity predicates select plausible whole-title and word
- * matches before sorting by distance. An unfiltered GiST nearest-neighbour
+ * GIN-backed text search selects titles containing every query word, in any
+ * order, with prefix matching on the final word. The `simple` configuration
+ * preserves names and stop words. Trigram predicates add typo-tolerant
+ * whole-title and word matches. An unfiltered GiST nearest-neighbour
  * scan can traverse most of the catalog even with LIMIT 40, exhausting the
  * preview database's memory. Each filtered scan retains `CANDIDATE_LIMIT`
- * rows. Common fragments can still match many rows, so the caller also sets
- * a database statement timeout. The union is then re-ranked:
- * similarity in [0, 1], a flat boost for titles that start with the query
- * (what someone typing expects first), and a gentle log-popularity term so a
- * near-miss on a well-known title outranks an exact hit on an obscure one.
+ * rows, breaking equal distances by popularity before the cutoff. Common
+ * fragments can still match many rows, so the caller sets a statement timeout.
+ * Exact titles come first, followed by matches covering every query word,
+ * then fuzzy matches. Within those groups, similarity, a prefix boost and a
+ * gentle log-popularity term decide the order.
  *
  * The folded query holds only letters, digits, and spaces, so it is safe in
  * LIKE without escaping.
@@ -65,6 +67,11 @@ export const FUZZY_QUERY_TIMEOUT_MS = 1500;
 export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOptions): SQL {
   const typeFilter = mediaType ? sql`and ${searchIndex.mediaType} = ${mediaType}::text` : sql``;
   const q = sql`${folded}::text`;
+  // `folded` contains only letters, digits and spaces, never tsquery syntax.
+  const words = folded.split(' ');
+  const terms = words.map((word, i) => (i === words.length - 1 ? `${word}:*` : word)).join(' & ');
+  const wordQuery = sql`to_tsquery('simple'::regconfig, ${terms}::text)`;
+  const titleWords = sql`to_tsvector('simple'::regconfig, ${searchIndex.searchTitle})`;
 
   return sql`
     with candidates as (
@@ -72,8 +79,19 @@ export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOpti
         select ${searchIndex.tmdbId}, ${searchIndex.mediaType}, ${searchIndex.title},
                ${searchIndex.searchTitle}, ${searchIndex.popularity}
         from ${searchIndex}
+        where ${titleWords} @@ ${wordQuery} ${typeFilter}
+        order by (${searchIndex.searchTitle} = ${q}) desc,
+                 ${searchIndex.popularity} desc, ${searchIndex.mediaType}, ${searchIndex.tmdbId}
+        limit ${CANDIDATE_LIMIT}
+      )
+      union
+      (
+        select ${searchIndex.tmdbId}, ${searchIndex.mediaType}, ${searchIndex.title},
+               ${searchIndex.searchTitle}, ${searchIndex.popularity}
+        from ${searchIndex}
         where ${searchIndex.searchTitle} % ${q} ${typeFilter}
-        order by ${searchIndex.searchTitle} <-> ${q}
+        order by ${searchIndex.searchTitle} <-> ${q},
+                 ${searchIndex.popularity} desc, ${searchIndex.mediaType}, ${searchIndex.tmdbId}
         limit ${CANDIDATE_LIMIT}
       )
       union
@@ -82,12 +100,16 @@ export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOpti
                ${searchIndex.searchTitle}, ${searchIndex.popularity}
         from ${searchIndex}
         where ${q} <% ${searchIndex.searchTitle} ${typeFilter}
-        order by ${q} <<-> ${searchIndex.searchTitle}
+        order by ${q} <<-> ${searchIndex.searchTitle},
+                 (${searchIndex.searchTitle} = ${q}) desc,
+                 ${searchIndex.popularity} desc, ${searchIndex.mediaType}, ${searchIndex.tmdbId}
         limit ${CANDIDATE_LIMIT}
       )
     ),
     scored as (
       select tmdb_id, media_type, title, popularity,
+             search_title = ${q} as exact_match,
+             to_tsvector('simple'::regconfig, search_title) @@ ${wordQuery} as word_match,
              greatest(similarity(search_title, ${q}), word_similarity(${q}, search_title)) as similarity,
              case when search_title like ${`${folded}%`}::text then 0.25 else 0 end as prefix_boost
       from candidates
@@ -95,8 +117,8 @@ export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOpti
     select tmdb_id, media_type, title, popularity, similarity,
            similarity + prefix_boost + 0.05 * ln(1 + popularity) as score
     from scored
-    where similarity >= ${MIN_SIMILARITY}
-    order by score desc, popularity desc
+    where word_match or similarity >= ${MIN_SIMILARITY}
+    order by exact_match desc, word_match desc, score desc, popularity desc, media_type, tmdb_id
     limit ${limit}
   `;
 }
