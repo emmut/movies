@@ -60,7 +60,9 @@ export function sortPersonTitles<T extends PersonTitle>(
   const seen = new Set<string>();
   return sorted.filter((title) => {
     const key = `${title.media_type}:${title.id}`;
-    if (seen.has(key)) return false;
+    if (seen.has(key)) {
+      return false;
+    }
     seen.add(key);
     return true;
   });

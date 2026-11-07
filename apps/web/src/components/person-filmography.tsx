@@ -32,7 +32,9 @@ export function PersonFilmography({ title, titles, userId }: PersonFilmographyPr
   const [sort, setSort] = useState<CreditSort>('relevance');
   const selectId = useId();
   const sorted = sortPersonTitles(titles, sort);
-  if (!sorted.length) return null;
+  if (!sorted.length) {
+    return null;
+  }
 
   return (
     <section className="space-y-4" aria-label={title}>
@@ -49,7 +51,9 @@ export function PersonFilmography({ title, titles, userId }: PersonFilmographyPr
             items={SORT_OPTIONS}
             value={sort}
             onValueChange={(value) => {
-              if (value) setSort(value);
+              if (value) {
+                setSort(value);
+              }
             }}
           >
             <SelectTrigger className="w-44 data-[size=default]:h-10">
