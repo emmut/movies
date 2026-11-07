@@ -1,4 +1,8 @@
-import { buildDiscoverSearchParams, MIN_RUNTIME_FILTER_MINUTES } from '@movies/api/discover-params';
+import {
+  buildDiscoverSearchParams,
+  getDiscoverWatchProviders,
+  MIN_RUNTIME_FILTER_MINUTES,
+} from '@movies/api/discover-params';
 import { describe, expect, it } from 'vite-plus/test';
 
 import { MAJOR_STREAMING_PROVIDERS } from './config';
@@ -6,9 +10,58 @@ import { DEFAULT_REGION } from './regions';
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
+describe('getDiscoverWatchProviders', () => {
+  it.each([
+    { url: [], saved: [8, 9], keywords: [818], expected: undefined },
+    { url: [337, 15], saved: [8, 9], keywords: [818], expected: '337|15' },
+    { url: [], saved: [8, 9], keywords: [], expected: '8|9' },
+    { url: [337], saved: [8, 9], keywords: [], expected: '337' },
+    { url: [], saved: [], keywords: [818], expected: undefined },
+    { url: [], saved: [], keywords: [], expected: undefined },
+  ])(
+    'resolves URL $url, saved $saved and keywords $keywords',
+    ({ url, saved, keywords, expected }) => {
+      expect(getDiscoverWatchProviders(url, saved, keywords)).toBe(expected);
+    },
+  );
+});
+
 describe('buildDiscoverSearchParams', () => {
+  it('combines keywords with genres, pagination and explicit provider filters', () => {
+    expect(
+      buildDiscoverSearchParams({
+        keywordIds: [818, 4379],
+        genreIds: [28],
+        page: 2,
+        sortBy: 'vote_count.desc',
+        watchProviders: '8|9',
+        watchRegion: 'US',
+      }),
+    ).toMatchObject({
+      with_keywords: '818|4379',
+      with_genres: '28',
+      page: 2,
+      sort_by: 'vote_count.desc',
+      include_adult: 'false',
+      with_watch_providers: '8|9',
+      watch_region: 'US',
+    });
+  });
+
+  it('does not silently restrict keyword archives to major streaming providers', () => {
+    const params = buildDiscoverSearchParams({ keywordIds: [818], genreIds: [], page: 1 });
+    expect(params.with_keywords).toBe('818');
+    expect(params).not.toHaveProperty('with_watch_providers');
+    expect(params).not.toHaveProperty('watch_region');
+  });
+
+  it('omits the keyword filter when none are selected', () => {
+    expect(buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1 })).not.toHaveProperty(
+      'with_keywords',
+    );
+  });
   it('applies defaults and the major-provider fallback when nothing extra is given', () => {
-    expect(buildDiscoverSearchParams({ genreIds: [], page: 1 })).toEqual({
+    expect(buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1 })).toEqual({
       page: 1,
       sort_by: 'popularity.desc',
       region: DEFAULT_REGION,
@@ -20,18 +73,27 @@ describe('buildDiscoverSearchParams', () => {
 
   it('includes the genre filter only when genres are selected', () => {
     expect(
-      buildDiscoverSearchParams({ genreIds: [28], page: 2, sortBy: 'vote_average.desc' }),
+      buildDiscoverSearchParams({
+        keywordIds: [],
+        genreIds: [28],
+        page: 2,
+        sortBy: 'vote_average.desc',
+      }),
     ).toMatchObject({
       page: 2,
       sort_by: 'vote_average.desc',
       with_genres: '28',
     });
 
-    expect(buildDiscoverSearchParams({ genreIds: [], page: 1 })).not.toHaveProperty('with_genres');
+    expect(buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1 })).not.toHaveProperty(
+      'with_genres',
+    );
   });
 
   it('joins multiple genres with a pipe (OR semantics)', () => {
-    expect(buildDiscoverSearchParams({ genreIds: [28, 35], page: 1 })).toMatchObject({
+    expect(
+      buildDiscoverSearchParams({ keywordIds: [], genreIds: [28, 35], page: 1 }),
+    ).toMatchObject({
       with_genres: '28|35',
     });
   });
@@ -39,6 +101,7 @@ describe('buildDiscoverSearchParams', () => {
   it('uses the explicit watch-provider filter when both providers and region are set', () => {
     expect(
       buildDiscoverSearchParams({
+        keywordIds: [],
         genreIds: [],
         page: 1,
         watchProviders: '8,9',
@@ -51,19 +114,24 @@ describe('buildDiscoverSearchParams', () => {
   });
 
   it('falls back to major providers but keeps the given watch region when only a region is set', () => {
-    expect(buildDiscoverSearchParams({ genreIds: [], page: 1, watchRegion: 'GB' })).toMatchObject({
+    expect(
+      buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1, watchRegion: 'GB' }),
+    ).toMatchObject({
       with_watch_providers: majorProviders,
       watch_region: 'GB',
     });
   });
 
   it('resolves results for the caller region, not the default one', () => {
-    expect(buildDiscoverSearchParams({ genreIds: [], page: 1, watchRegion: 'US' })).toMatchObject({
+    expect(
+      buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1, watchRegion: 'US' }),
+    ).toMatchObject({
       region: 'US',
     });
 
     expect(
       buildDiscoverSearchParams({
+        keywordIds: [],
         genreIds: [],
         page: 1,
         watchProviders: '8',
@@ -76,18 +144,28 @@ describe('buildDiscoverSearchParams', () => {
 
   it('applies the origin-country filter only when set', () => {
     expect(
-      buildDiscoverSearchParams({ genreIds: [], page: 1, withOriginCountry: 'SE|KR' }),
+      buildDiscoverSearchParams({
+        keywordIds: [],
+        genreIds: [],
+        page: 1,
+        withOriginCountry: 'SE|KR',
+      }),
     ).toMatchObject({
       with_origin_country: 'SE|KR',
     });
 
-    expect(buildDiscoverSearchParams({ genreIds: [], page: 1 })).not.toHaveProperty(
+    expect(buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1 })).not.toHaveProperty(
       'with_origin_country',
     );
   });
 
   it('skips the major-provider fallback when filtering by origin country', () => {
-    const params = buildDiscoverSearchParams({ genreIds: [], page: 1, withOriginCountry: 'IR' });
+    const params = buildDiscoverSearchParams({
+      keywordIds: [],
+      genreIds: [],
+      page: 1,
+      withOriginCountry: 'IR',
+    });
     expect(params).not.toHaveProperty('with_watch_providers');
     expect(params).not.toHaveProperty('watch_region');
   });
@@ -95,6 +173,7 @@ describe('buildDiscoverSearchParams', () => {
   it('keeps an explicit provider filter alongside the origin-country filter', () => {
     expect(
       buildDiscoverSearchParams({
+        keywordIds: [],
         genreIds: [],
         page: 1,
         withOriginCountry: 'SE',
@@ -109,15 +188,15 @@ describe('buildDiscoverSearchParams', () => {
   });
 
   it('applies the runtime filter only for a positive max runtime', () => {
-    expect(buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: 120 })).toMatchObject(
-      {
-        'with_runtime.lte': 120,
-        'with_runtime.gte': MIN_RUNTIME_FILTER_MINUTES,
-      },
-    );
+    expect(
+      buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1, withRuntimeLte: 120 }),
+    ).toMatchObject({
+      'with_runtime.lte': 120,
+      'with_runtime.gte': MIN_RUNTIME_FILTER_MINUTES,
+    });
 
     expect(
-      buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: 0 }),
+      buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1, withRuntimeLte: 0 }),
     ).not.toHaveProperty('with_runtime.lte');
   });
 });

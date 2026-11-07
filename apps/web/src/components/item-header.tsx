@@ -49,7 +49,7 @@ export default function ItemHeader({
               </p>
             )}
           </div>
-          <div className="flex w-full justify-between gap-2 sm:w-max @2xl/title:justify-end">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto @2xl/title:justify-end">
             <SystemListButton
               listType="watchlist"
               resourceId={itemId}
@@ -63,7 +63,6 @@ export default function ItemHeader({
               resourceType={resourceType}
               isActive={isWatched}
               userId={userId}
-              className="mr-auto"
             />
             <QuickAddButton
               mediaId={itemId}

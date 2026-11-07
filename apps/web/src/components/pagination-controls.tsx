@@ -20,11 +20,10 @@ type PaginationControlsProps = {
   totalPages: number;
 };
 
-// Generate page numbers with ellipsis logic (mobile-first)
+// Numbered links are reserved for screens with room for the full range.
 function generatePageNumbers(currentPage: number, totalPages: number) {
   const pages: (number | 'ellipsis')[] = [];
 
-  // Mobile-first: show fewer pages, enhance for desktop with CSS
   if (totalPages <= 5) {
     // If we have 5 or fewer pages, show all
     for (let i = 1; i <= totalPages; i++) {
@@ -67,6 +66,46 @@ function generatePageNumbers(currentPage: number, totalPages: number) {
   return pages;
 }
 
+function PageJump({
+  currentPage,
+  totalPages,
+  onJump,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onJump: (page: number) => void;
+}) {
+  return (
+    <label className="flex items-center gap-2 text-sm whitespace-nowrap text-muted-foreground">
+      <span>Page</span>
+      <Input
+        key={currentPage}
+        aria-label="Page number"
+        type="number"
+        inputMode="numeric"
+        min={1}
+        max={totalPages}
+        defaultValue={currentPage}
+        className="h-11 w-16 appearance-none text-center text-base text-foreground sm:h-10 sm:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.currentTarget.blur();
+          }
+          if (event.key === 'Escape') {
+            event.currentTarget.value = String(currentPage);
+            event.currentTarget.blur();
+          }
+        }}
+        onBlur={(event) => {
+          onJump(Number(event.currentTarget.value));
+          event.currentTarget.value = String(currentPage);
+        }}
+      />
+      <span>of {totalPages}</span>
+    </label>
+  );
+}
+
 export function PaginationControls({ totalPages }: PaginationControlsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -92,7 +131,12 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
   }
 
   function jumpToPage(value: number) {
-    if (value >= 1 && value <= totalPages && value !== currentPageNumber) {
+    if (
+      Number.isInteger(value) &&
+      value >= 1 &&
+      value <= totalPages &&
+      value !== currentPageNumber
+    ) {
       const href = buildPageHref(value);
       scheduleScrollToContent(href);
       router.push(href);
@@ -106,25 +150,35 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
       {totalPages > 1 && (
         <div className="mt-6 mb-3 flex w-full items-center justify-center">
           <Pagination>
-            <PaginationContent className="gap-1 sm:gap-2">
+            <PaginationContent className="flex-nowrap gap-2">
               <PaginationItem>
                 <PaginationPrevious
-                  href={buildPageHref(currentPageNumber - 1)}
+                  href={buildPageHref(Math.max(1, currentPageNumber - 1))}
                   onNavigate={() => scheduleScrollToContent(buildPageHref(currentPageNumber - 1))}
+                  aria-disabled={!hasPrevPage}
+                  tabIndex={hasPrevPage ? 0 : -1}
                   className={clsx(
                     !hasPrevPage && 'pointer-events-none opacity-40',
-                    'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
+                    'size-11 p-0! text-sm sm:h-10 sm:w-auto sm:px-4!',
                   )}
+                />
+              </PaginationItem>
+
+              <PaginationItem className="lg:hidden">
+                <PageJump
+                  currentPage={currentPageNumber}
+                  totalPages={totalPages}
+                  onJump={jumpToPage}
                 />
               </PaginationItem>
 
               {pageNumbers.map((pageNumber, index) =>
                 pageNumber === 'ellipsis' ? (
-                  <PaginationItem key={`ellipsis-${index}`}>
-                    <PaginationEllipsis className="h-6 w-6 sm:h-10 sm:w-10" />
+                  <PaginationItem key={`ellipsis-${index}`} className="hidden lg:block">
+                    <PaginationEllipsis className="size-10" />
                   </PaginationItem>
                 ) : (
-                  <PaginationItem key={pageNumber}>
+                  <PaginationItem key={pageNumber} className="hidden lg:block">
                     <PaginationLink
                       href={buildPageHref(pageNumber)}
                       // The active page's link is a no-op navigation; never
@@ -135,7 +189,7 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
                           : () => scheduleScrollToContent(buildPageHref(pageNumber))
                       }
                       isActive={pageNumber === currentPageNumber}
-                      className="h-6 w-6 text-xs sm:h-10 sm:w-10 sm:text-sm"
+                      className="size-10 text-sm"
                     >
                       {pageNumber}
                     </PaginationLink>
@@ -145,11 +199,13 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
 
               <PaginationItem>
                 <PaginationNext
-                  href={buildPageHref(currentPageNumber + 1)}
+                  href={buildPageHref(Math.min(totalPages, currentPageNumber + 1))}
                   onNavigate={() => scheduleScrollToContent(buildPageHref(currentPageNumber + 1))}
+                  aria-disabled={!hasNextPage}
+                  tabIndex={hasNextPage ? 0 : -1}
                   className={clsx(
                     !hasNextPage && 'pointer-events-none opacity-40',
-                    'h-6 text-xs sm:h-10 sm:px-4 sm:text-sm',
+                    'size-11 p-0! text-sm sm:h-10 sm:w-auto sm:px-4!',
                   )}
                 />
               </PaginationItem>
@@ -159,33 +215,8 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
       )}
 
       {totalPages > 20 && (
-        <div className="mt-2 flex justify-center px-4">
-          <div className="flex flex-col gap-2 text-sm sm:flex-row sm:items-center">
-            <span className="text-center text-xs text-muted-foreground sm:text-sm">
-              Jump to page:
-            </span>
-            <div className="flex items-center justify-center gap-2">
-              <Input
-                type="number"
-                min={1}
-                max={totalPages}
-                placeholder={String(currentPageNumber)}
-                className="h-8 w-16 appearance-none text-center text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const input = e.target as HTMLInputElement;
-                    jumpToPage(Number(input.value));
-                    input.value = '';
-                  }
-                }}
-                onBlur={(e) => {
-                  jumpToPage(Number(e.target.value));
-                  e.target.value = '';
-                }}
-              />
-              <span className="text-xs text-muted-foreground">of {totalPages}</span>
-            </div>
-          </div>
+        <div className="mt-2 hidden justify-center px-4 lg:flex">
+          <PageJump currentPage={currentPageNumber} totalPages={totalPages} onJump={jumpToPage} />
         </div>
       )}
     </>

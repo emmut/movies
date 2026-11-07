@@ -51,11 +51,11 @@ describe('fuzzyQuery', () => {
   it('retains the closest filtered candidates by both trigram distances', () => {
     const { sql, params } = render('intersteller', { limit: 5 });
 
-    expect(sql).toMatch(/order by "search_index"\."search_title" <-> \$\d+::text limit/);
-    expect(sql).toContain('<<-> "search_index"."search_title" limit');
-    expect(params.filter((param) => param === CANDIDATE_LIMIT)).toHaveLength(2);
-    // Two candidate scans, unioned so a title found by both appears once.
-    expect(sql.match(/\) union \(/g)).toHaveLength(1);
+    expect(sql).toMatch(/order by "search_index"\."search_title" <-> \$\d+::text,/);
+    expect(sql).toContain('<<-> "search_index"."search_title",');
+    expect(params.filter((param) => param === CANDIDATE_LIMIT)).toHaveLength(3);
+    // Word and trigram scans are unioned so each title appears once.
+    expect(sql.match(/\) union \(/g)).toHaveLength(2);
   });
 
   it('re-ranks candidates by similarity, prefix boost, and log popularity', () => {
@@ -65,23 +65,33 @@ describe('fuzzyQuery', () => {
     expect(sql).toContain('word_similarity($');
     expect(sql).toContain('case when search_title like $');
     expect(sql).toContain('similarity + prefix_boost + 0.05 * ln(1 + popularity) as score');
-    expect(sql).toContain('order by score desc, popularity desc limit');
+    expect(sql).toContain(
+      'order by exact_match desc, word_match desc, score desc, popularity desc',
+    );
     expect(params).toContain('inter%');
     expect(params).toContain(MIN_SIMILARITY);
     expect(params[params.length - 1]).toBe(5);
   });
 
-  it('applies the media type filter inside both candidate scans', () => {
+  it('applies the media type filter inside every candidate scan', () => {
     const { sql, params } = render('brad pit', { mediaType: 'person', limit: 5 });
 
-    expect(sql.match(/and "search_index"."media_type" = \$\d+::text/g)).toHaveLength(2);
-    expect(params.filter((param) => param === 'person')).toHaveLength(2);
+    expect(sql.match(/and "search_index"."media_type" = \$\d+::text/g)).toHaveLength(3);
+    expect(params.filter((param) => param === 'person')).toHaveLength(3);
   });
 
   it('omits the filter when no media type is given', () => {
     const { sql } = render('brad pit', { limit: 5 });
 
     expect(sql).not.toContain('media_type" =');
+  });
+
+  it('requires every query word and prefix-matches only the final word', () => {
+    const { sql, params } = render('rings fellowship', { limit: 8 });
+
+    expect(sql).toContain('to_tsvector(\'simple\'::regconfig, "search_index"."search_title") @@');
+    expect(params).toContain('rings & fellowship:*');
+    expect(sql).toContain('where word_match or similarity >=');
   });
 });
 

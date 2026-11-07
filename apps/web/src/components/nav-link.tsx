@@ -36,6 +36,7 @@ function NavLinkItem({ href, label, icon, isActive }: NavLinkItemProps) {
       <SidebarMenuItem>
         <SidebarMenuButton
           isActive={isActive}
+          className="h-11 rounded-lg px-4 text-base md:h-10 md:text-sm"
           render={<Link href={href} onClick={() => setOpenMobile(false)} />}
         >
           <Icon className={cn('h-4 w-4', isActive && activeClass)} />

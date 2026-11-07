@@ -1,6 +1,9 @@
 import { Skeleton } from '@movies/ui/components/skeleton';
 
-import { HeaderButtonSkeleton } from '@/components/list-header-skeletons';
+import {
+  HeaderButtonSkeleton,
+  ListHeaderActionPlaceholder,
+} from '@/components/list-header-skeletons';
 import SectionTitle from '@/components/section-title';
 import { LISTS_PER_PAGE } from '@/lib/config';
 
@@ -36,8 +39,8 @@ export default function ListsLoading() {
         </div>
       </div>
 
-      <div className="mb-4 flex h-7 items-center justify-end">
-        <HeaderButtonSkeleton label="Reorder lists" slot="reorder-button-skeleton" />
+      <div className="mb-4 flex items-center justify-end">
+        <ListHeaderActionPlaceholder label="Reorder" slot="reorder-button-skeleton" showSkeleton />
       </div>
 
       {/* Lists grid */}

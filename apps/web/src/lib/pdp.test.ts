@@ -1,14 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 vi.mock('./tmdb', () => ({ tmdbFetch: vi.fn() }));
 vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
-import {
-  getAggregateCredits,
-  getCollection,
-  getKeyword,
-  getKeywordTitles,
-  getPdpExtras,
-  getSeason,
-} from './pdp';
+import { getAggregateCredits, getCollection, getKeyword, getPdpExtras, getSeason } from './pdp';
 import { tmdbFetch } from './tmdb';
 
 beforeEach(() => vi.clearAllMocks());
@@ -43,19 +36,5 @@ describe('PDP requests', () => {
   ] as const)('loads %s including specials', async (path, fetcher) => {
     await fetcher();
     expect(tmdbFetch).toHaveBeenCalledWith(path, expect.anything());
-  });
-  it('preserves keyword, media type, page, and adult exclusion in discovery', async () => {
-    await getKeywordTitles(10, 'tv', 2);
-    expect(tmdbFetch).toHaveBeenCalledWith(
-      '/discover/tv',
-      expect.objectContaining({
-        searchParams: {
-          with_keywords: 10,
-          page: 2,
-          include_adult: 'false',
-          sort_by: 'popularity.desc',
-        },
-      }),
-    );
   });
 });

@@ -1,13 +1,13 @@
 # Contributing
 
-A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared packages in `packages`, PostgreSQL/Drizzle, and the TMDB API. Vite+ 1.4.0 provides testing, linting, formatting, and a local `vp` CLI; its shared configuration lives in `vite.config.ts`.
+A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared packages in `packages`, PostgreSQL/Drizzle, and the TMDB API. Vite+ 1.5.0 provides testing, linting, formatting, and a local `vp` CLI; its shared configuration lives in `vite.config.ts`.
 
 ## Prerequisites
 
 - **Vite+** for Node and pnpm management. Install the global CLI from [viteplus.dev](https://viteplus.dev/guide/global-cli), then open a new terminal so its shims take precedence over older runtime/package-manager shims.
 - A **PostgreSQL** database for local development.
 - A **TMDB API** access token and the other secrets defined in `apps/web/src/env.ts`.
-- Node **24.11.1** is pinned in `.node-version`; pnpm **12.15.0** is pinned with integrity in `package.json`. Vite+ installs and selects both.
+- Node **24.11.1** is pinned in `.node-version`; pnpm **12.18.0** is pinned with integrity in `package.json`. Vite+ installs and selects both.
 
 ## Getting started
 
@@ -71,7 +71,7 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 
 - Anonymous users are supported; their watchlist is migrated onto the account on link/sign-in.
 - List pages answer the stream-provider filter from a local cache of the titles in users' lists (`titles`, `title_availability`), written through on add and refreshed nightly by `scripts/sync-titles.ts`. TMDB stays the source of truth; everything else (discover, search, detail pages) reads TMDB through `'use cache'`. See `docs/title-cache-plan.md` for what the cache is meant to unlock next.
-- Full-page search merges TMDB with a local fuzzy index on page one: `search_index` holds every TMDB id with its original title (from the daily exports), matched with `pg_trgm`. Title-match tiers provide the primary order, with reciprocal-rank fusion combining source ranks inside each tier. Only index candidates absent from TMDB are hydrated, capped at three when TMDB has results. The command palette stays TMDB-first with a zero-result fuzzy fallback to avoid database wake-up latency on every keystroke. An empty index simply degrades to TMDB-only results.
+- Full-page search merges TMDB with a local fuzzy index on page one: `search_index` holds every TMDB id with its original title (from the daily exports). GIN indexes support both `pg_trgm` typo matching and built-in word search for reordered words and an incomplete final word. Local retrieval puts exact titles first, then matches covering all query words, then fuzzy matches; popularity breaks equal-distance candidate ties before the cutoff. Title-match tiers provide the primary merged order, with reciprocal-rank fusion combining source ranks inside each tier. Only index candidates absent from TMDB are hydrated, capped at three when TMDB has results. The command palette stays TMDB-first with a zero-result fuzzy fallback to avoid database wake-up latency on every keystroke. An empty index simply degrades to TMDB-only results. See [search.md](docs/search.md) for the extension assessment and migration details.
 - Auth is Better Auth with Discord/GitHub social providers and passkey support.
 - UI primitives are Base UI (`@base-ui/react`) styled in `packages/ui/src/components/`, shadcn-managed via `components.json`.
 
@@ -88,3 +88,18 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - **Fallow audit** — fails only on findings newly introduced relative to the merge-base.
 
 The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test apps/web/src/lib/search-index.integration.test.ts`; fixtures use a temporary table.
+
+## Direct streaming links
+
+The watch section resolves TMDB's `wikidata_id`, reads the item's Wikidata claims,
+and builds provider title URLs from validated identifiers. No paid service or
+additional API key is required. Restricted deployments must allow outbound HTTPS
+to `www.wikidata.org`; otherwise the section keeps the labelled TMDB fallback.
+TMDB external IDs share an hourly cache with the IMDb reader. Wikidata links
+refresh daily, with a seven-day maximum lifetime and a three-second request timeout.
+Watch options render as soon as availability is ready; optional direct links
+stream in afterwards. Region changes use the already fetched
+links and TMDB's regional availability without extra Wikidata requests.
+
+Supported properties, market restrictions, attribution requirements and the
+TMDB policy review are documented in [streaming-links.md](docs/streaming-links.md).

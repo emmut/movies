@@ -3,8 +3,16 @@ import { describe, expect, it } from 'vite-plus/test';
 import { loadDiscoverSearchParams } from './discover-search-params';
 
 describe('loadDiscoverSearchParams', () => {
+  it('parses single and multiple keyword links', () => {
+    expect(loadDiscoverSearchParams({ keywordId: '818' }).keywordIds).toEqual([818]);
+    expect(
+      loadDiscoverSearchParams({ keywordId: '818,4379', mediaType: 'tv', page: '2' }),
+    ).toMatchObject({ keywordIds: [818, 4379], mediaType: 'tv', page: 2 });
+    expect(loadDiscoverSearchParams({ keywordId: 'invalid' }).keywordIds).toEqual([]);
+  });
   it('applies defaults when no params are present', () => {
     expect(loadDiscoverSearchParams({})).toEqual({
+      keywordIds: [],
       page: 1,
       genreIds: [],
       mediaType: 'movie',
@@ -29,6 +37,7 @@ describe('loadDiscoverSearchParams', () => {
         runtime: '120',
       }),
     ).toEqual({
+      keywordIds: [],
       page: 3,
       genreIds: [28, 35],
       mediaType: 'tv',

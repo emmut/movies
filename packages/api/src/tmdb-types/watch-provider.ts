@@ -11,4 +11,14 @@ export type RegionWatchProviders = {
   buy?: WatchProvider[];
   flatrate?: WatchProvider[];
   free?: WatchProvider[];
+  ads?: WatchProvider[];
+};
+
+export type WatchOfferType = 'flatrate' | 'rent' | 'buy' | 'free' | 'ads';
+
+export type DirectWatchLink = {
+  providerId: number;
+  regions?: string[];
+  types: WatchOfferType[];
+  url: string;
 };

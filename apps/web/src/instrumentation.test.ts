@@ -28,6 +28,8 @@ describe('server startup', () => {
     const onReady = vi.fn();
     void startup.then(onReady);
 
+    // Wait for register's lazy imports before measuring its retry timer. A cold
+    // full-suite import can exceed waitFor's timeout without a connection attempt.
     await vi.dynamicImportSettled();
     expect(execute).toHaveBeenCalledTimes(1);
     expect(onReady).not.toHaveBeenCalled();

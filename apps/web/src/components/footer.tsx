@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import Link from 'next/link';
 
 function Footer() {
   return (
@@ -9,7 +10,7 @@ function Footer() {
         <a href="https://www.themoviedb.org/" target="_blank" rel="noopener noreferrer">
           <Image
             src="/tmdb-logo.svg"
-            alt="TMDb Logo"
+            alt="TMDB Logo"
             width={120}
             height={10}
             className="mx-auto opacity-80 transition-opacity hover:opacity-100"
@@ -19,7 +20,7 @@ function Footer() {
         </a>
 
         <p className="text-xs leading-relaxed text-muted-foreground/80">
-          This product uses the TMDb API but is not endorsed or certified by TMDb. Ratings
+          This product uses the TMDB API but is not endorsed or certified by TMDB. Ratings
           information courtesy of{' '}
           <a
             href="https://developer.imdb.com/non-commercial-datasets/"
@@ -31,6 +32,12 @@ function Footer() {
           </a>{' '}
           (imdb.com) — used with permission.
         </p>
+        <Link
+          href="/credits"
+          className="text-xs text-muted-foreground underline hover:text-foreground"
+        >
+          Data sources and credits
+        </Link>
       </div>
     </footer>
   );

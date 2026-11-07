@@ -2,7 +2,7 @@
 
 import { Button } from '@movies/ui/components/button';
 import { useQueryClient } from '@tanstack/react-query';
-import { clsx, cn } from 'cn';
+import { cn } from 'cn';
 import { CircleCheck, Eye, Star } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 
@@ -15,25 +15,22 @@ const BUTTON_COPY: Record<
   {
     activeIcon: ReactNode;
     inactiveIcon: ReactNode;
-    activeLabel: string;
-    inactiveLabel: string;
+    label: string;
     activeAriaLabel: string;
     inactiveAriaLabel: string;
   }
 > = {
   watchlist: {
-    activeIcon: <Star className="h-4 w-4 fill-current" />,
-    inactiveIcon: <Star className="h-4 w-4" />,
-    activeLabel: 'In Watchlist',
-    inactiveLabel: 'Add to Watchlist',
+    activeIcon: <Star className="size-4 fill-current" aria-hidden="true" />,
+    inactiveIcon: <Star className="size-4" aria-hidden="true" />,
+    label: 'Watchlist',
     activeAriaLabel: 'Remove from Watchlist',
     inactiveAriaLabel: 'Add to Watchlist',
   },
   watched: {
-    activeIcon: <CircleCheck className="h-4 w-4" />,
-    inactiveIcon: <Eye className="h-4 w-4" />,
-    activeLabel: 'Watched',
-    inactiveLabel: 'Mark as Watched',
+    activeIcon: <CircleCheck className="size-4" aria-hidden="true" />,
+    inactiveIcon: <Eye className="size-4" aria-hidden="true" />,
+    label: 'Watched',
     activeAriaLabel: 'Mark as not watched',
     inactiveAriaLabel: 'Mark as watched',
   },
@@ -73,31 +70,6 @@ function usePendingToggle(isActive: boolean, toggle: () => Promise<void>) {
   }
 
   return { isPending, localIsActive, handleToggle };
-}
-
-/**
- * Both labels are always rendered, stacked in the same grid cell, so the
- * button keeps the width of its widest label and doesn't shift on toggle.
- */
-function StackedLabels({
-  isActive,
-  activeLabel,
-  inactiveLabel,
-}: {
-  isActive: boolean;
-  activeLabel: string;
-  inactiveLabel: string;
-}) {
-  return (
-    <div className="grid grid-cols-1 grid-rows-1 place-items-center">
-      <span className={clsx(isActive ? 'visible' : 'invisible', 'col-start-1 row-start-1')}>
-        {activeLabel}
-      </span>
-      <span className={clsx(isActive ? 'invisible' : 'visible', 'col-start-1 row-start-1')}>
-        {inactiveLabel}
-      </span>
-    </div>
-  );
 }
 
 interface SystemListButtonProps {
@@ -142,15 +114,13 @@ export function SystemListButton({
       onClick={handleToggle}
       disabled={isPending}
       variant={localIsActive ? 'default' : 'outline'}
-      className={cn('gap-2 px-3 py-1', className)}
+      className={cn('h-11 gap-2 px-3 sm:h-10', className)}
       aria-label={ariaLabel}
+      aria-pressed={localIsActive}
+      title={ariaLabel}
     >
       {icon}
-      <StackedLabels
-        isActive={localIsActive}
-        activeLabel={copy.activeLabel}
-        inactiveLabel={copy.inactiveLabel}
-      />
+      {copy.label}
     </Button>
   );
 }

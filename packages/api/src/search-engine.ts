@@ -107,6 +107,14 @@ export function createSearchEngine(sources: SearchSources) {
     return result;
   }
 
+  function matchesSearchYear(result: MultiSearchResult, year?: number) {
+    if (year === undefined || result.media_type === 'person') {
+      return true;
+    }
+    const date = result.media_type === 'movie' ? result.release_date : result.first_air_date;
+    return date?.startsWith(`${year}-`) ?? false;
+  }
+
   type SearchHit = { id: number; media_type?: string } & RankableResult;
 
   type SearchPage<T> = { results: T[]; totalPages: number };
@@ -211,7 +219,8 @@ export function createSearchEngine(sources: SearchSources) {
    * {@link fuseByRank} combines the two sources' ranks.
    *
    * The index has no release-year data, so a year-filtered page only receives
-   * hits when TMDB found nothing at all. When TMDB is empty the index page
+   * hits when TMDB found nothing at all, and their hydrated dates must match.
+   * When TMDB is empty the index page
    * stands in for it as a single page, in the index's own order.
    */
   async function completeWithIndex<T extends SearchHit, M extends FuzzyMediaType | undefined>(
@@ -228,12 +237,9 @@ export function createSearchEngine(sources: SearchSources) {
     const tmdbEmpty = tmdb.results.length === 0;
 
     const hits = await (eager ?? (tmdbEmpty ? fuzzyHits(title, page, limit, mediaType) : []));
-    const hydrated = await hydrateMissing(
-      hits,
-      tmdb.results,
-      tmdbEmpty ? limit : HYDRATION_CAP,
-      mediaType,
-    );
+    const hydrated = (
+      await hydrateMissing(hits, tmdb.results, tmdbEmpty ? limit : HYDRATION_CAP, mediaType)
+    ).filter((hit) => matchesSearchYear(hit, parsed.year));
 
     if (tmdbEmpty) {
       return { results: hydrated, totalPages: hydrated.length > 0 ? 1 : tmdb.totalPages };
@@ -501,8 +507,8 @@ export function createSearchEngine(sources: SearchSources) {
    * are not lost to the filter, and merged by popularity. On the first page,
    * ordinary title searches merge TMDB and local fuzzy candidates. Title-match
    * tiers provide the primary order, with reciprocal-rank fusion inside each
-   * tier. Year-filtered searches remain TMDB-only because the daily export does
-   * not contain release dates.
+   * tier. Year-filtered searches use the index only as an empty-result fallback;
+   * hydrated movie/TV dates must match the requested year.
    *
    * @param query - The search query string
    * @param page - The page number to fetch

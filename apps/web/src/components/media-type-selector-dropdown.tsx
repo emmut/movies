@@ -11,7 +11,7 @@ import { Film, Search, Tv, User } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useOptimistic, useTransition } from 'react';
 
-import { useIsMounted } from '@/hooks/use-is-mounted';
+import { useIsClient } from '@/hooks/use-is-client';
 import { validateGenreForMediaType } from '@/lib/media-actions';
 
 type MediaType = 'movie' | 'tv' | 'person' | 'all';
@@ -32,7 +32,7 @@ type MediaTypeSelectorDropdownProps = {
 export default function MediaTypeSelectorDropdown({
   currentMediaType,
 }: MediaTypeSelectorDropdownProps) {
-  const isMounted = useIsMounted();
+  const isClient = useIsClient();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -103,7 +103,7 @@ export default function MediaTypeSelectorDropdown({
 
   // Only render the dropdown after mounting to avoid hydration mismatch
   // from Radix UI's dynamic aria-controls IDs
-  if (!isMounted) {
+  if (!isClient) {
     return (
       <div className="flex h-9 w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs">
         <div className="flex items-center gap-2">

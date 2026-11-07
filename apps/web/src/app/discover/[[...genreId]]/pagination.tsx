@@ -2,54 +2,10 @@
 
 import { PaginationControls } from '@/components/pagination-controls';
 import Spinner from '@/components/spinner';
-import { useDiscoverMedia } from '@/hooks/use-discover-query';
+import { useDiscoverMedia, type DiscoverMediaParams } from '@/hooks/use-discover-query';
 
-type PaginationProps = {
-  currentPage: number;
-  currentGenreIds: number[];
-  mediaType: 'movie' | 'tv';
-  sortBy?: string;
-  watchProviders?: string;
-  watchRegion?: string;
-  runtimeLte?: number;
-  originCountry?: string;
-};
-
-/**
- * Renders pagination controls for discovering movies or TV shows based on the current filters.
- *
- * Fetches the total number of pages for the selected media type and filters, then displays pagination controls for navigation.
- *
- * @param currentPage - The currently selected page number.
- * @param currentGenreIds - Genre IDs to filter results (any may match).
- * @param mediaType - The type of media to paginate, either 'movie' or 'tv'.
- * @param sortBy - The sort order for the results.
- * @param watchProviders - Comma-separated list of watch provider IDs.
- * @param watchRegion - The region code for watch providers.
- * @param runtimeLte - Maximum runtime filter.
- * @param originCountry - Pipe-separated list of origin country codes.
- * @returns A React element displaying pagination controls for the selected media type.
- */
-export default function Pagination({
-  currentPage,
-  currentGenreIds,
-  mediaType,
-  sortBy,
-  watchProviders,
-  watchRegion,
-  runtimeLte,
-  originCountry,
-}: PaginationProps) {
-  const { data, isLoading } = useDiscoverMedia({
-    mediaType,
-    genreIds: currentGenreIds,
-    page: currentPage,
-    sortBy,
-    watchProviders,
-    watchRegion,
-    runtimeLte,
-    originCountry,
-  });
+export default function Pagination({ query }: { query: DiscoverMediaParams }) {
+  const { data, isLoading } = useDiscoverMedia(query);
 
   if (isLoading) {
     return <Spinner className="mx-auto mt-8" />;

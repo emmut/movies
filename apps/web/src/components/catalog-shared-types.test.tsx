@@ -73,7 +73,7 @@ describe('web catalog rendering after shared type migration', () => {
     const watchProviders: MovieWatchProviders = {
       results: {
         SE: {
-          link: 'https://example.com/watch',
+          link: 'https://www.themoviedb.org/movie/42/watch?locale=SE',
           free: [provider],
           flatrate: [provider],
           rent: [provider],
@@ -83,23 +83,27 @@ describe('web catalog rendering after shared type migration', () => {
     };
     const html = renderToStaticMarkup(
       <StreamingProviders
+        directLinks={[]}
         watchProviders={watchProviders}
         resourceId={42}
         resourceType="movie"
         userRegion="SE"
       />,
     );
-    expect(html.match(/href="https:\/\/example.com\/watch"/g)).toHaveLength(4);
+    expect(
+      html.match(/href="https:\/\/www.themoviedb.org\/movie\/42\/watch\?locale=SE"/g),
+    ).toHaveLength(6);
     expect(html.indexOf('>Free')).toBeLessThan(html.indexOf('>Streaming'));
     expect(html.indexOf('>Streaming')).toBeLessThan(html.indexOf('>Rent'));
     expect(html.indexOf('>Rent')).toBeLessThan(html.indexOf('>Buy'));
     expect(html).toContain('JustWatch');
-    expect(html).toContain('TMDB API');
+    expect(html).toContain('TMDB');
     expect(html).not.toContain('No services available');
   });
   it('uses the canonical watch URL when the region is absent and preserves the empty state', () => {
     const html = renderToStaticMarkup(
       <StreamingProviders
+        directLinks={[]}
         watchProviders={{ results: {} }}
         resourceId={42}
         resourceType="tv"

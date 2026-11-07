@@ -1,12 +1,10 @@
 import 'server-only';
-import type { Movie } from '@movies/api/tmdb-types/movie';
 import type {
   AggregateCredits,
   CollectionDetails,
   PdpExtras,
   SeasonDetails,
 } from '@movies/api/tmdb-types/pdp';
-import type { TvShow } from '@movies/api/tmdb-types/tv-show';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import { CACHE_TAGS } from './cache-tags';
@@ -49,18 +47,6 @@ export async function getAggregateCredits(id: number) {
   cacheTag(CACHE_TAGS.public.tv.credits(id));
   return tmdbFetch<AggregateCredits>(`/tv/${id}/aggregate_credits`, {
     errorMessage: 'Failed loading series credits',
-  });
-}
-
-export async function getKeywordTitles(id: number, type: 'movie' | 'tv', page: number) {
-  'use cache: remote';
-  cacheLife('hours');
-  return tmdbFetch<{
-    results: (Movie | TvShow)[];
-    total_pages: number;
-  }>(`/discover/${type}`, {
-    searchParams: { with_keywords: id, page, include_adult: 'false', sort_by: 'popularity.desc' },
-    errorMessage: 'Failed loading titles for this keyword',
   });
 }
 

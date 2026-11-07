@@ -1,0 +1,4 @@
+interface:
+  display_name: "Package upgrade"
+  short_description: "Review releases, upgrade packages, validate, and open a PR"
+  default_prompt: "Use $package-upgrade to upgrade the repository's packages, review release notes for breaking changes, migrate affected code, run the project checks, and open or update a pull request."

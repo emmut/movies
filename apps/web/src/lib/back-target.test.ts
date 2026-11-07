@@ -28,9 +28,9 @@ afterEach(() => {
 
 describe('saveBackTarget', () => {
   it('returns to the keyword results with media type and pagination intact', () => {
-    stubWindow({ pathname: '/keyword/10', search: '?mediaType=tv&page=3' });
+    stubWindow({ pathname: '/discover', search: '?keywordId=10&mediaType=tv&page=3' });
     saveBackTarget('/tv/1396');
-    expect(storedTargetFor('/tv/1396')).toBe('/keyword/10?mediaType=tv&page=3');
+    expect(storedTargetFor('/tv/1396')).toBe('/discover?keywordId=10&mediaType=tv&page=3');
   });
 
   it('records the current URL, including query params, keyed by destination', () => {

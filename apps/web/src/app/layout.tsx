@@ -15,7 +15,7 @@ import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
 import { SearchCommand, SearchCommandFallback } from '@/components/search-command';
 import { env } from '@/env';
-import { inter } from '@/fonts';
+import { emoji, inter } from '@/fonts';
 import { IMAGE_CDN_URL } from '@/lib/constants';
 
 import './globals.css';
@@ -45,7 +45,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html lang="en" className="dark">
-      <body className={clsx([inter.className])}>
+      <body className={clsx([inter.className, inter.variable, emoji.variable])}>
         <QueryProvider>
           <NuqsAdapter>
             <SidebarProvider>

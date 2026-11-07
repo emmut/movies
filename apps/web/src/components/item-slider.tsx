@@ -1,6 +1,6 @@
 'use client';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
 import { useHasHover } from '@/hooks/use-has-hover';
 
@@ -85,18 +85,28 @@ export function ItemSlider({ children }: ItemSliderProps) {
     }
   }
 
-  function updateArrowVisibility() {
+  const updateArrowVisibility = useCallback(function updateArrowVisibility() {
     const container = scrollContainerRef.current;
     if (!container) {
       return;
     }
-    setShowLeftArrow(container.scrollLeft > 0);
+    setShowLeftArrow(container.scrollLeft > 1);
     setShowRightArrow(container.scrollLeft < container.scrollWidth - container.clientWidth - 1);
-  }
+  }, []);
 
   useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
     updateArrowVisibility();
-  }, []);
+    const observer = new ResizeObserver(updateArrowVisibility);
+    observer.observe(container);
+    for (const child of container.children) {
+      observer.observe(child);
+    }
+    return () => observer.disconnect();
+  }, [children, updateArrowVisibility]);
 
   function scroll(direction: 'left' | 'right') {
     const container = scrollContainerRef.current;
@@ -135,7 +145,11 @@ export function ItemSlider({ children }: ItemSliderProps) {
               <ChevronLeft className="h-6 w-6" />
             </button>
           )}
-          <div className="pointer-events-none absolute inset-y-0 -left-3 z-10 w-10 bg-linear-to-r from-background to-transparent lg:w-30" />
+          <div
+            aria-hidden="true"
+            data-slot="slider-fade-start"
+            className="pointer-events-none absolute inset-y-0 -left-3 z-10 w-10 bg-linear-to-r from-background to-transparent lg:w-30"
+          />
         </>
       )}
 
@@ -150,7 +164,11 @@ export function ItemSlider({ children }: ItemSliderProps) {
               <ChevronRight className="h-6 w-6" />
             </button>
           )}
-          <div className="pointer-events-none absolute inset-y-0 -right-3 z-10 w-10 bg-linear-to-l from-background to-transparent lg:w-30" />
+          <div
+            aria-hidden="true"
+            data-slot="slider-fade-end"
+            className="pointer-events-none absolute inset-y-0 -right-3 z-10 w-10 bg-linear-to-l from-background to-transparent lg:w-30"
+          />
         </>
       )}
 
@@ -177,7 +195,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
           out. No explicit width — `width: auto` already resolves to the
           wrapper's width plus both margins, so the two can never disagree.
         */
-        className="relative -mx-3 scrollbar-hide flex cursor-grab snap-x gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing"
+        className="relative -mx-3 scrollbar-hide flex cursor-grab snap-x scroll-px-3 gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing"
       >
         {children}
       </div>
