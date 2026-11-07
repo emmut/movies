@@ -1,13 +1,13 @@
 # Contributing
 
-A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared packages in `packages`, PostgreSQL/Drizzle, and the TMDB API. Vite+ 1.4.0 provides testing, linting, formatting, and a local `vp` CLI; its shared configuration lives in `vite.config.ts`.
+A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared packages in `packages`, PostgreSQL/Drizzle, and the TMDB API. Vite+ 1.5.0 provides testing, linting, formatting, and a local `vp` CLI; its shared configuration lives in `vite.config.ts`.
 
 ## Prerequisites
 
 - **Vite+** for Node and pnpm management. Install the global CLI from [viteplus.dev](https://viteplus.dev/guide/global-cli), then open a new terminal so its shims take precedence over older runtime/package-manager shims.
 - A **PostgreSQL** database for local development.
 - A **TMDB API** access token and the other secrets defined in `apps/web/src/env.ts`.
-- Node **24.11.1** is pinned in `.node-version`; pnpm **12.15.0** is pinned with integrity in `package.json`. Vite+ installs and selects both.
+- Node **24.11.1** is pinned in `.node-version`; pnpm **12.18.0** is pinned with integrity in `package.json`. Vite+ installs and selects both.
 
 ## Getting started
 
