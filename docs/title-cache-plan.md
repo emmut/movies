@@ -88,9 +88,13 @@ Done (PR 2 in this stack):
 - `search_index` from the exports, `pg_trgm` GIN index on a folded title,
   daily `pnpm ingest:search` (Railway `search-index-ingest`, opt-in via
   `SEARCH_INDEX_INGEST_ENABLED`).
-- On page one, filter local candidates with indexed trigram and word-similarity
-  predicates, retain the closest 40 from each, then re-rank by similarity, a
-  prefix boost, and log popularity.
+- On page one, filter local candidates with indexed trigram, word-similarity
+  and built-in text-search predicates, retaining 40 from each. Word search
+  covers every query word in any order, with a prefix on the final word;
+  migration `0019` adds its GIN expression index. Equal trigram distances use
+  popularity before the candidate cutoff. Exact titles rank first, then
+  complete word matches, then fuzzy matches, with similarity, a prefix boost
+  and log popularity deciding the order within each group.
   A transaction-local 1.5s statement timeout cancels expensive database work;
   a caller deadline also bounds the wait for a connection.
 - The command palette uses the same TMDB-first path with a dropdown-sized

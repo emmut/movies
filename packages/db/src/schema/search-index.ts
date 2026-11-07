@@ -4,9 +4,10 @@ import { index, integer, pgTable, primaryKey, real, text, timestamp } from 'driz
 /**
  * Fuzzy-search index over TMDB's daily id exports: every movie, TV show, and
  * person with its original title and popularity. Loaded nightly by
- * `ingest:search`, queried with pg_trgm for typos, partial words, and word
- * order. Full-page search rank-fuses its hits with TMDB; the command palette
- * uses it as a zero-result fallback. Holds no metadata beyond what the
+ * `ingest:search`, queried with pg_trgm for typos and built-in word search
+ * for reordered words and final-word prefixes. Full-page search rank-fuses
+ * its hits with TMDB; the command palette uses it as a zero-result fallback.
+ * Holds no metadata beyond what the
  * exports carry; index-only results are hydrated from TMDB on demand.
  */
 export const searchIndex = pgTable(
@@ -34,5 +35,11 @@ export const searchIndex = pgTable(
     // Select similar titles before sorting; unfiltered GiST nearest-neighbour
     // scans exceeded the search deadline on the full catalog. Requires pg_trgm.
     index('search_index_search_title_trgm_idx').using('gin', table.searchTitle.op('gin_trgm_ops')),
+    // Word matching complements trigram similarity for reordered queries and
+    // incomplete final words. Keep names and stop words intact with `simple`.
+    index('search_index_search_title_words_idx').using(
+      'gin',
+      sql`to_tsvector('simple'::regconfig, ${table.searchTitle})`,
+    ),
   ],
 );

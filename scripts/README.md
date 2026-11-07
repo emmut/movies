@@ -36,7 +36,7 @@ Downloads TMDB's [daily id exports](https://developer.themoviedb.org/docs/daily-
 pnpm ingest:search
 ```
 
-Needs `DATABASE_URL` and `SEARCH_INDEX_INGEST_ENABLED=true` (from `apps/web/.env` locally; without the flag the script exits immediately) plus the `pg_trgm` extension, which migration `0015` creates (`0017` replaces the GiST index with GIN for filtered search). Runs daily in production as the `search-index-ingest` Railway cron service (09:00 UTC, after TMDB publishes at 08:00), where the Railway config sets the flag; preview environments leave it off. Without a run the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
+Needs `DATABASE_URL` and `SEARCH_INDEX_INGEST_ENABLED=true` (from `apps/web/.env` locally; without the flag the script exits immediately) plus the `pg_trgm` extension, which migration `0015` creates (`0017` replaces the GiST index with GIN for filtered search). Migration `0019` adds a second GIN index for built-in word matching; it indexes existing rows without another ingest. Runs daily in production as the `search-index-ingest` Railway cron service (09:00 UTC, after TMDB publishes at 08:00), where the Railway config sets the flag; preview environments leave it off. Without a run the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
 
 ## List Watch Providers
 

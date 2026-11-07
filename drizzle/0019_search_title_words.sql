@@ -1,0 +1,1 @@
+CREATE INDEX "search_index_search_title_words_idx" ON "search_index" USING gin (to_tsvector('simple'::regconfig, "search_title"));
