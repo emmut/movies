@@ -27,6 +27,11 @@ The existing 1.5-second statement timeout, connection deadline, media filters,
 TMDB fallback, page-one merging and hydration limits still apply. The palette
 consults the local index only when TMDB returns nothing.
 
+For typed year filters such as `intersteller movie 2014`, fuzzy fallback
+checks release/first-air dates after hydrating candidates. Wrong-year and
+undated movie/TV matches are excluded; if none remain the result is empty.
+People have no release year and retain the existing year-stripped name search.
+
 ## Migration and validation
 
 Run `pnpm db:migrate` to apply `0019_search_title_words`. It adds an expression

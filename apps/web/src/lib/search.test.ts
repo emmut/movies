@@ -757,3 +757,110 @@ describe('getSearchSuggestions', () => {
     expect(mockedFuzzy).toHaveBeenCalledWith('intersteller', { mediaType: 'movie', limit: 8 });
   });
 });
+
+describe.each([
+  {
+    name: 'movie results',
+    search: getSearchMovies,
+    query: 'intersteller movie 2014',
+    type: 'movie',
+  },
+  { name: 'TV results', search: getSearchTvShows, query: 'intersteller tv 2014', type: 'tv' },
+  {
+    name: 'mixed results',
+    search: getSearchMulti,
+    query: 'intersteller 2014 movie',
+    type: 'movie',
+  },
+  {
+    name: 'suggestions',
+    search: getSearchSuggestions,
+    query: 'intersteller movie 2014',
+    type: 'movie',
+  },
+])('year-filtered fuzzy fallback in $name', ({ search, query, type }) => {
+  it('keeps only the requested year and media type when TMDB finds nothing', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    const hits = [1, 2, 3, 4, 5].map((id) => ({
+      tmdbId: id,
+      mediaType: type,
+      title: 'Interstellar',
+      popularity: 10,
+      similarity: 0.9,
+      score: 1,
+    }));
+    mockedFuzzy.mockResolvedValue(hits as never);
+    mockedHydrate.mockResolvedValue([
+      { id: 1, media_type: type, release_date: '2014-11-07', first_air_date: '2014-11-07' },
+      { id: 2, media_type: type, release_date: '2001-11-07', first_air_date: '2001-11-07' },
+      { id: 3, media_type: type, release_date: '', first_air_date: '' },
+      {
+        id: 4,
+        media_type: type === 'movie' ? 'tv' : 'movie',
+        release_date: '2014-11-07',
+        first_air_date: '2014-11-07',
+      },
+      { id: 5, media_type: type },
+    ] as never);
+
+    const response = await search(query);
+    const results =
+      'results' in response
+        ? response.results
+        : 'movies' in response
+          ? response.movies
+          : response.tvShows;
+
+    expect(results.map((result) => result.id)).toEqual([1]);
+    expect(response.totalPages).toBe(1);
+  });
+
+  it('returns an empty page when fuzzy matches are all from other years', async () => {
+    mockedFetch.mockResolvedValue(NO_RESULTS as never);
+    mockedFuzzy.mockResolvedValue([
+      {
+        tmdbId: 1,
+        mediaType: type,
+        title: 'Interstellar',
+        popularity: 10,
+        similarity: 0.9,
+        score: 1,
+      },
+    ] as never);
+    mockedHydrate.mockResolvedValue([
+      { id: 1, media_type: type, release_date: '2001-11-07', first_air_date: '2001-11-07' },
+    ] as never);
+
+    const response = await search(query);
+    const results =
+      'results' in response
+        ? response.results
+        : 'movies' in response
+          ? response.movies
+          : response.tvShows;
+
+    expect(results).toEqual([]);
+    expect(response.totalPages).toBe(0);
+  });
+});
+
+it('keeps people without a release date in a year-filtered person search', async () => {
+  mockedFetch.mockResolvedValue(NO_RESULTS as never);
+  mockedFuzzy.mockResolvedValue([
+    {
+      tmdbId: 287,
+      mediaType: 'person',
+      title: 'Brad Pitt',
+      popularity: 80,
+      similarity: 0.9,
+      score: 1,
+    },
+  ]);
+  mockedHydrate.mockResolvedValue([{ id: 287, media_type: 'person', name: 'Brad Pitt' }] as never);
+
+  const result = await getSearchSuggestions('brad pit person 1995');
+
+  expect(result.results).toEqual([
+    { id: 287, media_type: 'person', name: 'Brad Pitt', _profile: true },
+  ]);
+});
