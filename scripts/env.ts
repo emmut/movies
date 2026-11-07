@@ -12,6 +12,8 @@ export const env = createEnv({
     // sets them in the Railway config.
     TITLE_SYNC_ENABLED: z.stringbool().default(false),
     SEARCH_INDEX_INGEST_ENABLED: z.stringbool().default(false),
+    POPCORNTIME_INGEST_ENABLED: z.stringbool().default(false),
+    POPCORNTIME_API_KEY: z.string().optional(),
   },
 
   runtimeEnv: {
@@ -19,5 +21,7 @@ export const env = createEnv({
     MOVIE_DB_ACCESS_TOKEN: process.env.MOVIE_DB_ACCESS_TOKEN,
     TITLE_SYNC_ENABLED: process.env.TITLE_SYNC_ENABLED,
     SEARCH_INDEX_INGEST_ENABLED: process.env.SEARCH_INDEX_INGEST_ENABLED,
+    POPCORNTIME_INGEST_ENABLED: process.env.POPCORNTIME_INGEST_ENABLED,
+    POPCORNTIME_API_KEY: process.env.POPCORNTIME_API_KEY,
   },
 });

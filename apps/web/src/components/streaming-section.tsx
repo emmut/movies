@@ -3,10 +3,10 @@ import { Skeleton } from '@movies/ui/components/skeleton';
 import { Suspense, type ComponentProps } from 'react';
 
 import { StreamingProviders } from '@/components/streaming-providers';
+import { getDirectWatchLinks } from '@/lib/direct-watch-links';
 import { getMovieWatchProviders } from '@/lib/movies';
 import { optional } from '@/lib/tmdb';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
-import { getWikidataWatchLinks } from '@/lib/wikidata';
 import type { DirectWatchLink } from '@/types/watch-provider';
 
 type StreamingSectionProps = {
@@ -29,7 +29,7 @@ export async function StreamingSection({
     resourceType === 'movie'
       ? getMovieWatchProviders(resourceId)
       : getTvShowWatchProviders(resourceId);
-  const directLinks = getWikidataWatchLinks(resourceType, resourceId);
+  const directLinks = getDirectWatchLinks(resourceType, resourceId);
   const watchProviders = await optional(providers, { results: {} });
   const props = { watchProviders, resourceId, resourceType, userRegion };
 

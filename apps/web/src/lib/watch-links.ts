@@ -1,7 +1,7 @@
 import type { DirectWatchLink, WatchOfferType } from '@/types/watch-provider';
 
 /** Call only for a provider present in TMDB's selected-region availability. */
-export function getDirectWatchUrl(
+export function getDirectWatchLink(
   links: DirectWatchLink[],
   providerId: number,
   region: string,
@@ -12,7 +12,7 @@ export function getDirectWatchUrl(
       link.providerId === providerId &&
       (!link.regions || link.regions.includes(region)) &&
       link.types.includes(type),
-  )?.url;
+  );
 }
 
 export function getTmdbWatchUrl(type: 'movie' | 'tv', id: number, region: string, link?: string) {

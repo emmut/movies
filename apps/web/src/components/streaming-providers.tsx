@@ -7,7 +7,7 @@ import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 import { RegionSelect } from '@/components/region-select';
 import { formatImageUrl } from '@/lib/utils';
-import { getDirectWatchUrl, getTmdbWatchUrl } from '@/lib/watch-links';
+import { getDirectWatchLink, getTmdbWatchUrl } from '@/lib/watch-links';
 import type { MovieWatchProviders } from '@/types/movie';
 import type { TvWatchProviders } from '@/types/tv-show';
 import type { DirectWatchLink, WatchOfferType } from '@/types/watch-provider';
@@ -53,9 +53,12 @@ export function StreamingProviders({
   const regionProviders = watchProviders.results?.[region];
   const watchUrl = getTmdbWatchUrl(resourceType, resourceId, region, regionProviders?.link);
   const groups = offerGroups.filter((group) => (regionProviders?.[group.type]?.length ?? 0) > 0);
-  const hasDirectLinks = groups.some((group) =>
-    regionProviders?.[group.type]?.some((provider) =>
-      getDirectWatchUrl(directLinks, provider.provider_id, region, group.type),
+  const sources = new Set(
+    groups.flatMap((group) =>
+      (regionProviders?.[group.type] ?? []).flatMap((provider) => {
+        const link = getDirectWatchLink(directLinks, provider.provider_id, region, group.type);
+        return link ? [link.source] : [];
+      }),
     ),
   );
 
@@ -81,12 +84,13 @@ export function StreamingProviders({
             </h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {regionProviders?.[type]?.map((provider) => {
-                const directUrl = getDirectWatchUrl(
+                const directLink = getDirectWatchLink(
                   directLinks,
                   provider.provider_id,
                   region,
                   type,
                 );
+                const directUrl = directLink?.url;
                 const label = directUrl
                   ? `${action} on ${provider.provider_name}`
                   : 'View options on TMDB';
@@ -149,9 +153,9 @@ export function StreamingProviders({
           >
             TMDB
           </a>
-          {hasDirectLinks && (
+          {sources.size > 0 && <span>· Links:</span>}
+          {sources.has('wikidata') && (
             <>
-              <span>· Links:</span>
               <a
                 href="https://www.wikidata.org"
                 target="_blank"
@@ -161,6 +165,16 @@ export function StreamingProviders({
                 Wikidata
               </a>
             </>
+          )}
+          {sources.has('popcorntime') && (
+            <a
+              href="https://popcorntime.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline"
+            >
+              Popcorn Time
+            </a>
           )}
         </div>
       </div>

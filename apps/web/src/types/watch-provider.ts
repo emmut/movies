@@ -17,6 +17,7 @@ export type RegionWatchProviders = {
 export type WatchOfferType = 'flatrate' | 'rent' | 'buy' | 'free' | 'ads';
 
 export type DirectWatchLink = {
+  source: 'wikidata' | 'popcorntime';
   providerId: number;
   regions?: string[];
   types: WatchOfferType[];

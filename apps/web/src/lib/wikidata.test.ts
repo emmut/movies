@@ -48,6 +48,7 @@ describe('Wikidata title lookup', () => {
     async (type) => {
       expect(await getWikidataWatchLinks(type, 66732)).toEqual([
         {
+          source: 'wikidata',
           providerId: 8,
           types: ['flatrate'],
           regions: undefined,
