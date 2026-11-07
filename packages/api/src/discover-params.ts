@@ -1,8 +1,9 @@
 import { MAJOR_STREAMING_PROVIDERS } from '@movies/config/constants';
-export const MIN_RUNTIME_FILTER_MINUTES = 1;
 import { DEFAULT_REGION } from '@movies/config/regions';
 
 import { getWatchProvidersString } from './preferences';
+
+export const MIN_RUNTIME_FILTER_MINUTES = 1;
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
