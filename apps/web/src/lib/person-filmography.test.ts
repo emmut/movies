@@ -30,12 +30,25 @@ describe('person filmography', () => {
       title(2, { genre_ids: [10767], popularity: 10000 }),
       title(3, { character: 'Self - Guest', popularity: 10000 }),
       title(4, { character: 'Herself (archive footage)' }),
-      title(5, { character: 'Host' }),
+      title(5, { character: 'Host', genre_ids: [10767], popularity: 10000 }),
+      title(8, { character: 'Himself - Presenter', popularity: 10000 }),
+      title(9, { character: 'Themselves - Guest', popularity: 10000 }),
       title(6, { genre_ids: [10763] }),
       title(7, { genre_ids: [10764] }),
     ];
     expect(sortPersonTitles([...appearances, title(1)])[0].id).toBe(1);
+    expect(getKnownFor(appearances)).toEqual([]);
   });
+
+  it.each(['Dinner Guest', 'TV Host', 'Presenter'])(
+    'keeps the fictional role "%s" eligible for Known for and relevance ranking',
+    (character) => {
+      const fictionalRole = title(2, { character, genre_ids: [18], popularity: 100 });
+      const credits = [title(1), fictionalRole];
+      expect(sortPersonTitles(credits)[0]).toEqual(fictionalRole);
+      expect(getKnownFor(credits, '2026-01-01')).toEqual([fictionalRole, credits[0]]);
+    },
+  );
 
   it('balances ratings with audience size and role prominence', () => {
     expect(sortPersonTitles([title(1, { vote_count: 1, vote_average: 10 }), title(2)])[0].id).toBe(

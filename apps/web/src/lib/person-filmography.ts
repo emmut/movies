@@ -12,7 +12,8 @@ export type CreditSort = 'relevance' | 'rating' | 'newest';
 function isAppearance(credit: PersonTitle) {
   return (
     credit.genre_ids.some((id) => [10763, 10764, 10767].includes(id)) ||
-    /\b(self|himself|herself|themselves|host|presenter|guest)\b/i.test(credit.character ?? '')
+    // Host/guest/presenter can be fictional roles; require an explicit self marker.
+    /\b(self|himself|herself|themselves)\b/i.test(credit.character ?? '')
   );
 }
 
