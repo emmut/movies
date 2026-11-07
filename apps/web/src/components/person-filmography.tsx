@@ -1,5 +1,15 @@
 'use client';
 
+import { Label } from '@movies/ui/components/label';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@movies/ui/components/select';
+import { ArrowDownWideNarrow } from 'lucide-react';
 import { useId, useState } from 'react';
 
 import ItemCard from '@/components/item-card';
@@ -11,6 +21,12 @@ type PersonFilmographyProps = {
   titles: PersonTitle[];
   userId?: string;
 };
+
+const SORT_OPTIONS = [
+  { value: 'relevance', label: 'Most relevant' },
+  { value: 'rating', label: 'Highest rated' },
+  { value: 'newest', label: 'Newest first' },
+] satisfies { value: CreditSort; label: string }[];
 
 export function PersonFilmography({ title, titles, userId }: PersonFilmographyProps) {
   const [sort, setSort] = useState<CreditSort>('relevance');
@@ -25,20 +41,31 @@ export function PersonFilmography({ title, titles, userId }: PersonFilmographyPr
           {title} ({sorted.length})
         </h2>
         <div className="flex items-center gap-2 text-sm">
-          <label htmlFor={selectId} className="text-zinc-400">
-            Sort by
-          </label>
-          <select
+          <Label htmlFor={selectId} className="sr-only">
+            Sort {title}
+          </Label>
+          <Select<CreditSort>
             id={selectId}
-            aria-label={`Sort ${title}`}
+            items={SORT_OPTIONS}
             value={sort}
-            onChange={(event) => setSort(event.target.value as CreditSort)}
-            className="rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-white focus-visible:ring-2 focus-visible:ring-white"
+            onValueChange={(value) => {
+              if (value) setSort(value);
+            }}
           >
-            <option value="relevance">Relevance</option>
-            <option value="rating">Rating</option>
-            <option value="newest">Newest first</option>
-          </select>
+            <SelectTrigger className="w-44 data-[size=default]:h-10">
+              <ArrowDownWideNarrow className="size-4 text-muted-foreground" aria-hidden="true" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end" alignItemWithTrigger={false}>
+              <SelectGroup>
+                {SORT_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       <ItemSlider key={sort}>
