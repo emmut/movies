@@ -13,7 +13,7 @@ import { withUniwind } from 'uniwind';
 
 const GestureHandlerRootView = withUniwind(NativeGestureHandlerRootView);
 
-export const unstable_settings = { initialRouteName: '(tabs)' };
+export const unstable_settings = { anchor: '(tabs)' };
 
 export default function Layout() {
   const colorScheme = useColorScheme();
