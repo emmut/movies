@@ -19,6 +19,8 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 
 `pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `apps/web/.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
 
+All checkouts and worktrees share the Compose project `movies`, including its PostgreSQL database and imgproxy on ports 5432 and 8080. Docker commands load `apps/web/.env`; keep the local imgproxy signing keys consistent across worktrees. `pnpm dev:docker:down` stops these services for every worktree, but preserves the database volume. Older worktree-specific containers and volumes are not removed or migrated.
+
 The TMDB request collection is `apps/web/movie-db.http`; it reads `apps/web/.env` from the same directory.
 
 ## Native app

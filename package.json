@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vp run dev:docker:up && vp exec -- turbo run dev --cache-dir=.turbo/cache",
-    "dev:docker:up": "docker compose -f docker-compose.dev.yml up -d",
-    "dev:docker:down": "docker compose -f docker-compose.dev.yml down",
+    "dev:docker:up": "docker compose --env-file apps/web/.env -f docker-compose.dev.yml up -d",
+    "dev:docker:down": "docker compose --env-file apps/web/.env -f docker-compose.dev.yml down",
     "build": "vp run lint && vp exec -- turbo run build --filter=@movies/web --cache-dir=.turbo/cache",
     "start": "vp run @movies/web#start",
     "lint": "vp lint .",
