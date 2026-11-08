@@ -11,14 +11,14 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { OAuthLoginButton } from '@/components/oauth-login-button';
-import { signInGitHubSettings, signInSettings } from '@/lib/auth-client';
+import { signInGitHubSettings, signInGoogleSettings, signInSettings } from '@/lib/auth-client';
 
 type LinkAccountProps = {
   error?: string;
 };
 
 /**
- * React component that renders a UI for linking a user account to Discord or GitHub.
+ * React component that renders a UI for linking a user account to Google, Discord or GitHub.
  *
  * Displays an error notification if the linking attempt fails.
  *
@@ -41,6 +41,14 @@ function LinkAccount({ error }: LinkAccountProps) {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-3">
+          <OAuthLoginButton
+            provider="google"
+            text="Link using Google"
+            onClick={() => {
+              signInGoogleSettings('/');
+            }}
+            className="w-full max-w-sm"
+          />
           <OAuthLoginButton
             provider="discord"
             text="Link using Discord"

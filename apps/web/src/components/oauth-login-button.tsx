@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 
-import { signInAnonymous, signInDiscord, signInGitHub } from '@/lib/auth-client';
+import { signInAnonymous, signInDiscord, signInGitHub, signInGoogle } from '@/lib/auth-client';
 import { getSafeRedirectUrl } from '@/lib/utils';
 
 type AvailableOAuthProviders = 'discord' | 'google' | 'github' | 'anonymous';
@@ -94,6 +94,8 @@ function initCurrentProvider(provider: AvailableOAuthProviders) {
   switch (provider) {
     case 'discord':
       return signInDiscord;
+    case 'google':
+      return signInGoogle;
     case 'github':
       return signInGitHub;
     case 'anonymous':

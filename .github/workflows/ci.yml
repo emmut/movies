@@ -81,6 +81,8 @@ jobs:
       MOVIE_DB_ACCESS_TOKEN: test
       DISCORD_CLIENT_ID: test
       DISCORD_CLIENT_SECRET: test
+      GOOGLE_CLIENT_ID: test
+      GOOGLE_CLIENT_SECRET: test
       GITHUB_CLIENT_ID: test
       GITHUB_CLIENT_SECRET: test
       # Valid hex; imgproxy URL signing decodes these.

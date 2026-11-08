@@ -121,6 +121,8 @@ export default defineRailway((ctx) => {
       DATABASE_URL: db.env.DATABASE_URL,
       DISCORD_CLIENT_ID: preserve(),
       DISCORD_CLIENT_SECRET: preserve(),
+      GOOGLE_CLIENT_ID: preserve(),
+      GOOGLE_CLIENT_SECRET: preserve(),
       GITHUB_CLIENT_ID: preserve(),
       GITHUB_CLIENT_SECRET: preserve(),
       // Reference imgproxy's copies — the app signs URLs that imgproxy verifies,

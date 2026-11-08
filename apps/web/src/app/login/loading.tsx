@@ -57,6 +57,7 @@ export default function LoginLoading() {
           <div className="flex flex-col justify-center gap-4">
             <LoginActionSkeleton />
             <LoginActionSkeleton />
+            <LoginActionSkeleton />
             <LoginSeparatorSkeleton />
             <LoginActionSkeleton />
             <LoginSeparatorSkeleton />
