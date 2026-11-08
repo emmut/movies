@@ -396,9 +396,9 @@ for (const width of [320, 390, 430]) {
       .getByRole('link', { name: 'Open Third movie, Movie' })
       .boundingBox())!;
     expect(first.x).toBe(16);
-    expect(second.x - first.x - first.width).toBeCloseTo(12, 0);
+    expect(second.x - first.x - first.width).toBeCloseTo(16, 0);
     expect(width - second.x - second.width).toBeCloseTo(16, 0);
-    expect(third.y - first.y - first.height).toBeCloseTo(12, 0);
+    expect(third.y - first.y - first.height).toBeCloseTo(16, 0);
     expect(third.width).toBeCloseTo(first.width, 0);
     expect(first.height / first.width).toBeCloseTo(1.5, 1);
     expect(first.y).toBeLessThan(200);

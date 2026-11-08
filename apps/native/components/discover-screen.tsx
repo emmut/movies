@@ -2,7 +2,13 @@ import type { DiscoveryInput } from '@movies/api/discover';
 import type { MediaCard } from '@movies/api/home';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { DiscoverFilters } from '@native/components/discover-filters';
+import {
+  DiscoverSkeleton,
+  PosterGridSkeleton,
+  Skeleton,
+} from '@native/components/loading-skeletons';
 import { MediaPoster } from '@native/components/media-poster';
+import { MediaTypeTabs } from '@native/components/media-type-tabs';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { orpc } from '@native/lib/api';
@@ -13,7 +19,7 @@ import { combineQueryStates } from '@native/lib/query-state';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -41,7 +47,10 @@ function DiscoveryResults({
     captureBeforeNavigation,
     cancelBeforeNavigation,
   } = useRememberedScroll<FlatList<MediaCard>>('discover:' + JSON.stringify(input));
-  if (query.isPending || query.isError) {
+  if (query.isPending) {
+    return <PosterGridSkeleton label="Loading discovered titles" />;
+  }
+  if (query.isError) {
     return (
       <ScreenQueryState
         label="discovered titles"
@@ -59,11 +68,11 @@ function DiscoveryResults({
         testID="discover-scroll"
         contentInsetAdjustmentBehavior="automatic"
         className="flex-1"
-        contentContainerClassName="px-2.5"
+        contentContainerClassName="px-2"
         ref={ref}
         data={query.data.items}
         renderItem={({ item }) => (
-          <View className="w-1/2 px-1.5 pb-3">
+          <View className="w-1/2 px-2 pb-4">
             <MediaPoster item={item} region={input.region} fluid />
           </View>
         )}
@@ -126,29 +135,25 @@ function DiscoverContent({ userProviders }: { userProviders: number[] }) {
           Discover
         </Text>
         <View className="flex-row items-center justify-between gap-2">
-          <View className="flex-row gap-1">
-            {(['movie', 'tv'] as const).map((type) => (
-              <Pressable
-                key={type}
-                accessibilityRole="button"
-                accessibilityLabel={type === 'movie' ? 'Movies' : 'TV Shows'}
-                accessibilityState={{ selected: input.type === type }}
-                className="bg-default min-h-11 justify-center rounded-xl border border-border px-3"
-                onPress={() => change({ mediaType: type, genreId: '', sort_by: '', page: '1' })}
-              >
-                <Text className="text-sm font-semibold text-foreground">
-                  {type === 'movie' ? 'Movies' : 'TV Shows'}
-                </Text>
-              </Pressable>
-            ))}
+          <View className="max-w-56 flex-1">
+            <MediaTypeTabs
+              label="Discover media type"
+              value={input.type}
+              options={[
+                { value: 'movie', label: 'Movies' },
+                { value: 'tv', label: 'TV Shows' },
+              ]}
+              onChange={(type) => change({ mediaType: type, genreId: '', sort_by: '', page: '1' })}
+            />
           </View>
           {options.data ? (
             <DiscoverFilters input={input} data={options.data} change={change} />
-          ) : null}
+          ) : (
+            <View accessibilityLabel="Loading discovery filters">
+              <Skeleton className="h-11 w-24 rounded-xl" />
+            </View>
+          )}
         </View>
-        {options.isPending ? (
-          <ActivityIndicator accessibilityLabel="Loading discovery filters" />
-        ) : null}
         {options.isError ? (
           <Pressable
             accessibilityRole="button"
@@ -169,7 +174,7 @@ function DiscoverContent({ userProviders }: { userProviders: number[] }) {
 function AccountDiscovery() {
   const preferences = useProviderPreferences();
   if (preferences.session.isPending) {
-    return <ScreenQueryState label="account preferences" failed={false} retry={() => {}} />;
+    return <DiscoverSkeleton />;
   }
   if (hasDiscoverySessionError(preferences.session)) {
     return (
@@ -195,16 +200,16 @@ function AuthenticatedDiscovery({
 }) {
   const { query, accountRegion } = preferences;
   const state = combineQueryStates([query, accountRegion]);
-  if (query.data && !state.pending && !state.error) {
+  if (state.pending) {
+    return <DiscoverSkeleton />;
+  }
+  if (state.error) {
+    return <ScreenQueryState label="account preferences" failed retry={state.retry} />;
+  }
+  if (query.data) {
     return <DiscoverContent userProviders={query.data.providerIds} />;
   }
-  return (
-    <ScreenQueryState
-      label="account preferences"
-      failed={Boolean(state.error)}
-      retry={state.retry}
-    />
-  );
+  return <DiscoverSkeleton />;
 }
 
 export function DiscoverScreen() {

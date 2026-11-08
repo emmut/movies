@@ -1,6 +1,7 @@
 import { BottomNavigation } from '@native/components/bottom-navigation';
+import { SectionSkeleton } from '@native/components/loading-skeletons';
 import { authClient } from '@native/lib/auth-client';
-import { MORE_MENU_ITEMS } from '@native/lib/navigation-menu';
+import { getMoreMenuItems } from '@native/lib/navigation-menu';
 import { useNavigationMenu } from '@native/lib/use-navigation-menu';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text } from 'react-native';
@@ -51,15 +52,24 @@ function SignOut() {
 }
 
 function SessionSummary() {
-  const { data: session } = authClient.useSession();
-  const message = session?.user
-    ? 'Signed in as ' + session.user.name
+  const session = authClient.useSession();
+  if (session.isPending) {
+    return <SectionSkeleton label="Loading your session" />;
+  }
+  if (session.error) {
+    return <Text className="text-muted">Couldn’t verify your session.</Text>;
+  }
+  const message = session.data
+    ? 'Signed in as ' + session.data.user.name
     : 'Sign in to save favorites and create watchlists.';
   return <Text className="text-muted">{message}</Text>;
 }
+
 export default function More() {
   const select = useNavigationMenu();
-  const { data: session } = authClient.useSession();
+  const session = authClient.useSession();
+  const ready = !session.isPending && !session.error;
+  const signedIn = ready ? Boolean(session.data) : null;
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top', 'left', 'right']}>
       <ScrollView className="flex-1" contentContainerClassName="gap-3 p-5">
@@ -67,7 +77,7 @@ export default function More() {
           More
         </Text>
         <SessionSummary />
-        {MORE_MENU_ITEMS.map((item) => (
+        {getMoreMenuItems(signedIn).map((item) => (
           <Pressable
             key={item.id}
             accessibilityRole="link"
@@ -78,7 +88,7 @@ export default function More() {
             <Text className="font-semibold text-foreground">{item.label}</Text>
           </Pressable>
         ))}
-        {session?.user ? <SignOut /> : null}
+        {signedIn ? <SignOut /> : null}
       </ScrollView>
       <BottomNavigation />
     </SafeAreaView>

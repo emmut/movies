@@ -5,6 +5,7 @@ import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CustomListActions } from '@native/components/custom-list-picker';
 import { ExternalLink } from '@native/components/external-link';
 import { FactGrid } from '@native/components/fact-grid';
+import { DetailSkeleton } from '@native/components/loading-skeletons';
 import { MediaBadge } from '@native/components/media-badge';
 import { PersonFilmography, PersonKnownFor } from '@native/components/person-filmography';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
@@ -17,7 +18,7 @@ import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { Image as NativeImage } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -172,11 +173,7 @@ function PersonLoadError({ error, retry }: { error: Error; retry: () => Promise<
 function PersonQuery({ id, region }: { id: number; region: string }) {
   const query = useQuery(orpc.person.details.queryOptions({ input: { id }, retry: false }));
   if (query.isPending) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator accessibilityLabel="Loading person" />
-      </View>
-    );
+    return <DetailSkeleton label="Loading person" />;
   }
   if (query.isError) {
     return <PersonLoadError error={query.error} retry={query.refetch} />;

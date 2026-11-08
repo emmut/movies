@@ -2,6 +2,7 @@ import { getRegionByCode, type RegionCode } from '@movies/config/regions';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { ChevronDownIcon } from '@native/components/icons';
 import { LinkAccountSettings } from '@native/components/link-account-settings';
+import { ContentSkeleton, SectionSkeleton } from '@native/components/loading-skeletons';
 import { PasskeySettings } from '@native/components/passkey-settings';
 import { ProviderSettings } from '@native/components/provider-settings';
 import { RegionPicker } from '@native/components/region-picker';
@@ -17,7 +18,7 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -127,7 +128,7 @@ function RegionReadError({ error, retry }: { error: Error; retry: () => void }) 
 function RegionSettings({ userId, anonymous }: { userId: string; anonymous: boolean }) {
   const query = useQuery(accountRegionQueryOptions(userId, { retry: false }));
   if (query.isPending) {
-    return <ActivityIndicator accessibilityLabel="Loading region settings" />;
+    return <SectionSkeleton label="Loading region settings" />;
   }
   if (query.isError) {
     return (
@@ -158,7 +159,7 @@ function RegionSettings({ userId, anonymous }: { userId: string; anonymous: bool
 function AccountSettings() {
   const session = authClient.useSession();
   if (session.isPending) {
-    return <ActivityIndicator accessibilityLabel="Loading session" />;
+    return <ContentSkeleton label="Loading session" />;
   }
   if (session.error) {
     return (

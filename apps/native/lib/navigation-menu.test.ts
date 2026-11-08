@@ -1,5 +1,6 @@
 import {
   getMenuDestination,
+  getMoreMenuItems,
   MORE_MENU_ITEMS,
   PRIMARY_MENU_ITEMS,
 } from '@native/lib/navigation-menu';
@@ -47,4 +48,10 @@ it('keeps every menu workflow native', () => {
   for (const item of [...PRIMARY_MENU_ITEMS, ...MORE_MENU_ITEMS]) {
     expect(getMenuDestination(item.id)?.kind).toBe('native');
   }
+});
+
+it('exposes sign in only for a known signed-out session', () => {
+  expect(getMoreMenuItems(false).some((item) => item.id === 'login')).toBe(true);
+  expect(getMoreMenuItems(true).some((item) => item.id === 'login')).toBe(false);
+  expect(getMoreMenuItems(null).some((item) => item.id === 'login')).toBe(false);
 });

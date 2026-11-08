@@ -1,8 +1,10 @@
 import type { SearchInput, SearchItem } from '@movies/api/search';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogPagination } from '@native/components/catalog-pagination';
-import { ChoiceSheet } from '@native/components/choice-sheet';
+import { SearchIcon } from '@native/components/icons';
+import { PosterGridSkeleton } from '@native/components/loading-skeletons';
 import { MediaPoster } from '@native/components/media-poster';
+import { MediaTypeTabs } from '@native/components/media-type-tabs';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { SearchPerson } from '@native/components/search-person-card';
@@ -17,12 +19,13 @@ import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-conte
 import { withUniwind } from 'uniwind';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
+const ResultList = withUniwind(FlatList<SearchItem>);
 const types = [
   { value: 'all', label: 'All' },
   { value: 'movie', label: 'Movies' },
   { value: 'tv', label: 'TV Shows' },
   { value: 'person', label: 'People' },
-];
+] as const;
 
 function SearchForm({
   initialQuery,
@@ -42,7 +45,7 @@ function SearchForm({
         accessibilityLabel="Search movies, TV shows and people"
         placeholder="Search movies, TV shows and people"
         placeholderTextColorClassName="accent-muted"
-        className="bg-default min-h-12 flex-1 rounded-xl border border-border px-4 text-foreground"
+        className="bg-default min-h-12 min-w-0 flex-1 rounded-xl border border-border px-4 text-foreground"
         value={draft}
         onChangeText={setDraft}
         maxLength={500}
@@ -53,18 +56,22 @@ function SearchForm({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Submit search"
-        className="min-h-12 justify-center rounded-xl bg-yellow-400 px-4"
+        className="min-h-12 shrink-0 items-center justify-center rounded-xl bg-yellow-400 px-3"
         onPress={submit}
       >
-        <Text className="font-semibold text-zinc-900">Search</Text>
+        <SearchIcon className="size-5 text-zinc-950" accessible={false} />
       </Pressable>
     </View>
   );
 }
 function renderResult({ item }: { item: SearchItem }) {
   return (
-    <View className="flex-1 items-center pb-5">
-      {item.type === 'person' ? <SearchPerson item={item} /> : <MediaPoster item={item} />}
+    <View className="w-1/2 px-2 pb-4">
+      {item.type === 'person' ? (
+        <SearchPerson item={item} fluid />
+      ) : (
+        <MediaPoster item={item} fluid />
+      )}
     </View>
   );
 }
@@ -82,7 +89,10 @@ function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: n
     captureBeforeNavigation,
     cancelBeforeNavigation,
   } = useRememberedScroll<FlatList<SearchItem>>('search:' + JSON.stringify(input));
-  if (query.isPending || query.isError) {
+  if (query.isPending) {
+    return <PosterGridSkeleton label="Loading search results" />;
+  }
+  if (query.isError) {
     return (
       <ScreenQueryState
         label="search results"
@@ -95,8 +105,9 @@ function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: n
   }
   return (
     <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
-      <FlatList
+      <ResultList
         testID="search-scroll"
+        contentContainerClassName="px-2"
         className="flex-1"
         ref={ref}
         data={query.data.items}
@@ -136,7 +147,6 @@ export function SearchScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const state = readSearchState(params);
-  const [typeOpen, setTypeOpen] = useState(false);
   const query = state.query;
   const type = state.type;
   function search(value: string) {
@@ -147,7 +157,6 @@ export function SearchScreen() {
   }
   function selectType(value: string) {
     router.setParams({ mediaType: value, page: '1' });
-    setTypeOpen(false);
   }
   return (
     <SafeAreaView
@@ -160,29 +169,15 @@ export function SearchScreen() {
           Search
         </Text>
         <SearchForm key={query} initialQuery={query} onSearch={search} />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Media type"
-          className="bg-default min-h-11 justify-center self-start rounded-xl px-4"
-          onPress={() => setTypeOpen(true)}
-        >
-          <Text className="text-foreground">
-            {types.find((option) => option.value === type)?.label}
-          </Text>
-        </Pressable>
+        <MediaTypeTabs
+          options={types}
+          value={type}
+          onChange={selectType}
+          label="Search media type"
+        />
       </View>
       <SearchBody input={state} onPage={page} />
       <BottomNavigation />
-      {typeOpen ? (
-        <ChoiceSheet
-          title="Media type"
-          options={types}
-          selected={[type]}
-          multiple={false}
-          onSelect={selectType}
-          onClose={() => setTypeOpen(false)}
-        />
-      ) : null}
     </SafeAreaView>
   );
 }

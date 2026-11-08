@@ -17,7 +17,7 @@ export function DiscoverFilterMenu({ label, choices, onSelect, onClear }: Discov
       }
     }
     function escape(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && ref.current?.open) {
         ref.current?.removeAttribute('open');
         ref.current?.querySelector('summary')?.focus();
       }

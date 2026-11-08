@@ -8,7 +8,28 @@ import { Pressable, Text, View } from 'react-native';
 import { withUniwind } from 'uniwind';
 
 const Image = withUniwind(NativeImage);
-export function SearchPerson({ item }: { item: SearchPersonCard }) {
+function PersonImage({ item, fluid }: { item: SearchPersonCard; fluid: boolean }) {
+  return (
+    <View
+      className={`bg-default overflow-hidden rounded-lg border border-border ${fluid ? 'aspect-2/3 w-full' : 'h-54'}`}
+    >
+      {item.profileUrl ? (
+        <Image
+          source={item.profileUrl}
+          contentFit="cover"
+          className="size-full"
+          accessibilityLabel={'Profile image of ' + item.name}
+        />
+      ) : (
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-muted">No Photo</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+export function SearchPerson({ item, fluid = false }: { item: SearchPersonCard; fluid?: boolean }) {
   const pathname = usePathname();
   const navigationPress = useScrollNavigation();
   return (
@@ -20,22 +41,9 @@ export function SearchPerson({ item }: { item: SearchPersonCard }) {
         {...navigationPress}
         accessibilityRole="link"
         accessibilityLabel={'Open ' + item.name + ', Person'}
-        className="w-36 gap-2"
+        className={`gap-2 ${fluid ? 'w-full' : 'w-36'}`}
       >
-        <View className="bg-default h-54 overflow-hidden rounded-lg border border-border">
-          {item.profileUrl ? (
-            <Image
-              source={item.profileUrl}
-              contentFit="cover"
-              className="size-full"
-              accessibilityLabel={'Profile image of ' + item.name}
-            />
-          ) : (
-            <View className="flex-1 items-center justify-center">
-              <Text className="text-muted">No Photo</Text>
-            </View>
-          )}
-        </View>
+        <PersonImage item={item} fluid={fluid} />
         <Text numberOfLines={2} className="font-semibold text-foreground">
           {item.name}
         </Text>

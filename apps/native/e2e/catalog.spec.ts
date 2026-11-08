@@ -143,7 +143,7 @@ test('shows loading while details are in flight', async ({ page }) => {
     await route.fulfill({ json: { json: detailFixture('movie') }, headers: corsHeaders });
   });
   await page.goto('/movie/42');
-  await expect(page.getByText('Loading title…', { exact: true })).toBeVisible();
+  await expect(page.getByRole('progressbar', { name: 'Loading title', exact: true })).toBeVisible();
   response.resolve();
   await expect(page.getByText('A memorable story.', { exact: true })).toBeAttached();
 });

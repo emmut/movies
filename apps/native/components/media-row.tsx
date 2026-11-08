@@ -1,4 +1,5 @@
 import type { HomeMediaSection } from '@movies/api/home';
+import { PosterRowSkeleton } from '@native/components/loading-skeletons';
 import { MediaPoster, MediaPosterRow } from '@native/components/media-poster';
 import { orpc } from '@native/lib/api';
 import { useQuery } from '@tanstack/react-query';
@@ -9,20 +10,16 @@ function RowState({
   failed,
   retry,
   empty,
+  featured = false,
 }: {
   pending: boolean;
   failed: boolean;
   retry: () => void;
   empty: boolean;
+  featured?: boolean;
 }) {
   if (pending) {
-    return (
-      <View accessibilityLabel="Loading titles" className="flex-row gap-3 overflow-hidden px-5">
-        {[0, 1, 2].map((id) => (
-          <View key={id} className="bg-default h-54 w-36 rounded-xl" />
-        ))}
-      </View>
-    );
+    return <PosterRowSkeleton label="Loading titles" featured={featured} />;
   }
   if (failed) {
     return (
@@ -80,6 +77,7 @@ export function TrendingCard({ type }: { type: 'movie' | 'tv' }) {
   return (
     <View>
       <RowState
+        featured
         pending={query.isPending}
         failed={query.isError}
         empty={query.data?.length === 0}

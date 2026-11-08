@@ -49,3 +49,8 @@ export function getMenuDestination(id: string): MenuDestination | null {
   const item = allItems.find((entry) => entry.id === id);
   return item ? { kind: 'native', path: item.nativePath } : null;
 }
+
+/** Hide auth actions until the session is known; an active guest session can also sign out. */
+export function getMoreMenuItems(signedIn: boolean | null) {
+  return MORE_MENU_ITEMS.filter((item) => item.id !== 'login' || signedIn === false);
+}

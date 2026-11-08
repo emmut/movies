@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ContentSkeleton } from '@native/components/loading-skeletons';
+import { Pressable, Text, View } from 'react-native';
 
 /** Full-screen loading or failure state for a screen backed by one query. */
 export function ScreenQueryState({
@@ -11,11 +12,7 @@ export function ScreenQueryState({
   retry: () => void;
 }) {
   if (!failed) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator accessibilityLabel={`Loading ${label}`} />
-      </View>
-    );
+    return <ContentSkeleton label={`Loading ${label}`} />;
   }
   return (
     <View className="flex-1 items-start gap-3 p-5">

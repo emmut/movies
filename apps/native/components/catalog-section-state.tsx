@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { SectionSkeleton } from '@native/components/loading-skeletons';
+import { Pressable, Text, View } from 'react-native';
 
 export function CatalogSectionState({
   label,
@@ -12,7 +13,7 @@ export function CatalogSectionState({
   retry: () => void;
 }) {
   if (pending) {
-    return <ActivityIndicator accessibilityLabel={`Loading ${label}`} />;
+    return <SectionSkeleton label={`Loading ${label}`} />;
   }
   if (!failed) {
     return null;

@@ -91,9 +91,11 @@ test('search submits a query, preserves type choice and stays in the native resu
   await page.goto('/search');
   await expect(page.getByText('Find movies, TV shows and people.')).toBeVisible();
   expect(inputs).toHaveLength(0);
-  await page.getByRole('button', { name: 'Media type', exact: true }).click();
-  await page.getByRole('radio', { name: 'People', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Media type' })).toHaveText('People');
+  await page.getByRole('button', { name: 'People', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'People', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   await page
     .getByRole('textbox', { name: 'Search movies, TV shows and people' })
     .fill('  weaver  ');
@@ -163,8 +165,7 @@ test('pagination and media changes retain query and reset page when appropriate'
   await page.getByRole('button', { name: 'Previous page', exact: true }).click();
   await expect(page.getByText('Page 1 of 3')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Previous page', exact: true })).toBeDisabled();
-  await page.getByRole('button', { name: 'Media type', exact: true }).click();
-  await page.getByRole('radio', { name: 'People', exact: true }).click();
+  await page.getByRole('button', { name: 'People', exact: true }).click();
   await expect(page).toHaveURL(/mediaType=person/);
   await expect(
     page.getByRole('textbox', { name: 'Search movies, TV shows and people' }),

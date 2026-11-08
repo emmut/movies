@@ -13,6 +13,7 @@ import {
   Plus,
   Popcorn,
   ShoppingCart,
+  Search,
   Star,
   TicketCheck,
   Tv,
@@ -52,3 +53,5 @@ export const StarIcon = styledIcon(Star);
 export const TicketCheckIcon = styledIcon(TicketCheck);
 export const TvIcon = styledIcon(Tv);
 export const UsersIcon = styledIcon(Users);
+
+export const SearchIcon = styledIcon(Search);

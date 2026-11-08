@@ -7,6 +7,7 @@ import type { SystemListPage, SystemListPageInput } from '@movies/api/system-lis
 import type { SystemListType } from '@movies/api/validations';
 import { AccountScreen } from '@native/components/account-screen';
 import { ArrowUpIcon, ArrowDownIcon } from '@native/components/icons';
+import { PosterGridSkeleton } from '@native/components/loading-skeletons';
 import { MediaPoster } from '@native/components/media-poster';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
@@ -329,7 +330,10 @@ function ListQuery({
     placeholderData: keepPreviousData,
     queryKey: accountQueryKey(orpc.systemLists.page.queryKey({ input }), userId),
   });
-  if (query.isPending || query.isError) {
+  if (query.isPending) {
+    return <PosterGridSkeleton label="Loading your list" />;
+  }
+  if (query.isError) {
     return (
       <ScreenQueryState
         label="your list"
