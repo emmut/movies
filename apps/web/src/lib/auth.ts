@@ -1,3 +1,4 @@
+import 'server-only';
 import { passkey } from '@better-auth/passkey';
 import * as schema from '@movies/db/schema/auth';
 import { betterAuth } from 'better-auth';
@@ -36,6 +37,10 @@ export const auth = betterAuth({
     enabled: process.env.NODE_ENV === 'production' && !env.AUTH_RATE_LIMIT_DISABLED,
   },
   socialProviders: {
+    google: {
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    },
     discord: {
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,

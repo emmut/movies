@@ -62,8 +62,14 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - Anonymous users are supported; their watchlist is migrated onto the account on link/sign-in.
 - List pages answer the stream-provider filter from a local cache of the titles in users' lists (`titles`, `title_availability`), written through on add and refreshed nightly by `scripts/sync-titles.ts`. TMDB stays the source of truth; everything else (discover, search, detail pages) reads TMDB through `'use cache'`. See `docs/title-cache-plan.md` for what the cache is meant to unlock next.
 - Full-page search merges TMDB with a local fuzzy index on page one: `search_index` holds every TMDB id with its original title (from the daily exports). GIN indexes support both `pg_trgm` typo matching and built-in word search for reordered words and an incomplete final word. Local retrieval puts exact titles first, then matches covering all query words, then fuzzy matches; popularity breaks equal-distance candidate ties before the cutoff. Title-match tiers provide the primary merged order, with reciprocal-rank fusion combining source ranks inside each tier. Only index candidates absent from TMDB are hydrated, capped at three when TMDB has results. The command palette stays TMDB-first with a zero-result fuzzy fallback to avoid database wake-up latency on every keystroke. An empty index simply degrades to TMDB-only results. See [search.md](docs/search.md) for the extension assessment and migration details.
-- Auth is Better Auth with Discord/GitHub social providers and passkey support.
+- Auth is Better Auth with Google/Discord/GitHub social providers and passkey support.
 - UI primitives are Base UI (`@base-ui/react`) styled in `packages/ui/src/components/`, shadcn-managed via `components.json`.
+
+## Google sign-in setup
+
+Create a **Web application** OAuth client in [Google Cloud Console](https://console.cloud.google.com/auth/clients). Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/web/.env` and on the web service for each deployment. Register each exact authorized redirect URI: `<NEXT_PUBLIC_BASE_URL>/api/auth/callback/google` (locally, `http://localhost:3000/api/auth/callback/google`). Preview environments need their own registered callback URL. Configure the consent screen and test users while the Google app is in testing.
+
+Google uses the existing social sign-in and anonymous-account transfer flow; it needs no database migration.
 
 ## Testing
 

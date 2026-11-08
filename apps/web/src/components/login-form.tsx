@@ -20,6 +20,7 @@ type LoginFormProps = {
 export function LoginForm({ redirectUrl }: LoginFormProps) {
   return (
     <div className="flex flex-col justify-center gap-4">
+      <OAuthLoginButton provider="google" size="lg" redirectUrl={redirectUrl} />
       <OAuthLoginButton provider="discord" size="lg" redirectUrl={redirectUrl} />
       <OAuthLoginButton provider="github" size="lg" redirectUrl={redirectUrl} />
 

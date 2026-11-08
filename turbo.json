@@ -16,6 +16,8 @@
         "DB_POOL_MAX",
         "DISCORD_CLIENT_ID",
         "DISCORD_CLIENT_SECRET",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
         "GITHUB_CLIENT_ID",
         "GITHUB_CLIENT_SECRET",
         "IMGPROXY_KEY",
