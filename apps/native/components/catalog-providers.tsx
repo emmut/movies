@@ -26,7 +26,7 @@ function ProviderCard({ provider, href }: { provider: WatchProviderCard; href: s
     <Pressable
       accessibilityRole="link"
       accessibilityLabel={`${provider.name} (opens browser)`}
-      className="min-h-14 flex-row items-center gap-3 rounded-lg bg-zinc-800 p-3"
+      className="bg-default min-h-14 flex-row items-center gap-3 rounded-lg p-3"
       onPress={() => {
         void Linking.openURL(href).catch(() =>
           Alert.alert('Couldn’t open provider', 'Please try again.'),
@@ -39,7 +39,7 @@ function ProviderCard({ provider, href }: { provider: WatchProviderCard; href: s
         className="size-8 rounded"
         accessible={false}
       />
-      <Text className="flex-1 text-sm font-medium text-white">{provider.name}</Text>
+      <Text className="flex-1 text-sm font-medium text-foreground">{provider.name}</Text>
     </Pressable>
   );
 }
@@ -48,7 +48,7 @@ function ProviderContent({ groups }: { groups: ProviderGroups }) {
   return (
     <View className="gap-6">
       {empty ? (
-        <Text className="rounded-lg bg-zinc-800 p-6 text-center text-zinc-400">
+        <Text className="bg-default rounded-lg p-6 text-center text-muted">
           No services available for this region
         </Text>
       ) : null}

@@ -5,6 +5,7 @@ import {
   preflight,
   readInput,
 } from '@native/e2e/catalog-fixtures';
+import { expectMatchingSurface, textContrastRatios } from '@native/e2e/contrast';
 import { expect, test } from '@playwright/test';
 
 const movie = {
@@ -130,6 +131,26 @@ test('person filmography opens native movie details and restores the person', as
   await expect(page.getByText('A performer biography.')).toBeAttached();
   await expect(page.getByRole('link', { name: 'IMDb (opens browser)' })).toBeAttached();
   await page.screenshot({ path: '/tmp/movies-native-person.png' });
+});
+
+test('person cards and photo fallback follow system appearance without reloading', async ({
+  page,
+}) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.goto('/search/person/7');
+  const card = page.getByTestId('stat-Popularity');
+  const artwork = page.getByText('No Photo Available', { exact: true }).locator('../..');
+  for (const colorScheme of ['light', 'dark', 'light'] as const) {
+    await page.emulateMedia({ colorScheme });
+    const reference = page.getByRole('link', { name: 'Sign in to save to Lists' });
+    await expectMatchingSurface(card, reference);
+    await expectMatchingSurface(artwork, reference);
+    for (const ratio of await textContrastRatios(card)) {
+      expect(ratio).toBeGreaterThanOrEqual(4.5);
+    }
+    await card.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `/tmp/movies-native-person-${colorScheme}.png` });
+  }
 });
 
 test('pagination and media changes retain query and reset page when appropriate', async ({

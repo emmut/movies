@@ -49,11 +49,11 @@ function Episodes({ data }: { data: SeasonPage }) {
             key={episode.id}
             className="overflow-hidden rounded-xl border border-border bg-background"
           >
-            <View className="aspect-video items-center justify-center bg-zinc-900">
+            <View className="bg-default aspect-video items-center justify-center">
               {visible ? (
                 <PdpImage path={episode.still_path} title={episode.name} />
               ) : (
-                <Text className="text-zinc-300">Episode details hidden</Text>
+                <Text className="text-muted">Episode details hidden</Text>
               )}
             </View>
             <View className="gap-3 p-4">

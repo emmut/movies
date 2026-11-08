@@ -20,7 +20,7 @@ export function CatalogArtwork({ item }: { item: CatalogDetail }) {
         </View>
       ) : null}
       <View className="px-4">
-        <View className="h-96 w-64 items-center justify-center overflow-hidden rounded-lg border border-border bg-zinc-800">
+        <View className="bg-default h-96 w-64 items-center justify-center overflow-hidden rounded-lg border border-border">
           {item.posterUrl ? (
             <Image
               source={item.posterUrl}
@@ -30,7 +30,7 @@ export function CatalogArtwork({ item }: { item: CatalogDetail }) {
               accessibilityIgnoresInvertColors
             />
           ) : (
-            <Text className="text-base text-zinc-400">No Poster</Text>
+            <Text className="text-base text-muted">No Poster</Text>
           )}
         </View>
       </View>
