@@ -14,6 +14,8 @@ From the repository root:
 
 Leave the public URL overrides empty for local development. The app derives port 3001 (API) from the current browser hostname or Expo's advertised host. All primary/More menu destinations are native; the legacy EXPO_PUBLIC_WEB_URL setting is no longer used. A changing Wi-Fi address no longer requires editing `.env`. Explicit URLs still override detection; set these for deployment, an Expo tunnel, or separately hosted services. Restart Expo after changing env values. Public variables contain URLs only; the TMDB token stays in `apps/server/.env`.
 
+The native dev commands clear Metro's cache at startup. After dependency changes, stale pnpm paths can make Uniwind's React Native wrapper import itself and crash before registration with `Cannot read property 'select' of undefined`. Stop Expo and restart `pnpm dev:native` if an already running server shows this error.
+
 For Expo Go, keep your phone and computer on the same network and scan the current terminal QR code. The phone must be able to reach Expo on port 8081 and the API on port 3001. A saved link with an old IP will not load. A tunnel for Expo does not tunnel the API: supply an explicit reachable API URL when using one.
 
 The API defaults to port 3001. Local development permits localhost and private LAN browser origins. Set `CORS_ORIGIN` to the exact browser origin in production; an explicit value overrides the development allowlist. Native requests do not require browser CORS. Catalog reads are public. Native sign-in uses the canonical web auth service through the API; configure AUTH_URL as described below.
