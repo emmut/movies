@@ -22,7 +22,7 @@ export function SearchPerson({ item }: { item: SearchPersonCard }) {
         accessibilityLabel={'Open ' + item.name + ', Person'}
         className="w-36 gap-2"
       >
-        <View className="h-54 overflow-hidden rounded-lg border border-border bg-zinc-800">
+        <View className="bg-default h-54 overflow-hidden rounded-lg border border-border">
           {item.profileUrl ? (
             <Image
               source={item.profileUrl}
@@ -32,7 +32,7 @@ export function SearchPerson({ item }: { item: SearchPersonCard }) {
             />
           ) : (
             <View className="flex-1 items-center justify-center">
-              <Text className="text-zinc-400">No Photo</Text>
+              <Text className="text-muted">No Photo</Text>
             </View>
           )}
         </View>

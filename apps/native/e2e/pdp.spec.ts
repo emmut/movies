@@ -5,6 +5,7 @@ import {
   preflight,
   readInput,
 } from '@native/e2e/catalog-fixtures';
+import { expectMatchingSurface } from '@native/e2e/contrast';
 import { expect, test } from '@playwright/test';
 const episode = {
   id: 4,
@@ -214,7 +215,12 @@ for (const theme of ['light', 'dark'] as const) {
   test(`gallery and spoiler controls render in ${theme}`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme });
     await page.goto('/tv/42/season/0');
-    await expect(page.getByText('Episode details hidden', { exact: true })).toBeVisible();
+    const hiddenEpisode = page.getByText('Episode details hidden', { exact: true });
+    await expect(hiddenEpisode).toBeVisible();
+    await expectMatchingSurface(
+      hiddenEpisode.locator('..'),
+      page.getByRole('button', { name: 'Show spoilers', exact: true }),
+    );
     await page.screenshot({ path: '/tmp/pr350-native-season-' + theme + '.png', fullPage: true });
     await page.goto('/movie/42');
     await page.getByRole('button', { name: 'Open image 1 of 2', exact: true }).click();

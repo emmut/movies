@@ -15,14 +15,12 @@ export function StatGrid({ stats }: { stats: CatalogStat[] }) {
         <View
           key={stat.label}
           testID={'stat-' + stat.label}
-          className="min-w-36 flex-1 rounded-lg bg-zinc-900 p-5"
+          className="bg-default min-w-36 flex-1 rounded-lg p-5"
         >
           <CatalogIcon label={stat.label} className={'mb-3 ' + accents[stat.accent]} />
-          <Text className="text-2xl font-bold text-white">{stat.value}</Text>
-          <Text className="text-sm text-zinc-400">{stat.label}</Text>
-          {stat.description ? (
-            <Text className="text-xs text-zinc-400">{stat.description}</Text>
-          ) : null}
+          <Text className="text-2xl font-bold text-foreground">{stat.value}</Text>
+          <Text className="text-sm text-muted">{stat.label}</Text>
+          {stat.description ? <Text className="text-xs text-muted">{stat.description}</Text> : null}
         </View>
       ))}
     </View>

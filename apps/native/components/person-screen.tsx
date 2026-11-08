@@ -26,7 +26,7 @@ const SafeAreaView = withUniwind(NativeSafeAreaView);
 
 function PersonArtwork({ person }: { person: PersonDetail }) {
   return (
-    <View className="aspect-2/3 w-56 self-center overflow-hidden rounded-lg border border-border bg-zinc-800">
+    <View className="bg-default aspect-2/3 w-56 self-center overflow-hidden rounded-lg border border-border">
       {person.profileUrl ? (
         <Image
           source={person.profileUrl}
@@ -36,7 +36,7 @@ function PersonArtwork({ person }: { person: PersonDetail }) {
         />
       ) : (
         <View className="flex-1 items-center justify-center">
-          <Text className="text-zinc-400">No Photo Available</Text>
+          <Text className="text-muted">No Photo Available</Text>
         </View>
       )}
     </View>

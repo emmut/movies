@@ -5,6 +5,7 @@ import {
   preflight,
   readInput,
 } from '@native/e2e/catalog-fixtures';
+import { expectMatchingSurface, textContrastRatios } from '@native/e2e/contrast';
 import { expect, test } from '@playwright/test';
 
 const provider = { id: 8, name: 'Test Streaming', logoUrl: null };
@@ -155,10 +156,16 @@ test('provider groups link to the selected watch URL and retain artwork/name con
   }
   const service = page.getByRole('link', { name: 'Test Streaming (opens browser)' });
   await service.scrollIntoViewIfNeeded();
-  await page.emulateMedia({ colorScheme: 'light' });
-  await expect(service.getByText('Test Streaming')).toHaveCSS('color', 'rgb(255, 255, 255)');
-  await page.emulateMedia({ colorScheme: 'dark' });
-  await expect(service.getByText('Test Streaming')).toHaveCSS('color', 'rgb(255, 255, 255)');
+  for (const colorScheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme });
+    await expectMatchingSurface(
+      service,
+      page.getByRole('button', { name: 'Watch region: Sweden. Change region' }),
+    );
+    for (const ratio of await textContrastRatios(service)) {
+      expect(ratio).toBeGreaterThanOrEqual(4.5);
+    }
+  }
   const popup = page.waitForEvent('popup');
   await service.click();
   await expect(await popup).toHaveURL(groups.link);

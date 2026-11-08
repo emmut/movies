@@ -15,7 +15,7 @@ function Portrait({ person, compact }: { person: CreditPerson; compact: boolean 
   const showImage = person.profileUrl !== null && person.profileUrl !== failedUrl;
   return (
     <View
-      className={`items-center justify-center overflow-hidden bg-zinc-800 ${compact ? 'size-10 rounded-full' : 'aspect-2/3 w-32 rounded-lg'}`}
+      className={`bg-default items-center justify-center overflow-hidden ${compact ? 'size-10 rounded-full' : 'aspect-2/3 w-32 rounded-lg'}`}
     >
       {showImage ? (
         <Image
@@ -26,7 +26,7 @@ function Portrait({ person, compact }: { person: CreditPerson; compact: boolean 
           onError={() => setFailedUrl(person.profileUrl)}
         />
       ) : (
-        <UsersIcon className="size-6 text-zinc-400" accessibilityLabel="No photo available" />
+        <UsersIcon className="size-6 text-muted" accessibilityLabel="No photo available" />
       )}
     </View>
   );

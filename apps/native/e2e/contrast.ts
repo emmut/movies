@@ -1,4 +1,18 @@
-import type { Locator } from '@playwright/test';
+import { expect, type Locator } from '@playwright/test';
+
+export async function expectMatchingSurface(surface: Locator, reference: Locator) {
+  await expect
+    .poll(async () => {
+      const background = await reference.evaluate(
+        (element) => getComputedStyle(element).backgroundColor,
+      );
+      return surface.evaluate(
+        (element, expected) => getComputedStyle(element).backgroundColor === expected,
+        background,
+      );
+    })
+    .toBe(true);
+}
 
 export async function textContrastRatios(locator: Locator) {
   return locator.evaluate((element) => {

@@ -22,8 +22,8 @@ export function PdpImage({
   const [failed, setFailed] = useState(false);
   if (!path || failed) {
     return (
-      <View className="flex-1 items-center justify-center bg-zinc-900 p-4">
-        <Text className="text-center text-zinc-300">No image available</Text>
+      <View className="bg-default flex-1 items-center justify-center p-4">
+        <Text className="text-center text-muted">No image available</Text>
       </View>
     );
   }

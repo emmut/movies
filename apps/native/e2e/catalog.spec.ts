@@ -5,6 +5,7 @@ import {
   preflight,
   readInput,
 } from '@native/e2e/catalog-fixtures';
+import { expectMatchingSurface, textContrastRatios } from '@native/e2e/contrast';
 import { expect, test } from '@playwright/test';
 
 test.beforeEach(mockEmptySupport);
@@ -37,10 +38,18 @@ for (const type of ['movie', 'tv'] as const) {
     await page.getByText('Overview', { exact: true }).scrollIntoViewIfNeeded();
     await expect(page.getByText('A memorable story.', { exact: true })).toBeVisible();
     const score = page.getByText('8.3', { exact: true });
-    await page.emulateMedia({ colorScheme: 'light' });
-    await expect(score).toHaveCSS('color', 'rgb(255, 255, 255)');
-    await page.emulateMedia({ colorScheme: 'dark' });
-    await expect(score).toHaveCSS('color', 'rgb(255, 255, 255)');
+    for (const colorScheme of ['light', 'dark'] as const) {
+      await page.emulateMedia({ colorScheme });
+      const reference = page.getByRole('button', { name: 'Watch region: Sweden. Change region' });
+      await expectMatchingSurface(score.locator('..'), reference);
+      await expectMatchingSurface(
+        page.getByText('No Poster', { exact: true }).locator('..'),
+        reference,
+      );
+      for (const ratio of await textContrastRatios(score.locator('..'))) {
+        expect(ratio).toBeGreaterThanOrEqual(4.5);
+      }
+    }
     expect(errors).toEqual([]);
   });
 }
