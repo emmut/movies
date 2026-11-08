@@ -4,7 +4,7 @@ import { Skeleton } from '@movies/ui/components/skeleton';
  * Displays a compact loading skeleton for the person detail page.
  *
  * Mirrors the above-the-fold layout of the person page (go-back control, profile
- * image, name, stats, and biography intro).
+ * image, name, stats, known-for titles, and biography intro).
  */
 export default function LoadingPerson() {
   return (
@@ -21,7 +21,7 @@ export default function LoadingPerson() {
           <Skeleton className="aspect-2/3 w-full max-w-64 rounded-lg shadow-2xl lg:max-w-full" />
         </div>
 
-        <div className="space-y-4 lg:col-span-8">
+        <div className="min-w-0 space-y-4 lg:col-span-8">
           <div className="flex flex-col items-start gap-3">
             <Skeleton className="h-12 w-64" />
             <Skeleton className="h-7 w-16 rounded-full" />
@@ -35,6 +35,15 @@ export default function LoadingPerson() {
                   <Skeleton className="mb-1 h-6 w-12" />
                   <Skeleton className="h-3 w-20" />
                 </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <Skeleton className="h-6 w-28" />
+            <div className="flex gap-4 overflow-hidden">
+              {[0, 1, 2, 3].map((index) => (
+                <Skeleton key={index} className="aspect-2/3 w-40 shrink-0 rounded-lg sm:w-48" />
               ))}
             </div>
           </div>

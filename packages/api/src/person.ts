@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { mediaCardSchema } from './home';
+
 export const personInput = z.object({
   id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
 });
@@ -21,3 +23,13 @@ export const personDetailSchema = z.object({
 export type PersonInput = z.infer<typeof personInput>;
 export type PersonCreditsInput = z.infer<typeof personCreditsInput>;
 export type PersonDetail = z.infer<typeof personDetailSchema>;
+
+export const personCreditSchema = mediaCardSchema.extend({
+  genreIds: z.array(z.number().int().positive()).default([]),
+  voteCount: z.number().int().nonnegative().default(0),
+  popularity: z.number().default(0),
+  character: z.string().optional(),
+  order: z.number().int().nonnegative().optional(),
+  episodeCount: z.number().int().nonnegative().optional(),
+});
+export type PersonCredit = z.infer<typeof personCreditSchema>;

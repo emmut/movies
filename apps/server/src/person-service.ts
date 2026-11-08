@@ -1,5 +1,5 @@
 import 'server-only';
-import { deduplicateAndSortByPopularity } from '@movies/api/filmography';
+import { personCreditFields, sortPersonTitles } from '@movies/api/person-filmography';
 import type { PersonService } from '@movies/api/router';
 import { TmdbRequestError, type TmdbFetch } from '@movies/api/tmdb-fetch';
 import { ORPCError } from '@orpc/server';
@@ -57,12 +57,23 @@ export function createPersonService(fetchTmdb: TmdbFetch): PersonService {
     async credits({ id, type }) {
       const response = await fetchTmdb('/person/' + id + '/' + type + '_credits');
       // Credit entries carry no media_type; validate against the requested endpoint.
-      const schema = type === 'movie' ? searchedMovieSchema : searchedTvSchema;
+      const fields = {
+        character: z.string().optional(),
+        order: z.number().int().nonnegative().optional(),
+        episode_count: z.number().int().nonnegative().optional(),
+      };
+      const schema =
+        type === 'movie' ? searchedMovieSchema.extend(fields) : searchedTvSchema.extend(fields);
       const data = z.object({ cast: z.array(schema) }).parse(response);
-      const sorted = deduplicateAndSortByPopularity(data.cast, function date(item) {
-        return 'release_date' in item ? item.release_date : item.first_air_date;
-      });
-      return sorted.map((item) => toMediaCard(item, type));
+      return sortPersonTitles(
+        data.cast.map((item) => ({
+          ...personCreditFields(item, type),
+          ...toMediaCard(item, type),
+          genreIds: item.genre_ids,
+          voteCount: item.vote_count,
+          popularity: item.popularity,
+        })),
+      );
     },
   };
 }

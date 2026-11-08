@@ -54,7 +54,7 @@ describe('native person catalog', () => {
     });
     await expect(createPersonService(fetcher).details({ id: 7 })).rejects.toThrow('offline');
   });
-  it('deduplicates first occurrences and preserves web popularity/date ordering', async () => {
+  it('deduplicates the most relevant occurrences using the shared web ranking', async () => {
     const cast = [
       { id: 1, title: 'First', popularity: 1, release_date: '2020-01-01' },
       { id: 1, title: 'Duplicate', popularity: 100 },
@@ -63,18 +63,34 @@ describe('native person catalog', () => {
     ];
     const fetcher = vi.fn().mockResolvedValue({ cast });
     const result = await createPersonService(fetcher).credits({ id: 7, type: 'movie' });
-    expect(result.map((item) => item.title)).toEqual(['Recent', 'Popular', 'First']);
+    expect(result.map((item) => item.title)).toEqual(['Duplicate', 'Popular', 'Recent']);
     expect(result.every((item) => item.type === 'movie')).toBe(true);
   });
   it('normalizes TV credits and rejects malformed supporting records for independent retry', async () => {
     const fetcher = vi
       .fn()
-      .mockResolvedValueOnce({ cast: [{ id: 12, name: 'Series', vote_average: 7.5 }] })
+      .mockResolvedValueOnce({
+        cast: [
+          {
+            id: 12,
+            name: 'Series',
+            vote_average: 7.5,
+            vote_count: 500,
+            genre_ids: [18],
+            character: 'Detective',
+            episode_count: 80,
+          },
+        ],
+      })
       .mockResolvedValueOnce({ cast: [{ id: -1 }] });
     expect((await createPersonService(fetcher).credits({ id: 7, type: 'tv' }))[0]).toMatchObject({
       type: 'tv',
       title: 'Series',
       rating: 7.5,
+      genreIds: [18],
+      voteCount: 500,
+      character: 'Detective',
+      episodeCount: 80,
     });
     await expect(createPersonService(fetcher).credits({ id: 7, type: 'movie' })).rejects.toThrow();
   });

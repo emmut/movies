@@ -1,13 +1,12 @@
 import { parseCatalogId } from '@movies/api/catalog';
-import type { MediaCard } from '@movies/api/home';
+import type { PersonCredit } from '@movies/api/person';
 import { personInput, type PersonDetail } from '@movies/api/person';
 import { BottomNavigation } from '@native/components/bottom-navigation';
-import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { CustomListActions } from '@native/components/custom-list-picker';
 import { ExternalLink } from '@native/components/external-link';
 import { FactGrid } from '@native/components/fact-grid';
 import { MediaBadge } from '@native/components/media-badge';
-import { MediaPosterRow } from '@native/components/media-poster';
+import { PersonFilmography, PersonKnownFor } from '@native/components/person-filmography';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { StatGrid } from '@native/components/stat-grid';
 import { orpc } from '@native/lib/api';
@@ -25,35 +24,6 @@ import { withUniwind } from 'uniwind';
 const Image = withUniwind(NativeImage);
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
-function PersonFilmography({
-  title,
-  query,
-  region,
-}: {
-  title: string;
-  query: UseQueryResult<MediaCard[]>;
-  region: string;
-}) {
-  if (query.data?.length === 0) {
-    return null;
-  }
-  return (
-    <View className="gap-3">
-      <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
-        {title}
-      </Text>
-      <CatalogSectionState
-        label={title}
-        pending={query.isPending}
-        failed={query.isError}
-        retry={() => {
-          void query.refetch();
-        }}
-      />
-      {query.data ? <MediaPosterRow items={query.data} region={region} /> : null}
-    </View>
-  );
-}
 function PersonArtwork({ person }: { person: PersonDetail }) {
   return (
     <View className="aspect-2/3 w-56 self-center overflow-hidden rounded-lg border border-border bg-zinc-800">
@@ -94,8 +64,8 @@ function PersonStatistics({
   tv,
 }: {
   person: PersonDetail;
-  movie: UseQueryResult<MediaCard[]>;
-  tv: UseQueryResult<MediaCard[]>;
+  movie: UseQueryResult<PersonCredit[]>;
+  tv: UseQueryResult<PersonCredit[]>;
 }) {
   if (!movie.isSuccess || !tv.isSuccess) {
     return <StatGrid stats={personStats(person, undefined)} />;
@@ -145,6 +115,7 @@ function PersonContent({ person, region }: { person: PersonDetail; region: strin
         </View>
         <CustomListActions input={{ resourceId: person.id, resourceType: 'person' }} />
         <PersonStatistics person={person} movie={movie} tv={tv} />
+        <PersonKnownFor titles={[...(movie.data ?? []), ...(tv.data ?? [])]} region={region} />
         <View className="gap-3">
           <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
             Biography

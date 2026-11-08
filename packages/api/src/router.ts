@@ -47,6 +47,8 @@ import {
   personInput,
   personCreditsInput,
   personDetailSchema,
+  personCreditSchema,
+  type PersonCredit,
   type PersonInput,
   type PersonCreditsInput,
   type PersonDetail,
@@ -102,7 +104,7 @@ export type DiscoveryService = {
 export type SearchService = { list(input: SearchInput): Promise<SearchPage> };
 export type PersonService = {
   details(input: PersonInput): Promise<PersonDetail>;
-  credits(input: PersonCreditsInput): Promise<MediaCard[]>;
+  credits(input: PersonCreditsInput): Promise<PersonCredit[]>;
 };
 /** Account preferences for a verified user; the router supplies the user ID from the session. */
 export type PreferencesService = {
@@ -292,7 +294,7 @@ export const appRouter = {
       .handler(({ input, context }) => context.person.details(input)),
     credits: procedure
       .input(personCreditsInput)
-      .output(z.array(mediaCardSchema))
+      .output(z.array(personCreditSchema))
       .handler(({ input, context }) => context.person.credits(input)),
   },
   search: {

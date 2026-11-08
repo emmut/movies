@@ -1,4 +1,4 @@
-import { deduplicateAndSortByPopularity } from '@movies/api/filmography';
+import { getKnownFor, personCreditFields } from '@movies/api/person-filmography';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 
 import Badge from '@/components/badge';
@@ -7,6 +7,7 @@ import { GoBack } from '@/components/go-back';
 import { Imgproxy } from '@/components/image-proxy';
 import ItemCard from '@/components/item-card';
 import { ItemSlider } from '@/components/item-slider';
+import { PersonFilmography } from '@/components/person-filmography';
 import { QuickAddButton } from '@/components/quick-add-button';
 import { getUser } from '@/lib/auth-server';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
@@ -51,21 +52,8 @@ export default async function PersonPage(props: PersonPageProps) {
     imdb_id,
   } = person;
 
-  // Deduplicate and sort movies by popularity and release date
-  const uniqueMovies = deduplicateAndSortByPopularity(
-    movieCredits.cast,
-    (movie) => movie.release_date,
-  );
-
-  // Deduplicate and sort TV shows by popularity and first air date
-  const uniqueTvShows = deduplicateAndSortByPopularity(
-    tvCredits.cast,
-    (show) => show.first_air_date,
-  );
-
-  // Convert movies to format expected by ResourceCard
-  const moviesForGrid = uniqueMovies.map((movie) => ({
-    id: movie.id,
+  // Convert movies to format expected by ItemCard
+  const moviesForGrid = movieCredits.cast.map((movie) => ({
     title: movie.title,
     poster_path: movie.poster_path,
     release_date: movie.release_date,
@@ -75,16 +63,18 @@ export default async function PersonPage(props: PersonPageProps) {
     original_language: '',
     original_title: movie.original_title,
     overview: '',
-    media_type: 'movie',
-    genre_ids: [],
+    media_type: 'movie' as const,
+    ...personCreditFields(movie, 'movie'),
+    genre_ids: movie.genre_ids ?? [],
     popularity: movie.popularity,
     video: false,
-    vote_count: 0,
+    vote_count: movie.vote_count ?? 0,
+    character: movie.character,
+    order: movie.order,
   }));
 
-  // Convert TV shows to format expected by ResourceCard
-  const tvShowsForGrid = uniqueTvShows.map((show) => ({
-    id: show.id,
+  // Convert TV shows to format expected by ItemCard
+  const tvShowsForGrid = tvCredits.cast.map((show) => ({
     name: show.name,
     original_name: show.original_name,
     poster_path: show.poster_path,
@@ -92,10 +82,13 @@ export default async function PersonPage(props: PersonPageProps) {
     vote_average: show.vote_average,
     backdrop_path: '',
     overview: '',
-    vote_count: 0,
-    genre_ids: [],
+    vote_count: show.vote_count ?? 0,
+    character: show.character,
+    episode_count: show.episode_count,
+    genre_ids: show.genre_ids ?? [],
     popularity: show.popularity,
-    media_type: 'tv',
+    media_type: 'tv' as const,
+    ...personCreditFields(show, 'tv'),
     origin_country: [],
     original_language: '',
   }));
@@ -104,7 +97,10 @@ export default async function PersonPage(props: PersonPageProps) {
   const deathYear = deathday ? new Date(deathday).getFullYear() : null;
   const age = birthYear && !deathYear ? new Date().getFullYear() - birthYear : null;
 
-  const totalCredits = uniqueMovies.length + uniqueTvShows.length;
+  const totalCredits =
+    new Set(moviesForGrid.map((item) => item.id)).size +
+    new Set(tvShowsForGrid.map((item) => item.id)).size;
+  const knownFor = getKnownFor([...moviesForGrid, ...tvShowsForGrid]);
 
   return (
     <div className="min-h-screen">
@@ -136,7 +132,7 @@ export default async function PersonPage(props: PersonPageProps) {
           )}
         </div>
 
-        <div className="space-y-6 lg:col-span-8">
+        <div className="min-w-0 space-y-6 lg:col-span-8">
           <div className="flex flex-col items-start gap-3">
             <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">{name}</h1>
             <div className="flex w-full items-center justify-between gap-2">
@@ -187,6 +183,24 @@ export default async function PersonPage(props: PersonPageProps) {
             </div>
           </div>
 
+          {knownFor.length > 0 && (
+            <section aria-label="Known for">
+              <h2 className="mb-2 text-xl font-semibold">Known for</h2>
+              <p className="mb-4 text-sm text-zinc-400">Standout movies and TV roles</p>
+              <ItemSlider>
+                {knownFor.map((item) => (
+                  <ItemCard
+                    key={`${item.media_type}:${item.id}`}
+                    resource={item}
+                    className="w-40 sm:w-48"
+                    type={'title' in item ? 'movie' : 'tv'}
+                    userId={user?.id}
+                  />
+                ))}
+              </ItemSlider>
+            </section>
+          )}
+
           {biography && (
             <div>
               <h2 className="mb-3 text-xl font-semibold">Biography</h2>
@@ -197,7 +211,7 @@ export default async function PersonPage(props: PersonPageProps) {
           <div className="grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <div>
-                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Known For</h3>
+                <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Department</h3>
                 <p>{known_for_department || 'Acting'}</p>
               </div>
 
@@ -237,39 +251,8 @@ export default async function PersonPage(props: PersonPageProps) {
             </div>
           </div>
 
-          {uniqueMovies.length > 0 && (
-            <div>
-              <h2 className="mb-4 text-xl font-semibold">Movies ({uniqueMovies.length})</h2>
-              <ItemSlider>
-                {moviesForGrid.map((movie) => (
-                  <ItemCard
-                    key={movie.id}
-                    resource={movie}
-                    className="w-48"
-                    type="movie"
-                    userId={user?.id}
-                  />
-                ))}
-              </ItemSlider>
-            </div>
-          )}
-
-          {uniqueTvShows.length > 0 && (
-            <div>
-              <h2 className="mb-4 text-xl font-semibold">TV Shows ({uniqueTvShows.length})</h2>
-              <ItemSlider>
-                {tvShowsForGrid.map((show) => (
-                  <ItemCard
-                    key={show.id}
-                    resource={show}
-                    className="w-48"
-                    type="tv"
-                    userId={user?.id}
-                  />
-                ))}
-              </ItemSlider>
-            </div>
-          )}
+          <PersonFilmography title="Movies" titles={moviesForGrid} userId={user?.id} />
+          <PersonFilmography title="TV Shows" titles={tvShowsForGrid} userId={user?.id} />
 
           <ExternalLinks
             tmdbId={personId}

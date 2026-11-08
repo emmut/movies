@@ -25,6 +25,7 @@
     "./tmdb-types/*": "./src/tmdb-types/*.ts",
     "./search-hydration": "./src/search-hydration.ts",
     "./search": "./src/search.ts",
+    "./person-filmography": "./src/person-filmography.ts",
     "./person": "./src/person.ts",
     "./filmography": "./src/filmography.ts",
     "./session": "./src/session.ts",

@@ -259,3 +259,65 @@ for (const bothFail of [false, true]) {
     await expect(stat).toContainText('—');
   });
 }
+
+test('person Known for and filmography share relevance, rating and newest ordering', async ({
+  page,
+}) => {
+  const role = {
+    ...movie,
+    posterUrl: 'https://image.tmdb.org/t/p/w342/poster.jpg',
+    voteCount: 1000,
+    popularity: 10,
+    genreIds: [18],
+    character: 'Detective',
+    order: 0,
+  };
+  const recent = {
+    ...role,
+    id: 43,
+    title: 'Recent role',
+    releaseDate: '2025-01-01',
+    rating: 9,
+    voteCount: 1,
+    popularity: 1,
+  };
+  const appearance = {
+    ...role,
+    id: 44,
+    title: 'Talk show',
+    releaseDate: '2024-01-01',
+    rating: 10,
+    genreIds: [10767],
+    popularity: 10000,
+    voteCount: 50000,
+  };
+  const series = { ...role, type: 'tv', title: 'A series', episodeCount: 80 };
+  await page.route('**/rpc/person/credits*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    const input = readInput(route.request());
+    await route.fulfill({
+      json: { json: input.type === 'movie' ? [appearance, recent, role, role] : [series] },
+      headers: corsHeaders,
+    });
+  });
+  await page.goto('/search/person/7?region=US');
+  const known = page.getByLabel('Known for', { exact: true });
+  await expect(known.getByRole('heading', { name: 'Known for', exact: true })).toBeAttached();
+  await expect(known.getByRole('link')).toHaveCount(3);
+  await expect(known.getByRole('link', { name: 'Open Talk show, Movie' })).not.toBeAttached();
+  const movies = page.getByLabel('Movies', { exact: true });
+  await expect(movies.getByRole('heading', { name: 'Movies (3)', exact: true })).toBeAttached();
+  await expect(movies.getByRole('link').first()).toHaveAccessibleName('Open Alien, Movie');
+  await movies.getByRole('button', { name: 'Sort Movies' }).click();
+  await page.getByRole('radio', { name: 'Highest rated', exact: true }).click();
+  await expect(movies.getByRole('link').first()).toHaveAccessibleName('Open Talk show, Movie');
+  await movies.getByRole('button', { name: 'Sort Movies' }).click();
+  await page.getByRole('radio', { name: 'Newest first', exact: true }).click();
+  await expect(movies.getByRole('link').first()).toHaveAccessibleName('Open Recent role, Movie');
+  await expect(known.getByRole('link').first()).toHaveAccessibleName('Open Alien, Movie');
+  await page.screenshot({ path: '/tmp/native-person-main-parity.png' });
+  await known.getByRole('link', { name: 'Open Alien, Movie' }).click();
+  await expect(page).toHaveURL(/\/search\/movie\/42\?region=US$/);
+});

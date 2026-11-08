@@ -27,6 +27,9 @@ export type PersonMovieCredit = {
   poster_path: string | null;
   character: string;
   credit_id: string;
+  vote_count?: number;
+  genre_ids?: number[];
+  order?: number;
   vote_average: number;
   popularity: number;
 };
@@ -52,6 +55,9 @@ export type PersonTvCredit = {
   poster_path: string | null;
   character: string;
   credit_id: string;
+  vote_count?: number;
+  genre_ids?: number[];
+  order?: number;
   vote_average: number;
   popularity: number;
   episode_count: number;
