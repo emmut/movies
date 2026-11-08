@@ -1,9 +1,10 @@
 import type { DiscoveryInput, DiscoveryOptions } from '@movies/api/discover';
 import { ChoiceSheet } from '@native/components/choice-sheet';
-import { filterSpec, type Filter } from '@native/lib/discover-filters';
+import { DiscoverFilterMenu } from '@native/components/discover-filter-menu';
+import { filterSpec, activeDiscoverFilterCount, type Filter } from '@native/lib/discover-filters';
 import { toggleSelection } from '@native/lib/discover-state';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { View } from 'react-native';
 
 const filters: Filter[] = [
   'genreId',
@@ -38,50 +39,34 @@ export function DiscoverFilters({
       setOpen(null);
     }
   }
+  const count = activeDiscoverFilterCount(input);
+  const label = count > 0 ? `Filters (${count})` : 'Filters';
+  const choices = filters.map((filter) => {
+    const item = filterSpec(filter, input, data);
+    const summary =
+      item.options
+        .filter((option) => item.selected.includes(option.value))
+        .map((option) => option.label)
+        .join(', ') || 'Any';
+    return { filter, title: item.title, summary };
+  });
+
+  function clear() {
+    change({
+      genreId: '',
+      sort_by: '',
+      runtime: '',
+      with_origin_country: '',
+      with_watch_providers: '',
+      watch_region: '',
+      page: '1',
+    });
+  }
+
   return (
-    <View className="gap-3">
-      <View className="flex-row flex-wrap gap-2">
-        {filters.map((filter) => {
-          const item = filterSpec(filter, input, data);
-          return (
-            <Pressable
-              key={filter}
-              accessibilityRole="button"
-              accessibilityLabel={item.title}
-              className="bg-default min-h-11 justify-center rounded-xl border border-border px-3"
-              onPress={() => setOpen(filter)}
-            >
-              <Text className="text-foreground">{item.title}</Text>
-              <Text numberOfLines={1} className="text-xs text-muted">
-                {item.options
-                  .filter((option) => item.selected.includes(option.value))
-                  .map((option) => option.label)
-                  .join(', ') || 'Any'}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <Pressable
-        accessibilityRole="button"
-        className="min-h-11 justify-center self-start px-2"
-        onPress={() =>
-          change({
-            genreId: '',
-            sort_by: '',
-            runtime: '',
-            with_origin_country: '',
-            with_watch_providers: '',
-            watch_region: '',
-            page: '1',
-          })
-        }
-      >
-        <Text className="font-semibold text-foreground">Clear all filters</Text>
-      </Pressable>
-      {open && spec ? (
-        <ChoiceSheet {...spec} onSelect={select} onClose={() => setOpen(null)} />
-      ) : null}
+    <View>
+      <DiscoverFilterMenu label={label} choices={choices} onSelect={setOpen} onClear={clear} />
+      {spec ? <ChoiceSheet {...spec} onSelect={select} onClose={() => setOpen(null)} /> : null}
     </View>
   );
 }

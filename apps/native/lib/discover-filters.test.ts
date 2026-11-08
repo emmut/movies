@@ -1,5 +1,5 @@
 import { discoveryInput } from '@movies/api/discover';
-import { filterSpec } from '@native/lib/discover-filters';
+import { filterSpec, activeDiscoverFilterCount } from '@native/lib/discover-filters';
 import { describe, expect, it } from 'vite-plus/test';
 
 const options = {
@@ -59,4 +59,13 @@ it('keeps unavailable selected providers visible and removable after options cha
   expect(spec.selected).toEqual(['8']);
   expect(spec.options).toEqual([{ value: '8', label: 'Unavailable provider (8)' }]);
   expect(spec.maxSelections).toBeUndefined();
+});
+
+it('counts selected facets and treats the watch region as context', () => {
+  expect(activeDiscoverFilterCount(discoveryInput.parse({}))).toBe(0);
+  expect(activeDiscoverFilterCount(discoveryInput.parse({ region: 'US' }))).toBe(0);
+  expect(activeDiscoverFilterCount(input)).toBe(4);
+  expect(
+    activeDiscoverFilterCount({ ...input, genreIds: [12, 28], sortBy: 'vote_average.desc' }),
+  ).toBe(6);
 });

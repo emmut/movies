@@ -6,7 +6,16 @@ import {
   preflight,
   readInput,
 } from '@native/e2e/catalog-fixtures';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+async function openFilterMenu(page: Page) {
+  await page.getByRole('button', { name: /^Filters(?: \(\d+\))?$/ }).click();
+}
+
+async function openFilter(page: Page, name: string) {
+  await openFilterMenu(page);
+  await page.getByRole('button', { name, exact: true }).click();
+}
 
 const choices = {
   genres: [
@@ -125,21 +134,21 @@ test('filter sheets preserve OR selections and reset pagination', async ({ page 
     });
   });
   await page.goto('/discover?page=2');
-  await page.getByRole('button', { name: 'Genres', exact: true }).click();
+  await openFilter(page, 'Genres');
   await page.getByRole('checkbox', { name: 'Adventure', exact: true }).click();
   await page.getByRole('checkbox', { name: 'Action', exact: true }).click();
   await page.getByRole('button', { name: 'Close Genres' }).click();
   await expect.poll(() => inputs.at(-1)).toMatchObject({ page: 1, genreIds: [12, 28] });
 
-  await page.getByRole('button', { name: 'Watch Providers', exact: true }).click();
+  await openFilter(page, 'Watch Providers');
   await page.getByRole('checkbox', { name: 'Netflix', exact: true }).click();
   await page.getByRole('button', { name: 'Close Watch Providers' }).click();
-  await page.getByRole('button', { name: 'Origin Country', exact: true }).click();
+  await openFilter(page, 'Origin Country');
   await page.getByRole('checkbox', { name: 'Sweden', exact: true }).click();
   await page.getByRole('button', { name: 'Close Origin Country' }).click();
-  await page.getByRole('button', { name: 'Runtime', exact: true }).click();
+  await openFilter(page, 'Runtime');
   await page.getByRole('radio', { name: 'Up to 90 min', exact: true }).click();
-  await page.getByRole('button', { name: 'Sort By', exact: true }).click();
+  await openFilter(page, 'Sort By');
   await page.getByRole('radio', { name: 'Rating (High to Low)', exact: true }).click();
   await expect
     .poll(() => inputs.at(-1))
@@ -149,6 +158,7 @@ test('filter sheets preserve OR selections and reset pagination', async ({ page 
       runtime: 90,
       sortBy: 'vote_average.desc',
     });
+  await openFilterMenu(page);
   await page.getByRole('button', { name: 'Clear all filters', exact: true }).click();
   await expect
     .poll(() => inputs.at(-1))
@@ -184,7 +194,7 @@ test('media type, region and page controls change the API request natively', asy
   await page.goto('/discover');
   await page.getByRole('button', { name: 'TV Shows', exact: true }).click();
   await expect.poll(() => inputs.at(-1)).toMatchObject({ type: 'tv', page: 1 });
-  await page.getByRole('button', { name: 'Watch Region', exact: true }).click();
+  await openFilter(page, 'Watch Region');
   await page.getByRole('radio', { name: 'United States', exact: true }).click();
   await expect.poll(() => inputs.at(-1)).toMatchObject({ region: 'US' });
   await page.getByRole('button', { name: 'Next page', exact: true }).click();
@@ -297,6 +307,7 @@ test('unavailable selected providers remain visible and can be removed', async (
     await route.fulfill({ json: { json: { ...choices, providers: [] } }, headers: corsHeaders });
   });
   await page.goto('/discover?watch_region=US&with_watch_providers=8');
+  await openFilterMenu(page);
   await expect(page.getByRole('button', { name: 'Watch Providers', exact: true })).toContainText(
     'Unavailable provider (8)',
   );
@@ -306,6 +317,7 @@ test('unavailable selected providers remain visible and can be removed', async (
   await selected.click();
   await expect(selected).not.toBeAttached();
   await page.getByRole('button', { name: 'Close Watch Providers' }).click();
+  await openFilterMenu(page);
   await expect(page.getByRole('button', { name: 'Watch Providers', exact: true })).toContainText(
     'Any',
   );
@@ -328,7 +340,7 @@ test('country selection limits explain disabled additions and permit removal', a
         .map((country) => country.code)
         .join('|'),
   );
-  await page.getByRole('button', { name: 'Origin Country', exact: true }).click();
+  await openFilter(page, 'Origin Country');
   await expect(
     page.getByText('You can select up to 50 options. Remove one to select another.'),
   ).toBeVisible();
@@ -342,3 +354,68 @@ test('country selection limits explain disabled additions and permit removal', a
   await option.click();
   await expect(option).toBeChecked();
 });
+
+for (const width of [320, 390, 430]) {
+  test(`compact toolbar and evenly spaced poster grid at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.route('**/rpc/discovery/list*', async (route) => {
+      if (await preflight(route)) {
+        return;
+      }
+      await route.fulfill({
+        json: {
+          json: {
+            items: [
+              card,
+              { ...card, id: 43, title: 'Second movie' },
+              { ...card, id: 44, title: 'Third movie' },
+            ],
+            totalPages: 1,
+            totalResults: 3,
+          },
+        },
+        headers: corsHeaders,
+      });
+    });
+    await page.goto('/discover?genreId=12&runtime=90');
+    const filters = page.getByRole('button', { name: 'Filters (2)', exact: true });
+    await expect(filters).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Runtime', exact: true })).not.toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Clear all filters', exact: true }),
+    ).not.toBeVisible();
+    const movies = (await page.getByRole('button', { name: 'Movies', exact: true }).boundingBox())!;
+    expect((await filters.boundingBox())!.y).toBe(movies.y);
+    const first = (await page
+      .getByRole('link', { name: 'Open Discovered movie, Movie' })
+      .boundingBox())!;
+    const second = (await page
+      .getByRole('link', { name: 'Open Second movie, Movie' })
+      .boundingBox())!;
+    const third = (await page
+      .getByRole('link', { name: 'Open Third movie, Movie' })
+      .boundingBox())!;
+    expect(first.x).toBe(16);
+    expect(second.x - first.x - first.width).toBeCloseTo(12, 0);
+    expect(width - second.x - second.width).toBeCloseTo(16, 0);
+    expect(third.y - first.y - first.height).toBeCloseTo(12, 0);
+    expect(third.width).toBeCloseTo(first.width, 0);
+    expect(first.height / first.width).toBeCloseTo(1.5, 1);
+    expect(first.y).toBeLessThan(200);
+    await page.screenshot({ path: `/tmp/native-discover-${width}.png` });
+    await filters.click();
+    await expect(page.getByRole('button', { name: 'Runtime', exact: true })).toContainText(
+      'Up to 90 min',
+    );
+    await page.screenshot({ path: `/tmp/native-discover-menu-${width}.png` });
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', { name: 'Runtime', exact: true })).not.toBeVisible();
+    await expect(filters).toBeFocused();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(
+      false,
+    );
+    await filters.click();
+    await page.getByRole('button', { name: 'Clear all filters', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Filters', exact: true })).toBeVisible();
+  });
+}

@@ -83,3 +83,14 @@ export function filterSpec(
 ): FilterSpec {
   return builders[filter](input, data);
 }
+
+/** Count selected facets; the watch region always has a value and is context, not a facet. */
+export function activeDiscoverFilterCount(input: DiscoveryInput) {
+  return (
+    input.genreIds.length +
+    Number(input.sortBy !== 'popularity.desc') +
+    Number(Boolean(input.runtime)) +
+    Number(input.originCountries.length > 0) +
+    Number(input.providerIds.length > 0)
+  );
+}

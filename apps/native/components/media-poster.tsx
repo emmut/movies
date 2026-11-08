@@ -44,11 +44,29 @@ function CardMetadata({ item, featured }: { item: MediaCard; featured: boolean }
   );
 }
 
-function CardImage({ item, featured }: { item: MediaCard; featured: boolean }) {
+function posterDimensions(featured: boolean, fluid: boolean) {
+  if (featured) {
+    return 'h-52 w-full rounded-xl';
+  }
+  if (fluid) {
+    return 'aspect-2/3 w-full rounded-lg';
+  }
+  return 'h-54 rounded-lg';
+}
+
+function CardImage({
+  item,
+  featured,
+  fluid,
+}: {
+  item: MediaCard;
+  featured: boolean;
+  fluid: boolean;
+}) {
   const source = featured ? item.backdropUrl : item.posterUrl;
   return (
     <View
-      className={`items-center justify-center overflow-hidden border border-border bg-zinc-800 ${featured ? 'h-52 w-full rounded-xl' : 'h-54 rounded-lg'}`}
+      className={`items-center justify-center overflow-hidden border border-border bg-zinc-800 ${posterDimensions(featured, fluid)}`}
     >
       <Image
         source={source}
@@ -75,16 +93,18 @@ function releaseYear(date: string) {
 export const MediaPoster = memo(function Poster({
   item,
   featured = false,
+  fluid = false,
   region,
 }: {
   item: MediaCard;
   featured?: boolean;
+  fluid?: boolean;
   region?: string;
 }) {
   const pathname = usePathname();
   const navigationPress = useScrollNavigation();
   return (
-    <View className={featured ? 'w-full' : 'w-36'}>
+    <View className={featured || fluid ? 'w-full' : 'w-36'}>
       <Link
         href={{
           pathname: catalogPath(pathname),
@@ -98,7 +118,7 @@ export const MediaPoster = memo(function Poster({
           accessibilityLabel={`Open ${item.title}, ${mediaLabel(item.type)}`}
           className="w-full"
         >
-          <CardImage item={item} featured={featured} />
+          <CardImage item={item} featured={featured} fluid={fluid} />
         </Pressable>
       </Link>
       <View className="absolute top-2 right-2">

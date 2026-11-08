@@ -18,6 +18,8 @@ import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-conte
 import { withUniwind } from 'uniwind';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
+const DiscoveryList = withUniwind(FlatList<MediaCard>);
+
 function keyExtractor(item: MediaCard) {
   return item.type + ':' + item.id;
 }
@@ -53,15 +55,16 @@ function DiscoveryResults({
   const totalPages = Math.max(1, query.data.totalPages);
   return (
     <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
-      <FlatList
+      <DiscoveryList
         testID="discover-scroll"
         contentInsetAdjustmentBehavior="automatic"
         className="flex-1"
+        contentContainerClassName="px-2.5"
         ref={ref}
         data={query.data.items}
         renderItem={({ item }) => (
-          <View className="flex-1 items-center pb-4">
-            <MediaPoster item={item} region={input.region} />
+          <View className="w-1/2 px-1.5 pb-3">
+            <MediaPoster item={item} region={input.region} fluid />
           </View>
         )}
         keyExtractor={keyExtractor}
@@ -118,29 +121,31 @@ function DiscoverContent({ userProviders }: { userProviders: number[] }) {
   }
   return (
     <>
-      <View className="gap-3 p-4">
+      <View className="z-10 gap-3 p-4">
         <Text accessibilityRole="header" className="text-2xl font-bold text-foreground">
           Discover
         </Text>
-        <View className="flex-row gap-3">
-          {(['movie', 'tv'] as const).map((type) => (
-            <Pressable
-              key={type}
-              accessibilityRole="button"
-              accessibilityLabel={type === 'movie' ? 'Movies' : 'TV Shows'}
-              accessibilityState={{ selected: input.type === type }}
-              className="bg-default min-h-11 justify-center rounded-xl border border-border px-4"
-              onPress={() => change({ mediaType: type, genreId: '', sort_by: '', page: '1' })}
-            >
-              <Text className="font-semibold text-foreground">
-                {type === 'movie' ? 'Movies' : 'TV Shows'}
-              </Text>
-            </Pressable>
-          ))}
+        <View className="flex-row items-center justify-between gap-2">
+          <View className="flex-row gap-1">
+            {(['movie', 'tv'] as const).map((type) => (
+              <Pressable
+                key={type}
+                accessibilityRole="button"
+                accessibilityLabel={type === 'movie' ? 'Movies' : 'TV Shows'}
+                accessibilityState={{ selected: input.type === type }}
+                className="bg-default min-h-11 justify-center rounded-xl border border-border px-3"
+                onPress={() => change({ mediaType: type, genreId: '', sort_by: '', page: '1' })}
+              >
+                <Text className="text-sm font-semibold text-foreground">
+                  {type === 'movie' ? 'Movies' : 'TV Shows'}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          {options.data ? (
+            <DiscoverFilters input={input} data={options.data} change={change} />
+          ) : null}
         </View>
-        {options.data ? (
-          <DiscoverFilters input={input} data={options.data} change={change} />
-        ) : null}
         {options.isPending ? (
           <ActivityIndicator accessibilityLabel="Loading discovery filters" />
         ) : null}
