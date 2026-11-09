@@ -1,6 +1,18 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 
 import { closeDiscoverFilters, openDiscoverFilters } from './helpers';
+
+async function getPanelButtonOffset(panel: Locator, trigger: Locator) {
+  const [panelBounds, triggerBounds] = await Promise.all([
+    panel.boundingBox(),
+    trigger.boundingBox(),
+  ]);
+  return panelBounds!.y - triggerBounds!.y - triggerBounds!.height;
+}
+
+async function expectPanelAnchoredToButton(panel: Locator, trigger: Locator, offset: number) {
+  await expect.poll(async () => Math.abs(await getPanelButtonOffset(panel, trigger) - offset)).toBeLessThan(1);
+}
 
 for (const width of [1220, 390, 320]) {
   test.describe(`Compact Discover filters at ${width}px`, () => {
@@ -20,6 +32,10 @@ for (const width of [1220, 390, 320]) {
       expect(badgeBounds.y).toBeLessThan(buttonBounds.y);
 
       const panel = await openDiscoverFilters(page);
+      await panel.evaluate(async (element) => {
+        await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      });
+      const panelButtonOffset = await getPanelButtonOffset(panel, trigger);
       const search = panel.getByRole('combobox', { name: 'Search tags' });
       await expect(search).toBeVisible();
       await expect(panel.getByRole('button', { name: 'Remove keyword based on novel or book', exact: true })).toBeVisible();
@@ -36,6 +52,10 @@ for (const width of [1220, 390, 320]) {
       await panel.getByRole('button', { name: 'Comedy', exact: true }).click();
       await expect(trigger).toHaveAccessibleName('Filters (2)');
       await expect(badge).toHaveText('2');
+      await expectPanelAnchoredToButton(panel, trigger, panelButtonOffset);
+      await panel.getByRole('button', { name: 'Comedy', exact: true }).click();
+      await expect(trigger).toHaveAccessibleName('Filters (3)');
+      await expectPanelAnchoredToButton(panel, trigger, panelButtonOffset);
       await panel.getByRole('button', { name: 'Clear all', exact: true }).click();
       await expect(trigger).toHaveAccessibleName('Filters');
       await expect(badge).toHaveCount(0);
