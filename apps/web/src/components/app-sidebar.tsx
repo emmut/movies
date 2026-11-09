@@ -4,7 +4,9 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarRail,
@@ -43,22 +45,23 @@ export function AppSidebarNavFallback() {
 
 export function AppSidebar({ navigation, userNav, userFooter, ...props }: AppSidebarProps) {
   return (
-    <Sidebar {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <Brand />
       </SidebarHeader>
-      <SidebarContent className="p-1">
-        <nav aria-label="Main">
-          <SidebarMenu>
-            <SidebarGroupContent className="flex flex-col gap-1">
-              {navigation}
-              {userNav}
+      <SidebarContent>
+        <SidebarGroup>
+          <nav aria-label="Main">
+            <SidebarGroupLabel>Browse</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1">{navigation}</SidebarMenu>
             </SidebarGroupContent>
-          </SidebarMenu>
-        </nav>
+          </nav>
+        </SidebarGroup>
+        {userNav}
       </SidebarContent>
+      <SidebarFooter>{userFooter}</SidebarFooter>
       <SidebarRail />
-      <SidebarFooter className="p-3 md:p-2">{userFooter}</SidebarFooter>
     </Sidebar>
   );
 }
