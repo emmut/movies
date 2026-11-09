@@ -1,17 +1,6 @@
 import { Button } from '@movies/ui/components/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-} from '@movies/ui/components/popover';
-import { cn } from 'cn';
-import { ListFilterIcon } from 'lucide-react';
 import { useId } from 'react';
 
-import { FilterCount } from '@/components/filter-count';
-import { useResponsivePopover } from '@/hooks/use-responsive-popover';
 import { WatchProvider } from '@/types/watch-provider';
 
 import OriginCountryFilter from './origin-country-filter';
@@ -24,29 +13,6 @@ type FilterControlsBaseProps = {
   watchProviders: WatchProvider[];
   userRegion: string;
 };
-
-type ActiveFilterState = {
-  sortBy: string;
-  runtimeLte: number | null;
-  originCountries: string[];
-  watchProviders: number[] | null;
-};
-
-export function getAdditionalFilterCount({
-  runtimeLte,
-  originCountries,
-  watchProviders,
-}: Omit<ActiveFilterState, 'sortBy'>) {
-  return (
-    Number((runtimeLte ?? 0) > 0) +
-    Number(originCountries.length > 0) +
-    Number((watchProviders?.length ?? 0) > 0)
-  );
-}
-
-export function getActiveFilterCount(state: ActiveFilterState) {
-  return Number(state.sortBy !== 'popularity.desc') + getAdditionalFilterCount(state);
-}
 
 export function getFilterButtonLabel(activeFilterCount: number) {
   return activeFilterCount === 0 ? 'Filters' : `Filters (${activeFilterCount})`;
@@ -62,7 +28,9 @@ export function FilterControls({
   return (
     <div className="grid grid-cols-1 gap-4 @[30rem]:grid-cols-2">
       {includeSort && (
-        <SortByFilter mediaType={mediaType} controlId={`${id}-sort`} compact={false} />
+        <div className="@[60rem]/discover:hidden">
+          <SortByFilter mediaType={mediaType} controlId={`${id}-sort`} compact={false} />
+        </div>
       )}
       <RuntimeFilter controlId={`${id}-runtime`} />
       <OriginCountryFilter controlId={`${id}-country`} />
@@ -85,51 +53,5 @@ export function ClearFiltersButton({ hasSelection, onClear }: ClearFiltersButton
     <Button variant="ghost" size="sm" disabled={!hasSelection} onClick={onClear}>
       Clear all
     </Button>
-  );
-}
-
-export function AdditionalFilters({
-  mediaType,
-  watchProviders,
-  userRegion,
-  activeCount,
-}: FilterControlsBaseProps & { activeCount: number }) {
-  const { open, setOpen, triggerRef } = useResponsivePopover();
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        ref={triggerRef}
-        render={<Button variant="outline" />}
-        aria-label={getFilterButtonLabel(activeCount)}
-        className={cn(
-          'relative h-10 gap-2 px-4',
-          activeCount > 0 && 'border-primary/40 bg-primary/5',
-        )}
-      >
-        <ListFilterIcon className="size-4" aria-hidden="true" />
-        Filters
-        <FilterCount count={activeCount} />
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        sideOffset={12}
-        className="@container max-h-(--available-height) w-80 max-w-(--available-width) gap-5 overflow-y-auto p-5"
-      >
-        <PopoverHeader>
-          <PopoverTitle>Filters</PopoverTitle>
-        </PopoverHeader>
-        <FilterControls
-          includeSort={false}
-          mediaType={mediaType}
-          watchProviders={watchProviders}
-          userRegion={userRegion}
-        />
-        <div className="flex justify-end">
-          <Button size="sm" onClick={() => setOpen(false)}>
-            Show results
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
   );
 }

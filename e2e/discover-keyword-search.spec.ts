@@ -10,7 +10,7 @@ for (const width of [1920, 1280, 390]) {
 
     test('adds tags without a PDP and preserves filters, pagination and history', async ({ page }) => {
       await page.goto('/discover?mediaType=tv&genreId=35&sort_by=vote_count.desc&page=2');
-      await openDiscoverTags(page);
+      const panel = await openDiscoverTags(page);
       const input = page.getByRole('combobox', { name: 'Search tags' });
       await expect(input).toBeVisible();
       await input.fill('time travel');
@@ -18,7 +18,7 @@ for (const width of [1920, 1280, 390]) {
       await expect(timeTravel).toBeVisible({ timeout: 15_000 });
       await input.press('ArrowDown');
       await input.press('Enter');
-      const removeTimeTravel = page.getByRole('button', { name: 'Remove keyword time travel', exact: true });
+      const removeTimeTravel = panel.getByRole('button', { name: 'Remove keyword time travel', exact: true });
       await expect(removeTimeTravel).toBeVisible({ timeout: 15_000 });
       await expect(input).toHaveValue('');
 
@@ -31,7 +31,7 @@ for (const width of [1920, 1280, 390]) {
 
       await input.fill('monster');
       await page.getByRole('option', { name: 'monster', exact: true }).click({ timeout: 15_000 });
-      await expect(page.getByRole('button', { name: 'Remove keyword monster', exact: true })).toBeVisible({ timeout: 15_000 });
+      await expect(panel.getByRole('button', { name: 'Remove keyword monster', exact: true })).toBeVisible({ timeout: 15_000 });
       expect(new URL(page.url()).searchParams.get('keywordId')?.split(',')).toHaveLength(2);
 
       await input.fill('time travel');

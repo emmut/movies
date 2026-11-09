@@ -22,6 +22,8 @@ type DiscoverWithGenreParams = {
     page?: string;
     genreId?: string;
     keywordId?: string;
+    companyId?: string;
+    networkId?: string;
     mediaType?: string;
     sort_by?: string;
     with_watch_providers?: string;
@@ -77,6 +79,8 @@ async function DiscoverWithGenre(props: DiscoverWithGenreParams) {
     discoverParams.with_watch_providers,
     userWatchProviders,
     discoverParams.keywordIds,
+    discoverParams.companyIds,
+    discoverParams.mediaType === 'tv' ? discoverParams.networkIds : [],
   );
 
   // Prefetch data on the server for React Query
@@ -92,6 +96,8 @@ async function DiscoverWithGenre(props: DiscoverWithGenreParams) {
     prefetchDiscoverMedia(queryClient, discoverParams.mediaType, {
       genreIds: discoverParams.genreIds,
       keywordIds: discoverParams.keywordIds,
+      companyIds: discoverParams.companyIds,
+      networkIds: discoverParams.mediaType === 'tv' ? discoverParams.networkIds : [],
       page: discoverParams.page,
       sortBy: discoverParams.sort_by,
       watchProviders,
