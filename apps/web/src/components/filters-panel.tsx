@@ -14,29 +14,6 @@ type FilterControlsBaseProps = {
   userRegion: string;
 };
 
-type ActiveFilterState = {
-  sortBy: string;
-  runtimeLte: number | null;
-  originCountries: string[];
-  watchProviders: number[] | null;
-};
-
-export function getAdditionalFilterCount({
-  runtimeLte,
-  originCountries,
-  watchProviders,
-}: Omit<ActiveFilterState, 'sortBy'>) {
-  return (
-    Number((runtimeLte ?? 0) > 0) +
-    Number(originCountries.length > 0) +
-    Number((watchProviders?.length ?? 0) > 0)
-  );
-}
-
-export function getActiveFilterCount(state: ActiveFilterState) {
-  return Number(state.sortBy !== 'popularity.desc') + getAdditionalFilterCount(state);
-}
-
 export function getFilterButtonLabel(activeFilterCount: number) {
   return activeFilterCount === 0 ? 'Filters' : `Filters (${activeFilterCount})`;
 }
