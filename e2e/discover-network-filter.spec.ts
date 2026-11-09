@@ -5,15 +5,7 @@ import { openDiscoverFilters } from './helpers';
 test.setTimeout(60_000);
 
 async function openNetworks(page: Page) {
-  await expect(page.getByRole('navigation', { name: 'Discover filters', exact: true })).toBeVisible();
-  const trigger = page.getByRole('button', { name: /^Networks(?: \(\d+\))?$/ });
-  if (await trigger.isVisible()) {
-    if (await trigger.getAttribute('aria-expanded') !== 'true') {
-      await trigger.click();
-    }
-  } else {
-    await openDiscoverFilters(page);
-  }
+  await openDiscoverFilters(page);
   return page.getByRole('region', { name: 'Networks', exact: true });
 }
 
@@ -43,7 +35,7 @@ for (const width of [1920, 390]) {
       } else {
         await page.getByRole('button', { name: /^Networks(?: \(\d+\))?$/ }).click();
       }
-      await page.getByRole('button', { name: 'Clear all', exact: true }).click();
+      await page.getByRole('dialog', { name: 'Filters', exact: true }).getByRole('button', { name: 'Clear all', exact: true }).click();
       await expect(page).not.toHaveURL(/networkId=/);
       await page.goto('/discover?mediaType=tv&networkId=49');
       await page.getByRole('button', { name: 'Movies', exact: true }).click();

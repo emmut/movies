@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { closeDiscoverFilters, openDiscoverFilters, openDiscoverGenres } from './helpers';
+import { closeDiscoverFilters, openDiscoverFilters } from './helpers';
 
 for (const width of [1220, 390, 320]) {
   test.describe(`Compact Discover filters at ${width}px`, () => {
@@ -48,54 +48,50 @@ for (const width of [1220, 390, 320]) {
 }
 
 for (const width of [1440, 1920]) {
-  test.describe(`Compact desktop Discover toolbar at ${width}px`, () => {
+  test.describe(`Unified desktop Discover toolbar at ${width}px`, () => {
     test.use({ viewport: { width, height: 1080 } });
-    test('hides full facet lists and keeps controls on one row with removable selections below', async ({ page }) => {
+
+    test('groups facets under one Filters button and keeps sort and chips outside', async ({ page }) => {
       await page.goto('/discover?genreId=35&keywordId=818&runtime=90&sort_by=vote_average.desc');
       const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
-      const genres = nav.getByRole('button', { name: 'Genres (1)', exact: true });
-      const tags = nav.getByRole('button', { name: 'Tags (1)', exact: true });
-      const filters = nav.getByRole('button', { name: 'Filters (1)', exact: true });
-      const sort = nav.getByLabel('Sort By');
-      for (const control of [genres, tags, filters, sort]) {
-        await expect(control).toBeVisible();
-      }
-      await expect(page.getByRole('button', { name: 'Comedy', exact: true })).toHaveCount(0);
-      await expect(page.getByRole('combobox', { name: 'Search tags' })).toHaveCount(0);
-      await expect(page.getByLabel('Runtime')).toHaveCount(0);
+      const filters = nav.getByRole('button', { name: /^Filters(?: \(\d+\))?$/ });
+      const sort = nav.getByLabel('Sort By').filter({ visible: true });
+      await expect(filters).toBeVisible();
+      await expect(filters).toHaveAccessibleName('Filters (4)');
+      await expect(sort).toBeVisible();
+      await expect(nav.getByRole('button', { name: /^(Genres|Tags|Companies|Networks)( \(\d+\))?$/ })).toHaveCount(0);
+      await expect(nav.getByRole('combobox', { name: 'Search tags' })).toHaveCount(0);
       const centers = await nav.evaluate((element) => {
-        const controls = [...element.querySelectorAll('button')].filter((button) => button.checkVisibility() && button.getAttribute('aria-haspopup'));
-        return controls.map((button) => { const rect = button.getBoundingClientRect(); return rect.top + rect.height / 2; });
+        return [...element.querySelectorAll('button[aria-haspopup]')]
+          .filter((button) => button.checkVisibility())
+          .map((button) => { const rect = button.getBoundingClientRect(); return rect.top + rect.height / 2; });
       });
+      expect(centers).toHaveLength(2);
       expect(Math.max(...centers) - Math.min(...centers)).toBeLessThan(1);
-      const removeGenre = nav.getByRole('button', { name: 'Remove genre Comedy', exact: true });
-      const removeTag = nav.getByRole('button', { name: 'Remove keyword based on novel or book', exact: true });
+      const chips = nav.getByLabel('Active filters');
+      const removeGenre = chips.getByRole('button', { name: 'Remove genre Comedy', exact: true });
+      const removeTag = chips.getByRole('button', { name: 'Remove keyword based on novel or book', exact: true });
       await expect(removeGenre).toBeVisible();
       await expect(removeTag).toBeVisible();
-      expect((await removeGenre.boundingBox())!.y).toBeGreaterThan((await genres.boundingBox())!.y);
-      const genrePanel = await openDiscoverGenres(page);
-      await expect(genrePanel.getByRole('button', { name: 'Comedy', exact: true })).toHaveAttribute('aria-pressed', 'true');
-      await expect(genrePanel.getByRole('button', { name: 'Action', exact: true })).toBeVisible();
-      await expect(genrePanel.getByRole('combobox')).toHaveCount(0);
+      expect((await removeGenre.boundingBox())!.y).toBeGreaterThan((await filters.boundingBox())!.y);
+
+      const panel = await openDiscoverFilters(page);
+      await expect(panel.getByRole('button', { name: 'Comedy', exact: true })).toHaveAttribute('aria-pressed', 'true');
+      await expect(panel.getByRole('combobox', { name: 'Search tags' })).toBeVisible();
+      await expect(panel.getByRole('combobox', { name: 'Search production companies' })).toBeVisible();
+      await expect(panel.getByLabel('Sort By')).toBeHidden();
+      await expect(panel.getByLabel('Runtime')).toContainText('Up to 90 min');
+      await expect(panel.getByRole('button', { name: 'Origin Country', exact: true })).toBeVisible();
+      await expect(panel.getByRole('button', { name: 'Watch Providers', exact: true })).toBeVisible();
       await page.keyboard.press('Escape');
-      await expect(genres).toBeFocused();
+      await expect(filters).toBeFocused();
       await removeGenre.click();
       await expect(page).not.toHaveURL(/genreId=/);
       await expect(page).toHaveURL(/keywordId=818/);
-      await expect(page).toHaveURL(/runtime=90/);
-      await expect(nav.getByRole('button', { name: 'Genres', exact: true }).locator('[data-slot="filter-count"]')).toHaveCount(0);
-      const filterPanel = await openDiscoverFilters(page);
-      await expect(filterPanel.getByLabel('Runtime')).toContainText('Up to 90 min');
-      await expect(filterPanel.getByRole('button', { name: 'Origin Country', exact: true })).toBeVisible();
-      await expect(filterPanel.getByRole('button', { name: 'Watch Providers', exact: true })).toBeVisible();
-      await expect(filterPanel.getByLabel('Sort By')).toHaveCount(0);
-      await closeDiscoverFilters(page);
-      await tags.click();
-      await expect(page.getByRole('combobox', { name: 'Search tags' })).toBeFocused();
-      await closeDiscoverFilters(page);
+      await expect(filters).toHaveAccessibleName('Filters (3)');
       await removeTag.click();
       await expect(page).not.toHaveURL(/keywordId=/);
-      await expect(page).toHaveURL(/runtime=90/);
+      await expect(filters).toHaveAccessibleName('Filters (2)');
       await nav.getByRole('button', { name: 'Clear all', exact: true }).click();
       await expect(page).not.toHaveURL(/runtime=|sort_by=/);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
@@ -108,29 +104,23 @@ for (const width of [1440, 1920]) {
   });
 }
 
-test('closes open popovers when resizing hides their triggers', async ({ page }) => {
+test('keeps one filter panel and its search when resizing between mobile and desktop', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.goto('/discover');
   const panel = await openDiscoverFilters(page);
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await expect(panel).not.toBeVisible();
-  const genresPanel = await openDiscoverGenres(page);
-  await page.setViewportSize({ width: 390, height: 900 });
-  await expect(genresPanel).not.toBeVisible();
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  const secondaryPanel = await openDiscoverFilters(page);
-  await page.setViewportSize({ width: 390, height: 900 });
-  await expect(secondaryPanel).not.toBeVisible();
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await page.getByRole('button', { name: 'Tags', exact: true }).click();
-  const input = page.getByRole('combobox', { name: 'Search tags' });
+  const input = panel.getByRole('combobox', { name: 'Search tags' });
   await input.fill('time travel');
   const option = page.getByRole('option', { name: 'time travel', exact: true });
   await expect(option).toBeVisible({ timeout: 15_000 });
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await expect(panel).toBeVisible();
+  await expect(input).toHaveValue('time travel');
+  await expect(option).toBeVisible();
   await page.setViewportSize({ width: 390, height: 900 });
-  await expect(input).not.toBeVisible();
-  await expect(option).not.toBeVisible();
-  await openDiscoverFilters(page);
-  await expect(page.getByRole('combobox', { name: 'Search tags' })).toBeVisible();
+  await expect(input).toHaveValue('time travel');
+  await input.press('Escape');
+  await closeDiscoverFilters(page);
+  await expect(panel).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Filters', exact: true })).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
 });

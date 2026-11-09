@@ -11,11 +11,10 @@ import { getCompanies, searchCompanies } from '@/lib/company-search';
 import { getNetworks, searchNetworks } from '@/lib/network-search';
 import { queryKeys } from '@/lib/query-keys';
 
-export const organizationFilters = {
+const organizationFilters = {
   company: {
     urlKey: 'companyId',
     title: 'Production companies',
-    label: 'Companies',
     singular: 'Company',
     noun: 'company',
     plural: 'production companies',
@@ -27,7 +26,6 @@ export const organizationFilters = {
   network: {
     urlKey: 'networkId',
     title: 'Networks',
-    label: 'Networks',
     singular: 'Network',
     noun: 'network',
     plural: 'networks',

@@ -5,15 +5,7 @@ import { openDiscoverFilters } from './helpers';
 test.setTimeout(90_000);
 
 async function openCompanies(page: Page) {
-  await expect(page.getByRole('navigation', { name: 'Discover filters', exact: true })).toBeVisible();
-  const trigger = page.getByRole('button', { name: /^Companies(?: \(\d+\))?$/ });
-  if (await trigger.isVisible()) {
-    if (await trigger.getAttribute('aria-expanded') !== 'true') {
-      await trigger.click();
-    }
-  } else {
-    await openDiscoverFilters(page);
-  }
+  await openDiscoverFilters(page);
   await expect(page.getByRole('combobox', { name: 'Search production companies' })).toBeVisible();
 }
 
@@ -54,7 +46,7 @@ for (const width of [1920, 390]) {
       } else {
         await page.getByRole('button', { name: /^Companies(?: \(\d+\))?$/ }).click();
       }
-      const clear = page.getByRole('button', { name: 'Clear all', exact: true });
+      const clear = page.getByRole('dialog', { name: 'Filters', exact: true }).getByRole('button', { name: 'Clear all', exact: true });
       await clear.click();
       await expect(page).not.toHaveURL(/companyId=/);
       await expect(removeA24).toHaveCount(0);

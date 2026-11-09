@@ -277,7 +277,7 @@ test.describe('genre navigation', () => {
 
     await openDiscoverFilters(page);
     const watchProviders = page.getByRole('button', { name: /^watch providers$/i });
-    const clearButton = page.getByRole('button', { name: /^clear all$/i });
+    const clearButton = page.getByRole('dialog', { name: 'Filters', exact: true }).getByRole('button', { name: /^clear all$/i });
     await expect(watchProviders).toBeVisible();
     await expect(clearButton).toBeEnabled();
 
