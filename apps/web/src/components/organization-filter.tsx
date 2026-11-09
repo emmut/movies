@@ -75,7 +75,7 @@ export function OrganizationFilter({
   }
 
   return (
-    <section className="min-w-0 space-y-3" aria-labelledby={headingId}>
+    <section className="w-full min-w-0 space-y-3" aria-labelledby={headingId}>
       <h3 id={headingId} className="text-sm font-medium text-muted-foreground">
         {config.title}
       </h3>

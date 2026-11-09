@@ -207,7 +207,13 @@ function OrganizationControls({
   chipsOnly?: boolean;
 }) {
   return (
-    <div className={chipsOnly ? 'contents' : 'grid gap-5 @[30rem]:grid-cols-2'}>
+    <div
+      className={
+        chipsOnly
+          ? 'contents'
+          : cn('grid w-full grid-cols-1 gap-5', mediaType === 'tv' && '@[30rem]:grid-cols-2')
+      }
+    >
       <OrganizationFilter kind="company" chipsOnly={chipsOnly} />
       {mediaType === 'tv' && <OrganizationFilter kind="network" chipsOnly={chipsOnly} />}
     </div>
