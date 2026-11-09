@@ -24,7 +24,7 @@ export async function openDiscoverFilters(page: Page) {
 
 export async function closeDiscoverFilters(page: Page) {
   const nav = page.getByRole('navigation', { name: 'Discover filters', exact: true });
-  const triggers = nav.getByRole('button', { name: /^(?:Genres|Tags|Filters)(?: \(\d+\))?$/i });
+  const triggers = nav.getByRole('button', { name: /^(?:Genres|Tags|Companies|Networks|Filters)(?: \(\d+\))?$/i });
   // Read actual open state rather than clicking buttons in an exit animation.
   for (const trigger of await triggers.all()) {
     if (await trigger.getAttribute('aria-expanded') === 'true') {
@@ -32,7 +32,7 @@ export async function closeDiscoverFilters(page: Page) {
     }
   }
   const panels = page.locator('[data-slot="popover-content"]').filter({
-    has: page.getByRole('heading', { name: /^(?:Genres|Themes & Keywords|Filters)$/i }),
+    has: page.getByRole('heading', { name: /^(?:Genres|Themes & Keywords|Production companies|Networks|Filters)$/i }),
   });
   await expect(panels.filter({ visible: true })).toHaveCount(0);
 }

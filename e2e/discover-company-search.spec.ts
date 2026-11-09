@@ -5,6 +5,7 @@ import { openDiscoverFilters } from './helpers';
 test.setTimeout(90_000);
 
 async function openCompanies(page: Page) {
+  await expect(page.getByRole('navigation', { name: 'Discover filters', exact: true })).toBeVisible();
   const trigger = page.getByRole('button', { name: /^Companies(?: \(\d+\))?$/ });
   if (await trigger.isVisible()) {
     if (await trigger.getAttribute('aria-expanded') !== 'true') {

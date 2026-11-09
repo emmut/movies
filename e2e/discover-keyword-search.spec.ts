@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { openDiscoverTags } from './helpers';
+import { closeDiscoverFilters, openDiscoverTags } from './helpers';
 
 test.setTimeout(60_000);
 
@@ -40,6 +40,12 @@ for (const width of [1920, 1280, 390]) {
       await input.fill('zxqvnonexistenttagzxqv');
       await expect(page.getByText('No matching tags found.')).toBeVisible({ timeout: 15_000 });
       await input.press('Escape');
+
+      // Desktop chips sit outside the Tags popover, which can cover them when
+      // the toolbar wraps. Compact layouts keep the chips inside Filters.
+      if (await page.getByRole('button', { name: /^Tags(?: \(\d+\))?$/ }).isVisible()) {
+        await closeDiscoverFilters(page);
+      }
 
       await removeTimeTravel.click();
       await expect(removeTimeTravel).toHaveCount(0);
