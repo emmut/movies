@@ -22,7 +22,9 @@ export async function getNetworkCatalog() {
   const response = await fetch(`https://files.tmdb.org/p/exports/tv_network_ids_${stamp}.json.gz`, {
     signal: AbortSignal.timeout(10_000),
   });
-  if (!response.ok) throw new Error('Failed loading network catalogue');
+  if (!response.ok) {
+    throw new Error('Failed loading network catalogue');
+  }
   const data = gunzipSync(Buffer.from(await response.arrayBuffer()), {
     maxOutputLength: 10_000_000,
   });
@@ -31,6 +33,8 @@ export async function getNetworkCatalog() {
     .trim()
     .split('\n')
     .map((line) => networkSchema.parse(JSON.parse(line)));
-  if (networks.length === 0) throw new Error('Empty network catalogue');
+  if (networks.length === 0) {
+    throw new Error('Empty network catalogue');
+  }
   return networks;
 }

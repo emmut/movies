@@ -72,7 +72,9 @@ export function OrganizationFilter({
       onRemove={(id) => void setState({ ids: ids.filter((value) => value !== id), page: 1 })}
     />
   );
-  if (chipsOnly) return chips;
+  if (chipsOnly) {
+    return chips;
+  }
 
   return (
     <section className="min-w-0 space-y-3" aria-labelledby={headingId}>

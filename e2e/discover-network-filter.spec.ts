@@ -8,7 +8,9 @@ async function openNetworks(page: Page) {
   await expect(page.getByRole('navigation', { name: 'Discover filters', exact: true })).toBeVisible();
   const trigger = page.getByRole('button', { name: /^Networks(?: \(\d+\))?$/ });
   if (await trigger.isVisible()) {
-    if (await trigger.getAttribute('aria-expanded') !== 'true') await trigger.click();
+    if (await trigger.getAttribute('aria-expanded') !== 'true') {
+      await trigger.click();
+    }
   } else {
     await openDiscoverFilters(page);
   }

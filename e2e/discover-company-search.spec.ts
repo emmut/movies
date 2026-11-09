@@ -7,7 +7,9 @@ test.setTimeout(90_000);
 async function openCompanies(page: Page) {
   const trigger = page.getByRole('button', { name: /^Companies(?: \(\d+\))?$/ });
   if (await trigger.isVisible()) {
-    if (await trigger.getAttribute('aria-expanded') !== 'true') await trigger.click();
+    if (await trigger.getAttribute('aria-expanded') !== 'true') {
+      await trigger.click();
+    }
   } else {
     await openDiscoverFilters(page);
   }
