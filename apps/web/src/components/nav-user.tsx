@@ -80,6 +80,7 @@ export function NavUser({
             render={
               <SidebarMenuButton
                 size="lg"
+                tooltip={user.name || user.email}
                 aria-label={`Account for ${user.name || user.email}`}
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               />
