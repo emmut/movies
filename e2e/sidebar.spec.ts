@@ -8,14 +8,19 @@ test('desktop sidebar collapses to usable icons and expands with the keyboard', 
   const discover = sidebar.getByRole('link', { name: 'Discover', exact: true });
   await expect(sidebar).toHaveAttribute('data-state', 'expanded');
   await expect(sidebar.getByText('Browse', { exact: true })).toBeVisible();
+  await discover.hover();
+  await expect(page.locator('[data-slot="tooltip-content"][data-open]')).not.toBeVisible();
   await page.locator('header').getByRole('button', { name: 'Toggle Sidebar', exact: true }).click();
   await expect(sidebar).toHaveAttribute('data-collapsible', 'icon');
   await expect(page.locator('[data-slot="sidebar-container"]')).toHaveCSS('width', '48px');
   await expect(discover).toBeVisible();
+  await sidebar.getByRole('link', { name: 'Movies home' }).hover();
+  await expect(page.locator('[data-slot="tooltip-content"][data-open]')).toHaveText('Movies');
   await discover.hover();
-  await expect(page.locator('[data-slot="tooltip-content"]')).toHaveText('Discover');
+  await expect(page.locator('[data-slot="tooltip-content"][data-open]')).toHaveText('Discover');
   await page.keyboard.press('Control+b');
   await expect(sidebar).toHaveAttribute('data-state', 'expanded');
+  await expect(page.locator('[data-slot="tooltip-content"][data-open]')).not.toBeVisible();
   await expect(page.locator('[data-slot="sidebar-container"]')).toHaveCSS('width', '256px');
   await expect(sidebar.getByRole('link', { name: 'Movies home' })).toBeVisible();
 });
@@ -28,6 +33,8 @@ test('mobile sidebar keeps full labels and closes after navigation', async ({ pa
   await expect(sidebar).toBeVisible();
   await expect(sidebar.getByText('Browse', { exact: true })).toBeVisible();
   await expect(sidebar.getByText('Your movie library', { exact: true })).toBeVisible();
+  await sidebar.getByRole('link', { name: 'Discover', exact: true }).hover();
+  await expect(page.locator('[data-slot="tooltip-content"][data-open]')).not.toBeVisible();
   await sidebar.getByRole('link', { name: 'Home', exact: true }).click();
   await expect(sidebar).not.toBeVisible();
   await expect(page).toHaveURL('/');
@@ -44,6 +51,10 @@ test('library navigation and account menu remain usable in the icon rail', async
   );
   await page.locator('header').getByRole('button', { name: 'Toggle Sidebar', exact: true }).click();
   await expect(page.locator('[data-slot="sidebar-container"]')).toHaveCSS('width', '48px');
+  for (const label of ['Watchlist', 'Watched', 'Lists']) {
+    await sidebar.getByRole('link', { name: label, exact: true }).hover();
+    await expect(page.locator('[data-slot="tooltip-content"][data-open]')).toHaveText(label);
+  }
   const account = sidebar.getByRole('button', { name: /Account for/ });
   await account.focus();
   await account.press('Enter');

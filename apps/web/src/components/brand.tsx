@@ -18,6 +18,7 @@ export default function Brand({ className }: BrandProps) {
       <SidebarMenuItem>
         <SidebarMenuButton
           size="lg"
+          tooltip="Movies"
           className={cn('gap-2', className)}
           render={<Link href="/" aria-label="Movies home" onClick={() => setOpenMobile(false)} />}
         >
