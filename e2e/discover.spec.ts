@@ -29,7 +29,10 @@ async function expectDiscoverShell(page: Page) {
 }
 
 async function selectOption(page: Page, label: string, option: string) {
-  await openDiscoverFilters(page);
+  await closeDiscoverFilters(page);
+  if (!(await page.getByLabel(label).filter({ visible: true }).isVisible())) {
+    await openDiscoverFilters(page);
+  }
   await page.getByLabel(label).filter({ visible: true }).click();
   await page.getByRole('option', { name: option }).click();
 }
