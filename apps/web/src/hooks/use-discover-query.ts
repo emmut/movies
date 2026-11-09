@@ -9,6 +9,8 @@ export type DiscoverMediaParams = {
   mediaType: 'movie' | 'tv';
   genreIds: number[];
   keywordIds: number[];
+  companyIds?: number[];
+  networkIds?: number[];
   page: number;
   sortBy?: string;
   watchProviders?: string;
@@ -28,6 +30,8 @@ export function useDiscoverMedia({
   mediaType,
   genreIds,
   keywordIds,
+  companyIds,
+  networkIds,
   page,
   sortBy,
   watchProviders,
@@ -38,6 +42,8 @@ export function useDiscoverMedia({
   const params = {
     genreIds,
     keywordIds,
+    companyIds,
+    networkIds,
     page,
     sortBy,
     watchProviders,

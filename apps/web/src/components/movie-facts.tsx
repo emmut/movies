@@ -83,7 +83,7 @@ export function MovieFacts({ movie }: { movie: MovieDetails }) {
         <TextFact label="Original Title" value={original_title} />
         <TextFact label="Release Date" value={release_date} fallback="Not available" />
         <TextFact label="Languages" value={languages} />
-        <ProductionCompanies companies={movie.production_companies} />
+        <ProductionCompanies companies={movie.production_companies} type="movie" />
       </div>
 
       <div className="space-y-4">

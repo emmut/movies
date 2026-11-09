@@ -38,6 +38,8 @@ type DiscoverViewState = {
   page: number;
   genreIds: number[];
   keywordIds: number[];
+  companyIds: number[];
+  networkIds: number[];
   mediaType: 'movie' | 'tv';
   sortBy: string;
   watchProviders?: string;
@@ -55,6 +57,8 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
   const [urlState, setUrlState] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
+      networkIds: parseAsArrayOf(parseAsInteger).withDefault([]),
+      companyIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       keywordIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       genreIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
@@ -69,10 +73,14 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
         runtimeLte: 'runtime',
         genreIds: 'genreId',
         keywordIds: 'keywordId',
+        companyIds: 'companyId',
+        networkIds: 'networkId',
       },
       history: 'push',
     },
   );
+
+  const networkIds = urlState.mediaType === 'tv' ? urlState.networkIds : [];
 
   const filterState = {
     sortBy: urlState.sort_by,
@@ -86,6 +94,8 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
       {
         genreIds: null,
         keywordIds: null,
+        companyIds: null,
+        networkIds: null,
         sort_by: null,
         runtimeLte: null,
         with_origin_country: null,
@@ -114,6 +124,8 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
     page: urlState.page,
     genreIds: urlState.genreIds,
     mediaType: urlState.mediaType,
+    companyIds: urlState.companyIds,
+    networkIds,
     sortBy: urlState.sort_by,
     // Use the same provider selection as the server: a different value changes the query
     // key, orphans the dehydrated data, and refetches with the wrong filter.
@@ -121,11 +133,17 @@ function useDiscoverViewState(userRegion: string, userWatchProviders: number[]):
       urlState.with_watch_providers ?? [],
       userWatchProviders,
       urlState.keywordIds,
+      urlState.companyIds,
+      networkIds,
     ),
     watchRegion: urlState.watch_region ?? userRegion,
     runtimeLte: urlState.runtimeLte ?? undefined,
     originCountry: getOriginCountryString(urlState.with_origin_country),
-    activeFilterCount: urlState.keywordIds.length + getActiveFilterCount(filterState),
+    activeFilterCount:
+      urlState.keywordIds.length +
+      urlState.companyIds.length +
+      networkIds.length +
+      getActiveFilterCount(filterState),
     additionalFilterCount: getAdditionalFilterCount(filterState),
     clearFilters,
   };
@@ -214,6 +232,8 @@ export function DiscoverContent({
     page,
     genreIds,
     keywordIds,
+    companyIds,
+    networkIds,
     mediaType,
     sortBy,
     watchProviders,
@@ -231,6 +251,8 @@ export function DiscoverContent({
     page,
     genreIds,
     keywordIds,
+    companyIds,
+    networkIds,
     mediaType,
     sortBy,
     watchProviders,

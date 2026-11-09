@@ -56,7 +56,7 @@ export async function fetchDiscoverMovies(params: DiscoverParams) {
   cacheLife('minutes');
 
   const searchParams = {
-    ...buildDiscoverSearchParams(params),
+    ...buildDiscoverSearchParams({ ...params, networkIds: [] }),
     include_video: 'false',
   };
 

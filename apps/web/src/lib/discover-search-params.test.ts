@@ -12,6 +12,8 @@ describe('loadDiscoverSearchParams', () => {
   });
   it('applies defaults when no params are present', () => {
     expect(loadDiscoverSearchParams({})).toEqual({
+      companyIds: [],
+      networkIds: [],
       keywordIds: [],
       page: 1,
       genreIds: [],
@@ -37,6 +39,8 @@ describe('loadDiscoverSearchParams', () => {
         runtime: '120',
       }),
     ).toEqual({
+      companyIds: [],
+      networkIds: [],
       keywordIds: [],
       page: 3,
       genreIds: [28, 35],
@@ -60,4 +64,17 @@ describe('loadDiscoverSearchParams', () => {
   it('falls back to default page for a non-integer value', () => {
     expect(loadDiscoverSearchParams({ page: 'abc' }).page).toBe(1);
   });
+});
+
+it('parses company filters from shareable links', () => {
+  expect(loadDiscoverSearchParams({ companyId: '41077,2' }).companyIds).toEqual([41077, 2]);
+  expect(loadDiscoverSearchParams({ companyId: 'invalid' }).companyIds).toEqual([]);
+});
+
+it('parses network filters from shareable links', () => {
+  expect(loadDiscoverSearchParams({ networkId: '49,213', mediaType: 'tv' })).toMatchObject({
+    networkIds: [49, 213],
+    mediaType: 'tv',
+  });
+  expect(loadDiscoverSearchParams({ networkId: 'invalid' }).networkIds).toEqual([]);
 });

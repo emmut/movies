@@ -68,11 +68,13 @@ export const queryKeys = {
         params.watchRegion,
         params.withRuntimeLte,
         params.withOriginCountry,
+        params.companyIds,
       ] as const,
     tvShows: (params: Omit<DiscoverParams, 'mediaType'>) =>
       [
         ...queryKeys.discover.lists(),
         'tv',
+        params.networkIds,
         params.genreIds,
         params.keywordIds,
         params.page,
@@ -81,11 +83,14 @@ export const queryKeys = {
         params.watchRegion,
         params.withRuntimeLte,
         params.withOriginCountry,
+        params.companyIds,
       ] as const,
   },
   search: {
     all: ['search'] as const,
     lists: () => [...queryKeys.search.all, 'list'] as const,
+    networks: (query: string) => [...queryKeys.search.lists(), 'networks', query] as const,
+    companies: (query: string) => [...queryKeys.search.lists(), 'companies', query] as const,
     keywords: (query: string) => [...queryKeys.search.lists(), 'keywords', query] as const,
     movies: (query: string, page: number) =>
       [...queryKeys.search.lists(), 'movies', query, page] as const,

@@ -9,6 +9,8 @@ import {
 export const loadDiscoverSearchParams = createLoader(
   {
     page: parseAsInteger.withDefault(1),
+    networkIds: parseAsArrayOf(parseAsInteger).withDefault([]),
+    companyIds: parseAsArrayOf(parseAsInteger).withDefault([]),
     keywordIds: parseAsArrayOf(parseAsInteger).withDefault([]),
     genreIds: parseAsArrayOf(parseAsInteger).withDefault([]),
     mediaType: parseAsStringLiteral(['movie', 'tv'] as const).withDefault('movie'),
@@ -21,6 +23,11 @@ export const loadDiscoverSearchParams = createLoader(
   {
     // Keep the historical `genreId` URL key so old links (`?genreId=28`)
     // and detail-page genre links keep working; the value is a comma list.
-    urlKeys: { genreIds: 'genreId', keywordIds: 'keywordId' },
+    urlKeys: {
+      genreIds: 'genreId',
+      keywordIds: 'keywordId',
+      companyIds: 'companyId',
+      networkIds: 'networkId',
+    },
   },
 );

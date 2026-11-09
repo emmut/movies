@@ -15,6 +15,7 @@ import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'n
 import { type ReactNode, type RefObject, useState } from 'react';
 
 import { DiscoverKeywords } from '@/components/discover-keywords';
+import { DiscoverOrganizationFilter } from '@/components/discover-organization-filter';
 import { DiscoverTagFilter } from '@/components/discover-tag-filter';
 import { FilterCount } from '@/components/filter-count';
 import {
@@ -23,6 +24,7 @@ import {
   getFilterButtonLabel,
   AdditionalFilters,
 } from '@/components/filters-panel';
+import { OrganizationFilter } from '@/components/organization-filter';
 import { SelectedFilterChips } from '@/components/selected-filter-chips';
 import { useResponsivePopover } from '@/hooks/use-responsive-popover';
 import type { Keyword } from '@/types/keyword';
@@ -240,6 +242,21 @@ type GenreNavigationClientProps = {
   mediaTypeControls: ReactNode;
 };
 
+function OrganizationControls({
+  mediaType,
+  chipsOnly = false,
+}: {
+  mediaType: 'movie' | 'tv';
+  chipsOnly?: boolean;
+}) {
+  return (
+    <div className={chipsOnly ? 'contents' : 'space-y-5'}>
+      <OrganizationFilter kind="company" chipsOnly={chipsOnly} />
+      {mediaType === 'tv' && <OrganizationFilter kind="network" chipsOnly={chipsOnly} />}
+    </div>
+  );
+}
+
 export function GenreNavigationClient({
   genres,
   mediaType,
@@ -256,11 +273,13 @@ export function GenreNavigationClient({
 }: GenreNavigationClientProps) {
   const [urlState, setUrlState] = useQueryStates(
     {
+      networkIds: parseAsArrayOf(parseAsInteger).withDefault([]),
+      companyIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       genreIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       page: parseAsString.withDefault('1'),
     },
     {
-      urlKeys: { genreIds: 'genreId' },
+      urlKeys: { genreIds: 'genreId', companyIds: 'companyId', networkIds: 'networkId' },
       history: 'push',
     },
   );
@@ -270,6 +289,13 @@ export function GenreNavigationClient({
     null,
   );
   const selectedGenreIds = getOptimisticGenreIds(currentGenreIds, pendingGenreSelection);
+  const networkIds = mediaType === 'tv' ? urlState.networkIds : [];
+  const hasActiveChips = [
+    selectedGenreIds.length,
+    keywords.length,
+    urlState.companyIds.length,
+    networkIds.length,
+  ].some(Boolean);
   const totalActiveFilterCount = getTotalActiveFilterCount(activeFilterCount, selectedGenreIds);
 
   function handleGenreToggle(genreId: number) {
@@ -296,7 +322,7 @@ export function GenreNavigationClient({
 
   return (
     <nav aria-label="Discover filters" className="space-y-4">
-      <div className="flex flex-wrap items-center gap-4 @[60rem]:flex-nowrap">
+      <div className="flex flex-wrap items-center gap-4">
         <div className="shrink-0">{mediaTypeControls}</div>
         <div className="ml-auto @[60rem]:hidden">
           <FilterDropdown
@@ -308,11 +334,15 @@ export function GenreNavigationClient({
             portalContainer={portalContainer}
             selectedGenreIds={selectedGenreIds}
             keywordControls={
-              <DiscoverKeywords
-                keywords={keywords}
-                onAdd={onAddKeyword}
-                onRemove={onRemoveKeyword}
-              />
+              <>
+                <DiscoverKeywords
+                  keywords={keywords}
+                  onAdd={onAddKeyword}
+                  onRemove={onRemoveKeyword}
+                />
+                <Separator />
+                <OrganizationControls mediaType={mediaType} />
+              </>
             }
             onClear={handleClearAllFilters}
             onToggleGenre={handleGenreToggle}
@@ -328,6 +358,8 @@ export function GenreNavigationClient({
             selectedIds={keywords.map((keyword) => keyword.id)}
             onSelect={onAddKeyword}
           />
+          <DiscoverOrganizationFilter kind="company" />
+          {mediaType === 'tv' && <DiscoverOrganizationFilter kind="network" />}
           <AdditionalFilters
             mediaType={mediaType}
             watchProviders={watchProviders}
@@ -342,7 +374,7 @@ export function GenreNavigationClient({
           <SortByFilter mediaType={mediaType} controlId="discover-desktop-sort" compact />
         </div>
       </div>
-      {(selectedGenreIds.length > 0 || keywords.length > 0) && (
+      {hasActiveChips && (
         <div className="hidden flex-wrap gap-2 @[60rem]:flex" aria-label="Active filters">
           <SelectedFilterChips
             items={genres.filter((genre) => selectedGenreIds.includes(genre.id))}
@@ -350,6 +382,7 @@ export function GenreNavigationClient({
             onRemove={handleGenreToggle}
           />
           <SelectedFilterChips items={keywords} kind="keyword" onRemove={onRemoveKeyword} />
+          <OrganizationControls mediaType={mediaType} chipsOnly />
         </div>
       )}
     </nav>
