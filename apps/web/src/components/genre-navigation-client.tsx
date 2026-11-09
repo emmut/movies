@@ -320,7 +320,7 @@ export function GenreNavigationClient({
         </div>
       </div>
       {hasActiveChips && (
-        <div className="hidden flex-wrap gap-2 @[60rem]:flex" aria-label="Active filters">
+        <div className="flex flex-wrap gap-2" aria-label="Active filters">
           <SelectedFilterChips
             items={genres.filter((genre) => selectedGenreIds.includes(genre.id))}
             kind="genre"
