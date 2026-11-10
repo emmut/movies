@@ -549,12 +549,7 @@ function SidebarMenuButton({
   return (
     <Tooltip disabled={tooltipHidden}>
       {comp}
-      <TooltipContent
-        side="right"
-        align="center"
-        hidden={tooltipHidden}
-        {...tooltip}
-      />
+      <TooltipContent side="right" align="center" hidden={tooltipHidden} {...tooltip} />
     </Tooltip>
   );
 }
