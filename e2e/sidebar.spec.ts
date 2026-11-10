@@ -2,6 +2,25 @@ import { expect, test } from '@playwright/test';
 
 import { signInAnonymously } from './helpers';
 
+test('collapsed sidebar tooltips open without advancing browser time', async ({ page }) => {
+  await page.goto('/login');
+  await page.locator('header').getByRole('button', { name: 'Toggle Sidebar', exact: true }).click();
+  await expect(page.locator('[data-slot="sidebar-container"]')).toHaveCSS('width', '48px');
+
+  const brand = page.getByRole('link', { name: 'Movies home' });
+  await expect(brand).toBeVisible();
+  const start = new Date('2026-01-01T00:00:00Z');
+  const pausedAt = new Date(start.getTime() + 1000);
+  await page.clock.install({ time: start });
+  await page.clock.pauseAt(pausedAt);
+
+  // Skip animation-frame actionability checks while the clock is paused.
+  // A nonzero tooltip delay cannot expire, even during assertion retries.
+  await brand.hover({ force: true });
+  await expect(page.locator('[data-slot="tooltip-content"][data-open]')).toHaveText('Movies');
+  expect(await page.evaluate(() => Date.now())).toBe(pausedAt.getTime());
+});
+
 test('desktop sidebar collapses to usable icons and expands with the keyboard', async ({ page }) => {
   await page.goto('/login');
   const sidebar = page.locator('[data-slot="sidebar"][data-state]');
