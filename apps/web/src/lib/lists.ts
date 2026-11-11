@@ -165,11 +165,19 @@ export async function getUserListsPaginated(page: number = 1) {
     redirect('/lists');
   }
 
+  return await getCachedUserListsPaginated(user.id, page);
+}
+
+async function getCachedUserListsPaginated(userId: string, page: number) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.lists(userId));
+  cacheLife('privateShort');
+
   try {
     const totalCountResult = await db
       .select({ count: count() })
       .from(lists)
-      .where(ownedCustomListsFilter(user.id));
+      .where(ownedCustomListsFilter(userId));
 
     const totalItems = totalCountResult[0]?.count ?? 0;
     const totalPages = Math.ceil(totalItems / LISTS_PER_PAGE);
@@ -198,7 +206,7 @@ export async function getUserListsPaginated(page: number = 1) {
       })
       .from(lists)
       .leftJoin(listItems, eq(lists.id, listItems.listId))
-      .where(ownedCustomListsFilter(user.id))
+      .where(ownedCustomListsFilter(userId))
       .groupBy(lists.id)
       .orderBy(...manualListOrder())
       .limit(LISTS_PER_PAGE)
@@ -241,7 +249,21 @@ async function getListDetailsPaginated(
 
   validateListDetailsParams(listId, page);
 
-  const list = await fetchOwnedCustomListRow(listId, user.id);
+  return await getCachedListDetailsPaginated(user.id, listId, page, providerFilter);
+}
+
+async function getCachedListDetailsPaginated(
+  userId: string,
+  listId: string,
+  page: number,
+  providerFilter: WatchProviderFilter | null,
+) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.lists(userId));
+  cacheTag(CACHE_TAGS.private.listDetails(userId, listId));
+  cacheLife('privateShort');
+
+  const list = await fetchOwnedCustomListRow(listId, userId);
 
   if (providerFilter) {
     return await queryProviderFilteredListPage(list, page, providerFilter);

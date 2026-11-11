@@ -472,6 +472,11 @@ export async function getSearchMovies(
   query: string,
   page: number = 1,
 ): Promise<SearchMoviesResult> {
+  // fallow-ignore-next-line code-duplication -- movie and TV result types keep separate cache boundaries
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('minutes');
+
   const parsed = parseSearchQuery(query);
   const { results, totalPages } = await completeWithIndex(
     fetchSingleTypePage(parsed, query, async (title, year) => {
@@ -501,6 +506,10 @@ export async function getSearchTvShows(
   query: string,
   page: number = 1,
 ): Promise<SearchTvShowsResult> {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('minutes');
+
   const parsed = parseSearchQuery(query);
   const { results, totalPages } = await completeWithIndex(
     fetchSingleTypePage(parsed, query, async (title, year) => {
@@ -530,6 +539,10 @@ export async function getSearchPersons(
   query: string,
   page: number = 1,
 ): Promise<SearchPersonsResult> {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('minutes');
+
   const parsed = parseSearchQuery(query);
   const { results, totalPages } = await completeWithIndex(
     fetchSingleTypePage(parsed, query, async (title) => {
@@ -547,6 +560,10 @@ async function searchMulti(
   limit: number,
   mode: IndexMode,
 ): Promise<SearchMultiResult> {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('minutes');
+
   const parsed = parseSearchQuery(query);
   const { results, totalPages } = await completeWithIndex(
     fetchMultiPage(parsed, query, String(page)),
