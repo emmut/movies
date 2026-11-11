@@ -30,7 +30,7 @@ function MediaSection({ heading, caption, type, category }: MediaSectionConfig) 
  */
 export default function Home() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12 lg:gap-14">
       <section className="flex flex-col gap-4">
         <TrendingHeader />
 

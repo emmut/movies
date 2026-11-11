@@ -47,7 +47,7 @@ function resolveImageSrc(src: string, size: number) {
 /**
  * Displays a card for a movie or TV show resource with poster, title, release year, and score.
  *
- * The card visually distinguishes between movies and TV shows, linking to the resource's detail page and showing additional information and badges on hover or focus. If no poster image is available, a fallback with an emoji and "No Poster" text is shown.
+ * The card keeps its title, year, score, and media badge visible on every input device, with a subtle lift on hover and a focus ring for keyboard navigation. If no poster image is available, a fallback with an emoji and "No Poster" text is shown.
  */
 export default function ItemCard({
   resource: item,
@@ -67,20 +67,14 @@ export default function ItemCard({
   const href = `/${type}/${item.id}`;
   const emoji = type === 'movie' ? '🎬' : '📺';
 
-  const borderColor =
-    type === 'movie'
-      ? 'hover:border-yellow-300 focus-within:border-yellow-300'
-      : 'hover:border-red-500 focus-within:border-red-500';
-
   return (
     <div
       className={cn(
-        'group/item relative aspect-2/3 w-full shrink-0 overflow-hidden rounded-lg border bg-zinc-900 transition-all duration-300 focus-within:scale-105 focus-within:ring-2 focus-within:ring-white/50 focus-within:ring-offset-2 focus-within:ring-offset-black focus-within:outline-none hover:scale-105',
-        borderColor,
+        'group/item relative aspect-2/3 w-full shrink-0 overflow-hidden rounded-xl border border-white/10 bg-zinc-900 shadow-sm transition-[transform,box-shadow,border-color] duration-200 focus-within:border-white/30 focus-within:ring-2 focus-within:ring-white/50 focus-within:ring-offset-2 focus-within:ring-offset-black focus-within:outline-none hover:border-white/30 hover:shadow-xl motion-safe:hover:-translate-y-1',
         className,
       )}
     >
-      <BackTargetLink href={href}>
+      <BackTargetLink href={href} aria-label={title} className="block h-full">
         <div className="relative h-full w-full">
           {item.poster_path ? (
             <ClientImage
@@ -99,11 +93,9 @@ export default function ItemCard({
             </div>
           )}
 
-          <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100" />
+          <div className="absolute inset-0 bg-linear-to-t from-black via-black/10 to-transparent" />
 
-          <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
-            <div className="inset-0 bg-linear-to-t from-zinc-950/50 via-transparent to-transparent opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100" />
-
+          <div className="absolute right-0 bottom-0 left-0 p-3 pt-10 text-white">
             <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{title}</h3>
             <div className="flex items-center justify-between text-xs text-zinc-300">
               <span>{releaseYear}</span>
@@ -114,7 +106,7 @@ export default function ItemCard({
             </div>
           </div>
 
-          <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
+          <div className="absolute top-2 left-2">
             <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
               {type === 'movie' ? 'Movie' : 'TV Show'}
             </Badge>
@@ -129,7 +121,7 @@ export default function ItemCard({
       )}
 
       {listId !== undefined && (
-        <div className="absolute top-2 right-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
+        <div className="absolute top-2 right-2">
           <RemoveFromListButton listId={listId} mediaId={item.id} mediaType={type} />
         </div>
       )}
@@ -151,7 +143,7 @@ function ItemCardSkeleton({ className }: ItemCardSkeletonProps) {
     <div
       data-slot="item-card-skeleton"
       className={cn(
-        'group aspect-2/3 w-[150px] shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900',
+        'group aspect-2/3 w-[150px] shrink-0 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900',
         className,
       )}
     >

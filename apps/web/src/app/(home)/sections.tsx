@@ -59,9 +59,9 @@ export const HOME_SECTIONS: MediaSectionConfig[] = [
  */
 export function MediaSectionHeader({ heading, caption }: { heading: string; caption: string }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
       <h2 className="text-xl font-semibold tracking-tight lg:text-2xl">{heading}</h2>
-      <p className="hidden text-sm text-muted-foreground sm:block">{caption}</p>
+      <p className="text-sm text-muted-foreground">{caption}</p>
     </div>
   );
 }
@@ -71,9 +71,9 @@ export function MediaSectionHeader({ heading, caption }: { heading: string; capt
  */
 export function TrendingHeader() {
   return (
-    <div className="flex items-center justify-between">
-      <h1 className="text-2xl font-bold tracking-tight lg:text-3xl">Trending Now</h1>
-      <p className="hidden text-sm text-muted-foreground sm:block">What everyone&#39;s watching</p>
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
+      <h1 className="text-3xl font-semibold tracking-tight lg:text-4xl">Trending Now</h1>
+      <p className="text-sm text-muted-foreground">What everyone&#39;s watching</p>
     </div>
   );
 }

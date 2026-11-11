@@ -13,7 +13,7 @@ import { HOME_SECTIONS, MediaSectionHeader, TrendingHeader } from './sections';
  */
 export default function Loading() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-12 lg:gap-14">
       <section className="flex flex-col gap-4">
         <TrendingHeader />
 
