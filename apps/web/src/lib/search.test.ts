@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from 'next/cache';
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
@@ -863,4 +864,19 @@ it('keeps people without a release date in a year-filtered person search', async
   expect(result.results).toEqual([
     { id: 287, media_type: 'person', name: 'Brad Pitt', _profile: true },
   ]);
+});
+
+describe('completed search caching', () => {
+  it.each([
+    getSearchMovies,
+    getSearchTvShows,
+    getSearchPersons,
+    getSearchMulti,
+    getSearchSuggestions,
+  ])('tags completed public searches for short shared reuse', async (search) => {
+    mockedFetch.mockResolvedValue(NO_RESULTS);
+    await search('heat');
+    expect(cacheTag).toHaveBeenCalledWith('public:search');
+    expect(cacheLife).toHaveBeenCalledWith('minutes');
+  });
 });
