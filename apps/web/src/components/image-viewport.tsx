@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent, type TransitionEvent } from 'react';
 
 import type { MediaSlide } from '@/components/media-viewer';
 import {
@@ -32,6 +32,19 @@ export function ImageViewport({
     if (!moving) return;
     onMove(moving);
     setDrag(0);
+  }
+
+  // A suppressed transition may never emit an end or cancellation event.
+  useEffect(() => {
+    if (!moving) return;
+    const timeout = window.setTimeout(() => onMove(moving), 350);
+    return () => window.clearTimeout(timeout);
+  }, [moving, onMove]);
+
+  function handleTransition(event: TransitionEvent<HTMLDivElement>) {
+    if (event.target === event.currentTarget && event.propertyName === 'transform') {
+      finishMove();
+    }
   }
 
   function endDrag(event: PointerEvent<HTMLDivElement>) {
@@ -94,7 +107,9 @@ export function ImageViewport({
           transition:
             moving || settling ? 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
         }}
-        onTransitionEnd={finishMove}
+        data-slot="media-image-track"
+        onTransitionEnd={handleTransition}
+        onTransitionCancel={handleTransition}
       >
         {neighbors.map((itemIndex, slot) => (
           <figure

@@ -43,7 +43,20 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       // Only the active full-size image and its neighbors are loaded.
       await expect(dialog.locator('img')).toHaveCount(3);
       await expect(dialog.locator('figure[aria-hidden="false"]')).toHaveCount(1);
+      for (const neighbor of await dialog.locator('figure[aria-hidden="true"] img').all()) {
+        await expect.poll(() => neighbor.evaluate((image: HTMLImageElement) => image.naturalWidth), { timeout: 15_000 }).toBeGreaterThan(0);
+      }
+      const track = dialog.locator('[data-slot="media-image-track"]');
       await page.keyboard.press('ArrowRight');
+      const slideAfterFade = await track.evaluate(async (element) => {
+        // Pause the slide so only the child event can complete it during this check.
+        for (const animation of element.getAnimations()) animation.pause();
+        element.querySelector('img')!.dispatchEvent(new TransitionEvent('transitionend', { bubbles: true, propertyName: 'opacity' }));
+        await new Promise(requestAnimationFrame);
+        return element.querySelector('figure[aria-hidden="false"]')?.getAttribute('aria-label');
+      });
+      expect(slideAfterFade).toBe('Image 1');
+      await track.dispatchEvent('transitionend', { propertyName: 'transform' });
       await expect(dialog.getByRole('img', { name: 'Image 2', exact: true })).toBeVisible();
       expect(await nextImage!.evaluate((image) => image.isConnected)).toBe(true);
       await dialog.getByRole('button', { name: 'Previous media' }).click();
@@ -59,9 +72,21 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await page.emulateMedia({ reducedMotion: 'reduce' });
       await dialog.getByRole('button', { name: 'Next media' }).click();
       await expect(dialog.getByRole('img', { name: viewport.width === 390 ? 'Image 3' : 'Image 2', exact: true })).toBeVisible();
+      expect(await track.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe('0s');
       await page.keyboard.press('Escape');
       await expect(dialog).not.toBeVisible();
       await expect(openImage).toBeFocused();
+    });
+
+    test('keeps navigation working when reduced motion interrupts a slide', async ({ page }) => {
+      await page.goto(MOVIE_PATH);
+      await page.getByRole('button', { name: /^Open image 1 of/ }).click();
+      const dialog = page.getByRole('dialog');
+      await page.keyboard.press('ArrowRight');
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await expect(dialog.getByRole('img', { name: 'Image 2', exact: true })).toBeVisible();
+      await dialog.getByRole('button', { name: 'Next media' }).click();
+      await expect(dialog.getByRole('img', { name: 'Image 3', exact: true })).toBeVisible();
     });
 
     test('browses all videos through the trailer button and removes players on close', async ({ page }) => {
