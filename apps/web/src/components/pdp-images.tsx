@@ -39,6 +39,7 @@ export async function PdpImages({
         alt={image.title}
         className="h-full w-full object-contain"
         eager
+        fetchPriority="auto"
       />
     ),
   }));
@@ -48,7 +49,7 @@ export async function PdpImages({
       <h2 className="text-xl font-semibold tracking-tight">
         Images <span className="ml-1 text-sm font-normal text-zinc-500">{images.length}</span>
       </h2>
-      <MediaViewer title={`${title} — Images`} items={slides}>
+      <MediaViewer title={`${title} — Images`} items={slides} images>
         <ItemSlider>
           {images.map((image, index) => (
             <MediaViewerTrigger

@@ -19,6 +19,7 @@ import {
   type TouchEvent,
 } from 'react';
 
+import { ImageViewport } from '@/components/image-viewport';
 import {
   getAdjacentMediaIndex,
   getKeyboardMediaDirection,
@@ -147,23 +148,37 @@ export function MediaViewer({
   title,
   items,
   children,
+  images = false,
 }: {
+  images?: boolean;
   title: string;
   items: MediaSlide[];
   children: ReactNode;
 }) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [moving, setMoving] = useState<MediaDirection | null>(null);
   const selected = selectedIndex === null ? null : items[selectedIndex];
 
-  function moveSlide(direction: MediaDirection) {
+  function commitSlide(direction: MediaDirection) {
+    setMoving(null);
     setSelectedIndex((current) =>
       current === null ? null : getAdjacentMediaIndex(current, items.length, direction),
     );
   }
 
+  function moveSlide(direction: MediaDirection) {
+    if (items.length < 2 || moving) return;
+    if (images && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setMoving(direction);
+    } else {
+      commitSlide(direction);
+    }
+  }
+
   function handleOpenChange(open: boolean) {
     if (!open) {
       setSelectedIndex(null);
+      setMoving(null);
     }
   }
 
@@ -202,7 +217,17 @@ export function MediaViewer({
           </div>
           {selected && selectedIndex !== null && (
             <>
-              <MediaViewport key={selected.id} slide={selected} onMove={moveSlide} />
+              {images ? (
+                <ImageViewport
+                  items={items}
+                  index={selectedIndex}
+                  moving={moving}
+                  onRequest={moveSlide}
+                  onMove={commitSlide}
+                />
+              ) : (
+                <MediaViewport key={selected.id} slide={selected} onMove={moveSlide} />
+              )}
               <MediaControls
                 title={selected.title}
                 index={selectedIndex}

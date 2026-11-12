@@ -38,6 +38,9 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
         const bounds = await dialog.boundingBox();
         return { width: Math.round(bounds?.width ?? 0), height: Math.round(bounds?.height ?? 0) };
       }).toEqual(viewport);
+      // Only the active full-size image and its neighbors are loaded.
+      await expect(dialog.locator('img')).toHaveCount(3);
+      await expect(dialog.locator('figure[aria-hidden="false"]')).toHaveCount(1);
       await page.keyboard.press('ArrowRight');
       await expect(dialog.getByRole('img', { name: 'Image 2', exact: true })).toBeVisible();
       await dialog.getByRole('button', { name: 'Previous media' }).click();
@@ -50,6 +53,9 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
         await expect(dialog.getByRole('img', { name: 'Image 2', exact: true })).toBeVisible();
         await client.detach();
       }
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await dialog.getByRole('button', { name: 'Next media' }).click();
+      await expect(dialog.getByRole('img', { name: viewport.width === 390 ? 'Image 3' : 'Image 2', exact: true })).toBeVisible();
       await page.keyboard.press('Escape');
       await expect(dialog).not.toBeVisible();
       await expect(openImage).toBeFocused();
