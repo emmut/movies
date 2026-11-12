@@ -1,6 +1,7 @@
 import { Expand } from 'lucide-react';
 
 import ClientImage from '@/components/client-image';
+import { GalleryImage } from '@/components/gallery-image';
 import { ItemSlider } from '@/components/item-slider';
 import { MediaViewer, MediaViewerTrigger } from '@/components/media-viewer';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
@@ -32,15 +33,7 @@ export async function PdpImages({
   const slides = images.map((image) => ({
     id: image.id,
     title: image.title,
-    content: (
-      <ClientImage
-        imageUrls={image.full}
-        fallbackSrc={image.full.src}
-        alt={image.title}
-        className="h-full w-full object-contain"
-        eager
-      />
-    ),
+    content: <GalleryImage imageUrls={image.full} alt={image.title} />,
   }));
 
   return (
@@ -48,7 +41,7 @@ export async function PdpImages({
       <h2 className="text-xl font-semibold tracking-tight">
         Images <span className="ml-1 text-sm font-normal text-zinc-500">{images.length}</span>
       </h2>
-      <MediaViewer title={`${title} — Images`} items={slides}>
+      <MediaViewer title={`${title} — Images`} items={slides} images>
         <ItemSlider>
           {images.map((image, index) => (
             <MediaViewerTrigger
