@@ -1,13 +1,14 @@
 import { displayRating, type MediaCard } from '@movies/api/home';
-import { StarIcon } from '@native/components/icons';
+import { ArrowUpRightIcon, StarIcon } from '@native/components/icons';
 import { MediaBadge } from '@native/components/media-badge';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
 import { SystemQuickAdd } from '@native/components/system-quick-add';
 import { catalogPath } from '@native/lib/catalog-navigation';
 import { Image as ExpoImage } from 'expo-image';
 import { Link, usePathname } from 'expo-router';
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { withUniwind } from 'uniwind';
 
 const Image = withUniwind(ExpoImage);
@@ -18,8 +19,11 @@ function keyExtractor(item: MediaCard) {
 
 function CardMetadata({ item, featured }: { item: MediaCard; featured: boolean }) {
   return (
-    <View className="absolute right-0 bottom-0 left-0 gap-1 p-3">
-      <Text numberOfLines={2} className="text-sm font-semibold text-white">
+    <View className={`absolute right-0 bottom-0 left-0 ${featured ? 'gap-2 p-5' : 'gap-1 p-3'}`}>
+      <Text
+        numberOfLines={2}
+        className={`font-semibold text-white ${featured ? 'text-2xl leading-tight tracking-tight' : 'text-sm'}`}
+      >
         {item.title}
       </Text>
       <View className="flex-row items-center justify-between">
@@ -40,18 +44,24 @@ function CardMetadata({ item, featured }: { item: MediaCard; featured: boolean }
           </View>
         )}
       </View>
+      {featured ? (
+        <View className="mt-2 flex-row items-center gap-2">
+          <Text className="text-sm font-semibold text-white">Explore title</Text>
+          <ArrowUpRightIcon className="size-4 text-white" accessible={false} />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 function posterDimensions(featured: boolean, fluid: boolean) {
   if (featured) {
-    return 'h-52 w-full rounded-xl';
+    return 'h-64 w-full rounded-2xl';
   }
   if (fluid) {
-    return 'aspect-2/3 w-full rounded-lg';
+    return 'aspect-2/3 w-full rounded-xl';
   }
-  return 'h-54 rounded-lg';
+  return 'h-54 rounded-xl';
 }
 
 function CardImage({
@@ -64,19 +74,30 @@ function CardImage({
   fluid: boolean;
 }) {
   const source = featured ? item.backdropUrl : item.posterUrl;
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const reducedMotion = useReducedMotion();
+  const hasImage = source !== null && source !== failedSource;
   return (
     <View
       className={`items-center justify-center overflow-hidden border border-border bg-zinc-800 ${posterDimensions(featured, fluid)}`}
     >
-      <Image
-        source={source}
-        contentFit="cover"
-        transition={150}
-        className="absolute inset-0 size-full"
-        accessibilityIgnoresInvertColors
-      />
+      {hasImage ? (
+        <Image
+          source={source}
+          contentFit="cover"
+          transition={reducedMotion ? 0 : 150}
+          onError={() => setFailedSource(source)}
+          className="absolute inset-0 size-full"
+          accessibilityIgnoresInvertColors
+          accessible={false}
+        />
+      ) : null}
       <View className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
-      {source === null ? <Text className="text-xs text-zinc-400">No image available</Text> : null}
+      {!hasImage ? (
+        <Text className="absolute inset-x-3 top-20 text-center text-xs text-zinc-400">
+          No image available
+        </Text>
+      ) : null}
       <View className="absolute top-2 left-2">
         <MediaBadge type={item.type} />
       </View>
@@ -116,7 +137,7 @@ export const MediaPoster = memo(function Poster({
           {...navigationPress}
           accessibilityRole="link"
           accessibilityLabel={`Open ${item.title}, ${mediaLabel(item.type)}`}
-          className="w-full"
+          className="w-full rounded-xl active:opacity-80"
         >
           <CardImage item={item} featured={featured} fluid={fluid} />
         </Pressable>

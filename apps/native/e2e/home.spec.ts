@@ -177,7 +177,7 @@ test('applies Tailwind image sizing and follows the system theme', async ({ page
   await page.goto('/');
   const card = page.getByRole('link', { name: 'Open Test movie, Movie' }).first();
   await expect(card).toBeVisible();
-  await expect(card.locator(':scope > div').first()).toHaveCSS('height', '208px');
+  await expect(card.locator(':scope > div').first()).toHaveCSS('height', '256px');
   const heading = page.getByText('Trending Now', { exact: true });
   const lightColor = await heading.evaluate((element) => getComputedStyle(element).color);
   await page.emulateMedia({ colorScheme: 'dark' });

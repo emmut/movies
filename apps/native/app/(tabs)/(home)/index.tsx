@@ -50,7 +50,7 @@ export default function Home() {
           onScrollBeginDrag={onScrollBeginDrag}
           onTouchMove={onScrollBeginDrag}
           scrollEventThrottle={16}
-          contentContainerClassName="gap-4 pb-10"
+          contentContainerClassName="gap-6 pb-10"
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -67,12 +67,15 @@ export default function Home() {
                 Couldn’t save your region. Choose it again to retry.
               </Text>
             ) : null}
-            <Text
-              accessibilityRole="header"
-              className="text-2xl font-bold tracking-tight text-foreground"
-            >
-              Trending Now
-            </Text>
+            <View className="gap-1">
+              <Text
+                accessibilityRole="header"
+                className="text-3xl font-bold tracking-tight text-foreground"
+              >
+                Trending Now
+              </Text>
+              <Text className="text-sm text-muted">What everyone’s watching</Text>
+            </View>
             <TrendingCard type="movie" />
             <TrendingCard type="tv" />
           </View>

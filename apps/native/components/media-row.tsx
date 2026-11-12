@@ -19,11 +19,15 @@ function RowState({
   featured?: boolean;
 }) {
   if (pending) {
-    return <PosterRowSkeleton label="Loading titles" featured={featured} />;
+    return (
+      <View className={featured ? undefined : 'px-4'}>
+        <PosterRowSkeleton label="Loading titles" featured={featured} />
+      </View>
+    );
   }
   if (failed) {
     return (
-      <View className="items-start gap-2 px-5">
+      <View className="items-start gap-2 px-4">
         <Text className="text-sm text-muted">Couldn’t load these titles.</Text>
         <Pressable
           accessibilityRole="button"
@@ -36,7 +40,7 @@ function RowState({
     );
   }
   if (empty) {
-    return <Text className="px-5 py-6 text-muted">No titles available right now.</Text>;
+    return <Text className="px-4 py-6 text-muted">No titles available right now.</Text>;
   }
   return null;
 }
@@ -46,14 +50,15 @@ export function MediaRow({ section, region }: { section: HomeMediaSection; regio
     orpc.home.list.queryOptions({ input: { category: section.category, region } }),
   );
   return (
-    <View className="gap-4 py-4">
-      <View className="px-4">
+    <View className="gap-3 py-4">
+      <View className="gap-1 px-4">
         <Text
           accessibilityRole="header"
           className="text-xl font-semibold tracking-tight text-foreground"
         >
           {section.heading}
         </Text>
+        <Text className="text-sm text-muted">{section.caption}</Text>
       </View>
       <RowState
         pending={query.isPending}
