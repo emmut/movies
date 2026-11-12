@@ -38,11 +38,14 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
         const bounds = await dialog.boundingBox();
         return { width: Math.round(bounds?.width ?? 0), height: Math.round(bounds?.height ?? 0) };
       }).toEqual(viewport);
+      await expect(dialog.locator('[aria-busy="false"]').filter({ has: page.getByRole('img', { name: 'Image 1', exact: true }) })).toHaveCount(1);
+      const nextImage = await dialog.locator('img[alt="Image 2"]').elementHandle();
       // Only the active full-size image and its neighbors are loaded.
       await expect(dialog.locator('img')).toHaveCount(3);
       await expect(dialog.locator('figure[aria-hidden="false"]')).toHaveCount(1);
       await page.keyboard.press('ArrowRight');
       await expect(dialog.getByRole('img', { name: 'Image 2', exact: true })).toBeVisible();
+      expect(await nextImage!.evaluate((image) => image.isConnected)).toBe(true);
       await dialog.getByRole('button', { name: 'Previous media' }).click();
       await expect(dialog.getByRole('img', { name: 'Image 1', exact: true })).toBeVisible();
       if (viewport.width === 390) {

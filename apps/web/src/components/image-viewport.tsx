@@ -98,7 +98,11 @@ export function ImageViewport({
       >
         {neighbors.map((itemIndex, slot) => (
           <figure
-            key={slot}
+            key={
+              items.length === 2 && slot === 0
+                ? `${items[itemIndex]!.id}-previous`
+                : items[itemIndex]!.id
+            }
             aria-roledescription="slide"
             aria-label={items[itemIndex]!.title}
             aria-hidden={itemIndex !== index || (neighbors.length > 1 && slot !== 1)}
