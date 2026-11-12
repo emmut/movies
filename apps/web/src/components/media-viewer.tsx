@@ -167,7 +167,9 @@ export function MediaViewer({
   }
 
   function moveSlide(direction: MediaDirection) {
-    if (items.length < 2 || moving) return;
+    if (items.length < 2 || moving) {
+      return;
+    }
     if (images && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setMoving(direction);
     } else {

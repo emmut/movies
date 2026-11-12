@@ -29,14 +29,18 @@ export function ImageViewport({
 
   function finishMove() {
     setSettling(false);
-    if (!moving) return;
+    if (!moving) {
+      return;
+    }
     onMove(moving);
     setDrag(0);
   }
 
   // A suppressed transition may never emit an end or cancellation event.
   useEffect(() => {
-    if (!moving) return;
+    if (!moving) {
+      return;
+    }
     const timeout = window.setTimeout(() => onMove(moving), 350);
     return () => window.clearTimeout(timeout);
   }, [moving, onMove]);
@@ -50,7 +54,9 @@ export function ImageViewport({
   function endDrag(event: PointerEvent<HTMLDivElement>) {
     const start = pointer.current;
     pointer.current = null;
-    if (!start || start.id !== event.pointerId) return;
+    if (!start || start.id !== event.pointerId) {
+      return;
+    }
     const direction = getSwipeMediaDirection(start.x, event.clientX);
     if (direction && Math.abs(event.clientX - start.x) > Math.abs(event.clientY - start.y)) {
       onRequest(direction);
@@ -73,14 +79,18 @@ export function ImageViewport({
       className="relative min-h-0 flex-1 touch-pan-y overflow-hidden select-none"
       onDragStart={(event) => event.preventDefault()}
       onPointerDown={(event) => {
-        if (!event.isPrimary || event.button !== 0 || moving || items.length < 2) return;
+        if (!event.isPrimary || event.button !== 0 || moving || items.length < 2) {
+          return;
+        }
         setSettling(false);
         pointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
         event.currentTarget.setPointerCapture(event.pointerId);
       }}
       onPointerMove={(event) => {
         const start = pointer.current;
-        if (!start || start.id !== event.pointerId) return;
+        if (!start || start.id !== event.pointerId) {
+          return;
+        }
         const x = event.clientX - start.x;
         if (Math.abs(event.clientY - start.y) > Math.abs(x)) {
           pointer.current = null;
