@@ -46,6 +46,14 @@ export function ImageViewport({
   }, [moving, onMove]);
 
   function handleTransition(event: TransitionEvent<HTMLDivElement>) {
+    // A new slide cancels any earlier snap-back. That cancellation belongs to
+    // the old gesture; only reduced motion should finish navigation immediately.
+    if (
+      event.type === 'transitioncancel' &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      return;
+    }
     if (event.target === event.currentTarget && event.propertyName === 'transform') {
       finishMove();
     }

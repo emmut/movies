@@ -48,14 +48,17 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       }
       const track = dialog.locator('[data-slot="media-image-track"]');
       await page.keyboard.press('ArrowRight');
-      const slideAfterFade = await track.evaluate(async (element) => {
-        // Pause the slide so only the child event can complete it during this check.
-        for (const animation of element.getAnimations()) animation.pause();
+      const slideAfterStaleEvents = await track.evaluate(async (element) => {
+        // Pause the slide to check that child fades and stale cancellations cannot complete it.
+        for (const animation of element.getAnimations()) {
+          animation.pause();
+        }
         element.querySelector('img')!.dispatchEvent(new TransitionEvent('transitionend', { bubbles: true, propertyName: 'opacity' }));
+        element.dispatchEvent(new TransitionEvent('transitioncancel', { bubbles: true, propertyName: 'transform' }));
         await new Promise(requestAnimationFrame);
         return element.querySelector('figure[aria-hidden="false"]')?.getAttribute('aria-label');
       });
-      expect(slideAfterFade).toBe('Image 1');
+      expect(slideAfterStaleEvents).toBe('Image 1');
       await track.dispatchEvent('transitionend', { propertyName: 'transform' });
       await expect(dialog.getByRole('img', { name: 'Image 2', exact: true })).toBeVisible();
       expect(await nextImage!.evaluate((image) => image.isConnected)).toBe(true);
