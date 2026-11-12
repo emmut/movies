@@ -31,9 +31,9 @@ function PosterPlaceholder() {
   return (
     <View
       testID="poster-skeleton"
-      className="bg-default aspect-2/3 overflow-hidden rounded-lg border border-border"
+      className="bg-default aspect-2/3 overflow-hidden rounded-xl border border-border"
     >
-      <Skeleton className="absolute inset-0 size-full rounded-lg" />
+      <Skeleton className="absolute inset-0 size-full rounded-xl" />
       <View className="absolute right-3 bottom-3 left-3 gap-2">
         <Skeleton className="h-4 w-3/4 rounded" />
         <View className="flex-row justify-between">
@@ -128,7 +128,14 @@ export function PosterRowSkeleton({
   if (featured) {
     return (
       <Loading label={label}>
-        <Skeleton className="h-52 w-full rounded-xl" />
+        <View className="h-64 w-full overflow-hidden rounded-2xl border border-border">
+          <Skeleton className="absolute inset-0 size-full" />
+          <View className="absolute right-5 bottom-5 left-5 gap-2">
+            <Skeleton className="h-7 w-3/4 rounded" />
+            <Skeleton className="h-3 w-12 rounded" />
+            <Skeleton className="mt-2 h-5 w-28 rounded" />
+          </View>
+        </View>
       </Loading>
     );
   }
