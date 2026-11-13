@@ -1,8 +1,9 @@
 import 'server-only';
-import { cacheLife } from 'next/cache';
+import { cacheLife, cacheTag } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
 import { z } from 'zod';
 
+import { CACHE_TAGS } from '@/lib/cache-tags';
 import { tmdbFetch } from '@/lib/tmdb';
 
 type TitleMatch = { id: number };
@@ -13,6 +14,7 @@ const imdbIdSchema = z.string().regex(/^tt\d{7,}$/);
 async function findTitle(imdbId: string) {
   'use cache: remote';
   cacheLife('hours');
+  cacheTag(CACHE_TAGS.public.imdb.title(imdbId));
 
   const results = await tmdbFetch<FindResults>(`/find/${imdbId}`, {
     searchParams: { external_source: 'imdb_id' },
