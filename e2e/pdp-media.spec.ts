@@ -81,6 +81,70 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await expect(openImage).toBeFocused();
     });
 
+    test('keeps a held drag attached and lets it resume during snap-back', async ({ page }) => {
+      await page.goto(MOVIE_PATH);
+      await page.getByRole('button', { name: /^Open image 1 of/ }).click();
+      const track = page.locator('[data-slot="media-image-track"]');
+      const bounds = (await track.locator('figure[aria-hidden="false"]').boundingBox())!;
+      const x = bounds.x + bounds.width / 2;
+      const y = bounds.y + bounds.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x + 40, y, { steps: 4 });
+      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(-bounds.width + 40, 0);
+      const dragged = await track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41);
+      await page.waitForTimeout(350);
+      expect(await track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(dragged, 0);
+      await page.mouse.up();
+      // Freeze the return halfway through, then grab exactly where it is displayed.
+      const before = await track.evaluate((el) => {
+        for (const animation of el.getAnimations()) {
+          animation.pause();
+          animation.currentTime = 100;
+        }
+        return new DOMMatrixReadOnly(getComputedStyle(el).transform).m41;
+      });
+      await page.mouse.down();
+      expect(await track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(before, 0);
+      await page.mouse.move(x + 20, y);
+      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(before - 20, 0);
+      await page.mouse.up();
+      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(-bounds.width, 0);
+    });
+
+    test('tracks downward drags and closes only after a completed swipe', async ({ page }) => {
+      await page.goto(MOVIE_PATH);
+      const trigger = page.getByRole('button', { name: /^Open image 1 of/ });
+      await trigger.click();
+      const dialog = page.getByRole('dialog');
+      const track = dialog.locator('[data-slot="media-image-track"]');
+      const client = await page.context().newCDPSession(page);
+      async function touch(type: 'touchStart' | 'touchMove' | 'touchEnd' | 'touchCancel', y?: number) {
+        await client.send('Input.dispatchTouchEvent', {
+          type,
+          touchPoints: y === undefined ? [] : [{ x: viewport.width / 2, y }],
+        });
+      }
+      await touch('touchStart', 300);
+      await touch('touchMove', 340);
+      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(40, 0);
+      await touch('touchEnd');
+      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(0, 0);
+      await expect(dialog).toBeVisible();
+      await touch('touchStart', 300);
+      await touch('touchMove', 450);
+      await touch('touchCancel');
+      await expect(dialog).toBeVisible();
+      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(0, 0);
+      await touch('touchStart', 300);
+      await touch('touchMove', 450);
+      await expect(dialog).toBeVisible();
+      await touch('touchEnd');
+      await expect(dialog).not.toBeVisible();
+      await expect(trigger).toBeFocused();
+      await client.detach();
+    });
+
     test('keeps navigation working when reduced motion interrupts a slide', async ({ page }) => {
       await page.goto(MOVIE_PATH);
       await page.getByRole('button', { name: /^Open image 1 of/ }).click();

@@ -226,6 +226,7 @@ export function MediaViewer({
                   moving={moving}
                   onRequest={moveSlide}
                   onMove={commitSlide}
+                  onClose={() => handleOpenChange(false)}
                 />
               ) : (
                 <MediaViewport key={selected.id} slide={selected} onMove={moveSlide} />

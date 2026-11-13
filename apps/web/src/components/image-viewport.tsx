@@ -9,6 +9,18 @@ import {
   type MediaDirection,
 } from '@/lib/media-navigation';
 
+function getDragAxis(x: number, y: number) {
+  if (Math.max(Math.abs(x), Math.abs(y)) < 8) {
+    return null;
+  }
+  return Math.abs(y) > Math.abs(x) ? 'y' : 'x';
+}
+
+function getTrackTransform(count: number, moving: MediaDirection | null) {
+  const offset = moving ? (moving === 'next' ? '-100%' : '100%') : 'var(--media-drag, 0px)';
+  return `translate3d(calc(${count > 1 ? -100 : 0}% + ${offset}), var(--media-drag-y, 0px), 0)`;
+}
+
 /** Keep only the current image and its neighbors mounted, warming the browser's picture cache. */
 export function ImageViewport({
   items,
@@ -16,24 +28,71 @@ export function ImageViewport({
   onMove,
   moving,
   onRequest,
+  onClose,
 }: {
   items: MediaSlide[];
   index: number;
   onMove: (direction: MediaDirection) => void;
   moving: MediaDirection | null;
   onRequest: (direction: MediaDirection) => void;
+  onClose: () => void;
 }) {
-  const [drag, setDrag] = useState(0);
+  const track = useRef<HTMLDivElement>(null);
+  const frame = useRef<number | null>(null);
+  const drag = useRef(0);
+  const dragY = useRef(0);
+  const [closing, setClosing] = useState(false);
   const [settling, setSettling] = useState(false);
-  const pointer = useRef<{ id: number; x: number; y: number } | null>(null);
+  const pointer = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    offset: number;
+    offsetY: number;
+    axis: 'x' | 'y' | null;
+    width: number;
+  } | null>(null);
+
+  function writeDrag(value: number, y = 0) {
+    if (frame.current !== null) {
+      cancelAnimationFrame(frame.current);
+      frame.current = null;
+    }
+    drag.current = value;
+    dragY.current = y;
+    track.current?.style.setProperty('--media-drag', `${value}px`);
+    track.current?.style.setProperty('--media-drag-y', `${y}px`);
+  }
+
+  function flushDrag() {
+    frame.current = null;
+    track.current?.style.setProperty('--media-drag', `${drag.current}px`);
+    track.current?.style.setProperty('--media-drag-y', `${dragY.current}px`);
+  }
+
+  useEffect(
+    () => () => {
+      if (frame.current !== null) {
+        cancelAnimationFrame(frame.current);
+      }
+    },
+    [],
+  );
 
   function finishMove() {
+    if (pointer.current) {
+      return;
+    }
+    if (closing) {
+      onClose();
+      return;
+    }
     setSettling(false);
     if (!moving) {
       return;
     }
     onMove(moving);
-    setDrag(0);
+    writeDrag(0);
   }
 
   // A suppressed transition may never emit an end or cancellation event.
@@ -44,6 +103,23 @@ export function ImageViewport({
     const timeout = window.setTimeout(() => onMove(moving), 350);
     return () => window.clearTimeout(timeout);
   }, [moving, onMove]);
+
+  useEffect(() => {
+    if (!closing) {
+      return;
+    }
+    const timeout = window.setTimeout(onClose, 350);
+    return () => window.clearTimeout(timeout);
+  }, [closing, onClose]);
+
+  function cancelDrag(event: PointerEvent<HTMLDivElement>) {
+    if (pointer.current?.id !== event.pointerId) {
+      return;
+    }
+    pointer.current = null;
+    setSettling(true);
+    writeDrag(0);
+  }
 
   function handleTransition(event: TransitionEvent<HTMLDivElement>) {
     // A new slide cancels any earlier snap-back. That cancellation belongs to
@@ -61,16 +137,25 @@ export function ImageViewport({
 
   function endDrag(event: PointerEvent<HTMLDivElement>) {
     const start = pointer.current;
-    pointer.current = null;
     if (!start || start.id !== event.pointerId) {
       return;
     }
+    pointer.current = null;
+    if (start.axis === 'y' && start.offsetY + event.clientY - start.y >= 100) {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        onClose();
+      } else {
+        setClosing(true);
+        writeDrag(0, window.innerHeight);
+      }
+      return;
+    }
     const direction = getSwipeMediaDirection(start.x, event.clientX);
-    if (direction && Math.abs(event.clientX - start.x) > Math.abs(event.clientY - start.y)) {
+    if (start.axis === 'x' && direction && items.length > 1) {
       onRequest(direction);
     }
     setSettling(true);
-    setDrag(0);
+    writeDrag(0);
   }
 
   const neighbors =
@@ -84,14 +169,32 @@ export function ImageViewport({
 
   return (
     <div
-      className="relative min-h-0 flex-1 touch-pan-y overflow-hidden select-none"
+      className="relative min-h-0 flex-1 touch-none overflow-hidden select-none"
       onDragStart={(event) => event.preventDefault()}
       onPointerDown={(event) => {
-        if (!event.isPrimary || event.button !== 0 || moving || items.length < 2) {
+        if (!event.isPrimary || event.button !== 0 || closing) {
           return;
         }
+        const width = event.currentTarget.clientWidth;
+        const transform = getComputedStyle(track.current!).transform;
+        const matrix = new DOMMatrixReadOnly(transform);
+        let offset = matrix.m41 + (items.length > 1 ? width : 0);
+        // Rebase an interrupted slide onto its destination without moving the pixels.
+        if (moving) {
+          offset += moving === 'next' ? width : -width;
+          onMove(moving);
+        }
+        writeDrag(offset, matrix.m42);
         setSettling(false);
-        pointer.current = { id: event.pointerId, x: event.clientX, y: event.clientY };
+        pointer.current = {
+          id: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+          offset,
+          offsetY: matrix.m42,
+          axis: null,
+          width,
+        };
         event.currentTarget.setPointerCapture(event.pointerId);
       }}
       onPointerMove={(event) => {
@@ -100,30 +203,35 @@ export function ImageViewport({
           return;
         }
         const x = event.clientX - start.x;
-        if (Math.abs(event.clientY - start.y) > Math.abs(x)) {
-          pointer.current = null;
-          setDrag(0);
+        const y = event.clientY - start.y;
+        start.axis ??= getDragAxis(x, y);
+        if (!start.axis) {
           return;
         }
-        const limit = event.currentTarget.clientWidth * 0.85;
-        setDrag(Math.max(-limit, Math.min(limit, x)));
+        const limit = Math.max(start.width * 0.85, Math.abs(start.offset));
+        drag.current =
+          start.axis === 'x' && items.length > 1
+            ? Math.max(-limit, Math.min(limit, start.offset + x))
+            : start.offset;
+        dragY.current = start.axis === 'y' ? Math.max(0, start.offsetY + y) : start.offsetY;
+        if (frame.current === null) {
+          frame.current = requestAnimationFrame(flushDrag);
+        }
       }}
       onPointerUp={endDrag}
-      onPointerCancel={() => {
-        pointer.current = null;
-        setDrag(0);
-      }}
-      onLostPointerCapture={() => {
-        pointer.current = null;
-        setDrag(0);
-      }}
+      onPointerCancel={cancelDrag}
+      onLostPointerCapture={cancelDrag}
     >
       <div
+        ref={track}
         className="flex h-full w-full motion-reduce:transition-none!"
         style={{
-          transform: `translateX(calc(${items.length > 1 ? -100 : 0}% + ${moving ? (moving === 'next' ? '-100%' : '100%') : `${drag}px`}))`,
+          transform: getTrackTransform(items.length, moving),
+          willChange: 'transform',
           transition:
-            moving || settling ? 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+            moving || settling || closing
+              ? 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)'
+              : 'none',
         }}
         data-slot="media-image-track"
         onTransitionEnd={handleTransition}
