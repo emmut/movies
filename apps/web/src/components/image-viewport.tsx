@@ -1,6 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState, type PointerEvent, type TransitionEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+  type RefObject,
+  type TransitionEvent,
+} from 'react';
 
 import type { MediaSlide } from '@/components/media-viewer';
 import {
@@ -21,7 +28,16 @@ function getTrackTransform(count: number, moving: MediaDirection | null) {
   if (moving) {
     offset = moving === 'next' ? '-100%' : '100%';
   }
-  return `translate3d(calc(${count > 1 ? -100 : 0}% + ${offset}), var(--media-drag-y, 0px), 0)`;
+  return `translate3d(calc(${count > 1 ? -100 : 0}% + ${offset}), 0, 0)`;
+}
+
+function getNeighbors(index: number, count: number) {
+  const neighbors = [index];
+  if (count > 1) {
+    neighbors.unshift(getAdjacentMediaIndex(index, count, 'previous'));
+    neighbors.push(getAdjacentMediaIndex(index, count, 'next'));
+  }
+  return neighbors;
 }
 
 /** Keep only the current image and its neighbors mounted, warming the browser's picture cache. */
@@ -32,6 +48,7 @@ export function ImageViewport({
   moving,
   onRequest,
   onClose,
+  dialogRef,
 }: {
   items: MediaSlide[];
   index: number;
@@ -39,6 +56,7 @@ export function ImageViewport({
   moving: MediaDirection | null;
   onRequest: (direction: MediaDirection) => void;
   onClose: () => void;
+  dialogRef: RefObject<HTMLDivElement | null>;
 }) {
   const track = useRef<HTMLDivElement>(null);
   const frame = useRef<number | null>(null);
@@ -56,7 +74,7 @@ export function ImageViewport({
     width: number;
   } | null>(null);
 
-  function writeDrag(value: number, y = 0) {
+  function writeDrag(value: number, y = 0, animateDismiss = false) {
     if (frame.current !== null) {
       cancelAnimationFrame(frame.current);
       frame.current = null;
@@ -64,13 +82,18 @@ export function ImageViewport({
     drag.current = value;
     dragY.current = y;
     track.current?.style.setProperty('--media-drag', `${value}px`);
-    track.current?.style.setProperty('--media-drag-y', `${y}px`);
+    dialogRef.current?.style.setProperty('--media-dismiss-y', `${y}px`);
+    let transition = 'none';
+    if (animateDismiss) {
+      transition = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)';
+    }
+    dialogRef.current?.style.setProperty('--media-dismiss-transition', transition);
   }
 
   function flushDrag() {
     frame.current = null;
     track.current?.style.setProperty('--media-drag', `${drag.current}px`);
-    track.current?.style.setProperty('--media-drag-y', `${dragY.current}px`);
+    dialogRef.current?.style.setProperty('--media-dismiss-y', `${dragY.current}px`);
   }
 
   useEffect(
@@ -121,7 +144,7 @@ export function ImageViewport({
     }
     pointer.current = null;
     setSettling(true);
-    writeDrag(0);
+    writeDrag(0, 0, true);
   }
 
   function handleTransition(event: TransitionEvent<HTMLDivElement>) {
@@ -149,7 +172,7 @@ export function ImageViewport({
         onClose();
       } else {
         setClosing(true);
-        writeDrag(0, window.innerHeight);
+        writeDrag(0, window.innerHeight, true);
       }
       return;
     }
@@ -158,13 +181,7 @@ export function ImageViewport({
       onRequest(direction);
     }
     setSettling(true);
-    writeDrag(0);
-  }
-
-  const neighbors = [index];
-  if (items.length > 1) {
-    neighbors.unshift(getAdjacentMediaIndex(index, items.length, 'previous'));
-    neighbors.push(getAdjacentMediaIndex(index, items.length, 'next'));
+    writeDrag(0, 0, true);
   }
 
   return (
@@ -184,14 +201,16 @@ export function ImageViewport({
           offset += moving === 'next' ? width : -width;
           onMove(moving);
         }
-        writeDrag(offset, matrix.m42);
+        const dismissTransform = getComputedStyle(dialogRef.current!).transform;
+        const offsetY = new DOMMatrixReadOnly(dismissTransform).m42;
+        writeDrag(offset, offsetY);
         setSettling(false);
         pointer.current = {
           id: event.pointerId,
           x: event.clientX,
           y: event.clientY,
           offset,
-          offsetY: matrix.m42,
+          offsetY,
           axis: null,
           width,
         };
@@ -237,7 +256,7 @@ export function ImageViewport({
         onTransitionEnd={handleTransition}
         onTransitionCancel={handleTransition}
       >
-        {neighbors.map((itemIndex, slot) => (
+        {getNeighbors(index, items.length).map((itemIndex, slot) => (
           <figure
             key={
               items.length === 2 && slot === 0

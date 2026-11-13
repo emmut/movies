@@ -117,7 +117,7 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       const trigger = page.getByRole('button', { name: /^Open image 1 of/ });
       await trigger.click();
       const dialog = page.getByRole('dialog');
-      const track = dialog.locator('[data-slot="media-image-track"]');
+      const surface = dialog;
       const client = await page.context().newCDPSession(page);
       async function touch(type: 'touchStart' | 'touchMove' | 'touchEnd' | 'touchCancel', y?: number) {
         await client.send('Input.dispatchTouchEvent', {
@@ -125,17 +125,23 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
           touchPoints: y === undefined ? [] : [{ x: viewport.width / 2, y }],
         });
       }
+      const header = dialog.getByRole('heading');
+      const controls = dialog.getByRole('button', { name: 'Next media' });
+      const headerTop = (await header.boundingBox())!.y;
+      const controlsTop = (await controls.boundingBox())!.y;
       await touch('touchStart', 300);
       await touch('touchMove', 340);
-      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(40, 0);
+      await expect.poll(() => surface.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(40, 0);
+      expect((await header.boundingBox())!.y).toBeCloseTo(headerTop + 40, 0);
+      expect((await controls.boundingBox())!.y).toBeCloseTo(controlsTop + 40, 0);
       await touch('touchEnd');
-      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(0, 0);
+      await expect.poll(() => surface.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(0, 0);
       await expect(dialog).toBeVisible();
       await touch('touchStart', 300);
       await touch('touchMove', 450);
       await touch('touchCancel');
       await expect(dialog).toBeVisible();
-      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(0, 0);
+      await expect.poll(() => surface.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(0, 0);
       await touch('touchStart', 300);
       await touch('touchMove', 450);
       await expect(dialog).toBeVisible();

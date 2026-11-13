@@ -29,6 +29,12 @@ import {
 
 export type MediaSlide = { id: string; title: string; content: ReactNode };
 
+const IMAGE_DIALOG_STYLE = {
+  transform: 'translate3d(0, var(--media-dismiss-y, 0px), 0)',
+  transition: 'var(--media-dismiss-transition, none)',
+  willChange: 'transform',
+};
+
 const MediaViewerContext = createContext<((index: number) => void) | null>(null);
 
 export function MediaViewerTrigger({
@@ -155,6 +161,7 @@ export function MediaViewer({
   items: MediaSlide[];
   children: ReactNode;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [moving, setMoving] = useState<MediaDirection | null>(null);
   const selected = selectedIndex === null ? null : items[selectedIndex];
@@ -198,8 +205,10 @@ export function MediaViewer({
       <Dialog open={selectedIndex !== null} onOpenChange={handleOpenChange}>
         {children}
         <DialogContent
+          ref={dialogRef}
+          style={images ? IMAGE_DIALOG_STYLE : undefined}
           showCloseButton={false}
-          className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none bg-black p-0 text-white ring-0 sm:max-w-none"
+          className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none bg-black p-0 text-white ring-0 motion-reduce:transition-none! sm:max-w-none"
           onKeyDown={handleKeyDown}
         >
           <div className="flex shrink-0 items-center justify-between gap-4 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 sm:px-8">
@@ -221,6 +230,7 @@ export function MediaViewer({
             <>
               {images ? (
                 <ImageViewport
+                  dialogRef={dialogRef}
                   items={items}
                   index={selectedIndex}
                   moving={moving}
