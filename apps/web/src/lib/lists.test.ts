@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from 'next/cache';
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 const withOrderingLock = vi.hoisted(() => vi.fn());
 
@@ -63,6 +64,7 @@ import {
   deleteList,
   getListDetailsWithResources,
   getOwnedCustomList,
+  getUserListsPaginated,
   moveListItem,
   moveList,
   removeFromList,
@@ -388,5 +390,20 @@ describe('input validation', () => {
       values: () => Promise.reject(new Error('duplicate key value violates unique constraint')),
     } as never);
     await expect(addToList(UUID, 1, 'movie')).rejects.toThrow('Item already in list');
+  });
+});
+
+describe('getUserListsPaginated caching boundary', () => {
+  it('authenticates on each call and scopes list queries and invalidation to the current user', async () => {
+    vi.mocked(db.select).mockReturnValue(chain([{ count: 0 }]));
+    await getUserListsPaginated(1);
+    expect(cacheTag).toHaveBeenCalledWith('private:user:user-1:lists');
+    expect(cacheLife).toHaveBeenCalledWith('privateShort');
+
+    vi.mocked(requireUser).mockResolvedValue({ id: 'user-2' } as never);
+    await getUserListsPaginated(2);
+    expect(requireUser).toHaveBeenCalledTimes(2);
+    expect(cacheTag).toHaveBeenCalledWith('private:user:user-2:lists');
+    expect(db.select).toHaveBeenCalledTimes(2);
   });
 });

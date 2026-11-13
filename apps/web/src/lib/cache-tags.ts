@@ -78,6 +78,9 @@ export const CACHE_TAGS = {
       },
     },
     imdb: {
+      title(imdbId: string) {
+        return `public:imdb:${imdbId}:title`;
+      },
       rating(imdbId: string) {
         return `public:imdb:${imdbId}:rating`;
       },

@@ -27,7 +27,7 @@ function PopoverContent({
   return (
     <PopoverPrimitive.Portal
       container={portalContainer}
-      className={portalContainer ? 'absolute' : undefined}
+      className={portalContainer ? 'absolute top-0 left-0' : undefined}
     >
       <PopoverPrimitive.Positioner
         align={align}

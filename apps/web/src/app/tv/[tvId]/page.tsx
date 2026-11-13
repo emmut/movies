@@ -10,6 +10,7 @@ import { ExternalLinks } from '@/components/external-links';
 import { GoBack } from '@/components/go-back';
 import { Imgproxy } from '@/components/image-proxy';
 import ItemHeader from '@/components/item-header';
+import { OrganizationLinks } from '@/components/organization-links';
 import { OriginCountries } from '@/components/origin-countries';
 import { OtherContent } from '@/components/other-content';
 import { PdpImages } from '@/components/pdp-images';
@@ -247,13 +248,8 @@ export default async function TvShowPage(props: TvShowPageProps) {
                 </div>
               )}
 
-              {networks.length > 0 && (
-                <div>
-                  <h3 className="mb-1 text-sm font-semibold text-zinc-400 uppercase">Networks</h3>
-                  <p>{networks.map((network) => network.name).join(', ')}</p>
-                </div>
-              )}
-              <ProductionCompanies companies={tvShow.production_companies} />
+              <OrganizationLinks items={networks} type="tv" kind="network" />
+              <ProductionCompanies companies={tvShow.production_companies} type="tv" />
             </div>
           </div>
 

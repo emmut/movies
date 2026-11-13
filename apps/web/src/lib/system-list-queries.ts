@@ -164,6 +164,12 @@ async function queryPageWithResourceDetails(
   page: number,
   providerFilter: WatchProviderFilter | null,
 ) {
+  'use cache: private';
+  const tags = SYSTEM_LIST_CACHE_TAGS[listType];
+  cacheTag(tags.list(userId, resourceType));
+  cacheTag(tags.count(userId, resourceType));
+  cacheLife('privateShort');
+
   const result = await systemLists.pageRows(
     userId,
     listType,

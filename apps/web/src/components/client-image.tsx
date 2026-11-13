@@ -1,3 +1,5 @@
+import type { ReactEventHandler } from 'react';
+
 import type { ProxyImageUrls } from '@/types/proxy-image';
 
 type ClientImageProps = {
@@ -7,6 +9,9 @@ type ClientImageProps = {
   className?: string;
   /** Load eagerly with high priority — for above-the-fold images (LCP). */
   eager?: boolean;
+  fetchPriority?: 'high' | 'low' | 'auto';
+  onLoad?: ReactEventHandler<HTMLImageElement>;
+  onError?: ReactEventHandler<HTMLImageElement>;
 };
 
 export default function ClientImage({
@@ -15,6 +20,9 @@ export default function ClientImage({
   alt,
   className,
   eager = false,
+  fetchPriority,
+  onLoad,
+  onError,
 }: ClientImageProps) {
   return (
     <picture>
@@ -25,8 +33,10 @@ export default function ClientImage({
         alt={alt}
         className={className}
         loading={eager ? 'eager' : 'lazy'}
-        fetchPriority={eager ? 'high' : undefined}
+        fetchPriority={fetchPriority ?? (eager ? 'high' : undefined)}
         decoding="async"
+        onLoad={onLoad}
+        onError={onError}
       />
     </picture>
   );

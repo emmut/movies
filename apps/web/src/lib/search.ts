@@ -108,17 +108,37 @@ function searchEngine() {
   });
 }
 export async function getSearchMovies(query: string, page = 1): Promise<SearchMoviesResult> {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('minutes');
+
   return searchEngine().getSearchMovies(query, page);
 }
 export async function getSearchTvShows(query: string, page = 1): Promise<SearchTvShowsResult> {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('minutes');
+
   return searchEngine().getSearchTvShows(query, page);
 }
 export async function getSearchPersons(query: string, page = 1): Promise<SearchPersonsResult> {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('minutes');
+
   return searchEngine().getSearchPersons(query, page);
 }
 export async function getSearchMulti(query: string, page = 1): Promise<SearchMultiResult> {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('minutes');
+
   return searchEngine().getSearchMulti(query, page);
 }
 export async function getSearchSuggestions(query: string): Promise<SearchMultiResult> {
+  'use cache: remote';
+  cacheTag(CACHE_TAGS.public.search);
+  cacheLife('minutes');
+
   return searchEngine().getSearchSuggestions(query);
 }

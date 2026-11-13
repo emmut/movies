@@ -61,7 +61,7 @@ test('keyword bubbles open Discover with a removable named filter', async ({ pag
   await expect(page).toHaveURL(new RegExp(href!.replace(/[?]/g, '\\?')), { timeout: 15_000 });
   await expect(page.getByRole('heading', { name: 'Discover', exact: true })).toBeVisible();
   await openDiscoverFilters(page);
-  const remove = page.getByRole('button', { name: `Remove keyword ${name}`, exact: true });
+  const remove = page.getByRole('dialog', { name: 'Filters', exact: true }).getByRole('button', { name: `Remove keyword ${name}`, exact: true });
   await expect(remove).toBeVisible();
   await expect(page.locator('#content a[href^="/movie/"]').first()).toBeVisible();
   await remove.click();
@@ -76,7 +76,7 @@ test('Discover keyword links retain the keyword through paging and media changes
   await page.goto('/discover?keywordId=818&mediaType=movie&page=2');
   await expect(page).toHaveURL(/\/discover\?keywordId=818&mediaType=movie&page=2/, { timeout: 15_000 });
   await openDiscoverFilters(page);
-  await expect(page.getByRole('button', { name: /^Remove keyword / })).toBeVisible();
+  await expect(page.getByRole('dialog', { name: 'Filters', exact: true }).getByRole('button', { name: /^Remove keyword / })).toBeVisible();
   await closeDiscoverFilters(page);
   await expect(page.locator('#content a[href^="/movie/"]').first()).toBeVisible();
   await page.getByRole('button', { name: /go to next page/i }).click();
@@ -92,8 +92,8 @@ test('Discover keyword links retain the keyword through paging and media changes
 test('Clear all removes keyword filters too', async ({ page }) => {
   await page.goto('/discover?keywordId=818');
   await openDiscoverFilters(page);
-  await expect(page.getByRole('button', { name: /^Remove keyword / })).toBeVisible();
-  await page.getByRole('button', { name: 'Clear all', exact: true }).filter({ visible: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Filters', exact: true }).getByRole('button', { name: /^Remove keyword / })).toBeVisible();
+  await page.getByRole('dialog', { name: 'Filters', exact: true }).getByRole('button', { name: 'Clear all', exact: true }).click();
   await expect(page).not.toHaveURL(/keywordId=/);
   await expect(page.getByRole('button', { name: /^Remove keyword / })).toHaveCount(0);
 });

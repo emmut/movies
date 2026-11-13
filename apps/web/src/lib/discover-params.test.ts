@@ -206,3 +206,49 @@ it.each([Number.NaN, 0, -1])('does not emit an invalid runtime bound %s', (runti
     buildDiscoverSearchParams({ genreIds: [], page: 1, withRuntimeLte: runtime }),
   ).not.toHaveProperty('with_runtime.lte');
 });
+
+describe('production company filters', () => {
+  it('matches any selected company without implicitly limiting providers', () => {
+    const params = buildDiscoverSearchParams({
+      keywordIds: [],
+      companyIds: [41077, 2],
+      genreIds: [18],
+      page: 2,
+    });
+    expect(params).toMatchObject({ with_companies: '41077|2', with_genres: '18', page: 2 });
+    expect(params).not.toHaveProperty('with_watch_providers');
+    expect(getDiscoverWatchProviders([], [8], [], [41077])).toBeUndefined();
+  });
+  it('keeps explicitly selected providers', () => {
+    expect(getDiscoverWatchProviders([9], [8], [], [41077])).toBe('9');
+    expect(
+      buildDiscoverSearchParams({
+        keywordIds: [818],
+        companyIds: [2],
+        genreIds: [],
+        page: 1,
+        watchProviders: '9',
+        watchRegion: 'US',
+      }),
+    ).toMatchObject({ with_companies: '2', with_keywords: '818', with_watch_providers: '9' });
+  });
+  it('omits companies when none are selected', () => {
+    expect(buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1 })).not.toHaveProperty(
+      'with_companies',
+    );
+  });
+});
+
+it('matches any selected network without implicit provider restrictions', () => {
+  const params = buildDiscoverSearchParams({
+    keywordIds: [],
+    genreIds: [],
+    networkIds: [49, 213],
+    page: 1,
+  });
+  expect(params.with_networks).toBe('49|213');
+  expect(params).not.toHaveProperty('with_watch_providers');
+  expect(buildDiscoverSearchParams({ keywordIds: [], genreIds: [], page: 1 })).not.toHaveProperty(
+    'with_networks',
+  );
+});

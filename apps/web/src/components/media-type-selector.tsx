@@ -83,11 +83,12 @@ export default function MediaTypeSelector({
   const [urlState, setUrlState] = useQueryStates(
     {
       mediaType: parseAsString.withDefault('movie'),
+      networkIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       genreIds: parseAsArrayOf(parseAsInteger).withDefault([]),
       page: parseAsString.withDefault('1'),
     },
     {
-      urlKeys: { genreIds: 'genreId' },
+      urlKeys: { genreIds: 'genreId', networkIds: 'networkId' },
       history: 'push',
     },
   );
@@ -100,7 +101,10 @@ export default function MediaTypeSelector({
       setOptimisticMediaType(mediaType);
     });
 
-    setUrlState(getMediaTypeUrlUpdate(mediaType, urlState.genreIds, movieGenres, tvGenres));
+    setUrlState({
+      ...getMediaTypeUrlUpdate(mediaType, urlState.genreIds, movieGenres, tvGenres),
+      ...(mediaType === 'movie' ? { networkIds: null } : {}),
+    });
   }
 
   return (

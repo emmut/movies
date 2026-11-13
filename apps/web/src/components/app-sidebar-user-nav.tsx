@@ -1,3 +1,10 @@
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+} from '@movies/ui/components/sidebar';
+
 import { getSession } from '@/lib/auth-server';
 
 import { NavLink } from './nav-link';
@@ -28,10 +35,17 @@ export async function UserNav() {
   }
 
   return (
-    <>
-      {userNavItems.map(({ href, label, icon }) => (
-        <NavLink key={href} href={href} label={label} icon={icon} />
-      ))}
-    </>
+    <SidebarGroup>
+      <nav aria-label="Library">
+        <SidebarGroupLabel>Library</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu className="gap-1">
+            {userNavItems.map(({ href, label, icon }) => (
+              <NavLink key={href} href={href} label={label} icon={icon} />
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </nav>
+    </SidebarGroup>
   );
 }

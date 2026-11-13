@@ -7,17 +7,24 @@ export const MIN_RUNTIME_FILTER_MINUTES = 1;
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
-/** Keyword archives only use providers explicitly selected in the URL. */
+/** Keyword, company and network browsing only use providers explicitly selected in the URL. */
 export function getDiscoverWatchProviders(
   urlProviders: number[],
   savedProviders: number[],
   keywordIds: number[],
+  companyIds: number[] = [],
+  networkIds: number[] = [],
 ) {
-  return getWatchProvidersString(urlProviders, keywordIds.length > 0 ? [] : savedProviders);
+  return getWatchProvidersString(
+    urlProviders,
+    keywordIds.length > 0 || companyIds.length > 0 || networkIds.length > 0 ? [] : savedProviders,
+  );
 }
 
 export type DiscoverParams = {
   keywordIds?: number[];
+  companyIds?: number[];
+  networkIds?: number[];
   genreIds: number[];
   page: number;
   sortBy?: string;
@@ -31,11 +38,13 @@ export type DiscoverParams = {
  * Builds the TMDb `/discover` query parameters shared by the movie and TV show
  * discover endpoints. Applies the genre, watch-provider, and runtime filters,
  * falling back to the major streaming providers and default region when no
- * explicit watch-provider filter is given — unless a country or keyword filter
+ * explicit watch-provider filter is given — unless a country, company, network or keyword filter
  * is active, in which case results stay unrestricted by provider.
  */
 export function buildDiscoverSearchParams({
   keywordIds = [],
+  companyIds = [],
+  networkIds = [],
   genreIds,
   page,
   sortBy,
@@ -63,6 +72,14 @@ export function buildDiscoverSearchParams({
     params.with_keywords = keywordIds.join('|');
   }
 
+  if (companyIds.length > 0) {
+    params.with_companies = companyIds.join('|');
+  }
+
+  if (networkIds.length > 0) {
+    params.with_networks = networkIds.join('|');
+  }
+
   if (withOriginCountry) {
     params.with_origin_country = withOriginCountry;
   }
@@ -70,8 +87,13 @@ export function buildDiscoverSearchParams({
   if (watchProviders && watchRegion) {
     params.with_watch_providers = watchProviders;
     params.watch_region = watchRegion;
-  } else if (!withOriginCountry && keywordIds.length === 0) {
-    // Country and keyword browsing include the full catalog unless a provider
+  } else if (
+    !withOriginCountry &&
+    keywordIds.length === 0 &&
+    companyIds.length === 0 &&
+    networkIds.length === 0
+  ) {
+    // Country, company, network and keyword browsing include the full catalog unless a provider
     // is explicitly selected.
     params.with_watch_providers = majorProviders;
     params.watch_region = watchRegion ?? DEFAULT_REGION;

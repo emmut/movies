@@ -29,7 +29,7 @@ export async function MovieCollection({
           <BackTargetLink
             key={part.id}
             href={`/movie/${part.id}`}
-            className="group w-36 shrink-0 snap-start space-y-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-40"
+            className="group w-36 shrink-0 space-y-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-40"
           >
             <PosterArtwork path={part.poster_path} title={part.title} type="movie" />
             <p className="line-clamp-2 text-sm leading-snug font-medium wrap-anywhere text-zinc-200 group-hover:text-white">

@@ -101,8 +101,16 @@ export async function getUserListsPaginated(page: number = 1) {
     redirect('/lists');
   }
 
+  return await getCachedUserListsPaginated(user.id, page);
+}
+
+async function getCachedUserListsPaginated(userId: string, page: number) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.lists(userId));
+  cacheLife('privateShort');
+
   try {
-    return await customLists.index(user.id, page);
+    return await customLists.index(userId, page);
   } catch (error) {
     console.error('Error fetching paginated user lists:', error);
     const currentPage = Math.max(1, page);
@@ -133,7 +141,21 @@ async function getListDetailsPaginated(
 
   validateListDetailsParams(listId, page);
 
-  return customLists.pageRows(user.id, listId, page, providerFilter);
+  return await getCachedListDetailsPaginated(user.id, listId, page, providerFilter);
+}
+
+async function getCachedListDetailsPaginated(
+  userId: string,
+  listId: string,
+  page: number,
+  providerFilter: WatchProviderFilter | null,
+) {
+  'use cache: private';
+  cacheTag(CACHE_TAGS.private.lists(userId));
+  cacheTag(CACHE_TAGS.private.listDetails(userId, listId));
+  cacheLife('privateShort');
+
+  return customLists.pageRows(userId, listId, page, providerFilter);
 }
 
 function validateListDetailsParams(listId: string, page: number) {

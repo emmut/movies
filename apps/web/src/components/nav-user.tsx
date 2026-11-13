@@ -80,13 +80,17 @@ export function NavUser({
             render={
               <SidebarMenuButton
                 size="lg"
+                tooltip={user.name || user.email}
+                aria-label={`Account for ${user.name || user.email}`}
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               />
             }
           >
             <UserAvatar user={user} />
-            <UserInfo user={user} />
-            <ChevronsUpDown className="ml-auto size-4" />
+            <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
+              <UserInfo user={user} />
+            </div>
+            <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--anchor-width) min-w-56 rounded-lg"
