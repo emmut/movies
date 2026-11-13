@@ -167,7 +167,11 @@ export function ImageViewport({
       return;
     }
     pointer.current = null;
-    if (start.axis === 'y' && start.offsetY + event.clientY - start.y >= 100) {
+    if (
+      event.pointerType === 'touch' &&
+      start.axis === 'y' &&
+      start.offsetY + event.clientY - start.y >= 100
+    ) {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         onClose();
       } else {
@@ -226,7 +230,7 @@ export function ImageViewport({
         const x = event.clientX - start.x;
         const y = event.clientY - start.y;
         start.axis ??= getDragAxis(x, y);
-        if (!start.axis) {
+        if (!start.axis || (start.axis === 'y' && event.pointerType !== 'touch')) {
           return;
         }
         const limit = Math.max(start.width * 0.85, Math.abs(start.offset));
@@ -268,6 +272,7 @@ export function ImageViewport({
             aria-roledescription="slide"
             aria-label={items[itemIndex]!.title}
             aria-hidden={itemIndex !== index || (neighbors.length > 1 && slot !== 1)}
+            inert={itemIndex !== index || (neighbors.length > 1 && slot !== 1)}
             className="flex h-full min-w-full items-center justify-center px-4 py-2 [&_picture]:contents"
           >
             {items[itemIndex]!.content}

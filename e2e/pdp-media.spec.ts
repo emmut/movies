@@ -85,13 +85,14 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await page.goto(MOVIE_PATH);
       await page.getByRole('button', { name: /^Open image 1 of/ }).click();
       const track = page.locator('[data-slot="media-image-track"]');
+      const width = await track.evaluate((element) => element.clientWidth);
       const bounds = (await track.locator('figure[aria-hidden="false"]').boundingBox())!;
       const x = bounds.x + bounds.width / 2;
       const y = bounds.y + bounds.height / 2;
       await page.mouse.move(x, y);
       await page.mouse.down();
       await page.mouse.move(x + 40, y, { steps: 4 });
-      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(-bounds.width + 40, 0);
+      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(-width + 40, 0);
       const dragged = await track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41);
       await page.waitForTimeout(350);
       expect(await track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(dragged, 0);
@@ -109,7 +110,110 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await page.mouse.move(x + 20, y);
       await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(before - 20, 0);
       await page.mouse.up();
-      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(-bounds.width, 0);
+      await expect.poll(() => track.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m41)).toBeCloseTo(-width, 0);
+    });
+
+    test('grabs a navigating slide without jumping or advancing twice', async ({ page }) => {
+      await page.goto(MOVIE_PATH);
+      await page.getByRole('button', { name: /^Open image 1 of/ }).click();
+      const dialog = page.getByRole('dialog');
+      await dialog.evaluate(async (element) => {
+        await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      });
+      const track = dialog.locator('[data-slot="media-image-track"]');
+      const width = await track.evaluate((element) => element.clientWidth);
+      const image = track.locator('figure[aria-label="Image 2"]');
+      const bounds = (await track.locator('figure[aria-hidden="false"]').boundingBox())!;
+      const x = bounds.x + bounds.width / 2;
+      const y = bounds.y + bounds.height / 2;
+      await page.mouse.move(x, y);
+      // Pause JS time so the 350ms navigation fallback cannot race the grab.
+      await page.clock.install();
+      await page.clock.pauseAt(new Date());
+      await page.keyboard.press('ArrowRight');
+      await track.evaluate((element) => {
+        for (const animation of element.getAnimations()) {
+          animation.pause();
+          animation.currentTime = 100;
+        }
+      });
+      await expect(track.locator('figure[aria-hidden="false"]')).toHaveAttribute('aria-label', 'Image 1');
+      const before = (await image.boundingBox())!.x;
+      await page.mouse.down();
+      await expect(track.locator('figure[aria-hidden="false"]')).toHaveAttribute('aria-label', 'Image 2');
+      expect((await image.boundingBox())!.x).toBeCloseTo(before, 0);
+      await page.mouse.move(x + 20, y);
+      await page.clock.runFor(17);
+      expect((await image.boundingBox())!.x).toBeCloseTo(before + 20, 0);
+      await page.mouse.up();
+      await page.clock.runFor(400);
+      await expect.poll(() => track.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).m41)).toBeCloseTo(-width, 0);
+      await expect(track.locator('figure[aria-hidden="false"]')).toHaveAttribute('aria-label', 'Image 2');
+    });
+
+    test('supports keyboard navigation, focus containment and screen-reader context', async ({ page }) => {
+      await page.goto(MOVIE_PATH);
+      const trigger = page.getByRole('button', { name: /^Open image 1 of/ });
+      const count = Number((await trigger.getAttribute('aria-label'))!.match(/of (\d+)/)![1]);
+      await trigger.focus();
+      await page.keyboard.press('Enter');
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toBeVisible();
+      await expect(dialog).toHaveAccessibleName(/Images|Gallery/);
+      await expect(dialog).toHaveAccessibleDescription(/Left and Right arrow keys.*Home.*End.*Escape/);
+      const close = dialog.getByRole('button', { name: 'Close media viewer' });
+      const previous = dialog.getByRole('button', { name: 'Previous media' });
+      const next = dialog.getByRole('button', { name: 'Next media' });
+      await expect(close).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(previous).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(next).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(close).toBeFocused();
+      await page.keyboard.press('Shift+Tab');
+      await expect(next).toBeFocused();
+      const active = dialog.locator('figure[aria-hidden="false"]');
+      await page.keyboard.press('End');
+      await expect(active).toHaveAttribute('aria-label', `Image ${count}`);
+      await expect(dialog.locator('[aria-live="polite"]')).toContainText(`${count} of ${count}`);
+      await page.keyboard.press('ArrowRight');
+      await expect(active).toHaveAttribute('aria-label', 'Image 1');
+      await page.keyboard.press('ArrowLeft');
+      await expect(active).toHaveAttribute('aria-label', `Image ${count}`);
+      await page.keyboard.press('Home');
+      await expect(active).toHaveAttribute('aria-label', 'Image 1');
+      await expect(dialog.locator('figure[aria-hidden="true"]:not([inert])')).toHaveCount(0);
+      await expect(next).toBeFocused();
+      await page.keyboard.press('Space');
+      await expect(active).toHaveAttribute('aria-label', 'Image 2');
+      await page.keyboard.press('Escape');
+      await expect(dialog).not.toBeVisible();
+      await expect(trigger).toBeFocused();
+    });
+
+    test('ignores downward mouse drags and closes with Escape', async ({ page }) => {
+      await page.goto(MOVIE_PATH);
+      const trigger = page.getByRole('button', { name: /^Open image 1 of/ });
+      await trigger.click();
+      const dialog = page.getByRole('dialog');
+      await dialog.evaluate(async (element) => {
+        await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      });
+      const slide = dialog.locator('figure[aria-hidden="false"]');
+      const bounds = (await slide.boundingBox())!;
+      const x = bounds.x + bounds.width / 2;
+      const y = bounds.y + bounds.height / 2;
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      await page.mouse.move(x, y + 150, { steps: 5 });
+      expect(await dialog.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).m42)).toBe(0);
+      await page.mouse.up();
+      await expect(dialog).toBeVisible();
+      await expect(slide).toHaveAttribute('aria-label', 'Image 1');
+      await page.keyboard.press('Escape');
+      await expect(dialog).not.toBeVisible();
+      await expect(trigger).toBeFocused();
     });
 
     test('tracks downward drags and closes only after a completed swipe', async ({ page }) => {
@@ -117,6 +221,9 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       const trigger = page.getByRole('button', { name: /^Open image 1 of/ });
       await trigger.click();
       const dialog = page.getByRole('dialog');
+      await dialog.evaluate(async (element) => {
+        await Promise.all(element.getAnimations().map((animation) => animation.finished));
+      });
       const surface = dialog;
       const client = await page.context().newCDPSession(page);
       async function touch(type: 'touchStart' | 'touchMove' | 'touchEnd' | 'touchCancel', y?: number) {

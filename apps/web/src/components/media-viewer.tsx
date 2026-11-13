@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from '@movies/ui/components/dialog';
@@ -192,6 +193,15 @@ export function MediaViewer({
   }
 
   function handleKeyDown(event: KeyboardEvent) {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      setMoving(null);
+      setSelectedIndex(event.key === 'Home' ? 0 : items.length - 1);
+      return;
+    }
     const direction = getKeyboardMediaDirection(event.key);
     if (!direction) {
       return;
@@ -211,6 +221,10 @@ export function MediaViewer({
           className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none bg-black p-0 text-white ring-0 motion-reduce:transition-none! sm:max-w-none"
           onKeyDown={handleKeyDown}
         >
+          <DialogDescription className="sr-only">
+            Use Left and Right arrow keys to browse. Home selects the first item and End selects the
+            last. Press Escape to close.
+          </DialogDescription>
           <div className="flex shrink-0 items-center justify-between gap-4 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 sm:px-8">
             <DialogTitle className="min-w-0 truncate text-base leading-normal">{title}</DialogTitle>
             <DialogClose
