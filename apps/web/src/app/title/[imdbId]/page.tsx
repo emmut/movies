@@ -20,7 +20,10 @@ async function findTitle(imdbId: string) {
   const movie = results.movie_results[0];
   if (movie === undefined) {
     const tv = results.tv_results[0];
-    return tv === undefined ? null : `/tv/${tv.id}`;
+    if (tv === undefined) {
+      return null;
+    }
+    return `/tv/${tv.id}`;
   }
   return `/movie/${movie.id}`;
 }
