@@ -11,7 +11,7 @@ type ItemSliderProps = {
 export function ItemSlider({ children }: ItemSliderProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
+  const [showRightArrow, setShowRightArrow] = useState(false);
   const hasPointer = useHasPointer();
   const isDraggingRef = useRef(false);
   const startXRef = useRef(0);

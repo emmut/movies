@@ -13,6 +13,6 @@ export function useHasPointer() {
   return useSyncExternalStore(
     subscribe,
     () => window.matchMedia(QUERY).matches,
-    () => true,
+    () => false,
   );
 }
