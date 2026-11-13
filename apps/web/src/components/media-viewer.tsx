@@ -11,9 +11,11 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from '@movies/ui/components/dialog';
+import { cn } from 'cn';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import {
   createContext,
@@ -28,6 +30,18 @@ import {
 import { ImageViewport } from '@/components/image-viewport';
 
 export type MediaSlide = { id: string; title: string; content: ReactNode };
+
+const IMAGE_DIALOG_STYLE = {
+  transform: 'translate3d(0, var(--media-dismiss-y, 0px), 0)',
+  transition: 'var(--media-dismiss-transition, none)',
+  willChange: 'transform',
+};
+
+const IMAGE_OVERLAY_STYLE = {
+  opacity: 'var(--media-backdrop-opacity, 1)',
+  transition: 'var(--media-backdrop-transition, none)',
+  willChange: 'opacity',
+};
 
 const MediaViewerContext = createContext<((index: number) => void) | null>(null);
 
@@ -155,9 +169,28 @@ export function MediaViewer({
   items: MediaSlide[];
   children: ReactNode;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [swipeDismissed, setSwipeDismissed] = useState(false);
   const [moving, setMoving] = useState<MediaDirection | null>(null);
   const selected = selectedIndex === null ? null : items[selectedIndex];
+
+  const imageOverlayProps = {
+    ref: overlayRef,
+    className: cn('motion-reduce:transition-none!', swipeDismissed && 'animate-none!'),
+    style: IMAGE_OVERLAY_STYLE,
+  };
+
+  function selectSlide(index: number) {
+    setSwipeDismissed(false);
+    setSelectedIndex(index);
+  }
+
+  function closeFromSwipe() {
+    setSwipeDismissed(true);
+    handleOpenChange(false);
+  }
 
   function commitSlide(direction: MediaDirection) {
     setMoving(null);
@@ -185,6 +218,15 @@ export function MediaViewer({
   }
 
   function handleKeyDown(event: KeyboardEvent) {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+    if (event.key === 'Home' || event.key === 'End') {
+      event.preventDefault();
+      setMoving(null);
+      setSelectedIndex(event.key === 'Home' ? 0 : items.length - 1);
+      return;
+    }
     const direction = getKeyboardMediaDirection(event.key);
     if (!direction) {
       return;
@@ -194,14 +236,22 @@ export function MediaViewer({
   }
 
   return (
-    <MediaViewerContext value={setSelectedIndex}>
+    <MediaViewerContext value={selectSlide}>
       <Dialog open={selectedIndex !== null} onOpenChange={handleOpenChange}>
         {children}
         <DialogContent
+          ref={dialogRef}
+          data-swipe-dismissed={swipeDismissed || undefined}
+          style={images ? IMAGE_DIALOG_STYLE : undefined}
+          overlayProps={images ? imageOverlayProps : undefined}
           showCloseButton={false}
-          className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none bg-black p-0 text-white ring-0 sm:max-w-none"
+          className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none bg-black p-0 text-white ring-0 data-[swipe-dismissed]:animate-none! motion-reduce:transition-none! sm:max-w-none"
           onKeyDown={handleKeyDown}
         >
+          <DialogDescription className="sr-only">
+            Use Left and Right arrow keys to browse. Home selects the first item and End selects the
+            last. Press Escape to close.
+          </DialogDescription>
           <div className="flex shrink-0 items-center justify-between gap-4 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-4 sm:px-8">
             <DialogTitle className="min-w-0 truncate text-base leading-normal">{title}</DialogTitle>
             <DialogClose
@@ -221,11 +271,14 @@ export function MediaViewer({
             <>
               {images ? (
                 <ImageViewport
+                  dialogRef={dialogRef}
+                  overlayRef={overlayRef}
                   items={items}
                   index={selectedIndex}
                   moving={moving}
                   onRequest={moveSlide}
                   onMove={commitSlide}
+                  onClose={closeFromSwipe}
                 />
               ) : (
                 <MediaViewport key={selected.id} slide={selected} onMove={moveSlide} />
