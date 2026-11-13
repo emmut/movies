@@ -184,6 +184,8 @@ export function ImageViewport({
     writeDrag(0, 0, true);
   }
 
+  const neighbors = getNeighbors(index, items.length);
+
   return (
     <div
       className="relative min-h-0 flex-1 touch-none overflow-hidden select-none"
@@ -256,7 +258,7 @@ export function ImageViewport({
         onTransitionEnd={handleTransition}
         onTransitionCancel={handleTransition}
       >
-        {getNeighbors(index, items.length).map((itemIndex, slot) => (
+        {neighbors.map((itemIndex, slot) => (
           <figure
             key={
               items.length === 2 && slot === 0
