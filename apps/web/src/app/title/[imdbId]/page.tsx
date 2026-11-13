@@ -1,11 +1,14 @@
 import 'server-only';
 import { cacheLife } from 'next/cache';
 import { notFound, redirect } from 'next/navigation';
+import { z } from 'zod';
 
 import { tmdbFetch } from '@/lib/tmdb';
 
 type TitleMatch = { id: number };
 type FindResults = { movie_results: TitleMatch[]; tv_results: TitleMatch[] };
+
+const imdbIdSchema = z.string().regex(/^tt\d{7,}$/);
 
 async function findTitle(imdbId: string) {
   'use cache: remote';
@@ -23,12 +26,12 @@ async function findTitle(imdbId: string) {
 }
 
 export default async function ImdbTitlePage({ params }: { params: Promise<{ imdbId: string }> }) {
-  const { imdbId } = await params;
-  if (!/^tt\d{7,}$/.test(imdbId)) {
+  const imdbId = imdbIdSchema.safeParse((await params).imdbId);
+  if (!imdbId.success) {
     notFound();
   }
 
-  const destination = await findTitle(imdbId);
+  const destination = await findTitle(imdbId.data);
   if (!destination) {
     notFound();
   }
