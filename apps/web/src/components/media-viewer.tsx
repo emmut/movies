@@ -164,8 +164,19 @@ export function MediaViewer({
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [swipeDismissed, setSwipeDismissed] = useState(false);
   const [moving, setMoving] = useState<MediaDirection | null>(null);
   const selected = selectedIndex === null ? null : items[selectedIndex];
+
+  function selectSlide(index: number) {
+    setSwipeDismissed(false);
+    setSelectedIndex(index);
+  }
+
+  function closeFromSwipe() {
+    setSwipeDismissed(true);
+    handleOpenChange(false);
+  }
 
   function commitSlide(direction: MediaDirection) {
     setMoving(null);
@@ -211,14 +222,15 @@ export function MediaViewer({
   }
 
   return (
-    <MediaViewerContext value={setSelectedIndex}>
+    <MediaViewerContext value={selectSlide}>
       <Dialog open={selectedIndex !== null} onOpenChange={handleOpenChange}>
         {children}
         <DialogContent
           ref={dialogRef}
+          data-swipe-dismissed={swipeDismissed || undefined}
           style={images ? IMAGE_DIALOG_STYLE : undefined}
           showCloseButton={false}
-          className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none bg-black p-0 text-white ring-0 motion-reduce:transition-none! sm:max-w-none"
+          className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none bg-black p-0 text-white ring-0 data-[swipe-dismissed]:animate-none! motion-reduce:transition-none! sm:max-w-none"
           onKeyDown={handleKeyDown}
         >
           <DialogDescription className="sr-only">
@@ -250,7 +262,7 @@ export function MediaViewer({
                   moving={moving}
                   onRequest={moveSlide}
                   onMove={commitSlide}
-                  onClose={() => handleOpenChange(false)}
+                  onClose={closeFromSwipe}
                 />
               ) : (
                 <MediaViewport key={selected.id} slide={selected} onMove={moveSlide} />

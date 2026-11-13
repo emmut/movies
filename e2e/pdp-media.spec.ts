@@ -252,9 +252,31 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await touch('touchStart', 300);
       await touch('touchMove', 450);
       await expect(dialog).toBeVisible();
+      // Observe the closed panel too: its default exit keyframes must not
+      // override the offscreen swipe transform and flash it back into view.
+      const frames = dialog.evaluate((element) => new Promise<{ closed: boolean; top: number }[]>((resolve) => {
+        const samples: { closed: boolean; top: number }[] = [];
+        function sample() {
+          if (!element.isConnected) {
+            resolve(samples);
+            return;
+          }
+          samples.push({ closed: element.hasAttribute('data-closed'), top: element.getBoundingClientRect().top });
+          requestAnimationFrame(sample);
+        }
+        sample();
+      }));
       await touch('touchEnd');
+      const samples = await frames;
+      expect(samples.some((sample) => sample.top >= viewport.height - 1)).toBe(true);
+      expect(samples.filter((sample) => sample.closed && sample.top < viewport.height - 1)).toEqual([]);
       await expect(dialog).not.toBeVisible();
       await expect(trigger).toBeFocused();
+      await trigger.click();
+      await expect(dialog).toBeVisible();
+      await expect.poll(() => dialog.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).m42)).toBeCloseTo(0, 0);
+      await page.keyboard.press('Escape');
+      await expect(dialog).not.toBeVisible();
       await client.detach();
     });
 
