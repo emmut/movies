@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@movies/ui', '@movies/db', '@movies/config', '@movies/auth', '@movies/api'],
   reactCompiler: true,
   cacheComponents: true,
+  experimental: {
+    // Retain visited dynamic page segments for quick Link return navigation.
+    // Data cache lifetimes alone do not retain the complete route payload.
+    staleTimes: { dynamic: 60 },
+  },
   // Preserve the existing Cache Components prefetch behavior during this upgrade.
   partialPrefetching: false,
   async headers() {
