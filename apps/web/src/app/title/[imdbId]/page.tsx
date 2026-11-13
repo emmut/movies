@@ -1,0 +1,36 @@
+import 'server-only';
+import { cacheLife } from 'next/cache';
+import { notFound, redirect } from 'next/navigation';
+
+import { tmdbFetch } from '@/lib/tmdb';
+
+type TitleMatch = { id: number };
+type FindResults = { movie_results: TitleMatch[]; tv_results: TitleMatch[] };
+
+async function findTitle(imdbId: string) {
+  'use cache: remote';
+  cacheLife('hours');
+
+  const results = await tmdbFetch<FindResults>(`/find/${imdbId}`, {
+    searchParams: { external_source: 'imdb_id' },
+  });
+  const movie = results.movie_results[0];
+  if (movie) {
+    return `/movie/${movie.id}`;
+  }
+  const tv = results.tv_results[0];
+  return tv ? `/tv/${tv.id}` : null;
+}
+
+export default async function ImdbTitlePage({ params }: { params: Promise<{ imdbId: string }> }) {
+  const { imdbId } = await params;
+  if (!/^tt\d{7,}$/.test(imdbId)) {
+    notFound();
+  }
+
+  const destination = await findTitle(imdbId);
+  if (!destination) {
+    notFound();
+  }
+  redirect(destination);
+}
