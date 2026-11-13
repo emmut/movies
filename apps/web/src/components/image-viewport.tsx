@@ -17,7 +17,10 @@ function getDragAxis(x: number, y: number) {
 }
 
 function getTrackTransform(count: number, moving: MediaDirection | null) {
-  const offset = moving ? (moving === 'next' ? '-100%' : '100%') : 'var(--media-drag, 0px)';
+  let offset = 'var(--media-drag, 0px)';
+  if (moving) {
+    offset = moving === 'next' ? '-100%' : '100%';
+  }
   return `translate3d(calc(${count > 1 ? -100 : 0}% + ${offset}), var(--media-drag-y, 0px), 0)`;
 }
 
@@ -158,14 +161,11 @@ export function ImageViewport({
     writeDrag(0);
   }
 
-  const neighbors =
-    items.length > 1
-      ? [
-          getAdjacentMediaIndex(index, items.length, 'previous'),
-          index,
-          getAdjacentMediaIndex(index, items.length, 'next'),
-        ]
-      : [index];
+  const neighbors = [index];
+  if (items.length > 1) {
+    neighbors.unshift(getAdjacentMediaIndex(index, items.length, 'previous'));
+    neighbors.push(getAdjacentMediaIndex(index, items.length, 'next'));
+  }
 
   return (
     <div
@@ -209,10 +209,10 @@ export function ImageViewport({
           return;
         }
         const limit = Math.max(start.width * 0.85, Math.abs(start.offset));
-        drag.current =
-          start.axis === 'x' && items.length > 1
-            ? Math.max(-limit, Math.min(limit, start.offset + x))
-            : start.offset;
+        drag.current = start.offset;
+        if (start.axis === 'x' && items.length > 1) {
+          drag.current = Math.max(-limit, Math.min(limit, start.offset + x));
+        }
         dragY.current = start.axis === 'y' ? Math.max(0, start.offsetY + y) : start.offsetY;
         if (frame.current === null) {
           frame.current = requestAnimationFrame(flushDrag);
