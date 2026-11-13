@@ -6,7 +6,7 @@ vi.mock('@/components/image-proxy', () => ({ Imgproxy: () => null }));
 import { TvSeasons } from './tv-seasons';
 
 describe('TV seasons', () => {
-  it('keeps season cards free of scroll snapping', () => {
+  it('uses the shared slider snapping for season cards', () => {
     const html = renderToStaticMarkup(
       <TvSeasons
         tvId={1}
@@ -25,7 +25,8 @@ describe('TV seasons', () => {
       />,
     );
     expect(html).toContain('href="/tv/1/season/1"');
-    expect(html).not.toContain('snap-start');
+    expect(html).toContain('snap-mandatory');
+    expect(html).toContain('[&amp;&gt;*]:snap-start');
   });
 
   it('hides missing episode data', () => {

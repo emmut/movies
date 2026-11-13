@@ -27,6 +27,9 @@ export function ItemSlider({ children }: ItemSliderProps) {
       return;
     }
 
+    // Native snapping fights per-mousemove scrollLeft writes. Let the track
+    // follow the pointer directly, then restore snapping when the drag ends.
+    container.style.scrollSnapType = 'none';
     isDraggingRef.current = true;
     preventClickRef.current = false;
     startXRef.current = e.pageX;
@@ -53,10 +56,11 @@ export function ItemSlider({ children }: ItemSliderProps) {
 
   function handleMouseUp() {
     isDraggingRef.current = false;
+    scrollContainerRef.current?.style.removeProperty('scroll-snap-type');
   }
 
   function handleMouseLeave() {
-    isDraggingRef.current = false;
+    handleMouseUp();
   }
 
   function handleClickCapture(e: React.MouseEvent) {
@@ -78,10 +82,10 @@ export function ItemSlider({ children }: ItemSliderProps) {
     }
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      container.scrollBy({ left: -container.clientWidth * 0.75, behavior: 'smooth' });
+      scroll('left');
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
-      container.scrollBy({ left: container.clientWidth * 0.75, behavior: 'smooth' });
+      scroll('right');
     }
   }
 
@@ -175,6 +179,8 @@ export function ItemSlider({ children }: ItemSliderProps) {
       {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- drag-to-scroll + keyboard nav on a scroll container */}
       <div
         role="application"
+        // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- focusable scroll track supports arrow-key navigation
+        tabIndex={0}
         aria-label="Scrollable items"
         ref={scrollContainerRef}
         onMouseDown={handleMouseDown}
@@ -195,7 +201,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
           out. No explicit width — `width: auto` already resolves to the
           wrapper's width plus both margins, so the two can never disagree.
         */
-        className="relative -mx-3 scrollbar-hide flex cursor-grab snap-x scroll-px-3 gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing"
+        className="relative -mx-3 scrollbar-hide flex cursor-grab snap-x snap-mandatory scroll-px-3 gap-4 overflow-x-auto p-3 select-none active:cursor-grabbing [*]:cursor-grab active:[*]:cursor-grabbing [&>*]:snap-start"
       >
         {children}
       </div>
