@@ -9,11 +9,17 @@ test('returning to Discover reuses the rendered page without another server requ
 
   await page.getByRole('link', { name: 'Movies home', exact: true }).click();
   await expect(page).toHaveURL('/');
+  await expect(page.getByRole('heading', { name: /^discover$/i })).not.toBeVisible();
 
-  const discoverRequests: string[] = [];
+  const navigationRequests: string[] = [];
   await page.route('**/discover*', async (route) => {
-    if (route.request().headers()['rsc'] === '1') {
-      discoverRequests.push(route.request().url());
+    const headers = route.request().headers();
+    if (headers['rsc'] === '1') {
+      // Link visibility/hover can prefetch even when navigation uses the cache.
+      // Block those too: the restored page must not depend on their responses.
+      if (!headers['next-router-prefetch'] && !headers['next-router-segment-prefetch']) {
+        navigationRequests.push(route.request().url());
+      }
       await route.abort();
       return;
     }
@@ -21,7 +27,8 @@ test('returning to Discover reuses the rendered page without another server requ
   });
 
   await page.getByRole('link', { name: 'Discover', exact: true }).click();
+  await expect(page).toHaveURL('/discover');
   await expect(page.getByRole('heading', { name: /^discover$/i })).toBeVisible();
   await expect(page.locator('#content')).toBeVisible();
-  expect(discoverRequests).toEqual([]);
+  expect(navigationRequests).toEqual([]);
 });
