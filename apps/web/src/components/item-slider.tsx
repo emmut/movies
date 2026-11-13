@@ -2,7 +2,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
-import { useHasHover } from '@/hooks/use-has-hover';
+import { useHasPointer } from '@/hooks/use-has-pointer';
 
 type ItemSliderProps = {
   children: ReactNode;
@@ -12,7 +12,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
-  const hasHover = useHasHover();
+  const hasPointer = useHasPointer();
   const isDraggingRef = useRef(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
@@ -136,7 +136,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
             way, so touch loses no affordance. The edge fade stays — it is the
             "more this way" hint, and it is the only one touch gets.
           */}
-          {hasHover && (
+          {hasPointer && (
             <button
               onClick={() => scroll('left')}
               className="absolute top-1/2 left-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border border-muted-foreground/30 bg-background/80 p-2 transition-all hover:bg-muted/30"
@@ -155,7 +155,7 @@ export function ItemSlider({ children }: ItemSliderProps) {
 
       {showRightArrow && (
         <>
-          {hasHover && (
+          {hasPointer && (
             <button
               onClick={() => scroll('right')}
               className="absolute top-1/2 right-2 z-20 -translate-y-1/2 cursor-pointer rounded-full border border-muted-foreground/30 bg-background/80 p-2 transition-all hover:bg-muted/30"
