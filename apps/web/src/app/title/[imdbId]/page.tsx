@@ -18,11 +18,11 @@ async function findTitle(imdbId: string) {
     searchParams: { external_source: 'imdb_id' },
   });
   const movie = results.movie_results[0];
-  if (movie) {
-    return `/movie/${movie.id}`;
+  if (movie === undefined) {
+    const tv = results.tv_results[0];
+    return tv === undefined ? null : `/tv/${tv.id}`;
   }
-  const tv = results.tv_results[0];
-  return tv ? `/tv/${tv.id}` : null;
+  return `/movie/${movie.id}`;
 }
 
 export default async function ImdbTitlePage({ params }: { params: Promise<{ imdbId: string }> }) {
