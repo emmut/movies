@@ -48,7 +48,7 @@ export async function PdpImages({
               key={image.id}
               index={index}
               label={`Open image ${index + 1} of ${images.length}`}
-              className="group relative aspect-video w-56 shrink-0 snap-start overflow-hidden rounded-xl border border-white/10 bg-zinc-900 transition-colors outline-none hover:border-white/30 focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-72 [&_picture]:contents"
+              className="group relative aspect-video w-56 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-zinc-900 transition-colors outline-none hover:border-white/30 focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-72 [&_picture]:contents"
             >
               <ClientImage
                 imageUrls={image.thumbnail}

@@ -66,7 +66,7 @@ export function TvSeasons({
           <Link
             key={season.id}
             href={`/tv/${tvId}/season/${season.season_number}`}
-            className="group w-36 shrink-0 snap-start space-y-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-40"
+            className="group w-36 shrink-0 space-y-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-400 sm:w-40"
           >
             <PosterArtwork path={season.poster_path} title={season.name} type="tv" />
             <p className="line-clamp-2 text-sm font-medium wrap-anywhere text-zinc-200 group-hover:text-white">
