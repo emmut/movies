@@ -3,6 +3,7 @@ import { buildDiscoverSearchParams } from '@movies/api/discover-params';
 import type { DiscoveryService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
 import { isOriginCountryCode } from '@movies/config/countries';
+import { createDiscoveryFacetService } from '@server/discovery-facets';
 import { tmdbCardSchema, toMediaCard } from '@server/media-card';
 import { readWatchProviders, toProviderChoices } from '@server/watch-provider-options';
 import { z } from 'zod';
@@ -21,11 +22,15 @@ const countrySchema = z.array(
 
 export function createDiscoveryService(fetchTmdb: TmdbFetch): DiscoveryService {
   return {
+    facets: createDiscoveryFacetService(fetchTmdb),
     async list(input) {
       const data = pageSchema.parse(
         await fetchTmdb('/discover/' + input.type, {
           searchParams: buildDiscoverSearchParams({
             genreIds: input.genreIds,
+            keywordIds: input.keywordIds,
+            companyIds: input.companyIds,
+            networkIds: input.type === 'tv' ? input.networkIds : [],
             page: input.page,
             sortBy: input.sortBy,
             watchRegion: input.region,

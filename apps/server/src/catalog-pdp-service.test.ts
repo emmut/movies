@@ -60,11 +60,13 @@ describe('additional title information', () => {
     };
     const fetcher = vi.fn().mockResolvedValue({
       id: 42,
+      networks: [{ id: 49, name: 'HBO', logo_path: null }],
       seasons: [{ id: 2, name: 'Specials', season_number: 0, episode_count: 1 }],
       next_episode_to_air: episode,
     });
     const result = await createCatalogPdpService(fetcher).extras({ ...input, type: 'tv' });
     expect(result.seasons[0].season_number).toBe(0);
+    expect(result.networks).toEqual([{ id: 49, name: 'HBO', logo_path: null }]);
     expect(result.next).toMatchObject({ name: 'Secret', air_date: null, still_path: null });
     expect(result.releases).toEqual([]);
   });

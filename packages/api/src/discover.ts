@@ -15,6 +15,9 @@ export const discoveryInput = discoveryOptionsInput
   .extend({
     page: z.number().int().min(1).max(500).default(1),
     genreIds: selectionIds.default([]),
+    keywordIds: selectionIds.default([]),
+    companyIds: selectionIds.default([]),
+    networkIds: selectionIds.default([]),
     providerIds: z.array(watchProviderIdSchema).default([]),
     originCountries: z
       .array(
@@ -36,7 +39,18 @@ export const discoveryInput = discoveryOptionsInput
     { message: 'Unsupported sort for this media type', path: ['sortBy'] },
   );
 
-const choice = z.object({ id: z.number().int().positive(), name: z.string() });
+export const discoveryChoice = z.object({
+  id: z.number().int().positive(),
+  name: z.string().min(1),
+});
+const choice = discoveryChoice;
+export const discoveryFacetInput = z.object({
+  kind: z.enum(['company', 'network', 'keyword']),
+  query: z.string().trim().max(100).default(''),
+  ids: selectionIds.default([]),
+});
+export type DiscoveryFacetInput = z.infer<typeof discoveryFacetInput>;
+export type DiscoveryChoice = z.infer<typeof discoveryChoice>;
 export const discoveryOptionsSchema = z.object({
   genres: z.array(choice),
   providers: z.array(choice.extend({ logoUrl: z.string().url().nullable() })),

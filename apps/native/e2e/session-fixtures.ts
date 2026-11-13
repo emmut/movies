@@ -13,7 +13,7 @@ export const sessionUser = {
 };
 export function sessionResponse() {
   return {
-    user: sessionUser,
+    user: { ...sessionUser },
     session: {
       id: 'session-1',
       token: 'test-token',

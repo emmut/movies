@@ -1,19 +1,61 @@
 import type { DiscoveryInput, DiscoveryOptions } from '@movies/api/discover';
 import { ChoiceSheet } from '@native/components/choice-sheet';
+import { DiscoverFacetSheet } from '@native/components/discover-facet-sheet';
 import { DiscoverFilterMenu } from '@native/components/discover-filter-menu';
-import { filterSpec, activeDiscoverFilterCount, type Filter } from '@native/lib/discover-filters';
+import {
+  filterSpec,
+  activeDiscoverFilterCount,
+  facetFilters,
+  isFacetFilter,
+  type Filter,
+} from '@native/lib/discover-filters';
 import { toggleSelection } from '@native/lib/discover-state';
 import { useState } from 'react';
 import { View } from 'react-native';
 
 const filters: Filter[] = [
   'genreId',
+  'keywordId',
+  'companyId',
+  'networkId',
   'sort_by',
   'runtime',
   'with_origin_country',
   'with_watch_providers',
   'watch_region',
 ];
+
+function DiscoverFilterSheet({
+  open,
+  input,
+  data,
+  onSelect,
+  onClose,
+}: {
+  open: Filter | null;
+  input: DiscoveryInput;
+  data: DiscoveryOptions;
+  onSelect: (value: string) => void;
+  onClose: () => void;
+}) {
+  if (!open) {
+    return null;
+  }
+  const spec = filterSpec(open, input, data);
+  if (isFacetFilter(open)) {
+    return (
+      <DiscoverFacetSheet
+        key={open}
+        kind={facetFilters[open].kind}
+        title={spec.title}
+        selected={spec.selected.map(Number)}
+        onSelect={onSelect}
+        onClose={onClose}
+      />
+    );
+  }
+  return <ChoiceSheet {...spec} onSelect={onSelect} onClose={onClose} />;
+}
 
 export function DiscoverFilters({
   input,
@@ -25,7 +67,6 @@ export function DiscoverFilters({
   change: (params: Record<string, string>) => void;
 }) {
   const [open, setOpen] = useState<Filter | null>(null);
-  const spec = open ? filterSpec(open, input, data) : null;
   function select(value: string) {
     if (!open) {
       return;
@@ -41,19 +82,24 @@ export function DiscoverFilters({
   }
   const count = activeDiscoverFilterCount(input);
   const label = count > 0 ? `Filters (${count})` : 'Filters';
-  const choices = filters.map((filter) => {
-    const item = filterSpec(filter, input, data);
-    const summary =
-      item.options
-        .filter((option) => item.selected.includes(option.value))
-        .map((option) => option.label)
-        .join(', ') || 'Any';
-    return { filter, title: item.title, summary };
-  });
+  const choices = filters
+    .filter((filter) => filter !== 'networkId' || input.type === 'tv')
+    .map((filter) => {
+      const item = filterSpec(filter, input, data);
+      const summary =
+        item.options
+          .filter((option) => item.selected.includes(option.value))
+          .map((option) => option.label)
+          .join(', ') || 'Any';
+      return { filter, title: item.title, summary };
+    });
 
   function clear() {
     change({
       genreId: '',
+      keywordId: '',
+      companyId: '',
+      networkId: '',
       sort_by: '',
       runtime: '',
       with_origin_country: '',
@@ -66,7 +112,13 @@ export function DiscoverFilters({
   return (
     <View>
       <DiscoverFilterMenu label={label} choices={choices} onSelect={setOpen} onClear={clear} />
-      {spec ? <ChoiceSheet {...spec} onSelect={select} onClose={() => setOpen(null)} /> : null}
+      <DiscoverFilterSheet
+        open={open}
+        input={input}
+        data={data}
+        onSelect={select}
+        onClose={() => setOpen(null)}
+      />
     </View>
   );
 }

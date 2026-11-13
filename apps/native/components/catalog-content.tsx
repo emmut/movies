@@ -23,7 +23,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-function Genres({ item }: { item: CatalogDetail }) {
+function Genres({ item, region }: { item: CatalogDetail; region: string }) {
   const navigationPress = useScrollNavigation();
   if (item.genres.length === 0) {
     return null;
@@ -39,7 +39,7 @@ function Genres({ item }: { item: CatalogDetail }) {
             key={genre.id}
             href={{
               pathname: '/discover',
-              params: { genreId: String(genre.id), mediaType: item.type },
+              params: { genreId: String(genre.id), mediaType: item.type, watch_region: region },
             }}
             asChild
           >
@@ -105,7 +105,7 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
           <SystemListActions input={{ resourceId: item.id, resourceType: item.type }} />
           <CustomListActions input={{ resourceId: item.id, resourceType: item.type }} />
           <CatalogTrailer input={{ id: item.id, type: item.type }} title={item.title} />
-          <Genres item={item} />
+          <Genres item={item} region={region} />
           <CatalogOriginCountries item={item} region={region} />
           <View className="gap-3">
             <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">

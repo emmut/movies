@@ -1,43 +1,18 @@
-import { getAdjacentMediaIndex, getSwipeMediaDirection } from '@movies/api/media-navigation';
+import { getAdjacentMediaIndex, type MediaDirection } from '@movies/api/media-navigation';
 import type { PdpExtras } from '@movies/api/pdp';
+import { GalleryImages, type GalleryMedia as Media } from '@native/components/gallery-images';
+import { GalleryKeyboard } from '@native/components/gallery-keyboard';
 import { ChevronRightIcon, ChevronLeftIcon, PlayIcon } from '@native/components/icons';
+import { PdpImage } from '@native/components/pdp-image';
 import { TrailerPlayer } from '@native/components/trailer-player';
-import { Image as NativeImage } from 'expo-image';
-import { useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { useGalleryMotion } from '@native/lib/use-gallery-motion';
+import { useState } from 'react';
+import { Animated, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
-const Image = withUniwind(NativeImage);
-export function PdpImage({
-  path,
-  title,
-  full = false,
-}: {
-  path: string | null;
-  title: string;
-  full?: boolean;
-}) {
-  const [failed, setFailed] = useState(false);
-  if (!path || failed) {
-    return (
-      <View className="bg-default flex-1 items-center justify-center p-4">
-        <Text className="text-center text-muted">No image available</Text>
-      </View>
-    );
-  }
-  return (
-    <Image
-      source={'https://image.tmdb.org/t/p/' + (full ? 'original' : 'w500') + path}
-      accessibilityLabel={title}
-      contentFit={full ? 'contain' : 'cover'}
-      className="size-full"
-      onError={() => setFailed(true)}
-    />
-  );
-}
-type Media = { id: string; title: string; image?: string; video?: string };
+const AnimatedView = withUniwind(Animated.View);
 function Viewer({
   items,
   index,
@@ -51,79 +26,94 @@ function Viewer({
   close: () => void;
   title: string;
 }) {
-  const touch = useRef<number | null>(null);
   const item = items[index];
-  function move(direction: 'previous' | 'next') {
-    setIndex(getAdjacentMediaIndex(index, items.length, direction));
+  const motion = useGalleryMotion(index, items.length, setIndex, close);
+  function move(direction: MediaDirection) {
+    if (item.video) {
+      motion.jump(getAdjacentMediaIndex(index, items.length, direction));
+    } else {
+      motion.move(direction);
+    }
   }
   return (
-    <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={close}>
-      <SafeAreaView className="flex-1 gap-4 bg-background p-4">
-        <View className="flex-row items-center justify-between gap-3">
-          <Text accessibilityRole="header" className="flex-1 text-xl font-semibold text-foreground">
-            {title}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Close media viewer"
-            onPress={close}
-            className="bg-default min-h-11 justify-center rounded-lg px-4"
-          >
-            <Text className="text-foreground">Done</Text>
-          </Pressable>
-        </View>
-        <View
-          className="flex-1 items-center justify-center overflow-hidden bg-black"
-          onTouchStart={(event) => {
-            touch.current = event.nativeEvent.pageX;
-          }}
-          onTouchEnd={(event) => {
-            const start = touch.current;
-            touch.current = null;
-            if (start !== null) {
-              const direction = getSwipeMediaDirection(start, event.nativeEvent.pageX);
-              if (direction) {
-                move(direction);
-              }
-            }
-          }}
-          onTouchCancel={() => {
-            touch.current = null;
-          }}
-        >
-          {item.video ? (
-            <View className="aspect-video w-full">
-              <TrailerPlayer key={item.id} videoKey={item.video} title={item.title} />
+    <Modal
+      visible
+      transparent
+      animationType="none"
+      presentationStyle="overFullScreen"
+      onRequestClose={close}
+    >
+      {/* Continuous gesture transforms/opacity require Animated's style API. */}
+      <AnimatedView
+        testID="gallery-backdrop"
+        className="absolute inset-0 bg-black"
+        style={{ opacity: motion.opacity }}
+      />
+      <AnimatedView
+        testID="gallery-surface"
+        className="flex-1"
+        style={{ transform: [{ translateY: motion.y }] }}
+      >
+        <GalleryKeyboard move={move} jump={motion.jump} count={items.length} close={close}>
+          <SafeAreaView className="flex-1 bg-black">
+            <View className="flex-1 gap-4 p-4">
+              <View className="flex-row items-center justify-between gap-3">
+                <Text
+                  accessibilityRole="header"
+                  className="flex-1 text-xl font-semibold text-white"
+                >
+                  {title}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Close media viewer"
+                  onPress={close}
+                  className="min-h-11 justify-center rounded-lg bg-white/10 px-4"
+                >
+                  <Text className="text-white">Done</Text>
+                </Pressable>
+              </View>
+              {item.video ? (
+                <View className="flex-1 items-center justify-center overflow-hidden bg-black">
+                  <View className="aspect-video w-full">
+                    <TrailerPlayer key={item.id} videoKey={item.video} title={item.title} />
+                  </View>
+                </View>
+              ) : (
+                <GalleryImages items={items} index={index} motion={motion} />
+              )}
+              <Text className="text-center font-medium text-white">{item.title}</Text>
+              <View className="flex-row items-center justify-center gap-5">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Previous media"
+                  disabled={items.length < 2}
+                  accessibilityState={{ disabled: items.length < 2 }}
+                  onPress={() => move('previous')}
+                  className="min-h-11 justify-center rounded-lg bg-white/10 px-4"
+                >
+                  <ChevronLeftIcon className="size-5 text-white" />
+                  <Text className="text-white">Previous</Text>
+                </Pressable>
+                <Text accessibilityLiveRegion="polite" className="text-white/70">
+                  {index + 1} / {items.length}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Next media"
+                  disabled={items.length < 2}
+                  accessibilityState={{ disabled: items.length < 2 }}
+                  onPress={() => move('next')}
+                  className="min-h-11 justify-center rounded-lg bg-white/10 px-4"
+                >
+                  <ChevronRightIcon className="size-5 text-white" />
+                  <Text className="text-white">Next</Text>
+                </Pressable>
+              </View>
             </View>
-          ) : (
-            <PdpImage key={item.id} path={item.image ?? null} title={item.title} full />
-          )}
-        </View>
-        <Text className="text-center font-medium text-foreground">{item.title}</Text>
-        <View className="flex-row items-center justify-center gap-5">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Previous media"
-            onPress={() => move('previous')}
-            className="bg-default min-h-11 justify-center rounded-lg px-4"
-          >
-            <ChevronLeftIcon className="size-5 text-foreground" />
-            <Text className="text-foreground">Previous</Text>
-          </Pressable>
-          <Text accessibilityLiveRegion="polite" className="text-muted">
-            {index + 1} / {items.length}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Next media"
-            onPress={() => move('next')}
-            className="bg-default min-h-11 justify-center rounded-lg px-4"
-          >
-            <ChevronRightIcon className="size-5 text-foreground" />
-            <Text className="text-foreground">Next</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+          </SafeAreaView>
+        </GalleryKeyboard>
+      </AnimatedView>
     </Modal>
   );
 }

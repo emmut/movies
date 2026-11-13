@@ -1,7 +1,9 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
 import type { CollectionPage, PdpExtras } from '@movies/api/pdp';
+import { CatalogOrganizationSections } from '@native/components/catalog-organizations';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
-import { PdpMedia, PdpImage } from '@native/components/pdp-media';
+import { PdpImage } from '@native/components/pdp-image';
+import { PdpMedia } from '@native/components/pdp-media';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
 import { orpc } from '@native/lib/api';
 import { catalogPath } from '@native/lib/catalog-navigation';
@@ -122,19 +124,6 @@ function Seasons({ data, input }: { data: PdpExtras; input: CatalogDetailInput }
     </View>
   );
 }
-function Companies({ items }: { items: PdpExtras['companies'] }) {
-  if (!items.length) {
-    return null;
-  }
-  return (
-    <View className="gap-2">
-      <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
-        Production Companies
-      </Text>
-      <Text className="text-base text-muted">{items.map((item) => item.name).join(', ')}</Text>
-    </View>
-  );
-}
 function Keywords({ items, input }: { items: PdpExtras['keywords']; input: CatalogDetailInput }) {
   const pathname = usePathname();
   const navigation = useScrollNavigation();
@@ -225,7 +214,7 @@ export function PdpSections({
       />
       {data ? (
         <>
-          <Companies items={data.companies} />
+          <CatalogOrganizationSections data={data} input={input} />
           <Keywords items={data.keywords} input={input} />
           <PdpMedia data={data} title={title} />
         </>

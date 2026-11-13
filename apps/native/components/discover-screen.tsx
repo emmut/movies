@@ -1,6 +1,7 @@
 import type { DiscoveryInput } from '@movies/api/discover';
 import type { MediaCard } from '@movies/api/home';
 import { BottomNavigation } from '@native/components/bottom-navigation';
+import { DiscoverFacetChips } from '@native/components/discover-facet-chips';
 import { DiscoverFilters } from '@native/components/discover-filters';
 import {
   DiscoverSkeleton,
@@ -143,7 +144,9 @@ function DiscoverContent({ userProviders }: { userProviders: number[] }) {
                 { value: 'movie', label: 'Movies' },
                 { value: 'tv', label: 'TV Shows' },
               ]}
-              onChange={(type) => change({ mediaType: type, genreId: '', sort_by: '', page: '1' })}
+              onChange={(type) =>
+                change({ mediaType: type, genreId: '', networkId: '', sort_by: '', page: '1' })
+              }
             />
           </View>
           {options.data ? (
@@ -154,6 +157,7 @@ function DiscoverContent({ userProviders }: { userProviders: number[] }) {
             </View>
           )}
         </View>
+        <DiscoverFacetChips input={input} change={change} />
         {options.isError ? (
           <Pressable
             accessibilityRole="button"

@@ -18,6 +18,7 @@ import {
   TicketCheck,
   Tv,
   Users,
+  X,
   type LucideIcon,
 } from 'lucide-react-native';
 import { withUniwind } from 'uniwind';
@@ -53,5 +54,6 @@ export const StarIcon = styledIcon(Star);
 export const TicketCheckIcon = styledIcon(TicketCheck);
 export const TvIcon = styledIcon(Tv);
 export const UsersIcon = styledIcon(Users);
+export const XIcon = styledIcon(X);
 
 export const SearchIcon = styledIcon(Search);

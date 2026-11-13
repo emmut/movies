@@ -22,6 +22,10 @@ import {
 } from './catalog-support';
 import { customListContracts, type CustomListService } from './custom-lists';
 import {
+  discoveryFacetInput,
+  discoveryChoice,
+  type DiscoveryFacetInput,
+  type DiscoveryChoice,
   discoveryInput,
   discoveryOptionsInput,
   discoveryPageSchema,
@@ -98,6 +102,7 @@ export type CatalogService = PdpService & {
   related(input: CatalogRelatedInput): Promise<MediaCard[]>;
 };
 export type DiscoveryService = {
+  facets(input: DiscoveryFacetInput): Promise<DiscoveryChoice[]>;
   list(input: DiscoveryInput): Promise<DiscoveryPage>;
   options(input: DiscoveryOptionsInput): Promise<DiscoveryOptions>;
 };
@@ -304,6 +309,10 @@ export const appRouter = {
       .handler(({ input, context }) => context.search.list(input)),
   },
   discovery: {
+    facets: procedure
+      .input(discoveryFacetInput)
+      .output(z.array(discoveryChoice))
+      .handler(({ input, context }) => context.discovery.facets(input)),
     list: procedure
       .input(discoveryInput)
       .output(discoveryPageSchema)

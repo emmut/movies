@@ -58,3 +58,20 @@ The server's per-app Varlock schema declares `AUTH_IP_SOURCE` and sensitive `AUT
 Focused verification: 39 tests passed with 100% statements/branches/functions/lines across proxy signing/verification, ingress selection, gateway forwarding, discovery session policy, the session marker and the web auth route. This coverage claim excludes native component rendering, which is verified separately by browser workflows. Root unit tests: 944 passed, 14 skipped. Lint and all typechecks passed with the existing four web warnings; Fallow passed.
 
 The final rebuilt native browser suite passed all 84 tests, including all four new UI cases (the public-only/genuine-error distinction has two cases). The source remains under the full roadmap goal, now also explicitly including React Native Lucide icons and mobile-web design/UX parity, especially live search autocomplete and Discover filters. No phase or release is marked complete by these review fixes.
+
+## Genre-country follow-up — 2026-11-13
+
+[Genre links lose the country](https://github.com/emmut/movies/pull/350#discussion_r4515423049): `Genres` receives the resolved detail region and includes it as `watch_region` in native Discover links. The regression in `apps/native/e2e/catalog-region.spec.ts` failed against the old export (`US` expected, region absent) and passes with the fix. Production-company/network detail links preserve that same region contract. The remote review thread remains available for reviewer verification.
+
+## Review inventory recheck — 2026-11-13
+
+Read all 23 inline findings, including resolved/outdated threads, and the full 36-entry discussion timeline. The only open finding was the genre-country link above; the discussion summary repeats it and establishes no additional actionable issue. Earlier fixes were checked against current code and their unit/browser regressions rather than inferred from GitHub's resolved state.
+
+The previous 20 findings remain represented in the inventory above. Two additional earlier findings were also rechecked after integrating main:
+
+| Comment | Current evidence |
+| --- | --- |
+| [Failed tests leave accounts](https://github.com/emmut/movies/pull/350#discussion_r4241913639) | `signInAnonymously` captures the validated anonymous user ID from the response and invokes `onCreated` before awaiting navigation. Both system-list workflow cleanup boundaries enclose sign-in and retain the ID for their `finally` blocks. This was checked in source; the opt-in database/browser integration workflows were not newly enabled in this run. |
+| [Moves save the wrong order](https://github.com/emmut/movies/pull/350#discussion_r4393750955) | Web derives the offset from `paginatedData.currentPage`, replaces a stale URL page, and requires a reconciled page with successful/current data before enabling reordering. The shared persistence/page-state unit regressions pass; no new live database acceptance is claimed. |
+
+The fixture follow-up also prevents account-security tests from mutating later session responses: each response clones the user. Its dedicated unit regression and the 17 account-security/Settings browser checks pass when run together in one worker, including the formerly intermittent expired-session route.

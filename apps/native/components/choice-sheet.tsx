@@ -36,6 +36,96 @@ function ChoiceRow({
   );
 }
 
+type ChoiceFeedbackProps = {
+  pending: boolean;
+  failed: boolean;
+  retry?: () => void;
+  emptyLabel: string;
+};
+
+function ChoiceFeedback({ pending, failed, retry, emptyLabel }: ChoiceFeedbackProps) {
+  if (pending) {
+    return (
+      <Text accessibilityRole="progressbar" className="px-5 py-3 text-muted">
+        Searching…
+      </Text>
+    );
+  }
+  if (failed) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        className="min-h-12 justify-center px-5"
+        onPress={retry}
+      >
+        <Text className="text-foreground">Couldn’t load options. Try again.</Text>
+      </Pressable>
+    );
+  }
+  return <Text className="p-5 text-muted">{emptyLabel}</Text>;
+}
+
+function ChoiceOptions({
+  options,
+  selected,
+  multiple,
+  maxSelections = Infinity,
+  onSelect,
+  feedback,
+}: {
+  options: Choice[];
+  selected: string[];
+  multiple: boolean;
+  maxSelections?: number;
+  onSelect: (value: string) => void;
+  feedback: ChoiceFeedbackProps;
+}) {
+  const limitReached = multiple && selected.length >= maxSelections;
+  return (
+    <>
+      {limitReached ? (
+        <Text accessibilityRole="alert" className="mx-4 mb-3 text-muted">
+          You can select up to {maxSelections} options. Remove one to select another.
+        </Text>
+      ) : null}
+      <FlatList
+        data={options}
+        keyExtractor={(option) => option.value}
+        keyboardShouldPersistTaps="handled"
+        renderItem={({ item }) => {
+          const checked = selected.includes(item.value);
+          return (
+            <ChoiceRow
+              item={item}
+              checked={checked}
+              disabled={limitReached && !checked}
+              multiple={multiple}
+              onSelect={onSelect}
+            />
+          );
+        }}
+        ListHeaderComponent={<SearchFeedback {...feedback} hasOptions={options.length > 0} />}
+        ListEmptyComponent={<ChoiceFeedback {...feedback} />}
+      />
+    </>
+  );
+}
+
+function SearchFeedback({
+  pending,
+  failed,
+  retry,
+  hasOptions,
+}: ChoiceFeedbackProps & { hasOptions: boolean }) {
+  if (!hasOptions) {
+    return null;
+  }
+  if (pending || failed) {
+    return <ChoiceFeedback pending={pending} failed={failed} retry={retry} emptyLabel="" />;
+  }
+  return null;
+}
+
 export function ChoiceSheet({
   title,
   options,
@@ -44,6 +134,11 @@ export function ChoiceSheet({
   maxSelections,
   onSelect,
   onClose,
+  onSearch,
+  pending = false,
+  failed = false,
+  retry,
+  emptyLabel = 'No matching options.',
 }: {
   title: string;
   options: Choice[];
@@ -52,12 +147,19 @@ export function ChoiceSheet({
   maxSelections?: number;
   onSelect: (value: string) => void;
   onClose: () => void;
+  onSearch?: (query: string) => void;
+  pending?: boolean;
+  failed?: boolean;
+  retry?: () => void;
+  emptyLabel?: string;
 }) {
   const [search, setSearch] = useState('');
-  const limitReached = multiple && maxSelections !== undefined && selected.length >= maxSelections;
   const filtered = useMemo(
-    () => options.filter((option) => option.label.toLowerCase().includes(search.toLowerCase())),
-    [options, search],
+    () =>
+      onSearch
+        ? options
+        : options.filter((option) => option.label.toLowerCase().includes(search.toLowerCase())),
+    [options, search, onSearch],
   );
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -81,30 +183,19 @@ export function ChoiceSheet({
           placeholderTextColorClassName="accent-muted"
           className="mx-4 mb-3 min-h-12 rounded-xl border border-border px-4 text-foreground"
           value={search}
-          onChangeText={setSearch}
-        />
-        {limitReached ? (
-          <Text accessibilityRole="alert" className="mx-4 mb-3 text-muted">
-            You can select up to {maxSelections} options. Remove one to select another.
-          </Text>
-        ) : null}
-        <FlatList
-          data={filtered}
-          keyExtractor={(option) => option.value}
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => {
-            const checked = selected.includes(item.value);
-            return (
-              <ChoiceRow
-                item={item}
-                checked={checked}
-                disabled={limitReached && !checked}
-                multiple={multiple}
-                onSelect={onSelect}
-              />
-            );
+          maxLength={onSearch ? 100 : undefined}
+          onChangeText={(value) => {
+            setSearch(value);
+            onSearch?.(value);
           }}
-          ListEmptyComponent={<Text className="p-5 text-muted">No matching options.</Text>}
+        />
+        <ChoiceOptions
+          options={filtered}
+          selected={selected}
+          multiple={multiple}
+          maxSelections={maxSelections}
+          onSelect={onSelect}
+          feedback={{ pending, failed, retry, emptyLabel }}
         />
       </SafeAreaView>
     </Modal>

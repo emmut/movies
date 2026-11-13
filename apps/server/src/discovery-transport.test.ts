@@ -6,6 +6,7 @@ function setup() {
   const discovery = {
     list: vi.fn().mockResolvedValue({ items: [], totalPages: 0, totalResults: 0 }),
     options: vi.fn().mockResolvedValue({ genres: [], providers: [], countries: [] }),
+    facets: vi.fn().mockResolvedValue([{ id: 49, name: 'HBO' }]),
   };
   const app = createApp(mockServices({ discovery }));
   const client = createTestClient(app);
@@ -33,6 +34,9 @@ describe('discovery RPC transport', () => {
       region: 'SE',
       page: 1,
       genreIds: [],
+      keywordIds: [],
+      companyIds: [],
+      networkIds: [],
       providerIds: [],
       originCountries: [],
       sortBy: 'popularity.desc',
@@ -61,4 +65,19 @@ describe('discovery RPC transport', () => {
       code: 'INTERNAL_SERVER_ERROR',
     });
   });
+});
+
+it('validates named-filter searches and IDs before calling the host', async () => {
+  const { client, discovery } = setup();
+  expect(await client.discovery.facets({ kind: 'network', query: ' HBO ', ids: [49] })).toEqual([
+    { id: 49, name: 'HBO' },
+  ]);
+  expect(discovery.facets).toHaveBeenCalledWith({ kind: 'network', query: 'HBO', ids: [49] });
+  await expect(client.discovery.facets({ kind: 'network', ids: [-1] })).rejects.toMatchObject({
+    code: 'BAD_REQUEST',
+  });
+  await expect(
+    client.discovery.facets({ kind: 'company', query: 'x'.repeat(101) }),
+  ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+  expect(discovery.facets).toHaveBeenCalledTimes(1);
 });

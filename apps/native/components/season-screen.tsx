@@ -2,7 +2,7 @@ import { parseCatalogId } from '@movies/api/catalog';
 import type { SeasonPage } from '@movies/api/pdp';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
-import { PdpImage } from '@native/components/pdp-media';
+import { PdpImage } from '@native/components/pdp-image';
 import { orpc } from '@native/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';

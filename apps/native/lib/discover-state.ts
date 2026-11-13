@@ -1,6 +1,6 @@
 import { discoveryInput, type DiscoveryInput } from '@movies/api/discover';
 import { MOVIE_SORT_OPTIONS, TV_SORT_OPTIONS } from '@movies/api/discover-options';
-import { resolveWatchProviderIds } from '@movies/api/preferences';
+import { getDiscoverWatchProviders } from '@movies/api/discover-params';
 import { sanitizeOriginCountryCodes } from '@movies/config/countries';
 import {
   providerIdList,
@@ -10,11 +10,14 @@ import {
 } from '@native/lib/search-params';
 
 function ids(value: Params[string], maxSelections = 50) {
-  return (scalar(value) ?? '')
-    .split(/[|,]/)
-    .map(Number)
-    .filter((id) => Number.isSafeInteger(id) && id > 0)
-    .slice(0, maxSelections);
+  return [
+    ...new Set(
+      (scalar(value) ?? '')
+        .split(/[|,]/)
+        .map(Number)
+        .filter((id) => Number.isSafeInteger(id) && id > 0),
+    ),
+  ].slice(0, maxSelections);
 }
 function boundedInteger(value: Params[string], max: number) {
   const number = Number(scalar(value));
@@ -39,17 +42,27 @@ export function readDiscoverState(
   userProviders: number[] = [],
 ): DiscoveryInput {
   const type = scalar(params.mediaType) === 'tv' ? 'tv' : 'movie';
+  const keywordIds = ids(params.keywordId);
+  const companyIds = ids(params.companyId);
+  const networkIds = type === 'tv' ? ids(params.networkId) : [];
+  const providers = getDiscoverWatchProviders(
+    providerIdList(params.with_watch_providers),
+    userProviders,
+    keywordIds,
+    companyIds,
+    networkIds,
+  );
   return discoveryInput.parse({
+    keywordIds,
+    companyIds,
+    networkIds,
     type,
     region: regionOr(params.watch_region, region),
     sortBy: sortForType(type, params.sort_by),
     page: boundedInteger(params.page, 500) ?? 1,
     runtime: boundedInteger(params.runtime, 600),
     genreIds: ids(params.genreId),
-    providerIds: resolveWatchProviderIds(
-      providerIdList(params.with_watch_providers),
-      userProviders,
-    ),
+    providerIds: providers ? providers.split('|').map(Number) : [],
     originCountries: countryCodes(params.with_origin_country),
   });
 }

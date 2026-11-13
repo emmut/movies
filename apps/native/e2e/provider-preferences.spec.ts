@@ -257,6 +257,7 @@ test('Discover waits for saved defaults, lets explicit URL providers win and res
   expect(inputs.every((input) => input.region === 'NO')).toBe(true);
   await page.goto('/discover?with_watch_providers=9&page=2');
   await expect.poll(() => inputs.at(-1)?.providerIds).toEqual([9]);
+  await page.getByRole('button', { name: /^Filters(?: \(\d+\))?$/ }).click();
   await page.getByRole('button', { name: 'Clear all filters', exact: true }).click();
   await expect.poll(() => inputs.at(-1)).toMatchObject({ providerIds: [8], page: 1 });
 });

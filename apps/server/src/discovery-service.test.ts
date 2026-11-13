@@ -113,3 +113,30 @@ describe('discovery service', () => {
     ).rejects.toThrow('offline');
   });
 });
+
+it('combines company, keyword and TV network filters with OR semantics and explicit providers', async () => {
+  const fetcher = vi.fn().mockResolvedValue({ results: [], total_pages: 0, total_results: 0 });
+  const service = createDiscoveryService(fetcher);
+  await service.list(
+    discoveryInput.parse({
+      type: 'tv',
+      companyIds: [2, 3],
+      networkIds: [49, 213],
+      keywordIds: [9],
+    }),
+  );
+  expect(fetcher.mock.calls[0][1].searchParams).toMatchObject({
+    with_companies: '2|3',
+    with_networks: '49|213',
+    with_keywords: '9',
+  });
+  expect(fetcher.mock.calls[0][1].searchParams).not.toHaveProperty('with_watch_providers');
+  await service.list(
+    discoveryInput.parse({ type: 'movie', networkIds: [49], companyIds: [2], providerIds: [8] }),
+  );
+  expect(fetcher.mock.calls[1][1].searchParams).not.toHaveProperty('with_networks');
+  expect(fetcher.mock.calls[1][1].searchParams).toMatchObject({
+    with_companies: '2',
+    with_watch_providers: '8',
+  });
+});

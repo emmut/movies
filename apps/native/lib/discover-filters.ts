@@ -6,6 +6,9 @@ import { providerChoices } from '@native/lib/provider-choices';
 type Choice = { value: string; label: string };
 
 export type Filter =
+  | 'keywordId'
+  | 'companyId'
+  | 'networkId'
   | 'genreId'
   | 'sort_by'
   | 'runtime'
@@ -19,6 +22,15 @@ export type FilterSpec = {
   multiple: boolean;
   maxSelections?: number;
 };
+
+export const facetFilters = {
+  keywordId: { kind: 'keyword', title: 'Keywords', field: 'keywordIds' },
+  companyId: { kind: 'company', title: 'Production Companies', field: 'companyIds' },
+  networkId: { kind: 'network', title: 'Networks', field: 'networkIds' },
+} as const;
+export function isFacetFilter(filter: Filter): filter is keyof typeof facetFilters {
+  return filter in facetFilters;
+}
 
 const builders = {
   genreId(input: DiscoveryInput, data: DiscoveryOptions): FilterSpec {
@@ -81,6 +93,17 @@ export function filterSpec(
   input: DiscoveryInput,
   data: DiscoveryOptions,
 ): FilterSpec {
+  if (isFacetFilter(filter)) {
+    const facet = facetFilters[filter];
+    const selected = input[facet.field].map(String);
+    return {
+      title: facet.title,
+      options: selected.map((value) => ({ value, label: `${facet.kind} ${value}` })),
+      selected,
+      multiple: true,
+      maxSelections: 50,
+    };
+  }
   return builders[filter](input, data);
 }
 
@@ -88,6 +111,9 @@ export function filterSpec(
 export function activeDiscoverFilterCount(input: DiscoveryInput) {
   return (
     input.genreIds.length +
+    input.keywordIds.length +
+    input.companyIds.length +
+    input.networkIds.length +
     Number(input.sortBy !== 'popularity.desc') +
     Number(Boolean(input.runtime)) +
     Number(input.originCountries.length > 0) +

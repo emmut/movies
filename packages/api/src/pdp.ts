@@ -37,6 +37,7 @@ export const episodeSchema = z.object({
 });
 export const pdpExtrasSchema = z.object({
   companies: z.array(productionCompanySchema),
+  networks: z.array(productionCompanySchema).default([]),
   collection: z.object({ id: pdpId, name: z.string() }).nullable(),
   images: z.array(z.object({ file_path: z.string() })),
   videos: z.array(

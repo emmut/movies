@@ -40,11 +40,13 @@
     "./pdp-extra-content": "./src/pdp-extra-content.ts",
     "./media-navigation": "./src/media-navigation.ts",
     "./cast-members": "./src/cast-members.ts",
-    "./pdp": "./src/pdp.ts"
+    "./pdp": "./src/pdp.ts",
+    "./network-catalog": "./src/network-catalog.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",
     "@orpc/server": "catalog:",
+    "server-only": "catalog:",
     "zod": "catalog:"
   }
 }

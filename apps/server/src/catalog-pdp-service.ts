@@ -21,6 +21,7 @@ const id = z.number().int().positive();
 const extrasSchema = z.object({
   id,
   production_companies: z.array(productionCompanySchema).default([]),
+  networks: z.array(productionCompanySchema).default([]),
   belongs_to_collection: z.object({ id, name: z.string() }).nullish(),
   images: z
     .object({
@@ -93,6 +94,7 @@ export function createCatalogPdpService(fetchTmdb: TmdbFetch): PdpService {
       }
       return {
         companies: item.production_companies,
+        networks: type === 'tv' ? item.networks : [],
         collection: item.belongs_to_collection ?? null,
         images: getGalleryImages(item.images),
         videos: getPlayableVideos(item.videos),

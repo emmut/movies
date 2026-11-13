@@ -43,6 +43,9 @@ describe('native discovery URL state', () => {
       page: 2,
       type: 'tv',
       genreIds: [12, 28],
+      keywordIds: [],
+      companyIds: [],
+      networkIds: [],
       providerIds: [8, 9],
       originCountries: ['SE', 'US'],
       runtime: 90,
@@ -62,6 +65,22 @@ describe('native discovery URL state', () => {
     expect(toggleSelection(['8'], '9')).toEqual(['8', '9']);
     expect(toggleSelection(['8', '9'], '8')).toEqual(['9']);
   });
+});
+
+it('preserves and deduplicates named filters, ignores networks on movies, and bypasses saved providers', () => {
+  expect(
+    readDiscoverState({ companyId: '2|2|-1|abc', keywordId: '9,10', networkId: '49' }, 'US', [8]),
+  ).toMatchObject({ companyIds: [2], keywordIds: [9, 10], networkIds: [], providerIds: [] });
+  expect(
+    readDiscoverState(
+      { mediaType: 'tv', networkId: '49,213', with_watch_providers: '9' },
+      'SE',
+      [8],
+    ),
+  ).toMatchObject({ networkIds: [49, 213], providerIds: [9] });
+  expect(readDiscoverState({ mediaType: 'tv', networkId: '49' }, 'SE', [8]).providerIds).toEqual(
+    [],
+  );
 });
 
 it('keeps removals available at the selection limit and refuses extra additions', () => {
