@@ -49,6 +49,7 @@ export function ImageViewport({
   onRequest,
   onClose,
   dialogRef,
+  overlayRef,
 }: {
   items: MediaSlide[];
   index: number;
@@ -57,11 +58,11 @@ export function ImageViewport({
   onRequest: (direction: MediaDirection) => void;
   onClose: () => void;
   dialogRef: RefObject<HTMLDivElement | null>;
+  overlayRef: RefObject<HTMLDivElement | null>;
 }) {
   const track = useRef<HTMLDivElement>(null);
   const frame = useRef<number | null>(null);
-  const drag = useRef(0);
-  const dragY = useRef(0);
+  const drag = useRef({ x: 0, y: 0 });
   const [closing, setClosing] = useState(false);
   const [settling, setSettling] = useState(false);
   const pointer = useRef<{
@@ -74,26 +75,36 @@ export function ImageViewport({
     width: number;
   } | null>(null);
 
+  function writeBackdrop(y: number) {
+    const opacity = Math.max(0, 1 - y / window.innerHeight);
+    overlayRef.current?.style.setProperty('--media-backdrop-opacity', String(opacity));
+  }
+
   function writeDrag(value: number, y = 0, animateDismiss = false) {
     if (frame.current !== null) {
       cancelAnimationFrame(frame.current);
       frame.current = null;
     }
-    drag.current = value;
-    dragY.current = y;
+    drag.current.x = value;
+    drag.current.y = y;
     track.current?.style.setProperty('--media-drag', `${value}px`);
     dialogRef.current?.style.setProperty('--media-dismiss-y', `${y}px`);
     let transition = 'none';
+    let backdropTransition = 'none';
     if (animateDismiss) {
       transition = 'transform 280ms cubic-bezier(0.22, 1, 0.36, 1)';
+      backdropTransition = 'opacity 280ms cubic-bezier(0.55, 0, 1, 0.45)';
     }
     dialogRef.current?.style.setProperty('--media-dismiss-transition', transition);
+    overlayRef.current?.style.setProperty('--media-backdrop-transition', backdropTransition);
+    writeBackdrop(y);
   }
 
   function flushDrag() {
     frame.current = null;
-    track.current?.style.setProperty('--media-drag', `${drag.current}px`);
-    dialogRef.current?.style.setProperty('--media-dismiss-y', `${dragY.current}px`);
+    track.current?.style.setProperty('--media-drag', `${drag.current.x}px`);
+    dialogRef.current?.style.setProperty('--media-dismiss-y', `${drag.current.y}px`);
+    writeBackdrop(drag.current.y);
   }
 
   useEffect(
@@ -234,11 +245,11 @@ export function ImageViewport({
           return;
         }
         const limit = Math.max(start.width * 0.85, Math.abs(start.offset));
-        drag.current = start.offset;
+        drag.current.x = start.offset;
         if (start.axis === 'x' && items.length > 1) {
-          drag.current = Math.max(-limit, Math.min(limit, start.offset + x));
+          drag.current.x = Math.max(-limit, Math.min(limit, start.offset + x));
         }
-        dragY.current = start.axis === 'y' ? Math.max(0, start.offsetY + y) : start.offsetY;
+        drag.current.y = start.axis === 'y' ? Math.max(0, start.offsetY + y) : start.offsetY;
         if (frame.current === null) {
           frame.current = requestAnimationFrame(flushDrag);
         }

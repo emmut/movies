@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@movies/ui/components/dialog';
+import { cn } from 'cn';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import {
   createContext,
@@ -34,6 +35,12 @@ const IMAGE_DIALOG_STYLE = {
   transform: 'translate3d(0, var(--media-dismiss-y, 0px), 0)',
   transition: 'var(--media-dismiss-transition, none)',
   willChange: 'transform',
+};
+
+const IMAGE_OVERLAY_STYLE = {
+  opacity: 'var(--media-backdrop-opacity, 1)',
+  transition: 'var(--media-backdrop-transition, none)',
+  willChange: 'opacity',
 };
 
 const MediaViewerContext = createContext<((index: number) => void) | null>(null);
@@ -163,10 +170,17 @@ export function MediaViewer({
   children: ReactNode;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [swipeDismissed, setSwipeDismissed] = useState(false);
   const [moving, setMoving] = useState<MediaDirection | null>(null);
   const selected = selectedIndex === null ? null : items[selectedIndex];
+
+  const imageOverlayProps = {
+    ref: overlayRef,
+    className: cn('motion-reduce:transition-none!', swipeDismissed && 'animate-none!'),
+    style: IMAGE_OVERLAY_STYLE,
+  };
 
   function selectSlide(index: number) {
     setSwipeDismissed(false);
@@ -229,6 +243,7 @@ export function MediaViewer({
           ref={dialogRef}
           data-swipe-dismissed={swipeDismissed || undefined}
           style={images ? IMAGE_DIALOG_STYLE : undefined}
+          overlayProps={images ? imageOverlayProps : undefined}
           showCloseButton={false}
           className="inset-0 top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 rounded-none bg-black p-0 text-white ring-0 data-[swipe-dismissed]:animate-none! motion-reduce:transition-none! sm:max-w-none"
           onKeyDown={handleKeyDown}
@@ -257,6 +272,7 @@ export function MediaViewer({
               {images ? (
                 <ImageViewport
                   dialogRef={dialogRef}
+                  overlayRef={overlayRef}
                   items={items}
                   index={selectedIndex}
                   moving={moving}

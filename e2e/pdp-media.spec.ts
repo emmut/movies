@@ -225,6 +225,7 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
         await Promise.all(element.getAnimations().map((animation) => animation.finished));
       });
       const surface = dialog;
+      const overlay = page.locator('[data-slot="dialog-overlay"]');
       const client = await page.context().newCDPSession(page);
       async function touch(type: 'touchStart' | 'touchMove' | 'touchEnd' | 'touchCancel', y?: number) {
         await client.send('Input.dispatchTouchEvent', {
@@ -239,11 +240,13 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await touch('touchStart', 300);
       await touch('touchMove', 340);
       await expect.poll(() => surface.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(40, 0);
+      await expect.poll(() => overlay.evaluate((element) => Number(getComputedStyle(element).opacity))).toBeCloseTo(1 - 40 / viewport.height, 2);
       expect((await header.boundingBox())!.y).toBeCloseTo(headerTop + 40, 0);
       expect((await controls.boundingBox())!.y).toBeCloseTo(controlsTop + 40, 0);
       await touch('touchEnd');
       await expect.poll(() => surface.evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42)).toBeCloseTo(0, 0);
       await expect(dialog).toBeVisible();
+      await expect.poll(() => overlay.evaluate((element) => Number(getComputedStyle(element).opacity))).toBeCloseTo(1, 2);
       await touch('touchStart', 300);
       await touch('touchMove', 450);
       await touch('touchCancel');
@@ -254,22 +257,26 @@ for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 
       await expect(dialog).toBeVisible();
       // Observe the closed panel too: its default exit keyframes must not
       // override the offscreen swipe transform and flash it back into view.
-      const frames = dialog.evaluate((element) => new Promise<{ closed: boolean; top: number }[]>((resolve) => {
-        const samples: { closed: boolean; top: number }[] = [];
+      const frames = dialog.evaluate((element) => new Promise<{ closed: boolean; top: number; opacity: number }[]>((resolve) => {
+        const samples: { closed: boolean; top: number; opacity: number }[] = [];
         function sample() {
           if (!element.isConnected) {
             resolve(samples);
             return;
           }
-          samples.push({ closed: element.hasAttribute('data-closed'), top: element.getBoundingClientRect().top });
+          const backdrop = document.querySelector('[data-slot="dialog-overlay"]');
+          const opacity = backdrop ? Number(getComputedStyle(backdrop).opacity) : 0;
+          samples.push({ closed: element.hasAttribute('data-closed'), top: element.getBoundingClientRect().top, opacity });
           requestAnimationFrame(sample);
         }
         sample();
       }));
       await touch('touchEnd');
+      expect(await overlay.evaluate((element) => getComputedStyle(element).transitionTimingFunction)).toBe('cubic-bezier(0.55, 0, 1, 0.45)');
       const samples = await frames;
       expect(samples.some((sample) => sample.top >= viewport.height - 1)).toBe(true);
       expect(samples.filter((sample) => sample.closed && sample.top < viewport.height - 1)).toEqual([]);
+      expect(samples.filter((sample) => sample.closed && sample.opacity > 0.01)).toEqual([]);
       await expect(dialog).not.toBeVisible();
       await expect(trigger).toBeFocused();
       await trigger.click();
