@@ -146,3 +146,7 @@ SDK 57 native binaries cannot receive this SDK 58 upgrade as a JavaScript-only u
 ### Query hooks
 
 Read queries belong in `hooks/use-<domain>-query.ts`. Screens and components consume named hooks such as `useCatalogDetails(input)` and `useCustomListsDetails(userId, input)`. Hooks own oRPC query options, account-scoped keys, retry policy and pagination placeholders, and return the React Query result directly. Keep rendering, route state and form drafts in components. Input types derive from the shared API client contract. Existing region/session hooks in `lib/preferences.ts` retain their session-store behavior.
+
+### Babel configuration
+
+`babel.config.mjs` uses ESM imports and a default export. The pinned Node 24 runtime supports loading this synchronous ESM configuration from Metro. Keep it free of top-level await. Preserve the explicit parameter/destructuring transforms and verify web/iOS/Android exports when changing the config; Hermes requires those transforms for oRPC.
