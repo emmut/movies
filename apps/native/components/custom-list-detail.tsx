@@ -4,6 +4,7 @@ import {
   type CustomListEntry,
   type CustomListSummary,
 } from '@movies/api/custom-lists';
+import { hasErrorCode } from '@movies/api/errors';
 import {
   useCustomListsMoveItemMutation,
   useCustomListsRemoveMutation,
@@ -167,7 +168,7 @@ function DetailQuery({
   const input = { listId, ...readListPageState(params, region) };
   const query = useCustomListsDetails(userId, input);
   useCanonicalListPage(query, input.page);
-  if (query.error && 'code' in query.error && query.error.code === 'NOT_FOUND') {
+  if (hasErrorCode(query.error, 'NOT_FOUND')) {
     return <NotFound />;
   }
   if (!query.data || query.isError) {

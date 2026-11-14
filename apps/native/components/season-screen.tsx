@@ -1,4 +1,5 @@
 import { parseCatalogId } from '@movies/api/catalog';
+import { seasonNumberParam } from '@movies/api/pdp';
 import type { SeasonPage } from '@movies/api/pdp';
 import { useCatalogSeason } from '@movies/api/react/use-catalog-query';
 import { BottomNavigation } from '@native/components/bottom-navigation';
@@ -126,14 +127,12 @@ function SeasonQuery({ id, season }: { id: number; season: number }) {
 export function SeasonScreen() {
   const params = useLocalSearchParams<{ id?: string; type?: string; season?: string }>();
   const id = parseCatalogId(params.id);
-  const validSeason =
-    typeof params.season === 'string' &&
-    /^(0|[1-9]\d*)$/.test(params.season) &&
-    Number(params.season) <= 10000;
+  const season = seasonNumberParam.safeParse(params.season);
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']}>
-      {id && params.type === 'tv' && validSeason ? (
-        <SeasonQuery id={id} season={Number(params.season)} />
+      {id && params.type === 'tv' && season.success ? (
+        <SeasonQuery id={id} season={season.data} />
       ) : (
         <Text className="p-5 text-foreground">Season not found.</Text>
       )}

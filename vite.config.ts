@@ -16,6 +16,7 @@ export default defineConfig({
       '!/scripts/',
       '!/patches/',
       '!/vite.config.ts',
+      'apps/web/src/env.ts',
       'apps/native/src/env.ts',
       'apps/server/src/env.ts',
     ],
@@ -49,6 +50,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    setupFiles: ['./apps/web/src/test/setup-env.ts'],
     globals: true,
     include: [
       'apps/web/src/**/*.{test,spec}.{ts,tsx}',

@@ -1,5 +1,6 @@
 'use client';
 
+import { useDebouncedValue } from '@movies/api/react/use-debounced-value';
 import { useSearchSuggestions } from '@movies/api/react/use-search-query';
 import { Dialog, DialogContent, DialogTitle } from '@movies/ui/components/dialog';
 import { Input } from '@movies/ui/components/input';
@@ -15,7 +16,6 @@ import { flushSync } from 'react-dom';
 import Badge from '@/components/badge';
 import ClientImage from '@/components/client-image';
 import Spinner from '@/components/spinner';
-import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
 import { useShortcutLabel } from '@/hooks/use-shortcut-label';
 import { saveBackTarget } from '@/lib/back-target';

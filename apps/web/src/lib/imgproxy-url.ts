@@ -1,7 +1,7 @@
 import 'server-only';
 import { generateImageUrl, type IGenerateImageUrl } from '@imgproxy/imgproxy-node';
 
-import { env } from '@/env';
+import { ENV } from '@/env';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 
 type ImgproxyOptions = NonNullable<IGenerateImageUrl['options']>;
@@ -13,10 +13,10 @@ type BuildProxyImageUrlsOptions = {
   fill?: boolean;
 } & Omit<ImgproxyOptions, 'resize' | 'size' | 'resize_type' | 'dpr' | 'format'>;
 
-const imgproxyEndpoint = env.NEXT_PUBLIC_IMGPROXY_ENDPOINT;
-const imgproxyBaseUrl = env.NEXT_PUBLIC_IMGPROXY_BASE_URL;
-const imgproxyKey = env.IMGPROXY_KEY;
-const imgproxySalt = env.IMGPROXY_SALT;
+const imgproxyEndpoint = ENV.NEXT_PUBLIC_IMGPROXY_ENDPOINT;
+const imgproxyBaseUrl = ENV.NEXT_PUBLIC_IMGPROXY_BASE_URL;
+const imgproxyKey = ENV.IMGPROXY_KEY;
+const imgproxySalt = ENV.IMGPROXY_SALT;
 
 function getImgproxySourceUrl(src: string) {
   if (src.startsWith('http')) {

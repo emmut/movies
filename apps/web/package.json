@@ -8,7 +8,8 @@
     "test:watch": "vp run -w test:watch apps/web/src",
     "dev": "next dev",
     "build": "next build",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "env:generate": "varlock codegen"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
@@ -28,9 +29,9 @@
     "@orpc/client": "catalog:",
     "@orpc/server": "catalog:",
     "@primer/octicons-react": "catalog:",
-    "@t3-oss/env-nextjs": "catalog:",
     "@tailwindcss/postcss": "catalog:",
     "@tanstack/react-query": "catalog:",
+    "@varlock/nextjs-integration": "1.2.2",
     "babel-plugin-react-compiler": "catalog:",
     "better-auth": "catalog:",
     "class-variance-authority": "catalog:",
@@ -48,6 +49,7 @@
     "sonner": "catalog:",
     "tailwindcss": "catalog:",
     "tailwindcss-animate": "catalog:",
+    "varlock": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

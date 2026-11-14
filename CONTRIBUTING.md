@@ -6,13 +6,13 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 
 - **Vite+** for Node and pnpm management. Install the global CLI from [viteplus.dev](https://viteplus.dev/guide/global-cli), then open a new terminal so its shims take precedence over older runtime/package-manager shims.
 - A **PostgreSQL** database for local development.
-- A **TMDB API** access token and the other secrets defined in `apps/web/src/env.ts`.
+- A **TMDB API** access token and the other secrets defined in `apps/web/.env.schema`.
 - Node **24.11.1** is pinned in `.node-version`; pnpm **12.18.0** is pinned with integrity in `package.json`. Vite+ installs and selects both.
 
 ## Getting started
 
 1. Run `vp env install` and `vp install` to install the pinned runtime, package manager, and dependencies. Vite+ runs tasks and TypeScript scripts on Node; pnpm installs the dependency patches in `pnpm-workspace.yaml`.
-2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. The web app and root-level database/cron commands read this app-local file. `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
+2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. The web app and root-level database/cron commands read this app-local file. `apps/web/.env.schema` is the source of truth for web configuration. Varlock validates it when Next starts or builds; `pnpm env:generate` creates the ignored, app-scoped `ENV` modules. Unit tests mock configuration without loading deployment secrets.
 3. Apply the schema to your database: `pnpm db:push`.
 4. Start the dev server: `pnpm dev`.
 5. Optional: populate IMDb ratings with `pnpm ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.
@@ -61,11 +61,11 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - When moving a module into a shared package, update its consumers to import directly from the package. Remove the old import/re-export or forwarding shim rather than keeping a compatibility layer.
 - Write clean, maintainable code with small, cohesive modules and explicit control flow. Avoid nested ternaries and dense chained expressions; prefer descriptive helpers, intermediate values and ordinary blocks when they clarify the behavior.
 - Native styling uses Tailwind/Uniwind classes; use React Native style objects only when a library cannot accept classes.
-- Native and Hono apps use per-app Varlock `.env.schema` files and generated app-scoped `ENV` modules. Generate with `pnpm env:generate`; do not edit generated files or add env re-export wrappers. The existing web app and cron scripts use T3 Env.
+- Web, native and Hono apps use per-app Varlock `.env.schema` files and generated app-scoped `ENV` modules. Generate with `pnpm env:generate`; do not edit generated files or add env re-export wrappers. Next uses `@varlock/nextjs-integration` for loading, client substitution and secret protection. Standalone database/cron scripts retain their separate T3 Env schema in `scripts/env.ts`, reading the same web `.env` file.
 - Naming: kebab-case files, PascalCase exports.
 - Use app path aliases for internal imports: `@/` in web, `@native/` in Expo, and `@server/` in Hono. Keep each app tsconfig and the root test resolver aligned; avoid relative parent paths.
 - Server-only modules import `server-only`; keep secrets and DB access out of client components.
-- Mutations go through server actions: every action authenticates via `requireUser()` and validates input with the Zod schemas in `apps/web/src/lib/validations.ts`.
+- Product mutations go through shared API hooks and authenticated router procedures; ownership comes from the verified session and inputs use the shared Zod contracts.
 - Caching uses the `'use cache'` directive with tags in `apps/web/src/lib/cache-tags.ts`; invalidate via the helpers in `apps/web/src/lib/cache-invalidation.ts`.
 - User list pages use `'use cache: private'` after authentication, with the user ID, page, and provider filter in the cache key. Membership, counts, preferences, and list pages share mutation invalidation tags. Private caching reuses browser navigation results for 60 seconds; it does not retain results across production server requests. Authentication and ownership checks remain required.
 - Completed public search results (including fuzzy-index work and image URLs) share a short `'use cache: remote'` cache across signed-in and signed-out visitors. Raw TMDB searches retain their longer cache. This directive uses the default in-memory handler unless a remote handler is configured; it does not itself provision shared storage across instances.

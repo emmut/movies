@@ -14,7 +14,7 @@ import { BackScrollRestorer } from '@/components/back-scroll-restorer';
 import { Footer } from '@/components/footer';
 import { LoginToastHandler } from '@/components/login-toast-handler';
 import { SearchCommand, SearchCommandFallback } from '@/components/search-command';
-import { env } from '@/env';
+import { ENV } from '@/env';
 import { emoji, inter } from '@/fonts';
 import { IMAGE_CDN_URL } from '@/lib/constants';
 
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: ReactNode }) {
   // Every page's LCP image comes from one of these third-party origins; warm
   // up DNS+TLS before the first image request is discovered.
-  preconnect(new URL(env.NEXT_PUBLIC_IMGPROXY_ENDPOINT).origin);
+  preconnect(new URL(ENV.NEXT_PUBLIC_IMGPROXY_ENDPOINT).origin);
   preconnect(new URL(IMAGE_CDN_URL).origin);
 
   return (

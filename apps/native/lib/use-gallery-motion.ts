@@ -5,7 +5,7 @@ import {
   type GalleryAxis,
   type GalleryPoint,
 } from '@native/lib/gallery-gesture';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Platform, useWindowDimensions } from 'react-native';
 
 const nativeDriver = Platform.OS !== 'web';
@@ -150,24 +150,9 @@ export function useGalleryMotion(
       cancel();
     }
   }
-  useEffect(() => {
-    let mounted = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((value) => {
-      if (mounted) {
-        setReduced(value);
-      }
-    });
-    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduced);
-    return () => {
-      mounted = false;
-      subscription.remove();
-      x.stopAnimation();
-      y.stopAnimation();
-      opacity.stopAnimation();
-    };
-  }, [x, y, opacity]);
-  useEffect(() => {
-    if (!reduced) {
+  const handleReducedMotion = useEffectEvent((value: boolean) => {
+    setReduced(value);
+    if (!value) {
       return;
     }
     const direction = state.current.moving;
@@ -183,6 +168,25 @@ export function useGalleryMotion(
       y.stopAnimation();
       close();
     }
-  }, [reduced, count, select, close, x, y]);
+  });
+  useEffect(() => {
+    let mounted = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((value) => {
+      if (mounted) {
+        handleReducedMotion(value);
+      }
+    });
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (value) =>
+      handleReducedMotion(value),
+    );
+    return () => {
+      mounted = false;
+      subscription.remove();
+      x.stopAnimation();
+      y.stopAnimation();
+      opacity.stopAnimation();
+    };
+  }, [x, y, opacity]);
+
   return { x, y, opacity, width, setWidth, move, jump, start, update, end, cancel };
 }

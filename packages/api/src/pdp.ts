@@ -7,6 +7,12 @@ import { mediaCardSchema } from './home';
 export const pdpId = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 export const pdpEntityInput = z.object({ id: pdpId });
 export const seasonInput = pdpEntityInput.extend({ season: z.number().int().min(0).max(10000) });
+/** URL season numbers use the same bounds as the RPC contract, including specials (0). */
+export const seasonNumberParam = z
+  .string()
+  .regex(/^(0|[1-9]\d*)$/)
+  .transform(Number)
+  .pipe(seasonInput.shape.season);
 export const keywordInput = catalogDetailInput.extend({
   page: z.number().int().min(1).max(500).default(1),
 });

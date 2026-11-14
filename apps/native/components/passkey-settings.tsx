@@ -1,3 +1,4 @@
+import { hasErrorCode } from '@movies/api/errors';
 import { passkeyNameSchema, formatPasskeyDate, type PasskeyMetadata } from '@movies/api/passkeys';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { Sheet } from '@native/components/sheet';
@@ -29,17 +30,16 @@ async function refresh(userId: string) {
   await queryClient.invalidateQueries({ queryKey: passkeyKey(userId) });
 }
 function registrationMessage(error: unknown) {
-  if (typeof error === 'object' && error !== null && 'code' in error) {
-    if (
-      [
-        'PASSKEY_CANCELLED',
-        'ERROR_CEREMONY_ABORTED',
-        'REGISTRATION_CANCELLED',
-        'AUTH_CANCELLED',
-      ].includes(String(error.code))
-    ) {
-      return 'Passkey setup was cancelled. You can try again.';
-    }
+  if (
+    hasErrorCode(
+      error,
+      'PASSKEY_CANCELLED',
+      'ERROR_CEREMONY_ABORTED',
+      'REGISTRATION_CANCELLED',
+      'AUTH_CANCELLED',
+    )
+  ) {
+    return 'Passkey setup was cancelled. You can try again.';
   }
   return 'Couldn’t add your passkey. Please try again.';
 }

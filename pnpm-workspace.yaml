@@ -42,6 +42,7 @@ patchedDependencies:
   railway@3.16.0: patches/railway.patch
 
 overrides:
+  "next>@next/env": "npm:@varlock/nextjs-integration@1.2.2"
   "esbuild@<0.28.1": "^0.28.1"
   "postcss@<8.5.10": "^8.5.19"
   vite@*: "catalog:"

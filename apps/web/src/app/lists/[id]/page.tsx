@@ -1,4 +1,5 @@
 import { accountQueryKey } from '@movies/api/account-query-key';
+import { hasErrorCode } from '@movies/api/errors';
 import { regionPreferenceSchema } from '@movies/api/preferences';
 import { createApiQueryUtils } from '@movies/api/query-utils';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
@@ -61,7 +62,7 @@ export default async function ListDetailsPage({
     queryKey: accountQueryKey(api.customLists.details.queryKey({ input }), user.id),
   };
   const result = await queryClient.fetchQuery(options).catch((error: unknown) => {
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'NOT_FOUND') {
+    if (hasErrorCode(error, 'NOT_FOUND')) {
       notFound();
     }
     throw error;

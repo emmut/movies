@@ -51,7 +51,7 @@ The native and API apps follow the reference project's Varlock pattern. Each app
 
 Expo's Varlock Babel and Metro integrations validate the native schema and inline only public values. The API loads `varlock/auto-load` at its entrypoint before reading `ENV`, validating secrets and coercing the port at startup. The native schema contains only public settings; the API token remains server-only. Empty optional URL overrides retain automatic host detection. Explicit overrides must be HTTP(S) URLs; API browser origins must not include paths, queries or fragments. `PORT` defaults to 3001 and must be an integer from 1 to 65535.
 
-The existing web app and cron scripts retain T3 Env validation during the incremental migration. Their validated optional TMDB URL is passed into the shared transport, which has no environment-loading side effects.
+Web now uses its own Varlock schema and generated `ENV`, like native and Hono. Standalone cron scripts retain their separate T3 Env validator. Their validated optional TMDB URL is passed into the shared transport, which has no environment-loading side effects.
 
 ## API boundary
 

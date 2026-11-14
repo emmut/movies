@@ -1,4 +1,5 @@
 import { catalogDetailInput, parseCatalogId, type CatalogDetailInput } from '@movies/api/catalog';
+import { hasErrorCode } from '@movies/api/errors';
 import { useCatalogDetails } from '@movies/api/react/use-catalog-query';
 import { regionSchema } from '@movies/config/regions';
 import { BottomNavigation } from '@native/components/bottom-navigation';
@@ -31,7 +32,7 @@ function TitleNotFound() {
   );
 }
 function TitleLoadError({ error, retry }: { error: Error; retry: () => void }) {
-  if ('code' in error && error.code === 'NOT_FOUND') {
+  if (hasErrorCode(error, 'NOT_FOUND')) {
     return <TitleNotFound />;
   }
   return (

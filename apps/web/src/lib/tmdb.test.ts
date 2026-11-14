@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 
 // Concrete env so the module reads a deterministic bearer token.
 vi.mock('@/env', () => ({
-  env: {
+  ENV: {
     MOVIE_DB_ACCESS_TOKEN: 'test-token',
   },
 }));

@@ -6,7 +6,7 @@ const { get, post } = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn() }));
 vi.mock('better-auth/next-js', () => ({ toNextJsHandler: () => ({ GET: get, POST: post }) }));
 vi.mock('@/lib/auth', () => ({ auth: {} }));
 vi.mock('@/env', () => ({
-  env: { BETTER_AUTH_SECRET: 'a-shared-auth-secret-of-at-least-32-characters' },
+  ENV: { BETTER_AUTH_SECRET: 'a-shared-auth-secret-of-at-least-32-characters' },
 }));
 import { GET, POST } from './route';
 

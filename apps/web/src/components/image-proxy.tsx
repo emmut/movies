@@ -1,7 +1,7 @@
 import { generateImageUrl, type IGenerateImageUrl } from '@imgproxy/imgproxy-node';
 import { StaticImageData } from 'next/image';
 
-import { env } from '@/env';
+import { ENV } from '@/env';
 
 import styles from './Imgproxy.module.css';
 
@@ -19,10 +19,10 @@ type ImgproxyProps = {
 } & Omit<Options, 'resize' | 'size' | 'resize_type' | 'dpr' | 'format'>;
 
 // The address of your imgproxy server
-const imgproxyEndpoint = env.NEXT_PUBLIC_IMGPROXY_ENDPOINT;
-const imgproxyBaseUrl = env.NEXT_PUBLIC_IMGPROXY_BASE_URL;
-const imgproxyKey = env.IMGPROXY_KEY;
-const imgproxySalt = env.IMGPROXY_SALT;
+const imgproxyEndpoint = ENV.NEXT_PUBLIC_IMGPROXY_ENDPOINT;
+const imgproxyBaseUrl = ENV.NEXT_PUBLIC_IMGPROXY_BASE_URL;
+const imgproxyKey = ENV.IMGPROXY_KEY;
+const imgproxySalt = ENV.IMGPROXY_SALT;
 
 export const Imgproxy = ({
   className,

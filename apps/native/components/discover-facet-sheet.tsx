@@ -1,7 +1,8 @@
 import type { DiscoveryFacetInput } from '@movies/api/discover';
+import { useDebouncedValue } from '@movies/api/react/use-debounced-value';
 import { useDiscoveryFacets } from '@movies/api/react/use-discovery-query';
 import { ChoiceSheet } from '@native/components/choice-sheet';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export function DiscoverFacetSheet({
   kind,
@@ -17,11 +18,7 @@ export function DiscoverFacetSheet({
   onClose: () => void;
 }) {
   const [search, setSearch] = useState('');
-  const [query, setQuery] = useState('');
-  useEffect(() => {
-    const timer = setTimeout(() => setQuery(search.trim()), 250);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const query = useDebouncedValue(search.trim(), 250);
   const results = useDiscoveryFacets({ kind, query, ids: selected });
   const options = results.data ?? selected.map((id) => ({ id, name: `${kind} ${id}` }));
   return (

@@ -1,3 +1,4 @@
+import { hasErrorCode } from '@movies/api/errors';
 import {
   passkeyNameSchema,
   passkeyRegistrationOptionsSchema,
@@ -35,10 +36,7 @@ function cancelled(error: unknown) {
   if ('message' in error && error.message === 'UserCancelled') {
     return true;
   }
-  return (
-    ('name' in error && names.includes(String(error.name))) ||
-    ('code' in error && names.includes(String(error.code)))
-  );
+  return ('name' in error && names.includes(String(error.name))) || hasErrorCode(error, ...names);
 }
 /** The same challenge/verification protocol as the official browser client, using OS credentials. */
 export function createPasskeyCeremony(sources: Sources) {

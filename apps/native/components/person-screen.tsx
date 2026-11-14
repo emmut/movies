@@ -1,4 +1,5 @@
 import { parseCatalogId } from '@movies/api/catalog';
+import { hasErrorCode } from '@movies/api/errors';
 import type { PersonCredit } from '@movies/api/person';
 import { personInput, type PersonDetail } from '@movies/api/person';
 import { usePersonCredits, usePersonDetails } from '@movies/api/react/use-person-query';
@@ -147,7 +148,7 @@ function PersonNotFound() {
   );
 }
 function PersonLoadError({ error, retry }: { error: Error; retry: () => Promise<unknown> }) {
-  if ('code' in error && error.code === 'NOT_FOUND') {
+  if (hasErrorCode(error, 'NOT_FOUND')) {
     return <PersonNotFound />;
   }
   return (

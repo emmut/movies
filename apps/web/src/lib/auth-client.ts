@@ -2,13 +2,13 @@ import { passkeyClient } from '@better-auth/passkey/client';
 import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
-import { env } from '@/env';
+import { ENV } from '@/env';
 import { clearPendingGreet, markPendingGreet } from '@/lib/pending-greet';
 
 import { getSafeRedirectUrl } from './utils';
 
 const authClient = createAuthClient({
-  baseURL: env.NEXT_PUBLIC_BASE_URL,
+  baseURL: ENV.NEXT_PUBLIC_BASE_URL,
   plugins: [anonymousClient(), passkeyClient()],
 });
 

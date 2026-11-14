@@ -1,11 +1,11 @@
 import { drizzle } from 'drizzle-orm/node-postgres';
 
-import { env } from '@/env';
+import { ENV } from '@/env';
 
 function createDb() {
   return drizzle({
     connection: {
-      connectionString: env.DATABASE_URL,
+      connectionString: ENV.DATABASE_URL,
       // Keep pooled connections warm between requests. Opening a fresh
       // connection to the prod database can take tens of seconds when its
       // compute has to cold-wake, so dropping idle connections aggressively
@@ -28,7 +28,7 @@ function createDb() {
       // instances, each with its own pool; total = max × instances must stay
       // under the database connection limit. Front the DB with a pooler
       // (PgBouncer / Neon pooled endpoint) for large fan-out.
-      max: env.DB_POOL_MAX,
+      max: ENV.DB_POOL_MAX,
     },
   });
 }

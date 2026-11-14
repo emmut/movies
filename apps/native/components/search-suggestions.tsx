@@ -1,7 +1,7 @@
+import { useDebouncedValue } from '@movies/api/react/use-debounced-value';
 import { useSearchSuggestions } from '@movies/api/react/use-search-query';
 import type { SearchItem, SearchPage } from '@movies/api/search';
 import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 function Suggestion({ item }: { item: SearchItem }) {
@@ -27,12 +27,8 @@ function Suggestion({ item }: { item: SearchItem }) {
 }
 
 export function SearchSuggestions({ draft, submit }: { draft: string; submit: () => void }) {
-  const [query, setQuery] = useState('');
   const trimmed = draft.trim();
-  useEffect(() => {
-    const timer = setTimeout(() => setQuery(trimmed), 250);
-    return () => clearTimeout(timer);
-  }, [trimmed]);
+  const query = useDebouncedValue(trimmed, 250);
   const results = useSearchSuggestions({ query }, query.length > 0 && query === trimmed);
   // Never expose a destination from a previous query while the debounce/request catches up.
   const current = query === trimmed;

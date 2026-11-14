@@ -35,7 +35,7 @@
     "check-types": "tsc --noEmit && vp exec -- turbo run check-types --filter=@movies/web --filter=@movies/native --filter=@movies/server --cache-dir=.turbo/cache",
     "dev:native": "vp run @movies/native#dev",
     "dev:api": "vp run @movies/server#dev",
-    "env:generate": "varlock codegen --path ./apps/native/ && varlock codegen --path ./apps/server/",
+    "env:generate": "varlock codegen --path ./apps/web/ && varlock codegen --path ./apps/native/ && varlock codegen --path ./apps/server/",
     "postinstall": "vp run env:generate",
     "check": "vp check"
   },
