@@ -1,16 +1,13 @@
 import 'server-only';
-import { imdbRatings } from '@movies/db/schema/imdb-ratings';
-import { eq } from 'drizzle-orm';
+import { imdbIdSchema, type ImdbRating } from '@movies/api/imdb';
+import { createImdbRatingStore } from '@movies/db/imdb-ratings';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import { db } from '@/lib/db';
 
 import { CACHE_TAGS } from './cache-tags';
 
-export type ImdbRating = {
-  rating: number;
-  numVotes: number;
-};
+const imdbStore = createImdbRatingStore(db);
 
 async function fetchImdbRating(imdbId: string): Promise<ImdbRating | null> {
   'use cache: remote';
@@ -19,17 +16,7 @@ async function fetchImdbRating(imdbId: string): Promise<ImdbRating | null> {
   // that cadence (nothing revalidates the tag).
   cacheLife('days');
 
-  const rows = await db
-    .select({ rating: imdbRatings.rating, numVotes: imdbRatings.numVotes })
-    .from(imdbRatings)
-    .where(eq(imdbRatings.imdbId, imdbId))
-    .limit(1);
-
-  if (rows.length === 0) {
-    return null;
-  }
-
-  return { rating: Number(rows[0].rating), numVotes: rows[0].numVotes };
+  return imdbStore.read(imdbId);
 }
 
 /**
@@ -39,14 +26,15 @@ async function fetchImdbRating(imdbId: string): Promise<ImdbRating | null> {
  * @returns The rating and vote count, or null when unknown.
  */
 export async function getImdbRating(imdbId: string | null | undefined) {
-  if (!imdbId) {
+  const parsedId = imdbIdSchema.safeParse(imdbId);
+  if (!parsedId.success) {
     return null;
   }
   // Ratings are optional everywhere they render (the card is hidden), so a
   // failed lookup must not take the page down with it. Caught out here rather
   // than inside fetchImdbRating so the error result is never cached.
   try {
-    return await fetchImdbRating(imdbId);
+    return await fetchImdbRating(parsedId.data);
   } catch (error) {
     console.error(`Error fetching IMDb rating for ${imdbId}:`, error);
     return null;

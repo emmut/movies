@@ -1,5 +1,11 @@
 'use client';
 
+import type {
+  SearchMoviesResult,
+  SearchMultiResult,
+  SearchPersonsResult,
+  SearchTvShowsResult,
+} from '@movies/api/search-engine';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@/lib/query-keys';
@@ -9,10 +15,6 @@ import {
   getSearchPersons,
   getSearchSuggestions,
   getSearchTvShows,
-  SearchMoviesResult,
-  SearchMultiResult,
-  SearchPersonsResult,
-  SearchTvShowsResult,
 } from '@/lib/search';
 
 type UseSearchParams = {

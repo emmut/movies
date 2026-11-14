@@ -1,3 +1,4 @@
+import { getKnownFor, personCreditFields } from '@movies/api/person-filmography';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 
 import Badge from '@/components/badge';
@@ -9,7 +10,6 @@ import { ItemSlider } from '@/components/item-slider';
 import { PersonFilmography } from '@/components/person-filmography';
 import { QuickAddButton } from '@/components/quick-add-button';
 import { getUser } from '@/lib/auth-server';
-import { getKnownFor, type PersonTitle } from '@/lib/person-filmography';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
 import { optional } from '@/lib/tmdb';
 
@@ -53,8 +53,7 @@ export default async function PersonPage(props: PersonPageProps) {
   } = person;
 
   // Convert movies to format expected by ItemCard
-  const moviesForGrid: PersonTitle[] = movieCredits.cast.map((movie) => ({
-    id: movie.id,
+  const moviesForGrid = movieCredits.cast.map((movie) => ({
     title: movie.title,
     poster_path: movie.poster_path,
     release_date: movie.release_date,
@@ -64,7 +63,8 @@ export default async function PersonPage(props: PersonPageProps) {
     original_language: '',
     original_title: movie.original_title,
     overview: '',
-    media_type: 'movie',
+    media_type: 'movie' as const,
+    ...personCreditFields(movie, 'movie'),
     genre_ids: movie.genre_ids ?? [],
     popularity: movie.popularity,
     video: false,
@@ -74,8 +74,7 @@ export default async function PersonPage(props: PersonPageProps) {
   }));
 
   // Convert TV shows to format expected by ItemCard
-  const tvShowsForGrid: PersonTitle[] = tvCredits.cast.map((show) => ({
-    id: show.id,
+  const tvShowsForGrid = tvCredits.cast.map((show) => ({
     name: show.name,
     original_name: show.original_name,
     poster_path: show.poster_path,
@@ -88,7 +87,8 @@ export default async function PersonPage(props: PersonPageProps) {
     episode_count: show.episode_count,
     genre_ids: show.genre_ids ?? [],
     popularity: show.popularity,
-    media_type: 'tv',
+    media_type: 'tv' as const,
+    ...personCreditFields(show, 'tv'),
     origin_country: [],
     original_language: '',
   }));

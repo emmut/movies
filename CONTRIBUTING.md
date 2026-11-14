@@ -19,7 +19,13 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 
 `pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `apps/web/.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
 
+All checkouts and worktrees share the Compose project `movies`, including its PostgreSQL database and imgproxy on ports 5432 and 8080. Docker commands load `apps/web/.env`; keep the local imgproxy signing keys consistent across worktrees. `pnpm dev:docker:down` stops these services for every worktree, but preserves the database volume. Older worktree-specific containers and volumes are not removed or migrated.
+
 The TMDB request collection is `apps/web/movie-db.http`; it reads `apps/web/.env` from the same directory.
+
+## Native app
+
+`apps/native` contains the Expo React Native app; `apps/server` hosts its public oRPC API. Root `pnpm dev` starts Docker, web, API, and Expo together. Start just the native services with `pnpm dev:native` and `pnpm dev:api`. See [the native setup](apps/native/README.md) and [the recorded decisions and full parity roadmap](docs/native-app-roadmap.md) for environment setup, device URLs, current scope, and browser checks. `pnpm check-types` includes both workspaces.
 
 ## Common commands
 
@@ -51,7 +57,13 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 ## Conventions
 
 - Prefer normal functions over arrow functions except for inline usage.
+- Every `if` and `else` body uses braces, including single-line early returns.
+- When moving a module into a shared package, update its consumers to import directly from the package. Remove the old import/re-export or forwarding shim rather than keeping a compatibility layer.
+- Write clean, maintainable code with small, cohesive modules and explicit control flow. Avoid nested ternaries and dense chained expressions; prefer descriptive helpers, intermediate values and ordinary blocks when they clarify the behavior.
+- Native styling uses Tailwind/Uniwind classes; use React Native style objects only when a library cannot accept classes.
+- Native and Hono apps use per-app Varlock `.env.schema` files and generated app-scoped `ENV` modules. Generate with `pnpm env:generate`; do not edit generated files or add env re-export wrappers. The existing web app and cron scripts use T3 Env.
 - Naming: kebab-case files, PascalCase exports.
+- Use app path aliases for internal imports: `@/` in web, `@native/` in Expo, and `@server/` in Hono. Keep each app tsconfig and the root test resolver aligned; avoid relative parent paths.
 - Server-only modules import `server-only`; keep secrets and DB access out of client components.
 - Mutations go through server actions: every action authenticates via `requireUser()` and validates input with the Zod schemas in `apps/web/src/lib/validations.ts`.
 - Caching uses the `'use cache'` directive with tags in `apps/web/src/lib/cache-tags.ts`; invalidate via the helpers in `apps/web/src/lib/cache-invalidation.ts`.
@@ -66,8 +78,14 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - List pages answer the stream-provider filter from a local cache of the titles in users' lists (`titles`, `title_availability`), written through on add and refreshed nightly by `scripts/sync-titles.ts`. TMDB stays the source of truth; everything else (discover, search, detail pages) reads TMDB through `'use cache'`. See `docs/title-cache-plan.md` for what the cache is meant to unlock next.
 - Full-page search merges TMDB with a local fuzzy index on page one: `search_index` holds every TMDB id with its original title (from the daily exports). GIN indexes support both `pg_trgm` typo matching and built-in word search for reordered words and an incomplete final word. Local retrieval puts exact titles first, then matches covering all query words, then fuzzy matches; popularity breaks equal-distance candidate ties before the cutoff. Title-match tiers provide the primary merged order, with reciprocal-rank fusion combining source ranks inside each tier. Only index candidates absent from TMDB are hydrated, capped at three when TMDB has results. The command palette stays TMDB-first with a zero-result fuzzy fallback to avoid database wake-up latency on every keystroke. An empty index simply degrades to TMDB-only results. See [search.md](docs/search.md) for the extension assessment and migration details.
 - Discover's TV network search uses TMDB's daily network ID export because TMDB has no network search endpoint. Allow outbound HTTPS to `files.tmdb.org` as well as `api.themoviedb.org`; the catalogue is cached daily. Network filtering and PDP links use the regular TMDB API.
-- Auth is Better Auth with Discord/GitHub social providers and passkey support.
+- Auth is Better Auth with Google/Discord/GitHub social providers and passkey support.
 - UI primitives are Base UI (`@base-ui/react`) styled in `packages/ui/src/components/`, shadcn-managed via `components.json`.
+
+## Google sign-in setup
+
+Create a **Web application** OAuth client in [Google Cloud Console](https://console.cloud.google.com/auth/clients). Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/web/.env` and on the web service for each deployment. Register each exact authorized redirect URI: `<NEXT_PUBLIC_BASE_URL>/api/auth/callback/google` (locally, `http://localhost:3000/api/auth/callback/google`). Preview environments need their own registered callback URL. Configure the consent screen and test users while the Google app is in testing.
+
+Google uses the existing social sign-in and anonymous-account transfer flow; it needs no database migration.
 
 ## Testing
 

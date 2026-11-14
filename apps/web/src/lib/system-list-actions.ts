@@ -1,12 +1,17 @@
 'use server';
 
+import 'server-only';
+import { systemListToggleInput } from '@movies/api/system-lists';
+import type { SystemListType } from '@movies/api/validations';
+import { createSystemListStore } from '@movies/db/system-lists';
 import { revalidatePath } from 'next/cache';
 
 import { requireUser } from '@/lib/auth-server';
 import { revalidateUserSystemListCache } from '@/lib/cache-invalidation';
-import { toggleSystemListRow } from '@/lib/system-list';
+import { db } from '@/lib/db';
 import { scheduleTitleSync } from '@/lib/title-sync-server';
-import { resourceIdSchema, SystemListType, systemListTypeSchema } from '@/lib/validations';
+
+const { toggleSystemListRow } = createSystemListStore(db);
 
 type ToggleSystemListItemParams = {
   listType: SystemListType;
@@ -37,41 +42,37 @@ export async function toggleSystemListItem({
   resourceId,
   resourceType,
 }: ToggleSystemListItemParams) {
-  const validatedListType = systemListTypeSchema.parse(listType);
-  const validatedResourceId = resourceIdSchema.parse({
-    resourceId,
-    resourceType,
-  });
+  const validated = systemListToggleInput.parse({ listType, resourceId, resourceType });
 
   const user = await requireUser();
 
   try {
     const state = await toggleSystemListRow(
       user.id,
-      validatedListType,
-      validatedResourceId.resourceId,
-      validatedResourceId.resourceType,
+      validated.listType,
+      validated.resourceId,
+      validated.resourceType,
     );
 
     if (state === 'added') {
       // Write the title's details and availability through to the local cache
       // so the provider filter can answer from SQL without a TMDB round-trip.
-      scheduleTitleSync(validatedResourceId.resourceType, validatedResourceId.resourceId);
+      scheduleTitleSync(validated.resourceType, validated.resourceId);
     }
 
     revalidateUserSystemListCache(
       user.id,
-      validatedListType,
-      validatedResourceId.resourceType,
-      validatedResourceId.resourceId,
+      validated.listType,
+      validated.resourceType,
+      validated.resourceId,
     );
 
-    revalidatePath(`/${validatedResourceId.resourceType}/${validatedResourceId.resourceId}`);
-    revalidatePath(`/${validatedListType}`);
+    revalidatePath(`/${validated.resourceType}/${validated.resourceId}`);
+    revalidatePath(`/${validated.listType}`);
 
     return { success: true, action: state };
   } catch (error) {
-    console.error(`Error toggling ${validatedListType}:`, error);
-    throw new Error(`Failed to update ${validatedListType}`);
+    console.error(`Error toggling ${validated.listType}:`, error);
+    throw new Error(`Failed to update ${validated.listType}`);
   }
 }

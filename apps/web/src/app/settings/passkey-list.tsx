@@ -1,5 +1,6 @@
 'use client';
 
+import { formatPasskeyDate, type PasskeyMetadata } from '@movies/api/passkeys';
 import { Button } from '@movies/ui/components/button';
 import { Card, CardContent } from '@movies/ui/components/card';
 import {
@@ -16,15 +17,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-type Passkey = {
-  id: string;
-  name?: string;
-  createdAt?: Date;
-  deviceType: string;
-};
-
 type PasskeyListProps = {
-  passkeys: Passkey[];
+  passkeys: PasskeyMetadata[];
 };
 
 export function PasskeyList({ passkeys }: PasskeyListProps) {
@@ -82,16 +76,7 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
                   <div className="font-medium">{passkey.name || 'Unnamed passkey'}</div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <span className="capitalize">{passkey.deviceType}</span>
-                    <span>
-                      Created:{' '}
-                      {passkey.createdAt
-                        ? new Date(passkey.createdAt).toLocaleDateString('en-GB', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })
-                        : 'Unknown'}
-                    </span>
+                    <span>Created: {formatPasskeyDate(passkey.createdAt)}</span>
                   </div>
                 </div>
 

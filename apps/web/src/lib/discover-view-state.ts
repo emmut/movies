@@ -1,7 +1,7 @@
+import { getDiscoverWatchProviders } from '@movies/api/discover-params';
+import { getOriginCountryString } from '@movies/config/countries';
 import type { inferParserType } from 'nuqs/server';
 
-import { getOriginCountryString } from './countries';
-import { getDiscoverWatchProviders } from './discover-params';
 import { discoverSearchParsers, discoverSearchUrlKeys } from './discover-search-params';
 import { parseAsPipeSeparatedArrayOfIntegers } from './watch-provider-search-params';
 

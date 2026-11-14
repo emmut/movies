@@ -1,5 +1,6 @@
+import type { ProductionCompany } from '@movies/api/tmdb-types/pdp';
+
 import { OrganizationLinks } from '@/components/organization-links';
-import type { ProductionCompany } from '@/types/pdp';
 
 export function ProductionCompanies({
   companies,

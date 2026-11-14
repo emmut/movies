@@ -1,3 +1,4 @@
+import { normalizeSearchTitle } from '@movies/config/search-title';
 import { searchIndex } from '@movies/db/schema/search-index';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { describe, expect, it, vi } from 'vite-plus/test';
@@ -9,7 +10,6 @@ import {
   ingestExportLines,
   isExportComplete,
   MIN_EXPORT_ROWS,
-  normalizeSearchTitle,
   parseExportLine,
   SEARCH_INDEX_EXPORTS,
   upsertSearchIndexBatch,

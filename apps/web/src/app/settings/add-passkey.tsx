@@ -1,5 +1,6 @@
 'use client';
 
+import { passkeyNameSchema } from '@movies/api/passkeys';
 import { Button } from '@movies/ui/components/button';
 import {
   Dialog,
@@ -28,13 +29,14 @@ export function AddPasskey() {
     setIsLoading(true);
 
     // Validate that the passkey name is not empty
-    if (name.trim() === '') {
-      toast.error('Please enter a name for your passkey.');
+    const parsed = passkeyNameSchema.safeParse(name);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0].message);
       setIsLoading(false);
       return;
     }
 
-    const { error } = await addPasskey(name.trim());
+    const { error } = await addPasskey(parsed.data);
 
     if (error) {
       toast.error('Failed to add passkey. Please try again.');
@@ -66,6 +68,7 @@ export function AddPasskey() {
               id="passkey-name"
               placeholder="e.g., MacBook Pro, iPhone, YubiKey"
               value={name}
+              maxLength={100}
               onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
             />

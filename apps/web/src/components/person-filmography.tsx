@@ -1,5 +1,12 @@
 'use client';
 
+import {
+  type CreditSort,
+  type PersonTitle,
+  sortPersonTitles,
+} from '@movies/api/person-filmography';
+import type { Movie } from '@movies/api/tmdb-types/movie';
+import type { TvShow } from '@movies/api/tmdb-types/tv-show';
 import { Label } from '@movies/ui/components/label';
 import {
   Select,
@@ -14,11 +21,10 @@ import { useId, useState } from 'react';
 
 import ItemCard from '@/components/item-card';
 import { ItemSlider } from '@/components/item-slider';
-import { type CreditSort, type PersonTitle, sortPersonTitles } from '@/lib/person-filmography';
 
 type PersonFilmographyProps = {
   title: string;
-  titles: PersonTitle[];
+  titles: ((Movie | TvShow) & PersonTitle)[];
   userId?: string;
 };
 

@@ -1,9 +1,9 @@
+import type { CrewMember } from '@movies/api/tmdb-types/movie';
 import { UserRound } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import { Imgproxy } from '@/components/image-proxy';
 import { groupCrewMembers } from '@/lib/crew-members';
-import type { CrewMember } from '@/types/movie';
 
 /** Consistent, responsive person rows shared by the preview and full crew. */
 export function CrewList({ crew }: { crew: CrewMember[] }) {

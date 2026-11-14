@@ -1,10 +1,10 @@
+import type { CrewMember } from '@movies/api/tmdb-types/movie';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { CrewList } from '@/components/crew-list';
 import { getMovieCredits, getMovieDetails } from '@/lib/movies';
-import type { CrewMember } from '@/types/movie';
 
 export default async function MovieCrewPage({ params }: { params: Promise<{ movieId: string }> }) {
   const { movieId } = await params;

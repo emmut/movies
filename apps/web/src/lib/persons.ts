@@ -1,6 +1,5 @@
+import { PersonDetails, PersonMovieCredits, PersonTvCredits } from '@movies/api/tmdb-types/person';
 import { cacheLife, cacheTag } from 'next/cache';
-
-import { PersonDetails, PersonMovieCredits, PersonTvCredits } from '@/types/person';
 
 import { CACHE_TAGS } from './cache-tags';
 import { tmdbFetch } from './tmdb';

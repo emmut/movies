@@ -1,3 +1,4 @@
+import { normalizeSearchTitle } from '@movies/config/search-title';
 import { searchIndex } from '@movies/db/schema/search-index';
 import { and, eq, lt, sql } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -49,14 +50,6 @@ export function isExportComplete(mediaType: SearchIndexMediaType, total: number)
  * "spider man"). Letters and digits of every script survive. Apply the same
  * fold to queries.
  */
-export function normalizeSearchTitle(title: string) {
-  return title
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
-}
 
 function pad(value: number) {
   return String(value).padStart(2, '0');
@@ -93,6 +86,25 @@ function exportTitle(line: ExportLine) {
   return typeof title === 'string' && title.trim() ? title.trim() : null;
 }
 
+function readExportLine(line: string): ExportLine | null {
+  try {
+    const parsed: ExportLine = JSON.parse(line);
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (parsed.adult === true) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+function positiveExportId(value: unknown) {
+  if (typeof value !== 'number') return null;
+  if (!Number.isInteger(value) || value <= 0) return null;
+  return value;
+}
+function finitePopularity(value: unknown) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
 /**
  * Parses one JSON line of a TMDB export into an index row. Adult entries and
  * lines without a usable id or title are skipped (null); the app never shows
@@ -102,21 +114,10 @@ export function parseExportLine(
   mediaType: SearchIndexMediaType,
   line: string,
 ): SearchIndexRow | null {
-  let parsed: ExportLine;
-  try {
-    parsed = JSON.parse(line) as ExportLine;
-  } catch {
-    return null;
-  }
-
-  if (!parsed || typeof parsed !== 'object' || parsed.adult === true) {
-    return null;
-  }
-
-  const id = parsed.id;
-  if (typeof id !== 'number' || !Number.isInteger(id) || id <= 0) {
-    return null;
-  }
+  const parsed = readExportLine(line);
+  if (!parsed) return null;
+  const id = positiveExportId(parsed.id);
+  if (id === null) return null;
 
   const title = exportTitle(parsed);
   if (!title) {
@@ -128,10 +129,7 @@ export function parseExportLine(
     return null;
   }
 
-  const popularity =
-    typeof parsed.popularity === 'number' && Number.isFinite(parsed.popularity)
-      ? parsed.popularity
-      : 0;
+  const popularity = finitePopularity(parsed.popularity);
 
   return { mediaType, tmdbId: id, title, searchTitle, popularity };
 }

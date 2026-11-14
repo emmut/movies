@@ -1,4 +1,4 @@
-import type { CrewMember } from '@/types/movie';
+import type { CrewMember } from '@movies/api/tmdb-types/movie';
 
 /** One entry per person, preserving billing order and every distinct job. */
 export function groupCrewMembers(crew: CrewMember[]) {

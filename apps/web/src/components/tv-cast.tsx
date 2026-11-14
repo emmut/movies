@@ -1,5 +1,6 @@
+import { getBilledCastMembers, getSeriesCastMembers } from '@movies/api/cast-members';
+
 import { CastSlider } from '@/components/cast-slider';
-import { getBilledCastMembers, getSeriesCastMembers } from '@/lib/cast-members';
 import { getAggregateCredits } from '@/lib/pdp';
 import { optional } from '@/lib/tmdb';
 import { getTvShowCredits } from '@/lib/tv-shows';

@@ -1,5 +1,6 @@
 'use server';
 
+import { searchNetworkCatalog } from '@movies/api/network-catalog';
 import { cacheLife } from 'next/cache';
 import { z } from 'zod';
 
@@ -15,16 +16,7 @@ export async function searchNetworks(query: string): Promise<Network[]> {
   if (!result.success) {
     return [];
   }
-  const term = result.data.toLocaleLowerCase();
-  const networks = await getNetworkCatalog();
-  return networks
-    .filter((network) => network.name.toLocaleLowerCase().includes(term))
-    .sort(
-      (a, b) =>
-        Number(b.name.toLocaleLowerCase() === term) - Number(a.name.toLocaleLowerCase() === term) ||
-        a.name.localeCompare(b.name),
-    )
-    .slice(0, 20);
+  return searchNetworkCatalog(await getNetworkCatalog(), result.data);
 }
 
 async function fetchNetwork(id: number): Promise<Network> {

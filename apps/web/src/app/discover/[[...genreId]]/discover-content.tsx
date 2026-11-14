@@ -1,5 +1,7 @@
 'use client';
 
+import type { Genre } from '@movies/api/tmdb-types/genre';
+import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { useQueryStates } from 'nuqs';
 import { useRef } from 'react';
 
@@ -13,9 +15,7 @@ import {
   discoverViewUrlKeys,
   resolveDiscoverViewState,
 } from '@/lib/discover-view-state';
-import type { Genre } from '@/types/genre';
 import type { Keyword } from '@/types/keyword';
-import { WatchProvider } from '@/types/watch-provider';
 
 import Pagination from './pagination';
 

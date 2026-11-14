@@ -1,0 +1,89 @@
+import { catalogDetailInput, parseCatalogId, type CatalogDetailInput } from '@movies/api/catalog';
+import { regionSchema } from '@movies/config/regions';
+import { BottomNavigation } from '@native/components/bottom-navigation';
+import { CatalogContent } from '@native/components/catalog-content';
+import { DetailSkeleton } from '@native/components/loading-skeletons';
+import { useCatalogDetails } from '@native/hooks/use-catalog-query';
+import { useRegion } from '@native/lib/preferences';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Pressable, Text, View } from 'react-native';
+import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
+import { withUniwind } from 'uniwind';
+
+const SafeAreaView = withUniwind(NativeSafeAreaView);
+
+function TitleNotFound() {
+  const router = useRouter();
+  return (
+    <View className="flex-1 items-start justify-center gap-4 px-5">
+      <Text accessibilityRole="header" className="text-2xl font-bold text-foreground">
+        Title not found
+      </Text>
+      <Text className="text-base text-muted">This movie or TV show is no longer available.</Text>
+      <Pressable
+        accessibilityRole="button"
+        className="bg-default rounded-lg px-4 py-3"
+        onPress={() => router.replace('/')}
+      >
+        <Text className="font-semibold text-foreground">Go to Home</Text>
+      </Pressable>
+    </View>
+  );
+}
+function TitleLoadError({ error, retry }: { error: Error; retry: () => void }) {
+  if ('code' in error && error.code === 'NOT_FOUND') {
+    return <TitleNotFound />;
+  }
+  return (
+    <View className="flex-1 items-start justify-center gap-4 px-5">
+      <Text className="text-xl font-semibold text-foreground">Couldn’t load this title.</Text>
+      <Text className="text-base text-muted">Check your connection and try again.</Text>
+      <Pressable
+        accessibilityRole="button"
+        className="bg-default rounded-lg px-4 py-3"
+        onPress={() => {
+          void retry();
+        }}
+      >
+        <Text className="font-semibold text-foreground">Try again</Text>
+      </Pressable>
+    </View>
+  );
+}
+function CatalogQuery({ input }: { input: CatalogDetailInput }) {
+  const query = useCatalogDetails(input);
+  if (query.isPending) {
+    return <DetailSkeleton label="Loading title" />;
+  }
+  if (query.isError) {
+    return (
+      <TitleLoadError
+        error={query.error}
+        retry={() => {
+          void query.refetch();
+        }}
+      />
+    );
+  }
+  return (
+    <>
+      <Stack.Screen options={{ title: query.data.title }} />
+      <CatalogContent item={query.data} region={input.region} />
+    </>
+  );
+}
+export function CatalogScreen() {
+  const params = useLocalSearchParams<{ type?: string; id?: string; region?: string }>();
+  const region = useRegion();
+  const input = catalogDetailInput.safeParse({
+    id: parseCatalogId(params.id),
+    type: params.type,
+    region: regionSchema.safeParse(params.region).data ?? region,
+  });
+  return (
+    <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']} collapsable={false}>
+      {input.success ? <CatalogQuery input={input.data} /> : <TitleNotFound />}
+      <BottomNavigation />
+    </SafeAreaView>
+  );
+}

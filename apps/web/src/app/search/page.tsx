@@ -1,18 +1,15 @@
+import type {
+  SearchMoviesResult,
+  SearchMultiResult,
+  SearchPersonsResult,
+  SearchTvShowsResult,
+} from '@movies/api/search-engine';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 
 import { getUser } from '@/lib/auth-server';
 import { getQueryClient } from '@/lib/query-client';
 import { queryKeys } from '@/lib/query-keys';
-import {
-  getSearchMovies,
-  getSearchMulti,
-  getSearchPersons,
-  getSearchTvShows,
-  SearchMoviesResult,
-  SearchMultiResult,
-  SearchPersonsResult,
-  SearchTvShowsResult,
-} from '@/lib/search';
+import { getSearchMovies, getSearchMulti, getSearchPersons, getSearchTvShows } from '@/lib/search';
 
 import { SearchContent } from './search-content';
 

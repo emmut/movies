@@ -8,9 +8,8 @@ vi.mock('nuqs', async (importOriginal) => ({
 vi.mock('@/components/region-select', () => ({ RegionSelect: () => null }));
 vi.mock('@/lib/utils', () => ({ formatImageUrl: () => 'https://image.tmdb.org/logo.png' }));
 
+import type { DirectWatchLink, WatchOfferType } from '@movies/api/tmdb-types/watch-provider';
 import { useQueryState } from 'nuqs';
-
-import type { DirectWatchLink, WatchOfferType } from '@/types/watch-provider';
 
 import { StreamingProviders } from './streaming-providers';
 

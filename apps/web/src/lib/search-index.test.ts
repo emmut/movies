@@ -6,20 +6,20 @@ vi.mock('@/lib/movies', () => ({ getMovieDetails: vi.fn() }));
 vi.mock('@/lib/tv-shows', () => ({ getTvShowDetails: vi.fn() }));
 vi.mock('@/lib/persons', () => ({ getPersonDetails: vi.fn() }));
 
+import {
+  CANDIDATE_LIMIT,
+  FUZZY_QUERY_TIMEOUT_MS,
+  fuzzyQuery,
+  MIN_FUZZY_QUERY_LENGTH,
+  MIN_SIMILARITY,
+} from '@movies/db/search-index';
+
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
 import { getPersonDetails } from '@/lib/persons';
 import { getTvShowDetails } from '@/lib/tv-shows';
 
-import {
-  CANDIDATE_LIMIT,
-  FUZZY_QUERY_TIMEOUT_MS,
-  fuzzyQuery,
-  hydrateSearchIndexHits,
-  MIN_FUZZY_QUERY_LENGTH,
-  MIN_SIMILARITY,
-  searchIndexFuzzy,
-} from './search-index';
+import { hydrateSearchIndexHits, searchIndexFuzzy } from './search-index';
 
 function render(query: string, options: { mediaType?: 'movie' | 'tv' | 'person'; limit: number }) {
   const rendered = new PgDialect().sqlToQuery(fuzzyQuery(query, options));

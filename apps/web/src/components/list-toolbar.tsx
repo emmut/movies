@@ -1,10 +1,10 @@
+import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import type { ReactNode } from 'react';
 
 import { ListToolbarRow } from '@/components/list-toolbar-row';
 import { SelectedFilterChips } from '@/components/selected-filter-chips';
 import WatchProviderFilter from '@/components/watch-provider-filter';
 import { useWatchProviderSelection } from '@/hooks/use-watch-provider-selection';
-import type { WatchProvider } from '@/types/watch-provider';
 
 export function ListToolbar({
   watchProviders,

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
+    "@better-auth/expo": "catalog:",
     "@better-auth/passkey": "catalog:",
     "@dnd-kit/core": "catalog:",
     "@dnd-kit/sortable": "catalog:",

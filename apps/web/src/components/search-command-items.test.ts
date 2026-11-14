@@ -1,6 +1,5 @@
+import type { SearchMultiResult } from '@movies/api/search-engine';
 import { describe, expect, it } from 'vite-plus/test';
-
-import type { SearchMultiResult } from '@/lib/search';
 
 import {
   buildSeeAllHref,

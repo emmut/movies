@@ -3,7 +3,7 @@
  * Provides type-safe, hierarchical query keys for consistent caching and invalidation.
  */
 
-import type { DiscoverParams as DiscoverFilters } from './discover-params';
+import type { DiscoverParams as DiscoverFilters } from '@movies/api/discover-params';
 
 type DiscoverParams = DiscoverFilters & { mediaType: 'movie' | 'tv' };
 

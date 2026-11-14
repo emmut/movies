@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ReactNode } from 'react';
 
+import { PreferenceRefresh } from '@/components/preference-refresh';
 import { getQueryClient } from '@/lib/query-client';
 
 type QueryProviderProps = {
@@ -23,6 +24,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <PreferenceRefresh />
       {children}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

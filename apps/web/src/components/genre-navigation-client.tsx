@@ -1,5 +1,6 @@
 'use client';
 
+import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
 import {
   Popover,
@@ -25,7 +26,6 @@ import { OrganizationFilter } from '@/components/organization-filter';
 import { SelectedFilterChips } from '@/components/selected-filter-chips';
 import { useResponsivePopover } from '@/hooks/use-responsive-popover';
 import type { Keyword } from '@/types/keyword';
-import { WatchProvider } from '@/types/watch-provider';
 
 import Pill from './pill';
 import SortByFilter from './sort-by-filter';

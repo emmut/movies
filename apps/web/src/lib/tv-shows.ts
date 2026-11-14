@@ -1,7 +1,6 @@
 import 'server-only';
-import { cacheLife, cacheTag } from 'next/cache';
-
-import type { GenreResponse } from '@/types/genre';
+import { buildDiscoverSearchParams, type DiscoverParams } from '@movies/api/discover-params';
+import type { GenreResponse } from '@movies/api/tmdb-types/genre';
 import {
   TvCredits,
   TvDetails,
@@ -9,10 +8,10 @@ import {
   TvResponse,
   TvSimilar,
   TvWatchProviders,
-} from '@/types/tv-show';
+} from '@movies/api/tmdb-types/tv-show';
+import { cacheLife, cacheTag } from 'next/cache';
 
 import { CACHE_TAGS } from './cache-tags';
-import { buildDiscoverSearchParams, type DiscoverParams } from './discover-params';
 import { DEFAULT_REGION } from './regions';
 import { addPosterImageUrls, tmdbFetch } from './tmdb';
 import { getTmdbExternalIds } from './tmdb-external-ids';

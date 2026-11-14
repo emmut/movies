@@ -1,11 +1,11 @@
+import { getDiscoverWatchProviders, type DiscoverParams } from '@movies/api/discover-params';
+import { getOriginCountryString } from '@movies/config/countries';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
 import { cacheLife } from 'next/cache';
 import { Suspense } from 'react';
 
 import { getUser } from '@/lib/auth-server';
-import { getOriginCountryString } from '@/lib/countries';
 import { getDiscoverMedia } from '@/lib/discover-client';
-import { getDiscoverWatchProviders, type DiscoverParams } from '@/lib/discover-params';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
 import { fetchAvailableGenres } from '@/lib/movies';
 import { getKeyword } from '@/lib/pdp';

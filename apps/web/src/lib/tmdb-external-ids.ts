@@ -1,7 +1,6 @@
 import 'server-only';
+import type { TmdbExternalIdsResponse } from '@movies/api/tmdb-types/tv-show';
 import { cacheLife, cacheTag } from 'next/cache';
-
-import type { TmdbExternalIdsResponse } from '@/types/tv-show';
 
 import { CACHE_TAGS } from './cache-tags';
 import { tmdbFetch } from './tmdb';

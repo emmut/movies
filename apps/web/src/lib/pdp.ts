@@ -1,7 +1,11 @@
 import 'server-only';
+import type {
+  AggregateCredits,
+  CollectionDetails,
+  PdpExtras,
+  SeasonDetails,
+} from '@movies/api/tmdb-types/pdp';
 import { cacheLife, cacheTag } from 'next/cache';
-
-import type { AggregateCredits, CollectionDetails, PdpExtras, SeasonDetails } from '@/types/pdp';
 
 import { CACHE_TAGS } from './cache-tags';
 import { tmdbFetch } from './tmdb';

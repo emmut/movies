@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 vi.mock('@/lib/pdp', () => ({ getPdpExtras: vi.fn() }));
 
+import type { TmdbVideo } from '@movies/api/catalog-support';
+
 import { getPdpExtras } from '@/lib/pdp';
-import type { TmdbVideo } from '@/types/tmdb-video';
 
 import { TrailerContent } from './trailer-content';
 
@@ -31,7 +32,7 @@ describe('Trailer and video entry point', () => {
         videos: {
           id: 1,
           results: [
-            { ...trailer, id: 'extra', key: 'extra-key', type: 'Featurette' },
+            { ...trailer, id: 'extra', key: 'extra-key01', type: 'Featurette' },
             trailer,
             { ...trailer, id: 'invalid', key: 'invalid?key' },
             { ...trailer, id: 'vimeo', site: 'Vimeo' },

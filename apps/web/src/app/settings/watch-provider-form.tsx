@@ -1,5 +1,6 @@
 'use client';
 
+import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
 import {
   Card,
@@ -17,7 +18,6 @@ import { toast } from 'sonner';
 import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
 import { setUserWatchProviders } from '@/lib/user-actions';
 import { formatImageUrl } from '@/lib/utils';
-import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFormProps {
   availableProviders: WatchProvider[];

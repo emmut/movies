@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
 vi.mock('./tmdb', () => ({ tmdbFetch: vi.fn(), addPosterImageUrls: (item: unknown) => item }));
 
+import { getDiscoverWatchProviders } from '@movies/api/discover-params';
+
 import { getDiscoverMedia } from './discover-client';
-import { getDiscoverWatchProviders } from './discover-params';
 import { queryKeys } from './query-keys';
 import { tmdbFetch } from './tmdb';
 

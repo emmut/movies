@@ -1,10 +1,9 @@
 'use client';
 
+import type { Genre } from '@movies/api/tmdb-types/genre';
 import { Film, Tv } from 'lucide-react';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useOptimistic, useTransition } from 'react';
-
-import type { Genre } from '@/types/genre';
 
 type MediaType = 'movie' | 'tv';
 

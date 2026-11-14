@@ -1,5 +1,6 @@
-import { parseSearchQuery } from '@/lib/parse-search-query';
-import type { SearchMultiResult } from '@/lib/search';
+import { parseSearchQuery } from '@movies/api/parse-search-query';
+import type { SearchMultiResult } from '@movies/api/search-engine';
+
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 

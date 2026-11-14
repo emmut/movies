@@ -130,6 +130,9 @@ jobs:
         # worth protecting. Production keeps the guardrail below.
         run: railway config apply --yes --confirm-destructive
 
+      - name: Ensure API domain
+        run: .github/scripts/ensure-service-domain.sh api
+
       - name: Redeploy web after Postgres bootstrap
         if: env.RAILWAY_BOOTSTRAP_POSTGRES == 'true'
         run: railway redeploy --service movies --from-source --yes
@@ -165,3 +168,6 @@ jobs:
         run: |
           railway link --project movies --environment "$RAILWAY_ENVIRONMENT"
           railway config apply --yes
+
+      - name: Ensure API domain
+        run: .github/scripts/ensure-service-domain.sh api

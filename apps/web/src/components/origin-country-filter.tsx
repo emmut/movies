@@ -1,5 +1,11 @@
 'use client';
 
+import {
+  getCountryFlag,
+  getCountryName,
+  getVisibleOriginCountries,
+  sanitizeOriginCountryCodes,
+} from '@movies/config/countries';
 import { Button } from '@movies/ui/components/button';
 import { Input } from '@movies/ui/components/input';
 import { Label } from '@movies/ui/components/label';
@@ -14,13 +20,6 @@ import { cn } from 'cn';
 import { Check, Filter } from 'lucide-react';
 import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
 import { ComponentProps, useState } from 'react';
-
-import {
-  getCountryFlag,
-  getCountryName,
-  getVisibleOriginCountries,
-  sanitizeOriginCountryCodes,
-} from '@/lib/countries';
 
 function getTriggerLabel(selected: string[]) {
   if (selected.length === 0) return 'Select origin countries';

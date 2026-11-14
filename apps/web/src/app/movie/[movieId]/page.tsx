@@ -1,3 +1,6 @@
+import { formatCertification } from '@movies/api/certifications';
+import { formatRuntime } from '@movies/api/formatting';
+import { displayRating } from '@movies/api/home';
 import { Calendar, Clock, Users } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense } from 'react';
@@ -22,14 +25,12 @@ import { ReviewsSection, ReviewsSectionSkeleton } from '@/components/reviews-sec
 import { StreamingSection, StreamingSectionSkeleton } from '@/components/streaming-section';
 import { TrailerContent } from '@/components/trailer-content';
 import { getUser } from '@/lib/auth-server';
-import { formatCertification } from '@/lib/certifications';
 import { getImdbRating } from '@/lib/imdb';
 import { getMediaCertification } from '@/lib/media-info';
 import { getMovieDetails, getMovieRecommendations, getMovieSimilar } from '@/lib/movies';
 import { getSystemListMemberships } from '@/lib/system-list-queries';
 import { optional } from '@/lib/tmdb';
 import { getUserRegion } from '@/lib/user-actions';
-import { formatRuntime } from '@/lib/utils';
 
 type MoviePageProps = {
   params: Promise<{
@@ -80,7 +81,7 @@ export default async function MoviePage(props: MoviePageProps) {
     runtime,
     homepage,
   } = movie;
-  const score = Math.ceil(movie.vote_average * 10) / 10;
+  const score = displayRating(movie.vote_average);
 
   return (
     <div className="min-h-screen">

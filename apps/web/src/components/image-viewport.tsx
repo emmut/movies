@@ -1,6 +1,11 @@
 'use client';
 
 import {
+  getAdjacentMediaIndex,
+  getSwipeMediaDirection,
+  type MediaDirection,
+} from '@movies/api/media-navigation';
+import {
   useEffect,
   useRef,
   useState,
@@ -10,11 +15,6 @@ import {
 } from 'react';
 
 import type { MediaSlide } from '@/components/media-viewer';
-import {
-  getAdjacentMediaIndex,
-  getSwipeMediaDirection,
-  type MediaDirection,
-} from '@/lib/media-navigation';
 
 function getDragAxis(x: number, y: number) {
   if (Math.max(Math.abs(x), Math.abs(y)) < 8) {

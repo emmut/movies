@@ -1,11 +1,11 @@
 'use client';
 
+import type { TmdbVideo } from '@movies/api/catalog-support';
 import { buttonVariants } from '@movies/ui/components/button';
 import { cn } from 'cn';
 import { ArrowUpRight, PlayCircle } from 'lucide-react';
 
 import { MediaViewer, MediaViewerTrigger } from '@/components/media-viewer';
-import type { TmdbVideo } from '@/types/tmdb-video';
 
 function VideoPlayer({ video, title }: { video: TmdbVideo; title: string }) {
   return (

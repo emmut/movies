@@ -1,0 +1,122 @@
+import type { DiscoveryInput, DiscoveryOptions } from '@movies/api/discover';
+import { MOVIE_SORT_OPTIONS, TV_SORT_OPTIONS } from '@movies/api/discover-options';
+import { regions } from '@movies/config/regions';
+import { providerChoices } from '@native/lib/provider-choices';
+
+type Choice = { value: string; label: string };
+
+export type Filter =
+  | 'keywordId'
+  | 'companyId'
+  | 'networkId'
+  | 'genreId'
+  | 'sort_by'
+  | 'runtime'
+  | 'with_origin_country'
+  | 'with_watch_providers'
+  | 'watch_region';
+export type FilterSpec = {
+  title: string;
+  options: Choice[];
+  selected: string[];
+  multiple: boolean;
+  maxSelections?: number;
+};
+
+export const facetFilters = {
+  keywordId: { kind: 'keyword', title: 'Keywords', field: 'keywordIds' },
+  companyId: { kind: 'company', title: 'Production Companies', field: 'companyIds' },
+  networkId: { kind: 'network', title: 'Networks', field: 'networkIds' },
+} as const;
+export function isFacetFilter(filter: Filter): filter is keyof typeof facetFilters {
+  return filter in facetFilters;
+}
+
+const builders = {
+  genreId(input: DiscoveryInput, data: DiscoveryOptions): FilterSpec {
+    return {
+      title: 'Genres',
+      options: data.genres.map((item) => ({ value: String(item.id), label: item.name })),
+      selected: input.genreIds.map(String),
+      multiple: true,
+      maxSelections: 50,
+    };
+  },
+  with_watch_providers(input: DiscoveryInput, data: DiscoveryOptions): FilterSpec {
+    return {
+      title: 'Watch Providers',
+      options: providerChoices(data.providers, input.providerIds),
+      selected: input.providerIds.map(String),
+      multiple: true,
+    };
+  },
+  with_origin_country(input: DiscoveryInput, data: DiscoveryOptions): FilterSpec {
+    return {
+      title: 'Origin Country',
+      options: data.countries.map((item) => ({ value: item.code, label: item.name })),
+      selected: input.originCountries,
+      multiple: true,
+      maxSelections: 50,
+    };
+  },
+  watch_region(input: DiscoveryInput, _data: DiscoveryOptions): FilterSpec {
+    return {
+      title: 'Watch Region',
+      options: regions.map((item) => ({ value: item.code, label: item.name })),
+      selected: [input.region],
+      multiple: false,
+    };
+  },
+  runtime(input: DiscoveryInput, _data: DiscoveryOptions): FilterSpec {
+    return {
+      title: 'Runtime',
+      options: [0, 30, 60, 90, 120].map((value) => ({
+        value: String(value),
+        label: value ? 'Up to ' + value + ' min' : 'Any',
+      })),
+      selected: [String(input.runtime ?? 0)],
+      multiple: false,
+    };
+  },
+  sort_by(input: DiscoveryInput, _data: DiscoveryOptions): FilterSpec {
+    return {
+      title: 'Sort By',
+      options: input.type === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS,
+      selected: [input.sortBy],
+      multiple: false,
+    };
+  },
+};
+
+export function filterSpec(
+  filter: Filter,
+  input: DiscoveryInput,
+  data: DiscoveryOptions,
+): FilterSpec {
+  if (isFacetFilter(filter)) {
+    const facet = facetFilters[filter];
+    const selected = input[facet.field].map(String);
+    return {
+      title: facet.title,
+      options: selected.map((value) => ({ value, label: `${facet.kind} ${value}` })),
+      selected,
+      multiple: true,
+      maxSelections: 50,
+    };
+  }
+  return builders[filter](input, data);
+}
+
+/** Count selected facets; the watch region always has a value and is context, not a facet. */
+export function activeDiscoverFilterCount(input: DiscoveryInput) {
+  return (
+    input.genreIds.length +
+    input.keywordIds.length +
+    input.companyIds.length +
+    input.networkIds.length +
+    Number(input.sortBy !== 'popularity.desc') +
+    Number(Boolean(input.runtime)) +
+    Number(input.originCountries.length > 0) +
+    Number(input.providerIds.length > 0)
+  );
+}

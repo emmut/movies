@@ -1,6 +1,7 @@
+import { getKeywords } from '@movies/api/pdp-extra-content';
+
 import { KeywordBubbles } from '@/components/keyword-bubbles';
 import { getPdpExtras } from '@/lib/pdp';
-import { getKeywords } from '@/lib/pdp-extra-content';
 import { optional } from '@/lib/tmdb';
 
 export async function PdpKeywords({ type, id }: { type: 'movie' | 'tv'; id: number }) {
