@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.29.10",
+    "@base-ui/react": "catalog:",
     "@better-auth/expo": "catalog:",
     "@better-auth/passkey": "catalog:",
     "@movies/api": "workspace:*",

@@ -419,3 +419,48 @@ for (const width of [320, 390, 430]) {
     await expect(page.getByRole('button', { name: 'Filters', exact: true })).toBeVisible();
   });
 }
+
+test('filter popover supports keyboard focus and outside dismissal', async ({ page }) => {
+  await page.goto('/discover');
+  const trigger = page.getByRole('button', { name: 'Filters', exact: true });
+  const popup = page.getByRole('dialog', { name: 'Discovery filters' });
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  await expect(popup).toBeVisible();
+  const first = (await page.getByRole('button', { name: 'Genres', exact: true }).boundingBox())!;
+  const last = (await page.getByRole('button', { name: 'Clear all filters' }).boundingBox())!;
+  expect(first.width).toBeCloseTo((await popup.boundingBox())!.width - 18, 0);
+  expect(last.width).toBeCloseTo(first.width, 0);
+  await expect(page.getByRole('button', { name: 'Genres', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(popup).not.toBeVisible();
+  await expect(trigger).toBeFocused();
+  await trigger.click();
+  await page.getByRole('button', { name: 'Movies', exact: true }).click();
+  await expect(popup).not.toBeVisible();
+  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  await trigger.click();
+  await page.getByRole('button', { name: 'Genres', exact: true }).click();
+  await expect(popup).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Close Genres' })).toBeFocused();
+});
+
+test('filter popover fits a short viewport and keeps every action reachable', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 360 });
+  await page.goto('/discover?runtime=90');
+  await openFilterMenu(page);
+  const popup = page.getByRole('dialog', { name: 'Discovery filters' });
+  await expect(popup).toBeVisible();
+  const bounds = (await popup.boundingBox())!;
+  expect(bounds.x).toBeGreaterThanOrEqual(16);
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(304);
+  expect(bounds.y).toBeGreaterThanOrEqual(16);
+  expect(bounds.y + bounds.height).toBeLessThanOrEqual(344);
+  expect(await popup.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+  const clear = page.getByRole('button', { name: 'Clear all filters', exact: true });
+  await clear.scrollIntoViewIfNeeded();
+  await clear.click();
+  await expect(popup).not.toBeVisible();
+  await expect(page.getByRole('button', { name: 'Filters', exact: true })).toBeVisible();
+});
