@@ -1,5 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
+  // Read-only CLI invoked directly with vpx; it is not an application import.
+  "entry": ["scripts/audit-watch-links.ts"],
   // react-query-devtools is a designed dev-in-prod import: the package is a
   // no-op in production bundles, so the dev-dependency-in-production finding
   // is a false positive.

@@ -1,47 +1,314 @@
 # Direct provider title links
 
-The app uses TMDB/JustWatch for country-specific availability and Wikidata only
-for provider title identifiers. A title identifier does not establish a streaming
-licence, price, subscription entitlement, or regional availability. The UI only
-uses a direct link for a matching TMDB provider and allowed offer type in the
-selected country. Provider pages may still require login or be unavailable in the
-viewer's actual location.
+TMDB/JustWatch determines which services and offers are available in the selected
+country. Wikidata supplies optional provider title identifiers and official title
+URLs, supplemented by reviewed TMDB title homepages and Apple Store catalogue
+lookup. No additional account or API key is required. A title link never creates
+an availability or subscription claim: the UI uses it only for the matching TMDB
+provider, country and offer type, and always retains a labelled TMDB fallback.
 
-## Data flow and coverage
+## Resolution and coverage
 
-1. Fetch `/{movie|tv}/{id}/external_ids` through the existing authenticated TMDB
-   client. Accept only an exact Wikidata `Q` identifier; never match titles by name.
-2. Read claims using Wikidata's `wbgetentities` API with an identifying User-Agent
-   and `maxlag=5`. No provider or TMDB web pages are scraped.
-3. Construct a URL from an allowlisted property, validated identifier, and fixed
-   HTTPS provider origin. No URL templates or arbitrary URLs are executed from
-   Wikidata data. Only unqualified, non-deprecated, unambiguous identifiers are
-   used; preferred statements take precedence over normal statements.
-4. Select the link only for an exact TMDB provider ID and supported offer type.
-   Channel bundles and ad tiers retain the fallback unless explicitly supported.
+1. Fetch TMDB's `/{movie|tv}/{id}/external_ids` using the existing client and use
+   its exact Wikidata `Q` identifier.
+2. If that identifier is absent/invalid, use Wikidata's Action API search with
+   `haswbstatement:P4947={id}` for movies or `haswbstatement:P4983={id}` for TV,
+   with an exact P345 IMDb alternative when TMDB supplies a valid IMDb ID.
+   Read at most two results. Require exactly one candidate and verify its claims
+   contain a unique exact ID before using it. A mismatching TMDB ID or another
+   resource namespace cannot be overridden by an IMDb match. Item merges follow
+   only the validated redirect chain from the requested Q identifier. Never
+   match titles by name or assume a movie/TV ID is interchangeable. This is a
+   read-only lookup; it does not add or edit Wikidata statements.
+3. Fetch the item's claims with `wbgetentities`, an identifying User-Agent and
+   `maxlag=5`. Resolve every reviewed provider property listed below. Current
+   international Prime Video IDs and GTIs precede the US-only Amazon ASIN.
+4. Fill remaining provider links from `official website` (P856), `full work
+   available at URL` (P953), and `described at URL` (P973). Accept only reviewed
+   provider hosts and title paths in `wikidata-url-links.ts`. A generic homepage,
+   person, category, search or account page is not a title destination. Runtime
+   property formatter URLs, arbitrary hosts and reference URLs are never used.
+5. Evaluate supported country and time qualifiers before rank selection. An
+   applicable local statement takes precedence over an unqualified one;
+   preferred rank then takes precedence over normal rank. Conflicting remaining
+   values abstain for that provider/offer, including URL fallbacks: a valid URL
+   cannot restore an identifier rejected for conflicting editions. Language/name annotations are accepted;
+   multiple different identifiers still abstain. Unknown qualifiers, unknown
+   country IDs, non-Gregorian/imprecise dates, deprecated and non-value statements
+   retain the fallback. Start dates are inclusive; end dates are conservatively
+   exclusive. Dates are evaluated outside the raw-claims cache on every lookup.
+6. Construct HTTPS URLs from validated IDs and fixed prefixes, or retain the
+   reviewed provider URL with tracking/query/fragment data removed. Only required
+   Google Play/YouTube identifiers and the documented Plex fragment are retained.
+   Reject credentials, non-standard ports, unsafe schemes, routing escapes and
+   encoded separators. ISO country prefixes on Rakuten, SkyShowtime and Paramount URLs, and
+   country-specific Viaplay hosts, constrain the destination. Apple UMC title IDs
+   and Netflix title IDs are extracted from locale URLs into their published
+   countryless identifier URLs; explicit country qualifiers still apply, and
+   only TMDB-reported offers are linked. Host/trailing-slash aliases are
+   compared as one destination without hiding different title IDs.
+7. Evaluate selected-country, US and GB candidates from the same claims response.
+   Every candidate retains its lookup country. Only local candidates can render
+   initially; foreign candidates require the explicit fallback stage below.
+   Changing countries refreshes the server section and discards old display scopes.
+   TMDB options render before optional lookups settle.
 
-| Provider | Wikidata properties | TMDB provider IDs | Supported offers | Markets |
-| --- | --- | --- | --- | --- |
-| Netflix | [P1874](https://www.wikidata.org/wiki/Property:P1874) | 8 | Subscription | Where TMDB reports it |
-| Disney+ | [P13902](https://www.wikidata.org/wiki/Property:P13902) | 337 | Subscription | Where TMDB reports it |
-| Apple TV | [P9586](https://www.wikidata.org/wiki/Property:P9586) (movie), [P9751](https://www.wikidata.org/wiki/Property:P9751) (TV) | 350 (subscription), 2 (store) | Subscription; store rental/purchase | Where TMDB reports it |
-| Hulu | [P6466](https://www.wikidata.org/wiki/Property:P6466) (movie), [P6467](https://www.wikidata.org/wiki/Property:P6467) (TV) | 15 | Subscription | US only |
-| Amazon | [P8055](https://www.wikidata.org/wiki/Property:P8055) | 9 (subscription), 10 (store) | Subscription; store rental/purchase | US only: P8055 describes the US catalogue |
+## Free fallback sources
 
-Disney uses current `entity-…` browse IDs, not the legacy movie/series IDs or
-collection `page-…` IDs. Other services, unsupported markets, missing Wikidata
-items, malformed/qualified/conflicting identifiers, and API failures all keep
-explicitly labelled TMDB watch links. Free and ad-supported availability remains
-visible with the same fallback. Coverage is incomplete: the property examples
-are useful validation cases, not a measured catalogue-wide coverage percentage.
+Wikidata remains first in priority. The already-loaded TMDB `homepage` field is
+accepted only when its URL matches the same reviewed provider host/title rules.
+Marketing, generic homepages and arbitrary article links do not qualify. Homepage
+links are visible while Wikidata loads; they require no additional TMDB request.
 
-One hourly external-ID response cache serves both the IMDb and Wikidata readers,
-tagged with the title's details tag and, for TV, the existing IMDb-ID tag.
-Wikidata links revalidate daily with a seven-day maximum lifetime. Failures are
-caught outside the cached functions. The Wikidata request has a three-second
-abort timeout. Availability and labelled TMDB watch options render as soon as
-the provider lookup completes; a nested Suspense boundary streams in direct
-links independently, so even a slow external-ID lookup cannot delay availability. Restricted deployments must allow `www.wikidata.org`.
+If a reported Apple TV Store (provider **2**) rent/buy offer still lacks a link,
+the server queries Apple's [Search API](https://performance-partners.apple.com/search-api)
+with the selected ISO country, `limit=25`, and the movie or TV-season entity.
+It accepts only one unambiguous destination in that exact storefront. Movie
+results must match the normalized localized/original title, exact release year
+and a director from the existing TMDB credits API. TV results must match the show
+name and first-season year and provide a genuine `artistViewUrl` series page;
+a season or episode destination is rejected. Edition conflicts, other hosts,
+unsafe URLs and results from a different storefront than the requested lookup
+retain fallback. Returned title URLs are
+validated and canonicalized; no provider slug is invented.
+
+This lookup grants only store rent/buy destinations, never Apple TV subscription
+(provider 350) or an Apple channel bundle. It never adds an offer absent from
+TMDB. Existing links remain visible under a nested Suspense boundary while the
+catalogue request runs. The attribution row credits the source of actual selected
+links; JustWatch/TMDB attribution and the title-specific TMDB watch link remain.
+
+Apple documents approximately 20 calls per minute and recommends caching.
+Metadata revalidates daily with a seven-day maximum lifetime, keyed by title,
+resource type and storefront. Requests have a three-second deadline and no
+immediate retry. A per-process queue spaces cold requests by at least 3.1 seconds,
+with at most two waiting reservations; excess requests skip the optional source.
+This permits sequential local/US/GB requests instead of skipping both fallback
+lookups immediately after a local miss. HTTP 429 starts a 60-second process cooldown,
+also checked before already queued requests dispatch. This is **not a distributed quota guarantee** across
+replicas; additional instances share cached results but can issue distinct cold
+requests. Restricted deployments need outbound HTTPS to `itunes.apple.com`.
+Failures escape the cache and retain existing options. Only destination metadata
+is retained; artwork, audio and previews are stripped before caching and are not
+displayed. The implementation uses links to promote the corresponding Apple
+store content; it does not claim permission for other uses of Apple's assets.
+Review the API's linked terms before changing this scope.
+
+For the reported `tv/100088` (The Last of Us), a live TMDB check on 2026-11-05
+listed Swedish HBO Max, HBO Max Amazon Channel, SF Anytime purchase and Amazon
+Video purchase offers. Apple Store was absent. The homepage is an HBO title page;
+the local Apple lookup cannot supply those other provider destinations. US/GB
+Wikidata candidates may add labelled foreign links if their data contains the
+exact provider/offer identity; that has not been verified live here.
+
+## Local first, then US and GB
+
+Resolution is per provider and offer: local Wikidata, reviewed homepage and Apple
+lookup all take priority over every US source; all US sources precede GB sources.
+Already resolved local or US offers are never replaced by a later market. The
+selected market is deduplicated: US users can fall back to GB, and GB users to US.
+A missing local Apple rent link does not replace an already resolved local buy link.
+
+Only providers and offer types reported by TMDB for the selected country can
+receive a fallback. The app does not fetch or import foreign availability or
+substitute a subscription/standalone identity for a store/channel offer. Wikidata
+claims are fetched once, including when the request fails; regional filtering is
+performed in memory rather than retrying the same item request for US and GB.
+The existing TMDB homepage is evaluated under each market's reviewed rules, not
+rewritten into a guessed regional URL. Apple queries the actual US/GB storefront
+only if its local Store offer still has no destination.
+
+Accepted foreign URLs retain their original country and title ID. They are never
+rewritten to pretend to be local. Display scoping is separate: the fallback is
+attached only to the unresolved selected-country offer, with `fallbackRegion`
+recording its lookup market. Buttons show `(US catalogue)` or `(UK catalogue)`
+and explain that availability or prices can differ. Even countryless IDs found
+through this fallback carry that label. TMDB's selected-country watch link and
+availability attribution remain available. Ordinary links remain visible while
+country fallback requests finish. Failed or unmatchable sources retain TMDB options.
+
+## Provider registry
+
+The registry covers **65 current TMDB provider IDs/variants**, checked against
+TMDB's movie/TV provider catalogues on 2026-11-05. It has **35 dedicated external-ID
+properties**, plus the three URL properties. This is implementation coverage,
+not a measured title-level success rate. Provider additions require a reviewed
+property/domain rule and a fixture. Wikidata remains incomplete, and not every
+streaming service has an identifier property or a title URL on every item.
+
+### Dedicated identifier properties
+
+Unless a market is explicitly listed, the title identity can be used where TMDB
+reports the matching offer. Provider pages may require login, payment or a local
+account. Regional availability remains TMDB's responsibility.
+
+| Service | Wikidata properties | TMDB provider IDs | Offer / market restrictions |
+| --- | --- | --- | --- |
+| Netflix, Kids, Standard with Ads | [P1874](https://www.wikidata.org/wiki/Property:P1874) | 8, 175, 1796 | Subscription; no channel bundles |
+| Disney+ | [P13902](https://www.wikidata.org/wiki/Property:P13902) | 337, 122 | Current `entity-…` browse IDs only; legacy P7595/P7596 and collection `page-…` IDs are excluded |
+| Apple TV / Store | [P9586](https://www.wikidata.org/wiki/Property:P9586), [P9751](https://www.wikidata.org/wiki/Property:P9751), [P6398](https://www.wikidata.org/wiki/Property:P6398) | 350, 2 | Subscription and store rental/purchase stay separate; iTunes movie ID is a US-only store fallback |
+| Hulu | [P6466](https://www.wikidata.org/wiki/Property:P6466), [P6467](https://www.wikidata.org/wiki/Property:P6467) | 15 | US subscription; movie/series namespaces stay separate |
+| Prime Video / Amazon Video | [P14440](https://www.wikidata.org/wiki/Property:P14440), [P14462](https://www.wikidata.org/wiki/Property:P14462), [P8055](https://www.wikidata.org/wiki/Property:P8055) | 9, 119, 2100, 613; store 10 | International ID / GTI first; ASIN P8055 only in US. Subscription/free/ads versus store rent/buy remain separate |
+| HBO Max | [P8298](https://www.wikidata.org/wiki/Property:P8298) | 1899 | Movie/show UUIDs and exact work-level legacy feature/series URNs; no season/episode IDs |
+| MUBI | [P7299](https://www.wikidata.org/wiki/Property:P7299) | 11 | Standalone film/TV title pages; no Amazon channel substitution |
+| Tubi | [P7760](https://www.wikidata.org/wiki/Property:P7760), [P7761](https://www.wikidata.org/wiki/Property:P7761) | 73 | Free/ads; movie/series namespaces stay separate |
+| Peacock | [P11815](https://www.wikidata.org/wiki/Property:P11815) | 386, 387 | US; movie/TV paths stay separate |
+| Paramount+ | [P13147](https://www.wikidata.org/wiki/Property:P13147) | 531, 2303, 2304, 2616 | This video property is used only for US movies, never whole TV series; exact series URLs can fill TV links |
+| SVT Play | [P6817](https://www.wikidata.org/wiki/Property:P6817) | 493 | Sweden; title slugs only, excluding categories and people |
+| NRK TV | [P9979](https://www.wikidata.org/wiki/Property:P9979) | 442 | Norway; whole series/programme pages, excluding season/episode suffixes |
+| Yle Areena | [P3414](https://www.wikidata.org/wiki/Property:P3414) | 323 | Finland |
+| Filmstriben | [P8928](https://www.wikidata.org/wiki/Property:P8928) | 443 | Denmark; films only |
+| Rakuten Viki | [P10344](https://www.wikidata.org/wiki/Property:P10344) | 344 | Movie/TV paths only; excludes celebrities |
+| Plex | [P11460](https://www.wikidata.org/wiki/Property:P11460) | 538 | Free/ads; documented media-key fragment, not a fabricated watch.plex.tv slug |
+| Fandango at Home / Free | [P7334](https://www.wikidata.org/wiki/Property:P7334) | 7, 332 | US; store rent/buy versus free/ads |
+| Kanopy | [P7985](https://www.wikidata.org/wiki/Property:P7985) | 191 | Free/subscription; library access may be required |
+| Hoopla | [P5680](https://www.wikidata.org/wiki/Property:P5680) | 212 | Free/subscription; library access may be required |
+| BBC iPlayer | [P827](https://www.wikidata.org/wiki/Property:P827) | 38 | UK; BBC programme title page, or exact iPlayer title URL |
+| Crunchyroll | [P11330](https://www.wikidata.org/wiki/Property:P11330) | 283 | Current series-page ID, including films catalogued on those pages; deprecated P4110 is excluded |
+| RaiPlay | [P11119](https://www.wikidata.org/wiki/Property:P11119) | 222 | Italy |
+| U-NEXT | [P14567](https://www.wikidata.org/wiki/Property:P14567) | 84 | Japan |
+| ABEMA | [P14599](https://www.wikidata.org/wiki/Property:P14599) | 1884 | Japan |
+| FOD | [P14596](https://www.wikidata.org/wiki/Property:P14596) | 2683 | Japan |
+| NFB | [P4606](https://www.wikidata.org/wiki/Property:P4606) | 441 | Film title pages; conflicting language/edition IDs retain fallback |
+| Ivi | [P11682](https://www.wikidata.org/wiki/Property:P11682) | 113 | Work-level watch pages; provider availability still comes from TMDB |
+| Okko | [P14727](https://www.wikidata.org/wiki/Property:P14727) | 115 | Films only |
+| Brew | [P14403](https://www.wikidata.org/wiki/Property:P14403) | 2736 | Film title pages |
+
+### Additional services through exact Wikidata URLs
+
+These have explicit host/title-path rules. A link must already be stored on the
+work's Wikidata item; the app does not invent a slug or search a provider website.
+The same URL-property flow also covers alternate title URL shapes for the
+identifier-backed services above.
+
+| Service | TMDB provider IDs | Accepted destination / restrictions |
+| --- | --- | --- |
+| Google Play Movies | 3 | Movie details URL with required validated `id`; rent/buy only |
+| YouTube / YouTube Free | 192, 235 | Movie `watch?v=…` URL in **P953 only**, free/ads; P1651 and ordinary URL claims often identify trailers and are excluded |
+| Viaplay | 76 | Country-specific title/store pages; subscription and transactional paths stay separate |
+| SF Anytime | 426 | Localized movie/TV title paths; rent/buy |
+| Rakuten TV | 35 | Country-specific movie/TV title paths; foreign fallbacks retain their actual country and label |
+| TV4 Play | 1944 | Swedish programme title IDs |
+| Cineasterna | 496 | Swedish title pages |
+| SkyShowtime | 1773 | Country-specific movie/TV title pages |
+| ITVX / Premium | 41, 2300 | UK watch-title paths |
+| Channel 4 / Plus | 103, 2311 | UK programme title pages |
+| BFI Player | 224 | UK subscription versus rental title paths; no channel substitution |
+| ARTE | 234 | Localized video title IDs |
+| DRTV | 620 | Danish programme/series title pages |
+| Filmin / Plus | 63, 64 | Spain/Portugal title pages, with country and film/series paths preserved |
+| Curiosity Stream | 190 | Film video IDs versus TV series IDs |
+| Shudder | 99 | Standalone movie/series watch pages; no channel substitution |
+| Kinopoisk | 117 | Exact streaming title URLs on hd.kinopoisk.ru; public database IDs are not converted into streaming UUIDs |
+| Vimeo | 2529 | On Demand title pages for rent/buy, or movie video pages explicitly identified as the full work by P953; ordinary clip/trailer IDs are excluded |
+| Criterion Channel | 258 | US/Canada film slugs; generic site routes excluded; Criterion Collection disc/catalogue IDs do not imply a Channel stream |
+
+### Known limits
+
+- All TMDB offers remain visible, including providers without usable Wikidata
+  data. Those buttons explicitly open the title's TMDB watch-options page.
+- A standalone service ID never grants a link for its Amazon, Apple or Roku
+  channel bundle. Those need a destination on the actual channel host. The
+  registry does not pretend a standalone subscription uses that entitlement.
+- URLs and identifiers are validated structurally, not playback-tested on each
+  request. Provider redirects, account requirements, retired identifiers and
+  regional catalogue differences can still affect the landing page.
+- Database-only identifiers are not assumed to be streaming IDs. For example,
+  Kinopoisk P2603 cannot generate a streaming UUID, and Criterion Collection IDs
+  do not identify Criterion Channel streams. Megogo P2826 was reviewed but has
+  no matching provider in the current TMDB registry, so it cannot establish an
+  offer under this availability source.
+- New provider properties and URL shapes need review; arbitrary runtime URL
+  templates would allow unsafe destinations and incorrect provider mappings.
+- Exact reverse search is bounded and can miss items whose TMDB statement is
+  absent or not yet indexed. Ambiguous items retain fallback instead of guessing.
+
+## Caching and operational behaviour
+
+TMDB external IDs share the existing hourly response cache with the IMDb reader.
+Wikidata claims and exact reverse lookups revalidate daily with a seven-day
+maximum lifetime, using remote caching. Country/date filtering happens outside
+that cache, so country changes reuse the same entity data and expired identifiers
+are filtered against today's UTC date. HTTP/network/JSON/maxlag failures escape
+the cache and are caught by the optional resolver; no immediate retries occur.
+Requests use three-second deadlines, `redirect: error`, and `cache: no-store`
+inside the remote-cache boundary. Restricted deployments need outbound HTTPS to
+`www.wikidata.org`; there is no SPARQL endpoint or extra credential dependency.
+An ordinary lookup needs one Wikidata request on a cold entity cache; a missing
+TMDB Wikidata ID needs at most a reverse-search request and one entity request.
+
+## Measuring hit rate
+
+Provider support is a capability count, not a catalogue hit rate. Measure actual
+provider/offer buttons in a selected country instead:
+
+```sh
+vpx --env-file-if-exists=apps/web/.env scripts/audit-watch-links.ts SE > watch-link-audit.json
+vpx --env-file-if-exists=apps/web/.env scripts/audit-watch-links.ts SE movie/1051896 tv/66732
+```
+
+The default is a fixed nine-title sample (including the two reported movies and
+well-known film/TV controls); explicit resource arguments support up to 30 titles.
+The script performs serial read-only requests and uses the production matcher,
+identifier, redirect and URL rules. It needs the existing TMDB access token and
+network access to both APIs. The main summary measures Wikidata only; a separate
+`homepageSummary` measures validated TMDB homepages independently, even if
+Wikidata fails. Counts can overlap and must not be added. The audit does not
+query Apple or measure the US/GB fallback stages. It reports per-provider direct/total offer counts,
+the proportion of titles with at least one direct link, relevant properties
+present on each item, missing identities and lookup failures separately.
+
+Failed API requests are **unmeasured**, not counted as missing Wikidata data.
+Rates are `null` when no offers can be measured. Exit code 2 indicates incomplete
+lookups, 1 a fatal setup/input/TMDB error, and 0 completed lookups (which can still
+contain missing items or links). Run `vpx` directly when redirecting JSON, so
+package-manager lifecycle output cannot contaminate the report. Failure warnings
+in the app include public resource IDs and HTTP status when available, without
+logging upstream bodies or arbitrary error text.
+
+The earlier saved nine-title Sweden sample contained 55 regional offers: 44
+were Apple Store, Viaplay, Rakuten, SF Anytime, Amazon Video or Blockbuster.
+Adding niche-provider adapters alone does not establish a gain for those
+frequent gaps. Wikipedia article checks for Arcadian, Sinners, Ted Lasso and
+Severance did not demonstrate an incremental source: the first two exposed no
+provider title link in their external-links sections, while Apple pages for the
+shows overlapped known candidates. These are small diagnostic samples, not a
+measured catalogue-wide coverage percentage.
+
+The production homepage matcher was also run against 30 saved live TMDB title
+records. Five titles in Sweden and seven in the US had at least one matching
+homepage provider reported as available. This is a provider-level diagnostic;
+the saved records do not retain offer types, and these links may already exist
+in Wikidata. It does not establish an incremental gain or Apple lookup coverage.
+
+A smoke audit on 2026-11-05 loaded Arcadian's 11 current Swedish TMDB offers, but
+Wikidata was unreachable under the workspace policy. It correctly reported
+one lookup failure, 11 unmeasured offers and `null` rates. This does not establish
+a production hit rate or an improvement percentage. More provider/title data is
+still needed where these sources contain no usable destination. The Apple fallback
+was added after this smoke audit and has not been live-measured: `itunes.apple.com`
+is also outside the workspace outbound policy. Matching, request parameters,
+failures and UI behavior are covered by fixtures based on Apple’s published API
+contract; there is no verified catalogue-wide improvement percentage.
+
+## Validation — 2026-11-05
+
+Provider IDs were checked against the live authenticated TMDB movie/TV registry.
+Property definitions, formatter URLs and examples were read from the Wikidata
+pages linked above. Additional first-party route examples include
+[Viaplay's Arcadian store page](https://viaplay.se/store/arcadian-2024),
+[SF Anytime movie pages](https://www.sfanytime.com/sv/movie/results),
+[TV4 Play programme pages](https://www.tv4play.se/program/251c6ee386132c89bd70/mollys-game),
+[BFI subscription title pages](https://player.bfi.org.uk/subscription/film/watch-the-400-blows-1959-online),
+and [Criterion Channel URLs stored on film items](https://www.wikidata.org/wiki/Q2479210).
+The resolver has fixtures for every identifier-backed service and URL-only
+service, with market, rank, date, ambiguity, malformed data, missing identities,
+upstream failures, namespaces, source priority and fallback cases.
+
+Live Wikidata Action API requests and provider playback were not exercised in
+the managed workspace: `www.wikidata.org` is outside its outbound policy, and
+attempts to inspect machine-readable data through the research browser failed.
+The new rules do not establish a measured catalogue-wide coverage percentage.
 
 ## TMDB policy review — 2026-11-01
 
@@ -63,11 +330,13 @@ Reviewed the official public documentation:
   and [TV external IDs](https://developer.themoviedb.org/reference/tv-series-external-ids)
   document Wikidata IDs as supported external identifiers.
 
-Implementation assessment: direct links derived independently from Wikidata are
+Implementation assessment: direct links derived from Wikidata identifiers, reviewed
+TMDB title homepages and independently matched Apple catalogue destinations are
 consistent with the retrieved public watch-provider and attribution documentation.
 The UI preserves a separate, visible title-specific TMDB watch link even when all
 provider buttons link directly, credits JustWatch via TMDB, and adds Wikidata
-credit when its identifiers are used. This is an assessment of those documented
+credit when its identifiers are used, or Apple credit when its catalogue is used.
+This is an assessment of those documented
 requirements, not a claim of TMDB endorsement or a complete legal determination.
 
 Verification limit: the full [TMDB API Terms of Use](https://www.themoviedb.org/api-terms-of-use)

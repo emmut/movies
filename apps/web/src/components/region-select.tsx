@@ -20,7 +20,7 @@ function hasProviders(providers: RegionWatchProviders | undefined): boolean {
   if (!providers) {
     return false;
   }
-  return [providers.flatrate, providers.rent, providers.buy].some(
+  return [providers.flatrate, providers.rent, providers.buy, providers.free, providers.ads].some(
     (services) => (services?.length ?? 0) > 0,
   );
 }
@@ -63,7 +63,9 @@ function RegionSelectItem({
 export function RegionSelect({ defaultValue, allRegionProviders }: RegionSelectProps) {
   const [region, setRegion] = useQueryState(
     'region',
-    parseAsStringLiteral(regionCodes).withDefault(defaultValue ?? DEFAULT_REGION),
+    parseAsStringLiteral(regionCodes)
+      .withDefault(defaultValue ?? DEFAULT_REGION)
+      .withOptions({ shallow: false }),
   );
 
   function handleValueChange(value: string | null) {

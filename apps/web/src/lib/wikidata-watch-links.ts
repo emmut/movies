@@ -1,129 +1,59 @@
-import { z } from 'zod';
+import { wikidataLinkRules } from '@/lib/wikidata-link-rules';
+import {
+  hasConflictingWikidataValues,
+  uniqueWikidataValue,
+  wikidataStatements,
+} from '@/lib/wikidata-statements';
+import { wikidataUrlLinks } from '@/lib/wikidata-url-links';
+import type { DirectWatchLink } from '@/types/watch-provider';
 
-import type { DirectWatchLink, WatchOfferType } from '@/types/watch-provider';
+type Rule = ReturnType<typeof wikidataLinkRules>[number];
 
-const statementSchema = z.object({
-  rank: z.enum(['normal', 'preferred']),
-  mainsnak: z.object({
-    snaktype: z.literal('value'),
-    datatype: z.literal('external-id'),
-    datavalue: z.object({ value: z.string() }),
-  }),
-  qualifiers: z.record(z.string(), z.unknown()).optional(),
-});
-
-const uuidSchema = z.uuid();
-const appleId = /^umc\.cmc\.[a-z0-9]{22,25}$/;
-
-type LinkRule = {
-  property: string;
-  providerIds: number[];
-  types: WatchOfferType[];
-  schema: z.ZodType<string>;
-  prefix: string;
-  regions?: string[];
-};
-
-function linkRules(type: 'movie' | 'tv'): LinkRule[] {
-  return [
-    {
-      property: 'P1874',
-      providerIds: [8],
-      types: ['flatrate'],
-      schema: z.string().regex(/^\d{6,8}$/),
-      prefix: 'https://www.netflix.com/title/',
-    },
-    // Use the current browse identifier, not legacy Disney movie/series URLs.
-    {
-      property: 'P13902',
-      providerIds: [337],
-      types: ['flatrate'],
-      schema: z.templateLiteral(['entity-', uuidSchema]),
-      prefix: 'https://www.disneyplus.com/browse/',
-    },
-    {
-      property: type === 'movie' ? 'P9586' : 'P9751',
-      providerIds: [350],
-      types: ['flatrate'],
-      schema: z.string().regex(appleId),
-      prefix: `https://tv.apple.com/${type === 'movie' ? 'movie' : 'show'}/`,
-    },
-    {
-      property: type === 'movie' ? 'P9586' : 'P9751',
-      providerIds: [2],
-      types: ['rent', 'buy'],
-      schema: z.string().regex(appleId),
-      prefix: `https://tv.apple.com/${type === 'movie' ? 'movie' : 'show'}/`,
-    },
-    {
-      property: type === 'movie' ? 'P6466' : 'P6467',
-      providerIds: [15],
-      types: ['flatrate'],
-      schema: uuidSchema,
-      prefix: `https://www.hulu.com/${type === 'movie' ? 'movie' : 'series'}/`,
-      regions: ['US'],
-    },
-    // P8055 explicitly identifies Amazon's US catalogue. Never reuse it abroad.
-    {
-      property: 'P8055',
-      providerIds: [9],
-      types: ['flatrate'],
-      schema: z.string().regex(/^B[0-9A-Z]{9}$/),
-      prefix: 'https://www.amazon.com/gp/video/detail/',
-      regions: ['US'],
-    },
-    {
-      property: 'P8055',
-      providerIds: [10],
-      types: ['rent', 'buy'],
-      schema: z.string().regex(/^B[0-9A-Z]{9}$/),
-      prefix: 'https://www.amazon.com/gp/video/detail/',
-      regions: ['US'],
-    },
-  ];
+function identifierLinks(
+  rule: Rule,
+  claims: Record<string, unknown>,
+  region: string,
+  today: string,
+) {
+  if (rule.regions && !rule.regions.includes(region)) return { links: [], conflicts: [] };
+  const statements = wikidataStatements(claims[rule.property], 'external-id', region, today);
+  if (hasConflictingWikidataValues(statements)) {
+    return {
+      links: [],
+      conflicts: rule.providerIds.flatMap((id) => rule.types.map((offer) => `${id}:${offer}`)),
+    };
+  }
+  const id = rule.schema.safeParse(uniqueWikidataValue(statements));
+  if (!id.success) return { links: [], conflicts: [] };
+  return {
+    conflicts: [],
+    links: rule.providerIds.map((providerId) => ({
+      providerId,
+      url: `${rule.prefix}${id.data}${rule.suffix ?? ''}`,
+      types: rule.types,
+      regions: [region],
+    })),
+  };
 }
 
-function getIdentifier(value: unknown, schema: z.ZodType<string>) {
-  if (!Array.isArray(value)) {
-    return;
-  }
-  const statements = value.flatMap((entry) => {
-    const result = statementSchema.safeParse(entry);
-    // Qualified identifiers may apply only in a market or time period. Leave
-    // these to the fallback until those qualifiers are explicitly supported.
-    if (!result.success || Object.keys(result.data.qualifiers ?? {}).length > 0) {
-      return [];
-    }
-    return [result.data];
-  });
-  const preferred = statements.filter((statement) => statement.rank === 'preferred');
-  const candidates = preferred.length > 0 ? preferred : statements;
-  const identifiers = [
-    ...new Set(candidates.map((statement) => statement.mainsnak.datavalue.value)),
-  ];
-  // Multiple conflicting IDs are ambiguous; do not pick an arbitrary edition.
-  if (identifiers.length !== 1) {
-    return;
-  }
-  const parsed = schema.safeParse(identifiers[0]);
-  return parsed.success ? parsed.data : undefined;
-}
-
-/** Construct URLs only from allowlisted properties, validated IDs and fixed provider origins. */
+/** Regional availability comes from TMDB; all destinations come from this exact Wikidata item. */
 export function buildWikidataWatchLinks(
   claims: Record<string, unknown>,
   type: 'movie' | 'tv',
+  region: string,
+  today: string,
 ): DirectWatchLink[] {
-  return linkRules(type).flatMap((rule) => {
-    const id = getIdentifier(claims[rule.property], rule.schema);
-    if (!id) {
-      return [];
-    }
-    return rule.providerIds.map((providerId) => ({
-      providerId,
-      url: `${rule.prefix}${id}`,
-      types: rule.types,
-      regions: rule.regions,
-    }));
+  const results = wikidataLinkRules(type).map((rule) =>
+    identifierLinks(rule, claims, region, today),
+  );
+  const conflicts = new Set(results.flatMap((result) => result.conflicts));
+  const candidates = [
+    ...results.flatMap((result) => result.links),
+    ...wikidataUrlLinks(claims, type, region, today),
+  ];
+  // A URL fallback must never resurrect an edition rejected for conflicting identifiers.
+  return candidates.flatMap((link) => {
+    const types = link.types.filter((offer) => !conflicts.has(`${link.providerId}:${offer}`));
+    return types.length ? [{ ...link, types }] : [];
   });
 }
