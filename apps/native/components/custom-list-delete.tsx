@@ -1,8 +1,9 @@
 import type { CustomListSummary } from '@movies/api/custom-lists';
+import { Sheet } from '@native/components/sheet';
 import { orpc } from '@native/lib/api';
 import { refreshCustomLists } from '@native/lib/custom-lists';
 import { useMutation } from '@tanstack/react-query';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 const SafeAreaView = withUniwind(NativeSafeAreaView);
@@ -33,7 +34,7 @@ export function CustomListDelete({
     }
   }
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={dismiss}>
+    <Sheet visible onRequestClose={dismiss}>
       <SafeAreaView className="flex-1 justify-center bg-background p-5">
         <View className="gap-5 rounded-xl border border-border p-5">
           <Text accessibilityRole="header" className="text-xl font-bold text-foreground">
@@ -68,6 +69,6 @@ export function CustomListDelete({
           </Pressable>
         </View>
       </SafeAreaView>
-    </Modal>
+    </Sheet>
   );
 }

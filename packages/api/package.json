@@ -41,7 +41,9 @@
     "./media-navigation": "./src/media-navigation.ts",
     "./cast-members": "./src/cast-members.ts",
     "./pdp": "./src/pdp.ts",
-    "./network-catalog": "./src/network-catalog.ts"
+    "./network-catalog": "./src/network-catalog.ts",
+    "./watch-links": "./src/watch-links.ts",
+    "./wikidata-watch-links": "./src/wikidata-watch-links.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

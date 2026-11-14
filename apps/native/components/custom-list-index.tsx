@@ -1,8 +1,9 @@
 import type { CustomListSummary } from '@movies/api/custom-lists';
 import { AccountScreen } from '@native/components/account-screen';
+import { CatalogPagination } from '@native/components/catalog-pagination';
 import { CustomListDialogs } from '@native/components/custom-list-dialogs';
 import { CustomListScroll } from '@native/components/custom-list-scroll';
-import { ListMoveControls, ListPageControls } from '@native/components/list-controls';
+import { ListMoveControls } from '@native/components/list-controls';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
 import { accountQueryKey } from '@native/lib/account-query-key';
@@ -132,11 +133,11 @@ function ListIndex({ userId }: { userId: string }) {
           move={(item, position) => move.mutate({ listId: item.id, position })}
         />
         <IndexEmpty total={result.totalItems} />
-        <ListPageControls
+        <CatalogPagination
           page={result.currentPage}
-          pages={result.totalPages}
-          blocked={blocked}
-          change={(value) => router.setParams({ page: String(value) })}
+          totalPages={result.totalPages}
+          disabled={blocked}
+          onChange={(value) => router.setParams({ page: String(value) })}
         />
       </CustomListScroll>
       <CustomListDialogs

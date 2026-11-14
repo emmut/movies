@@ -16,6 +16,7 @@ const icons: Record<string, typeof StarIcon | undefined> = {
   Seasons: TvIcon,
   Streaming: TvIcon,
   Free: TicketCheckIcon,
+  'Free with ads': TicketCheckIcon,
   Rent: PlayIcon,
   Buy: ShoppingCartIcon,
   Released: CalendarIcon,

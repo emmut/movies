@@ -1,11 +1,12 @@
 import type { CatalogTitleInput } from '@movies/api/catalog-support';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { PlayIcon } from '@native/components/icons';
+import { Sheet } from '@native/components/sheet';
 import { TrailerPlayer } from '@native/components/trailer-player';
 import { orpc } from '@native/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -20,7 +21,7 @@ function TrailerSheet({
   onClose: () => void;
 }) {
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Sheet visible onRequestClose={onClose}>
       <SafeAreaView className="flex-1 gap-4 bg-background p-4">
         <View className="flex-row items-center justify-between gap-3">
           <Text accessibilityRole="header" className="flex-1 text-xl font-semibold text-foreground">
@@ -39,7 +40,7 @@ function TrailerSheet({
           <TrailerPlayer videoKey={videoKey} title={title} />
         </View>
       </SafeAreaView>
-    </Modal>
+    </Sheet>
   );
 }
 function TrailerAction({

@@ -21,6 +21,7 @@ const providerSchema = z.object({
 const regionProvidersSchema = z.object({
   link: z.string().optional(),
   free: z.array(providerSchema).default([]),
+  ads: z.array(providerSchema).default([]),
   flatrate: z.array(providerSchema).default([]),
   rent: z.array(providerSchema).default([]),
   buy: z.array(providerSchema).default([]),
@@ -67,6 +68,7 @@ export function createCatalogSupportService(
       return {
         link: watchLink(groups.link, input),
         free: groups.free.map(providerCard),
+        ads: groups.ads.map(providerCard),
         streaming: groups.flatrate.map(providerCard),
         rent: groups.rent.map(providerCard),
         buy: groups.buy.map(providerCard),

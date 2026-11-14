@@ -47,3 +47,27 @@ describe('IMDb RPC transport', () => {
     );
   });
 });
+
+it.each([
+  [
+    { movie_results: [{ id: 42 }], tv_results: [{ id: 7 }] },
+    { id: 42, type: 'movie' },
+  ],
+  [
+    { movie_results: [], tv_results: [{ id: 7 }] },
+    { id: 7, type: 'tv' },
+  ],
+  [{ movie_results: [], tv_results: [] }, null],
+])('resolves IMDb URLs with the web movie-first rule', async (results, destination) => {
+  const fetcher = vi.fn().mockResolvedValue(results);
+  const client = createTestClient(
+    createApp(mockServices({ catalog: createCatalogService(fetcher) })),
+  );
+  expect(await client.catalog.resolveImdb({ imdbId: 'tt1234567' })).toEqual(destination);
+  expect(fetcher).toHaveBeenCalledWith('/find/tt1234567', {
+    searchParams: { external_source: 'imdb_id' },
+  });
+  await expect(client.catalog.resolveImdb({ imdbId: '../movie/42' })).rejects.toMatchObject({
+    code: 'BAD_REQUEST',
+  });
+});

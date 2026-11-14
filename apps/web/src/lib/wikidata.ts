@@ -1,10 +1,10 @@
 import 'server-only';
 import type { DirectWatchLink } from '@movies/api/tmdb-types/watch-provider';
+import { buildWikidataWatchLinks } from '@movies/api/wikidata-watch-links';
 import { cacheLife } from 'next/cache';
 import { z } from 'zod';
 
 import { getTmdbExternalIds } from '@/lib/tmdb-external-ids';
-import { buildWikidataWatchLinks } from '@/lib/wikidata-watch-links';
 
 const itemIdSchema = z.string().regex(/^Q[1-9]\d*$/);
 const entitySchema = z.object({ claims: z.record(z.string(), z.unknown()) });

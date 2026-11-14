@@ -1,6 +1,7 @@
 import { CheckIcon } from '@native/components/icons';
+import { Sheet } from '@native/components/sheet';
 import { useMemo, useState } from 'react';
-import { FlatList, Modal, Pressable, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -27,10 +28,10 @@ function ChoiceRow({
       accessibilityLabel={item.label}
       disabled={disabled}
       accessibilityState={{ checked, disabled }}
-      className="min-h-14 flex-row items-center justify-between border-b border-border px-5"
+      className="min-h-14 flex-row items-center justify-between border-b border-border px-4"
       onPress={() => onSelect(item.value)}
     >
-      <Text className="text-base text-foreground">{item.label}</Text>
+      <Text className="flex-1 py-3 text-base text-foreground">{item.label}</Text>
       {checked ? <CheckIcon className="size-5 text-yellow-500" accessible={false} /> : null}
     </Pressable>
   );
@@ -162,10 +163,10 @@ export function ChoiceSheet({
     [options, search, onSearch],
   );
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Sheet visible onRequestClose={onClose}>
       <SafeAreaView className="flex-1 bg-background">
-        <View className="flex-row items-center justify-between p-4">
-          <Text accessibilityRole="header" className="text-xl font-bold text-foreground">
+        <View className="flex-row items-center justify-between gap-3 px-4 py-3">
+          <Text accessibilityRole="header" className="flex-1 text-xl font-bold text-foreground">
             {title}
           </Text>
           <Pressable
@@ -198,6 +199,6 @@ export function ChoiceSheet({
           feedback={{ pending, failed, retry, emptyLabel }}
         />
       </SafeAreaView>
-    </Modal>
+    </Sheet>
   );
 }

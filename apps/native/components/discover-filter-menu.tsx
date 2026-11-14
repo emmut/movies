@@ -14,7 +14,7 @@ export function DiscoverFilterMenu({ label, choices, onSelect, onClear }: Discov
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint="Choose a discovery filter"
-      className="bg-default min-h-11 flex-row items-center justify-center gap-1 rounded-xl border border-border px-3"
+      className="bg-default min-h-12 flex-row items-center justify-center gap-1 rounded-xl border border-border px-3"
       accessibilityState={{ expanded: open }}
     >
       <Text className="text-sm font-semibold text-foreground">{label}</Text>

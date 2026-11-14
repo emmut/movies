@@ -14,3 +14,9 @@ export const catalogImdbSchema = z.object({
   ratingUnavailable: z.boolean(),
 });
 export type CatalogImdb = z.infer<typeof catalogImdbSchema>;
+
+export const imdbTitleSchema = z.object({
+  id: z.number().int().positive(),
+  type: z.enum(['movie', 'tv']),
+});
+export type ImdbTitle = z.infer<typeof imdbTitleSchema>;

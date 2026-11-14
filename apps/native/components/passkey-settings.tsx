@@ -1,5 +1,6 @@
 import { passkeyNameSchema, formatPasskeyDate, type PasskeyMetadata } from '@movies/api/passkeys';
 import { ScreenQueryState } from '@native/components/screen-query-state';
+import { Sheet } from '@native/components/sheet';
 import { accountQueryKey } from '@native/lib/account-query-key';
 import { queryClient } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
@@ -10,7 +11,6 @@ import { Redirect, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
 import {
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -80,7 +80,7 @@ function AddPasskey({ userId, close }: { userId: string; close: () => void }) {
     save.mutate(parsed.data);
   }
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={dismiss}>
+    <Sheet visible onRequestClose={dismiss}>
       <SafeAreaView className="flex-1 bg-background">
         <KeyboardAvoidingView
           className="flex-1"
@@ -137,7 +137,7 @@ function AddPasskey({ userId, close }: { userId: string; close: () => void }) {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    </Sheet>
   );
 }
 function DeletePasskey({
@@ -167,7 +167,7 @@ function DeletePasskey({
     }
   }
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={dismiss}>
+    <Sheet visible onRequestClose={dismiss}>
       <SafeAreaView className="flex-1 justify-center bg-background p-5">
         <View className="gap-5 rounded-xl border border-border p-5">
           <Text accessibilityRole="header" className="text-xl font-bold text-foreground">
@@ -203,7 +203,7 @@ function DeletePasskey({
           </Pressable>
         </View>
       </SafeAreaView>
-    </Modal>
+    </Sheet>
   );
 }
 function PasskeyRows({

@@ -1,5 +1,5 @@
 import { ArrowDownIcon, ArrowUpIcon } from '@native/components/icons';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 export function ListMoveControls({
   name,
@@ -33,42 +33,6 @@ export function ListMoveControls({
           </Pressable>
         );
       })}
-    </View>
-  );
-}
-export function ListPageControls({
-  page,
-  pages,
-  blocked,
-  change,
-}: {
-  page: number;
-  pages: number;
-  blocked: boolean;
-  change: (page: number) => void;
-}) {
-  return (
-    <View className="items-center gap-3 p-5">
-      <Text className="text-muted">
-        Page {page} of {Math.max(1, pages)}
-      </Text>
-      <View className="flex-row gap-4">
-        {(['Previous', 'Next'] as const).map((label) => {
-          const disabled = blocked || (label === 'Previous' ? page <= 1 : page >= pages);
-          return (
-            <Pressable
-              key={label}
-              accessibilityRole="button"
-              disabled={disabled}
-              accessibilityState={{ disabled }}
-              className="bg-default min-h-12 justify-center rounded-lg px-4"
-              onPress={() => change(page + (label === 'Previous' ? -1 : 1))}
-            >
-              <Text className="text-foreground">{label} page</Text>
-            </Pressable>
-          );
-        })}
-      </View>
     </View>
   );
 }

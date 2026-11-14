@@ -29,12 +29,13 @@ describe('catalog supporting service', () => {
     expect(await service.trailer(input)).toBeNull();
     await expect(service.trailer(input)).rejects.toThrow('outage');
   });
-  it('normalizes all four provider groups for exactly the requested region', async () => {
+  it('normalizes all five provider groups for exactly the requested region', async () => {
     const fetcher = vi.fn().mockResolvedValue({
       results: {
         SE: {
           link: 'https://www.themoviedb.org/movie/42/watch?locale=SE',
           free: [provider],
+          ads: [provider],
           flatrate: [provider],
           rent: [provider],
           buy: [provider],
@@ -49,6 +50,7 @@ describe('catalog supporting service', () => {
     expect(groups).toEqual({
       link: 'https://www.themoviedb.org/movie/42/watch?locale=SE',
       free: expected,
+      ads: expected,
       streaming: expected,
       rent: expected,
       buy: expected,
@@ -71,6 +73,7 @@ describe('catalog supporting service', () => {
     expect(await createCatalogSupportService(fetcher).providers({ ...input, type: 'tv' })).toEqual({
       link: 'https://www.themoviedb.org/tv/42/watch',
       free: [],
+      ads: [],
       streaming: [],
       rent: [],
       buy: [],

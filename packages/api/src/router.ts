@@ -9,6 +9,7 @@ import {
 } from './catalog';
 import {
   catalogTitleInput,
+  directWatchLinksSchema,
   catalogCreditsSchema,
   type CatalogCredits,
   catalogRelatedInput,
@@ -36,7 +37,13 @@ import {
   type DiscoveryOptions,
 } from './discover';
 import { homeListInput, trendingInput, mediaCardSchema, type MediaCard } from './home';
-import { catalogImdbSchema, type CatalogImdb } from './imdb';
+import {
+  catalogImdbSchema,
+  imdbIdSchema,
+  imdbTitleSchema,
+  type ImdbTitle,
+  type CatalogImdb,
+} from './imdb';
 import {
   pdpExtrasSchema,
   seasonInput,
@@ -86,6 +93,7 @@ import {
   type SystemListToggleInput,
   type SystemListMoveInput,
 } from './system-lists';
+import type { DirectWatchLink } from './tmdb-types/watch-provider';
 
 // Services are supplied by the host, so the router has no app, env, or database dependencies.
 export type HomeService = {
@@ -93,6 +101,8 @@ export type HomeService = {
   trending(input: z.infer<typeof trendingInput>): Promise<MediaCard[]>;
 };
 export type CatalogService = PdpService & {
+  resolveImdb(input: { imdbId: string }): Promise<ImdbTitle | null>;
+  watchLinks(input: CatalogTitleInput): Promise<DirectWatchLink[]>;
   imdb(input: CatalogTitleInput): Promise<CatalogImdb>;
   reviews(input: ReviewsInput): Promise<ReviewsPage>;
   credits(input: CatalogTitleInput): Promise<CatalogCredits>;
@@ -106,7 +116,10 @@ export type DiscoveryService = {
   list(input: DiscoveryInput): Promise<DiscoveryPage>;
   options(input: DiscoveryOptionsInput): Promise<DiscoveryOptions>;
 };
-export type SearchService = { list(input: SearchInput): Promise<SearchPage> };
+export type SearchService = {
+  list(input: SearchInput): Promise<SearchPage>;
+  suggestions(input: { query: string }): Promise<SearchPage>;
+};
 export type PersonService = {
   details(input: PersonInput): Promise<PersonDetail>;
   credits(input: PersonCreditsInput): Promise<PersonCredit[]>;
@@ -303,6 +316,10 @@ export const appRouter = {
       .handler(({ input, context }) => context.person.credits(input)),
   },
   search: {
+    suggestions: procedure
+      .input(searchInput.pick({ query: true }))
+      .output(searchPageSchema)
+      .handler(({ input, context }) => context.search.suggestions(input)),
     list: procedure
       .input(searchInput)
       .output(searchPageSchema)
@@ -323,6 +340,14 @@ export const appRouter = {
       .handler(({ input, context }) => context.discovery.options(input)),
   },
   catalog: {
+    resolveImdb: procedure
+      .input(z.object({ imdbId: imdbIdSchema }))
+      .output(imdbTitleSchema.nullable())
+      .handler(({ input, context }) => context.catalog.resolveImdb(input)),
+    watchLinks: procedure
+      .input(catalogTitleInput)
+      .output(directWatchLinksSchema)
+      .handler(({ input, context }) => context.catalog.watchLinks(input)),
     extras: procedure
       .input(catalogDetailInput)
       .output(pdpExtrasSchema)

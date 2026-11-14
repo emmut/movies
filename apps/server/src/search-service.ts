@@ -54,5 +54,12 @@ export function createSearchService(
     const page = await engine.getSearchMulti(input.query, input.page);
     return { items: page.results.map(searchCard), totalPages: Math.min(500, page.totalPages) };
   }
-  return { list };
+  async function suggestions({ query }: { query: string }): Promise<SearchPage> {
+    const page = await engine.getSearchSuggestions(query);
+    return {
+      items: page.results.slice(0, 6).map(searchCard),
+      totalPages: Math.min(500, page.totalPages),
+    };
+  }
+  return { list, suggestions };
 }

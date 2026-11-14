@@ -1,6 +1,7 @@
 import { regions, type RegionCode } from '@movies/config/regions';
 import { CheckIcon } from '@native/components/icons';
-import { Platform, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Sheet } from '@native/components/sheet';
+import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -21,15 +22,10 @@ export function RegionPicker({
     return null;
   }
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
+    <Sheet visible={visible} onRequestClose={onClose}>
       <SafeAreaView className="flex-1 bg-background">
-        <View className="flex-row items-center justify-between px-5 py-3">
-          <Text accessibilityRole="header" className="text-xl font-bold text-foreground">
+        <View className="flex-row items-center justify-between gap-3 px-4 py-3">
+          <Text accessibilityRole="header" className="flex-1 text-xl font-bold text-foreground">
             Choose your region
           </Text>
           <Pressable
@@ -60,6 +56,6 @@ export function RegionPicker({
           ))}
         </ScrollView>
       </SafeAreaView>
-    </Modal>
+    </Sheet>
   );
 }

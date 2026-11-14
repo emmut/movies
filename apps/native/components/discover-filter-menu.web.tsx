@@ -37,7 +37,7 @@ export function DiscoverFilterMenu({ label, choices, onSelect, onClear }: Discov
       <summary
         role="button"
         aria-label={label}
-        className="bg-default flex min-h-11 cursor-pointer list-none items-center justify-center gap-1 rounded-xl border border-border px-3 [&::-webkit-details-marker]:hidden"
+        className="bg-default flex min-h-12 cursor-pointer list-none items-center justify-center gap-1 rounded-xl border border-border px-3 [&::-webkit-details-marker]:hidden"
       >
         <Text className="text-sm font-semibold text-foreground">{label}</Text>
         <ChevronDownIcon className="size-3 text-muted" accessible={false} />

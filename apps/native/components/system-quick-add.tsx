@@ -1,10 +1,11 @@
 import type { MediaCard } from '@movies/api/home';
 import { CustomListPicker } from '@native/components/custom-list-picker';
 import { PlusIcon } from '@native/components/icons';
+import { Sheet } from '@native/components/sheet';
 import { SystemListActions } from '@native/components/system-list-actions';
 import { authClient } from '@native/lib/auth-client';
 import { useState } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 
@@ -24,12 +25,7 @@ export function SystemQuickAdd({ item }: { item: MediaCard }) {
         <PlusIcon className="size-5 text-white" accessible={false} />
       </Pressable>
       {open ? (
-        <Modal
-          visible
-          animationType="slide"
-          presentationStyle="pageSheet"
-          onRequestClose={() => setOpen(false)}
-        >
+        <Sheet visible onRequestClose={() => setOpen(false)}>
           <SafeAreaView className="flex-1 gap-6 bg-background p-5">
             <View className="flex-row items-center justify-between gap-3">
               <Text accessibilityRole="header" className="flex-1 text-xl font-bold text-foreground">
@@ -61,7 +57,7 @@ export function SystemQuickAdd({ item }: { item: MediaCard }) {
               </Pressable>
             ) : null}
           </SafeAreaView>
-        </Modal>
+        </Sheet>
       ) : null}
       {customOpen && session.data ? (
         <CustomListPicker

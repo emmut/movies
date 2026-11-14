@@ -25,12 +25,11 @@ export function MediaTypeTabs<T extends string>({
             accessibilityLabel={option.label}
             accessibilityState={{ selected }}
             aria-pressed={selected}
-            className={`min-h-11 grow items-center justify-center rounded-lg px-2 ${selected ? 'bg-yellow-400' : ''}`}
+            className={`min-h-12 min-w-0 flex-1 items-center justify-center rounded-lg px-2 ${selected ? 'bg-yellow-400' : ''}`}
             onPress={() => onChange(option.value)}
           >
             <Text
-              numberOfLines={1}
-              className={`text-sm font-semibold ${selected ? 'text-zinc-950' : 'text-muted'}`}
+              className={`text-center text-sm font-semibold ${selected ? 'text-zinc-950' : 'text-muted'}`}
             >
               {option.label}
             </Text>

@@ -10,6 +10,8 @@ function setup() {
     collection: vi.fn(),
     keyword: vi.fn(),
     imdb: vi.fn(),
+    resolveImdb: vi.fn(),
+    watchLinks: vi.fn(),
     reviews: vi.fn(),
     credits: vi.fn(),
     details: vi.fn(),

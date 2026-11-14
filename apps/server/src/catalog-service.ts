@@ -1,5 +1,5 @@
-import 'server-only';
 import type { CatalogDetail, CatalogDetailInput } from '@movies/api/catalog';
+import 'server-only';
 import {
   pickMovieCertification,
   pickTvCertification,
@@ -15,6 +15,7 @@ import { createCatalogPdpService } from '@server/catalog-pdp-service';
 import { createCatalogReviewsService } from '@server/catalog-reviews-service';
 import { createCatalogSupportService } from '@server/catalog-support-service';
 import { tmdbImageUrl } from '@server/media-card';
+import { createWatchLinksService } from '@server/watch-links-service';
 import { z } from 'zod';
 
 const text = z
@@ -116,6 +117,7 @@ export function createCatalogService(
 ): CatalogService {
   return {
     ...createCatalogSupportService(fetchTmdb),
+    ...createWatchLinksService(fetchTmdb),
     ...createCatalogPdpService(fetchTmdb),
     ...createCatalogCreditsService(fetchTmdb),
     ...createCatalogImdbService(fetchTmdb, imdbOptions),

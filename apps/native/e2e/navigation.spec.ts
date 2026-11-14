@@ -133,3 +133,36 @@ test('More tab shell exposes every secondary workflow', async ({ page }) => {
     ).toBeVisible();
   }
 });
+
+test('opens complete source credits natively without signing in', async ({ page }) => {
+  await page.goto('/more');
+  await page.getByRole('link', { name: 'Credits', exact: true }).click();
+  await expect(page).toHaveURL(/\/more\/credits$/);
+  for (const name of ['The Movie Database', 'JustWatch', 'Wikidata', 'IMDb']) {
+    await expect(
+      page.getByRole('heading', { name, exact: true }).filter({ visible: true }),
+    ).toBeVisible();
+  }
+  await expect(page.getByText(/not endorsed or certified by TMDB/)).toBeVisible();
+  await expect(page.getByRole('link', { name: 'CC0 license (opens browser)' })).toBeVisible();
+});
+
+test('IMDb title deep links resolve natively and invalid IDs never reach the API', async ({
+  page,
+}) => {
+  let requests = 0;
+  await page.route('**/rpc/catalog/resolveImdb*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    requests += 1;
+    await route.fulfill({ headers: corsHeaders, json: { json: { id: 42, type: 'movie' } } });
+  });
+  await page.goto('/title/tt1234567');
+  await expect(page).toHaveURL(/\/movie\/42$/);
+  await page.goto('/title/invalid');
+  await expect(page.getByRole('heading', { name: 'Title not found' })).toBeVisible();
+  await page.getByRole('link', { name: 'Search titles' }).click();
+  await expect(page).toHaveURL(/\/search$/);
+  expect(requests).toBe(1);
+});

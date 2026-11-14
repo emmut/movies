@@ -3,6 +3,7 @@ import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { CustomListForm } from '@native/components/custom-list-form';
 import { CheckIcon } from '@native/components/icons';
 import { ScreenQueryState } from '@native/components/screen-query-state';
+import { Sheet } from '@native/components/sheet';
 import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
@@ -11,7 +12,7 @@ import { useCurrentUrl } from '@native/lib/use-current-url';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 import type { z } from 'zod';
@@ -54,7 +55,7 @@ export function CustomListPicker({
     );
   }
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={dismiss}>
+    <Sheet visible onRequestClose={dismiss}>
       <SafeAreaView className="flex-1 bg-background">
         <View className="flex-row items-center justify-between p-5">
           <Text accessibilityRole="header" className="text-xl font-bold text-foreground">
@@ -126,7 +127,7 @@ export function CustomListPicker({
           </ScrollView>
         )}
       </SafeAreaView>
-    </Modal>
+    </Sheet>
   );
 }
 

@@ -20,6 +20,7 @@ export default function MoreLayout() {
       />
       <Stack.Screen name="keyword/[keywordId]" options={{ title: 'Themes & Keywords' }} />
       <Stack.Screen name="[type]/[id]/season/[season]" options={{ title: 'Season guide' }} />
+      <Stack.Screen name="credits" options={{ title: 'Credits', headerBackTitle: 'More' }} />
       <Stack.Screen name="settings" options={{ title: 'Settings', headerBackTitle: 'More' }} />
     </Stack>
   );

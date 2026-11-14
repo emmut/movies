@@ -14,6 +14,7 @@ describe('native navigation menu destinations', () => {
       'watched',
       'lists',
       'settings',
+      'credits',
       'login',
     ]);
   });

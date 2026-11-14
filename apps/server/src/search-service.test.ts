@@ -150,3 +150,23 @@ describe('native search service', () => {
     ).rejects.toThrow();
   });
 });
+
+it('suggests mixed native destinations without waking the index when TMDB has results', async () => {
+  const fetcher = vi.fn().mockResolvedValue(page([movie, person, series]));
+  const fuzzy = vi.fn();
+  const result = await createSearchService(fetcher, fuzzy).suggestions({ query: 'alien' });
+  expect(result.items.map((item) => item.type).sort()).toEqual(['movie', 'person', 'tv']);
+  expect(fuzzy).not.toHaveBeenCalled();
+});
+
+it('uses the canonical typo fallback for empty suggestions', async () => {
+  const fetcher = vi.fn().mockResolvedValueOnce(page([])).mockResolvedValueOnce(movie);
+  const fuzzy = vi
+    .fn()
+    .mockResolvedValue([
+      { tmdbId: 42, mediaType: 'movie', title: 'Alien', popularity: 10, similarity: 0.7, score: 1 },
+    ]);
+  const result = await createSearchService(fetcher, fuzzy).suggestions({ query: 'alieen' });
+  expect(result.items[0]).toMatchObject({ id: 42, type: 'movie', title: 'Alien' });
+  expect(fuzzy).toHaveBeenCalled();
+});

@@ -6,9 +6,10 @@ import {
 } from '@movies/api/custom-lists';
 import type { RegionCode } from '@movies/config/regions';
 import { AccountScreen } from '@native/components/account-screen';
+import { CatalogPagination } from '@native/components/catalog-pagination';
 import { CustomListDialogs } from '@native/components/custom-list-dialogs';
 import { CustomListScroll } from '@native/components/custom-list-scroll';
-import { ListMoveControls, ListPageControls } from '@native/components/list-controls';
+import { ListMoveControls } from '@native/components/list-controls';
 import { MediaPoster } from '@native/components/media-poster';
 import { PersonCredit } from '@native/components/person-credits';
 import { ScreenQueryState } from '@native/components/screen-query-state';
@@ -137,11 +138,11 @@ function ListContents({
           move={(item, position) => move.mutate({ itemId: item.listItemId, position })}
         />
         <DetailEmpty total={result.totalItems} filtered={input.providerIds.length > 0} />
-        <ListPageControls
+        <CatalogPagination
           page={result.currentPage}
-          pages={result.totalPages}
-          blocked={busy}
-          change={(page) => change({ page: String(page) })}
+          totalPages={result.totalPages}
+          disabled={busy}
+          onChange={(page) => change({ page: String(page) })}
         />
       </CustomListScroll>
       <CustomListDialogs

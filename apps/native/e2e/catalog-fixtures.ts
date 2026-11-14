@@ -74,7 +74,7 @@ export async function mockEmptySupport({ page }: { page: Page }) {
     });
   });
   await page.route(
-    /\/rpc\/catalog\/(trailer|providers|related|credits|reviews|imdb|extras)(?:\?|$)/,
+    /\/rpc\/catalog\/(trailer|providers|related|credits|reviews|imdb|extras|watchLinks)(?:\?|$)/,
     async (route) => {
       if (await preflight(route)) {
         return;

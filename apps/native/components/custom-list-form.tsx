@@ -1,13 +1,13 @@
 import type { CustomListSummary } from '@movies/api/custom-lists';
 import { createListSchema } from '@movies/api/validations';
 import { EMOJI_OPTIONS } from '@movies/config/constants';
+import { Sheet } from '@native/components/sheet';
 import { orpc } from '@native/lib/api';
 import { refreshCustomLists } from '@native/lib/custom-lists';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -71,7 +71,7 @@ export function CustomListForm({
   const title = item ? 'Edit List' : 'Create New List';
   const submitLabel = item ? 'Save Changes' : 'Create List';
   return (
-    <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={dismiss}>
+    <Sheet visible onRequestClose={dismiss}>
       <SafeAreaView className="flex-1 bg-background">
         <KeyboardAvoidingView
           className="flex-1"
@@ -82,7 +82,7 @@ export function CustomListForm({
             keyboardShouldPersistTaps="handled"
           >
             <View className="flex-row items-center justify-between gap-3">
-              <Text accessibilityRole="header" className="text-xl font-bold text-foreground">
+              <Text accessibilityRole="header" className="flex-1 text-xl font-bold text-foreground">
                 {title}
               </Text>
               <Pressable
@@ -137,7 +137,7 @@ export function CustomListForm({
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
-    </Modal>
+    </Sheet>
   );
 }
 

@@ -15,7 +15,7 @@ function PageButton({
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       disabled={disabled}
-      className={'bg-default min-h-11 justify-center rounded-xl px-4 ' + opacity}
+      className={'bg-default min-h-12 justify-center rounded-xl px-4 ' + opacity}
       onPress={onPress}
     >
       <Text className="text-foreground">{label}</Text>
@@ -26,9 +26,11 @@ export function CatalogPagination({
   page,
   totalPages,
   onChange,
+  disabled = false,
 }: {
   page: number;
   totalPages: number;
+  disabled?: boolean;
   onChange: (page: number) => void;
 }) {
   return (
@@ -36,11 +38,15 @@ export function CatalogPagination({
       <Text className="text-muted">
         Page {page} of {Math.max(1, totalPages)}
       </Text>
-      <View className="flex-row gap-4">
-        <PageButton label="Previous page" disabled={page <= 1} onPress={() => onChange(page - 1)} />
+      <View className="flex-row flex-wrap justify-center gap-3">
+        <PageButton
+          label="Previous page"
+          disabled={disabled || page <= 1}
+          onPress={() => onChange(page - 1)}
+        />
         <PageButton
           label="Next page"
-          disabled={page >= totalPages}
+          disabled={disabled || page >= totalPages}
           onPress={() => onChange(page + 1)}
         />
       </View>

@@ -3,6 +3,7 @@
 import type { MovieWatchProviders } from '@movies/api/tmdb-types/movie';
 import type { TvWatchProviders } from '@movies/api/tmdb-types/tv-show';
 import type { DirectWatchLink, WatchOfferType } from '@movies/api/tmdb-types/watch-provider';
+import { getDirectWatchUrl, getTmdbWatchUrl } from '@movies/api/watch-links';
 import { getRegionCodes, RegionCode } from '@movies/config/regions';
 import { ExternalLink, Play, ShoppingCart, TicketCheck, Tv } from 'lucide-react';
 import Image from 'next/image';
@@ -10,7 +11,6 @@ import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
 import { RegionSelect } from '@/components/region-select';
 import { formatImageUrl } from '@/lib/utils';
-import { getDirectWatchUrl, getTmdbWatchUrl } from '@/lib/watch-links';
 
 const offerGroups = [
   { type: 'free', title: 'Free', action: 'Watch', Icon: TicketCheck, color: 'text-blue-500' },

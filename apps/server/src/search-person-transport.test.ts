@@ -3,7 +3,10 @@ import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vite-plus/test';
 
 function setup() {
-  const search = { list: vi.fn().mockResolvedValue({ items: [], totalPages: 0 }) };
+  const search = {
+    list: vi.fn().mockResolvedValue({ items: [], totalPages: 0 }),
+    suggestions: vi.fn().mockResolvedValue({ items: [], totalPages: 0 }),
+  };
   const person = { details: vi.fn(), credits: vi.fn().mockResolvedValue([]) };
   const app = createApp(mockServices({ search, person }));
   const client = createTestClient(app);
@@ -14,11 +17,18 @@ describe('search and person RPC contracts', () => {
     const { client, search, person } = setup();
     expect(await client.search.list({ query: ' Alien ' })).toEqual({ items: [], totalPages: 0 });
     expect(search.list).toHaveBeenCalledWith({ query: 'Alien', type: 'all', page: 1 });
+    expect(await client.search.suggestions({ query: ' Alien ' })).toEqual({
+      items: [],
+      totalPages: 0,
+    });
+    expect(search.suggestions).toHaveBeenCalledWith({ query: 'Alien' });
     expect(await client.person.credits({ id: 7, type: 'tv' })).toEqual([]);
     expect(person.credits).toHaveBeenCalledWith({ id: 7, type: 'tv' });
   });
   it.each([
     ['search/list', { query: '' }],
+    ['search/suggestions', { query: ' ' }],
+    ['search/suggestions', { query: 'a'.repeat(501) }],
     ['search/list', { query: 'Alien', page: 501 }],
     ['search/list', { query: 'Alien', type: 'unsupported' }],
     ['person/details', { id: -1 }],
@@ -32,6 +42,7 @@ describe('search and person RPC contracts', () => {
     });
     expect(response.status).toBe(400);
     expect(search.list).not.toHaveBeenCalled();
+    expect(search.suggestions).not.toHaveBeenCalled();
     expect(person.details).not.toHaveBeenCalled();
     expect(person.credits).not.toHaveBeenCalled();
   });

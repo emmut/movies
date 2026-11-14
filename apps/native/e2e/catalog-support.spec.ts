@@ -262,3 +262,62 @@ test('supporting requests can remain pending while core metadata is usable', asy
   completion.resolve();
   await expect(page.getByText('No services available for this region')).toBeAttached();
 });
+
+test('ad-supported providers remain available while direct links load, then respect the offer type', async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    window.open = (url) => {
+      document.body.dataset.openedUrl = String(url);
+      return null;
+    };
+  });
+  await page.route('**/rpc/catalog/providers*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await route.fulfill({
+      headers: corsHeaders,
+      json: { json: { ...groups, ads: [{ id: 77, name: 'Ad service', logoUrl: null }] } },
+    });
+  });
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/rpc/catalog/watchLinks*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await gate;
+    await route.fulfill({
+      headers: corsHeaders,
+      json: {
+        json: [
+          {
+            providerId: 8,
+            regions: ['US'],
+            types: ['flatrate'],
+            url: 'https://www.netflix.com/title/12345678',
+          },
+        ],
+      },
+    });
+  });
+  await page.goto('/movie/42?region=US');
+  await expect(page.getByRole('heading', { name: 'Free with ads', exact: true })).toBeAttached();
+  await page.getByRole('link', { name: 'Ad service (opens browser)' }).click();
+  await expect(page.locator('body')).toHaveAttribute('data-opened-url', groups.link);
+  const linksLoaded = page.waitForResponse('**/rpc/catalog/watchLinks*');
+  release();
+  await linksLoaded;
+  await expect(async () => {
+    await page.getByRole('link', { name: 'Test Streaming (opens browser)' }).click();
+    await expect(page.locator('body')).toHaveAttribute(
+      'data-opened-url',
+      'https://www.netflix.com/title/12345678',
+    );
+  }).toPass();
+  await page.getByRole('link', { name: 'Test Rent (opens browser)' }).click();
+  await expect(page.locator('body')).toHaveAttribute('data-opened-url', groups.link);
+});

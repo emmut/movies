@@ -34,6 +34,13 @@ export const MORE_MENU_ITEMS = [
     nativePath: '/more/settings',
   },
   {
+    id: 'credits',
+    label: 'Credits',
+    symbol: 'info.circle',
+    path: '/credits',
+    nativePath: '/more/credits',
+  },
+  {
     id: 'login',
     label: 'Sign in',
     symbol: 'person.crop.circle',

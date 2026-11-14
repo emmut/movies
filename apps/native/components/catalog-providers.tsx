@@ -1,5 +1,7 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
 import type { ProviderGroups, WatchProviderCard } from '@movies/api/catalog-support';
+import type { DirectWatchLink } from '@movies/api/tmdb-types/watch-provider';
+import { getDirectWatchUrl } from '@movies/api/watch-links';
 import { getRegionByCode } from '@movies/config/regions';
 import { CatalogIcon } from '@native/components/catalog-icon';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
@@ -17,6 +19,7 @@ import { withUniwind } from 'uniwind';
 const Image = withUniwind(ExpoImage);
 const providerKinds = [
   { key: 'free', label: 'Free', accent: 'text-blue-500' },
+  { key: 'ads', label: 'Free with ads', accent: 'text-blue-500' },
   { key: 'streaming', label: 'Streaming', accent: 'text-green-500' },
   { key: 'rent', label: 'Rent', accent: 'text-blue-500' },
   { key: 'buy', label: 'Buy', accent: 'text-yellow-500' },
@@ -43,8 +46,16 @@ function ProviderCard({ provider, href }: { provider: WatchProviderCard; href: s
     </Pressable>
   );
 }
-function ProviderContent({ groups }: { groups: ProviderGroups }) {
-  const empty = providerKinds.every((kind) => groups[kind.key].length === 0);
+function ProviderContent({
+  groups,
+  links,
+  region,
+}: {
+  groups: ProviderGroups;
+  links: DirectWatchLink[];
+  region: string;
+}) {
+  const empty = providerKinds.every((kind) => (groups[kind.key] ?? []).length === 0);
   return (
     <View className="gap-6">
       {empty ? (
@@ -53,7 +64,7 @@ function ProviderContent({ groups }: { groups: ProviderGroups }) {
         </Text>
       ) : null}
       {providerKinds.map((kind) =>
-        groups[kind.key].length > 0 ? (
+        (groups[kind.key] ?? []).length > 0 ? (
           <View key={kind.key} className="gap-3">
             <View className="flex-row items-center gap-2">
               <CatalogIcon label={kind.label} className={kind.accent} />
@@ -61,8 +72,19 @@ function ProviderContent({ groups }: { groups: ProviderGroups }) {
                 {kind.label}
               </Text>
             </View>
-            {groups[kind.key].map((provider) => (
-              <ProviderCard key={provider.id} provider={provider} href={groups.link} />
+            {(groups[kind.key] ?? []).map((provider) => (
+              <ProviderCard
+                key={provider.id}
+                provider={provider}
+                href={
+                  getDirectWatchUrl(
+                    links,
+                    provider.id,
+                    region,
+                    kind.key === 'streaming' ? 'flatrate' : kind.key,
+                  ) ?? groups.link
+                }
+              />
             ))}
           </View>
         ) : null,
@@ -92,6 +114,13 @@ export function CatalogProviders({ input }: { input: CatalogDetailInput }) {
   const region = useWatchRegion(input.region);
   const router = useRouter();
   const selected = region.code;
+  const links = useQuery(
+    orpc.catalog.watchLinks.queryOptions({
+      input: { id: input.id, type: input.type },
+      staleTime: 86_400_000,
+      retry: false,
+    }),
+  );
   const [pickerOpen, setPickerOpen] = useState(false);
   const query = useQuery(
     orpc.catalog.providers.queryOptions({ input: { ...input, region: selected }, retry: false }),
@@ -120,7 +149,9 @@ export function CatalogProviders({ input }: { input: CatalogDetailInput }) {
           void query.refetch();
         }}
       />
-      {query.data ? <ProviderContent groups={query.data} /> : null}
+      {query.data ? (
+        <ProviderContent groups={query.data} links={links.data ?? []} region={selected} />
+      ) : null}
       <RegionPicker
         visible={pickerOpen}
         selected={selected}

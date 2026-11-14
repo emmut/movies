@@ -343,3 +343,27 @@ test('person Known for and filmography share relevance, rating and newest orderi
   await known.getByRole('link', { name: 'Open Alien, Movie' }).click();
   await expect(page).toHaveURL(/\/search\/movie\/42\?region=US$/);
 });
+
+test('suggestions follow the current query and see-all submits the latest draft', async ({
+  page,
+}) => {
+  await page.route('**/rpc/search/suggestions*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    const input = readInput(route.request());
+    const items = input.query === 'alien' ? [movie, person] : [];
+    await route.fulfill({ json: { json: { items, totalPages: 1 } }, headers: corsHeaders });
+  });
+  await page.goto('/search');
+  const field = page.getByRole('textbox', { name: 'Search movies, TV shows and people' });
+  await field.fill('alien');
+  await expect(page.getByRole('link', { name: 'Open Alien, Movie' })).toBeVisible();
+  await field.fill('new query');
+  await expect(page.getByRole('link', { name: 'Open Alien, Movie' })).not.toBeAttached();
+  await page.getByRole('button', { name: 'See all results' }).click();
+  await expect(page).toHaveURL(/q=new\+query|q=new%20query/);
+  await field.fill('alien');
+  await page.getByRole('link', { name: 'Open Sigourney Weaver, Person' }).click();
+  await expect(page).toHaveURL(/\/search\/person\/7/);
+});
