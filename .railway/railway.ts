@@ -128,6 +128,8 @@ export default defineRailway((ctx) => {
       IMGPROXY_KEY: imgproxyHRto.env.IMGPROXY_KEY,
       IMGPROXY_SALT: imgproxyHRto.env.IMGPROXY_SALT,
       MOVIE_DB_ACCESS_TOKEN: preserve(),
+      // Optional primary title-link source; configure the key separately.
+      POPCORNTIME_API_KEY: preserve(),
       NEXT_PUBLIC_BASE_URL: preserve(),
       NEXT_PUBLIC_IMAGEKIT_ID: preserve(),
       NEXT_PUBLIC_IMGPROXY_BASE_URL: preserve(),

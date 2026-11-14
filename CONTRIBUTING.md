@@ -84,15 +84,25 @@ The PostgreSQL search regression tests run in the e2e CI job after migrations. R
 
 ## Direct streaming links
 
-The watch section resolves TMDB's `wikidata_id`, reads the item's Wikidata claims,
-and builds provider title URLs from validated identifiers. No paid service or
-additional API key is required. Restricted deployments must allow outbound HTTPS
-to `www.wikidata.org`; otherwise the section keeps the labelled TMDB fallback.
-TMDB external IDs share an hourly cache with the IMDb reader. Wikidata links
-refresh daily, with a seven-day maximum lifetime and a three-second request timeout.
-Watch options render as soon as availability is ready; optional direct links
-stream in afterwards. Region changes use the already fetched
-links and TMDB's regional availability without extra Wikidata requests.
+Popcorn Time supplies country-specific offers and direct provider links when
+`POPCORNTIME_API_KEY` is configured. All valid returned registry providers are
+supported without a TMDB provider mapping, including ad tiers, child providers
+and explicit channel/add-on pairs. All documented offer types are displayed;
+future or unspecified types use “Other options”. Search candidates must expose
+the exact TMDB ID and matching movie/TV type before their offers can be used.
+TMDB/JustWatch fills availability gaps and Wikidata supplies supported direct
+links for those fallback offers. Missing credentials and upstream failures retain
+this fallback and the labelled TMDB option. No provider or aggregator pages are scraped.
+
+Restricted deployments need outbound HTTPS to `api.popcorntime.app` and
+`www.wikidata.org`. Popcorn Time title lookups revalidate every 15 minutes with a
+one-hour maximum lifetime; its country/provider registry revalidates daily.
+Requests have four-second deadlines and do not retry. Wikidata links refresh
+daily, with a seven-day maximum lifetime and a three-second request timeout.
+Watch options render before either link lookup finishes. Country changes refresh
+the server section to fetch correctly scoped links. Obtain an appropriate
+Popcorn Time account/licence and verify live responses before enabling the key;
+the integration's fixtures do not establish live service coverage.
 
 Supported properties, market restrictions, attribution requirements and the
 TMDB policy review are documented in [streaming-links.md](docs/streaming-links.md).

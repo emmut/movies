@@ -1,13 +1,99 @@
 # Direct provider title links
 
-The app uses TMDB/JustWatch for country-specific availability and Wikidata only
-for provider title identifiers. A title identifier does not establish a streaming
-licence, price, subscription entitlement, or regional availability. The UI only
-uses a direct link for a matching TMDB provider and allowed offer type in the
-selected country. Provider pages may still require login or be unavailable in the
-viewer's actual location.
+Popcorn Time supplies country-specific offers and provider title links when its
+optional API key is configured. Every valid provider returned by its registry is
+eligible, including services absent from TMDB, ad tiers and channel bundles.
+TMDB/JustWatch offers fill gaps; Wikidata supplies direct links for supported
+TMDB fallback offers. A title identifier alone never establishes availability,
+price or subscription entitlement. Provider pages may require login or be
+unavailable in the viewer's actual location.
 
-## Data flow and coverage
+## Popcorn Time primary links
+
+Set the optional server-only `POPCORNTIME_API_KEY` to use the documented
+[developer API](https://docs.popcorntime.app/developers/introduction/). Without it,
+the app uses Wikidata directly. The API key is sent only as an Authorization
+header to `https://api.popcorntime.app`; redirects on authenticated requests are
+rejected. There is no browser-visible key, page scraping, token decryption or
+collection of final redirect destinations.
+
+1. Search the TMDB title in the selected country and movie/TV namespace, with a
+   maximum of three candidates. Name matching alone never establishes identity.
+2. Read candidate media details and require a single exact `tmdb` external ID,
+   the expected content type and the same candidate ID. Conflicting or missing
+   identity data retains the fallback. The documented API does not expose a
+   direct TMDB lookup route; only verified search results are accepted.
+3. Read that media item's country-specific links and the country's full provider
+   registry with `hide_children=false`. Resolve provider IDs directly from this
+   registry, without a service allowlist or mapping to TMDB IDs/names. Preserve
+   child providers and explicit host/add-on pairs, displaying the host as
+   “Provider via Host”. Reject missing or contradictory provider relationships.
+4. Accept validated base58 tokens whose availability dates allow use today. An
+   expiry date equal to today is excluded conservatively. Display all documented
+   offer types: subscription, rent, buy, free, ads, cinema, FAST/live channels and
+   subscription-or-purchase. Missing or future price types appear as “Other
+   options”. Optional native-platform metadata does not exclude a web token.
+   Duplicate provider/type/token rows collapse; distinct tokens remain available.
+   Missing or invalid logos use a placeholder without dropping the provider.
+5. Link to `https://popcorntime.app/go/{token}`, whose default is the token's web
+   destination, as described in the
+   [redirect documentation](https://docs.popcorntime.app/developers/link-tokens/).
+6. Add TMDB offers not covered by a same-name, same-type standalone Popcorn Time
+   offer. Names use Unicode-preserving normalization; channel bundles never
+   suppress standalone services. Name aliases may leave duplicate cards, but
+   never prevent a Popcorn Time provider from appearing. A TMDB fallback offer
+   uses Wikidata when a matching provider, country and offer link exists, otherwise
+   the labelled title-specific TMDB watch URL.
+
+New registry providers require no code changes. The implementation supports all
+valid returned providers; the upstream catalogue's completeness remains unmeasured.
+Wikidata fallback coverage remains the smaller explicit set documented below.
+
+Successful title lookups (including ordinary no-match results) revalidate after
+15 minutes and expire after one hour. Country provider registries revalidate
+daily and expire after two days. Both use remote caching. HTTP/network/JSON
+failures escape the cached functions and are handled outside; there are no
+automatic retries. The search/detail/link sequence shares a four-second deadline,
+and the parallel registry request has its own four-second deadline. Logs never
+include response bodies or credentials. At most six API calls are needed on a
+fully cold lookup, including up to three identity checks; cached registries and
+title results reduce repeat calls. The documented 60 requests/minute account
+limit can still produce 429s on bursts; these fall back without retrying.
+
+TMDB availability streams first with labelled TMDB links, independently of
+both optional sources. Popcorn Time offers still appear when TMDB returns no
+providers or its availability lookup fails. Country changes perform a server refresh; Popcorn Time
+links from the previous country cannot be reused while new data arrives. The
+optional-source credits reflect displayed offers and links; JustWatch/TMDB
+attribution and a separate TMDB watch link remain visible. `/credits` also explains
+Popcorn Time's provider redirects and potential affiliate attribution.
+
+### Access and live verification — 2026-11-04
+
+The developer API needs an account/key and permission for this project's usage.
+The public [snapshot licence summary](https://docs.popcorntime.app/developers/snapshots/)
+describes non-commercial use and a separate commercial licence, but does not
+establish the complete terms for this API integration. The general website terms
+contain restrictions. Review the applicable account/API agreement before enabling
+the key; this PR does not claim a full licence review or TMDB endorsement. Keep
+the existing TMDB/JustWatch attribution and any required commercial licences.
+
+No Popcorn Time key was available in the managed workspace, and its API host was
+not in the outbound allowlist. Live requests and redirect destinations were not
+verified. Tests use the documented request/response contract and mocked failures.
+Before marking the integration ready:
+
+- Confirm the configured API host, `external_ids` source labels, provider registry
+  fields, both channel/add-on encodings, response envelopes, price types, date
+  formats and redirect route against live responses.
+- Test `movie/1051896` (Arcadian), `movie/1284041` (The Last House), and a TV title
+  in Sweden and another supported country; verify correct work, market and offer.
+- Confirm actual provider coverage, attribution, cache/retention rules and token
+  lifetime with the applicable account. Never copy tokens into public fixtures.
+- Confirm missing/disabled credentials and service failures leave Wikidata and
+  TMDB options usable, including after changing countries.
+
+## Wikidata fallback flow and coverage
 
 1. Fetch `/{movie|tv}/{id}/external_ids` through the existing authenticated TMDB
    client. Accept only an exact Wikidata `Q` identifier; never match titles by name.
@@ -29,7 +115,7 @@ viewer's actual location.
 | Amazon | [P8055](https://www.wikidata.org/wiki/Property:P8055) | 9 (subscription), 10 (store) | Subscription; store rental/purchase | US only: P8055 describes the US catalogue |
 
 Disney uses current `entity-…` browse IDs, not the legacy movie/series IDs or
-collection `page-…` IDs. Other services, unsupported markets, missing Wikidata
+collection `page-…` IDs. Within the Wikidata fallback, other services, unsupported markets, missing Wikidata
 items, malformed/qualified/conflicting identifiers, and API failures all keep
 explicitly labelled TMDB watch links. Free and ad-supported availability remains
 visible with the same fallback. Coverage is incomplete: the property examples

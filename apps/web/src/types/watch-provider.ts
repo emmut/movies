@@ -22,3 +22,30 @@ export type DirectWatchLink = {
   types: WatchOfferType[];
   url: string;
 };
+
+export type ResolvedWatchLink = DirectWatchLink & {
+  source: 'popcorntime' | 'wikidata';
+};
+
+export type StreamingOfferType = WatchOfferType | 'cinema' | 'fast' | 'flatrate_and_buy' | 'other';
+
+export type StreamingOffer = {
+  providerId: string;
+  providerName: string;
+  via: string | null;
+  logo: string | null;
+  type: StreamingOfferType;
+  url: string;
+  source: 'popcorntime' | 'wikidata' | 'tmdb';
+  availabilitySource: 'popcorntime' | 'tmdb';
+};
+
+export type PopcornTimeAvailability = {
+  region: string;
+  offers: StreamingOffer[];
+};
+
+export type ProviderWatchOptions = {
+  directLinks: ResolvedWatchLink[];
+  popcornTime: PopcornTimeAvailability | null;
+};

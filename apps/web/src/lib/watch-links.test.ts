@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vite-plus/test';
 
 import type { DirectWatchLink } from '@/types/watch-provider';
 
-import { getDirectWatchUrl, getTmdbWatchUrl } from './watch-links';
+import { getDirectWatchLink, getTmdbWatchUrl } from './watch-links';
 
 const link: DirectWatchLink = {
   providerId: 8,
@@ -12,17 +12,17 @@ const link: DirectWatchLink = {
 
 describe('watch link matching', () => {
   it('matches exact provider IDs and offer types only', () => {
-    expect(getDirectWatchUrl([link], 8, 'US', 'flatrate')).toBe(link.url);
-    expect(getDirectWatchUrl([link], 8, 'SE', 'flatrate')).toBe(link.url);
-    expect(getDirectWatchUrl([link], 8, 'US', 'rent')).toBeUndefined();
-    expect(getDirectWatchUrl([link], 1796, 'US', 'flatrate')).toBeUndefined();
-    expect(getDirectWatchUrl([], 8, 'US', 'flatrate')).toBeUndefined();
+    expect(getDirectWatchLink([link], 8, 'US', 'flatrate')?.url).toBe(link.url);
+    expect(getDirectWatchLink([link], 8, 'SE', 'flatrate')?.url).toBe(link.url);
+    expect(getDirectWatchLink([link], 8, 'US', 'rent')?.url).toBeUndefined();
+    expect(getDirectWatchLink([link], 1796, 'US', 'flatrate')?.url).toBeUndefined();
+    expect(getDirectWatchLink<DirectWatchLink>([], 8, 'US', 'flatrate')?.url).toBeUndefined();
   });
 
   it('does not reuse market-specific identifiers in other regions', () => {
     const usOnly = { ...link, regions: ['US'] };
-    expect(getDirectWatchUrl([usOnly], 8, 'US', 'flatrate')).toBe(link.url);
-    expect(getDirectWatchUrl([usOnly], 8, 'SE', 'flatrate')).toBeUndefined();
+    expect(getDirectWatchLink([usOnly], 8, 'US', 'flatrate')?.url).toBe(link.url);
+    expect(getDirectWatchLink([usOnly], 8, 'SE', 'flatrate')?.url).toBeUndefined();
   });
 
   it('preserves regional TMDB links and builds country-specific movie and TV fallbacks', () => {
