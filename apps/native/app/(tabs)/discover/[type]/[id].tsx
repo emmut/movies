@@ -1,5 +1,1 @@
-import { CatalogRoute } from '@native/components/catalog-route';
-
-export default function DiscoveryTitle() {
-  return <CatalogRoute />;
-}
+export { CatalogRoute as default } from '@native/components/catalog-route';

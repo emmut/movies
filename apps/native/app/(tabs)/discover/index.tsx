@@ -1,5 +1,1 @@
-import { DiscoverScreen } from '@native/components/discover-screen';
-
-export default function Discover() {
-  return <DiscoverScreen />;
-}
+export { DiscoverScreen as default } from '@native/components/discover-screen';

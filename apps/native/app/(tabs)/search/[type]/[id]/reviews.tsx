@@ -1,5 +1,1 @@
-import { ReviewsScreen } from '@native/components/reviews-screen';
-
-export default function Reviews() {
-  return <ReviewsScreen />;
-}
+export { ReviewsScreen as default } from '@native/components/reviews-screen';

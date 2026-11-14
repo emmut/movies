@@ -1,3 +1,1 @@
-import { SeasonScreen } from '@native/components/season-screen';
-
-export default SeasonScreen;
+export { SeasonScreen as default } from '@native/components/season-screen';

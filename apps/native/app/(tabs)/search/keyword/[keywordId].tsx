@@ -1,3 +1,1 @@
-import { KeywordScreen } from '@native/components/keyword-screen';
-
-export default KeywordScreen;
+export { KeywordScreen as default } from '@native/components/keyword-screen';
