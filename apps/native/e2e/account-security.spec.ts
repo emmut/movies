@@ -261,3 +261,21 @@ for (const colorScheme of ['light', 'dark'] as const) {
     await page.screenshot({ path: `/tmp/pr350-native-add-passkey-${colorScheme}.png` });
   });
 }
+
+test('passkeys refresh through the query when settings regains focus', async ({ page }) => {
+  const data = await model(page);
+  await page.goto('/more/settings');
+  await expect(page.getByText('My phone', { exact: true })).toBeVisible();
+  const reads = data.readCalls;
+  await page
+    .getByTestId('bottom-navigation')
+    .getByRole('button', { name: 'Search', exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/search$/);
+  data.keys = [{ ...data.keys[0], id: 'key-2', name: 'Added on another device' }];
+  await page.goBack();
+  await expect(page).toHaveURL(/\/more\/settings$/);
+  await expect(page.getByText('Added on another device', { exact: true })).toBeVisible();
+  await expect(page.getByText('My phone', { exact: true })).not.toBeAttached();
+  expect(data.readCalls).toBeGreaterThan(reads);
+});

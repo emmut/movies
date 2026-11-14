@@ -1,6 +1,5 @@
 import { getAdjacentMediaIndex, type MediaDirection } from '@movies/api/media-navigation';
 import { GalleryImages, type GalleryMedia as Media } from '@native/components/gallery-images';
-import { GalleryKeyboard } from '@native/components/gallery-keyboard';
 import { MediaViewerControls } from '@native/components/media-viewer-controls';
 import { TrailerPlayer } from '@native/components/trailer-player';
 import { useGalleryMotion } from '@native/lib/use-gallery-motion';
@@ -35,6 +34,7 @@ export function MediaViewer({
   return (
     <Modal
       visible
+      accessibilityLabel="Media gallery"
       transparent
       animationType="none"
       presentationStyle="overFullScreen"
@@ -51,43 +51,38 @@ export function MediaViewer({
         className="flex-1"
         style={{ transform: [{ translateY: motion.y }] }}
       >
-        <GalleryKeyboard move={move} jump={motion.jump} count={items.length} close={close}>
-          <SafeAreaView className="flex-1 bg-black">
-            <View className="flex-1 gap-4 p-4">
-              <View className="flex-row items-center justify-between gap-3">
-                <Text
-                  accessibilityRole="header"
-                  className="flex-1 text-xl font-semibold text-white"
-                >
-                  {title}
-                </Text>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Close media viewer"
-                  onPress={close}
-                  className="min-h-11 justify-center rounded-lg bg-white/10 px-4"
-                >
-                  <Text className="text-white">Done</Text>
-                </Pressable>
-              </View>
-              {item.video ? (
-                <View className="flex-1 items-center justify-center overflow-hidden bg-black">
-                  <View className="aspect-video w-full">
-                    <TrailerPlayer key={item.id} videoKey={item.video} title={item.title} />
-                  </View>
-                </View>
-              ) : (
-                <GalleryImages items={items} index={index} motion={motion} />
-              )}
-              <MediaViewerControls
-                title={item.title}
-                index={index}
-                count={items.length}
-                move={move}
-              />
+        <SafeAreaView className="flex-1 bg-black">
+          <View className="flex-1 gap-4 p-4">
+            <View className="flex-row items-center justify-between gap-3">
+              <Text accessibilityRole="header" className="flex-1 text-xl font-semibold text-white">
+                {title}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close media viewer"
+                onPress={close}
+                className="min-h-11 justify-center rounded-lg bg-white/10 px-4"
+              >
+                <Text className="text-white">Done</Text>
+              </Pressable>
             </View>
-          </SafeAreaView>
-        </GalleryKeyboard>
+            {item.video ? (
+              <View className="flex-1 items-center justify-center overflow-hidden bg-black">
+                <View className="aspect-video w-full">
+                  <TrailerPlayer key={item.id} videoKey={item.video} title={item.title} />
+                </View>
+              </View>
+            ) : (
+              <GalleryImages items={items} index={index} motion={motion} />
+            )}
+            <MediaViewerControls
+              title={item.title}
+              index={index}
+              count={items.length}
+              move={move}
+            />
+          </View>
+        </SafeAreaView>
       </AnimatedView>
     </Modal>
   );

@@ -58,11 +58,10 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('dialog', { name: 'Media gallery' })).toBeVisible();
 });
 
-test('preloads adjacent images and supports keyboard focus, wrapping, Home/End and Escape', async ({
+test('preloads adjacent images and supports paging, wrapping and modal dismissal', async ({
   page,
 }) => {
   const dialog = page.getByRole('dialog', { name: 'Media gallery' });
-  await expect(dialog).toHaveAccessibleDescription(/Left and Right.*Home.*End.*Escape/);
   const track = page.getByTestId('gallery-image-track');
   await expect(track.getByRole('img')).toHaveCount(1);
   await expect(track.getByRole('img')).toBeVisible();
@@ -73,24 +72,9 @@ test('preloads adjacent images and supports keyboard focus, wrapping, Home/End a
       .poll(() => image.evaluate((element: HTMLImageElement) => element.naturalWidth))
       .toBeGreaterThan(0);
   }
-  await expect(dialog.getByRole('button', { name: 'Close media viewer' })).toBeFocused();
-  await page.keyboard.press('Shift+Tab');
-  await expect(dialog.getByRole('button', { name: 'Next media' })).toBeFocused();
-  await page.keyboard.press('Tab');
-  await expect(dialog.getByRole('button', { name: 'Close media viewer' })).toBeFocused();
-  await page.keyboard.press('Tab');
-  await expect(dialog.getByRole('button', { name: 'Previous media' })).toBeFocused();
-  await page.keyboard.press('Tab');
-  await expect(dialog.getByRole('button', { name: 'Next media' })).toBeFocused();
-  await page.keyboard.press('Tab');
-  await expect(dialog.getByRole('button', { name: 'Close media viewer' })).toBeFocused();
-  await page.keyboard.press('End');
+  await dialog.getByRole('button', { name: 'Previous media' }).click();
   await expect(dialog.getByText('3 / 3', { exact: true })).toBeVisible();
-  await page.keyboard.press('ArrowRight');
-  await expect(dialog.getByText('1 / 3', { exact: true })).toBeVisible();
-  await page.keyboard.press('ArrowLeft');
-  await expect(dialog.getByText('3 / 3', { exact: true })).toBeVisible();
-  await page.keyboard.press('Home');
+  await dialog.getByRole('button', { name: 'Next media' }).click();
   await expect(dialog.getByText('1 / 3', { exact: true })).toBeVisible();
   await page.screenshot({ path: '/tmp/movies-native-gallery.png' });
   await page.keyboard.press('Escape');
@@ -132,7 +116,6 @@ test('a single failed image has a usable fallback and disabled paging in dark ap
   await expect(dialog.getByText('No image available')).toBeVisible();
   await expect(dialog.getByRole('button', { name: 'Next media' })).toBeDisabled();
   await expect(dialog.getByRole('button', { name: 'Previous media' })).toBeDisabled();
-  await page.keyboard.press('ArrowRight');
   await expect(dialog.getByText('1 / 1', { exact: true })).toBeVisible();
   await page.screenshot({ path: '/tmp/movies-native-gallery-dark.png' });
   await page.keyboard.press('Escape');
@@ -169,7 +152,7 @@ test('a grabbed slide retains its pixels and does not advance twice', async ({ p
   const image = track.locator('img[alt="Image 2"]');
   await page.clock.install();
   await page.clock.pauseAt(new Date());
-  await page.keyboard.press('ArrowRight');
+  await page.getByRole('button', { name: 'Next media' }).click();
   await page.clock.runFor(90);
   const before = (await image.boundingBox())!.x;
   await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
@@ -243,7 +226,7 @@ test('ignores downward mouse drags and resolves navigation when reduced motion c
   await page.mouse.move(x, y + 150, { steps: 5 });
   await page.mouse.up();
   await expect.poll(() => translate(page.getByTestId('gallery-surface'), 'y')).toBe(0);
-  await page.keyboard.press('ArrowRight');
+  await page.getByRole('button', { name: 'Next media' }).click();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(page.getByText('2 / 3', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Next media' }).click();

@@ -1,6 +1,6 @@
 import { CheckIcon } from '@native/components/icons';
 import { Sheet } from '@native/components/sheet';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
@@ -155,13 +155,11 @@ export function ChoiceSheet({
   emptyLabel?: string;
 }) {
   const [search, setSearch] = useState('');
-  const filtered = useMemo(
-    () =>
-      onSearch
-        ? options
-        : options.filter((option) => option.label.toLowerCase().includes(search.toLowerCase())),
-    [options, search, onSearch],
-  );
+  const searchTerm = search.toLowerCase();
+  let visibleOptions = options;
+  if (!onSearch && searchTerm) {
+    visibleOptions = options.filter((option) => option.label.toLowerCase().includes(searchTerm));
+  }
   return (
     <Sheet visible onRequestClose={onClose}>
       <SafeAreaView className="flex-1 bg-background">
@@ -191,7 +189,7 @@ export function ChoiceSheet({
           }}
         />
         <ChoiceOptions
-          options={filtered}
+          options={visibleOptions}
           selected={selected}
           multiple={multiple}
           maxSelections={maxSelections}

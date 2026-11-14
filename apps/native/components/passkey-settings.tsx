@@ -8,8 +8,8 @@ import { authClient } from '@native/lib/auth-client';
 import { addDevicePasskey, isPasskeySupported } from '@native/lib/passkeys';
 import { isUnauthorized, SETTINGS_LOGIN_HREF } from '@native/lib/settings-session';
 import { useMutation } from '@tanstack/react-query';
-import { Redirect, useFocusEffect } from 'expo-router';
-import { useState, useCallback } from 'react';
+import { Redirect } from 'expo-router';
+import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -246,12 +246,6 @@ function PasskeyData({
   remove: (item: PasskeyMetadata) => void;
 }) {
   const query = usePasskeys(userId);
-  const { refetch } = query;
-  useFocusEffect(
-    useCallback(() => {
-      void refetch();
-    }, [refetch]),
-  );
   if (isUnauthorized(query.error)) {
     return <Redirect href={SETTINGS_LOGIN_HREF} />;
   }

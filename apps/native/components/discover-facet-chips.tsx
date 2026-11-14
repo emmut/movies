@@ -6,14 +6,15 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 function FacetChips({
   filter,
+  facet,
   ids,
   change,
 }: {
-  filter: keyof typeof facetFilters;
+  filter: string;
+  facet: (typeof facetFilters)[keyof typeof facetFilters];
   ids: number[];
   change: (params: Record<string, string>) => void;
 }) {
-  const facet = facetFilters[filter];
   const query = useDiscoveryFacets({ kind: facet.kind, ids, query: '' });
   return (
     <View className="flex-row gap-2">
@@ -47,10 +48,10 @@ export function DiscoverFacetChips({
 }) {
   return (
     <ScrollView horizontal contentContainerClassName="gap-2" showsHorizontalScrollIndicator={false}>
-      {(Object.keys(facetFilters) as (keyof typeof facetFilters)[]).map((filter) => {
-        const ids = input[facetFilters[filter].field];
-        return ids.length ? (
-          <FacetChips key={filter} filter={filter} ids={ids} change={change} />
+      {Object.entries(facetFilters).map(([filter, facet]) => {
+        const ids = input[facet.field];
+        return ids.length > 0 ? (
+          <FacetChips key={filter} filter={filter} facet={facet} ids={ids} change={change} />
         ) : null;
       })}
     </ScrollView>

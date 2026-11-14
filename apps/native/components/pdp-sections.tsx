@@ -72,6 +72,10 @@ function Seasons({ data, input }: { data: PdpExtras; input: CatalogDetailInput }
       params: { id: input.id, type: 'tv', season, region: input.region },
     };
   }
+  const episodes = [
+    { label: 'Next Episode', episode: data.next },
+    { label: 'Latest Episode', episode: data.latest },
+  ];
   if (!data.seasons.length && !data.next && !data.latest) {
     return null;
   }
@@ -80,26 +84,26 @@ function Seasons({ data, input }: { data: PdpExtras; input: CatalogDetailInput }
       <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
         Seasons &amp; Episodes ({data.seasons.length})
       </Text>
-      {[
-        ['Next Episode', data.next],
-        ['Latest Episode', data.latest],
-      ].map(([label, episode]) =>
-        typeof episode === 'object' && episode ? (
-          <Link key={String(label)} href={href(episode.season_number)} asChild>
+      {episodes.map(({ label, episode }) => {
+        if (!episode) {
+          return null;
+        }
+        return (
+          <Link key={label} href={href(episode.season_number)} asChild>
             <Pressable
               {...navigation}
               accessibilityRole="link"
               className="bg-default gap-2 rounded-xl border border-border p-4"
             >
-              <Text className="text-sm text-muted">{String(label)}</Text>
+              <Text className="text-sm text-muted">{label}</Text>
               <Text className="font-semibold text-foreground">
                 Season {episode.season_number}, episode {episode.episode_number}
               </Text>
               <Text className="text-sm text-muted">{episode.air_date || 'Air date TBA'}</Text>
             </Pressable>
           </Link>
-        ) : null,
-      )}
+        );
+      })}
       <ScrollView horizontal contentContainerClassName="gap-4">
         {data.seasons.map((season) => (
           <Link key={season.id} href={href(season.season_number)} asChild>
