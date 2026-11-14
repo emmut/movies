@@ -4,12 +4,12 @@ import { CustomListForm } from '@native/components/custom-list-form';
 import { CheckIcon } from '@native/components/icons';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { Sheet } from '@native/components/sheet';
-import { accountQueryKey } from '@native/lib/account-query-key';
+import { useCustomListsStatus } from '@native/hooks/use-custom-lists-query';
 import { orpc } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
 import { refreshCustomLists } from '@native/lib/custom-lists';
 import { useCurrentUrl } from '@native/lib/use-current-url';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -29,10 +29,7 @@ export function CustomListPicker({
   close: () => void;
 }) {
   const [creating, setCreating] = useState(false);
-  const query = useQuery({
-    ...orpc.customLists.status.queryOptions({ input, retry: false }),
-    queryKey: accountQueryKey(orpc.customLists.status.queryKey({ input }), userId),
-  });
+  const query = useCustomListsStatus(userId, input);
   const add = useMutation(
     orpc.customLists.add.mutationOptions({ onSettled: () => refreshCustomLists(userId) }),
   );

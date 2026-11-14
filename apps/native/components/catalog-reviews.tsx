@@ -2,22 +2,16 @@ import type { CatalogDetailInput } from '@movies/api/catalog';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { ReviewCard } from '@native/components/review-card';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
-import { orpc } from '@native/lib/api';
+import { useCatalogReviews } from '@native/hooks/use-catalog-query';
 import { catalogReviewsPath } from '@native/lib/catalog-navigation';
 import { reviewCountLabel } from '@native/lib/review-model';
-import { useQuery } from '@tanstack/react-query';
 import { Link, usePathname } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 export function CatalogReviews({ input }: { input: CatalogDetailInput }) {
   const pathname = usePathname();
   const navigationPress = useScrollNavigation();
-  const query = useQuery(
-    orpc.catalog.reviews.queryOptions({
-      input: { id: input.id, type: input.type, page: 1 },
-      retry: false,
-    }),
-  );
+  const query = useCatalogReviews({ id: input.id, type: input.type, page: 1 });
   if (query.data?.reviews.length === 0) {
     return null;
   }

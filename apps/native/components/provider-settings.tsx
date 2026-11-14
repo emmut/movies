@@ -3,6 +3,10 @@ import type { RegionCode } from '@movies/config/regions';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { CheckIcon } from '@native/components/icons';
 import { SettingsSaveButton, SettingsSaveFeedback } from '@native/components/settings-controls';
+import {
+  usePreferencesProviderOptions,
+  usePreferencesProviders,
+} from '@native/hooks/use-preferences-query';
 import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc, queryClient } from '@native/lib/api';
 import { combineQueryStates } from '@native/lib/query-state';
@@ -11,7 +15,7 @@ import {
   isUnauthorized,
   SETTINGS_LOGIN_HREF,
 } from '@native/lib/settings-session';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Image as ExpoImage } from 'expo-image';
 import { Redirect } from 'expo-router';
 import { useState, type ReactNode } from 'react';
@@ -257,17 +261,8 @@ export function ProviderSettings({
   header: ReactNode;
   userId: string;
 }) {
-  const saved = useQuery({
-    ...orpc.preferences.providers.queryOptions({ retry: false }),
-    queryKey: accountQueryKey(orpc.preferences.providers.queryKey(), userId),
-  });
-  const choices = useQuery({
-    ...orpc.preferences.providerOptions.queryOptions({ input: { region }, retry: false }),
-    queryKey: accountQueryKey(
-      orpc.preferences.providerOptions.queryKey({ input: { region } }),
-      userId,
-    ),
-  });
+  const saved = usePreferencesProviders(userId);
+  const choices = usePreferencesProviderOptions(userId, { region });
   const state = combineQueryStates([saved, choices]);
   return (
     <ProviderAccess error={state.error}>

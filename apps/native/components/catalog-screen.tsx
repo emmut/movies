@@ -3,9 +3,8 @@ import { regionSchema } from '@movies/config/regions';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogContent } from '@native/components/catalog-content';
 import { DetailSkeleton } from '@native/components/loading-skeletons';
-import { orpc } from '@native/lib/api';
+import { useCatalogDetails } from '@native/hooks/use-catalog-query';
 import { useRegion } from '@native/lib/preferences';
-import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
@@ -52,7 +51,7 @@ function TitleLoadError({ error, retry }: { error: Error; retry: () => void }) {
   );
 }
 function CatalogQuery({ input }: { input: CatalogDetailInput }) {
-  const query = useQuery(orpc.catalog.details.queryOptions({ input, retry: false }));
+  const query = useCatalogDetails(input);
   if (query.isPending) {
     return <DetailSkeleton label="Loading title" />;
   }

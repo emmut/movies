@@ -9,10 +9,9 @@ import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { SearchPerson } from '@native/components/search-person-card';
 import { SearchSuggestions } from '@native/components/search-suggestions';
-import { orpc } from '@native/lib/api';
+import { useSearchList } from '@native/hooks/use-search-query';
 import { readSearchState } from '@native/lib/search-state';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
@@ -81,7 +80,7 @@ function resultKey(item: SearchItem) {
   return item.type + ':' + item.id;
 }
 function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: number) => void }) {
-  const query = useQuery(orpc.search.list.queryOptions({ input }));
+  const query = useSearchList(input);
   const {
     ref,
     onScroll,

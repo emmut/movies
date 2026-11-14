@@ -4,10 +4,9 @@ import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { MediaPoster, MediaPosterRow } from '@native/components/media-poster';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
-import { orpc } from '@native/lib/api';
+import { useCatalogKeyword } from '@native/hooks/use-catalog-query';
 import { useRegion } from '@native/lib/preferences';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
@@ -34,9 +33,7 @@ function KeywordQuery({
     captureBeforeNavigation,
     cancelBeforeNavigation,
   } = useRememberedScroll('keyword:' + id + ':' + type + ':' + page, 'entry');
-  const query = useQuery(
-    orpc.catalog.keyword.queryOptions({ input: { id, type, region, page }, retry: false }),
-  );
+  const query = useCatalogKeyword({ id, type, region, page });
   function navigate(next: number) {
     router.setParams({ page: String(next) });
   }

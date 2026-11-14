@@ -1,7 +1,6 @@
 import { imdbIdSchema } from '@movies/api/imdb';
 import { ScreenQueryState } from '@native/components/screen-query-state';
-import { orpc } from '@native/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useCatalogResolveImdb } from '@native/hooks/use-catalog-query';
 import { Link, Redirect, Stack, useLocalSearchParams } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
@@ -27,9 +26,7 @@ function UnavailableTitle() {
 }
 
 function ResolveTitle({ imdbId }: { imdbId: string }) {
-  const query = useQuery(
-    orpc.catalog.resolveImdb.queryOptions({ input: { imdbId }, retry: false }),
-  );
+  const query = useCatalogResolveImdb({ imdbId });
   if (query.isPending || query.isError) {
     return (
       <ScreenQueryState

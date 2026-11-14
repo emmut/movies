@@ -5,9 +5,8 @@ import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { PdpImage } from '@native/components/pdp-image';
 import { PdpMedia } from '@native/components/pdp-media';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
-import { orpc } from '@native/lib/api';
+import { useCatalogCollection, useCatalogExtras } from '@native/hooks/use-catalog-query';
 import { catalogPath } from '@native/lib/catalog-navigation';
-import { useQuery } from '@tanstack/react-query';
 import { Link, usePathname } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -42,7 +41,7 @@ function CollectionParts({ parts, region }: { parts: CollectionPage['parts']; re
   );
 }
 function Collection({ id, region }: { id: number; region: string }) {
-  const query = useQuery(orpc.catalog.collection.queryOptions({ input: { id }, retry: false }));
+  const query = useCatalogCollection({ id });
   return (
     <View className="gap-3">
       <CatalogSectionState
@@ -194,7 +193,7 @@ export function PdpSections({
   title: string;
   part?: 'details' | 'seasons' | 'availability';
 }) {
-  const query = useQuery(orpc.catalog.extras.queryOptions({ input, retry: false }));
+  const query = useCatalogExtras(input);
   const data = query.data;
   if (part === 'seasons') {
     return data && input.type === 'tv' ? <Seasons data={data} input={input} /> : null;

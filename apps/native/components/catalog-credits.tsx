@@ -1,16 +1,13 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { PersonCreditGroup } from '@native/components/person-credits';
-import { orpc } from '@native/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useCatalogCredits } from '@native/hooks/use-catalog-query';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 export function CatalogCredits({ input }: { input: CatalogDetailInput }) {
   const [expandedCrew, setExpandedCrew] = useState(false);
-  const query = useQuery(
-    orpc.catalog.credits.queryOptions({ input: { id: input.id, type: input.type }, retry: false }),
-  );
+  const query = useCatalogCredits({ id: input.id, type: input.type });
   if (query.data && Object.values(query.data).every((people) => (people?.length ?? 0) === 0)) {
     return null;
   }

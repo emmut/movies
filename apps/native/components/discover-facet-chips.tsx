@@ -1,8 +1,7 @@
 import type { DiscoveryInput } from '@movies/api/discover';
 import { XIcon } from '@native/components/icons';
-import { orpc } from '@native/lib/api';
+import { useDiscoveryFacets } from '@native/hooks/use-discovery-query';
 import { facetFilters } from '@native/lib/discover-filters';
-import { useQuery } from '@tanstack/react-query';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 function FacetChips({
@@ -15,12 +14,7 @@ function FacetChips({
   change: (params: Record<string, string>) => void;
 }) {
   const facet = facetFilters[filter];
-  const query = useQuery(
-    orpc.discovery.facets.queryOptions({
-      input: { kind: facet.kind, ids, query: '' },
-      retry: false,
-    }),
-  );
+  const query = useDiscoveryFacets({ kind: facet.kind, ids, query: '' });
   return (
     <View className="flex-row gap-2">
       {ids.map((id) => {

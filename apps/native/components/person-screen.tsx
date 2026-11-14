@@ -10,12 +10,12 @@ import { MediaBadge } from '@native/components/media-badge';
 import { PersonFilmography, PersonKnownFor } from '@native/components/person-filmography';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { StatGrid } from '@native/components/stat-grid';
-import { orpc } from '@native/lib/api';
+import { usePersonCredits, usePersonDetails } from '@native/hooks/use-person-query';
 import { personCreditCount, personFacts, personStats } from '@native/lib/person-model';
 import { useRegion } from '@native/lib/preferences';
 import { regionOr } from '@native/lib/search-params';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { type UseQueryResult } from '@tanstack/react-query';
 import { Image as NativeImage } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -75,12 +75,8 @@ function PersonStatistics({
   return <StatGrid stats={personStats(person, credits)} />;
 }
 function PersonContent({ person, region }: { person: PersonDetail; region: string }) {
-  const movie = useQuery(
-    orpc.person.credits.queryOptions({ input: { id: person.id, type: 'movie' }, retry: false }),
-  );
-  const tv = useQuery(
-    orpc.person.credits.queryOptions({ input: { id: person.id, type: 'tv' }, retry: false }),
-  );
+  const movie = usePersonCredits({ id: person.id, type: 'movie' });
+  const tv = usePersonCredits({ id: person.id, type: 'tv' });
   const {
     ref,
     onScroll,
@@ -171,7 +167,7 @@ function PersonLoadError({ error, retry }: { error: Error; retry: () => Promise<
 }
 
 function PersonQuery({ id, region }: { id: number; region: string }) {
-  const query = useQuery(orpc.person.details.queryOptions({ input: { id }, retry: false }));
+  const query = usePersonDetails({ id });
   if (query.isPending) {
     return <DetailSkeleton label="Loading person" />;
   }

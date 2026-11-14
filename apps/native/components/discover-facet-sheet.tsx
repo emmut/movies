@@ -1,7 +1,6 @@
 import type { DiscoveryFacetInput } from '@movies/api/discover';
 import { ChoiceSheet } from '@native/components/choice-sheet';
-import { orpc } from '@native/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useDiscoveryFacets } from '@native/hooks/use-discovery-query';
 import { useEffect, useState } from 'react';
 
 export function DiscoverFacetSheet({
@@ -23,12 +22,7 @@ export function DiscoverFacetSheet({
     const timer = setTimeout(() => setQuery(search.trim()), 250);
     return () => clearTimeout(timer);
   }, [search]);
-  const results = useQuery(
-    orpc.discovery.facets.queryOptions({
-      input: { kind, query, ids: selected },
-      retry: false,
-    }),
-  );
+  const results = useDiscoveryFacets({ kind, query, ids: selected });
   const options = results.data ?? selected.map((id) => ({ id, name: `${kind} ${id}` }));
   return (
     <ChoiceSheet

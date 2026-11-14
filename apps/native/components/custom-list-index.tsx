@@ -6,12 +6,12 @@ import { CustomListScroll } from '@native/components/custom-list-scroll';
 import { ListMoveControls } from '@native/components/list-controls';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
-import { accountQueryKey } from '@native/lib/account-query-key';
+import { useCustomListsIndex } from '@native/hooks/use-custom-lists-query';
 import { orpc } from '@native/lib/api';
 import { refreshCustomLists } from '@native/lib/custom-lists';
 import { listPage } from '@native/lib/list-page-state';
 import { useCanonicalListPage } from '@native/lib/use-canonical-list-page';
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -87,11 +87,7 @@ function ListIndex({ userId }: { userId: string }) {
   const [editor, setEditor] = useState<CustomListSummary | 'create' | null>(null);
   const [deleting, setDeleting] = useState<CustomListSummary | null>(null);
   const [reordering, setReordering] = useState(false);
-  const query = useQuery({
-    ...orpc.customLists.index.queryOptions({ input, retry: false }),
-    queryKey: accountQueryKey(orpc.customLists.index.queryKey({ input }), userId),
-    placeholderData: keepPreviousData,
-  });
+  const query = useCustomListsIndex(userId, input);
   const move = useMutation(
     orpc.customLists.move.mutationOptions({ onSuccess: () => refreshCustomLists(userId) }),
   );

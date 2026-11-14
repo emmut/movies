@@ -2,11 +2,9 @@ import type { SystemListPageInput } from '@movies/api/system-lists';
 import { ChoiceSheet } from '@native/components/choice-sheet';
 import { ChevronDownIcon } from '@native/components/icons';
 import { RegionPicker } from '@native/components/region-picker';
-import { accountQueryKey } from '@native/lib/account-query-key';
-import { orpc } from '@native/lib/api';
+import { useSystemListsOptions } from '@native/hooks/use-system-lists-query';
 import { toggleSelection } from '@native/lib/discover-state';
 import { providerChoices } from '@native/lib/provider-choices';
-import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -21,10 +19,7 @@ export function SystemListFilters({
 }) {
   const [open, setOpen] = useState<'providers' | 'region' | null>(null);
   const optionsInput = { region: input.region };
-  const query = useQuery({
-    ...orpc.systemLists.options.queryOptions({ input: optionsInput, retry: false }),
-    queryKey: accountQueryKey(orpc.systemLists.options.queryKey({ input: optionsInput }), userId),
-  });
+  const query = useSystemListsOptions(userId, optionsInput);
   const choices = providerChoices(query.data ?? [], input.providerIds);
   const blocked = query.isPending || query.isError;
   return (

@@ -3,8 +3,7 @@ import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { PlayIcon } from '@native/components/icons';
 import { Sheet } from '@native/components/sheet';
 import { TrailerPlayer } from '@native/components/trailer-player';
-import { orpc } from '@native/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useCatalogTrailer } from '@native/hooks/use-catalog-query';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
@@ -72,7 +71,7 @@ function TrailerAction({
   );
 }
 export function CatalogTrailer({ input, title }: { input: CatalogTitleInput; title: string }) {
-  const query = useQuery(orpc.catalog.trailer.queryOptions({ input, retry: false }));
+  const query = useCatalogTrailer(input);
   if (query.data === null) {
     return null;
   }

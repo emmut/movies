@@ -12,13 +12,14 @@ import { MediaPoster } from '@native/components/media-poster';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { SystemListFilters } from '@native/components/system-list-filters';
+import { useAccountRegion } from '@native/hooks/use-preferences-query';
+import { useSystemListsPage } from '@native/hooks/use-system-lists-query';
 import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc, queryClient } from '@native/lib/api';
 import { canReorderList } from '@native/lib/list-page-state';
-import { accountRegionQueryOptions } from '@native/lib/preferences';
 import { readSystemListState } from '@native/lib/system-list-state';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
@@ -325,11 +326,7 @@ function ListQuery({
   userId: string;
   change: (params: Record<string, string>) => void;
 }) {
-  const query = useQuery({
-    ...orpc.systemLists.page.queryOptions({ input, retry: false }),
-    placeholderData: keepPreviousData,
-    queryKey: accountQueryKey(orpc.systemLists.page.queryKey({ input }), userId),
-  });
+  const query = useSystemListsPage(userId, input);
   if (query.isPending) {
     return <PosterGridSkeleton label="Loading your list" />;
   }
@@ -359,7 +356,7 @@ function ListQuery({
 }
 
 function RegionalList({ listType, userId }: { listType: SystemListType; userId: string }) {
-  const region = useQuery(accountRegionQueryOptions(userId, { retry: false }));
+  const region = useAccountRegion(userId);
   const params = useLocalSearchParams();
   const router = useRouter();
   if (!region.data) {

@@ -3,13 +3,12 @@ import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogPagination } from '@native/components/catalog-pagination';
 import { ReviewCard } from '@native/components/review-card';
 import { ScreenQueryState } from '@native/components/screen-query-state';
-import { orpc } from '@native/lib/api';
+import { useCatalogDetails, useCatalogReviews } from '@native/hooks/use-catalog-query';
 import { catalogPath } from '@native/lib/catalog-navigation';
 import { useRegion } from '@native/lib/preferences';
 import { readReviewsInput, reviewCountLabel } from '@native/lib/review-model';
 import { regionOr } from '@native/lib/search-params';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import { useQuery } from '@tanstack/react-query';
 import { Link, Stack, useLocalSearchParams, usePathname, useRouter } from 'expo-router';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
@@ -24,13 +23,8 @@ function Separator() {
 function ReviewsResults({ input, region }: { input: ReviewsInput; region: string }) {
   const router = useRouter();
   const pathname = usePathname();
-  const query = useQuery(orpc.catalog.reviews.queryOptions({ input, retry: false }));
-  const details = useQuery(
-    orpc.catalog.details.queryOptions({
-      input: { id: input.id, type: input.type, region },
-      retry: false,
-    }),
-  );
+  const query = useCatalogReviews(input);
+  const details = useCatalogDetails({ id: input.id, type: input.type, region });
   const title = details.data?.title || 'this title';
   const { ref, onScroll, onLayout, onContentSizeChange, onScrollBeginDrag } = useRememberedScroll<
     FlatList<Review>

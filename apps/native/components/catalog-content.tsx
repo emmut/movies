@@ -17,9 +17,8 @@ import {
   useScrollNavigation,
 } from '@native/components/scroll-navigation';
 import { SystemListActions } from '@native/components/system-list-actions';
-import { orpc } from '@native/lib/api';
+import { useCatalogImdb } from '@native/hooks/use-catalog-query';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -59,9 +58,7 @@ function Genres({ item, region }: { item: CatalogDetail; region: string }) {
 }
 
 export function CatalogContent({ item, region }: { item: CatalogDetail; region: string }) {
-  const imdb = useQuery(
-    orpc.catalog.imdb.queryOptions({ input: { id: item.id, type: item.type }, retry: false }),
-  );
+  const imdb = useCatalogImdb({ id: item.id, type: item.type });
   const {
     ref: scrollRef,
     onScroll: rememberScroll,

@@ -1,8 +1,7 @@
 import type { HomeMediaSection } from '@movies/api/home';
 import { PosterRowSkeleton } from '@native/components/loading-skeletons';
 import { MediaPoster, MediaPosterRow } from '@native/components/media-poster';
-import { orpc } from '@native/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useHomeList, useHomeTrending } from '@native/hooks/use-home-query';
 import { Pressable, Text, View } from 'react-native';
 
 function RowState({
@@ -46,9 +45,7 @@ function RowState({
 }
 
 export function MediaRow({ section, region }: { section: HomeMediaSection; region: string }) {
-  const query = useQuery(
-    orpc.home.list.queryOptions({ input: { category: section.category, region } }),
-  );
+  const query = useHomeList({ category: section.category, region });
   return (
     <View className="gap-3 py-4">
       <View className="gap-1 px-4">
@@ -78,7 +75,7 @@ export function MediaRow({ section, region }: { section: HomeMediaSection; regio
 }
 
 export function TrendingCard({ type }: { type: 'movie' | 'tv' }) {
-  const query = useQuery(orpc.home.trending.queryOptions({ input: { type } }));
+  const query = useHomeTrending({ type });
   return (
     <View>
       <RowState

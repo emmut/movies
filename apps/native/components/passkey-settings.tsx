@@ -1,12 +1,12 @@
 import { passkeyNameSchema, formatPasskeyDate, type PasskeyMetadata } from '@movies/api/passkeys';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { Sheet } from '@native/components/sheet';
-import { accountQueryKey } from '@native/lib/account-query-key';
+import { passkeyKey, usePasskeys } from '@native/hooks/use-passkeys-query';
 import { queryClient } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
-import { addDevicePasskey, isPasskeySupported, readPasskeys } from '@native/lib/passkeys';
+import { addDevicePasskey, isPasskeySupported } from '@native/lib/passkeys';
 import { isUnauthorized, SETTINGS_LOGIN_HREF } from '@native/lib/settings-session';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Redirect, useFocusEffect } from 'expo-router';
 import { useState, useCallback } from 'react';
 import {
@@ -24,9 +24,6 @@ const SafeAreaView = withUniwind(NativeSafeAreaView);
 
 function passkeyName(key: PasskeyMetadata) {
   return key.name || 'Unnamed passkey';
-}
-function passkeyKey(userId: string) {
-  return accountQueryKey(['passkeys'], userId);
 }
 async function refresh(userId: string) {
   await queryClient.invalidateQueries({ queryKey: passkeyKey(userId) });
@@ -248,7 +245,7 @@ function PasskeyData({
   userId: string;
   remove: (item: PasskeyMetadata) => void;
 }) {
-  const query = useQuery({ queryKey: passkeyKey(userId), queryFn: readPasskeys, retry: false });
+  const query = usePasskeys(userId);
   const { refetch } = query;
   useFocusEffect(
     useCallback(() => {

@@ -1,6 +1,5 @@
 import type { SearchItem, SearchPage } from '@movies/api/search';
-import { orpc } from '@native/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useSearchSuggestions } from '@native/hooks/use-search-query';
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -34,13 +33,7 @@ export function SearchSuggestions({ draft, submit }: { draft: string; submit: ()
     const timer = setTimeout(() => setQuery(trimmed), 250);
     return () => clearTimeout(timer);
   }, [trimmed]);
-  const results = useQuery(
-    orpc.search.suggestions.queryOptions({
-      input: { query },
-      enabled: query.length > 0 && query === trimmed,
-      retry: false,
-    }),
-  );
+  const results = useSearchSuggestions({ query }, query.length > 0 && query === trimmed);
   // Never expose a destination from a previous query while the debounce/request catches up.
   const current = query === trimmed;
   return (

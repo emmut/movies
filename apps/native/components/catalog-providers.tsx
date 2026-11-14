@@ -8,8 +8,7 @@ import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { ExternalLink } from '@native/components/external-link';
 import { ChevronDownIcon } from '@native/components/icons';
 import { RegionPicker } from '@native/components/region-picker';
-import { orpc } from '@native/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useCatalogProviders, useCatalogWatchLinks } from '@native/hooks/use-catalog-query';
 import { Image as ExpoImage } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -114,17 +113,9 @@ export function CatalogProviders({ input }: { input: CatalogDetailInput }) {
   const region = useWatchRegion(input.region);
   const router = useRouter();
   const selected = region.code;
-  const links = useQuery(
-    orpc.catalog.watchLinks.queryOptions({
-      input: { id: input.id, type: input.type },
-      staleTime: 86_400_000,
-      retry: false,
-    }),
-  );
+  const links = useCatalogWatchLinks({ id: input.id, type: input.type });
   const [pickerOpen, setPickerOpen] = useState(false);
-  const query = useQuery(
-    orpc.catalog.providers.queryOptions({ input: { ...input, region: selected }, retry: false }),
-  );
+  const query = useCatalogProviders({ ...input, region: selected });
   return (
     <View className="gap-4">
       <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">

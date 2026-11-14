@@ -142,3 +142,7 @@ Native uses Expo SDK 58 and its compatible React Native 0.88 module versions. Re
 The Expo 58 Hermes export exposed oRPC async rest/destructured parameters that the compiler rejected. Explicit Babel parameter/destructuring transforms retain the existing protocol while emitting compatible syntax; web/iOS/Android exports pass with that configuration. Do not remove these transforms without checking the native Hermes exports.
 
 SDK 57 native binaries cannot receive this SDK 58 upgrade as a JavaScript-only update. Install an SDK 58-compatible Expo Go for supported development workflows, or rebuild the development/preview binary with the matching native modules. Signed passkeys still require a custom signed build and the real domain/signing associations.
+
+### Query hooks
+
+Read queries belong in `hooks/use-<domain>-query.ts`. Screens and components consume named hooks such as `useCatalogDetails(input)` and `useCustomListsDetails(userId, input)`. Hooks own oRPC query options, account-scoped keys, retry policy and pagination placeholders, and return the React Query result directly. Keep rendering, route state and form drafts in components. Input types derive from the shared API client contract. Existing region/session hooks in `lib/preferences.ts` retain their session-store behavior.

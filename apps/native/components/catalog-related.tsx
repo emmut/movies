@@ -2,8 +2,7 @@ import type { CatalogDetailInput } from '@movies/api/catalog';
 import type { CatalogRelatedInput } from '@movies/api/catalog-support';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { MediaPosterRow } from '@native/components/media-poster';
-import { orpc } from '@native/lib/api';
-import { useQuery } from '@tanstack/react-query';
+import { useCatalogRelated } from '@native/hooks/use-catalog-query';
 import { Text, View } from 'react-native';
 
 function relatedHeading(type: CatalogDetailInput['type'], kind: CatalogRelatedInput['kind']) {
@@ -20,9 +19,7 @@ export function CatalogRelated({
   input: CatalogDetailInput;
   kind: CatalogRelatedInput['kind'];
 }) {
-  const query = useQuery(
-    orpc.catalog.related.queryOptions({ input: { ...input, kind }, retry: false }),
-  );
+  const query = useCatalogRelated({ ...input, kind });
   const heading = relatedHeading(input.type, kind);
   if (query.data?.length === 0) {
     return null;

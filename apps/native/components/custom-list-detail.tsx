@@ -14,14 +14,14 @@ import { MediaPoster } from '@native/components/media-poster';
 import { PersonCredit } from '@native/components/person-credits';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { SystemListFilters } from '@native/components/system-list-filters';
-import { accountQueryKey } from '@native/lib/account-query-key';
+import { useCustomListsDetails } from '@native/hooks/use-custom-lists-query';
+import { useAccountRegion } from '@native/hooks/use-preferences-query';
 import { orpc } from '@native/lib/api';
 import { refreshCustomLists } from '@native/lib/custom-lists';
 import { readListPageState, canReorderList } from '@native/lib/list-page-state';
-import { accountRegionQueryOptions } from '@native/lib/preferences';
 import { scalar } from '@native/lib/search-params';
 import { useCanonicalListPage } from '@native/lib/use-canonical-list-page';
-import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -168,11 +168,7 @@ function DetailQuery({
   const params = useLocalSearchParams();
   const router = useRouter();
   const input = { listId, ...readListPageState(params, region) };
-  const query = useQuery({
-    ...orpc.customLists.details.queryOptions({ input, retry: false }),
-    queryKey: accountQueryKey(orpc.customLists.details.queryKey({ input }), userId),
-    placeholderData: keepPreviousData,
-  });
+  const query = useCustomListsDetails(userId, input);
   useCanonicalListPage(query, input.page);
   if (query.error && 'code' in query.error && query.error.code === 'NOT_FOUND') {
     return <NotFound />;
@@ -204,7 +200,7 @@ function DetailQuery({
 }
 function RegionalDetail({ userId }: { userId: string }) {
   const params = useLocalSearchParams();
-  const region = useQuery(accountRegionQueryOptions(userId, { retry: false }));
+  const region = useAccountRegion(userId);
   const id = customListIdInput.safeParse({ listId: scalar(params.listId) });
   if (!id.success) {
     return <NotFound />;
