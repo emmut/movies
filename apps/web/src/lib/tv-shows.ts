@@ -1,16 +1,9 @@
 import 'server-only';
-import type { GenreResponse } from '@movies/api/tmdb-types/genre';
-import {
-  TvCredits,
-  TvDetails,
-  TvRecommendations,
-  TvSimilar,
-  TvWatchProviders,
-} from '@movies/api/tmdb-types/tv-show';
 import { cacheLife, cacheTag } from 'next/cache';
 
+import { createServerApi } from '@/lib/api-server';
+
 import { CACHE_TAGS } from './cache-tags';
-import { tmdbFetch } from './tmdb';
 import { getTmdbExternalIds } from './tmdb-external-ids';
 
 /**
@@ -27,9 +20,7 @@ export async function getTvShowDetails(tvId: number) {
   // Near-static data, fanned out once per row on list pages — keep it warm.
   cacheLife('hours');
 
-  return await tmdbFetch<TvDetails>(`/tv/${tvId}`, {
-    errorMessage: 'Failed loading TV show details',
-  });
+  return createServerApi(new Headers()).catalog.tvDetails({ id: tvId });
 }
 
 /**
@@ -45,9 +36,7 @@ export async function getTvShowCredits(resourceId: number) {
   cacheTag(CACHE_TAGS.public.tv.credits(resourceId));
   cacheLife('minutes');
 
-  return await tmdbFetch<TvCredits>(`/tv/${resourceId}/credits`, {
-    errorMessage: 'Failed loading tv credits',
-  });
+  return createServerApi(new Headers()).catalog.tvCredits({ id: resourceId });
 }
 
 /**
@@ -65,13 +54,7 @@ export async function getTvShowWatchProviders(tvId: number) {
   // rarely, and the provider filter fans this out once per list row.
   cacheLife('days');
 
-  const watchProviders = await tmdbFetch<TvWatchProviders>(`/tv/${tvId}/watch/providers`, {
-    errorMessage: 'Failed loading tv watch providers',
-  });
-
-  return {
-    results: watchProviders.results,
-  };
+  return createServerApi(new Headers()).catalog.availability({ type: 'tv', id: tvId });
 }
 
 /**
@@ -86,10 +69,7 @@ export async function fetchAvailableTvGenres() {
   cacheTag(CACHE_TAGS.public.genres.tv);
   cacheLife('biweekly');
 
-  const tvGenres = await tmdbFetch<GenreResponse>('/genre/tv/list', {
-    errorMessage: 'Error loading TV genres',
-  });
-  return tvGenres.genres;
+  return createServerApi(new Headers()).discovery.genres({ type: 'tv' });
 }
 
 export async function getTvShowSimilar(tvId: number, userRegion?: string) {
@@ -97,11 +77,12 @@ export async function getTvShowSimilar(tvId: number, userRegion?: string) {
   cacheTag(CACHE_TAGS.public.tv.similar(tvId));
   cacheLife('hours');
 
-  const tvShows = await tmdbFetch<TvSimilar>(`/tv/${tvId}/similar`, {
-    searchParams: { region: userRegion },
-    errorMessage: 'Failed loading similar TV shows',
+  return createServerApi(new Headers()).catalog.related({
+    type: 'tv',
+    id: tvId,
+    region: userRegion,
+    kind: 'similar',
   });
-  return tvShows.results;
 }
 
 export async function getTvShowRecommendations(tvId: number, userRegion?: string) {
@@ -109,11 +90,12 @@ export async function getTvShowRecommendations(tvId: number, userRegion?: string
   cacheTag(CACHE_TAGS.public.tv.recommendations(tvId));
   cacheLife('hours');
 
-  const tvShows = await tmdbFetch<TvRecommendations>(`/tv/${tvId}/recommendations`, {
-    searchParams: { region: userRegion },
-    errorMessage: 'Failed loading TV show recommendations',
+  return createServerApi(new Headers()).catalog.related({
+    type: 'tv',
+    id: tvId,
+    region: userRegion,
+    kind: 'recommendations',
   });
-  return tvShows.results;
 }
 
 export async function getTvShowImdbId(tvId: number) {

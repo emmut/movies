@@ -49,7 +49,8 @@
     "./account-query-key": "./src/account-query-key.ts",
     "./query-utils": "./src/query-utils.ts",
     "./discovery-input": "./src/discovery-input.ts",
-    "./errors": "./src/errors.ts"
+    "./errors": "./src/errors.ts",
+    "./metadata": "./src/metadata.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

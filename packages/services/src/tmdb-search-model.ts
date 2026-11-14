@@ -1,3 +1,4 @@
+import { tvMetadataSchema } from '@movies/api/metadata';
 import 'server-only';
 import { z } from 'zod';
 
@@ -90,16 +91,14 @@ export const movieDetailsSchema = searchedMovieSchema.extend({
 });
 export const tvDetailsSchema = searchedTvSchema.extend({
   ...detailFields,
-  last_air_date: text,
-  number_of_episodes: z.number().int().nonnegative().default(0),
-  number_of_seasons: z.number().int().nonnegative().default(0),
-  episode_run_time: z.array(z.number()).default([]),
-  networks: z
-    .array(z.object({ id, name: z.string(), logo_path: text, origin_country: text }))
-    .default([]),
-  created_by: z
-    .array(z.object({ id, name: z.string(), profile_path: text, credit_id: text }))
-    .default([]),
+  ...tvMetadataSchema.pick({
+    last_air_date: true,
+    number_of_episodes: true,
+    number_of_seasons: true,
+    episode_run_time: true,
+    networks: true,
+    created_by: true,
+  }).shape,
 });
 export const personDetailsSchema = searchedPersonSchema.extend({
   biography: text,

@@ -1,28 +1,14 @@
+import type { TmdbFetch } from '@movies/api/tmdb-fetch';
+import { searchIndex } from '@movies/db/schema/search-index';
+import { CANDIDATE_LIMIT, FUZZY_QUERY_TIMEOUT_MS } from '@movies/db/search-index';
+import { createSearchIndexReader } from '@movies/db/search-index';
+import { createSearchService } from '@movies/services/search-service';
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
-
-vi.mock('@/lib/db', () => ({ db: { transaction: vi.fn() } }));
-vi.mock('@/lib/movies', () => ({ getMovieDetails: vi.fn() }));
-vi.mock('@/lib/tv-shows', () => ({ getTvShowDetails: vi.fn() }));
-vi.mock('@/lib/persons', () => ({ getPersonDetails: vi.fn() }));
-vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
-vi.mock('./tmdb', () => ({
-  tmdbFetch: vi.fn(),
-  addPosterImageUrls: vi.fn((item: object) => item),
-  addProfileImageUrls: vi.fn((item: object) => item),
-}));
-
-import { searchIndex } from '@movies/db/schema/search-index';
-import { CANDIDATE_LIMIT, FUZZY_QUERY_TIMEOUT_MS } from '@movies/db/search-index';
-import { createSearchService } from '@movies/services/search-service';
-
-import { db } from '@/lib/db';
-import { getMovieDetails } from '@/lib/movies';
-
-import { searchIndexFuzzy } from './search-index';
-import { tmdbFetch } from './tmdb';
+const db = { transaction: vi.fn() } as unknown as Parameters<typeof createSearchIndexReader>[0];
+const { searchIndexFuzzy } = createSearchIndexReader(db);
 
 // Run against a migrated PostgreSQL database. Temporary tables keep fixtures
 // isolated from both existing titles and other test connections.
@@ -108,14 +94,6 @@ describe.skipIf(!process.env.SEARCH_TEST_DATABASE_URL)('PostgreSQL fuzzy search'
       },
     ]);
     vi.mocked(db.transaction).mockImplementation(database.transaction.bind(database));
-    vi.mocked(tmdbFetch).mockResolvedValue({
-      results: [],
-      total_pages: 0,
-      total_results: 0,
-    } as never);
-    vi.mocked(getMovieDetails).mockImplementation(async (id) => {
-      return { id, title: id === 157336 ? 'Interstellar' : 'Interstate', genres: [] } as never;
-    });
   });
 
   afterAll(async () => {
@@ -137,7 +115,7 @@ describe.skipIf(!process.env.SEARCH_TEST_DATABASE_URL)('PostgreSQL fuzzy search'
       }
       return { results: [], total_pages: 0, total_results: 0 };
     });
-    const service = createSearchService(fetcher as typeof tmdbFetch, searchIndexFuzzy);
+    const service = createSearchService(fetcher as TmdbFetch, searchIndexFuzzy);
     expect(
       (await service.list({ query: 'intersteller', type: 'all', page: 1 })).items[0],
     ).toMatchObject({ id: 157336, title: 'Interstellar', type: 'movie' });

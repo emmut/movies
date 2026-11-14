@@ -1,57 +1,49 @@
 import 'server-only';
-import type {
-  AggregateCredits,
-  CollectionDetails,
-  PdpExtras,
-  SeasonDetails,
-} from '@movies/api/tmdb-types/pdp';
+import { DEFAULT_REGION, type RegionCode } from '@movies/config/regions';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { CACHE_TAGS } from './cache-tags';
-import { tmdbFetch } from './tmdb';
+import { createServerApi } from '@/lib/api-server';
 
-export async function getPdpExtras(type: 'movie' | 'tv', id: number) {
+import { CACHE_TAGS } from './cache-tags';
+
+export async function getPdpExtras(
+  type: 'movie' | 'tv',
+  id: number,
+  region: RegionCode = DEFAULT_REGION,
+) {
   'use cache: remote';
   cacheLife('hours');
   cacheTag(CACHE_TAGS.public[type].details(id));
-  return tmdbFetch<PdpExtras>(`/${type}/${id}`, {
-    searchParams: {
-      append_to_response:
-        type === 'movie' ? 'images,keywords,videos,release_dates' : 'images,keywords,videos',
-      include_image_language: 'en,null',
-    },
-    errorMessage: 'Failed loading additional title information',
-  });
+  return createServerApi(new Headers()).catalog.extras({ type, id, region });
 }
 
 export async function getCollection(id: number) {
   'use cache: remote';
   cacheLife('days');
-  return tmdbFetch<CollectionDetails>(`/collection/${id}`, {
-    errorMessage: 'Failed loading collection',
-  });
+  return createServerApi(new Headers()).catalog.collection({ id });
 }
 
 export async function getSeason(id: number, season: number) {
   'use cache: remote';
   cacheLife('hours');
   cacheTag(CACHE_TAGS.public.tv.details(id));
-  return tmdbFetch<SeasonDetails>(`/tv/${id}/season/${season}`, {
-    errorMessage: 'Failed loading season',
-  });
+  return createServerApi(new Headers()).catalog.season({ id, season });
 }
 
 export async function getAggregateCredits(id: number) {
   'use cache: remote';
   cacheLife('hours');
   cacheTag(CACHE_TAGS.public.tv.credits(id));
-  return tmdbFetch<AggregateCredits>(`/tv/${id}/aggregate_credits`, {
-    errorMessage: 'Failed loading series credits',
-  });
+  return createServerApi(new Headers()).catalog.aggregateCredits({ id });
 }
 
 export async function getKeyword(id: number) {
   'use cache: remote';
   cacheLife('days');
-  return tmdbFetch<{ name: string }>(`/keyword/${id}`, { errorMessage: 'Failed loading keyword' });
+  const items = await createServerApi(new Headers()).discovery.facets({
+    kind: 'keyword',
+    ids: [id],
+    query: '',
+  });
+  return items[0] ?? { id, name: `Keyword ${id}` };
 }

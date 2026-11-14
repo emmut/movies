@@ -1,10 +1,10 @@
-import type { TmdbReview } from '@movies/api/reviews';
+import type { Review } from '@movies/api/reviews';
 import { Star } from 'lucide-react';
 
 import { ExpandableText } from '@/components/expandable-text';
 
 type ReviewCardProps = {
-  review: TmdbReview;
+  review: Review;
   clamped?: boolean;
 };
 
@@ -31,13 +31,13 @@ export function ReviewCard({ review, clamped = false }: ReviewCardProps) {
     <div className="space-y-2 rounded-lg bg-zinc-900 p-4">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <span className="font-medium">{review.author}</span>
-        {review.author_details.rating !== null && (
+        {review.rating !== null && (
           <span className="flex items-center gap-1 text-sm text-zinc-300">
             <Star className="h-4 w-4 text-yellow-500" />
-            {review.author_details.rating}/10
+            {review.rating}/10
           </span>
         )}
-        <span className="text-xs text-zinc-500">{formatDate(review.created_at)}</span>
+        <span className="text-xs text-zinc-500">{formatDate(review.createdAt)}</span>
       </div>
       {clamped ? (
         <ExpandableText text={review.content} className={CONTENT_CLASS} />

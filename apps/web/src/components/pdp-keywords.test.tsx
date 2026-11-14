@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
+import { pdpExtrasFixture } from '@/test/pdp-extras';
+
 vi.mock('@/lib/pdp', () => ({ getPdpExtras: vi.fn() }));
 
 import { getPdpExtras } from '@/lib/pdp';
@@ -14,12 +16,14 @@ describe('PDP keywords', () => {
   it.each(['movie', 'tv'] as const)(
     'renders %s keywords as collapsed silhouettes without an accordion',
     async (type) => {
-      vi.mocked(getPdpExtras).mockResolvedValue({
-        keywords:
-          type === 'movie'
-            ? { keywords: [{ id: 10, name: 'Time travel' }] }
-            : { results: [{ id: 10, name: 'Time travel' }] },
-      });
+      vi.mocked(getPdpExtras).mockResolvedValue(
+        pdpExtrasFixture({
+          keywords:
+            type === 'movie'
+              ? { keywords: [{ id: 10, name: 'Time travel' }] }
+              : { results: [{ id: 10, name: 'Time travel' }] },
+        }),
+      );
 
       const section = await PdpKeywords({ type, id: 1 });
       const html = renderToStaticMarkup(section);
@@ -40,7 +44,7 @@ describe('PDP keywords', () => {
   it.each([{}, { keywords: { keywords: [] } }])(
     'hides absent or empty keywords',
     async (extras) => {
-      vi.mocked(getPdpExtras).mockResolvedValue(extras);
+      vi.mocked(getPdpExtras).mockResolvedValue(pdpExtrasFixture(extras));
       expect(await PdpKeywords({ type: 'movie', id: 1 })).toBeNull();
     },
   );

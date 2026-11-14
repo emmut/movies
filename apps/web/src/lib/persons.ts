@@ -1,8 +1,9 @@
-import { PersonDetails, PersonMovieCredits, PersonTvCredits } from '@movies/api/tmdb-types/person';
+import 'server-only';
 import { cacheLife, cacheTag } from 'next/cache';
 
+import { createServerApi } from '@/lib/api-server';
+
 import { CACHE_TAGS } from './cache-tags';
-import { tmdbFetch } from './tmdb';
 
 /**
  * Fetches detailed information for an person from TMDb by their ID.
@@ -18,9 +19,7 @@ export async function getPersonDetails(personId: number) {
   // Near-static data, fanned out once per row on list pages — keep it warm.
   cacheLife('hours');
 
-  return await tmdbFetch<PersonDetails>(`/person/${personId}`, {
-    errorMessage: 'Failed loading person details',
-  });
+  return createServerApi(new Headers()).person.profile({ id: personId });
 }
 
 /**
@@ -36,9 +35,7 @@ export async function getPersonMovieCredits(personId: number) {
   cacheTag(CACHE_TAGS.public.person.movieCredits(personId));
   cacheLife('minutes');
 
-  return await tmdbFetch<PersonMovieCredits>(`/person/${personId}/movie_credits`, {
-    errorMessage: 'Failed loading person movie credits',
-  });
+  return createServerApi(new Headers()).person.movieCredits({ id: personId });
 }
 
 /**
@@ -54,7 +51,5 @@ export async function getPersonTvCredits(personId: number) {
   cacheTag(CACHE_TAGS.public.person.tvCredits(personId));
   cacheLife('minutes');
 
-  return await tmdbFetch<PersonTvCredits>(`/person/${personId}/tv_credits`, {
-    errorMessage: 'Failed loading person TV credits',
-  });
+  return createServerApi(new Headers()).person.tvCredits({ id: personId });
 }

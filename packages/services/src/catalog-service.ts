@@ -1,11 +1,11 @@
 import type { CatalogDetail, CatalogDetailInput } from '@movies/api/catalog';
-import 'server-only';
 import {
   pickMovieCertification,
   pickTvCertification,
   type MovieReleaseDatesResponse,
   type TvContentRatingsResponse,
 } from '@movies/api/certifications';
+import 'server-only';
 import type { CatalogService } from '@movies/api/router';
 import { TmdbRequestError, type TmdbFetch } from '@movies/api/tmdb-fetch';
 import { createCatalogCreditsService } from '@movies/services/catalog-credits-service';
@@ -17,9 +17,14 @@ import { createCatalogPdpService } from '@movies/services/catalog-pdp-service';
 import { createCatalogReviewsService } from '@movies/services/catalog-reviews-service';
 import { createCatalogSupportService } from '@movies/services/catalog-support-service';
 import { tmdbImageUrl } from '@movies/services/media-card';
-import { createWatchLinksService } from '@movies/services/watch-links-service';
+import {
+  createWatchLinksService,
+  type WikidataClaimsReader,
+} from '@movies/services/watch-links-service';
 import { ORPCError } from '@orpc/server';
 import { z } from 'zod';
+
+import { createCatalogMetadataService } from './catalog-metadata-service';
 
 const text = z
   .string()
@@ -80,16 +85,20 @@ function publicHomepage(value: string) {
   return null;
 }
 
-async function certification(fetchTmdb: TmdbFetch, { id, type, region }: CatalogDetailInput) {
+async function readCertification(fetchTmdb: TmdbFetch, { id, type, region }: CatalogDetailInput) {
+  if (type === 'movie') {
+    const data = await fetchTmdb<MovieReleaseDatesResponse>(`/movie/${id}/release_dates`);
+    return pickMovieCertification(data.results, region);
+  }
+  const data = await fetchTmdb<TvContentRatingsResponse>(`/tv/${id}/content_ratings`);
+  return pickTvCertification(data.results, region);
+}
+
+async function certification(fetchTmdb: TmdbFetch, input: CatalogDetailInput) {
   try {
-    if (type === 'movie') {
-      const data = await fetchTmdb<MovieReleaseDatesResponse>(`/movie/${id}/release_dates`);
-      return pickMovieCertification(data.results, region);
-    }
-    const data = await fetchTmdb<TvContentRatingsResponse>(`/tv/${id}/content_ratings`);
-    return pickTvCertification(data.results, region);
+    return await readCertification(fetchTmdb, input);
   } catch (error) {
-    console.error('Could not load title certification', { id, type, error });
+    console.error('Could not load title certification', { ...input, error });
     return null;
   }
 }
@@ -116,11 +125,15 @@ async function loadDetails(fetchTmdb: TmdbFetch, { id, type }: CatalogDetailInpu
 
 export function createCatalogService(
   fetchTmdb: TmdbFetch,
-  imdbOptions: CatalogImdbOptions = {},
+  imdbOptions: CatalogImdbOptions & { readWikidataClaims?: WikidataClaimsReader } = {},
 ): CatalogService {
   return {
+    ...createCatalogMetadataService(fetchTmdb),
     ...createCatalogSupportService(fetchTmdb),
-    ...createWatchLinksService(fetchTmdb),
+    certification(input) {
+      return readCertification(fetchTmdb, input);
+    },
+    ...createWatchLinksService(fetchTmdb, undefined, imdbOptions.readWikidataClaims),
     ...createCatalogPdpService(fetchTmdb),
     ...createCatalogCreditsService(fetchTmdb),
     ...createCatalogImdbService(fetchTmdb, imdbOptions),

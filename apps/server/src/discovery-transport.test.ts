@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vite-plus/test';
 
 function setup() {
   const discovery = {
+    ...mockServices().discovery,
     list: vi.fn().mockResolvedValue({ items: [], totalPages: 0, totalResults: 0 }),
     options: vi.fn().mockResolvedValue({ genres: [], providers: [], countries: [] }),
     facets: vi.fn().mockResolvedValue([{ id: 49, name: 'HBO' }]),

@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
+import { pdpExtrasFixture } from '@/test/pdp-extras';
+
 vi.mock('@/lib/pdp', () => ({ getPdpExtras: vi.fn() }));
 
 import type { TmdbVideo } from '@movies/api/catalog-support';
@@ -28,17 +30,19 @@ describe('Trailer and video entry point', () => {
   it.each(['movie', 'tv'] as const)(
     'combines %s videos into one trailer button without loading a player',
     async (mediaType) => {
-      vi.mocked(getPdpExtras).mockResolvedValue({
-        videos: {
-          id: 1,
-          results: [
-            { ...trailer, id: 'extra', key: 'extra-key01', type: 'Featurette' },
-            trailer,
-            { ...trailer, id: 'invalid', key: 'invalid?key' },
-            { ...trailer, id: 'vimeo', site: 'Vimeo' },
-          ],
-        },
-      });
+      vi.mocked(getPdpExtras).mockResolvedValue(
+        pdpExtrasFixture({
+          videos: {
+            id: 1,
+            results: [
+              { ...trailer, id: 'extra', key: 'extra-key01', type: 'Featurette' },
+              trailer,
+              { ...trailer, id: 'invalid', key: 'invalid?key' },
+              { ...trailer, id: 'vimeo', site: 'Vimeo' },
+            ],
+          },
+        }),
+      );
       const section = await TrailerContent({ mediaType, mediaId: 1, title: 'Title' });
       const html = renderToStaticMarkup(section);
       expect(getPdpExtras).toHaveBeenCalledWith(mediaType, 1);
@@ -50,9 +54,11 @@ describe('Trailer and video entry point', () => {
   );
 
   it('offers additional videos even when no trailer exists', async () => {
-    vi.mocked(getPdpExtras).mockResolvedValue({
-      videos: { id: 1, results: [{ ...trailer, type: 'Featurette' }] },
-    });
+    vi.mocked(getPdpExtras).mockResolvedValue(
+      pdpExtrasFixture({
+        videos: { id: 1, results: [{ ...trailer, type: 'Featurette' }] },
+      }),
+    );
     expect(
       renderToStaticMarkup(
         await TrailerContent({ mediaType: 'movie', mediaId: 1, title: 'Title' }),
@@ -61,7 +67,7 @@ describe('Trailer and video entry point', () => {
   });
 
   it('hides the button when there are no playable videos', async () => {
-    vi.mocked(getPdpExtras).mockResolvedValue({});
+    vi.mocked(getPdpExtras).mockResolvedValue(pdpExtrasFixture({}));
     expect(await TrailerContent({ mediaType: 'tv', mediaId: 1, title: 'Title' })).toBeNull();
   });
 });

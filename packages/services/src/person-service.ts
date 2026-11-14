@@ -1,5 +1,5 @@
-import 'server-only';
 import { personCreditFields, sortPersonTitles } from '@movies/api/person-filmography';
+import 'server-only';
 import type { PersonService } from '@movies/api/router';
 import { TmdbRequestError, type TmdbFetch } from '@movies/api/tmdb-fetch';
 import { toMediaCard, tmdbImageUrl } from '@movies/services/media-card';
@@ -10,6 +10,8 @@ import {
 } from '@movies/services/tmdb-search-model';
 import { ORPCError } from '@orpc/server';
 import { z } from 'zod';
+
+import { createPersonMetadataService } from './person-metadata-service';
 
 function publicUrl(value: string | null) {
   if (!value) {
@@ -27,6 +29,7 @@ function publicUrl(value: string | null) {
 }
 export function createPersonService(fetchTmdb: TmdbFetch): PersonService {
   return {
+    ...createPersonMetadataService(fetchTmdb),
     async details({ id }) {
       try {
         const person = personDetailsSchema.parse(await fetchTmdb('/person/' + id));

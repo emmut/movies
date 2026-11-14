@@ -25,8 +25,6 @@ import { pipeline as pipelineAsync } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
 
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-
 import {
   deleteStaleSearchIndexRows,
   exportDates,
@@ -36,7 +34,8 @@ import {
   MIN_EXPORT_ROWS,
   SEARCH_INDEX_EXPORTS,
   type SearchIndexExport,
-} from '@/lib/search-index-ingest';
+} from '@movies/db/search-index-ingest';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import { connectForCron } from './cron-db';
 import { describeError } from './describe-error';

@@ -89,16 +89,24 @@ function exportTitle(line: ExportLine) {
 function readExportLine(line: string): ExportLine | null {
   try {
     const parsed: ExportLine = JSON.parse(line);
-    if (!parsed || typeof parsed !== 'object') return null;
-    if (parsed.adult === true) return null;
+    if (!parsed || typeof parsed !== 'object') {
+      return null;
+    }
+    if (parsed.adult === true) {
+      return null;
+    }
     return parsed;
   } catch {
     return null;
   }
 }
 function positiveExportId(value: unknown) {
-  if (typeof value !== 'number') return null;
-  if (!Number.isInteger(value) || value <= 0) return null;
+  if (typeof value !== 'number') {
+    return null;
+  }
+  if (!Number.isInteger(value) || value <= 0) {
+    return null;
+  }
   return value;
 }
 function finitePopularity(value: unknown) {
@@ -115,9 +123,13 @@ export function parseExportLine(
   line: string,
 ): SearchIndexRow | null {
   const parsed = readExportLine(line);
-  if (!parsed) return null;
+  if (!parsed) {
+    return null;
+  }
   const id = positiveExportId(parsed.id);
-  if (id === null) return null;
+  if (id === null) {
+    return null;
+  }
 
   const title = exportTitle(parsed);
   if (!title) {

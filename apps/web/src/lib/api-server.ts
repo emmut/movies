@@ -4,11 +4,11 @@ import { sessionUserSchema } from '@movies/api/session';
 import { createServices } from '@movies/services/create-services';
 import { createRouterClient } from '@orpc/server';
 
-import { apiPublicFetch } from '@/lib/api-public-fetch';
+import { apiPublicFetch, apiWikidataClaims } from '@/lib/api-public-fetch';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 
-const services = createServices(apiPublicFetch, db);
+const services = createServices(apiPublicFetch, db, { readWikidataClaims: apiWikidataClaims });
 
 export function createApiContext(headers: Headers): AppContext {
   let session: Promise<ReturnType<typeof sessionUserSchema.parse> | null> | undefined;

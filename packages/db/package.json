@@ -14,7 +14,9 @@
     "./title-availability": "./src/title-availability.ts",
     "./list-item-order": "./src/list-item-order.ts",
     "./custom-lists": "./src/custom-lists.ts",
-    "./account-transfer": "./src/account-transfer.ts"
+    "./account-transfer": "./src/account-transfer.ts",
+    "./imdb-ingest": "./src/imdb-ingest.ts",
+    "./search-index-ingest": "./src/search-index-ingest.ts"
   },
   "dependencies": {
     "@better-auth/passkey": "catalog:",

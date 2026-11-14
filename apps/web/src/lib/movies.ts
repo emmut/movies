@@ -1,16 +1,9 @@
 import 'server-only';
-import type { GenreResponse } from '@movies/api/tmdb-types/genre';
-import {
-  MovieCredits,
-  MovieDetails,
-  MovieRecommendations,
-  MovieSimilar,
-  MovieWatchProviders,
-} from '@movies/api/tmdb-types/movie';
 import { cacheLife, cacheTag } from 'next/cache';
 
+import { createServerApi } from '@/lib/api-server';
+
 import { CACHE_TAGS } from './cache-tags';
-import { tmdbFetch } from './tmdb';
 
 /**
  * Retrieves the list of available movie genres from the TMDb API.
@@ -22,10 +15,7 @@ export async function fetchAvailableGenres() {
   cacheTag(CACHE_TAGS.public.genres.movies);
   cacheLife('biweekly');
 
-  const movies = await tmdbFetch<GenreResponse>('/genre/movie/list', {
-    errorMessage: 'Error loading genres',
-  });
-  return movies.genres;
+  return createServerApi(new Headers()).discovery.genres({ type: 'movie' });
 }
 
 /**
@@ -42,9 +32,7 @@ export async function getMovieDetails(movieId: number) {
   // Near-static data, fanned out once per row on list pages — keep it warm.
   cacheLife('hours');
 
-  return await tmdbFetch<MovieDetails>(`/movie/${movieId}`, {
-    errorMessage: 'Failed loading movie details',
-  });
+  return createServerApi(new Headers()).catalog.movieDetails({ id: movieId });
 }
 
 /**
@@ -58,9 +46,7 @@ export async function getMovieCredits(movieId: number) {
   cacheTag(CACHE_TAGS.public.movie.credits(movieId));
   cacheLife('minutes');
 
-  return await tmdbFetch<MovieCredits>(`/movie/${movieId}/credits`, {
-    errorMessage: 'Failed loading movie credits',
-  });
+  return createServerApi(new Headers()).catalog.movieCredits({ id: movieId });
 }
 
 /**
@@ -74,13 +60,7 @@ export async function getMovieWatchProviders(movieId: number) {
   cacheTag(CACHE_TAGS.public.movie.watchProviders(movieId));
   cacheLife('days');
 
-  const watchProviders = await tmdbFetch<MovieWatchProviders>(`/movie/${movieId}/watch/providers`, {
-    errorMessage: 'Failed loading movie watch providers',
-  });
-
-  return {
-    results: watchProviders.results,
-  };
+  return createServerApi(new Headers()).catalog.availability({ type: 'movie', id: movieId });
 }
 
 export async function getMovieRecommendations(movieId: number, userRegion?: string) {
@@ -88,14 +68,12 @@ export async function getMovieRecommendations(movieId: number, userRegion?: stri
   cacheTag(CACHE_TAGS.public.movie.recommendations(movieId));
   cacheLife('hours');
 
-  const recommendations = await tmdbFetch<MovieRecommendations>(
-    `/movie/${movieId}/recommendations`,
-    {
-      searchParams: { region: userRegion },
-      errorMessage: 'Failed loading movie recommendations',
-    },
-  );
-  return recommendations.results;
+  return createServerApi(new Headers()).catalog.related({
+    type: 'movie',
+    id: movieId,
+    region: userRegion,
+    kind: 'recommendations',
+  });
 }
 
 export async function getMovieSimilar(movieId: number, userRegion?: string) {
@@ -103,9 +81,10 @@ export async function getMovieSimilar(movieId: number, userRegion?: string) {
   cacheTag(CACHE_TAGS.public.movie.similar(movieId));
   cacheLife('hours');
 
-  const similar = await tmdbFetch<MovieSimilar>(`/movie/${movieId}/similar`, {
-    searchParams: { region: userRegion },
-    errorMessage: 'Failed loading movie similar',
+  return createServerApi(new Headers()).catalog.related({
+    type: 'movie',
+    id: movieId,
+    region: userRegion,
+    kind: 'similar',
   });
-  return similar.results;
 }

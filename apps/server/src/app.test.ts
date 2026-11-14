@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vite-plus/test';
 function setup() {
   const home = { list: vi.fn().mockResolvedValue([]), trending: vi.fn().mockResolvedValue([]) };
   const catalog = {
+    ...mockServices().catalog,
     extras: vi.fn(),
     season: vi.fn(),
     collection: vi.fn(),

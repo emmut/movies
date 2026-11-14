@@ -19,8 +19,11 @@ export type CatalogImdbOptions = {
 export function createCatalogImdbService(
   fetchTmdb: TmdbFetch,
   options: CatalogImdbOptions = {},
-): Pick<CatalogService, 'imdb' | 'resolveImdb'> {
+): Pick<CatalogService, 'imdb' | 'resolveImdb' | 'rating'> {
   return {
+    async rating({ imdbId }) {
+      return options.readRating ? options.readRating(imdbId) : null;
+    },
     async resolveImdb({ imdbId }) {
       const results = titleResultsSchema.parse(
         await fetchTmdb(`/find/${imdbIdSchema.parse(imdbId)}`, {

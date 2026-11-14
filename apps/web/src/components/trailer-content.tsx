@@ -1,5 +1,3 @@
-import { getPlayableVideos } from '@movies/api/pdp-extra-content';
-
 import { getPdpExtras } from '@/lib/pdp';
 import { optional } from '@/lib/tmdb';
 
@@ -16,7 +14,7 @@ export async function TrailerContent({
   title: string;
 }) {
   const extras = await optional(getPdpExtras(mediaType, mediaId), null);
-  const videos = getPlayableVideos(extras?.videos);
+  const videos = extras?.videos ?? [];
   if (videos.length === 0) {
     return null;
   }

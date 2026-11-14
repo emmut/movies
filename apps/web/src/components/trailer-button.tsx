@@ -1,13 +1,14 @@
 'use client';
 
-import type { TmdbVideo } from '@movies/api/catalog-support';
+import type { PdpExtras } from '@movies/api/pdp';
+type PlayableVideo = PdpExtras['videos'][number];
 import { buttonVariants } from '@movies/ui/components/button';
 import { cn } from 'cn';
 import { ArrowUpRight, PlayCircle } from 'lucide-react';
 
 import { MediaViewer, MediaViewerTrigger } from '@/components/media-viewer';
 
-function VideoPlayer({ video, title }: { video: TmdbVideo; title: string }) {
+function VideoPlayer({ video, title }: { video: PlayableVideo; title: string }) {
   return (
     <div className="flex h-full w-full max-w-7xl flex-col items-center gap-3">
       <iframe
@@ -35,7 +36,7 @@ export function TrailerButton({
   mediaType,
 }: {
   title: string;
-  videos: TmdbVideo[];
+  videos: PlayableVideo[];
   mediaType: 'movie' | 'tv';
 }) {
   const hasTrailer = videos.some((video) => video.type === 'Trailer' || video.type === 'Teaser');

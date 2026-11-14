@@ -19,15 +19,14 @@ import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
 
-import { parse } from 'csv-parse';
-import { drizzle } from 'drizzle-orm/node-postgres';
-
 import {
   deleteStaleRatings,
   parseRatingRecord,
   upsertRatingsBatch,
   type ImdbRatingRow,
-} from '@/lib/imdb-ingest';
+} from '@movies/db/imdb-ingest';
+import { parse } from 'csv-parse';
+import { drizzle } from 'drizzle-orm/node-postgres';
 
 import { env } from './env';
 

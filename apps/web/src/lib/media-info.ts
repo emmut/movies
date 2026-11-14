@@ -1,14 +1,10 @@
 import 'server-only';
-import type {
-  MovieReleaseDatesResponse,
-  TvContentRatingsResponse,
-} from '@movies/api/certifications';
-import { pickMovieCertification, pickTvCertification } from '@movies/api/certifications';
-import type { TmdbReviewsResponse } from '@movies/api/reviews';
+import { regionSchema } from '@movies/config/regions';
 import { cacheLife, cacheTag } from 'next/cache';
 
+import { createServerApi } from '@/lib/api-server';
+
 import { CACHE_TAGS } from './cache-tags';
-import { tmdbFetch } from './tmdb';
 
 type MediaType = 'movie' | 'tv';
 
@@ -25,14 +21,15 @@ export async function getMediaReviews(mediaType: MediaType, mediaId: number, pag
   cacheTag(CACHE_TAGS.public[mediaType].reviews(mediaId));
   cacheLife('hours');
 
-  const reviews = await tmdbFetch<TmdbReviewsResponse>(`/${mediaType}/${mediaId}/reviews`, {
-    searchParams: { page: String(page) },
-    errorMessage: 'Failed loading reviews',
+  const result = await createServerApi(new Headers()).catalog.reviews({
+    type: mediaType,
+    id: mediaId,
+    page,
   });
   return {
-    reviews: reviews.results,
-    totalResults: reviews.total_results,
-    totalPages: reviews.total_pages,
+    reviews: result.reviews,
+    totalResults: result.totalResults,
+    totalPages: result.totalPages,
   };
 }
 
@@ -54,17 +51,9 @@ export async function getMediaCertification(
   cacheTag(CACHE_TAGS.public[mediaType].certifications(mediaId));
   cacheLife('days');
 
-  if (mediaType === 'movie') {
-    const releaseDates = await tmdbFetch<MovieReleaseDatesResponse>(
-      `/movie/${mediaId}/release_dates`,
-      { errorMessage: 'Failed loading movie release dates' },
-    );
-    return pickMovieCertification(releaseDates.results, userRegion);
-  }
-
-  const contentRatings = await tmdbFetch<TvContentRatingsResponse>(
-    `/tv/${mediaId}/content_ratings`,
-    { errorMessage: 'Failed loading TV show content ratings' },
-  );
-  return pickTvCertification(contentRatings.results, userRegion);
+  return createServerApi(new Headers()).catalog.certification({
+    type: mediaType,
+    id: mediaId,
+    region: regionSchema.parse(userRegion),
+  });
 }

@@ -1,5 +1,6 @@
-import 'server-only';
 import { buildDiscoverSearchParams } from '@movies/api/discover-params';
+import 'server-only';
+import { providerRecordSchema } from '@movies/api/metadata';
 import type { DiscoveryService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
 import { isOriginCountryCode } from '@movies/config/countries';
@@ -22,6 +23,12 @@ const countrySchema = z.array(
 
 export function createDiscoveryService(fetchTmdb: TmdbFetch): DiscoveryService {
   return {
+    async genres({ type }) {
+      return genreSchema.parse(await fetchTmdb('/genre/' + type + '/list')).genres;
+    },
+    async providerCatalog({ type, region }) {
+      return z.array(providerRecordSchema).parse(await readWatchProviders(fetchTmdb, type, region));
+    },
     facets: createDiscoveryFacetService(fetchTmdb),
     async list(input) {
       const data = pageSchema.parse(

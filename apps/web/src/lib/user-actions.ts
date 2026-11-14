@@ -1,10 +1,8 @@
 import 'server-only';
 import { selectWatchProviders } from '@movies/api/preferences';
 import { DEFAULT_REGION } from '@movies/config/regions';
-import { readWatchProviders } from '@movies/services/watch-provider-options';
 import { headers } from 'next/headers';
 
-import { apiPublicFetch } from '@/lib/api-public-fetch';
 import { createServerApi } from '@/lib/api-server';
 import { getUser } from '@/lib/auth-server';
 
@@ -27,9 +25,12 @@ export async function getUserWatchProviders() {
 
 /** Raw priority metadata is retained for web's existing provider filter presentation. */
 export async function getAllWatchProviders(region?: string) {
-  return (await readWatchProviders(apiPublicFetch, 'movie', region ?? (await getUserRegion()))).map(
-    (provider) => ({ ...provider, logo_path: provider.logo_path ?? '' }),
-  );
+  return (
+    await createServerApi(new Headers()).discovery.providerCatalog({
+      type: 'movie',
+      region: region ?? (await getUserRegion()),
+    })
+  ).map((provider) => ({ ...provider, logo_path: provider.logo_path ?? '' }));
 }
 
 export async function getWatchProviders(region?: string, providerIds?: number[]) {

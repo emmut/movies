@@ -1,5 +1,6 @@
-import 'server-only';
 import { getSeriesCastMembers } from '@movies/api/cast-members';
+import 'server-only';
+import { aggregateCreditMetadataSchema as aggregateSchema } from '@movies/api/metadata';
 import type { CatalogService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
 import { tmdbImageUrl } from '@movies/services/media-card';
@@ -14,19 +15,6 @@ const personSchema = z.object({
 const creditsSchema = z.object({
   cast: z.array(personSchema.extend({ character: z.string().default('') })),
   crew: z.array(personSchema.extend({ job: z.string() })),
-});
-const aggregateSchema = z.object({
-  cast: z.array(
-    z.object({
-      id: z.number().int().positive(),
-      name: z.string(),
-      profile_path: z.string().nullable().default(null),
-      total_episode_count: z.number().int().nonnegative(),
-      roles: z.array(
-        z.object({ character: z.string(), episode_count: z.number().int().nonnegative() }),
-      ),
-    }),
-  ),
 });
 async function seriesCast(fetchTmdb: TmdbFetch, id: number) {
   try {

@@ -1,9 +1,9 @@
 import 'server-only';
-import type { TmdbExternalIdsResponse } from '@movies/api/tmdb-types/tv-show';
 import { cacheLife, cacheTag } from 'next/cache';
 
+import { createServerApi } from '@/lib/api-server';
+
 import { CACHE_TAGS } from './cache-tags';
-import { tmdbFetch } from './tmdb';
 
 /** One cached response shared by IMDb and Wikidata readers. */
 export async function getTmdbExternalIds(type: 'movie' | 'tv', id: number) {
@@ -13,7 +13,5 @@ export async function getTmdbExternalIds(type: 'movie' | 'tv', id: number) {
   if (type === 'tv') {
     cacheTag(CACHE_TAGS.public.tv.imdbId(id));
   }
-  return tmdbFetch<Pick<TmdbExternalIdsResponse, 'imdb_id' | 'wikidata_id'>>(
-    `/${type}/${id}/external_ids`,
-  );
+  return createServerApi(new Headers()).catalog.externalIds({ type, id });
 }

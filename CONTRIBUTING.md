@@ -65,6 +65,7 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - Naming: kebab-case files, PascalCase exports.
 - Use app path aliases for internal imports: `@/` in web, `@native/` in Expo, and `@server/` in Hono. Keep each app tsconfig and the root test resolver aligned; avoid relative parent paths.
 - Server-only modules import `server-only`; keep secrets and DB access out of client components.
+- Product reads, including cached server-rendered metadata, go through the shared oRPC router. Next cache adapters must not fetch upstream data or query the database directly.
 - Product mutations go through shared API hooks and authenticated router procedures; ownership comes from the verified session and inputs use the shared Zod contracts.
 - Caching uses the `'use cache'` directive with tags in `apps/web/src/lib/cache-tags.ts`; invalidate via the helpers in `apps/web/src/lib/cache-invalidation.ts`.
 - User list pages use `'use cache: private'` after authentication, with the user ID, page, and provider filter in the cache key. Membership, counts, preferences, and list pages share mutation invalidation tags. Private caching reuses browser navigation results for 60 seconds; it does not retain results across production server requests. Authentication and ownership checks remain required.
@@ -98,7 +99,7 @@ Google uses the existing social sign-in and anonymous-account transfer flow; it 
 - **Lint, typecheck & test**.
 - **Fallow audit** — fails only on findings newly introduced relative to the merge-base.
 
-The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test apps/web/src/lib/search-index.integration.test.ts`; fixtures use a temporary table.
+The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test packages/services/src/search-index.integration.test.ts`; fixtures use a temporary table.
 
 ## Direct streaming links
 

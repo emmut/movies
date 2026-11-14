@@ -1,11 +1,11 @@
-import { getRegionalReleases } from '@movies/api/pdp-extra-content';
+import type { RegionCode } from '@movies/config/regions';
 
 import { getPdpExtras } from '@/lib/pdp';
 import { optional } from '@/lib/tmdb';
 
-export async function MovieReleases({ movieId, region }: { movieId: number; region: string }) {
-  const extras = await optional(getPdpExtras('movie', movieId), null);
-  const dates = getRegionalReleases(extras?.release_dates, region);
+export async function MovieReleases({ movieId, region }: { movieId: number; region: RegionCode }) {
+  const extras = await optional(getPdpExtras('movie', movieId, region), null);
+  const dates = extras?.releases ?? [];
   if (dates.length === 0) {
     return null;
   }

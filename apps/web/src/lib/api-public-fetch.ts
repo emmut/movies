@@ -1,5 +1,6 @@
-import 'server-only';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
+import 'server-only';
+import { readWikidataClaims } from '@movies/services/watch-links-service';
 import { cacheLife } from 'next/cache';
 
 import { tmdbFetch } from '@/lib/tmdb';
@@ -12,4 +13,11 @@ export async function apiPublicFetch<T>(
   'use cache: remote';
   cacheLife('minutes');
   return tmdbFetch<T>(path, options);
+}
+
+/** Cache successes at the upstream boundary so optional failures are retried next request. */
+export async function apiWikidataClaims(itemId: string) {
+  'use cache: remote';
+  cacheLife({ stale: 3600, revalidate: 86400, expire: 604800 });
+  return readWikidataClaims(itemId);
 }

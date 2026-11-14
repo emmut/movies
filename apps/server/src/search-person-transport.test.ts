@@ -7,7 +7,11 @@ function setup() {
     list: vi.fn().mockResolvedValue({ items: [], totalPages: 0 }),
     suggestions: vi.fn().mockResolvedValue({ items: [], totalPages: 0 }),
   };
-  const person = { details: vi.fn(), credits: vi.fn().mockResolvedValue([]) };
+  const person = {
+    ...mockServices().person,
+    details: vi.fn(),
+    credits: vi.fn().mockResolvedValue([]),
+  };
   const app = createApp(mockServices({ search, person }));
   const client = createTestClient(app);
   return { search, person, app, client };

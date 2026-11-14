@@ -1,13 +1,10 @@
 import 'server-only';
 import { imdbIdSchema, type ImdbRating } from '@movies/api/imdb';
-import { createImdbRatingStore } from '@movies/db/imdb-ratings';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import { db } from '@/lib/db';
+import { createServerApi } from '@/lib/api-server';
 
 import { CACHE_TAGS } from './cache-tags';
-
-const imdbStore = createImdbRatingStore(db);
 
 async function fetchImdbRating(imdbId: string): Promise<ImdbRating | null> {
   'use cache: remote';
@@ -16,7 +13,7 @@ async function fetchImdbRating(imdbId: string): Promise<ImdbRating | null> {
   // that cadence (nothing revalidates the tag).
   cacheLife('days');
 
-  return imdbStore.read(imdbId);
+  return createServerApi(new Headers()).catalog.rating({ imdbId });
 }
 
 /**

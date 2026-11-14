@@ -37,6 +37,7 @@ import {
   type DiscoveryOptions,
 } from './discover';
 import { homeListInput, trendingInput, mediaCardSchema, type MediaCard } from './home';
+import { imdbRatingSchema } from './imdb';
 import {
   catalogImdbSchema,
   imdbIdSchema,
@@ -44,6 +45,24 @@ import {
   type ImdbTitle,
   type CatalogImdb,
 } from './imdb';
+import {
+  movieMetadataSchema,
+  tvMetadataSchema,
+  movieCreditMetadataSchema,
+  tvCreditMetadataSchema,
+  aggregateCreditMetadataSchema,
+  availabilitySchema,
+  externalIdsSchema,
+  personMetadataSchema,
+  personMovieCreditsSchema,
+  personTvCreditsSchema,
+  genreRecordsSchema,
+  providerRecordSchema,
+  certificationSchema,
+  ratingInput,
+  type CatalogMetadataService,
+  type PersonMetadataService,
+} from './metadata';
 import {
   pdpExtrasSchema,
   seasonInput,
@@ -100,18 +119,23 @@ export type HomeService = {
   list(input: z.infer<typeof homeListInput>): Promise<MediaCard[]>;
   trending(input: z.infer<typeof trendingInput>): Promise<MediaCard[]>;
 };
-export type CatalogService = PdpService & {
-  resolveImdb(input: { imdbId: string }): Promise<ImdbTitle | null>;
-  watchLinks(input: CatalogTitleInput): Promise<DirectWatchLink[]>;
-  imdb(input: CatalogTitleInput): Promise<CatalogImdb>;
-  reviews(input: ReviewsInput): Promise<ReviewsPage>;
-  credits(input: CatalogTitleInput): Promise<CatalogCredits>;
-  details(input: CatalogDetailInput): Promise<CatalogDetail>;
-  trailer(input: CatalogTitleInput): Promise<Trailer>;
-  providers(input: CatalogDetailInput): Promise<ProviderGroups>;
-  related(input: CatalogRelatedInput): Promise<MediaCard[]>;
-};
+export type CatalogService = PdpService &
+  CatalogMetadataService & {
+    resolveImdb(input: { imdbId: string }): Promise<ImdbTitle | null>;
+    certification(input: CatalogDetailInput): Promise<z.infer<typeof certificationSchema>>;
+    rating(input: z.infer<typeof ratingInput>): Promise<z.infer<typeof imdbRatingSchema> | null>;
+    watchLinks(input: CatalogTitleInput): Promise<DirectWatchLink[]>;
+    imdb(input: CatalogTitleInput): Promise<CatalogImdb>;
+    reviews(input: ReviewsInput): Promise<ReviewsPage>;
+    credits(input: CatalogTitleInput): Promise<CatalogCredits>;
+    details(input: CatalogDetailInput): Promise<CatalogDetail>;
+    trailer(input: CatalogTitleInput): Promise<Trailer>;
+    providers(input: CatalogDetailInput): Promise<ProviderGroups>;
+    related(input: CatalogRelatedInput): Promise<MediaCard[]>;
+  };
 export type DiscoveryService = {
+  genres(input: { type: 'movie' | 'tv' }): Promise<z.infer<typeof genreRecordsSchema>>;
+  providerCatalog(input: DiscoveryOptionsInput): Promise<z.infer<typeof providerRecordSchema>[]>;
   facets(input: DiscoveryFacetInput): Promise<DiscoveryChoice[]>;
   list(input: DiscoveryInput): Promise<DiscoveryPage>;
   options(input: DiscoveryOptionsInput): Promise<DiscoveryOptions>;
@@ -120,7 +144,7 @@ export type SearchService = {
   list(input: SearchInput): Promise<SearchPage>;
   suggestions(input: { query: string }): Promise<SearchPage>;
 };
-export type PersonService = {
+export type PersonService = PersonMetadataService & {
   details(input: PersonInput): Promise<PersonDetail>;
   credits(input: PersonCreditsInput): Promise<PersonCredit[]>;
 };
@@ -305,6 +329,18 @@ export const appRouter = {
       .handler(({ input, context }) => context.preferences.setRegion(context.user.id, input)),
   },
   person: {
+    profile: procedure
+      .input(personInput)
+      .output(personMetadataSchema)
+      .handler(({ input, context }) => context.person.profile(input)),
+    movieCredits: procedure
+      .input(personInput)
+      .output(personMovieCreditsSchema)
+      .handler(({ input, context }) => context.person.movieCredits(input)),
+    tvCredits: procedure
+      .input(personInput)
+      .output(personTvCreditsSchema)
+      .handler(({ input, context }) => context.person.tvCredits(input)),
     details: procedure
       .input(personInput)
       .output(personDetailSchema)
@@ -326,6 +362,14 @@ export const appRouter = {
       .handler(({ input, context }) => context.search.list(input)),
   },
   discovery: {
+    genres: procedure
+      .input(discoveryOptionsInput.pick({ type: true }))
+      .output(genreRecordsSchema)
+      .handler(({ input, context }) => context.discovery.genres(input)),
+    providerCatalog: procedure
+      .input(discoveryOptionsInput)
+      .output(z.array(providerRecordSchema))
+      .handler(({ input, context }) => context.discovery.providerCatalog(input)),
     facets: procedure
       .input(discoveryFacetInput)
       .output(z.array(discoveryChoice))
@@ -340,6 +384,42 @@ export const appRouter = {
       .handler(({ input, context }) => context.discovery.options(input)),
   },
   catalog: {
+    movieDetails: procedure
+      .input(pdpEntityInput)
+      .output(movieMetadataSchema)
+      .handler(({ input, context }) => context.catalog.movieDetails(input)),
+    tvDetails: procedure
+      .input(pdpEntityInput)
+      .output(tvMetadataSchema)
+      .handler(({ input, context }) => context.catalog.tvDetails(input)),
+    movieCredits: procedure
+      .input(pdpEntityInput)
+      .output(movieCreditMetadataSchema)
+      .handler(({ input, context }) => context.catalog.movieCredits(input)),
+    tvCredits: procedure
+      .input(pdpEntityInput)
+      .output(tvCreditMetadataSchema)
+      .handler(({ input, context }) => context.catalog.tvCredits(input)),
+    aggregateCredits: procedure
+      .input(pdpEntityInput)
+      .output(aggregateCreditMetadataSchema)
+      .handler(({ input, context }) => context.catalog.aggregateCredits(input)),
+    availability: procedure
+      .input(catalogTitleInput)
+      .output(availabilitySchema)
+      .handler(({ input, context }) => context.catalog.availability(input)),
+    externalIds: procedure
+      .input(catalogTitleInput)
+      .output(externalIdsSchema)
+      .handler(({ input, context }) => context.catalog.externalIds(input)),
+    certification: procedure
+      .input(catalogDetailInput)
+      .output(certificationSchema)
+      .handler(({ input, context }) => context.catalog.certification(input)),
+    rating: procedure
+      .input(ratingInput)
+      .output(imdbRatingSchema.nullable())
+      .handler(({ input, context }) => context.catalog.rating(input)),
     resolveImdb: procedure
       .input(z.object({ imdbId: imdbIdSchema }))
       .output(imdbTitleSchema.nullable())

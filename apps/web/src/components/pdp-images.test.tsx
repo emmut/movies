@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
+import { pdpExtrasFixture } from '@/test/pdp-extras';
+
 vi.mock('@/lib/pdp', () => ({ getPdpExtras: vi.fn() }));
 vi.mock('@/lib/imgproxy-url', () => ({
   buildProxyImageUrls: (path: string, { width }: { width: number }) => ({
@@ -18,12 +20,14 @@ beforeEach(() => vi.clearAllMocks());
 
 describe('PDP image gallery', () => {
   it('opens images with local viewer buttons and defers full-size images until opened', async () => {
-    vi.mocked(getPdpExtras).mockResolvedValue({
-      images: {
-        backdrops: [{ file_path: '/backdrop.jpg' }],
-        posters: [{ file_path: '/poster.jpg' }],
-      },
-    });
+    vi.mocked(getPdpExtras).mockResolvedValue(
+      pdpExtrasFixture({
+        images: {
+          backdrops: [{ file_path: '/backdrop.jpg' }],
+          posters: [{ file_path: '/poster.jpg' }],
+        },
+      }),
+    );
     const html = renderToStaticMarkup(await PdpImages({ type: 'movie', id: 1, title: 'Title' }));
     expect(html).toContain('Open image 1 of 2');
     expect(html).toContain('Open image 2 of 2');
@@ -34,7 +38,7 @@ describe('PDP image gallery', () => {
   });
 
   it('hides the gallery when no images are available', async () => {
-    vi.mocked(getPdpExtras).mockResolvedValue({});
+    vi.mocked(getPdpExtras).mockResolvedValue(pdpExtrasFixture({}));
     expect(await PdpImages({ type: 'tv', id: 1, title: 'Title' })).toBeNull();
   });
 });

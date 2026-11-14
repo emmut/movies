@@ -1,4 +1,3 @@
-import { getGalleryImages } from '@movies/api/pdp-extra-content';
 import { Expand } from 'lucide-react';
 
 import ClientImage from '@/components/client-image';
@@ -19,7 +18,7 @@ export async function PdpImages({
   title: string;
 }) {
   const extras = await optional(getPdpExtras(type, id), null);
-  const pictures = getGalleryImages(extras?.images);
+  const pictures = extras?.images ?? [];
   if (pictures.length === 0) {
     return null;
   }
