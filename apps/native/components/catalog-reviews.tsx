@@ -1,8 +1,8 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
+import { useCatalogReviews } from '@movies/api/react/use-catalog-query';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { ReviewCard } from '@native/components/review-card';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
-import { useCatalogReviews } from '@native/hooks/use-catalog-query';
 import { catalogReviewsPath } from '@native/lib/catalog-navigation';
 import { reviewCountLabel } from '@native/lib/review-model';
 import { Link, usePathname } from 'expo-router';

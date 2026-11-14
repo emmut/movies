@@ -15,6 +15,7 @@
     "@movies/auth": "workspace:*",
     "@movies/config": "workspace:*",
     "@movies/db": "workspace:*",
+    "@movies/services": "workspace:*",
     "@orpc/server": "catalog:",
     "drizzle-orm": "catalog:",
     "hono": "^4.9.0",

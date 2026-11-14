@@ -11,10 +11,10 @@ export function isUnauthorized(error: Error | null) {
 }
 
 /**
- * Shows a saved setting immediately, drops the local draft, then refetches
- * the account's copy so it reflects what the server stored.
+ * Applies the confirmed response and clears the draft. Shared mutation hooks
+ * own account invalidation; doing it again here would refetch twice.
  */
-export async function commitSavedSetting(
+export function commitSavedSetting(
   client: QueryClient,
   queryKey: QueryKey,
   result: unknown,
@@ -22,5 +22,4 @@ export async function commitSavedSetting(
 ) {
   client.setQueryData(queryKey, result);
   clearDraft();
-  await client.invalidateQueries({ queryKey });
 }

@@ -1,3 +1,4 @@
+import { useSearchList } from '@movies/api/react/use-search-query';
 import type { SearchInput, SearchItem } from '@movies/api/search';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogPagination } from '@native/components/catalog-pagination';
@@ -9,7 +10,6 @@ import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { SearchPerson } from '@native/components/search-person-card';
 import { SearchSuggestions } from '@native/components/search-suggestions';
-import { useSearchList } from '@native/hooks/use-search-query';
 import { readSearchState } from '@native/lib/search-state';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useLocalSearchParams, useRouter } from 'expo-router';

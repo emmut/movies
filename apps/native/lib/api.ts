@@ -1,10 +1,10 @@
+import { createApiQueryUtils } from '@movies/api/query-utils';
 import type { AppRouterClient } from '@movies/api/router';
 import { authClient } from '@native/lib/auth-client';
 import { createAuthenticatedFetch } from '@native/lib/auth-transport';
 import { serverUrl } from '@native/lib/connections';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
-import { createTanstackQueryUtils } from '@orpc/tanstack-query';
 import { QueryClient, focusManager, onlineManager } from '@tanstack/react-query';
 import { AppState, Platform } from 'react-native';
 const client: AppRouterClient = createORPCClient(
@@ -13,7 +13,7 @@ const client: AppRouterClient = createORPCClient(
     fetch: createAuthenticatedFetch(Platform.OS, authClient.getCookie),
   }),
 );
-export const orpc = createTanstackQueryUtils(client);
+export const orpc = createApiQueryUtils(client);
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
 });

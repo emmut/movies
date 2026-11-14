@@ -14,7 +14,7 @@ type InvalidateOptions = {
 /**
  * Invalidates the client React Query cache after a user-preference change.
  *
- * Settings server actions revalidate server caches, but the in-memory React Query cache (region,
+ * Settings RPC mutations revalidate server caches, but the in-memory React Query cache (region,
  * region-derived watch providers, and the region-keyed homepage lists) must be invalidated too —
  * otherwise client-side navigation keeps serving the old preference until the queries go stale.
  */
@@ -22,7 +22,10 @@ export async function invalidateUserPreferenceQueries(
   queryClient: QueryClient,
   { includeHomeLists = false }: InvalidateOptions = {},
 ) {
-  const invalidations = [queryClient.invalidateQueries({ queryKey: queryKeys.user.all })];
+  const invalidations = [
+    queryClient.invalidateQueries({ queryKey: queryKeys.user.all }),
+    queryClient.invalidateQueries({ queryKey: ['account'] }),
+  ];
 
   if (includeHomeLists) {
     invalidations.push(queryClient.invalidateQueries({ queryKey: queryKeys.home.all }));
@@ -34,6 +37,7 @@ export async function invalidateUserPreferenceQueries(
 /** Another client may change account data while this browser is in the background. */
 export async function invalidateAccountQueriesOnReturn(queryClient: QueryClient) {
   const scopes = [
+    ['account'],
     queryKeys.user.all,
     queryKeys.home.all,
     queryKeys.watchlist.all,

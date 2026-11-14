@@ -1,4 +1,8 @@
 import type { CustomListSummary } from '@movies/api/custom-lists';
+import {
+  useCustomListsMoveMutation,
+  useCustomListsIndex,
+} from '@movies/api/react/use-custom-lists-query';
 import { AccountScreen } from '@native/components/account-screen';
 import { CatalogPagination } from '@native/components/catalog-pagination';
 import { CustomListDialogs } from '@native/components/custom-list-dialogs';
@@ -6,12 +10,8 @@ import { CustomListScroll } from '@native/components/custom-list-scroll';
 import { ListMoveControls } from '@native/components/list-controls';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
-import { useCustomListsIndex } from '@native/hooks/use-custom-lists-query';
-import { orpc } from '@native/lib/api';
-import { refreshCustomLists } from '@native/lib/custom-lists';
 import { listPage } from '@native/lib/list-page-state';
 import { useCanonicalListPage } from '@native/lib/use-canonical-list-page';
-import { useMutation } from '@tanstack/react-query';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -88,9 +88,7 @@ function ListIndex({ userId }: { userId: string }) {
   const [deleting, setDeleting] = useState<CustomListSummary | null>(null);
   const [reordering, setReordering] = useState(false);
   const query = useCustomListsIndex(userId, input);
-  const move = useMutation(
-    orpc.customLists.move.mutationOptions({ onSuccess: () => refreshCustomLists(userId) }),
-  );
+  const move = useCustomListsMoveMutation({ accountId: userId });
   useCanonicalListPage(query, page);
   if (!query.data || query.isError) {
     return (

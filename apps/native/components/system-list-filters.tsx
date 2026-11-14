@@ -1,8 +1,8 @@
+import { useSystemListsOptions } from '@movies/api/react/use-system-lists-query';
 import type { SystemListPageInput } from '@movies/api/system-lists';
 import { ChoiceSheet } from '@native/components/choice-sheet';
 import { ChevronDownIcon } from '@native/components/icons';
 import { RegionPicker } from '@native/components/region-picker';
-import { useSystemListsOptions } from '@native/hooks/use-system-lists-query';
 import { toggleSelection } from '@native/lib/discover-state';
 import { providerChoices } from '@native/lib/provider-choices';
 import { useState } from 'react';

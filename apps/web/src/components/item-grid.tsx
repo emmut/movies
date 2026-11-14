@@ -1,10 +1,11 @@
+import type { MediaCard } from '@movies/api/home';
 import { Movie } from '@movies/api/tmdb-types/movie';
 import { TvShow } from '@movies/api/tmdb-types/tv-show';
 
 import ItemCard from './item-card';
 
 type ItemGridProps = {
-  resources: Movie[] | TvShow[];
+  resources: Movie[] | TvShow[] | MediaCard[];
   type: 'movie' | 'tv';
   userId?: string;
 };

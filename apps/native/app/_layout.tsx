@@ -1,6 +1,8 @@
 import '@native/global.css';
+import { ApiProvider } from '@movies/api/react';
 import { SessionBoundary } from '@native/components/session-boundary';
-import { queryClient } from '@native/lib/api';
+import { orpc, queryClient } from '@native/lib/api';
+import { authClient } from '@native/lib/auth-client';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, ThemeProvider, DarkTheme, DefaultTheme } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -17,6 +19,7 @@ export const unstable_settings = { anchor: '(tabs)' };
 
 export default function Layout() {
   const colorScheme = useColorScheme();
+  const session = authClient.useSession();
   useEffect(() => {
     if (Platform.OS !== 'web') {
       return;
@@ -32,16 +35,18 @@ export default function Layout() {
     <GestureHandlerRootView className="flex-1">
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <SessionBoundary>
-            <HeroUINativeProvider>
-              <StatusBar style="auto" />
-              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <Stack>
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                </Stack>
-              </ThemeProvider>
-            </HeroUINativeProvider>
-          </SessionBoundary>
+          <ApiProvider api={orpc} accountId={session.data?.user.id ?? null}>
+            <SessionBoundary>
+              <HeroUINativeProvider>
+                <StatusBar style="auto" />
+                <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                  <Stack>
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  </Stack>
+                </ThemeProvider>
+              </HeroUINativeProvider>
+            </SessionBoundary>
+          </ApiProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -1,3 +1,4 @@
+import type { SearchPersonCard } from '@movies/api/search';
 import { PersonDetails, SearchedPerson } from '@movies/api/tmdb-types/person';
 import { cn } from 'cn';
 import { User } from 'lucide-react';
@@ -12,7 +13,7 @@ import { QuickAddButton } from './quick-add-button';
 import { RemoveFromListButton } from './remove-from-list-button';
 
 type PersonCardProps = {
-  person: SearchedPerson | PersonDetails;
+  person: SearchedPerson | PersonDetails | SearchPersonCard;
   className?: string;
   userId?: string;
   showListButton?: boolean;
@@ -25,20 +26,17 @@ function PersonArtwork({
   person,
   eager,
 }: {
-  person: SearchedPerson | PersonDetails;
+  person: SearchedPerson | PersonDetails | SearchPersonCard;
   eager: boolean;
 }) {
+  const profile = 'profileUrl' in person ? person.profileUrl : person.profile_path;
   const profileImageUrls = (person as { profileImageUrls?: ProxyImageUrls }).profileImageUrls;
   return (
     <>
-      {person.profile_path ? (
+      {profile ? (
         <ClientImage
           imageUrls={profileImageUrls}
-          fallbackSrc={
-            person.profile_path.startsWith('http')
-              ? person.profile_path
-              : formatImageUrl(person.profile_path, 500)
-          }
+          fallbackSrc={profile.startsWith('http') ? profile : formatImageUrl(profile, 500)}
           alt={person.name}
           className="h-full w-full object-cover"
           eager={eager}
@@ -56,15 +54,17 @@ function PersonArtwork({
     </>
   );
 }
-function PersonMetadata({ person }: { person: SearchedPerson | PersonDetails }) {
+function PersonMetadata({ person }: { person: SearchedPerson | PersonDetails | SearchPersonCard }) {
   // Handle both SearchedPerson and PersonDetails
   const knownFor =
-    'known_for' in person
-      ? person.known_for
-          .slice(0, 2)
-          .map((item) => item.title || item.name)
-          .join(', ')
-      : null;
+    'knownFor' in person
+      ? person.knownFor.slice(0, 2).join(', ')
+      : 'known_for' in person
+        ? person.known_for
+            .slice(0, 2)
+            .map((item) => item.title || item.name)
+            .join(', ')
+        : null;
 
   return (
     <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
@@ -72,7 +72,9 @@ function PersonMetadata({ person }: { person: SearchedPerson | PersonDetails }) 
 
       <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{person.name}</h3>
       <div className="text-xs text-zinc-300">
-        <div className="mb-1">{person.known_for_department}</div>
+        <div className="mb-1">
+          {'department' in person ? person.department : person.known_for_department}
+        </div>
         {knownFor && <div className="line-clamp-1 text-zinc-400">Known for: {knownFor}</div>}
       </div>
     </div>

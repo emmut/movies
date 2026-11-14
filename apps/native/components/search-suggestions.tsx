@@ -1,5 +1,5 @@
+import { useSearchSuggestions } from '@movies/api/react/use-search-query';
 import type { SearchItem, SearchPage } from '@movies/api/search';
-import { useSearchSuggestions } from '@native/hooks/use-search-query';
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';

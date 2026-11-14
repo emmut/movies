@@ -36,18 +36,31 @@ vi.mock('nuqs', () => {
     ],
   };
 });
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: ({ queryKey }: { queryKey: string[] }) => ({
-    data: queryKey.includes('counts')
-      ? 20
-      : {
-          items: [{ listItemId: 'first-movie' }],
-          currentPage: state.currentPage,
-          totalPages: state.totalPages,
+vi.mock('@movies/api/react/use-system-lists-query', () => ({
+  useSystemListsPage: () => ({
+    data: {
+      items: [
+        {
+          id: 42,
+          type: 'movie',
+          title: 'Movie',
+          posterUrl: null,
+          backdropUrl: null,
+          releaseDate: '',
+          rating: 0,
+          listItemId: 'first-movie',
         },
+      ],
+      counts: { movie: 20, tv: 20 },
+      currentPage: state.currentPage,
+      totalPages: state.totalPages,
+    },
     isLoading: state.isLoading,
     isError: state.isError,
   }),
+  useSystemListsMoveMutation: () => ({ mutateAsync: vi.fn() }),
+}));
+vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }));
 vi.mock('@/hooks/use-reorderable-items', () => ({
@@ -55,11 +68,6 @@ vi.mock('@/hooks/use-reorderable-items', () => ({
     state.reorder(offset);
     return { localItems: items, isPending: false, move: vi.fn() };
   },
-}));
-vi.mock('@/lib/lists', () => ({ moveListItem: vi.fn() }));
-vi.mock('@/lib/system-list-queries', () => ({
-  getSystemListCount: vi.fn(),
-  getSystemListWithResourceDetailsPaginated: vi.fn(),
 }));
 vi.mock('@/components/list-items-grid', () => ({
   ListItemsGrid: ({ offset, editing }: { offset: number; editing: boolean }) => (

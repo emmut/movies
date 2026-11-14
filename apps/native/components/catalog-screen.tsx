@@ -1,9 +1,9 @@
 import { catalogDetailInput, parseCatalogId, type CatalogDetailInput } from '@movies/api/catalog';
+import { useCatalogDetails } from '@movies/api/react/use-catalog-query';
 import { regionSchema } from '@movies/config/regions';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogContent } from '@native/components/catalog-content';
 import { DetailSkeleton } from '@native/components/loading-skeletons';
-import { useCatalogDetails } from '@native/hooks/use-catalog-query';
 import { useRegion } from '@native/lib/preferences';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';

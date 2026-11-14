@@ -1,5 +1,5 @@
 'use client';
-
+import { useCustomListsDeleteMutation } from '@movies/api/react/use-custom-lists-query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { deleteList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 
 interface DeleteListButtonProps {
@@ -37,13 +36,14 @@ export function DeleteListButton({
   children,
 }: DeleteListButtonProps) {
   const router = useRouter();
+  const remove = useCustomListsDeleteMutation();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleDelete() {
     setIsLoading(true);
     try {
-      await deleteList(listId);
+      await remove.mutateAsync({ listId });
       toast.success('List deleted successfully');
 
       // Invalidate all list queries to ensure fresh data

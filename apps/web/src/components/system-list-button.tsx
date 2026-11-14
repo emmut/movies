@@ -1,5 +1,5 @@
 'use client';
-
+import { useSystemListsToggleMutation } from '@movies/api/react/use-system-lists-query';
 import { Button } from '@movies/ui/components/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from 'cn';
@@ -7,7 +7,6 @@ import { CircleCheck, Eye, Star } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 
 import { queryKeys } from '@/lib/query-keys';
-import { toggleSystemListItem } from '@/lib/system-list-actions';
 import type { SystemListType } from '@/lib/validations';
 
 const BUTTON_COPY: Record<
@@ -94,9 +93,14 @@ export function SystemListButton({
   userId,
   className,
 }: SystemListButtonProps) {
+  const toggleMutation = useSystemListsToggleMutation();
   const queryClient = useQueryClient();
   const { isPending, localIsActive, handleToggle } = usePendingToggle(isActive, async () => {
-    await toggleSystemListItem({ listType, resourceId, resourceType });
+    await toggleMutation.mutateAsync({
+      listType,
+      resourceId,
+      resourceType: resourceType === 'tv' ? 'tv' : 'movie',
+    });
     void queryClient.invalidateQueries({ queryKey: queryKeys[listType].all });
   });
 

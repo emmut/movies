@@ -1,10 +1,11 @@
 import type { CustomListSummary } from '@movies/api/custom-lists';
+import {
+  useCustomListsCreateMutation,
+  useCustomListsUpdateMutation,
+} from '@movies/api/react/use-custom-lists-query';
 import { createListSchema } from '@movies/api/validations';
 import { EMOJI_OPTIONS } from '@movies/config/constants';
 import { Sheet } from '@native/components/sheet';
-import { orpc } from '@native/lib/api';
-import { refreshCustomLists } from '@native/lib/custom-lists';
-import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -36,18 +37,16 @@ export function CustomListForm({
   const [emoji, setEmoji] = useState(initial.emoji);
   const [validation, setValidation] = useState<string | null>(null);
   async function saved() {
-    await refreshCustomLists(userId);
     close();
   }
-  const create = useMutation(
-    orpc.customLists.create.mutationOptions({
-      async onSuccess(result) {
-        await saved();
-        created?.(result.listId);
-      },
-    }),
-  );
-  const update = useMutation(orpc.customLists.update.mutationOptions({ onSuccess: saved }));
+  const create = useCustomListsCreateMutation({
+    accountId: userId,
+    async onSuccess(result) {
+      await saved();
+      created?.(result.listId);
+    },
+  });
+  const update = useCustomListsUpdateMutation({ accountId: userId, onSuccess: saved });
   const pending = create.isPending || update.isPending;
   const failed = create.isError || update.isError;
   function dismiss() {

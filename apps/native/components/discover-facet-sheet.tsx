@@ -1,6 +1,6 @@
 import type { DiscoveryFacetInput } from '@movies/api/discover';
+import { useDiscoveryFacets } from '@movies/api/react/use-discovery-query';
 import { ChoiceSheet } from '@native/components/choice-sheet';
-import { useDiscoveryFacets } from '@native/hooks/use-discovery-query';
 import { useEffect, useState } from 'react';
 
 export function DiscoverFacetSheet({

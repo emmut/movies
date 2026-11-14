@@ -1,9 +1,9 @@
 import type { CatalogTitleInput } from '@movies/api/catalog-support';
+import { useCatalogTrailer } from '@movies/api/react/use-catalog-query';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { PlayIcon } from '@native/components/icons';
 import { Sheet } from '@native/components/sheet';
 import { TrailerPlayer } from '@native/components/trailer-player';
-import { useCatalogTrailer } from '@native/hooks/use-catalog-query';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';

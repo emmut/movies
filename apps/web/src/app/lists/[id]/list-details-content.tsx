@@ -1,11 +1,13 @@
 'use client';
-
+import { regionPreferenceSchema } from '@movies/api/preferences';
+import { useCustomListsMoveItemMutation } from '@movies/api/react/use-custom-lists-query';
+import { useCustomListsDetails } from '@movies/api/react/use-custom-lists-query';
 import { MovieDetails } from '@movies/api/tmdb-types/movie';
 import { PersonDetails } from '@movies/api/tmdb-types/person';
 import { TvDetails } from '@movies/api/tmdb-types/tv-show';
 import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
@@ -22,12 +24,13 @@ import { PaginationControls } from '@/components/pagination-controls';
 import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
+import { apiListItem, type ApiListItem } from '@/lib/api-list-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
-import { moveListItem } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 import { activeWatchProviderFilter } from '@/lib/watch-provider-search-params';
 
 export type ListItem =
+  | ApiListItem
   | (MovieDetails & { resourceType: 'movie'; listItemId: string })
   | (TvDetails & { resourceType: 'tv'; listItemId: string })
   | (PersonDetails & { resourceType: 'person'; listItemId: string });
@@ -37,8 +40,8 @@ type ListDetailsData = {
   name: string;
   description: string | null;
   emoji: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   itemCount: number;
   totalPages: number;
   allItems: ListItem[];
@@ -47,12 +50,6 @@ type ListDetailsData = {
 type ListDetailsContentProps = {
   listId: string;
   userId?: string;
-  fetchListDetailsAction: (
-    listId: string,
-    page: number,
-    watchProviders?: number[],
-    watchRegion?: string,
-  ) => Promise<ListDetailsData>;
   watchProviders: WatchProvider[];
   userRegion: string;
 };
@@ -64,7 +61,6 @@ type ListDetailsContentProps = {
 export function ListDetailsContent({
   listId,
   userId,
-  fetchListDetailsAction,
   watchProviders,
   userRegion,
 }: ListDetailsContentProps) {
@@ -95,13 +91,13 @@ export function ListDetailsContent({
     isLoading,
     isError,
     isPlaceholderData,
-  } = useQuery({
-    queryKey: queryKeys.lists.detail(listId, page, activeProviders, activeRegion),
-    queryFn: () => fetchListDetailsAction(listId, page, activeProviders, activeRegion),
-    placeholderData: keepPreviousData,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
+  } = useCustomListsDetails(userId ?? '', {
+    listId,
+    page,
+    providerIds: activeProviders ?? [],
+    region: regionPreferenceSchema.shape.region.parse(activeRegion ?? userRegion),
   });
+  const displayList = list ? { ...list, allItems: list.items.map(apiListItem) } : undefined;
 
   // Without this, a failed fetch (e.g. a provider availability outage) leaves
   // the skeleton up forever.
@@ -115,7 +111,7 @@ export function ListDetailsContent({
 
   return (
     <ListDetailsView
-      list={list}
+      list={displayList!}
       page={page}
       userId={userId}
       watchProviders={watchProviders}
@@ -147,6 +143,7 @@ function ListDetailsView({
 }: ListDetailsViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
+  const moveMutation = useCustomListsMoveItemMutation();
   // Reorder only the current unfiltered page, whose offsets match the full list.
   const canReorder = !isProviderFiltered && !isPlaceholderData;
 
@@ -155,7 +152,7 @@ function ListDetailsView({
     list.allItems,
     offset,
     async (itemId, globalIndex) => {
-      await moveListItem(itemId, globalIndex);
+      await moveMutation.mutateAsync({ itemId, position: globalIndex });
       // Fire-and-forget: awaiting ties pending to unrelated refetches.
       queryClient.invalidateQueries({ queryKey: queryKeys.lists.all });
     },

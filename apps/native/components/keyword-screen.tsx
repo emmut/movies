@@ -1,10 +1,10 @@
 import { parseCatalogId } from '@movies/api/catalog';
+import { useCatalogKeyword } from '@movies/api/react/use-catalog-query';
 import { regionSchema } from '@movies/config/regions';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { MediaPoster, MediaPosterRow } from '@native/components/media-poster';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
-import { useCatalogKeyword } from '@native/hooks/use-catalog-query';
 import { useRegion } from '@native/lib/preferences';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';

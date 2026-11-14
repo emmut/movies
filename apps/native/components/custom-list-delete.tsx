@@ -1,8 +1,6 @@
 import type { CustomListSummary } from '@movies/api/custom-lists';
+import { useCustomListsDeleteMutation } from '@movies/api/react/use-custom-lists-query';
 import { Sheet } from '@native/components/sheet';
-import { orpc } from '@native/lib/api';
-import { refreshCustomLists } from '@native/lib/custom-lists';
-import { useMutation } from '@tanstack/react-query';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
@@ -19,15 +17,13 @@ export function CustomListDelete({
   close: () => void;
   deleted?: () => void;
 }) {
-  const mutation = useMutation(
-    orpc.customLists.delete.mutationOptions({
-      async onSuccess() {
-        await refreshCustomLists(userId);
-        close();
-        deleted?.();
-      },
-    }),
-  );
+  const mutation = useCustomListsDeleteMutation({
+    accountId: userId,
+    async onSuccess() {
+      close();
+      deleted?.();
+    },
+  });
   function dismiss() {
     if (!mutation.isPending) {
       close();

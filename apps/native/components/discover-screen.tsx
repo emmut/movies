@@ -1,5 +1,6 @@
 import type { DiscoveryInput } from '@movies/api/discover';
 import type { MediaCard } from '@movies/api/home';
+import { useDiscoveryList, useDiscoveryOptions } from '@movies/api/react/use-discovery-query';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { DiscoverFacetChips } from '@native/components/discover-facet-chips';
 import { DiscoverFilters } from '@native/components/discover-filters';
@@ -12,7 +13,6 @@ import { MediaPoster } from '@native/components/media-poster';
 import { MediaTypeTabs } from '@native/components/media-type-tabs';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
-import { useDiscoveryList, useDiscoveryOptions } from '@native/hooks/use-discovery-query';
 import { readDiscoverState } from '@native/lib/discover-state';
 import { hasDiscoverySessionError } from '@native/lib/discovery-session';
 import { useRegion, useProviderPreferences } from '@native/lib/preferences';

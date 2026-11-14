@@ -1,9 +1,9 @@
 import { parseCatalogId } from '@movies/api/catalog';
 import type { SeasonPage } from '@movies/api/pdp';
+import { useCatalogSeason } from '@movies/api/react/use-catalog-query';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { PdpImage } from '@native/components/pdp-image';
-import { useCatalogSeason } from '@native/hooks/use-catalog-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';

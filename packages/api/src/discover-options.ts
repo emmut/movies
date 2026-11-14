@@ -20,4 +20,6 @@ export const TV_SORT_OPTIONS = [
   { value: 'vote_average.asc', label: 'Rating (Low to High)' },
   { value: 'first_air_date.desc', label: 'First Air Date (Newest)' },
   { value: 'first_air_date.asc', label: 'First Air Date (Oldest)' },
+  { value: 'vote_count.desc', label: 'Most Voted' },
+  { value: 'vote_count.asc', label: 'Least Voted' },
 ];

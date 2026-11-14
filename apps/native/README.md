@@ -145,7 +145,7 @@ SDK 57 native binaries cannot receive this SDK 58 upgrade as a JavaScript-only u
 
 ### Query hooks
 
-Read queries belong in `hooks/use-<domain>-query.ts`. Screens and components consume named hooks such as `useCatalogDetails(input)` and `useCustomListsDetails(userId, input)`. Hooks own oRPC query options, account-scoped keys, retry policy and pagination placeholders, and return the React Query result directly. Keep rendering, route state and form drafts in components. Input types derive from the shared API client contract. Existing region/session hooks in `lib/preferences.ts` retain their session-store behavior.
+Product queries and mutations belong in the shared `packages/api/src/react/use-<domain>-query.ts` modules, imported directly from `@movies/api/react/use-<domain>-query` by both apps. `ApiProvider` supplies each platform’s transport and current account. Screens and components consume named hooks such as `useCatalogDetails(input)` and `useCustomListsDetails(userId, input)`. Hooks own oRPC query options, account-scoped keys, retry policy and pagination placeholders, and return the React Query result directly. Keep rendering, route state and form drafts in components. Input types derive from the shared API client contract. Existing region/session hooks in `lib/preferences.ts` retain their session-store behavior. Better Auth/passkey hooks stay platform-specific because browser and secure native authentication use different clients. See [the shared API architecture](../../docs/shared-api.md).
 
 ### Babel configuration
 

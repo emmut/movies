@@ -1,5 +1,5 @@
 'use client';
-
+import { usePreferencesSetProvidersMutation } from '@movies/api/react/use-preferences-query';
 import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
 import {
@@ -16,7 +16,6 @@ import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
 import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
-import { setUserWatchProviders } from '@/lib/user-actions';
 import { formatImageUrl } from '@/lib/utils';
 
 interface WatchProviderFormProps {
@@ -29,6 +28,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
   const [isPending, startTransition] = useTransition();
   const queryClient = useQueryClient();
+  const save = usePreferencesSetProvidersMutation();
 
   function handleProviderToggle(providerId: number) {
     setSelectedProviders((prev) =>
@@ -43,7 +43,7 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
   async function handleSave() {
     startTransition(async () => {
       try {
-        await setUserWatchProviders(selectedProviders);
+        await save.mutateAsync({ providerIds: selectedProviders });
         // Server caches are revalidated by the action; drop the in-memory React
         // Query cache for the user's queries too, so client-side consumers
         // don't serve the old selection until it goes stale.

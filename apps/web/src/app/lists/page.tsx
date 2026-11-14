@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -5,8 +6,8 @@ import { CreateListDialog } from '@/components/create-list-dialog';
 import { ListsGrid } from '@/components/lists-grid';
 import { PaginationControls } from '@/components/pagination-controls';
 import SectionTitle from '@/components/section-title';
+import { createServerApi } from '@/lib/api-server';
 import { getUser } from '@/lib/auth-server';
-import { getUserListCount, getUserListsPaginated } from '@/lib/lists';
 
 type ListsPageProps = {
   searchParams: Promise<{
@@ -31,10 +32,9 @@ export default async function ListsPage(props: ListsPageProps) {
     redirect('/login');
   }
 
-  const [paginatedData, totalListsCount] = await Promise.all([
-    getUserListsPaginated(page),
-    getUserListCount(),
-  ]);
+  const api = createServerApi(await headers());
+  const paginatedData = await api.customLists.index({ page: Math.max(1, page) });
+  const totalListsCount = paginatedData.totalItems;
 
   const { lists, totalPages } = paginatedData;
 

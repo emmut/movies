@@ -89,7 +89,7 @@ Google uses the existing social sign-in and anonymous-account transfer flow; it 
 ## Testing
 
 - Vitest, Node environment, tests co-located as `apps/web/src/**/*.test.ts, packages/**/*.test.ts`.
-- Pure logic is tested directly. Server actions mock `@/lib/db`, `@/lib/auth-server`, and `next/cache` — see `apps/web/src/lib/lists.test.ts` for the chainable db-mock pattern.
+- Pure logic is tested directly. Shared product services live in `packages/services/src` with colocated tests; shared query/mutation hooks live in `packages/api/src/react`. Test Next cache invalidation separately from the domain services. See [shared API architecture](docs/shared-api.md).
 
 ## CI
 

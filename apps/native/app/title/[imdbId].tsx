@@ -1,6 +1,6 @@
 import { imdbIdSchema } from '@movies/api/imdb';
+import { useCatalogResolveImdb } from '@movies/api/react/use-catalog-query';
 import { ScreenQueryState } from '@native/components/screen-query-state';
-import { useCatalogResolveImdb } from '@native/hooks/use-catalog-query';
 import { Link, Redirect, Stack, useLocalSearchParams } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 

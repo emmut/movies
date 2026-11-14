@@ -1,3 +1,4 @@
+import type { MediaCard } from '@movies/api/home';
 import { displayRating } from '@movies/api/home';
 import { Movie, MovieDetails } from '@movies/api/tmdb-types/movie';
 import { TvDetails, TvShow } from '@movies/api/tmdb-types/tv-show';
@@ -14,9 +15,11 @@ import Badge from './badge';
 import { QuickAddButton } from './quick-add-button';
 import { RemoveFromListButton } from './remove-from-list-button';
 
-type ItemResource = (Movie | MovieDetails | TvShow | TvDetails) & {
+type LegacyResource = (Movie | MovieDetails | TvShow | TvDetails) & {
   posterImageUrls?: ProxyImageUrls;
 };
+
+type ItemResource = LegacyResource | MediaCard;
 
 type ItemCardProps = {
   resource: ItemResource;
@@ -50,6 +53,9 @@ function resolveImageSrc(src: string, size: number) {
 }
 
 function cardMetadata(item: ItemResource) {
+  if ('releaseDate' in item) {
+    return { title: item.title, releaseYear: item.releaseDate.slice(0, 4) || 'N/A' };
+  }
   const title = isResource(item) ? item.title : item.name;
   const releaseDate = isResource(item) ? item.release_date : item.first_air_date;
   return { title, releaseYear: releaseDate ? releaseDate.split('-')[0] : 'N/A' };
@@ -66,12 +72,14 @@ function CardArtwork({
   type: ItemCardProps['type'];
   eagerImage: boolean;
 }) {
+  const poster = 'posterUrl' in item ? item.posterUrl : item.poster_path;
+  const imageUrls = 'posterImageUrls' in item ? item.posterImageUrls : undefined;
   return (
     <>
-      {item.poster_path ? (
+      {poster ? (
         <ClientImage
-          imageUrls={item.posterImageUrls}
-          fallbackSrc={resolveImageSrc(item.poster_path, 500)}
+          imageUrls={imageUrls}
+          fallbackSrc={resolveImageSrc(poster, 500)}
           alt={title}
           className="h-full w-full object-cover"
           eager={eagerImage}
@@ -184,7 +192,7 @@ export default function ItemCard({
           <CardOverlay
             title={title}
             releaseYear={releaseYear}
-            score={displayRating(item.vote_average)}
+            score={displayRating('rating' in item ? item.rating : item.vote_average)}
             type={type}
           />
         </div>

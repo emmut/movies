@@ -1,7 +1,7 @@
 import type { HomeMediaSection } from '@movies/api/home';
+import { useHomeList, useHomeTrending } from '@movies/api/react/use-home-query';
 import { PosterRowSkeleton } from '@native/components/loading-skeletons';
 import { MediaPoster, MediaPosterRow } from '@native/components/media-poster';
-import { useHomeList, useHomeTrending } from '@native/hooks/use-home-query';
 import { Pressable, Text, View } from 'react-native';
 
 function RowState({

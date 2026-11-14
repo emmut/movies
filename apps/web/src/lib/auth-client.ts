@@ -213,3 +213,12 @@ export async function signOut() {
     return { error: 'Failed to sign out', data: null };
   }
 }
+
+/** Better Auth's browser adapter keeps credential/session handling in its SDK. */
+export async function deletePasskey(id: string) {
+  const response = await authClient.passkey.deletePasskey({ id });
+  if (response.error) {
+    throw new Error(response.error.message ?? 'Failed to delete passkey');
+  }
+  return response.data;
+}

@@ -1,9 +1,10 @@
 'use client';
-
 import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, rectSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import type { CustomListSummary } from '@movies/api/custom-lists';
 import { sameIdOrder } from '@movies/api/list-order';
+import { useCustomListsMoveMutation } from '@movies/api/react/use-custom-lists-query';
 import { Button } from '@movies/ui/components/button';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from 'cn';
@@ -17,7 +18,7 @@ import { EditListDialog } from '@/components/edit-list-dialog';
 import { ReorderButton } from '@/components/reorder-button';
 import { ReorderControls } from '@/components/reorder-controls';
 import { useReorderSensors } from '@/hooks/use-reorder-sensors';
-import { LocalList, moveList } from '@/lib/lists';
+type LocalList = CustomListSummary;
 import { queryKeys } from '@/lib/query-keys';
 
 interface ListsGridProps {
@@ -38,6 +39,7 @@ function reorderErrorMessage(error: unknown) {
 // state with a finally block cannot wedge.
 function useReorderableLists(lists: LocalList[], offset: number) {
   const queryClient = useQueryClient();
+  const moveMutation = useCustomListsMoveMutation();
   const [isPending, setIsPending] = useState(false);
   const [localLists, setLocalLists] = useState(lists);
   const [prevLists, setPrevLists] = useState(lists);
@@ -64,7 +66,7 @@ function useReorderableLists(lists: LocalList[], offset: number) {
   async function commitMove(listId: string, toLocalIndex: number, previous: LocalList[]) {
     setIsPending(true);
     try {
-      await moveList(listId, Math.max(0, offset + toLocalIndex));
+      await moveMutation.mutateAsync({ listId, position: Math.max(0, offset + toLocalIndex) });
       // Fire-and-forget: awaiting ties pending to unrelated refetches.
       queryClient.invalidateQueries({ queryKey: queryKeys.lists.all });
     } catch (error) {
@@ -112,7 +114,7 @@ function ListCardLink({ list }: { list: LocalList }) {
         <div className="mt-4 border-t border-muted pt-4">
           <p className="text-sm text-muted-foreground">{list.itemCount} items</p>
           <p className="text-xs text-muted-foreground">
-            Updated {list.updatedAt.toLocaleDateString()}
+            Updated {new Date(list.updatedAt).toLocaleDateString()}
           </p>
         </div>
       </div>

@@ -1,5 +1,5 @@
+import { createCatalogService } from '@movies/services/catalog-service';
 import { createApp } from '@server/app';
-import { createCatalogService } from '@server/catalog-service';
 import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vite-plus/test';
 

@@ -1,3 +1,9 @@
+import { accountQueryKey } from '@movies/api/account-query-key';
+import { useAccountRegion } from '@movies/api/react/use-preferences-query';
+import {
+  useSystemListsMoveMutation,
+  useSystemListsPage,
+} from '@movies/api/react/use-system-lists-query';
 import {
   SYSTEM_LIST_COPY,
   SYSTEM_LIST_MEDIA,
@@ -12,14 +18,10 @@ import { MediaPoster } from '@native/components/media-poster';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { SystemListFilters } from '@native/components/system-list-filters';
-import { useAccountRegion } from '@native/hooks/use-preferences-query';
-import { useSystemListsPage } from '@native/hooks/use-system-lists-query';
-import { accountQueryKey } from '@native/lib/account-query-key';
 import { orpc, queryClient } from '@native/lib/api';
 import { canReorderList } from '@native/lib/list-page-state';
 import { readSystemListState } from '@native/lib/system-list-state';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import { useMutation } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
@@ -242,15 +244,13 @@ function ListGrid({
     captureBeforeNavigation,
     cancelBeforeNavigation,
   } = useRememberedScroll<FlatList<Entry>>('system-list:' + userId + JSON.stringify(input));
-  const move = useMutation(
-    orpc.systemLists.move.mutationOptions({
-      async onSuccess() {
-        await queryClient.invalidateQueries({
-          queryKey: accountQueryKey(orpc.systemLists.key(), userId),
-        });
-      },
-    }),
-  );
+  const move = useSystemListsMoveMutation({
+    async onSuccess() {
+      await queryClient.invalidateQueries({
+        queryKey: accountQueryKey(orpc.systemLists.key(), userId),
+      });
+    },
+  });
   const reorderDisabled = !canReorderList(input, result, stale);
   const offset = (result.currentPage - 1) * result.itemsPerPage;
   return (

@@ -4,6 +4,12 @@ import {
   type CustomListEntry,
   type CustomListSummary,
 } from '@movies/api/custom-lists';
+import {
+  useCustomListsMoveItemMutation,
+  useCustomListsRemoveMutation,
+  useCustomListsDetails,
+} from '@movies/api/react/use-custom-lists-query';
+import { useAccountRegion } from '@movies/api/react/use-preferences-query';
 import type { RegionCode } from '@movies/config/regions';
 import { AccountScreen } from '@native/components/account-screen';
 import { CatalogPagination } from '@native/components/catalog-pagination';
@@ -14,14 +20,9 @@ import { MediaPoster } from '@native/components/media-poster';
 import { PersonCredit } from '@native/components/person-credits';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { SystemListFilters } from '@native/components/system-list-filters';
-import { useCustomListsDetails } from '@native/hooks/use-custom-lists-query';
-import { useAccountRegion } from '@native/hooks/use-preferences-query';
-import { orpc } from '@native/lib/api';
-import { refreshCustomLists } from '@native/lib/custom-lists';
 import { readListPageState, canReorderList } from '@native/lib/list-page-state';
 import { scalar } from '@native/lib/search-params';
 import { useCanonicalListPage } from '@native/lib/use-canonical-list-page';
-import { useMutation } from '@tanstack/react-query';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -76,12 +77,8 @@ function ListContents({
   const [editing, setEditing] = useState<CustomListSummary | null>(null);
   const [deleting, setDeleting] = useState<CustomListSummary | null>(null);
   const [reordering, setReordering] = useState(false);
-  const move = useMutation(
-    orpc.customLists.moveItem.mutationOptions({ onSuccess: () => refreshCustomLists(userId) }),
-  );
-  const remove = useMutation(
-    orpc.customLists.remove.mutationOptions({ onSuccess: () => refreshCustomLists(userId) }),
-  );
+  const move = useCustomListsMoveItemMutation({ accountId: userId });
+  const remove = useCustomListsRemoveMutation({ accountId: userId });
   const busy = stale || move.isPending || remove.isPending;
   const reorderDisabled = !canReorderList(input, result, busy);
   const offset = (result.currentPage - 1) * result.itemsPerPage;

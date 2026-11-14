@@ -94,3 +94,5 @@ export type CustomListSummary = z.infer<typeof customListSummarySchema>;
 export type CustomListEntry = z.infer<typeof customListEntrySchema>;
 export type CustomListDetail = z.infer<typeof customListDetailSchema>;
 export type CustomListIndex = z.infer<typeof customListIndexSchema>;
+
+export type CustomListStatus = z.infer<typeof customListStatusSchema>;

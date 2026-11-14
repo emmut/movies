@@ -1,15 +1,17 @@
 import { getDiscoverWatchProviders, type DiscoverParams } from '@movies/api/discover-params';
+import { discoveryInputFromParams } from '@movies/api/discovery-input';
+import { createApiQueryUtils } from '@movies/api/query-utils';
 import { getOriginCountryString } from '@movies/config/countries';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+import { headers } from 'next/headers';
 import { Suspense } from 'react';
 
+import { createServerApi } from '@/lib/api-server';
 import { getUser } from '@/lib/auth-server';
-import { getDiscoverMedia } from '@/lib/discover-client';
 import { loadDiscoverSearchParams } from '@/lib/discover-search-params';
 import { fetchAvailableGenres } from '@/lib/movies';
 import { getKeyword } from '@/lib/pdp';
 import { getQueryClient } from '@/lib/query-client';
-import { queryKeys } from '@/lib/query-keys';
 import { optional } from '@/lib/tmdb';
 import { fetchAvailableTvGenres } from '@/lib/tv-shows';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
@@ -38,13 +40,10 @@ async function prefetchDiscoverMedia(
   mediaType: 'movie' | 'tv',
   params: DiscoverParams,
 ) {
-  await queryClient.prefetchQuery({
-    queryKey:
-      mediaType === 'movie'
-        ? queryKeys.discover.movies(params)
-        : queryKeys.discover.tvShows(params),
-    queryFn: () => getDiscoverMedia(mediaType, params),
-  });
+  const api = createApiQueryUtils(createServerApi(await headers()));
+  await queryClient.prefetchQuery(
+    api.discovery.list.queryOptions({ input: discoveryInputFromParams(mediaType, params) }),
+  );
 }
 
 /**

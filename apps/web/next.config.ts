@@ -6,7 +6,14 @@ import { env } from './src/env.ts';
 env;
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@movies/ui', '@movies/db', '@movies/config', '@movies/auth', '@movies/api'],
+  transpilePackages: [
+    '@movies/ui',
+    '@movies/db',
+    '@movies/config',
+    '@movies/auth',
+    '@movies/api',
+    '@movies/services',
+  ],
   reactCompiler: true,
   cacheComponents: true,
   // Preserve the existing Cache Components prefetch behavior during this upgrade.

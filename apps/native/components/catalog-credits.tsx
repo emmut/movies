@@ -1,7 +1,7 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
+import { useCatalogCredits } from '@movies/api/react/use-catalog-query';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { PersonCreditGroup } from '@native/components/person-credits';
-import { useCatalogCredits } from '@native/hooks/use-catalog-query';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 

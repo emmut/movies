@@ -1,9 +1,9 @@
+import { useCatalogDetails, useCatalogReviews } from '@movies/api/react/use-catalog-query';
 import type { Review, ReviewsInput } from '@movies/api/reviews';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogPagination } from '@native/components/catalog-pagination';
 import { ReviewCard } from '@native/components/review-card';
 import { ScreenQueryState } from '@native/components/screen-query-state';
-import { useCatalogDetails, useCatalogReviews } from '@native/hooks/use-catalog-query';
 import { catalogPath } from '@native/lib/catalog-navigation';
 import { useRegion } from '@native/lib/preferences';
 import { readReviewsInput, reviewCountLabel } from '@native/lib/review-model';

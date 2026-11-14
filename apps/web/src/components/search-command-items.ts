@@ -1,4 +1,5 @@
 import { parseSearchQuery } from '@movies/api/parse-search-query';
+import type { SearchItem, SearchPage } from '@movies/api/search';
 import type { SearchMultiResult } from '@movies/api/search-engine';
 
 import { formatDateYear, formatImageUrl } from '@/lib/utils';
@@ -76,9 +77,12 @@ function toSearchCommandItem(result: MultiResult): SearchCommandItem | null {
  * @param limit - Maximum number of rows to return
  */
 export function toSearchCommandItems(
-  data: SearchMultiResult | undefined,
+  data: SearchMultiResult | SearchPage | undefined,
   limit = 8,
 ): SearchCommandItem[] {
+  if (data && 'items' in data) {
+    return data.items.slice(0, limit).map(toApiSearchCommandItem);
+  }
   return (data?.results ?? [])
     .map(toSearchCommandItem)
     .filter((item): item is SearchCommandItem => item !== null)
@@ -162,4 +166,29 @@ export function moveSelection(key: string, index: number, count: number): number
   }
 
   return index;
+}
+
+function toApiSearchCommandItem(item: SearchItem): SearchCommandItem {
+  if (item.type === 'person') {
+    return {
+      key: `person-${item.id}`,
+      href: `/person/${item.id}`,
+      title: item.name,
+      subtitle: item.department,
+      badge: 'Person',
+      badgeVariant: 'blue',
+      fallbackSrc: item.profileUrl ?? '',
+      fallbackEmoji: '👤',
+    };
+  }
+  return {
+    key: `${item.type}-${item.id}`,
+    href: `/${item.type}/${item.id}`,
+    title: item.title,
+    subtitle: item.releaseDate.slice(0, 4),
+    badge: item.type === 'movie' ? 'Movie' : 'TV Show',
+    badgeVariant: item.type === 'movie' ? 'yellow' : 'red',
+    fallbackSrc: item.posterUrl ?? '',
+    fallbackEmoji: item.type === 'movie' ? '🎬' : '📺',
+  };
 }

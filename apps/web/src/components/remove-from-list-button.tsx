@@ -1,5 +1,5 @@
 'use client';
-
+import { useCustomListsRemoveMutation } from '@movies/api/react/use-custom-lists-query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,6 @@ import { useRouter } from 'next/navigation';
 import { MouseEvent, useState } from 'react';
 import { toast } from 'sonner';
 
-import { removeFromList } from '@/lib/lists';
 import { queryKeys } from '@/lib/query-keys';
 
 interface RemoveFromListButtonProps {
@@ -35,6 +34,7 @@ export function RemoveFromListButton({
   className,
 }: RemoveFromListButtonProps) {
   const router = useRouter();
+  const remove = useCustomListsRemoveMutation();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -44,7 +44,7 @@ export function RemoveFromListButton({
 
     setIsLoading(true);
     try {
-      await removeFromList(listId, mediaId, mediaType);
+      await remove.mutateAsync({ listId, resourceId: mediaId, resourceType: mediaType });
       toast.success('Removed from list');
 
       // Invalidate all list queries to ensure fresh data on next navigation

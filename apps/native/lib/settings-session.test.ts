@@ -16,7 +16,7 @@ describe('native settings session', () => {
     expect(isUnauthorized(Object.assign(new Error('nope'), { code: 'FORBIDDEN' }))).toBe(false);
     expect(isUnauthorized(Object.assign(new Error('nope'), { code: 'UNAUTHORIZED' }))).toBe(true);
   });
-  it('caches the saved result, clears the draft, then refetches the key', async () => {
+  it('caches the confirmed response and clears the draft without duplicating mutation invalidation', async () => {
     const client = new QueryClient();
     const queryKey = ['account', 'user-1', 'region'];
     const calls: string[] = [];
@@ -26,7 +26,7 @@ describe('native settings session', () => {
     await commitSavedSetting(client, queryKey, { region: 'SE' }, () => {
       calls.push('clear:' + JSON.stringify(client.getQueryData(queryKey)));
     });
-    expect(calls).toEqual(['clear:{"region":"SE"}', 'invalidate']);
-    expect(invalidate).toHaveBeenCalledWith({ queryKey });
+    expect(calls).toEqual(['clear:{"region":"SE"}']);
+    expect(invalidate).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { accountQueryKey } from '@native/lib/account-query-key';
+import { accountQueryKey } from '@movies/api/account-query-key';
 import { readPasskeys } from '@native/lib/passkeys';
 import { useQuery } from '@tanstack/react-query';
 

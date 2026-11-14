@@ -1,10 +1,12 @@
 'use client';
-
+import { ApiProvider } from '@movies/api/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ReactNode } from 'react';
 
 import { PreferenceRefresh } from '@/components/preference-refresh';
+import { api } from '@/lib/api-client';
+import { useSession } from '@/lib/auth-client';
 import { getQueryClient } from '@/lib/query-client';
 
 type QueryProviderProps = {
@@ -21,12 +23,18 @@ type QueryProviderProps = {
  */
 export function QueryProvider({ children }: QueryProviderProps) {
   const queryClient = getQueryClient();
+  const session = useSession();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <PreferenceRefresh />
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ApiProvider
+        api={api}
+        accountId={session.isPending ? undefined : (session.data?.user.id ?? null)}
+      >
+        <PreferenceRefresh />
+        {children}
+        <ReactQueryDevtools initialIsOpen={false} />
+      </ApiProvider>
     </QueryClientProvider>
   );
 }

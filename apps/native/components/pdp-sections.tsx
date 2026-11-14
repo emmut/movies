@@ -1,11 +1,11 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
 import type { CollectionPage, PdpExtras } from '@movies/api/pdp';
+import { useCatalogCollection, useCatalogExtras } from '@movies/api/react/use-catalog-query';
 import { CatalogOrganizationSections } from '@native/components/catalog-organizations';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { PdpImage } from '@native/components/pdp-image';
 import { PdpMedia } from '@native/components/pdp-media';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
-import { useCatalogCollection, useCatalogExtras } from '@native/hooks/use-catalog-query';
 import { catalogPath } from '@native/lib/catalog-navigation';
 import { Link, usePathname } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';

@@ -1,5 +1,6 @@
 'use client';
-
+import { regionPreferenceSchema } from '@movies/api/preferences';
+import { usePreferencesSetRegionMutation } from '@movies/api/react/use-preferences-query';
 import type { Region } from '@movies/config/regions';
 import { Button } from '@movies/ui/components/button';
 import { Label } from '@movies/ui/components/label';
@@ -19,13 +20,13 @@ import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
 interface RegionFormProps {
   currentRegion: string;
   regions: readonly Region[];
-  updateRegionAction: (region: string) => Promise<{ success: boolean; region: string }>;
 }
 
-export function RegionForm({ currentRegion, regions, updateRegionAction }: RegionFormProps) {
+export function RegionForm({ currentRegion, regions }: RegionFormProps) {
   const [selectedRegion, setSelectedRegion] = useState(currentRegion);
   const [isPending, startTransition] = useTransition();
   const queryClient = useQueryClient();
+  const save = usePreferencesSetRegionMutation();
 
   async function handleSubmit() {
     if (selectedRegion === currentRegion) {
@@ -34,7 +35,9 @@ export function RegionForm({ currentRegion, regions, updateRegionAction }: Regio
 
     startTransition(async () => {
       try {
-        await updateRegionAction(selectedRegion);
+        await save.mutateAsync({
+          region: regionPreferenceSchema.shape.region.parse(selectedRegion),
+        });
         // Region drives the homepage lists too, so drop their client cache as
         // well — otherwise client-side navigation back to / serves the old
         // region until useUserRegion's query goes stale.

@@ -1,19 +1,16 @@
 import 'server-only';
-import { buildDiscoverSearchParams, type DiscoverParams } from '@movies/api/discover-params';
 import type { GenreResponse } from '@movies/api/tmdb-types/genre';
 import {
   TvCredits,
   TvDetails,
   TvRecommendations,
-  TvResponse,
   TvSimilar,
   TvWatchProviders,
 } from '@movies/api/tmdb-types/tv-show';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import { CACHE_TAGS } from './cache-tags';
-import { DEFAULT_REGION } from './regions';
-import { addPosterImageUrls, tmdbFetch } from './tmdb';
+import { tmdbFetch } from './tmdb';
 import { getTmdbExternalIds } from './tmdb-external-ids';
 
 /**
@@ -75,100 +72,6 @@ export async function getTvShowWatchProviders(tvId: number) {
   return {
     results: watchProviders.results,
   };
-}
-
-/** Fetches discovered TV shows with shared filters and caps pagination at 500. */
-export async function fetchDiscoverTvShows(params: DiscoverParams) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.discover.tv);
-  cacheLife('minutes');
-
-  const searchParams = buildDiscoverSearchParams(params);
-
-  const tvShows = await tmdbFetch<TvResponse>('/discover/tv', {
-    searchParams,
-    errorMessage: 'Error loading discover tv shows',
-  });
-
-  return {
-    tvShows: tvShows.results.map(addPosterImageUrls),
-    totalPages: Math.min(tvShows.total_pages, 500),
-  };
-}
-
-/**
- * Fetches the list of trending TV shows for the current day from TMDb.
- *
- * @returns An array of trending TV shows for today.
- *
- * @throws If the trending TV shows cannot be loaded from the API.
- */
-export async function fetchTrendingTvShows() {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.trendingTv);
-  cacheLife('minutes');
-
-  const tvShows = await tmdbFetch<TvResponse>('/trending/tv/day', {
-    errorMessage: 'Failed loading trending TV shows',
-  });
-  return tvShows.results;
-}
-
-/**
- * Fetches the list of top-rated TV shows for the default region.
- *
- * @returns An array of top-rated TV show objects.
- *
- * @throws If the request to the TMDb API fails.
- */
-export async function fetchTopRatedTvShows(region: string = DEFAULT_REGION) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.topRatedTv);
-  cacheLife('days');
-
-  const tvShows = await tmdbFetch<TvResponse>('/tv/top_rated', {
-    searchParams: { region },
-    errorMessage: 'Failed loading top rated TV shows',
-  });
-  return tvShows.results;
-}
-
-/**
- * Fetches TV shows that are currently airing in the default region.
- *
- * @returns An array of TV show objects currently on the air in the default region.
- *
- * @throws If the request to the TMDb API fails.
- */
-export async function fetchOnTheAirTvShows(region: string = DEFAULT_REGION) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.onTheAirTv);
-  cacheLife('days');
-
-  const tvShows = await tmdbFetch<TvResponse>('/tv/on_the_air', {
-    searchParams: { region },
-    errorMessage: 'Failed loading on the air TV shows',
-  });
-  return tvShows.results;
-}
-
-/**
- * Fetches a list of popular TV shows for the default region.
- *
- * @returns An array of popular TV shows.
- *
- * @throws If the request to the TMDb API fails.
- */
-export async function fetchPopularTvShows(region: string = DEFAULT_REGION) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.popularTv);
-  cacheLife('days');
-
-  const tvShows = await tmdbFetch<TvResponse>('/tv/popular', {
-    searchParams: { region },
-    errorMessage: 'Failed loading popular TV shows',
-  });
-  return tvShows.results;
 }
 
 /**

@@ -1,6 +1,6 @@
 import type { DiscoveryInput } from '@movies/api/discover';
+import { useDiscoveryFacets } from '@movies/api/react/use-discovery-query';
 import { XIcon } from '@native/components/icons';
-import { useDiscoveryFacets } from '@native/hooks/use-discovery-query';
 import { facetFilters } from '@native/lib/discover-filters';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 

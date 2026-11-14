@@ -1,6 +1,7 @@
 import { parseCatalogId } from '@movies/api/catalog';
 import type { PersonCredit } from '@movies/api/person';
 import { personInput, type PersonDetail } from '@movies/api/person';
+import { usePersonCredits, usePersonDetails } from '@movies/api/react/use-person-query';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CustomListActions } from '@native/components/custom-list-picker';
 import { ExternalLink } from '@native/components/external-link';
@@ -10,7 +11,6 @@ import { MediaBadge } from '@native/components/media-badge';
 import { PersonFilmography, PersonKnownFor } from '@native/components/person-filmography';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { StatGrid } from '@native/components/stat-grid';
-import { usePersonCredits, usePersonDetails } from '@native/hooks/use-person-query';
 import { personCreditCount, personFacts, personStats } from '@native/lib/person-model';
 import { useRegion } from '@native/lib/preferences';
 import { regionOr } from '@native/lib/search-params';

@@ -1,5 +1,6 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
 import type { ProviderGroups, WatchProviderCard } from '@movies/api/catalog-support';
+import { useCatalogProviders, useCatalogWatchLinks } from '@movies/api/react/use-catalog-query';
 import type { DirectWatchLink } from '@movies/api/tmdb-types/watch-provider';
 import { getDirectWatchUrl } from '@movies/api/watch-links';
 import { getRegionByCode } from '@movies/config/regions';
@@ -8,7 +9,6 @@ import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { ExternalLink } from '@native/components/external-link';
 import { ChevronDownIcon } from '@native/components/icons';
 import { RegionPicker } from '@native/components/region-picker';
-import { useCatalogProviders, useCatalogWatchLinks } from '@native/hooks/use-catalog-query';
 import { Image as ExpoImage } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';

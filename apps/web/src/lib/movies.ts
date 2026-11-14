@@ -1,36 +1,16 @@
 import 'server-only';
-import { buildDiscoverSearchParams, type DiscoverParams } from '@movies/api/discover-params';
 import type { GenreResponse } from '@movies/api/tmdb-types/genre';
 import {
   MovieCredits,
   MovieDetails,
   MovieRecommendations,
-  MovieResponse,
   MovieSimilar,
   MovieWatchProviders,
 } from '@movies/api/tmdb-types/movie';
-import { DEFAULT_REGION } from '@movies/config/regions';
 import { cacheLife, cacheTag } from 'next/cache';
 
 import { CACHE_TAGS } from './cache-tags';
-import { addPosterImageUrls, tmdbFetch } from './tmdb';
-
-/**
- * Fetches the list of trending movies for the current day from TMDb.
- *
- * @returns An array of trending movie results.
- * @throws If the request to TMDb fails.
- */
-export async function fetchTrendingMovies() {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.trendingMovies);
-  cacheLife('minutes');
-
-  const movies = await tmdbFetch<MovieResponse>('/trending/movie/day', {
-    errorMessage: 'Failed loading trending movies',
-  });
-  return movies.results;
-}
+import { tmdbFetch } from './tmdb';
 
 /**
  * Retrieves the list of available movie genres from the TMDb API.
@@ -46,92 +26,6 @@ export async function fetchAvailableGenres() {
     errorMessage: 'Error loading genres',
   });
   return movies.genres;
-}
-
-/** Fetches discovered movies with shared filters and caps pagination at 500. */
-export async function fetchDiscoverMovies(params: DiscoverParams) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.discover.movies);
-  cacheLife('minutes');
-
-  const searchParams = {
-    ...buildDiscoverSearchParams({ ...params, networkIds: [] }),
-    include_video: 'false',
-  };
-
-  const movies = await tmdbFetch<MovieResponse>('/discover/movie', {
-    searchParams,
-    errorMessage: 'Error loading discover movies',
-  });
-
-  return {
-    movies: movies.results.map(addPosterImageUrls),
-    totalPages: Math.min(movies.total_pages, 500),
-  };
-}
-
-/**
- * Retrieves a list of movies currently playing in theaters.
- *
- * @returns An array of now playing movie results
- */
-export async function fetchNowPlayingMovies(region: string = DEFAULT_REGION) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.nowPlayingMovies);
-  cacheLife('days');
-
-  const movies = await tmdbFetch<MovieResponse>('/movie/now_playing', {
-    searchParams: { region },
-    errorMessage: 'Failed loading now playing movies',
-  });
-  return movies.results;
-}
-
-/**
- * Fetches upcoming movies from TMDb, excluding those that are currently playing.
- *
- * @returns An array of upcoming movies not currently in theaters.
- */
-export async function fetchUpcomingMovies(region: string = DEFAULT_REGION) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.upcomingMovies);
-  cacheLife('days');
-
-  const [upcomingMovies, nowPlayingMovies] = await Promise.all([
-    tmdbFetch<MovieResponse>('/movie/upcoming', {
-      searchParams: { region },
-      errorMessage: 'Failed loading upcoming movies',
-    }),
-    fetchNowPlayingMovies(region),
-  ]);
-
-  const nowPlayingIds = new Set(nowPlayingMovies.map((movie) => movie.id));
-  const filteredUpcomingMovies = upcomingMovies.results.filter(
-    (movie) => !nowPlayingIds.has(movie.id),
-  );
-
-  return filteredUpcomingMovies;
-}
-
-/**
- * Retrieves a list of top-rated movies from the Movie Database API for the SE region.
- *
- * Filters out adult content and videos, sorts results by highest vote average, and returns the resulting movie array.
- *
- * @returns An array of top-rated movie objects.
- *
- * @throws {Error} If the API request fails or returns a non-successful response.
- */
-export async function fetchTopRatedMovies(region: string = DEFAULT_REGION) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.topRatedMovies);
-  cacheLife('days');
-
-  const movies = await tmdbFetch<MovieResponse>('/movie/top_rated', {
-    searchParams: { region },
-    errorMessage: 'Failed loading top rated movies',
-  });
-  return movies.results;
 }
 
 /**

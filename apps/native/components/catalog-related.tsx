@@ -1,8 +1,8 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
 import type { CatalogRelatedInput } from '@movies/api/catalog-support';
+import { useCatalogRelated } from '@movies/api/react/use-catalog-query';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { MediaPosterRow } from '@native/components/media-poster';
-import { useCatalogRelated } from '@native/hooks/use-catalog-query';
 import { Text, View } from 'react-native';
 
 function relatedHeading(type: CatalogDetailInput['type'], kind: CatalogRelatedInput['kind']) {

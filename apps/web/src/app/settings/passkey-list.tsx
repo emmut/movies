@@ -17,6 +17,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { useDeletePasskeyMutation } from '@/hooks/use-passkey-mutations';
+
 type PasskeyListProps = {
   passkeys: PasskeyMetadata[];
 };
@@ -25,22 +27,13 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
   const router = useRouter();
+  const remove = useDeletePasskeyMutation();
 
   async function handleDeletePasskey(passkeyId: string) {
     setDeletingIds((prev) => new Set([...prev, passkeyId]));
 
     try {
-      const response = await fetch('/api/auth/passkey/delete-passkey', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: passkeyId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete passkey');
-      }
+      await remove.mutateAsync(passkeyId);
 
       toast.success('Passkey deleted successfully!');
       setDeleteDialogOpen(null);

@@ -16,11 +16,11 @@ vi.mock('./tmdb', () => ({
 
 import { searchIndex } from '@movies/db/schema/search-index';
 import { CANDIDATE_LIMIT, FUZZY_QUERY_TIMEOUT_MS } from '@movies/db/search-index';
+import { createSearchService } from '@movies/services/search-service';
 
 import { db } from '@/lib/db';
 import { getMovieDetails } from '@/lib/movies';
 
-import { getSearchMovies, getSearchMulti, getSearchSuggestions } from './search';
 import { searchIndexFuzzy } from './search-index';
 import { tmdbFetch } from './tmdb';
 
@@ -122,17 +122,33 @@ describe.skipIf(!process.env.SEARCH_TEST_DATABASE_URL)('PostgreSQL fuzzy search'
     await client.end();
   });
 
-  it('returns Interstellar for intersteller through the search page and palette', async () => {
-    for (const search of [getSearchMulti, getSearchSuggestions]) {
-      const result = await search('intersteller');
-      expect(result.results[0]).toMatchObject({
-        id: 157336,
-        title: 'Interstellar',
-        media_type: 'movie',
-      });
-    }
-    const result = await getSearchMovies('intersteller');
-    expect(result.movies[0]).toMatchObject({ id: 157336, title: 'Interstellar' });
+  it('returns Interstellar for intersteller through the API search page and palette', async () => {
+    const fetcher = vi.fn(async (path: string) => {
+      if (path.startsWith('/movie/')) {
+        const id = Number(path.split('/').at(-1));
+        return {
+          id,
+          title: id === 157336 ? 'Interstellar' : 'Interstate',
+          release_date: '2014-01-01',
+          vote_average: 8,
+          popularity: 120,
+          genres: [],
+        };
+      }
+      return { results: [], total_pages: 0, total_results: 0 };
+    });
+    const service = createSearchService(fetcher as typeof tmdbFetch, searchIndexFuzzy);
+    expect(
+      (await service.list({ query: 'intersteller', type: 'all', page: 1 })).items[0],
+    ).toMatchObject({ id: 157336, title: 'Interstellar', type: 'movie' });
+    expect((await service.suggestions({ query: 'intersteller' })).items[0]).toMatchObject({
+      id: 157336,
+      title: 'Interstellar',
+      type: 'movie',
+    });
+    expect(
+      (await service.list({ query: 'intersteller', type: 'movie', page: 1 })).items[0],
+    ).toMatchObject({ id: 157336, title: 'Interstellar' });
   });
 
   it('matches prefixes and keeps the media type restriction', async () => {

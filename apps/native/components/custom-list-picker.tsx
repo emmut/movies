@@ -1,15 +1,16 @@
 import type { customListResourceInput } from '@movies/api/custom-lists';
+import {
+  useCustomListsAddMutation,
+  useCustomListsRemoveMutation,
+  useCustomListsStatus,
+} from '@movies/api/react/use-custom-lists-query';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { CustomListForm } from '@native/components/custom-list-form';
 import { CheckIcon } from '@native/components/icons';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { Sheet } from '@native/components/sheet';
-import { useCustomListsStatus } from '@native/hooks/use-custom-lists-query';
-import { orpc } from '@native/lib/api';
 import { authClient } from '@native/lib/auth-client';
-import { refreshCustomLists } from '@native/lib/custom-lists';
 import { useCurrentUrl } from '@native/lib/use-current-url';
-import { useMutation } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -30,12 +31,8 @@ export function CustomListPicker({
 }) {
   const [creating, setCreating] = useState(false);
   const query = useCustomListsStatus(userId, input);
-  const add = useMutation(
-    orpc.customLists.add.mutationOptions({ onSettled: () => refreshCustomLists(userId) }),
-  );
-  const remove = useMutation(
-    orpc.customLists.remove.mutationOptions({ onSettled: () => refreshCustomLists(userId) }),
-  );
+  const add = useCustomListsAddMutation({ accountId: userId });
+  const remove = useCustomListsRemoveMutation({ accountId: userId });
   const pending = add.isPending || remove.isPending;
   function dismiss() {
     if (!pending) {

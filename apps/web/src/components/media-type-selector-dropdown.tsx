@@ -1,5 +1,6 @@
 'use client';
 
+import { useDiscoveryOptions } from '@movies/api/react/use-discovery-query';
 import {
   Select,
   SelectContent,
@@ -12,7 +13,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useOptimistic, useTransition } from 'react';
 
 import { useIsClient } from '@/hooks/use-is-client';
-import { validateGenreForMediaType } from '@/lib/media-actions';
 
 type MediaType = 'movie' | 'tv' | 'person' | 'all';
 
@@ -33,6 +33,8 @@ export default function MediaTypeSelectorDropdown({
   currentMediaType,
 }: MediaTypeSelectorDropdownProps) {
   const isClient = useIsClient();
+  const movieOptions = useDiscoveryOptions({ type: 'movie' }, false);
+  const tvOptions = useDiscoveryOptions({ type: 'tv' }, false);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -55,10 +57,10 @@ export default function MediaTypeSelectorDropdown({
     params.delete('page');
 
     if (currentGenreId && mediaType !== 'person' && mediaType !== 'all') {
-      const genreExists = await validateGenreForMediaType(
-        currentGenreId,
-        mediaType as 'movie' | 'tv',
-      );
+      const query = mediaType === 'movie' ? movieOptions : tvOptions;
+      const { data } = await query.refetch();
+      // Preserve the selected genre if upstream validation is temporarily unavailable.
+      const genreExists = data?.genres.some((genre) => String(genre.id) === currentGenreId) ?? true;
 
       if (!genreExists) {
         params.delete('genreId');

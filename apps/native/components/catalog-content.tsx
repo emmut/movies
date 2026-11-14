@@ -1,4 +1,5 @@
 import type { CatalogDetail } from '@movies/api/catalog';
+import { useCatalogImdb } from '@movies/api/react/use-catalog-query';
 import { CatalogArtwork } from '@native/components/catalog-artwork';
 import { CatalogCredits } from '@native/components/catalog-credits';
 import { CatalogFacts, CatalogHeading, CatalogStats } from '@native/components/catalog-metadata';
@@ -17,7 +18,6 @@ import {
   useScrollNavigation,
 } from '@native/components/scroll-navigation';
 import { SystemListActions } from '@native/components/system-list-actions';
-import { useCatalogImdb } from '@native/hooks/use-catalog-query';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { Link } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';

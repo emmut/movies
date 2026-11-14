@@ -1,17 +1,14 @@
 'use client';
 
-import type { HomeMediaCategory } from '@movies/api/home';
-import { Movie } from '@movies/api/tmdb-types/movie';
-import { TvShow } from '@movies/api/tmdb-types/tv-show';
+import type { MediaCard, HomeMediaCategory } from '@movies/api/home';
+import { useApiAccountId } from '@movies/api/react';
+import { useHomeList } from '@movies/api/react/use-home-query';
+import { useAccountRegion } from '@movies/api/react/use-preferences-query';
 import { DEFAULT_REGION } from '@movies/config/regions';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import ItemCard from '@/components/item-card';
-import { useUserRegion } from '@/hooks/use-user-region';
-import { getHomeMediaList } from '@/lib/home-media';
-import { queryKeys } from '@/lib/query-keys';
 
-type MediaItem = Movie | TvShow;
+type MediaItem = MediaCard;
 
 type PersonalizedMediaListProps = {
   category: HomeMediaCategory;
@@ -32,16 +29,11 @@ export default function PersonalizedMediaList({
   type,
   initialItems,
 }: PersonalizedMediaListProps) {
-  const { data: region } = useUserRegion();
+  const { data: accountRegion } = useAccountRegion(useApiAccountId());
+  const region = accountRegion?.region;
   const effectiveRegion = region ?? DEFAULT_REGION;
 
-  const { data } = useQuery({
-    queryKey: queryKeys.home.list(category, effectiveRegion),
-    queryFn: () => getHomeMediaList(category, effectiveRegion),
-    initialData: effectiveRegion === DEFAULT_REGION ? initialItems : undefined,
-    placeholderData: keepPreviousData,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const { data } = useHomeList({ category, region: effectiveRegion });
 
   const items = data ?? initialItems;
 
