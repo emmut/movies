@@ -13,7 +13,8 @@ import { createListItemOrderingStore, ListItemNotFoundError } from '@movies/db/l
 import { ensureTitleAvailability } from '@movies/db/title-availability';
 import { syncTitle } from '@movies/db/title-sync';
 import { type Database, requireDatabase } from '@movies/services/database';
-import { tmdbCardSchema, toMediaCard, tmdbImageUrl } from '@movies/services/media-card';
+import { hydrateListCard } from '@movies/services/list-card';
+import { tmdbImageUrl } from '@movies/services/media-card';
 import { createTitleSource } from '@movies/services/title-source';
 import { personDetailsSchema } from '@movies/services/tmdb-search-model';
 import { ORPCError } from '@orpc/server';
@@ -87,13 +88,7 @@ export function createCustomListService(
     if (row.resourceType !== 'movie' && row.resourceType !== 'tv') {
       throw new Error('Unsupported list resource');
     }
-    const raw = tmdbCardSchema.parse(
-      await fetchTmdb('/' + row.resourceType + '/' + row.resourceId),
-    );
-    if (raw.id !== row.resourceId) {
-      throw new Error('Unexpected title identifier');
-    }
-    return { ...toMediaCard(raw, row.resourceType), listItemId: row.id };
+    return hydrateListCard(fetchTmdb, row, row.resourceType);
   }
 
   return {

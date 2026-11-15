@@ -59,6 +59,15 @@ export function createListItemOrderingStore(db: NodePgDatabase) {
     const { listId, listType } = await findOwnedItemList(userId, input);
 
     await withOrderingLock(listItemOrderingScope(listId), async (tx) => {
+      // Recheck under a parent row lock: linking may have changed ownership since lookup.
+      const owned = await tx
+        .select({ id: lists.id })
+        .from(lists)
+        .where(and(eq(lists.id, listId), eq(lists.userId, userId), eq(lists.type, listType)))
+        .for('update');
+      if (owned.length === 0) {
+        throw new ListItemNotFoundError();
+      }
       const rows = await tx
         .select({ id: listItems.id })
         .from(listItems)

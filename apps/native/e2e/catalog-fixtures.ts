@@ -1,4 +1,5 @@
 import type { CatalogDetail } from '@movies/api/catalog';
+import type { ProviderGroups } from '@movies/api/catalog-support';
 import type { Page, Request, Route } from '@playwright/test';
 
 export const corsHeaders = {
@@ -110,10 +111,11 @@ export async function mockEmptySupport({ page }: { page: Page }) {
         response = {
           link: 'https://www.themoviedb.org/movie/42/watch',
           free: [],
+          ads: [],
           streaming: [],
           rent: [],
           buy: [],
-        };
+        } satisfies ProviderGroups;
       }
       await route.fulfill({ json: { json: response }, headers: corsHeaders });
     },

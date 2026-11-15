@@ -29,6 +29,69 @@ const movieRating = {
 };
 
 describe('catalog service', () => {
+  it.each([null, undefined])('preserves projection defaults for runtime %s', async (runtime) => {
+    const fetcher = vi.fn().mockImplementation(async (path: string) => {
+      if (path.endsWith('/release_dates')) {
+        return movieRating;
+      }
+      return { ...movie, runtime };
+    });
+    const service = createCatalogService(fetcher);
+    const compact = await service.details({ id: 42, type: 'movie', region: 'SE' });
+    const full = await service.movieDetails({ id: 42 });
+    expect(compact).toMatchObject({ runtime: null });
+    expect(full.runtime).toBe(0);
+  });
+
+  it.each([
+    { runtime: -1 },
+    { runtime: 1.5 },
+    { budget: -1 },
+    { revenue: -1 },
+    { popularity: -1 },
+    { vote_count: -1 },
+    { id: 43 },
+  ])('rejects the same invalid movie fields in both projections: %j', async (fields) => {
+    const fetcher = vi.fn().mockImplementation(async (path: string) => {
+      if (path.endsWith('/release_dates')) {
+        return movieRating;
+      }
+      return { ...movie, ...fields };
+    });
+    const service = createCatalogService(fetcher);
+    await expect(service.details({ id: 42, type: 'movie', region: 'SE' })).rejects.toThrow();
+    await expect(service.movieDetails({ id: 42 })).rejects.toThrow();
+  });
+
+  it('translates missing resources consistently in compact and full metadata', async () => {
+    const fetcher = vi.fn().mockImplementation(async (path: string) => {
+      if (path.endsWith('/release_dates')) {
+        return movieRating;
+      }
+      throw new TmdbRequestError('Missing', 404);
+    });
+    const service = createCatalogService(fetcher);
+    await expect(service.details({ id: 42, type: 'movie', region: 'SE' })).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
+    await expect(service.movieDetails({ id: 42 })).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
+
+  it.each([-1, 1.5])(
+    'rejects invalid episode runtime %s in both TV projections',
+    async (runtime) => {
+      const fetcher = vi.fn().mockImplementation(async (path: string) => {
+        if (path.endsWith('/content_ratings')) {
+          return { results: [] };
+        }
+        return { id: 42, name: 'A series', episode_run_time: [runtime] };
+      });
+      const service = createCatalogService(fetcher);
+      await expect(service.details({ id: 42, type: 'tv', region: 'SE' })).rejects.toThrow();
+      await expect(service.tvDetails({ id: 42 })).rejects.toThrow();
+    },
+  );
+
   it('normalizes movie metadata and selects the canonical fallback certification', async () => {
     const fetchTmdb = vi.fn().mockResolvedValueOnce(movie).mockResolvedValueOnce(movieRating);
     const result = await createCatalogService(fetchTmdb).details({

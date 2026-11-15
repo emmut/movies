@@ -1,4 +1,3 @@
-import { accountQueryKey } from '@movies/api/account-query-key';
 import { canReorderList } from '@movies/api/list-order';
 import { useAccountRegion } from '@movies/api/react/use-preferences-query';
 import {
@@ -19,8 +18,8 @@ import { MediaPoster } from '@native/components/media-poster';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { SystemListFilters } from '@native/components/system-list-filters';
-import { orpc, queryClient } from '@native/lib/api';
 import { readSystemListState } from '@native/lib/system-list-state';
+import { useCanonicalListPage } from '@native/lib/use-canonical-list-page';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
@@ -248,13 +247,7 @@ function ListGrid({
     captureBeforeNavigation,
     cancelBeforeNavigation,
   } = useRememberedScroll<FlatList<Entry>>('system-list:' + userId + JSON.stringify(input));
-  const move = useSystemListsMoveMutation({
-    async onSuccess() {
-      await queryClient.invalidateQueries({
-        queryKey: accountQueryKey(orpc.systemLists.key(), userId),
-      });
-    },
-  });
+  const move = useSystemListsMoveMutation();
   const reorderDisabled = !canReorderList(input, result, stale);
   const offset = (result.currentPage - 1) * result.itemsPerPage;
   return (
@@ -331,6 +324,7 @@ function ListQuery({
   change: (params: Record<string, string>) => void;
 }) {
   const query = useSystemListsPage(userId, input);
+  useCanonicalListPage(query, input.page);
   function retry() {
     void query.refetch();
   }

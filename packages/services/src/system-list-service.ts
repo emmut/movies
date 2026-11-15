@@ -11,7 +11,7 @@ import { ensureTitleAvailability } from '@movies/db/title-availability';
 import { syncTitle } from '@movies/db/title-sync';
 import { createUserPreferenceStore } from '@movies/db/user-preferences';
 import { requireDatabase, type Database } from '@movies/services/database';
-import { tmdbCardSchema, toMediaCard } from '@movies/services/media-card';
+import { hydrateListCard } from '@movies/services/list-card';
 import { createTitleSource } from '@movies/services/title-source';
 import { readWatchProviders, toProviderChoices } from '@movies/services/watch-provider-options';
 import { ORPCError } from '@orpc/server';
@@ -38,18 +38,6 @@ export function createSystemListService(
   const source = createTitleSource(fetchTmdb);
   const preferences = createUserPreferenceStore(database);
 
-  /** TMDB card for a list row; rejects when TMDB answers for a different title. */
-  async function hydrateCard(
-    row: { id: string; resourceId: number },
-    resourceType: 'movie' | 'tv',
-  ) {
-    const raw = tmdbCardSchema.parse(await fetchTmdb('/' + resourceType + '/' + row.resourceId));
-    if (raw.id !== row.resourceId) {
-      throw new Error('Unexpected title identifier');
-    }
-    return { ...toMediaCard(raw, resourceType), listItemId: row.id };
-  }
-
   return {
     async options(userId, input) {
       const [records, saved] = await Promise.all([
@@ -68,7 +56,7 @@ export function createSystemListService(
         store.countItems(userId, input.listType, 'tv'),
       ]);
       const items = await fulfilledValues(rows.items, (row) =>
-        hydrateCard(row, input.resourceType),
+        hydrateListCard(fetchTmdb, row, input.resourceType),
       );
       return {
         ...rows,

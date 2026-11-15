@@ -20,6 +20,7 @@ import {
   listOrderingScope,
   nextPosition,
   rewriteListPositions,
+  type OrderingTx,
 } from './ordering-lock';
 import { listItems, lists } from './schema/lists';
 import { streamableOnProviders } from './title-availability';
@@ -72,17 +73,17 @@ export function createCustomListStore(
   ensureAvailabilityKnown: (scope: SQL | undefined) => Promise<unknown>,
 ) {
   const withOrderingLock = createOrderingLock(db);
-  async function assertCustomListOwnership(listId: string, userId: string) {
-    const [{ count: ownedCount }] = await db
-      .select({ count: count() })
+  async function lockOwnedCustomList(tx: OrderingTx, userId: string, listId: string) {
+    // The parent row lock also blocks ownership transfer until the item write commits.
+    const rows = await tx
+      .select({ id: lists.id })
       .from(lists)
-      .where(and(eq(lists.id, listId), ownedCustomListsFilter(userId)));
-
-    if (ownedCount === 0) {
+      .where(and(eq(lists.id, listId), ownedCustomListsFilter(userId)))
+      .for('update');
+    if (rows.length === 0) {
       throw new CustomListNotFoundError();
     }
   }
-
   async function fetchOwnedCustomListRow(listId: string, userId: string) {
     const listResult = await db
       .select()
@@ -239,12 +240,11 @@ export function createCustomListStore(
       resourceType: mediaType,
     });
 
-    await assertCustomListOwnership(validatedData.listId, userId);
-
     try {
       // Locked so concurrent adds can't read the same max(position) and append
       // to the same slot.
       await withOrderingLock(listItemOrderingScope(validatedData.listId), async (tx) => {
+        await lockOwnedCustomList(tx, userId, validatedData.listId);
         const position = await nextPosition(
           tx,
           listItems,
@@ -278,17 +278,18 @@ export function createCustomListStore(
       resourceType: mediaType,
     });
 
-    await assertCustomListOwnership(validatedData.listId, userId);
-
-    await db
-      .delete(listItems)
-      .where(
-        and(
-          eq(listItems.listId, validatedData.listId),
-          eq(listItems.resourceId, validatedData.resourceId),
-          eq(listItems.resourceType, validatedData.resourceType),
-        ),
-      );
+    await withOrderingLock(listItemOrderingScope(validatedData.listId), async (tx) => {
+      await lockOwnedCustomList(tx, userId, validatedData.listId);
+      await tx
+        .delete(listItems)
+        .where(
+          and(
+            eq(listItems.listId, validatedData.listId),
+            eq(listItems.resourceId, validatedData.resourceId),
+            eq(listItems.resourceType, validatedData.resourceType),
+          ),
+        );
+    });
   }
 
   async function deleteList(userId: string, listId: string) {
@@ -296,9 +297,13 @@ export function createCustomListStore(
       throw new Error('Invalid list ID');
     }
 
-    await assertCustomListOwnership(listId, userId);
-
-    await db.delete(lists).where(eq(lists.id, listId));
+    const deleted = await db
+      .delete(lists)
+      .where(and(eq(lists.id, listId), ownedCustomListsFilter(userId)))
+      .returning({ id: lists.id });
+    if (deleted.length === 0) {
+      throw new CustomListNotFoundError();
+    }
   }
 
   async function updateList(
@@ -315,9 +320,7 @@ export function createCustomListStore(
       emoji,
     });
 
-    await assertCustomListOwnership(validatedData.listId, userId);
-
-    await db
+    const updated = await db
       .update(lists)
       .set({
         name: validatedData.name,
@@ -325,7 +328,11 @@ export function createCustomListStore(
         emoji: validatedData.emoji,
         updatedAt: new Date(),
       })
-      .where(eq(lists.id, validatedData.listId));
+      .where(and(eq(lists.id, validatedData.listId), ownedCustomListsFilter(userId)))
+      .returning({ id: lists.id });
+    if (updated.length === 0) {
+      throw new CustomListNotFoundError();
+    }
   }
 
   async function moveList(userId: string, listId: string, position: number) {

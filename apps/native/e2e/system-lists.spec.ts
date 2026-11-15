@@ -203,7 +203,26 @@ test('manual moves use media-scoped global offsets across pages', async ({ page 
     ]);
   await expect(page.getByRole('link', { name: 'Open Movie 20, Movie', exact: true })).toBeVisible();
   expect(data.watchlist.filter((item) => item.type === 'tv')).toHaveLength(1);
+  // A move has one account-owned refresh, without a second screen-level invalidation.
+  expect(data.reads).toHaveLength(2);
 });
+
+for (const listType of ['watchlist', 'watched'] as const) {
+  test(`${listType} reconciles a clamped deep link before enabling reordering`, async ({
+    page,
+  }) => {
+    const data = await model(page);
+    data[listType] = [entry(1), entry(2)];
+    await page.goto('/more/' + listType + '?page=3');
+    await expect(page).toHaveURL(new RegExp('/more/' + listType + '\\?page=1$'));
+    await expect(page.getByText('Page 1 of 1')).toBeVisible();
+    await page.getByRole('button', { name: 'Reorder', exact: true }).click();
+    await page.getByRole('button', { name: 'Move Movie 2 up', exact: true }).click();
+    await expect
+      .poll(() => data.moves)
+      .toEqual([{ listType, resourceType: 'movie', itemId: entry(2).listItemId, position: 0 }]);
+  });
+}
 
 test('paging is disabled while a new media input shows the previous result', async ({ page }) => {
   const data = await model(page);
@@ -246,6 +265,8 @@ test('paging is disabled while a new media input shows the previous result', asy
     await expect.poll(() => data.reads.at(-1)?.resourceType).toBe('tv');
     await expect(page.getByRole('button', { name: 'Next page', exact: true })).toBeDisabled();
     await expect(page.getByRole('button', { name: 'Previous page', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Reorder', exact: true })).toBeDisabled();
+    expect(new URL(page.url()).searchParams.get('page')).toBe('1');
     finish();
     await expect(page.getByText('Page 1 of 3')).toBeVisible();
     await page.getByRole('button', { name: 'Next page', exact: true }).click();

@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vite-plus/test';
 
+import { transferCustomListOwnership } from './custom-list-transfer';
 import {
   createCustomListStore,
   CustomListNotFoundError,
@@ -15,7 +16,7 @@ describe.skipIf(!process.env.CUSTOM_LIST_TEST_DATABASE_URL)(
   'PostgreSQL custom lists shared by web and Hono',
   () => {
     const schema = 'custom_list_test_' + randomUUID().replaceAll('-', '');
-    const clients = [0, 1].map(
+    const clients = [0, 1, 2].map(
       () => new Client({ connectionString: process.env.CUSTOM_LIST_TEST_DATABASE_URL }),
     );
     const catchup = vi.fn().mockResolvedValue(0);
@@ -146,6 +147,92 @@ describe.skipIf(!process.env.CUSTOM_LIST_TEST_DATABASE_URL)(
         stores[0].pageRows('one', listId, 1, { region: 'NO', providerIds: [8] }),
       ).rejects.toThrow('availability unavailable');
     });
+    async function waitForWriterLock(pid: number) {
+      await expect
+        .poll(async () => {
+          const result = await clients[2].query(
+            'SELECT wait_event_type FROM pg_stat_activity WHERE pid=$1',
+            [pid],
+          );
+          return result.rows[0]?.wait_event_type;
+        })
+        .toBe('Lock');
+    }
+
+    it.each(['delete', 'update'] as const)(
+      'rejects a guest %s waiting behind an ownership transfer',
+      async (operation) => {
+        const { listId: target } = await stores[0].create('one', 'Keep after linking');
+        await stores[0].add('one', target, 42, 'movie');
+        const pid = (await clients[1].query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+        await clients[0].query('BEGIN');
+        let pending: Promise<unknown> | undefined;
+        try {
+          await clients[0].query("UPDATE lists SET user_id='two' WHERE id=$1", [target]);
+          pending =
+            operation === 'delete'
+              ? stores[1].delete('one', target)
+              : stores[1].update('one', target, 'Stale guest edit');
+          const rejected = expect(pending).rejects.toBeInstanceOf(CustomListNotFoundError);
+          await waitForWriterLock(pid);
+          await clients[0].query('COMMIT');
+          await rejected;
+          expect(await stores[0].pageRows('two', target)).toMatchObject({
+            name: 'Keep after linking',
+            itemCount: 1,
+          });
+        } finally {
+          await clients[0].query('ROLLBACK');
+          await Promise.allSettled([pending]);
+          await clients[0].query('DELETE FROM list_items WHERE list_id=$1', [target]);
+          await clients[0].query('DELETE FROM lists WHERE id=$1', [target]);
+        }
+      },
+    );
+
+    it.each(['add', 'remove', 'move'] as const)(
+      'rechecks guest ownership after a queued item %s and transfer',
+      async (operation) => {
+        const { listId: target } = await stores[0].create('one', 'Keep item order');
+        await stores[0].add('one', target, 41, 'movie');
+        await stores[0].add('one', target, 42, 'movie');
+        const before = (await stores[0].pageRows('one', target)).items;
+        const pid = (await clients[1].query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+        await clients[0].query('BEGIN');
+        let pending: Promise<unknown> | undefined;
+        try {
+          await clients[0].query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
+            'list-items:' + target,
+          ]);
+          if (operation === 'add') {
+            pending = stores[1].add('one', target, 43, 'movie');
+          } else if (operation === 'remove') {
+            pending = stores[1].remove('one', target, 41, 'movie');
+          } else {
+            pending = orders[1].move('one', {
+              itemId: before[1].id,
+              position: 0,
+              listType: 'custom',
+            });
+          }
+          const error = operation === 'move' ? ListItemNotFoundError : CustomListNotFoundError;
+          const rejected = expect(pending).rejects.toBeInstanceOf(error);
+          await waitForWriterLock(pid);
+          await transferCustomListOwnership(drizzle(clients[2]), 'one', 'two');
+          await clients[0].query('COMMIT');
+          await rejected;
+          expect((await stores[0].pageRows('two', target)).items).toEqual(before);
+        } finally {
+          await clients[0].query('ROLLBACK');
+          await Promise.allSettled([pending]);
+          // Transfer includes the other tests' source lists; return them for subsequent cases.
+          await clients[0].query("UPDATE lists SET user_id='one' WHERE user_id='two'");
+          await clients[0].query('DELETE FROM list_items WHERE list_id=$1', [target]);
+          await clients[0].query('DELETE FROM lists WHERE id=$1', [target]);
+        }
+      },
+    );
+
     it('serializes concurrent list creates/moves and exposes changes across consumers', async () => {
       const created = await Promise.all([
         stores[0].create('one', 'A'),

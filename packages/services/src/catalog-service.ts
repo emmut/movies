@@ -6,6 +6,12 @@ import {
   type TvContentRatingsResponse,
 } from '@movies/api/certifications';
 import 'server-only';
+import {
+  movieMetadataSchema,
+  tvMetadataSchema,
+  titleMetadataSchema,
+  titleRuntimeSchema,
+} from '@movies/api/metadata';
 import type { CatalogService } from '@movies/api/router';
 import { TmdbRequestError, type TmdbFetch } from '@movies/api/tmdb-fetch';
 import { createCatalogCreditsService } from '@movies/services/catalog-credits-service';
@@ -30,45 +36,32 @@ const text = z
   .string()
   .nullish()
   .transform((value) => value ?? '');
-const detailsSchema = z.object({
-  id: z.number().int().positive(),
-  title: text,
-  name: text,
-  poster_path: text,
-  backdrop_path: text,
-  release_date: text,
-  first_air_date: text,
-  overview: text,
-  tagline: text,
-  genres: z.array(z.object({ id: z.number().int().positive(), name: z.string() })).default([]),
-  vote_average: z.number().default(0),
-  vote_count: z.number().int().nonnegative().default(0),
-  popularity: z.number().nonnegative().default(0),
-  original_title: text,
-  original_name: text,
-  status: text,
-  spoken_languages: z.array(z.object({ english_name: z.string() })).default([]),
-  origin_country: z.array(z.string()).default([]),
-  homepage: text,
-  runtime: z.number().int().nonnegative().nullish(),
-  budget: z.number().nonnegative().default(0),
-  revenue: z.number().nonnegative().default(0),
-  number_of_seasons: z.number().int().nonnegative().default(0),
-  number_of_episodes: z.number().int().nonnegative().default(0),
-  episode_run_time: z.array(z.number().int().nonnegative()).default([]),
-  last_air_date: text,
-  networks: z.array(z.object({ name: z.string() })).default([]),
-  created_by: z
-    .array(
-      z.object({
-        id: z.number().int().positive(),
-        credit_id: text,
-        name: z.string(),
-        profile_path: text,
-      }),
-    )
-    .default([]),
-});
+const detailsSchema = titleMetadataSchema
+  .omit({
+    production_companies: true,
+    original_language: true,
+  })
+  .extend({
+    ...movieMetadataSchema.pick({
+      original_title: true,
+      release_date: true,
+      budget: true,
+      revenue: true,
+    }).shape,
+    ...tvMetadataSchema.pick({
+      original_name: true,
+      first_air_date: true,
+      last_air_date: true,
+      number_of_seasons: true,
+      number_of_episodes: true,
+      episode_run_time: true,
+      created_by: true,
+    }).shape,
+    title: text,
+    name: text,
+    runtime: titleRuntimeSchema,
+    networks: z.array(z.object({ name: z.string() })).default([]),
+  });
 
 async function readCertification(fetchTmdb: TmdbFetch, { id, type, region }: CatalogDetailInput) {
   if (type === 'movie') {

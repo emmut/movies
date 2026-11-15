@@ -16,7 +16,7 @@ const id = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 const numeric = z.number().default(0);
 export const genreRecordsSchema = z.array(z.object({ id, name: z.string() }));
 const language = z.object({ english_name: text, iso_639_1: text, name: text });
-const titleMetadata = z.object({
+export const titleMetadataSchema = z.object({
   id,
   production_companies: z.array(productionCompanySchema).default([]),
   backdrop_path: text,
@@ -26,36 +26,35 @@ const titleMetadata = z.object({
   origin_country: z.array(z.string()).default([]),
   original_language: text,
   overview: text,
-  popularity: numeric,
+  popularity: z.number().nonnegative().default(0),
   spoken_languages: z.array(language).default([]),
   status: text,
   tagline: text,
   vote_average: numeric,
   vote_count: z.number().int().nonnegative().default(0),
 });
-export const movieMetadataSchema = titleMetadata.extend({
+export const titleRuntimeSchema = z.number().int().nonnegative().nullish();
+
+export const movieMetadataSchema = titleMetadataSchema.extend({
   adult: z.boolean().default(false),
   belongs_to_collection: z.object({ id, name: z.string() }).nullable().default(null),
-  budget: numeric,
+  budget: z.number().nonnegative().default(0),
   imdb_id: text,
   original_title: text,
   release_date: text,
-  revenue: numeric,
-  runtime: z
-    .number()
-    .nullish()
-    .transform((value) => value ?? 0),
+  revenue: z.number().nonnegative().default(0),
+  runtime: titleRuntimeSchema.transform((value) => value ?? 0),
   title: z.string().min(1),
   video: z.boolean().default(false),
 });
-export const tvMetadataSchema = titleMetadata.extend({
+export const tvMetadataSchema = titleMetadataSchema.extend({
   name: z.string().min(1),
   original_name: text,
   first_air_date: text,
   last_air_date: text,
   number_of_episodes: z.number().int().nonnegative().default(0),
   number_of_seasons: z.number().int().nonnegative().default(0),
-  episode_run_time: z.array(z.number()).default([]),
+  episode_run_time: z.array(z.number().int().nonnegative()).default([]),
   networks: z
     .array(productionCompanySchema.extend({ logo_path: text, origin_country: text }))
     .default([]),
