@@ -160,7 +160,7 @@ for (const listType of ['watchlist', 'watched'] as const) {
         await expect(native.getByText(/2 movies .*Total: 3 items/)).toBeVisible();
         await returnToWeb(page);
         await expect.poll(() => webOrder(page)).toEqual(['Interstellar', 'Inception']);
-        await expect(page.getByText(/2 movies .*Total: 3 items/)).toBeVisible();
+        await expect(page.getByText(/2 movies .*Total: 3 items/).filter({ visible: true })).toBeVisible();
         await native.getByRole('button', { name: 'TV Shows', exact: true }).click();
         await expect(
           native.getByRole('link', { name: 'Open Game of Thrones, TV Show', exact: true }),
@@ -204,7 +204,7 @@ for (const listType of ['watchlist', 'watched'] as const) {
         ).not.toBeAttached();
         await returnToWeb(page);
         await expect.poll(() => webOrder(page)).not.toContain('Interstellar');
-        await expect(page.getByText(/1 movie .*Total: 2 items/)).toBeVisible();
+        await expect(page.getByText(/1 movie .*Total: 2 items/).filter({ visible: true })).toBeVisible();
         await page.goto('/' + listType);
         await expect.poll(() => webOrder(page)).toEqual(['Inception']);
         await native.goto(nativeBase + '/more/' + listType);
