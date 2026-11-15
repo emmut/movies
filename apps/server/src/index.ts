@@ -33,14 +33,6 @@ function resolveCorsOrigin() {
 }
 
 const webUrl = ENV.WEB_URL ?? ENV.AUTH_URL;
-if (
-  (ENV.AUTH_URL || webUrl || ENV.NODE_ENV === 'production') &&
-  (!ENV.AUTH_URL || !webUrl || !ENV.AUTH_PROXY_SECRET)
-) {
-  throw new Error(
-    'Account API requires AUTH_URL and AUTH_PROXY_SECRET for verification and invalidation',
-  );
-}
 const app = createApp(
   createServices(fetchTmdb, database, {
     readWikidataClaims: cachePublicRead(readWikidataClaims, 86_400_000),
