@@ -1,5 +1,6 @@
 import { hasErrorCode } from '@movies/api/errors';
 import {
+  PASSKEY_ERROR,
   passkeyNameSchema,
   passkeyRegistrationOptionsSchema,
   passkeyAuthenticationOptionsSchema,
@@ -32,17 +33,40 @@ function failure(code: string): Result {
   return { data: null, error: { code } };
 }
 
-function cancelled(error: unknown) {
-  if (typeof error !== 'object' || error === null) {
-    return false;
+function errorField(error: unknown, field: 'name' | 'message') {
+  if (typeof error !== 'object' || error === null || !(field in error)) {
+    return '';
   }
-  if ('message' in error && error.message === 'UserCancelled') {
+  return String((error as Record<string, unknown>)[field]);
+}
+
+function cancelled(error: unknown) {
+  if (errorField(error, 'message') === 'UserCancelled') {
     return true;
   }
-  if ('name' in error && CANCELLATION_NAMES.includes(String(error.name))) {
+  if (CANCELLATION_NAMES.includes(errorField(error, 'name'))) {
     return true;
   }
   return hasErrorCode(error, ...CANCELLATION_NAMES);
+}
+
+/**
+ * Android's Credential Manager reports its failures as message strings:
+ * `NoCredentials` when the device holds no passkey for the site, and a DOM
+ * `InvalidStateError` when an excluded credential already lives on it.
+ */
+function deviceErrorCode(error: unknown) {
+  if (cancelled(error)) {
+    return PASSKEY_ERROR.cancelled;
+  }
+  const message = errorField(error, 'message');
+  if (message === 'NoCredentials') {
+    return PASSKEY_ERROR.noCredentials;
+  }
+  if (errorField(error, 'name') === 'InvalidStateError' || message.includes('InvalidStateError')) {
+    return PASSKEY_ERROR.alreadyRegistered;
+  }
+  return 'PASSKEY_FAILED';
 }
 
 /** The same challenge/verification protocol as the official browser client, using OS credentials. */
@@ -68,7 +92,7 @@ export function createPasskeyCeremony(sources: Sources) {
       }
       const result = await credential(ceremony, options.data);
       if (!result) {
-        return failure('PASSKEY_CANCELLED');
+        return failure(PASSKEY_ERROR.cancelled);
       }
       const { clientExtensionResults: _extensions, ...response } =
         passkeyCredentialSchema.parse(result);
@@ -82,7 +106,7 @@ export function createPasskeyCeremony(sources: Sources) {
       });
       return verificationResult(verified);
     } catch (error) {
-      return failure(cancelled(error) ? 'PASSKEY_CANCELLED' : 'PASSKEY_FAILED');
+      return failure(deviceErrorCode(error));
     }
   }
   return {

@@ -99,6 +99,19 @@ describe('native passkey challenge protocol', () => {
       expect(request).toHaveBeenCalledTimes(1);
     },
   );
+  it.each([
+    [{ message: 'NoCredentials' }, 'PASSKEY_NO_CREDENTIALS'],
+    [{ message: 'DomError: InvalidStateError - already registered' }, 'PASSKEY_ALREADY_REGISTERED'],
+    [new DOMException('excluded', 'InvalidStateError'), 'PASSKEY_ALREADY_REGISTERED'],
+    [{ code: 'ERR_USER_CANCELLED' }, 'PASSKEY_CANCELLED'],
+    [{ message: 'UserCancelled' }, 'PASSKEY_CANCELLED'],
+    [new Error('boom'), 'PASSKEY_FAILED'],
+  ])('maps the device error %o to %s without verifying', async (thrown, code) => {
+    const { flow, request, register } = setup();
+    register.mockRejectedValue(thrown);
+    expect((await flow.add('Phone')).error).toEqual({ code });
+    expect(request).toHaveBeenCalledTimes(1);
+  });
   it('rejects a malformed native credential without sending it to verification', async () => {
     const { flow, request, register } = setup();
     register.mockResolvedValue({ id: 'incomplete' });

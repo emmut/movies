@@ -3,7 +3,7 @@ import { LOGIN_COPY, LOGIN_FEATURES } from '@movies/config/login';
 import { authClient } from '@native/lib/auth-client';
 import { isPasskeySupported } from '@native/lib/passkeys';
 import { runSignIn } from '@native/lib/sign-in';
-import type { SignInMethod } from '@native/lib/sign-in-flow';
+import type { SignInMethod, SignInOutcome } from '@native/lib/sign-in-flow';
 import { Stack, useLocalSearchParams, useRouter, Redirect, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -110,6 +110,13 @@ function loginError(error: string | null, routeError?: string) {
   }
   return routeError === 'failed_to_login' ? 'Couldn’t sign in. Please try again.' : null;
 }
+/** A dismissed passkey prompt, like a success, leaves no message behind. */
+function outcomeError(outcome: SignInOutcome) {
+  if (outcome.status === 'failed') {
+    return outcome.message;
+  }
+  return null;
+}
 function signedInAccount(user?: { isAnonymous?: boolean | null } | null) {
   return Boolean(user && !user.isAnonymous);
 }
@@ -128,13 +135,12 @@ export function LoginScreen() {
     }
     setPending(method);
     setError(null);
-    const failure = await runSignIn(method, destination);
+    const outcome = await runSignIn(method, destination);
     setPending(null);
-    if (failure) {
-      setError(failure);
-      return;
+    setError(outcomeError(outcome));
+    if (outcome.status === 'signed-in') {
+      router.replace(destinationHref);
     }
-    router.replace(destinationHref);
   }
   if (signedInAccount(session.data?.user)) {
     return <Redirect href={destinationHref} />;

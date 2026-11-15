@@ -104,3 +104,33 @@ test('failed sign-in is retryable and rejects an off-origin return destination',
   expect(attempts).toBe(2);
   expect(page.context().pages()).toHaveLength(1);
 });
+
+test('a dismissed passkey prompt leaves login quietly ready to retry', async ({ page }) => {
+  await mockSession(page, () => false);
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator.credentials, 'get', {
+      value: async () => {
+        throw new DOMException('cancelled', 'NotAllowedError');
+      },
+      configurable: true,
+    });
+  });
+  let optionRequests = 0;
+  await page.route('**/api/auth/passkey/generate-authenticate-options*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    optionRequests += 1;
+    await route.fulfill({
+      json: { challenge: 'Y2hhbGxlbmdl', rpId: 'localhost', userVerification: 'required' },
+      headers: corsHeaders,
+    });
+  });
+  await page.goto('/login');
+  const passkey = page.getByRole('button', { name: 'Authenticate with Passkey', exact: true });
+  await passkey.click();
+  await expect.poll(() => optionRequests).toBe(1);
+  await expect(passkey).toBeEnabled();
+  await expect(page.getByRole('alert')).not.toBeAttached();
+  await expect(page).toHaveURL(/\/login$/);
+});

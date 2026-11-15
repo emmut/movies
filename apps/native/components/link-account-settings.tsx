@@ -31,9 +31,9 @@ export function LinkAccountSettings() {
     setPending(provider);
     setError(null);
     try {
-      const failure = await runAccountLink(provider, '/more/settings');
-      if (failure) {
-        setError(failure);
+      const outcome = await runAccountLink(provider, '/more/settings');
+      if (outcome.status === 'failed') {
+        setError(outcome.message);
         return;
       }
       await session.refetch();
