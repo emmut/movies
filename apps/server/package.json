@@ -10,7 +10,7 @@
     "env:generate": "varlock codegen"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.0",
+    "@hono/node-server": "^2.1.6",
     "@movies/api": "workspace:*",
     "@movies/auth": "workspace:*",
     "@movies/config": "workspace:*",
