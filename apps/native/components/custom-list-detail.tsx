@@ -5,6 +5,7 @@ import {
   type CustomListSummary,
 } from '@movies/api/custom-lists';
 import { hasErrorCode } from '@movies/api/errors';
+import { canReorderList } from '@movies/api/list-order';
 import {
   useCustomListsMoveItemMutation,
   useCustomListsRemoveMutation,
@@ -21,7 +22,7 @@ import { MediaPoster } from '@native/components/media-poster';
 import { PersonCredit } from '@native/components/person-credits';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { SystemListFilters } from '@native/components/system-list-filters';
-import { readListPageState, canReorderList } from '@native/lib/list-page-state';
+import { readListPageState } from '@native/lib/list-page-state';
 import { scalar } from '@native/lib/search-params';
 import { useCanonicalListPage } from '@native/lib/use-canonical-list-page';
 import { Link, useLocalSearchParams, useRouter } from 'expo-router';

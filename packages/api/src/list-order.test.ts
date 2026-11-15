@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test';
 
-import { moveIdToIndex, sameIdOrder } from './list-order';
+import { moveIdToIndex, sameIdOrder, canReorderList } from './list-order';
 
 describe('sameIdOrder', () => {
   it('is true for identical sequences', () => {
@@ -49,5 +49,21 @@ describe('moveIdToIndex', () => {
     const input = ['a', 'b', 'c'];
     moveIdToIndex(input, 'a', 2);
     expect(input).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('canReorderList', () => {
+  const input = { page: 2, providerIds: [] };
+  const result = { currentPage: 2, totalItems: 21, unavailableItems: 0 };
+  it('permits complete, settled, unfiltered pages with multiple items', () => {
+    expect(canReorderList(input, result, false)).toBe(true);
+  });
+  it('blocks missing, pending, filtered, incomplete, clamped and trivial results', () => {
+    expect(canReorderList(input, undefined, false)).toBe(false);
+    expect(canReorderList(input, result, true)).toBe(false);
+    expect(canReorderList({ ...input, providerIds: [8] }, result, false)).toBe(false);
+    expect(canReorderList(input, { ...result, unavailableItems: 1 }, false)).toBe(false);
+    expect(canReorderList(input, { ...result, currentPage: 1 }, false)).toBe(false);
+    expect(canReorderList(input, { ...result, totalItems: 1 }, false)).toBe(false);
   });
 });

@@ -12,13 +12,9 @@ import {
   AlertDialogTrigger,
 } from '@movies/ui/components/alert-dialog';
 import { Button } from '@movies/ui/components/button';
-import { useQueryClient } from '@tanstack/react-query';
 import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { toast } from 'sonner';
-
-import { queryKeys } from '@/lib/query-keys';
 
 interface DeleteListButtonProps {
   listId: string;
@@ -37,19 +33,12 @@ export function DeleteListButton({
 }: DeleteListButtonProps) {
   const router = useRouter();
   const remove = useCustomListsDeleteMutation();
-  const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = remove.isPending;
 
   async function handleDelete() {
-    setIsLoading(true);
     try {
       await remove.mutateAsync({ listId });
       toast.success('List deleted successfully');
-
-      // Invalidate all list queries to ensure fresh data
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.lists.all,
-      });
 
       router.refresh();
       if (redirectAfterDelete) {
@@ -57,8 +46,6 @@ export function DeleteListButton({
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to delete list');
-    } finally {
-      setIsLoading(false);
     }
   }
 

@@ -1,7 +1,7 @@
 import type { PdpExtras } from '@movies/api/pdp';
-import type { GalleryMedia as Media } from '@native/components/gallery-images';
 import { PlayIcon } from '@native/components/icons';
 import { MediaViewer } from '@native/components/media-viewer';
+import type { GalleryMedia as Media } from '@native/components/media-viewer-types';
 import { PdpImage } from '@native/components/pdp-image';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';

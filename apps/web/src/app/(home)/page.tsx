@@ -8,14 +8,14 @@ import MediaList from '@/components/media-list';
 
 import { MediaSectionHeader, TrendingHeader } from './sections';
 
-function MediaSection({ heading, caption, type, category }: HomeMediaSection) {
+function MediaSection({ heading, caption, category }: HomeMediaSection) {
   return (
     <section className="flex flex-col gap-4">
       <MediaSectionHeader heading={heading} caption={caption} />
 
       <ItemSlider>
         <Suspense fallback={<ItemGrid.Skeletons />}>
-          <MediaList category={category} type={type} />
+          <MediaList category={category} />
         </Suspense>
       </ItemSlider>
     </section>

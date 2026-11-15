@@ -1,5 +1,5 @@
+import type { SearchPersonCard } from '@movies/api/search';
 import type { MovieWatchProviders } from '@movies/api/tmdb-types/movie';
-import type { SearchedPerson } from '@movies/api/tmdb-types/person';
 import type { ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vite-plus/test';
@@ -32,13 +32,13 @@ vi.mock('@/components/remove-from-list-button', () => ({
   RemoveFromListButton: () => <button>Remove from list</button>,
 }));
 
-const person: SearchedPerson = {
+const person: SearchPersonCard = {
   id: 7,
+  type: 'person',
   name: 'Actor',
-  profile_path: '/person.jpg',
-  popularity: 10,
-  known_for_department: 'Acting',
-  known_for: [{ id: 42, title: 'Movie', media_type: 'movie' }],
+  profileUrl: 'https://image.tmdb.org/t/p/w500/person.jpg',
+  department: 'Acting',
+  knownFor: ['Movie'],
 };
 describe('web catalog rendering after shared type migration', () => {
   it('retains person photo/name/department/known-for and authenticated actions', () => {
@@ -53,7 +53,7 @@ describe('web catalog rendering after shared type migration', () => {
   it('retains missing-photo fallback and list removal without an authenticated add action', () => {
     const html = renderToStaticMarkup(
       <PersonCard
-        person={{ ...person, profile_path: null, known_for: [] }}
+        person={{ ...person, profileUrl: null, knownFor: [] }}
         listId="list"
         showListButton={false}
       />,

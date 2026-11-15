@@ -1,5 +1,4 @@
-import type { Movie } from '@movies/api/tmdb-types/movie';
-import type { TvShow } from '@movies/api/tmdb-types/tv-show';
+import type { MediaCard } from '@movies/api/home';
 import type { ComponentProps, ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vite-plus/test';
@@ -65,25 +64,17 @@ vi.mock('@/components/remove-from-list-button', () => ({
   },
 }));
 
-const resource: Movie = {
+const resource: MediaCard = {
   id: 42,
+  type: 'movie',
   title: 'Test movie',
-  release_date: '2026-10-10',
-  poster_path: '/poster.jpg',
-  vote_average: 8.21,
-  adult: false,
-  backdrop_path: '',
-  original_language: 'en',
-  original_title: 'Test movie',
-  overview: '',
-  media_type: 'movie',
-  genre_ids: [],
-  popularity: 1,
-  video: false,
-  vote_count: 100,
+  releaseDate: '2026-10-10',
+  posterUrl: 'https://image.tmdb.org/t/p/w500/poster.jpg',
+  backdropUrl: null,
+  rating: 8.21,
 };
 function movie(overrides: Partial<ComponentProps<typeof ItemCard>> = {}) {
-  return renderToStaticMarkup(<ItemCard resource={resource} type="movie" {...overrides} />);
+  return renderToStaticMarkup(<ItemCard resource={resource} {...overrides} />);
 }
 
 describe('web poster card presentation', () => {
@@ -98,31 +89,23 @@ describe('web poster card presentation', () => {
     expect(html).toContain('hover:border-yellow-300');
   });
   it('preserves TV navigation/badges and unknown date/artwork fallbacks', () => {
-    const series: TvShow = {
+    const series: MediaCard = {
       id: 7,
-      name: 'Test series',
-      original_name: 'Test series',
-      overview: '',
-      backdrop_path: '',
-      genre_ids: [],
-      popularity: 1,
-      media_type: 'tv',
-      origin_country: [],
-      original_language: 'en',
-      vote_count: 100,
-      first_air_date: '',
-      poster_path: null,
-      vote_average: 0,
+      type: 'tv',
+      title: 'Test series',
+      releaseDate: '',
+      posterUrl: null,
+      backdropUrl: null,
+      rating: 0,
     };
     const html = movie({
       resource: series,
-      type: 'tv',
     });
     expect(html).toContain('href="/tv/7"');
     expect(html).toContain('TV Show');
     expect(html).toContain('No Poster');
     expect(html).toContain('📺');
-    expect(movie({ resource: { ...resource, poster_path: null } })).toContain('🎬');
+    expect(movie({ resource: { ...resource, posterUrl: null } })).toContain('🎬');
     expect(html).toContain('N/A');
     expect(html).toContain('hover:border-red-500');
   });
@@ -134,7 +117,7 @@ describe('web poster card presentation', () => {
     expect(movie({ showListButton: false })).not.toContain('Quick add');
   });
   it('keeps eager and proxy image data, and accepts already resolved image URLs', () => {
-    const resolved = { ...resource, poster_path: 'https://images.example/poster.jpg' };
+    const resolved = { ...resource, posterUrl: 'https://images.example/poster.jpg' };
     expect(
       movie({
         resource: resolved,
@@ -142,10 +125,11 @@ describe('web poster card presentation', () => {
       }),
     ).toContain('data-eager="true"');
     expect(movie({ resource: resolved })).toContain('data-src="https://images.example/poster.jpg"');
-    const proxied = {
-      ...resource,
-      posterImageUrls: { src: 'https://images.example/proxy.jpg', srcSetAvif: '', srcSetWebp: '' },
-    };
-    expect(movie({ resource: proxied })).toContain('data-src="https://images.example/proxy.jpg"');
+    expect(
+      movie({
+        resource,
+        imageUrls: { src: 'https://images.example/proxy.jpg', srcSetAvif: '', srcSetWebp: '' },
+      }),
+    ).toContain('data-src="https://images.example/proxy.jpg"');
   });
 });

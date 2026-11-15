@@ -56,7 +56,7 @@ function Results({
     item.type === 'person' ? (
       <PersonCard key={'person:' + item.id} person={item} userId={userId} />
     ) : (
-      <ItemCard key={item.type + ':' + item.id} resource={item} type={item.type} userId={userId} />
+      <ItemCard key={item.type + ':' + item.id} resource={item} userId={userId} />
     ),
   );
 }

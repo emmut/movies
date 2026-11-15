@@ -4,6 +4,7 @@ import { sessionUserSchema } from '@movies/api/session';
 import { createServices } from '@movies/services/create-services';
 import { createRouterClient } from '@orpc/server';
 
+import { invalidateApiMutation } from '@/lib/api-cache-invalidation';
 import { apiPublicFetch, apiWikidataClaims } from '@/lib/api-public-fetch';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
@@ -24,6 +25,7 @@ export function createApiContext(headers: Headers): AppContext {
   }
   return {
     ...services,
+    onMutation: invalidateApiMutation,
     session: {
       current() {
         session ??= current();

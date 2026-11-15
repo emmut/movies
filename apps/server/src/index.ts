@@ -3,17 +3,8 @@ import 'server-only';
 import 'varlock/auto-load';
 import { getConnInfo } from '@hono/node-server/conninfo';
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
-import { createImdbRatingStore } from '@movies/db/imdb-ratings';
-import { createCatalogService } from '@movies/services/catalog-service';
-import { createCustomListService } from '@movies/services/custom-list-service';
+import { createServices } from '@movies/services/create-services';
 import { createDatabase } from '@movies/services/database';
-import { createDiscoveryService } from '@movies/services/discovery-service';
-import { createFuzzySearch } from '@movies/services/fuzzy-search';
-import { createHomeService } from '@movies/services/home-service';
-import { createPersonService } from '@movies/services/person-service';
-import { createPreferencesService } from '@movies/services/preferences-service';
-import { createSearchService } from '@movies/services/search-service';
-import { createSystemListService } from '@movies/services/system-list-service';
 import { createApp } from '@server/app';
 import { authClientIp } from '@server/auth-client-ip';
 import { createAuthGateway } from '@server/auth-gateway';
@@ -39,28 +30,20 @@ function resolveCorsOrigin() {
 }
 
 const app = createApp(
-  {
-    customLists: createCustomListService(database, fetchTmdb, (error) => {
+  createServices(fetchTmdb, database, {
+    onCustomListSyncError(error) {
       logger.error({ err: error }, 'Could not sync custom-list title');
-    }),
-    systemLists: createSystemListService(database, fetchTmdb, (error, input) => {
+    },
+    onSystemListSyncError(error, input) {
       logger.error(
         { err: error, resourceType: input.resourceType, resourceId: input.resourceId },
         'Title write-through failed',
       );
-    }),
-    preferences: createPreferencesService(database, fetchTmdb),
-    search: createSearchService(fetchTmdb, createFuzzySearch(database)),
-    person: createPersonService(fetchTmdb),
-    home: createHomeService(fetchTmdb),
-    catalog: createCatalogService(fetchTmdb, {
-      readRating: database ? createImdbRatingStore(database).read : undefined,
-      onRatingError(error, input) {
-        logger.error({ err: error, ...input }, 'Could not load IMDb rating');
-      },
-    }),
-    discovery: createDiscoveryService(fetchTmdb),
-  },
+    },
+    onRatingError(error, input) {
+      logger.error({ err: error, ...input }, 'Could not load IMDb rating');
+    },
+  }),
   resolveCorsOrigin(),
   [createRequestLogger(logger)],
   ENV.AUTH_URL ? createAuthGateway(ENV.AUTH_URL, fetch, ENV.AUTH_PROXY_SECRET) : undefined,

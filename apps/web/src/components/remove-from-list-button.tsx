@@ -12,13 +12,10 @@ import {
   AlertDialogTrigger,
 } from '@movies/ui/components/alert-dialog';
 import { Button } from '@movies/ui/components/button';
-import { useQueryClient } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { MouseEvent, useState } from 'react';
+import type { MouseEvent } from 'react';
 import { toast } from 'sonner';
-
-import { queryKeys } from '@/lib/query-keys';
 
 interface RemoveFromListButtonProps {
   listId: string;
@@ -35,28 +32,19 @@ export function RemoveFromListButton({
 }: RemoveFromListButtonProps) {
   const router = useRouter();
   const remove = useCustomListsRemoveMutation();
-  const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
+  const isLoading = remove.isPending;
 
   async function handleRemove(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault(); // Prevent link navigation when clicking the button
     e.stopPropagation();
 
-    setIsLoading(true);
     try {
       await remove.mutateAsync({ listId, resourceId: mediaId, resourceType: mediaType });
       toast.success('Removed from list');
 
-      // Invalidate all list queries to ensure fresh data on next navigation
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.lists.all,
-      });
-
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to remove from list');
-    } finally {
-      setIsLoading(false);
     }
   }
 

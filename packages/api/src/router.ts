@@ -1,4 +1,4 @@
-import { os, type RouterClient } from '@orpc/server';
+import { os, type RouterClient, type InferSchemaOutput } from '@orpc/server';
 import { z } from 'zod';
 
 import {
@@ -63,6 +63,7 @@ import {
   type CatalogMetadataService,
   type PersonMetadataService,
 } from './metadata';
+import type { MutationEffect, MutationEvent } from './mutation-effects';
 import {
   pdpExtrasSchema,
   seasonInput,
@@ -173,7 +174,10 @@ export type AppServices = {
   catalog: CatalogService;
   discovery: DiscoveryService;
 };
-export type AppContext = AppServices & { session?: { current(): Promise<SessionUser | null> } };
+export type AppContext = AppServices & {
+  session?: { current(): Promise<SessionUser | null> };
+  onMutation?: (event: MutationEvent) => void | Promise<void>;
+};
 const procedure = os.$context<AppContext>();
 
 /**
@@ -194,6 +198,18 @@ const authedProcedure = procedure
     return next({ context: { user } });
   });
 
+/** Hosts may react to validated, successful writes without inspecting HTTP paths or bodies. */
+function mutationProcedure<TSchema extends z.ZodType>(
+  schema: TSchema,
+  effect: (input: InferSchemaOutput<TSchema>) => MutationEffect,
+) {
+  return authedProcedure.input(schema).use(async ({ context, next }, input) => {
+    const result = await next();
+    await context.onMutation?.({ ...effect(input), userId: context.user.id });
+    return result;
+  });
+}
+
 export const appRouter = {
   customLists: {
     index: authedProcedure
@@ -212,40 +228,49 @@ export const appRouter = {
         CONFLICT: { message: 'Item already in list' },
       })
       .handler(({ input, context }) => context.customLists.details(context.user.id, input)),
-    create: authedProcedure
-      .input(customListContracts.create.input)
+    create: mutationProcedure(customListContracts.create.input, () => ({ domain: 'customLists' }))
       .output(customListContracts.create.output)
       .errors({
         NOT_FOUND: { message: 'List or item not found' },
         CONFLICT: { message: 'Item already in list' },
       })
       .handler(({ input, context }) => context.customLists.create(context.user.id, input)),
-    update: authedProcedure
-      .input(customListContracts.update.input)
+    update: mutationProcedure(customListContracts.update.input, (input) => ({
+      domain: 'customLists',
+      listId: input.listId,
+    }))
       .output(customListContracts.update.output)
       .errors({
         NOT_FOUND: { message: 'List or item not found' },
         CONFLICT: { message: 'Item already in list' },
       })
       .handler(({ input, context }) => context.customLists.update(context.user.id, input)),
-    delete: authedProcedure
-      .input(customListContracts.delete.input)
+    delete: mutationProcedure(customListContracts.delete.input, (input) => ({
+      domain: 'customLists',
+      listId: input.listId,
+    }))
       .output(customListContracts.delete.output)
       .errors({
         NOT_FOUND: { message: 'List or item not found' },
         CONFLICT: { message: 'Item already in list' },
       })
       .handler(({ input, context }) => context.customLists.delete(context.user.id, input)),
-    add: authedProcedure
-      .input(customListContracts.add.input)
+    add: mutationProcedure(customListContracts.add.input, (input) => ({
+      domain: 'customLists',
+      listId: input.listId,
+      resource: { resourceId: input.resourceId, resourceType: input.resourceType },
+    }))
       .output(customListContracts.add.output)
       .errors({
         NOT_FOUND: { message: 'List or item not found' },
         CONFLICT: { message: 'Item already in list' },
       })
       .handler(({ input, context }) => context.customLists.add(context.user.id, input)),
-    remove: authedProcedure
-      .input(customListContracts.remove.input)
+    remove: mutationProcedure(customListContracts.remove.input, (input) => ({
+      domain: 'customLists',
+      listId: input.listId,
+      resource: { resourceId: input.resourceId, resourceType: input.resourceType },
+    }))
       .output(customListContracts.remove.output)
       .errors({
         NOT_FOUND: { message: 'List or item not found' },
@@ -260,16 +285,19 @@ export const appRouter = {
         CONFLICT: { message: 'Item already in list' },
       })
       .handler(({ input, context }) => context.customLists.status(context.user.id, input)),
-    move: authedProcedure
-      .input(customListContracts.move.input)
+    move: mutationProcedure(customListContracts.move.input, (input) => ({
+      domain: 'customLists',
+      listId: input.listId,
+    }))
       .output(customListContracts.move.output)
       .errors({
         NOT_FOUND: { message: 'List or item not found' },
         CONFLICT: { message: 'Item already in list' },
       })
       .handler(({ input, context }) => context.customLists.move(context.user.id, input)),
-    moveItem: authedProcedure
-      .input(customListContracts.moveItem.input)
+    moveItem: mutationProcedure(customListContracts.moveItem.input, () => ({
+      domain: 'customLists',
+    }))
       .output(customListContracts.moveItem.output)
       .errors({
         NOT_FOUND: { message: 'List or item not found' },
@@ -290,12 +318,17 @@ export const appRouter = {
       .input(systemListResourceInput)
       .output(systemListMembershipSchema)
       .handler(({ input, context }) => context.systemLists.memberships(context.user.id, input)),
-    toggle: authedProcedure
-      .input(systemListToggleInput)
+    toggle: mutationProcedure(systemListToggleInput, (input) => ({
+      domain: 'systemLists',
+      listType: input.listType,
+      resource: { resourceId: input.resourceId, resourceType: input.resourceType },
+    }))
       .output(systemListToggleSchema)
       .handler(({ input, context }) => context.systemLists.toggle(context.user.id, input)),
-    move: authedProcedure
-      .input(systemListMoveInput)
+    move: mutationProcedure(systemListMoveInput, (input) => ({
+      domain: 'systemLists',
+      listType: input.listType,
+    }))
       .output(systemListMoveResultSchema)
       .errors({ NOT_FOUND: { message: 'Item not found' } })
       .handler(({ input, context }) => context.systemLists.move(context.user.id, input)),
@@ -312,8 +345,7 @@ export const appRouter = {
     providers: authedProcedure
       .output(providerPreferenceSchema)
       .handler(({ context }) => context.preferences.providers(context.user.id)),
-    setProviders: authedProcedure
-      .input(providerPreferenceSchema)
+    setProviders: mutationProcedure(providerPreferenceSchema, () => ({ domain: 'preferences' }))
       .output(providerPreferenceSchema)
       .handler(({ input, context }) => context.preferences.setProviders(context.user.id, input)),
     providerOptions: authedProcedure
@@ -323,8 +355,7 @@ export const appRouter = {
     region: authedProcedure
       .output(regionPreferenceSchema)
       .handler(({ context }) => context.preferences.region(context.user.id)),
-    setRegion: authedProcedure
-      .input(regionPreferenceSchema)
+    setRegion: mutationProcedure(regionPreferenceSchema, () => ({ domain: 'preferences' }))
       .output(regionPreferenceSchema)
       .handler(({ input, context }) => context.preferences.setRegion(context.user.id, input)),
   },

@@ -50,7 +50,8 @@
     "./query-utils": "./src/query-utils.ts",
     "./discovery-input": "./src/discovery-input.ts",
     "./errors": "./src/errors.ts",
-    "./metadata": "./src/metadata.ts"
+    "./metadata": "./src/metadata.ts",
+    "./mutation-effects": "./src/mutation-effects.ts"
   },
   "dependencies": {
     "@movies/config": "workspace:*",

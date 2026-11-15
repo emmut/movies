@@ -1,12 +1,10 @@
 'use client';
-
+import type { MediaCard } from '@movies/api/home';
 import {
   type CreditSort,
   type PersonTitle,
   sortPersonTitles,
 } from '@movies/api/person-filmography';
-import type { Movie } from '@movies/api/tmdb-types/movie';
-import type { TvShow } from '@movies/api/tmdb-types/tv-show';
 import { Label } from '@movies/ui/components/label';
 import {
   Select,
@@ -24,7 +22,7 @@ import { ItemSlider } from '@/components/item-slider';
 
 type PersonFilmographyProps = {
   title: string;
-  titles: ((Movie | TvShow) & PersonTitle)[];
+  titles: (MediaCard & PersonTitle)[];
   userId?: string;
 };
 
@@ -81,10 +79,9 @@ export function PersonFilmography({ title, titles, userId }: PersonFilmographyPr
       <ItemSlider key={sort}>
         {sorted.map((item) => (
           <ItemCard
-            key={`${item.media_type}:${item.id}`}
+            key={`${item.type}:${item.id}`}
             resource={item}
             className="w-40 sm:w-48"
-            type={'title' in item ? 'movie' : 'tv'}
             userId={userId}
           />
         ))}

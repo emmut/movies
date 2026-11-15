@@ -12,7 +12,6 @@ type MediaItem = MediaCard;
 
 type PersonalizedMediaListProps = {
   category: HomeMediaCategory;
-  type: 'movie' | 'tv';
   initialItems: MediaItem[];
 };
 
@@ -26,7 +25,6 @@ type PersonalizedMediaListProps = {
  */
 export default function PersonalizedMediaList({
   category,
-  type,
   initialItems,
 }: PersonalizedMediaListProps) {
   const { data: accountRegion } = useAccountRegion(useApiAccountId());
@@ -37,7 +35,5 @@ export default function PersonalizedMediaList({
 
   const items = data ?? initialItems;
 
-  return items.map((item) => (
-    <ItemCard className="max-w-[150px]" key={item.id} resource={item} type={type} />
-  ));
+  return items.map((item) => <ItemCard className="max-w-[150px]" key={item.id} resource={item} />);
 }

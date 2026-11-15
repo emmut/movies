@@ -6,7 +6,6 @@ import { getHomeMediaList } from '@/lib/home-media';
 
 type MediaListProps = {
   category: HomeMediaCategory;
-  type: 'movie' | 'tv';
 };
 
 /**
@@ -19,10 +18,9 @@ type MediaListProps = {
  * client-side after hydration, never during this server render.
  *
  * @param category - The home-page media category to display.
- * @param type - The media type, either 'movie' or 'tv'.
  */
-export default async function MediaList({ category, type }: MediaListProps) {
+export default async function MediaList({ category }: MediaListProps) {
   const items = await getHomeMediaList(category, DEFAULT_REGION);
 
-  return <PersonalizedMediaList category={category} type={type} initialItems={items} />;
+  return <PersonalizedMediaList category={category} initialItems={items} />;
 }

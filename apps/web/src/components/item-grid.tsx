@@ -1,11 +1,9 @@
 import type { MediaCard } from '@movies/api/home';
-import { Movie } from '@movies/api/tmdb-types/movie';
-import { TvShow } from '@movies/api/tmdb-types/tv-show';
 
 import ItemCard from './item-card';
 
 type ItemGridProps = {
-  resources: Movie[] | TvShow[] | MediaCard[];
+  resources: MediaCard[];
   type: 'movie' | 'tv';
   userId?: string;
 };
@@ -31,7 +29,6 @@ function ItemGrid({ resources, type, userId }: ItemGridProps) {
         <ItemCard
           key={resource.id}
           resource={resource}
-          type={type}
           userId={userId}
           eagerImage={index < EAGER_IMAGE_COUNT}
         />

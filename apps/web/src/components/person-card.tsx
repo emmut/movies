@@ -1,11 +1,9 @@
 import type { SearchPersonCard } from '@movies/api/search';
-import { PersonDetails, SearchedPerson } from '@movies/api/tmdb-types/person';
 import { cn } from 'cn';
 import { User } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
-import { formatImageUrl } from '@/lib/utils';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 
 import Badge from './badge';
@@ -13,8 +11,9 @@ import { QuickAddButton } from './quick-add-button';
 import { RemoveFromListButton } from './remove-from-list-button';
 
 type PersonCardProps = {
-  person: SearchedPerson | PersonDetails | SearchPersonCard;
+  person: SearchPersonCard;
   className?: string;
+  imageUrls?: ProxyImageUrls;
   userId?: string;
   showListButton?: boolean;
   listId?: string;
@@ -25,18 +24,18 @@ type PersonCardProps = {
 function PersonArtwork({
   person,
   eager,
+  imageUrls,
 }: {
-  person: SearchedPerson | PersonDetails | SearchPersonCard;
+  person: SearchPersonCard;
   eager: boolean;
+  imageUrls?: ProxyImageUrls;
 }) {
-  const profile = 'profileUrl' in person ? person.profileUrl : person.profile_path;
-  const profileImageUrls = (person as { profileImageUrls?: ProxyImageUrls }).profileImageUrls;
   return (
     <>
-      {profile ? (
+      {person.profileUrl ? (
         <ClientImage
-          imageUrls={profileImageUrls}
-          fallbackSrc={profile.startsWith('http') ? profile : formatImageUrl(profile, 500)}
+          imageUrls={imageUrls}
+          fallbackSrc={person.profileUrl}
           alt={person.name}
           className="h-full w-full object-cover"
           eager={eager}
@@ -54,17 +53,8 @@ function PersonArtwork({
     </>
   );
 }
-function PersonMetadata({ person }: { person: SearchedPerson | PersonDetails | SearchPersonCard }) {
-  // Handle both SearchedPerson and PersonDetails
-  const knownFor =
-    'knownFor' in person
-      ? person.knownFor.slice(0, 2).join(', ')
-      : 'known_for' in person
-        ? person.known_for
-            .slice(0, 2)
-            .map((item) => item.title || item.name)
-            .join(', ')
-        : null;
+function PersonMetadata({ person }: { person: SearchPersonCard }) {
+  const knownFor = person.knownFor.slice(0, 2).join(', ');
 
   return (
     <div className="absolute right-0 bottom-0 left-0 p-3 text-white opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100">
@@ -72,9 +62,7 @@ function PersonMetadata({ person }: { person: SearchedPerson | PersonDetails | S
 
       <h3 className="mb-1 line-clamp-2 text-sm font-semibold">{person.name}</h3>
       <div className="text-xs text-zinc-300">
-        <div className="mb-1">
-          {'department' in person ? person.department : person.known_for_department}
-        </div>
+        <div className="mb-1">{person.department}</div>
         {knownFor && <div className="line-clamp-1 text-zinc-400">Known for: {knownFor}</div>}
       </div>
     </div>
@@ -86,11 +74,10 @@ function PersonMetadata({ person }: { person: SearchedPerson | PersonDetails | S
  *
  * The card links to the person's detail page and shows additional information on hover or focus.
  * If no profile image is available, a fallback with a user icon and "No Photo" text is shown.
- *
- * Can handle both SearchedPerson (from search results) and PersonDetails (from list details).
  */
 export default function PersonCard({
   person,
+  imageUrls,
   className,
   userId,
   listId,
@@ -108,7 +95,7 @@ export default function PersonCard({
     >
       <BackTargetLink href={href}>
         <div className="relative h-full w-full">
-          <PersonArtwork person={person} eager={eagerImage} />
+          <PersonArtwork person={person} eager={eagerImage} imageUrls={imageUrls} />
           <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/person:opacity-100 group-hover/person:opacity-100 group-focus/person:opacity-100" />
 
           <PersonMetadata person={person} />

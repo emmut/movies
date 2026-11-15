@@ -1,4 +1,5 @@
-import type { SearchMultiResult } from '@movies/api/search-engine';
+import type { MediaCard } from '@movies/api/home';
+import type { SearchItem, SearchPage } from '@movies/api/search';
 import { describe, expect, it } from 'vite-plus/test';
 
 import {
@@ -9,30 +10,25 @@ import {
   toSearchCommandItems,
 } from './search-command-items';
 
-type MultiResult = SearchMultiResult['results'][number];
-
-const imageUrls = { src: 'src', srcSetAvif: 'avif', srcSetWebp: 'webp' };
-
-function multiResult(results: MultiResult[]): SearchMultiResult {
-  return { results, totalPages: 1 };
+function searchPage(items: SearchItem[]): SearchPage {
+  return { items, totalPages: 1 };
 }
-
-function movie(overrides: Partial<MultiResult> = {}): MultiResult {
+function movie(overrides: Partial<MediaCard> = {}): MediaCard {
   return {
     id: 1,
-    media_type: 'movie',
+    type: 'movie',
     title: 'Heat',
-    release_date: '1995-12-15',
-    poster_path: '/heat.jpg',
+    releaseDate: '1995-12-15',
+    posterUrl: 'https://image.tmdb.org/t/p/w342/heat.jpg',
+    backdropUrl: null,
+    rating: 8,
     ...overrides,
-  } as MultiResult;
+  };
 }
 
 describe('toSearchCommandItems', () => {
   it('maps a movie to a palette row', () => {
-    const [item] = toSearchCommandItems(
-      multiResult([movie({ posterImageUrls: imageUrls } as never)]),
-    );
+    const [item] = toSearchCommandItems(searchPage([movie()]));
 
     expect(item).toEqual({
       key: 'movie-1',
@@ -41,7 +37,6 @@ describe('toSearchCommandItems', () => {
       subtitle: '1995',
       badge: 'Movie',
       badgeVariant: 'yellow',
-      imageUrls,
       fallbackSrc: expect.stringContaining('/heat.jpg'),
       fallbackEmoji: '🎬',
     });
@@ -49,14 +44,14 @@ describe('toSearchCommandItems', () => {
 
   it('maps a tv show to a palette row', () => {
     const [item] = toSearchCommandItems(
-      multiResult([
-        {
+      searchPage([
+        movie({
           id: 2,
-          media_type: 'tv',
-          name: 'The Office',
-          first_air_date: '2005-03-24',
-          poster_path: null,
-        } as MultiResult,
+          type: 'tv',
+          title: 'The Office',
+          releaseDate: '2005-03-24',
+          posterUrl: null,
+        }),
       ]),
     );
 
@@ -73,14 +68,15 @@ describe('toSearchCommandItems', () => {
 
   it('maps a person to a palette row', () => {
     const [item] = toSearchCommandItems(
-      multiResult([
+      searchPage([
         {
           id: 3,
-          media_type: 'person',
+          type: 'person',
           name: 'Keanu Reeves',
-          known_for_department: 'Acting',
-          profile_path: '/keanu.jpg',
-        } as MultiResult,
+          department: 'Acting',
+          profileUrl: 'https://image.tmdb.org/t/p/w500/keanu.jpg',
+          knownFor: [],
+        },
       ]),
     );
 
@@ -95,23 +91,14 @@ describe('toSearchCommandItems', () => {
   });
 
   it('leaves the subtitle empty when dates are missing', () => {
-    const [item] = toSearchCommandItems(multiResult([movie({ release_date: '' })]));
+    const [item] = toSearchCommandItems(searchPage([movie({ releaseDate: '' })]));
     expect(item.subtitle).toBe('');
-  });
-
-  it('drops unsupported media types', () => {
-    const items = toSearchCommandItems(
-      multiResult([{ id: 4, media_type: 'collection' } as unknown as MultiResult, movie()]),
-    );
-
-    expect(items).toHaveLength(1);
-    expect(items[0].key).toBe('movie-1');
   });
 
   it('caps the list at the given limit', () => {
     const results = Array.from({ length: 12 }, (_, index) => movie({ id: index + 1 }));
-    expect(toSearchCommandItems(multiResult(results))).toHaveLength(8);
-    expect(toSearchCommandItems(multiResult(results), 3)).toHaveLength(3);
+    expect(toSearchCommandItems(searchPage(results))).toHaveLength(8);
+    expect(toSearchCommandItems(searchPage(results), 3)).toHaveLength(3);
   });
 
   it('returns an empty list while no data has loaded', () => {
@@ -136,7 +123,7 @@ describe('buildSeeAllHref', () => {
 });
 
 describe('getSubmitHref', () => {
-  const items = toSearchCommandItems(multiResult([movie(), movie({ id: 2 })]));
+  const items = toSearchCommandItems(searchPage([movie(), movie({ id: 2 })]));
   const seeAll = '/search?q=matrix';
 
   it('opens the selected row when results are fresh', () => {

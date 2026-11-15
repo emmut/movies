@@ -19,13 +19,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@movies/ui/components/dropdown-menu';
-import { type Query, useQueryClient } from '@tanstack/react-query';
 import { Check, CircleCheck, Eye, List, ListPlus, Star } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 
 import { CreateListDialog } from '@/components/create-list-dialog';
-import { queryKeys } from '@/lib/query-keys';
 import { getErrorMessage } from '@/lib/utils';
 import type { SystemListType } from '@/lib/validations';
 
@@ -40,11 +38,6 @@ type ListWithStatus = CustomListStatus[number];
 
 function findListName(lists: CustomListStatus, listId: string) {
   return lists.find((list) => list.id === listId)?.name ?? 'list';
-}
-
-// list details query keys are shaped [..., ..., listId]; match by that slot.
-function listDetailsPredicate(listId: string) {
-  return (query: Query) => query.queryKey[2] === listId;
 }
 
 const SYSTEM_LIST_MENU_COPY: Record<
@@ -168,15 +161,13 @@ function useQuickAddActions(
   mediaType: QuickAddButtonProps['mediaType'],
   lists: CustomListStatus,
 ) {
-  const [isPending, setIsPending] = useState(false);
-  const queryClient = useQueryClient();
   const add = useCustomListsAddMutation();
   const remove = useCustomListsRemoveMutation();
   const toggle = useSystemListsToggleMutation();
+  const isPending = add.isPending || remove.isPending || toggle.isPending;
   const systemResourceType = mediaType === 'tv' ? 'tv' : 'movie';
   async function handleToggleList(listId: string, hasItem: boolean) {
     const listName = findListName(lists, listId);
-    setIsPending(true);
     try {
       if (hasItem) {
         await remove.mutateAsync({ listId, resourceId: mediaId, resourceType: mediaType });
@@ -185,22 +176,14 @@ function useQuickAddActions(
         await add.mutateAsync({ listId, resourceId: mediaId, resourceType: mediaType });
         toast.success(`Added to "${listName}"`);
       }
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.lists.details(),
-        predicate: listDetailsPredicate(listId),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
     } catch (error) {
       toast.error(getErrorMessage(error, `Couldn't update "${listName}"`));
-    } finally {
-      setIsPending(false);
     }
   }
 
   async function handleToggleSystemList(listType: SystemListType) {
     const copy = SYSTEM_LIST_MENU_COPY[listType];
 
-    setIsPending(true);
     try {
       const result = await toggle.mutateAsync({
         listType,
@@ -213,17 +196,13 @@ function useQuickAddActions(
       const isInList = result.action !== 'removed';
 
       toast.success(isInList ? copy.addedToast : copy.removedToast);
-      queryClient.invalidateQueries({ queryKey: queryKeys[listType].all });
     } catch (error) {
       toast.error(getErrorMessage(error, copy.errorToast));
-    } finally {
-      setIsPending(false);
     }
   }
 
   async function handleListCreated(listId: string) {
     await add.mutateAsync({ listId, resourceId: mediaId, resourceType: mediaType });
-    queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
   }
 
   return { isPending, handleToggleList, handleToggleSystemList, handleListCreated };

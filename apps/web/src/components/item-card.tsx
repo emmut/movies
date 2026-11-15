@@ -1,29 +1,20 @@
 import type { MediaCard } from '@movies/api/home';
 import { displayRating } from '@movies/api/home';
-import { Movie, MovieDetails } from '@movies/api/tmdb-types/movie';
-import { TvDetails, TvShow } from '@movies/api/tmdb-types/tv-show';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { cn } from 'cn';
 import { Star } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import ClientImage from '@/components/client-image';
-import { formatImageUrl } from '@/lib/utils';
 import type { ProxyImageUrls } from '@/types/proxy-image';
 
 import Badge from './badge';
 import { QuickAddButton } from './quick-add-button';
 import { RemoveFromListButton } from './remove-from-list-button';
 
-type LegacyResource = (Movie | MovieDetails | TvShow | TvDetails) & {
-  posterImageUrls?: ProxyImageUrls;
-};
-
-type ItemResource = LegacyResource | MediaCard;
-
 type ItemCardProps = {
-  resource: ItemResource;
-  type: 'movie' | 'tv';
+  resource: MediaCard;
+  imageUrls?: ProxyImageUrls;
   className?: string;
   userId?: string;
   showListButton?: boolean;
@@ -32,54 +23,26 @@ type ItemCardProps = {
   eagerImage?: boolean;
 };
 
-/**
- * Determines whether the given resource is a movie or tv show.
- *
- * @param resource - The resource to check.
- * @returns True if the resource is a movie or movie details; otherwise, false.
- */
-function isResource(
-  resource: Movie | MovieDetails | TvShow | TvDetails,
-): resource is Movie | MovieDetails {
-  return 'title' in resource;
-}
-
-function resolveImageSrc(src: string, size: number) {
-  if (src.startsWith('http')) {
-    return src;
-  }
-
-  return formatImageUrl(src, size);
-}
-
-function cardMetadata(item: ItemResource) {
-  if ('releaseDate' in item) {
-    return { title: item.title, releaseYear: item.releaseDate.slice(0, 4) || 'N/A' };
-  }
-  const title = isResource(item) ? item.title : item.name;
-  const releaseDate = isResource(item) ? item.release_date : item.first_air_date;
-  return { title, releaseYear: releaseDate ? releaseDate.split('-')[0] : 'N/A' };
-}
-
 function CardArtwork({
   item,
   title,
   type,
   eagerImage,
+  imageUrls,
 }: {
-  item: ItemResource;
+  item: MediaCard;
   title: string;
-  type: ItemCardProps['type'];
+  type: MediaCard['type'];
   eagerImage: boolean;
+  imageUrls?: ProxyImageUrls;
 }) {
-  const poster = 'posterUrl' in item ? item.posterUrl : item.poster_path;
-  const imageUrls = 'posterImageUrls' in item ? item.posterImageUrls : undefined;
+  const poster = item.posterUrl;
   return (
     <>
       {poster ? (
         <ClientImage
           imageUrls={imageUrls}
-          fallbackSrc={resolveImageSrc(poster, 500)}
+          fallbackSrc={poster}
           alt={title}
           className="h-full w-full object-cover"
           eager={eagerImage}
@@ -105,7 +68,7 @@ function CardOverlay({
   title: string;
   releaseYear: string;
   score: number;
-  type: ItemCardProps['type'];
+  type: MediaCard['type'];
 }) {
   return (
     <>
@@ -141,7 +104,7 @@ function CardActions({
   listId,
 }: {
   mediaId: number;
-  mediaType: ItemCardProps['type'];
+  mediaType: MediaCard['type'];
   userId?: string;
   showListButton: boolean;
   listId?: string;
@@ -166,14 +129,15 @@ function CardActions({
 /** A poster link with hover/focus metadata and independently composed list actions. */
 export default function ItemCard({
   resource: item,
-  type,
+  imageUrls,
   className,
   userId,
   showListButton = true,
   listId,
   eagerImage = false,
 }: ItemCardProps) {
-  const { title, releaseYear } = cardMetadata(item);
+  const { title, type } = item;
+  const releaseYear = item.releaseDate.slice(0, 4) || 'N/A';
   const borderColor =
     type === 'movie'
       ? 'hover:border-yellow-300 focus-within:border-yellow-300'
@@ -188,11 +152,17 @@ export default function ItemCard({
     >
       <BackTargetLink href={`/${type}/${item.id}`}>
         <div className="relative h-full w-full">
-          <CardArtwork item={item} title={title} type={type} eagerImage={eagerImage} />
+          <CardArtwork
+            item={item}
+            title={title}
+            type={type}
+            eagerImage={eagerImage}
+            imageUrls={imageUrls}
+          />
           <CardOverlay
             title={title}
             releaseYear={releaseYear}
-            score={displayRating('rating' in item ? item.rating : item.vote_average)}
+            score={displayRating(item.rating)}
             type={type}
           />
         </div>

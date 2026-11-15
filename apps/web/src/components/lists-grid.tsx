@@ -6,7 +6,6 @@ import type { CustomListSummary } from '@movies/api/custom-lists';
 import { sameIdOrder } from '@movies/api/list-order';
 import { useCustomListsMoveMutation } from '@movies/api/react/use-custom-lists-query';
 import { Button } from '@movies/ui/components/button';
-import { useQueryClient } from '@tanstack/react-query';
 import { cn } from 'cn';
 import { Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -19,7 +18,6 @@ import { ReorderButton } from '@/components/reorder-button';
 import { ReorderControls } from '@/components/reorder-controls';
 import { useReorderSensors } from '@/hooks/use-reorder-sensors';
 type LocalList = CustomListSummary;
-import { queryKeys } from '@/lib/query-keys';
 
 interface ListsGridProps {
   lists: LocalList[];
@@ -33,14 +31,10 @@ function reorderErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Failed to reorder lists';
 }
 
-// Not useOptimistic/useTransition: moveList's revalidatePath makes Next
-// intermittently never settle the transition, wedging isPending at true
-// (https://github.com/vercel/next.js/discussions/82289). Manual pending
-// state with a finally block cannot wedge.
+// Local order is optimistic; the shared mutation owns pending state and invalidation.
 function useReorderableLists(lists: LocalList[], offset: number) {
-  const queryClient = useQueryClient();
   const moveMutation = useCustomListsMoveMutation();
-  const [isPending, setIsPending] = useState(false);
+  const isPending = moveMutation.isPending;
   const [localLists, setLocalLists] = useState(lists);
   const [prevLists, setPrevLists] = useState(lists);
 
@@ -64,16 +58,11 @@ function useReorderableLists(lists: LocalList[], offset: number) {
   }
 
   async function commitMove(listId: string, toLocalIndex: number, previous: LocalList[]) {
-    setIsPending(true);
     try {
       await moveMutation.mutateAsync({ listId, position: Math.max(0, offset + toLocalIndex) });
-      // Fire-and-forget: awaiting ties pending to unrelated refetches.
-      queryClient.invalidateQueries({ queryKey: queryKeys.lists.all });
     } catch (error) {
       setLocalLists(previous);
       toast.error(reorderErrorMessage(error));
-    } finally {
-      setIsPending(false);
     }
   }
 

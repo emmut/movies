@@ -1,4 +1,5 @@
 'use client';
+import { canReorderList } from '@movies/api/list-order';
 import { regionPreferenceSchema } from '@movies/api/preferences';
 import { useSystemListsMoveMutation } from '@movies/api/react/use-system-lists-query';
 import { useSystemListsPage } from '@movies/api/react/use-system-lists-query';
@@ -8,12 +9,10 @@ import {
 } from '@movies/api/system-list-copy';
 import type { SystemListPage } from '@movies/api/system-lists';
 import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
-import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useEffect, useState } from 'react';
 
-import type { ListItem } from '@/app/lists/[id]/list-details-content';
 import { ListErrorState } from '@/components/list-error-state';
 import { ListHeaderRow } from '@/components/list-header-row';
 import { ListItemsGrid } from '@/components/list-items-grid';
@@ -23,10 +22,11 @@ import { PaginationControls } from '@/components/pagination-controls';
 import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
+import { UnavailableListItems } from '@/components/unavailable-list-items';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
+import type { ApiListItem as ListItem } from '@/lib/api-list-items';
 import { apiListItem } from '@/lib/api-list-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
-import { queryKeys } from '@/lib/query-keys';
 import type { SystemListType } from '@/lib/validations';
 import { activeWatchProviderFilter } from '@/lib/watch-provider-search-params';
 
@@ -79,6 +79,9 @@ export function SystemListContent({
     data: paginatedData,
     isLoading,
     isError,
+    isPlaceholderData,
+    isFetching,
+    refetch,
   } = useSystemListsPage(userId ?? '', {
     listType,
     resourceType: mediaType,
@@ -93,19 +96,22 @@ export function SystemListContent({
   const totalItems = totalMovies + totalTvShows;
 
   const [isEditing, setIsEditing] = useState(false);
-  const queryClient = useQueryClient();
   const moveMutation = useSystemListsMoveMutation();
 
   // A removal on another client can shrink the list while this URL still
   // points at its old last page. Use the page actually returned by the store.
   const isPageReconciled = currentPage === page;
-  const canReorder = !isProviderFiltered && !isLoading && !isError && isPageReconciled;
+  const canReorder = canReorderList(
+    { page, providerIds: activeProviders ?? [] },
+    paginatedData,
+    isFetching || isPlaceholderData || isError,
+  );
 
   useEffect(() => {
-    if (!isError && !isPageReconciled) {
+    if (!isError && !isPlaceholderData && !isPageReconciled) {
       void setUrlState({ page: currentPage }, { history: 'replace' });
     }
-  }, [currentPage, isError, isPageReconciled, setUrlState]);
+  }, [currentPage, isError, isPlaceholderData, isPageReconciled, setUrlState]);
 
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   const totalForMedia = mediaType === 'movie' ? totalMovies : totalTvShows;
@@ -120,8 +126,6 @@ export function SystemListContent({
         position: globalIndex,
         resourceType: mediaType,
       });
-      // Fire-and-forget: awaiting ties pending to unrelated refetches.
-      queryClient.invalidateQueries({ queryKey: queryKeys[listType].all });
     },
   );
 
@@ -139,7 +143,14 @@ export function SystemListContent({
         canReorder={canReorder}
       />
 
+      <UnavailableListItems
+        count={paginatedData?.unavailableItems ?? 0}
+        retry={() => {
+          void refetch();
+        }}
+      />
       <SystemListBody
+        unavailableItems={paginatedData?.unavailableItems ?? 0}
         listType={listType}
         mediaType={mediaType}
         userId={userId}
@@ -242,6 +253,7 @@ function SystemListCounts({
 }
 
 function SystemListBody({
+  unavailableItems,
   listType,
   mediaType,
   userId,
@@ -257,6 +269,7 @@ function SystemListBody({
   isPending,
   onMove,
 }: {
+  unavailableItems: number;
   listType: SystemListType;
   mediaType: 'movie' | 'tv';
   userId?: string;
@@ -280,7 +293,7 @@ function SystemListBody({
     return <ListErrorState />;
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && unavailableItems === 0) {
     return (
       <EmptyState
         listType={listType}

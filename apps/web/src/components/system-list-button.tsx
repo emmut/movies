@@ -1,12 +1,10 @@
 'use client';
 import { useSystemListsToggleMutation } from '@movies/api/react/use-system-lists-query';
 import { Button } from '@movies/ui/components/button';
-import { useQueryClient } from '@tanstack/react-query';
 import { cn } from 'cn';
 import { CircleCheck, Eye, Star } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 
-import { queryKeys } from '@/lib/query-keys';
 import type { SystemListType } from '@/lib/validations';
 
 const BUTTON_COPY: Record<
@@ -35,12 +33,8 @@ const BUTTON_COPY: Record<
   },
 };
 
-// Not useOptimistic/useTransition: the toggle's revalidatePath makes Next
-// intermittently never settle the transition, wedging isPending at true and
-// the button disabled (https://github.com/vercel/next.js/discussions/82289).
-// Manual pending state with a finally block cannot wedge.
-function usePendingToggle(isActive: boolean, toggle: () => Promise<void>) {
-  const [isPending, setIsPending] = useState(false);
+// Keep the optimistic value separate from the mutation-owned request state.
+function usePendingToggle(isActive: boolean, isPending: boolean, toggle: () => Promise<void>) {
   const [localIsActive, setLocalIsActive] = useState(isActive);
   const [prevIsActive, setPrevIsActive] = useState(isActive);
 
@@ -57,14 +51,11 @@ function usePendingToggle(isActive: boolean, toggle: () => Promise<void>) {
     }
     const previous = localIsActive;
     setLocalIsActive(!previous);
-    setIsPending(true);
     try {
       await toggle();
     } catch (error) {
       setLocalIsActive(previous);
       console.error('Error toggling system list membership:', error);
-    } finally {
-      setIsPending(false);
     }
   }
 
@@ -94,15 +85,17 @@ export function SystemListButton({
   className,
 }: SystemListButtonProps) {
   const toggleMutation = useSystemListsToggleMutation();
-  const queryClient = useQueryClient();
-  const { isPending, localIsActive, handleToggle } = usePendingToggle(isActive, async () => {
-    await toggleMutation.mutateAsync({
-      listType,
-      resourceId,
-      resourceType: resourceType === 'tv' ? 'tv' : 'movie',
-    });
-    void queryClient.invalidateQueries({ queryKey: queryKeys[listType].all });
-  });
+  const { isPending, localIsActive, handleToggle } = usePendingToggle(
+    isActive,
+    toggleMutation.isPending,
+    async () => {
+      await toggleMutation.mutateAsync({
+        listType,
+        resourceId,
+        resourceType: resourceType === 'tv' ? 'tv' : 'movie',
+      });
+    },
+  );
 
   if (!userId) {
     return null;

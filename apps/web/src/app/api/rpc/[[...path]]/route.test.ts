@@ -10,7 +10,11 @@ vi.mock('@/lib/api-server', () => ({ createApiContext: vi.fn() }));
 vi.mock('@/lib/api-cache-invalidation', () => ({ invalidateApiMutation: vi.fn() }));
 const current = vi.fn();
 const create = vi.fn();
-const context = { session: { current }, customLists: { create } } as unknown as AppContext;
+const context = {
+  session: { current },
+  customLists: { create },
+  onMutation: invalidateApiMutation,
+} as unknown as AppContext;
 
 function request(path: string, input: unknown) {
   return new Request(`http://localhost/api/rpc/${path}`, {
@@ -37,7 +41,8 @@ describe('web same-origin RPC', () => {
       description: '',
       emoji: '📝',
     });
-    expect(invalidateApiMutation).toHaveBeenCalledWith('/customLists/create', input, context);
+    expect(invalidateApiMutation).toHaveBeenCalledWith({ domain: 'customLists', userId: 'owner' });
+    expect(createApiContext).toHaveBeenCalledWith(expect.any(Headers));
   });
   it('rejects anonymous private writes without invalidating cached renders', async () => {
     current.mockResolvedValue(null);
@@ -50,6 +55,12 @@ describe('web same-origin RPC', () => {
     const response = await POST(request('customLists/create', { name: '' }));
     expect(response.status).toBe(400);
     expect(create).not.toHaveBeenCalled();
+    expect(invalidateApiMutation).not.toHaveBeenCalled();
+  });
+  it('does not emit an invalidation event when a write fails', async () => {
+    create.mockRejectedValue(new Error('Database unavailable'));
+    const response = await POST(request('customLists/create', { name: 'Favorites' }));
+    expect(response.status).toBe(500);
     expect(invalidateApiMutation).not.toHaveBeenCalled();
   });
   it('returns 404 for an unknown procedure', async () => {

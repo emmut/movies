@@ -1,5 +1,5 @@
+import { canReorderList } from '@movies/api/list-order';
 import type { SystemListPage } from '@movies/api/system-lists';
-import { canReorderList } from '@native/lib/list-page-state';
 import { readSystemListState } from '@native/lib/system-list-state';
 import { describe, expect, it } from 'vite-plus/test';
 
@@ -28,7 +28,7 @@ describe('native system list context', () => {
     ).toMatchObject({ page: 2, resourceType: 'tv', region: 'SE', providerIds: [] });
   });
   it('permits global ordering only for a complete, fresh unfiltered view', () => {
-    const input = readSystemListState({}, 'watchlist', 'SE');
+    const input = readSystemListState({ page: '2' }, 'watchlist', 'SE');
     const result: SystemListPage = {
       items: [],
       currentPage: 2,
