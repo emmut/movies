@@ -75,6 +75,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
+      API_URL: http://localhost:3001
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/movies
       BETTER_AUTH_SECRET: test-secret-test-secret-test-secret-0001
       # Migration modules validate the env shape; only the browser suite needs a real TMDB token.
