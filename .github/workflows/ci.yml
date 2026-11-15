@@ -64,8 +64,8 @@ jobs:
         env:
           # Must match IMGPROXY_KEY/SALT below — the app signs URLs with those
           # and imgproxy verifies the signature with these.
-          IMGPROXY_KEY: d96c9d6a2858cfcd117cef84ebd2c333a0e51a2fd1e7c8866c21cc5e300872b2
-          IMGPROXY_SALT: 80a8c29cb2c9113e1f3324a49f605f14e0000dbfd333362dc51ca0645c1b882f
+          IMGPROXY_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          IMGPROXY_SALT: "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
           IMGPROXY_ALLOWED_SOURCES: https://image.tmdb.org/
         ports:
           - 8080:8080
@@ -81,13 +81,13 @@ jobs:
       MOVIE_DB_ACCESS_TOKEN: test
       # Distinct, non-production fixtures avoid matching ordinary response text
       # in Varlock’s leak scanner. Keep leak detection enabled in browser builds.
-      DISCORD_CLIENT_ID: ci-discord-id-8c6d83ae-e103-42ef-bef3-2fb7823fb099
-      DISCORD_CLIENT_SECRET: ci-discord-secret-30a0bea4-a78f-4552-8044-567d26242316
-      GITHUB_CLIENT_ID: ci-github-id-8f74716e-144c-4b68-ad52-cb86f4516745
-      GITHUB_CLIENT_SECRET: ci-github-secret-c766fdae-664e-4bb2-9739-7ed58fc05778
-      # Long hex fixtures avoid incidental text matches and must match the service above.
-      IMGPROXY_KEY: d96c9d6a2858cfcd117cef84ebd2c333a0e51a2fd1e7c8866c21cc5e300872b2
-      IMGPROXY_SALT: 80a8c29cb2c9113e1f3324a49f605f14e0000dbfd333362dc51ca0645c1b882f
+      DISCORD_CLIENT_ID: fake-discord-client-id-for-ci-only
+      DISCORD_CLIENT_SECRET: fake-discord-client-secret-for-ci-only
+      GITHUB_CLIENT_ID: fake-github-client-id-for-ci-only
+      GITHUB_CLIENT_SECRET: fake-github-client-secret-for-ci-only
+      # Obviously fake, sequential hex patterns; must match the imgproxy service above.
+      IMGPROXY_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      IMGPROXY_SALT: "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
       NEXT_PUBLIC_IMGPROXY_ENDPOINT: http://localhost:8080
       NEXT_PUBLIC_IMGPROXY_BASE_URL: https://image.tmdb.org/t/p/original
       NEXT_PUBLIC_POSTHOG_KEY: test
