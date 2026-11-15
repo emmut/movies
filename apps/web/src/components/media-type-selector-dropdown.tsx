@@ -104,7 +104,7 @@ export default function MediaTypeSelectorDropdown({
 }
 
 function MediaTypeLabel({ mediaType }: { mediaType: MediaType }) {
-  const { label, Icon } = mediaTypes[mediaType];
+  const { label, Icon } = mediaTypes[mediaType] ?? mediaTypes.all;
   return (
     <>
       <Icon className="h-4 w-4" />

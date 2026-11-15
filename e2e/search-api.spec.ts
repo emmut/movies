@@ -15,3 +15,10 @@ for (const [genreId, retained] of [['28', false], ['35', true]] as const) {
     expect(params.get('genreId')).toBe(retained ? genreId : null);
   });
 }
+
+test('an unknown search media type retains the All selector fallback', async ({ page }) => {
+  await page.goto('/search?q=alien&mediaType=unknown');
+  await expect(page.getByRole('combobox').locator('[data-slot="select-value"]')).toHaveText('All');
+  await page.getByRole('combobox').click();
+  await expect(page.getByRole('option', { name: 'TV Shows', exact: true })).toBeVisible();
+});
