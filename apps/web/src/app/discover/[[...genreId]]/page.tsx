@@ -3,6 +3,7 @@ import { discoveryInputFromParams } from '@movies/api/discovery-input';
 import { createApiQueryUtils } from '@movies/api/query-utils';
 import { getOriginCountryString } from '@movies/config/countries';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
+import { cacheLife } from 'next/cache';
 import { headers } from 'next/headers';
 import { Suspense } from 'react';
 
@@ -62,6 +63,11 @@ export default function DiscoverWithGenrePage(props: DiscoverWithGenreParams) {
 }
 
 async function DiscoverWithGenre(props: DiscoverWithGenreParams) {
+  'use cache: private';
+  // Reuse the rendered page on return navigation, including session/preferences
+  // and the server prefetch that run before the client query can mount.
+  cacheLife('privateShort');
+
   const searchParams = await props.searchParams;
   const discoverParams = loadDiscoverSearchParams(searchParams);
 
