@@ -132,7 +132,6 @@ export default defineRailway((ctx) => {
       IMGPROXY_SALT: imgproxyHRto.env.IMGPROXY_SALT,
       MOVIE_DB_ACCESS_TOKEN: preserve(),
       NEXT_PUBLIC_BASE_URL: preserve(),
-      NEXT_PUBLIC_IMAGEKIT_ID: preserve(),
       NEXT_PUBLIC_IMGPROXY_BASE_URL: preserve(),
       NEXT_PUBLIC_IMGPROXY_ENDPOINT: preserve(),
       NEXT_PUBLIC_POSTHOG_HOST: preserve(),
