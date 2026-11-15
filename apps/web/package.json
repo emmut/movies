@@ -29,7 +29,7 @@
     "@primer/octicons-react": "catalog:",
     "@tailwindcss/postcss": "catalog:",
     "@tanstack/react-query": "catalog:",
-    "@varlock/nextjs-integration": "1.2.2",
+    "@varlock/nextjs-integration": "2.0.1",
     "babel-plugin-react-compiler": "catalog:",
     "better-auth": "catalog:",
     "class-variance-authority": "catalog:",

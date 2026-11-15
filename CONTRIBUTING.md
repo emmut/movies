@@ -1,6 +1,6 @@
 # Contributing
 
-A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared packages in `packages`, PostgreSQL/Drizzle, and the TMDB API. Vite+ 1.5.0 provides testing, linting, formatting, and a local `vp` CLI; its shared configuration lives in `vite.config.ts`.
+A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared packages in `packages`, PostgreSQL/Drizzle, and the TMDB API. Vite+ 1.6.0 provides testing, linting, formatting, and a local `vp` CLI; its shared configuration lives in `vite.config.ts`.
 
 ## Prerequisites
 
@@ -39,6 +39,7 @@ The most-used scripts — run `pnpm run` for the full list, which is authoritati
 | `pnpm test` | Unit tests on Node through Vite+. |
 | `pnpm fallow` | Audit changed files (dead code, complexity, duplication). |
 | `pnpm db:push` / `pnpm db:studio` | Apply schema / open Drizzle Studio. |
+| `vp run infra:deploy` | Apply the linked Railway environment's infrastructure; see [production deployment](.railway/README.md#deploy-production-infrastructure). |
 | `pnpm sync:titles` | Refresh the local title cache (see `scripts/README.md`). |
 | `pnpm ingest:search` | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
 
@@ -46,7 +47,7 @@ Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test
 
 Use `pnpm exec vp check` (or `pnpm check`) for formatting, linting, and type-aware checks, `pnpm exec vp test run` for unit tests, and `pnpm test:coverage` for coverage. Formatting covers `apps`, `packages`, `scripts`, patch regression tests, and `vite.config.ts`. The pnpm `packageManager` field remains authoritative for installation; run `pnpm install --frozen-lockfile` in CI.
 
-Dependencies shared by workspaces use `catalog:` references; update their versions in the `pnpm-workspace.yaml` catalog. Dependency patch regression tests live in `patches/` and run with `pnpm test`. The Better Auth passkey client patch preserves WebAuthn causes so browsers can distinguish a dismissed prompt from a security failure; keep its SDK-boundary tests when upgrading. Railway SDK 3.16 requires Railway CLI 5.42.1 or newer because the IaC compiler now ships with the CLI.
+Dependencies shared by workspaces use `catalog:` references; update their versions in the `pnpm-workspace.yaml` catalog. Dependency patch regression tests live in `patches/` and run with `pnpm test`. The Better Auth passkey client patch preserves WebAuthn causes so browsers can distinguish a dismissed prompt from a security failure; keep its SDK-boundary tests when upgrading. Railway SDK 3.17 requires Railway CLI 5.42.1 or newer because the IaC compiler now ships with the CLI. Expo SDK 58 uses Babel 7; keep its runtime and explicit transform plugins on the latest compatible Babel 7 releases. Keep Gesture Handler, SVG and Worklets aligned with Expo's bundled native modules for Expo Go; check these with `expo install --check` when upgrading Expo.
 
 Use `pnpm test:watch` to watch the full suite or `pnpm --filter @movies/web test:watch` for web tests. The package script delegates to the shared root runner with Vite+'s `vp run -w` workspace selector and a test file filter.
 

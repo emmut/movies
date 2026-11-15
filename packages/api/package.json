@@ -57,7 +57,7 @@
     "@movies/config": "workspace:*",
     "@orpc/client": "catalog:",
     "@orpc/server": "catalog:",
-    "@orpc/tanstack-query": "^1.15.0",
+    "@orpc/tanstack-query": "^1.16.2",
     "server-only": "catalog:",
     "zod": "catalog:"
   },

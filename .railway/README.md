@@ -31,8 +31,22 @@ railway config plan
 Apply the planned changes:
 
 ```bash
-railway config apply
+vp run infra:deploy
 ```
+
+Requires Railway CLI 5.42.1 or newer and a linked environment (`railway link`).
+
+## Deploy production infrastructure
+
+From the repository root, select the project, review the plan, then apply:
+
+```bash
+railway link --environment production
+railway config plan
+vp run infra:deploy
+```
+
+For reviewed deletions, use `vp run infra:deploy --confirm-destructive`.
 
 ## Notes
 
