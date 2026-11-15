@@ -29,6 +29,7 @@
     "db:push": "node --env-file-if-exists=apps/web/.env ./node_modules/drizzle-kit/bin.cjs push",
     "db:studio": "node --env-file-if-exists=apps/web/.env ./node_modules/drizzle-kit/bin.cjs studio",
     "seed": "vpx --env-file=apps/web/.env scripts/seed-watchlist-and-lists.ts",
+    "maintenance:daily": "vpx --env-file-if-exists=apps/web/.env scripts/daily-maintenance.ts",
     "ingest:imdb": "vpx --env-file-if-exists=apps/web/.env scripts/ingest-imdb-ratings.ts",
     "sync:titles": "vpx --env-file-if-exists=apps/web/.env scripts/sync-titles.ts",
     "ingest:search": "vpx --env-file-if-exists=apps/web/.env scripts/ingest-search-index.ts",

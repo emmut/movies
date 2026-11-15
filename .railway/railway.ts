@@ -171,90 +171,30 @@ export default defineRailway((ctx) => {
     },
   });
 
-  // Daily cron that ingests IMDb's ratings dataset into the imdb_ratings
-  // table. Declared in every environment: PR environments fork production
-  // including this service, and deleting it there cancelled the forked
-  // deployment mid-flight, which Railway reported as a failed PR check.
-  // Each environment ingests into its own postgres (previews get real IMDb
-  // data); IMDb refreshes the datasets early UTC, so run shortly after.
-  const imdbIngest = service("imdb-ingest", {
-    // Track the PR branch in previews, same as the movies service. Left on the
-    // default branch, a PR environment first deploys imdb-ingest at the PR
-    // commit and then the infra apply redeploys it at main, cancelling the
-    // first — and Railway reports that cancelled deployment as a failed PR
-    // check. Pinning the branch keeps the single deployment green.
-    source: applicationSource(prod),
-    // The cron only needs dependencies + Vite+. Railpack's default web build
-    // would run `next build`, which fails env validation
-    // since this service only has DATABASE_URL.
-    build: { buildCommand: "echo 'skipping app build — cron runs vpx directly'" },
-    deploy: {
-      startCommand: "./node_modules/.bin/vpx scripts/ingest-imdb-ratings.ts",
-      cronSchedule: "30 5 * * *",
-      restartPolicyType: "NEVER",
-      // Streaming ingest with 5k-row batches and a single pg connection —
-      // stays well under half a GB and one core.
-      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
-    },
-    env: {
-      // Each environment ingests into its own postgres-db.
-      DATABASE_URL: db.env.DATABASE_URL,
-    },
-  });
-
-  // Nightly cron that refreshes the local title cache (titles and their
-  // streaming availability) for every title in a list, and prunes the rest.
-  // Same shape as imdb-ingest; needs the TMDB token on top of the database.
-  // Availability rows go stale after ~20h, so a run every night refreshes all
-  // of them; details only weekly.
-  const titleSync = service("title-sync", {
+  // One daily run after TMDB publishes its exports by 08:00 UTC. The runner
+  // isolates the scripts in sequential processes and reports all failures.
+  // Keep the service in previews too: IMDb still populates preview ratings,
+  // while the two opt-in jobs remain disabled there.
+  const dailyMaintenance = service("daily-maintenance", {
     source: applicationSource(prod),
     build: { buildCommand: "echo 'skipping app build — cron runs vpx directly'" },
     deploy: {
-      startCommand: "./node_modules/.bin/vpx scripts/sync-titles.ts",
-      cronSchedule: "0 4 * * *",
-      restartPolicyType: "NEVER",
-      // A few TMDB requests in flight and one small pool — far under half a GB.
-      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
-    },
-    env: {
-      DATABASE_URL: db.env.DATABASE_URL,
-      // Reference the movies service's token rather than preserve(): a brand-new
-      // service has nothing to preserve, and the sync exits at startup without it.
-      MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
-      // Off outside production: the service exists in every environment (see
-      // imdb-ingest), but a preview should not spend TMDB requests refreshing
-      // its cache. Flip it on a preview by hand when testing the sync there.
-      TITLE_SYNC_ENABLED: settings.enableIngest,
-    },
-  });
-
-  // Daily cron that loads TMDB's id exports (movies, TV, people) into the
-  // search_index table for fuzzy search. TMDB publishes the files by 08:00
-  // UTC, so run an hour later. Only needs the database: the exports are
-  // public files, not API calls.
-  const searchIndexIngest = service("search-index-ingest", {
-    source: applicationSource(prod),
-    build: { buildCommand: "echo 'skipping app build — cron runs vpx directly'" },
-    deploy: {
-      startCommand: "./node_modules/.bin/vpx scripts/ingest-search-index.ts",
+      startCommand: "./node_modules/.bin/vpx scripts/daily-maintenance.ts",
       cronSchedule: "0 9 * * *",
       restartPolicyType: "NEVER",
-      // Buffers each export to disk before ingesting, streams gunzip line by
-      // line with 5k-row batches and one pg connection — but the run peaked
-      // at the old 500MB limit, so give it a full GB of headroom.
+      // Sequential processes share the largest existing job limit.
       limitOverride: { containers: { cpu: 1, memoryBytes: 1 * GB_IN_BYTES } },
     },
     env: {
       DATABASE_URL: db.env.DATABASE_URL,
-      // Off outside production, same reasoning as title-sync: a preview should
-      // not load 4–5M rows nightly unless someone is testing search there.
+      MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
+      TITLE_SYNC_ENABLED: settings.enableIngest,
       SEARCH_INDEX_INGEST_ENABLED: settings.enableIngest,
     },
   });
 
   return project("movies", {
-    resources: [movies, api, imgproxyHRto, db, dbVolume, imdbIngest, titleSync, searchIndexIngest],
+    resources: [movies, api, imgproxyHRto, db, dbVolume, dailyMaintenance],
   });
 });
 
