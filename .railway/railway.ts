@@ -120,6 +120,9 @@ export default defineRailway((ctx) => {
     env: {
       API_URL: "https://${{api.RAILWAY_PUBLIC_DOMAIN}}",
       RPC_IP_SOURCE: "railway",
+      // Keep this unused production value until it can be removed in a separate reviewed migration.
+      // Removing it during API provisioning makes the additive production apply fail its guard.
+      ...(prod ? { NEXT_PUBLIC_IMAGEKIT_ID: preserve() } : {}),
       BETTER_AUTH_SECRET: preserve(),
       BETTER_AUTH_TRUSTED_ORIGIN: preserve(),
       // Every environment uses its own postgres-db.

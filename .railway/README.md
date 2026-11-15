@@ -37,6 +37,7 @@ railway config apply
 ## Notes
 
 - PR CI sets `RAILWAY_BOOTSTRAP_POSTGRES=true` only when the preview lacks `postgres-db`, so the first IaC apply creates the database with credentials. Later applies use the existing image-backed service declaration.
+- Production retains the unused `NEXT_PUBLIC_IMAGEKIT_ID` with `preserve()`. Removing an existing variable is destructive to Railway and blocks the non-interactive production apply before it can provision `api` and web's required `API_URL`. Remove it separately after reviewing that migration's plan; keep the production workflow's destructive-change guard enabled.
 
 - `railway config plan` is safe and does not change Railway.
 - `railway config apply` previews changes and asks before applying unless you pass `--yes`.
