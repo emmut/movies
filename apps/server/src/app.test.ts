@@ -20,7 +20,7 @@ function setup() {
     providers: vi.fn(),
     related: vi.fn(),
   };
-  const app = createApp(mockServices({ home, catalog }), 'http://localhost:8081');
+  const app = createApp(mockServices({ home, catalog }), { origin: 'http://localhost:8081' });
   const client = createTestClient(app);
   return { home, catalog, app, client };
 }

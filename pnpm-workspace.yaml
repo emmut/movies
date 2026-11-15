@@ -39,6 +39,7 @@ allowBuilds:
   protobufjs: true
   sharp: true
 patchedDependencies:
+  '@better-auth/passkey@1.7.18': patches/@better-auth__passkey@1.7.18.patch
   railway@3.16.0: patches/railway.patch
 
 overrides:

@@ -28,7 +28,7 @@ function setup(signedIn = true) {
     options: vi.fn().mockResolvedValue([]),
   };
   const auth = { current: vi.fn().mockResolvedValue(signedIn ? user : null), handle: vi.fn() };
-  const app = createApp(mockServices({ systemLists }), undefined, [], auth);
+  const app = createApp(mockServices({ systemLists }), { auth });
   return { systemLists, app, client: createTestClient(app, { Cookie: 'test-session' }) };
 }
 

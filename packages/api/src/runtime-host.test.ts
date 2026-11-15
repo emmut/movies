@@ -27,11 +27,14 @@ const owner = {
 let services: ReturnType<typeof mockServices>;
 let requests: Request[];
 let revoked: boolean;
+let unavailableCallback: boolean;
+const deliveryError = vi.fn();
 
 beforeEach(() => {
   vi.clearAllMocks();
   requests = [];
   revoked = false;
+  unavailableCallback = false;
   services = mockServices();
   vi.mocked(services.home.list).mockResolvedValue([]);
   vi.mocked(services.preferences.setRegion).mockImplementation(async (_user, input) => input);
@@ -47,12 +50,14 @@ beforeEach(() => {
         : null,
     );
   });
-  const callback = createCacheInvalidator(
-    'http://localhost:3000',
-    ENV.BETTER_AUTH_SECRET,
-    async (url, init) => invalidate(new Request(url, init)),
-  );
-  const app = createApp(services, undefined, [], auth, undefined, callback);
+  const callback = createCacheInvalidator('http://localhost:3000', ENV.BETTER_AUTH_SECRET, {
+    fetcher: async (url, init) =>
+      unavailableCallback
+        ? new Response(null, { status: 503 })
+        : invalidate(new Request(url, init)),
+    onError: deliveryError,
+  });
+  const app = createApp(services, { auth, onMutation: callback });
   vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
     const request = new Request(input, init);
     requests.push(request.clone());
@@ -103,10 +108,11 @@ describe('single Hono runtime', () => {
   );
   it('forwards server cookies without trusting identity headers and isolates accounts', async () => {
     await createServerApi(
-      new Headers({ cookie: 'session=other', 'x-user-id': 'owner' }),
+      new Headers({ cookie: 'session=other', 'x-user-id': 'owner', 'content-type': 'text/plain' }),
     ).preferences.setRegion({ region: 'SE' });
     expect(services.preferences.setRegion).toHaveBeenCalledWith('other', { region: 'SE' });
     expect(requests[0].headers.has('x-user-id')).toBe(false);
+    expect(requests[0].headers.get('content-type')).toContain('application/json');
     expect(revalidateTag).toHaveBeenCalledWith(CACHE_TAGS.private.userRegion('other'), {
       expire: 0,
     });
@@ -166,5 +172,17 @@ describe('single Hono runtime', () => {
       createServerApi(new Headers()).home.list({ category: 'popular-tv' }),
     ).rejects.toThrow();
     expect(services.home.list).not.toHaveBeenCalled();
+  });
+});
+
+it('acknowledges a committed write once even when the web invalidation service is unavailable', async () => {
+  unavailableCallback = true;
+  await expect(client(true).preferences.setRegion({ region: 'US' })).resolves.toEqual({
+    region: 'US',
+  });
+  expect(services.preferences.setRegion).toHaveBeenCalledTimes(1);
+  expect(deliveryError).toHaveBeenCalledWith(expect.any(Error), {
+    domain: 'preferences',
+    userId: 'owner',
   });
 });

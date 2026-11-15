@@ -1,6 +1,6 @@
 'use client';
 
-import { passkeyNameSchema } from '@movies/api/passkeys';
+import { passkeyNameSchema, type PasskeyNameForm } from '@movies/api/passkeys';
 import { Button } from '@movies/ui/components/button';
 import {
   Dialog,
@@ -20,11 +20,8 @@ type PasskeyNameDialogProps = {
   /** Element the dialog trigger renders as, e.g. `<Button />`. */
   trigger: ReactElement;
   triggerLabel: ReactNode;
-  title: string;
-  description: string;
-  initialName: string;
-  submitLabel: string;
-  pendingLabel: string;
+  form: PasskeyNameForm;
+  initialName?: string;
   /** Resolves `true` to close the dialog, `false` to keep it open. */
   onSubmit: (name: string) => Promise<boolean>;
 };
@@ -36,11 +33,8 @@ type PasskeyNameDialogProps = {
 export function PasskeyNameDialog({
   trigger,
   triggerLabel,
-  title,
-  description,
-  initialName,
-  submitLabel,
-  pendingLabel,
+  form,
+  initialName = form.initialName,
   onSubmit,
 }: PasskeyNameDialogProps) {
   const inputId = useId();
@@ -65,11 +59,15 @@ export function PasskeyNameDialog({
     }
 
     setIsPending(true);
-    const shouldClose = await onSubmit(parsed.data);
-    setIsPending(false);
-
-    if (shouldClose) {
-      setIsOpen(false);
+    try {
+      const shouldClose = await onSubmit(parsed.data);
+      if (shouldClose) {
+        setIsOpen(false);
+      }
+    } catch {
+      toast.error(form.failureMessage);
+    } finally {
+      setIsPending(false);
     }
   }
 
@@ -79,8 +77,8 @@ export function PasskeyNameDialog({
       <DialogContent>
         <form onSubmit={handleSubmit} className="grid gap-4">
           <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+            <DialogTitle>{form.title}</DialogTitle>
+            <DialogDescription>{form.description}</DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <Label htmlFor={inputId}>Passkey Name</Label>
@@ -103,7 +101,7 @@ export function PasskeyNameDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? pendingLabel : submitLabel}
+              {isPending ? form.pendingLabel : form.submitLabel}
             </Button>
           </DialogFooter>
         </form>

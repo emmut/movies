@@ -1,0 +1,28 @@
+diff --git a/dist/client.mjs b/dist/client.mjs
+index d7a7acfbf8838500b8d702aa1b0c305eb4557684..049d05b0bfa32ccc6d4d0158ebe211563e20c9e7 100644
+--- a/dist/client.mjs
++++ b/dist/client.mjs
+@@ -28,6 +28,7 @@ const getPasskeyActions = ($fetch, { $listPasskeys, $store }) => {
+ 				data: null,
+ 				error: {
+ 					code: err instanceof WebAuthnError ? err.code : "AUTH_CANCELLED",
++					cause: err instanceof WebAuthnError ? err.cause : err,
+ 					message: PASSKEY_ERROR_CODES.AUTH_CANCELLED.message,
+ 					status: 400,
+ 					statusText: "BAD_REQUEST"
+@@ -136,6 +137,7 @@ const getPasskeyActions = ($fetch, { $listPasskeys, $store }) => {
+ 					data: null,
+ 					error: {
+ 						code: e.code,
++						cause: e.cause,
+ 						message: e.message,
+ 						status: 400,
+ 						statusText: "BAD_REQUEST"
+@@ -146,6 +148,7 @@ const getPasskeyActions = ($fetch, { $listPasskeys, $store }) => {
+ 				data: null,
+ 				error: {
+ 					code: "UNKNOWN_ERROR",
++					cause: e,
+ 					message: e instanceof Error ? e.message : PASSKEY_ERROR_CODES.UNKNOWN_ERROR.message,
+ 					status: 500,
+ 					statusText: "INTERNAL_SERVER_ERROR"

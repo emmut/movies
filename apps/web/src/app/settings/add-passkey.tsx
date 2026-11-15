@@ -1,11 +1,12 @@
 'use client';
 
-import { passkeyFailureMessage } from '@movies/api/passkeys';
+import { PASSKEY_NAME_FORMS } from '@movies/api/passkeys';
 import { Button } from '@movies/ui/components/button';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { addPasskey } from '@/lib/auth-client';
+import { showPasskeyFailure } from '@/lib/passkey-feedback';
 
 import { PasskeyNameDialog } from './passkey-name-dialog';
 
@@ -16,13 +17,7 @@ export function AddPasskey() {
     const result = await addPasskey(name);
 
     if (!result.ok) {
-      const message = passkeyFailureMessage(
-        result.reason,
-        'Failed to add passkey. Please try again.',
-      );
-      if (message) {
-        toast.error(message);
-      }
+      showPasskeyFailure(result.reason, 'Failed to add passkey. Please try again.');
       return false;
     }
 
@@ -35,11 +30,7 @@ export function AddPasskey() {
     <PasskeyNameDialog
       trigger={<Button />}
       triggerLabel="Add Passkey"
-      title="Add New Passkey"
-      description="Give your passkey a name to help you identify it later. This could be the device name or location."
-      initialName="My Passkey"
-      submitLabel="Add Passkey"
-      pendingLabel="Adding..."
+      form={PASSKEY_NAME_FORMS.add}
       onSubmit={handleAddPasskey}
     />
   );

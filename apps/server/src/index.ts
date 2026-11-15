@@ -14,10 +14,13 @@ import { ENV } from '@server/env';
 import { createLogger, createRequestLogger } from '@server/logger';
 import { cachePublicRead } from '@server/public-cache';
 
+const TMDB_CACHE_MS = 60_000;
+const WIKIDATA_CACHE_MS = 86_400_000;
+
 const fetchTmdb = cachePublicRead(
   createTmdbFetch(ENV.MOVIE_DB_ACCESS_TOKEN, ENV.TMDB_API_URL_OVERRIDE),
-  60_000,
-) as ReturnType<typeof createTmdbFetch>;
+  TMDB_CACHE_MS,
+);
 const database = createDatabase(ENV.DATABASE_URL, ENV.DB_POOL_MAX);
 const logger = createLogger(ENV.LOG_LEVEL, ENV.NODE_ENV === 'development');
 
@@ -33,9 +36,23 @@ function resolveCorsOrigin() {
 }
 
 const webUrl = ENV.WEB_URL ?? ENV.AUTH_URL;
+const auth = ENV.AUTH_URL
+  ? createAuthGateway(ENV.AUTH_URL, fetch, ENV.AUTH_PROXY_SECRET)
+  : undefined;
+const onMutation =
+  webUrl && ENV.AUTH_PROXY_SECRET
+    ? createCacheInvalidator(webUrl, ENV.AUTH_PROXY_SECRET, {
+        onError(error, event) {
+          logger.error(
+            { err: error, event },
+            'Could not invalidate web caches after a committed mutation',
+          );
+        },
+      })
+    : undefined;
 const app = createApp(
   createServices(fetchTmdb, database, {
-    readWikidataClaims: cachePublicRead(readWikidataClaims, 86_400_000),
+    readWikidataClaims: cachePublicRead(readWikidataClaims, WIKIDATA_CACHE_MS),
     onCustomListSyncError(error) {
       logger.error({ err: error }, 'Could not sync custom-list title');
     },
@@ -49,13 +66,19 @@ const app = createApp(
       logger.error({ err: error, ...input }, 'Could not load IMDb rating');
     },
   }),
-  resolveCorsOrigin(),
-  [createRequestLogger(logger)],
-  ENV.AUTH_URL ? createAuthGateway(ENV.AUTH_URL, fetch, ENV.AUTH_PROXY_SECRET) : undefined,
-  (context) =>
-    authClientIp(ENV.AUTH_IP_SOURCE, context.req.raw.headers, getConnInfo(context).remote.address),
-  webUrl && ENV.AUTH_PROXY_SECRET
-    ? createCacheInvalidator(webUrl, ENV.AUTH_PROXY_SECRET)
-    : undefined,
+  {
+    origin: resolveCorsOrigin(),
+    middleware: [createRequestLogger(logger)],
+    auth,
+    rpcProxySecret: ENV.AUTH_PROXY_SECRET,
+    clientIp(context) {
+      return authClientIp(
+        ENV.AUTH_IP_SOURCE,
+        context.req.raw.headers,
+        getConnInfo(context).remote.address,
+      );
+    },
+    onMutation,
+  },
 );
 serve({ fetch: app.fetch, port: ENV.PORT });

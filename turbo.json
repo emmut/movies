@@ -9,6 +9,7 @@
       "cache": false,
       "env": [
         "API_URL",
+        "RPC_IP_SOURCE",
         "AUTH_RATE_LIMIT_DISABLED",
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_TRUSTED_ORIGIN",
@@ -37,6 +38,7 @@
       "persistent": true,
       "env": [
         "API_URL",
+        "RPC_IP_SOURCE",
         "NODE_ENV",
         "MOVIE_DB_ACCESS_TOKEN",
         "TMDB_API_URL_OVERRIDE",

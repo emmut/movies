@@ -20,9 +20,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@native/*": ["../native/*"],
-      "@server/*": ["../server/src/*"]
+      "@/*": ["./src/*"]
     },
     "allowImportingTsExtensions": true
   },

@@ -1,13 +1,12 @@
 'use client';
 
-import { passkeyFailureMessage } from '@movies/api/passkeys';
 import { Button } from '@movies/ui/components/button';
 import { PasskeyFillIcon } from '@primer/octicons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 import { signInPasskey } from '@/lib/auth-client';
+import { showPasskeyFailure } from '@/lib/passkey-feedback';
 import { getSafeRedirectUrl } from '@/lib/utils';
 
 /**
@@ -29,13 +28,7 @@ export function PasskeyLoginForm({ redirectUrl }: { redirectUrl?: string }) {
     const result = await signInPasskey();
 
     if (!result.ok) {
-      const message = passkeyFailureMessage(
-        result.reason,
-        'Failed to sign in with passkey. Please try again.',
-      );
-      if (message) {
-        toast.error(message);
-      }
+      showPasskeyFailure(result.reason, 'Failed to sign in with passkey. Please try again.');
       setIsLoading(false);
       return;
     }

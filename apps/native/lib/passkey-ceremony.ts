@@ -51,6 +51,8 @@ function cancelled(error: unknown) {
 }
 
 /**
+ * iOS bridges ASAuthorizationError.canceled as UserCancelledException / ERR_USER_CANCELLED.
+ * Other iOS authorization/configuration failures stay visible as generic failures.
  * Android's Credential Manager reports its failures as message strings:
  * `NoCredentials` when the device holds no passkey for the site, and a DOM
  * `InvalidStateError` when an excluded credential already lives on it.
@@ -66,7 +68,7 @@ function deviceErrorCode(error: unknown) {
   if (errorField(error, 'name') === 'InvalidStateError' || message.includes('InvalidStateError')) {
     return PASSKEY_ERROR.alreadyRegistered;
   }
-  return 'PASSKEY_FAILED';
+  return PASSKEY_ERROR.failed;
 }
 
 /** The same challenge/verification protocol as the official browser client, using OS credentials. */
@@ -88,7 +90,7 @@ export function createPasskeyCeremony(sources: Sources) {
         return options;
       }
       if (!options.data) {
-        return failure('PASSKEY_FAILED');
+        return failure(PASSKEY_ERROR.failed);
       }
       const result = await credential(ceremony, options.data);
       if (!result) {
@@ -133,7 +135,7 @@ function optionsPath(ceremony: Ceremony) {
 
 function verificationResult(result: Result) {
   if (!result.error && !result.data) {
-    return failure('PASSKEY_FAILED');
+    return failure(PASSKEY_ERROR.failed);
   }
   return result;
 }

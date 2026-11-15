@@ -1,6 +1,11 @@
 'use client';
 
-import { deviceTypeLabel, formatPasskeyDate, type PasskeyMetadata } from '@movies/api/passkeys';
+import {
+  PASSKEY_NAME_FORMS,
+  deviceTypeLabel,
+  formatPasskeyDate,
+  type PasskeyMetadata,
+} from '@movies/api/passkeys';
 import { Button } from '@movies/ui/components/button';
 import { Card, CardContent } from '@movies/ui/components/card';
 import {
@@ -91,11 +96,8 @@ function PasskeyItem({ passkey }: { passkey: PasskeyMetadata }) {
           <PasskeyNameDialog
             trigger={<Button variant="outline" size="sm" disabled={isDeleting} />}
             triggerLabel="Rename"
-            title="Rename Passkey"
-            description="Choose a name that helps you recognise this passkey."
+            form={PASSKEY_NAME_FORMS.rename}
             initialName={passkey.name ?? ''}
-            submitLabel="Save"
-            pendingLabel="Saving..."
             onSubmit={handleRename}
           />
 

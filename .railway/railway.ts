@@ -119,6 +119,7 @@ export default defineRailway((ctx) => {
     domains: settings.appDomains,
     env: {
       API_URL: "https://${{api.RAILWAY_PUBLIC_DOMAIN}}",
+      RPC_IP_SOURCE: "railway",
       BETTER_AUTH_SECRET: preserve(),
       BETTER_AUTH_TRUSTED_ORIGIN: preserve(),
       // Every environment uses its own postgres-db.

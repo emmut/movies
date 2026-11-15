@@ -62,6 +62,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@movies/auth": "workspace:*",
     "@tanstack/react-query": "catalog:",
     "react": "catalog:"
   },

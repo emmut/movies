@@ -24,7 +24,7 @@ function setup(current: AuthGateway['current'] | undefined) {
   if (current) {
     auth = { handle: vi.fn(), current };
   }
-  const app = createApp(mockServices({ preferences }), undefined, [], auth);
+  const app = createApp(mockServices({ preferences }), { auth });
   return { app, preferences, client: createTestClient(app, { Cookie: 'signed-test-cookie' }) };
 }
 

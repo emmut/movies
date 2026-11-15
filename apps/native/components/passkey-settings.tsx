@@ -1,5 +1,8 @@
 import {
-  classifyPasskeyError,
+  PASSKEY_NAME_FORMS,
+  runPasskeyCall,
+  type PasskeyNameForm,
+  type PasskeyResult,
   deviceTypeLabel,
   formatPasskeyDate,
   passkeyFailureMessage,
@@ -38,53 +41,27 @@ async function refresh(userId: string) {
   await queryClient.invalidateQueries({ queryKey: passkeyKey(userId) });
 }
 
-/** Thrown to keep the sheet open without a message after a dismissed OS prompt. */
-class PasskeyPromptDismissed extends Error {}
-
-function registrationFailure(error: unknown) {
-  const message = passkeyFailureMessage(
-    classifyPasskeyError(error),
-    'Couldn’t add your passkey. Please try again.',
-  );
-  if (message === null) {
-    return new PasskeyPromptDismissed();
-  }
-  return new Error(message);
-}
-
 type NameSheetProps = {
-  title: string;
-  /** Names the sheet's buttons for assistive tech, e.g. "Confirm Add Passkey". */
-  action: string;
-  description: string;
-  initialName: string;
-  submitLabel: string;
-  pendingLabel: string;
-  /** Saves the validated name; a thrown error's message is shown in the sheet. */
-  save: (name: string) => Promise<void>;
+  form: PasskeyNameForm;
+  initialName?: string;
+  save: (name: string) => Promise<PasskeyResult>;
   close: () => void;
 };
 
 /** Sheet with a single passkey-name field, shared by adding and renaming. */
-function PasskeyNameSheet({
-  title,
-  action,
-  description,
-  initialName,
-  submitLabel,
-  pendingLabel,
-  save,
-  close,
-}: NameSheetProps) {
+function PasskeyNameSheet({ form, initialName = form.initialName, save, close }: NameSheetProps) {
   const [name, setName] = useState(initialName);
   const [error, setError] = useState<string | null>(null);
   const mutation = useMutation({
     mutationFn: save,
-    onSuccess: close,
-    onError(error) {
-      if (error instanceof PasskeyPromptDismissed) {
-        return;
+    onSuccess(result) {
+      if (result.ok) {
+        close();
+      } else {
+        setError(passkeyFailureMessage(result.reason, form.failureMessage));
       }
+    },
+    onError(error) {
       setError(error.message);
     },
   });
@@ -114,9 +91,9 @@ function PasskeyNameSheet({
             keyboardShouldPersistTaps="handled"
           >
             <Text accessibilityRole="header" className="text-xl font-bold text-foreground">
-              {title}
+              {form.title}
             </Text>
-            <Text className="text-muted">{description}</Text>
+            <Text className="text-muted">{form.description}</Text>
             <Text className="font-semibold text-foreground">Passkey Name</Text>
             <TextInput
               accessibilityLabel="Passkey Name"
@@ -137,19 +114,19 @@ function PasskeyNameSheet({
             ) : null}
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={'Confirm ' + action}
+              accessibilityLabel={'Confirm ' + form.action}
               disabled={mutation.isPending}
               accessibilityState={{ disabled: mutation.isPending }}
               className="min-h-12 items-center justify-center rounded-xl bg-foreground px-4"
               onPress={submit}
             >
               <Text className="font-semibold text-background">
-                {mutation.isPending ? pendingLabel : submitLabel}
+                {mutation.isPending ? form.pendingLabel : form.submitLabel}
               </Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={'Cancel ' + action}
+              accessibilityLabel={'Cancel ' + form.action}
               disabled={mutation.isPending}
               className="bg-default min-h-12 items-center justify-center rounded-xl px-4"
               onPress={dismiss}
@@ -165,24 +142,13 @@ function PasskeyNameSheet({
 
 function AddPasskey({ userId, close }: { userId: string; close: () => void }) {
   async function save(name: string) {
-    const result = await addDevicePasskey(name);
-    if (result.error) {
-      throw registrationFailure(result.error);
+    const result = await runPasskeyCall('add passkey', () => addDevicePasskey(name));
+    if (result.ok) {
+      await refresh(userId);
     }
-    await refresh(userId);
+    return result;
   }
-  return (
-    <PasskeyNameSheet
-      title="Add New Passkey"
-      action="Add Passkey"
-      description="Give your passkey a name to help you identify it later. This could be the device name or location."
-      initialName="My Passkey"
-      submitLabel="Add Passkey"
-      pendingLabel="Adding…"
-      save={save}
-      close={close}
-    />
-  );
+  return <PasskeyNameSheet form={PASSKEY_NAME_FORMS.add} save={save} close={close} />;
 }
 
 function RenamePasskey({
@@ -195,20 +161,18 @@ function RenamePasskey({
   close: () => void;
 }) {
   async function save(name: string) {
-    const result = await authClient.passkey.updatePasskey({ id: item.id, name });
-    if (result.error) {
-      throw new Error('Couldn’t rename your passkey. Please try again.');
+    const result = await runPasskeyCall('rename passkey', () =>
+      authClient.passkey.updatePasskey({ id: item.id, name }),
+    );
+    if (result.ok) {
+      await refresh(userId);
     }
-    await refresh(userId);
+    return result;
   }
   return (
     <PasskeyNameSheet
-      title="Rename Passkey"
-      action="Rename Passkey"
-      description="Choose a name that helps you recognise this passkey."
+      form={PASSKEY_NAME_FORMS.rename}
       initialName={item.name ?? ''}
-      submitLabel="Save"
-      pendingLabel="Saving…"
       save={save}
       close={close}
     />

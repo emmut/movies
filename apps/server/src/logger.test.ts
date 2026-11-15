@@ -25,7 +25,7 @@ function setup(level: string) {
   const services = mockServices({
     home: { list: vi.fn().mockResolvedValue([]), trending: vi.fn() },
   });
-  const app = createApp(services, undefined, [createRequestLogger(logger)]);
+  const app = createApp(services, { middleware: [createRequestLogger(logger)] });
   return { app, lines };
 }
 

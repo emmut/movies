@@ -55,13 +55,12 @@ describe('deviceTypeLabel', () => {
 });
 
 describe('classifyPasskeyError', () => {
-  it.each([
-    PASSKEY_ERROR.cancelled,
-    'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY',
-    'ERROR_CEREMONY_ABORTED',
-  ])('treats %s as a cancelled prompt', (code) => {
-    expect(classifyPasskeyError({ code })).toBe('cancelled');
-  });
+  it.each([PASSKEY_ERROR.cancelled, 'ERROR_CEREMONY_ABORTED'])(
+    'treats %s as a cancelled prompt',
+    (code) => {
+      expect(classifyPasskeyError({ code })).toBe('cancelled');
+    },
+  );
 
   it.each([PASSKEY_ERROR.alreadyRegistered, 'ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED'])(
     'treats %s as an authenticator that already holds a passkey',
@@ -98,4 +97,25 @@ describe('passkeyFailureMessage', () => {
   ] as const)('describes %s', (reason, message) => {
     expect(passkeyFailureMessage(reason, 'fallback')).toBe(message);
   });
+});
+
+it.each(['SecurityError', 'UnknownError', 'InvalidStateError'])(
+  'does not silence a browser %s',
+  (name) => {
+    expect(
+      classifyPasskeyError({
+        code: 'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY',
+        cause: new DOMException('failed', name),
+      }),
+    ).toBe('failed');
+  },
+);
+it('only suppresses a passthrough with a NotAllowedError cause', () => {
+  expect(
+    classifyPasskeyError({
+      code: 'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY',
+      cause: new DOMException('dismissed', 'NotAllowedError'),
+    }),
+  ).toBe('cancelled');
+  expect(classifyPasskeyError({ code: 'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY' })).toBe('failed');
 });

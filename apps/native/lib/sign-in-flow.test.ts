@@ -56,7 +56,10 @@ describe('native sign-in completion', () => {
   });
   it.each([
     ['PASSKEY_CANCELLED', { status: 'dismissed' }],
-    ['ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY', { status: 'dismissed' }],
+    [
+      'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY',
+      { status: 'failed', message: 'Couldn’t sign in. Please try again.' },
+    ],
     [
       'PASSKEY_NO_CREDENTIALS',
       { status: 'failed', message: 'No passkey for Movies was found on this device.' },
@@ -79,3 +82,22 @@ describe('native sign-in completion', () => {
     });
   });
 });
+
+it.each(['NotAllowedError', 'SecurityError'])(
+  'distinguishes the browser cause %s before checking session state',
+  async (name) => {
+    const current = vi.fn();
+    const flow = createSignInFlow({
+      signIn: async () => ({
+        error: {
+          code: 'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY',
+          cause: new DOMException('prompt failed', name),
+        },
+      }),
+      current,
+    });
+    const result = await flow('passkey', '/');
+    expect(result.status).toBe(name === 'NotAllowedError' ? 'dismissed' : 'failed');
+    expect(current).not.toHaveBeenCalled();
+  },
+);

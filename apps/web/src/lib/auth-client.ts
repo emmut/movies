@@ -1,5 +1,5 @@
 import { passkeyClient } from '@better-auth/passkey/client';
-import { classifyPasskeyError, type PasskeyResult } from '@movies/api/passkeys';
+import { runPasskeyCall } from '@movies/api/passkeys';
 import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
@@ -72,32 +72,6 @@ export async function signInSettings(redirectUrl: string) {
   } catch (error) {
     console.error('Failed to sign in with Discord:', error);
     return { error: 'Failed to sign in with Discord', data: null };
-  }
-}
-
-/**
- * Runs a Better Auth passkey call and reduces its outcome to a `PasskeyResult`.
- * Thrown errors and returned `{ error }` values are classified the same way.
- */
-async function runPasskeyCall(
-  label: string,
-  call: () => Promise<{ error: unknown } | null | undefined>,
-): Promise<PasskeyResult> {
-  try {
-    const response = await call();
-
-    if (response?.error) {
-      throw response.error;
-    }
-
-    return { ok: true };
-  } catch (error) {
-    const reason = classifyPasskeyError(error);
-
-    if (reason !== 'cancelled') {
-      console.error(`Failed to ${label}:`, error);
-    }
-    return { ok: false, reason };
   }
 }
 

@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vite-plus/test';
 
 function setup(auth?: AuthGateway) {
   const services = mockServices();
-  const app = createApp(services, undefined, [], auth);
+  const app = createApp(services, { auth });
   const client = createTestClient(app, { Cookie: 'signed-test-cookie' });
   return { app, client };
 }

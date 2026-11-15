@@ -100,6 +100,14 @@ describe('native passkey challenge protocol', () => {
     },
   );
   it.each([
+    // Expo's installed iOS bridge maps ASAuthorizationError 1001 to this exception/code.
+    [{ name: 'UserCancelledException' }, 'PASSKEY_CANCELLED'],
+    [{ code: 'ERR_USER_CANCELLED' }, 'PASSKEY_CANCELLED'],
+    [
+      { code: 'ERR_PASSKEY_REQUEST_FAILED', name: 'PasskeyRequestFailedException' },
+      'PASSKEY_FAILED',
+    ],
+    [{ code: 'ERR_NOT_CONFIGURED', name: 'NotConfiguredException' }, 'PASSKEY_FAILED'],
     [{ message: 'NoCredentials' }, 'PASSKEY_NO_CREDENTIALS'],
     [{ message: 'DomError: InvalidStateError - already registered' }, 'PASSKEY_ALREADY_REGISTERED'],
     [new DOMException('excluded', 'InvalidStateError'), 'PASSKEY_ALREADY_REGISTERED'],

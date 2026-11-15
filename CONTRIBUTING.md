@@ -46,7 +46,7 @@ Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test
 
 Use `pnpm exec vp check` (or `pnpm check`) for formatting, linting, and type-aware checks, `pnpm exec vp test run` for unit tests, and `pnpm test:coverage` for coverage. Formatting covers `apps`, `packages`, `scripts`, patch regression tests, and `vite.config.ts`. The pnpm `packageManager` field remains authoritative for installation; run `pnpm install --frozen-lockfile` in CI.
 
-Dependencies shared by workspaces use `catalog:` references; update their versions in the `pnpm-workspace.yaml` catalog. Dependency patch regression tests live in `patches/` and run with `pnpm test`. Railway SDK 3.16 requires Railway CLI 5.42.1 or newer because the IaC compiler now ships with the CLI.
+Dependencies shared by workspaces use `catalog:` references; update their versions in the `pnpm-workspace.yaml` catalog. Dependency patch regression tests live in `patches/` and run with `pnpm test`. The Better Auth passkey client patch preserves WebAuthn causes so browsers can distinguish a dismissed prompt from a security failure; keep its SDK-boundary tests when upgrading. Railway SDK 3.16 requires Railway CLI 5.42.1 or newer because the IaC compiler now ships with the CLI.
 
 Use `pnpm test:watch` to watch the full suite or `pnpm --filter @movies/web test:watch` for web tests. The package script delegates to the shared root runner with Vite+'s `vp run -w` workspace selector and a test file filter.
 

@@ -60,6 +60,14 @@ function verify(request: Request, secret: string, now: number) {
   return ip;
 }
 
+/** Only trusted web/API hosts can assert the original ingress IP. Signatures bind method and path. */
+export function verifiedProxyIp(request: Request, secret: string, now = Date.now()) {
+  if (!request.headers.has(SIGNATURE_HEADER) && !request.headers.has(TIMESTAMP_HEADER)) {
+    return undefined;
+  }
+  return verify(request, secret, now);
+}
+
 /** Strip caller metadata; only a verified gateway signature may populate Better Auth's IP key. */
 export function verifiedAuthRequest(request: Request, secret: string, now = Date.now()) {
   const headers = new Headers(request.headers);

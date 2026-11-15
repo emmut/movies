@@ -13,7 +13,10 @@ vi.mock('@/lib/pending-greet', () => ({ markPendingGreet: vi.fn(), clearPendingG
 import { addPasskey, deletePasskey, renamePasskey, signInPasskey } from '@/lib/auth-client';
 import { clearPendingGreet, markPendingGreet } from '@/lib/pending-greet';
 
-const cancelled = { code: 'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY' };
+const cancelled = {
+  code: 'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY',
+  cause: new DOMException('dismissed', 'NotAllowedError'),
+};
 const serverError = { code: 'INTERNAL_SERVER_ERROR', status: 500 };
 
 beforeEach(() => {

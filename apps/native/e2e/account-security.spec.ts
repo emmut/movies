@@ -231,18 +231,15 @@ test('renaming a passkey validates and saves the trimmed name', async ({ page })
   await expect(page.getByText('Work phone', { exact: true })).toBeVisible();
   expect(data.renames).toEqual([{ id: 'key-1', name: 'Work phone' }]);
 });
-test('adding a passkey validates the draft and treats device cancellation as recoverable', async ({
-  page,
-}) => {
-  await model(page);
-  await page.addInitScript(() => {
+async function mockRegistrationPrompt(page: Page, errorName: string) {
+  await page.addInitScript((name: string) => {
     Object.defineProperty(navigator.credentials, 'create', {
       value: async () => {
-        throw new DOMException('cancelled', 'NotAllowedError');
+        throw new DOMException('prompt failed', name);
       },
       configurable: true,
     });
-  });
+  }, errorName);
   await page.route('**/api/auth/passkey/generate-register-options*', async (route) => {
     if (await preflight(route)) {
       return;
@@ -257,6 +254,13 @@ test('adding a passkey validates the draft and treats device cancellation as rec
       headers: corsHeaders,
     });
   });
+}
+
+test('adding a passkey validates the draft and treats device cancellation as recoverable', async ({
+  page,
+}) => {
+  await model(page);
+  await mockRegistrationPrompt(page, 'NotAllowedError');
   await page.goto('/more/settings');
   await page.getByRole('button', { name: 'Add Passkey', exact: true }).click();
   await page.getByRole('textbox', { name: 'Passkey Name', exact: true }).fill(' ');
@@ -274,6 +278,18 @@ test('adding a passkey validates the draft and treats device cancellation as rec
   ).toBeEnabled();
   await page.getByRole('button', { name: 'Cancel Add Passkey' }).click();
 });
+test('passkey security failures remain visible and can be retried', async ({ page }) => {
+  await model(page);
+  await mockRegistrationPrompt(page, 'SecurityError');
+  await page.goto('/more/settings');
+  await page.getByRole('button', { name: 'Add Passkey', exact: true }).click();
+  await page.getByRole('button', { name: 'Confirm Add Passkey', exact: true }).click();
+  await expect(page.getByRole('alert')).toHaveText('Failed to add passkey. Please try again.');
+  await expect(
+    page.getByRole('button', { name: 'Confirm Add Passkey', exact: true }),
+  ).toBeEnabled();
+});
+
 for (const colorScheme of ['light', 'dark'] as const) {
   test(`security cards match the settings hierarchy in ${colorScheme}`, async ({ page }) => {
     await page.emulateMedia({ colorScheme });
