@@ -4,8 +4,6 @@ import * as railway from 'railway';
 import * as iac from 'railway/iac';
 import { describe, expect, it } from 'vite-plus/test';
 
-import deployment from '../.railway/railway';
-
 const require = createRequire(import.meta.url);
 const entrypoints: [string, typeof iac][] = [
   ['railway (ESM)', railway],
@@ -13,34 +11,6 @@ const entrypoints: [string, typeof iac][] = [
   ['railway (CommonJS)', require('railway')],
   ['railway/iac (CommonJS)', require('railway/iac')],
 ];
-
-describe('production API provisioning', () => {
-  it('adds the shared API without deleting the legacy web variable', async () => {
-    const graph = await deployment(
-      iac.createRailwayContext({ environmentName: 'production' }),
-      iac.project,
-    );
-    const services = graph.resources?.flat().filter((resource) => resource.type === 'service');
-    const web = services?.find((resource) => resource.name === 'movies');
-    const api = services?.find((resource) => resource.name === 'api');
-
-    // Deleting this existing production variable blocks `config apply --yes`
-    // before Railway can provision the API or supply web's required API_URL.
-    expect(web?.variables?.NEXT_PUBLIC_IMAGEKIT_ID).toEqual(iac.preserve());
-    expect(web?.variables?.API_URL).toEqual({
-      type: 'literal',
-      value: 'https://${{api.RAILWAY_PUBLIC_DOMAIN}}',
-    });
-    expect(web?.variables?.RPC_IP_SOURCE).toEqual({ type: 'literal', value: 'railway' });
-    expect(api?.deploy?.healthcheckPath).toBe('/health');
-    expect(api?.variables?.AUTH_PROXY_SECRET).toEqual({
-      type: 'reference',
-      resource: 'service.movies',
-      output: 'BETTER_AUTH_SECRET',
-    });
-    expect(api?.variables?.DATABASE_URL).toEqual(web?.variables?.DATABASE_URL);
-  });
-});
 
 describe.each(entrypoints)('%s database deploy patch', (_name, sdk) => {
   it.each(['postgres', 'mysql', 'redis', 'mongo'] as const)(

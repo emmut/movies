@@ -19,6 +19,7 @@
     "e2e:install": "playwright install --with-deps chromium webkit",
     "fallow": "fallow audit",
     "fallow:dead-code": "fallow dead-code",
+    "infra:deploy": "railway config apply",
     "format": "vp fmt --write",
     "format:check": "vp fmt --check",
     "db": "node --env-file-if-exists=apps/web/.env ./node_modules/drizzle-kit/bin.cjs",
