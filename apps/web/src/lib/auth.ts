@@ -7,8 +7,10 @@ import { anonymous } from 'better-auth/plugins';
 
 import { env } from '@/env';
 import { db } from '@/lib/db';
+import { APP_NAME, passkeyOptions } from '@/lib/passkey-options';
 
 export const auth = betterAuth({
+  appName: APP_NAME,
   baseURL: env.NEXT_PUBLIC_BASE_URL,
   trustedOrigins: [
     env.BETTER_AUTH_TRUSTED_ORIGIN,
@@ -60,7 +62,7 @@ export const auth = betterAuth({
         }
       },
     }),
-    passkey(),
+    passkey(passkeyOptions),
     nextCookies(),
   ],
 });

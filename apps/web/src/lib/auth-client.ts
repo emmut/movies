@@ -3,6 +3,7 @@ import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 import { env } from '@/env';
+import { classifyPasskeyError, type PasskeyResult } from '@/lib/passkey-errors';
 import { clearPendingGreet, markPendingGreet } from '@/lib/pending-greet';
 
 import { getSafeRedirectUrl } from './utils';
@@ -74,44 +75,66 @@ export async function signInSettings(redirectUrl: string) {
   }
 }
 
-export async function addPasskey(name: string = 'My Passkey') {
+/**
+ * Runs a Better Auth passkey call and reduces its outcome to a `PasskeyResult`.
+ * Thrown errors and returned `{ error }` values are classified the same way.
+ */
+async function runPasskeyCall(
+  label: string,
+  call: () => Promise<{ error: unknown } | null | undefined>,
+): Promise<PasskeyResult> {
   try {
-    const data = await authClient.passkey.addPasskey({
-      name,
-    });
+    const response = await call();
 
-    if (data?.error) {
-      throw data.error;
+    if (response?.error) {
+      throw response.error;
     }
 
-    return { error: false, data };
+    return { ok: true };
   } catch (error) {
-    console.error('Failed to add passkey:', error);
-    return { error: true, data: null };
+    const reason = classifyPasskeyError(error);
+
+    if (reason !== 'cancelled') {
+      console.error(`Failed to ${label}:`, error);
+    }
+    return { ok: false, reason };
   }
 }
 
-export async function signInPasskey(email: string, autoFill = false) {
-  try {
-    const data = await authClient.signIn.passkey(
-      {
-        autoFill,
-      },
-      {
-        onRequest: () => markPendingGreet(),
-        onError: () => clearPendingGreet(),
-      },
-    );
+/**
+ * Registers a new passkey on the signed-in user's account.
+ *
+ * @param name - Label shown in the passkey list
+ */
+export async function addPasskey(name: string) {
+  return runPasskeyCall('add passkey', () => authClient.passkey.addPasskey({ name }));
+}
 
-    if (data?.error) {
-      throw data.error;
-    }
+/**
+ * Signs in with a discoverable passkey. No username is needed: the browser
+ * lists the passkeys it holds for this site.
+ */
+export async function signInPasskey() {
+  return runPasskeyCall('sign in with passkey', () =>
+    authClient.signIn.passkey(undefined, {
+      onRequest: () => markPendingGreet(),
+      onError: () => clearPendingGreet(),
+    }),
+  );
+}
 
-    return data;
-  } catch (error) {
-    console.warn('Failed to sign in with passkey:', error);
-    return { error, data: null };
-  }
+/**
+ * Renames one of the signed-in user's passkeys.
+ */
+export async function renamePasskey(id: string, name: string) {
+  return runPasskeyCall('rename passkey', () => authClient.passkey.updatePasskey({ id, name }));
+}
+
+/**
+ * Deletes one of the signed-in user's passkeys.
+ */
+export async function deletePasskey(id: string) {
+  return runPasskeyCall('delete passkey', () => authClient.passkey.deletePasskey({ id }));
 }
 
 /**

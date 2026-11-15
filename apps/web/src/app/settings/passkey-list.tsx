@@ -11,58 +11,38 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@movies/ui/components/dialog';
-import { Separator } from '@movies/ui/components/separator';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-type Passkey = {
-  id: string;
-  name?: string;
-  createdAt?: Date;
-  deviceType: string;
-};
+import { deletePasskey, renamePasskey } from '@/lib/auth-client';
 
-type PasskeyListProps = {
-  passkeys: Passkey[];
-};
+import type { UserPasskey } from './passkey-data';
+import { PasskeyNameDialog } from './passkey-name-dialog';
 
-export function PasskeyList({ passkeys }: PasskeyListProps) {
-  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
-  const router = useRouter();
+const UNNAMED = 'Unnamed passkey';
 
-  async function handleDeletePasskey(passkeyId: string) {
-    setDeletingIds((prev) => new Set([...prev, passkeyId]));
+/**
+ * Human label for WebAuthn's credential device type: synced passkeys are
+ * `multiDevice`, device-bound ones (e.g. most security keys) `singleDevice`.
+ */
+export function deviceTypeLabel(deviceType: string) {
+  if (deviceType === 'multiDevice') return 'Synced';
+  if (deviceType === 'singleDevice') return 'This device only';
+  return deviceType;
+}
 
-    try {
-      const response = await fetch('/api/auth/passkey/delete-passkey', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: passkeyId }),
-      });
+/** Creation date as e.g. "5 Mar 2026", or "Unknown" when missing. */
+export function formatCreatedAt(createdAt: Date | null | undefined) {
+  if (!createdAt) return 'Unknown';
+  return new Date(createdAt).toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
 
-      if (!response.ok) {
-        throw new Error('Failed to delete passkey');
-      }
-
-      toast.success('Passkey deleted successfully!');
-      setDeleteDialogOpen(null);
-      router.refresh();
-    } catch (error) {
-      console.error('Failed to delete passkey:', error);
-      toast.error('Failed to delete passkey. Please try again.');
-    } finally {
-      setDeletingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(passkeyId);
-        return newSet;
-      });
-    }
-  }
-
+export function PasskeyList({ passkeys }: { passkeys: UserPasskey[] }) {
   if (passkeys.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">
@@ -72,77 +52,103 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
   }
 
   return (
-    <div className="space-y-2">
-      {passkeys.map((passkey, index) => (
-        <div key={passkey.id}>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="font-medium">{passkey.name || 'Unnamed passkey'}</div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="capitalize">{passkey.deviceType}</span>
-                    <span>
-                      Created:{' '}
-                      {passkey.createdAt
-                        ? new Date(passkey.createdAt).toLocaleDateString('en-GB', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })
-                        : 'Unknown'}
-                    </span>
-                  </div>
-                </div>
-
-                <Dialog
-                  open={deleteDialogOpen === passkey.id}
-                  onOpenChange={(open) => setDeleteDialogOpen(open ? passkey.id : null)}
-                >
-                  <DialogTrigger
-                    render={
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        disabled={deletingIds.has(passkey.id)}
-                      />
-                    }
-                  >
-                    {deletingIds.has(passkey.id) ? 'Deleting...' : 'Delete'}
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Delete Passkey</DialogTitle>
-                      <DialogDescription>
-                        Are you sure you want to delete &quot;
-                        {passkey.name || 'Unnamed passkey'}&quot;? This action cannot be undone and
-                        you will no longer be able to use this passkey to sign in.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setDeleteDialogOpen(null)}
-                        disabled={deletingIds.has(passkey.id)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleDeletePasskey(passkey.id)}
-                        disabled={deletingIds.has(passkey.id)}
-                      >
-                        {deletingIds.has(passkey.id) ? 'Deleting...' : 'Delete Passkey'}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardContent>
-          </Card>
-          {index < passkeys.length - 1 && <Separator />}
-        </div>
+    <ul className="space-y-2">
+      {passkeys.map((passkey) => (
+        <li key={passkey.id}>
+          <PasskeyItem passkey={passkey} />
+        </li>
       ))}
-    </div>
+    </ul>
+  );
+}
+
+function PasskeyItem({ passkey }: { passkey: UserPasskey }) {
+  const router = useRouter();
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const displayName = passkey.name || UNNAMED;
+
+  async function handleRename(name: string) {
+    const result = await renamePasskey(passkey.id, name);
+
+    if (!result.ok) {
+      toast.error('Failed to rename passkey. Please try again.');
+      return false;
+    }
+
+    toast.success('Passkey renamed.');
+    router.refresh();
+    return true;
+  }
+
+  async function handleDelete() {
+    setIsDeleting(true);
+    const result = await deletePasskey(passkey.id);
+    setIsDeleting(false);
+
+    if (!result.ok) {
+      toast.error('Failed to delete passkey. Please try again.');
+      return;
+    }
+
+    toast.success('Passkey deleted successfully!');
+    setIsDeleteOpen(false);
+    router.refresh();
+  }
+
+  return (
+    <Card>
+      <CardContent className="flex items-center justify-between gap-4 p-4">
+        <div className="space-y-1">
+          <div className="font-medium">{displayName}</div>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <span>{deviceTypeLabel(passkey.deviceType)}</span>
+            <span>Created: {formatCreatedAt(passkey.createdAt)}</span>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 gap-2">
+          <PasskeyNameDialog
+            trigger={<Button variant="outline" size="sm" disabled={isDeleting} />}
+            triggerLabel="Rename"
+            title="Rename Passkey"
+            description="Choose a name that helps you recognise this passkey."
+            initialName={passkey.name ?? ''}
+            submitLabel="Save"
+            pendingLabel="Saving..."
+            onSubmit={handleRename}
+          />
+
+          <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+            <DialogTrigger
+              render={<Button variant="destructive" size="sm" disabled={isDeleting} />}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Passkey</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete &quot;{displayName}&quot;? This action cannot be
+                  undone and you will no longer be able to use this passkey to sign in.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteOpen(false)}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                  {isDeleting ? 'Deleting...' : 'Delete Passkey'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
