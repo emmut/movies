@@ -2,13 +2,7 @@ import { varlockNextConfigPlugin } from '@varlock/nextjs-integration/plugin';
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: [
-    '@movies/ui',
-    '@movies/db',
-    '@movies/config',
-    '@movies/auth',
-    '@movies/api',
-  ],
+  transpilePackages: ['@movies/ui', '@movies/db', '@movies/config', '@movies/auth', '@movies/api'],
   reactCompiler: true,
   cacheComponents: true,
   experimental: {

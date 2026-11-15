@@ -1,5 +1,4 @@
 import 'server-only';
-
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 
 /**
