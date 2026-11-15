@@ -29,9 +29,24 @@ function ratingLabel(episode: Episode) {
 }
 
 function Episodes({ data }: { data: SeasonPage }) {
-  const [revealed, setRevealed] = useState<number[]>([]);
-  const all =
-    data.episodes.length > 0 && data.episodes.every((episode) => revealed.includes(episode.id));
+  const [revealedEpisodeIds, setRevealedEpisodeIds] = useState<number[]>([]);
+  const allEpisodesRevealed =
+    data.episodes.length > 0 &&
+    data.episodes.every((episode) => revealedEpisodeIds.includes(episode.id));
+  function toggleEpisode(episodeId: number) {
+    setRevealedEpisodeIds((currentIds) => toggleId(currentIds, episodeId));
+  }
+
+  function toggleAllEpisodes() {
+    if (allEpisodesRevealed) {
+      setRevealedEpisodeIds([]);
+      return;
+    }
+
+    const episodeIds = data.episodes.map((episode) => episode.id);
+    setRevealedEpisodeIds(episodeIds);
+  }
+
   return (
     <View className="gap-6">
       <View className="bg-default gap-3 rounded-2xl border border-border p-6">
@@ -51,11 +66,11 @@ function Episodes({ data }: { data: SeasonPage }) {
       </Text>
       <Pressable
         accessibilityRole="button"
-        onPress={() => setRevealed(all ? [] : data.episodes.map((episode) => episode.id))}
+        onPress={toggleAllEpisodes}
         className="bg-default min-h-11 justify-center self-start rounded-lg border border-border px-4"
       >
         <Text className="font-semibold text-foreground">
-          {all ? 'Hide spoilers' : 'Show spoilers'}
+          {allEpisodesRevealed ? 'Hide spoilers' : 'Show spoilers'}
         </Text>
       </Pressable>
       {data.episodes.length === 0 ? (
@@ -65,8 +80,8 @@ function Episodes({ data }: { data: SeasonPage }) {
         <EpisodeCard
           key={episode.id}
           episode={episode}
-          visible={revealed.includes(episode.id)}
-          toggle={() => setRevealed((ids) => toggleId(ids, episode.id))}
+          visible={revealedEpisodeIds.includes(episode.id)}
+          toggle={() => toggleEpisode(episode.id)}
         />
       ))}
     </View>

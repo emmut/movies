@@ -12,13 +12,17 @@ import { getQueryClient } from '@/lib/query-client';
 import type { SystemListType } from '@/lib/validations';
 import { getListFilterContext } from '@/lib/watch-provider-filter-context';
 
+type SystemListSearchParams = {
+  mediaType?: string;
+  page?: string;
+  with_watch_providers?: string;
+  watch_region?: string;
+};
+
+type ListFilterContext = Awaited<ReturnType<typeof getListFilterContext>>;
+
 export type SystemListPageProps = {
-  searchParams: Promise<{
-    mediaType?: string;
-    page?: string;
-    with_watch_providers?: string;
-    watch_region?: string;
-  }>;
+  searchParams: Promise<SystemListSearchParams>;
 };
 
 /**
@@ -60,23 +64,29 @@ export async function SystemListPage({
 
 async function prefetchSystemList(
   listType: SystemListType,
-  params: Awaited<SystemListPageProps['searchParams']>,
+  params: SystemListSearchParams,
   userId: string,
-  context: Awaited<ReturnType<typeof getListFilterContext>>,
+  context: ListFilterContext,
 ) {
   const { mediaType = 'movie', page = '1' } = params;
   const queryClient = getQueryClient();
-  const api = createApiQueryUtils(createServerApi(await headers()));
+  const requestHeaders = await headers();
+  const api = createServerApi(requestHeaders);
+  const queryUtils = createApiQueryUtils(api);
+  const selectedRegion = context.activeRegion ?? context.userRegion;
   const input = {
     listType,
     resourceType: mediaType as 'movie' | 'tv',
     page: Number(page),
     providerIds: context.activeProviders ?? [],
-    region: regionPreferenceSchema.shape.region.parse(context.activeRegion ?? context.userRegion),
+    region: regionPreferenceSchema.shape.region.parse(selectedRegion),
   };
+  const queryOptions = queryUtils.systemLists.page.queryOptions({ input });
+  const queryKey = queryUtils.systemLists.page.queryKey({ input });
+
   await queryClient.prefetchQuery({
-    ...api.systemLists.page.queryOptions({ input }),
-    queryKey: accountQueryKey(api.systemLists.page.queryKey({ input }), userId),
+    ...queryOptions,
+    queryKey: accountQueryKey(queryKey, userId),
   });
   return queryClient;
 }

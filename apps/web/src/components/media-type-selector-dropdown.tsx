@@ -65,6 +65,13 @@ export default function MediaTypeSelectorDropdown({
     router.push(`${pathname}?${params.toString()}`);
   }
 
+  function handleValueChange(value: MediaType | null) {
+    if (value === null) {
+      return;
+    }
+    void handleMediaTypeChange(value);
+  }
+
   // Only render the dropdown after mounting to avoid hydration mismatch
   // from Radix UI's dynamic aria-controls IDs
   if (!isClient) {
@@ -78,10 +85,7 @@ export default function MediaTypeSelectorDropdown({
   }
 
   return (
-    <Select
-      value={optimisticMediaType}
-      onValueChange={(value) => value && handleMediaTypeChange(value as MediaType)}
-    >
+    <Select value={optimisticMediaType} onValueChange={handleValueChange}>
       <SelectTrigger className="w-[180px]">
         <SelectValue>
           <div className="flex items-center gap-2">
@@ -125,7 +129,12 @@ async function preserveGenre(
   }
   const { data } = await query.refetch();
   // Keep the selection when upstream validation is temporarily unavailable.
-  if (data && !data.genres.some((genre) => String(genre.id) === genreId)) {
+  if (!data) {
+    return;
+  }
+
+  const isSupportedGenre = data.genres.some((genre) => String(genre.id) === genreId);
+  if (!isSupportedGenre) {
     params.delete('genreId');
   }
 }

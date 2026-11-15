@@ -228,30 +228,32 @@ export function createSearchEngine(sources: SearchSources) {
     { parsed, mediaType, page, limit, mode }: IndexOptions<M>,
   ): Promise<SearchPage<T | IndexHit<M>>> {
     const { title } = parsed;
-    const merge = mode === 'merge' && parsed.year === undefined;
+    const shouldMergeIndex = mode === 'merge' && parsed.year === undefined;
 
     // In merge mode the index query runs alongside TMDB; in fallback mode it
     // only runs when TMDB found nothing.
-    const eager = merge ? fuzzyHits(title, page, limit, mediaType) : undefined;
+    const indexRequest = shouldMergeIndex ? fuzzyHits(title, page, limit, mediaType) : undefined;
     const tmdb = await tmdbPage;
     const tmdbEmpty = tmdb.results.length === 0;
 
     let hits: SearchIndexHit[] = [];
-    if (eager) {
-      hits = await eager;
+    if (indexRequest) {
+      hits = await indexRequest;
     } else if (tmdbEmpty) {
       hits = await fuzzyHits(title, page, limit, mediaType);
     }
 
     const hydrationLimit = tmdbEmpty ? limit : HYDRATION_CAP;
-    const missing = await hydrateMissing(hits, tmdb.results, hydrationLimit, mediaType);
-    const hydrated = missing.filter((hit) => matchesSearchYear(hit, parsed.year));
+    const hydratedCandidates = await hydrateMissing(hits, tmdb.results, hydrationLimit, mediaType);
+    const hydrated = hydratedCandidates.filter((hit) => matchesSearchYear(hit, parsed.year));
 
     if (tmdbEmpty) {
       return { results: hydrated, totalPages: hydrated.length > 0 ? 1 : tmdb.totalPages };
     }
+    const fusedResults = fuseByRank(tmdb.results, hits, hydrated, mediaType);
+    const rankedResults = rankByTitleMatch(title, fusedResults);
     return {
-      results: rankByTitleMatch(title, fuseByRank(tmdb.results, hits, hydrated, mediaType)),
+      results: rankedResults,
       totalPages: tmdb.totalPages,
     };
   }
