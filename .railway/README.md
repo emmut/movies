@@ -31,10 +31,29 @@ railway config plan
 Apply the planned changes:
 
 ```bash
-pnpm infra:deploy
+vp run infra:deploy
 ```
 
-Install Railway CLI 5.42.1 or newer and link the intended project and environment with `railway link` first. The script uses that linked environment and keeps Railway's confirmation prompts. For a reviewed destructive plan, pass the explicit opt-in: `pnpm infra:deploy --confirm-destructive`.
+Install Railway CLI 5.42.1 or newer and link the intended project and environment with `railway link` first. The task uses that linked environment and keeps Railway's confirmation prompts. For a reviewed destructive plan, pass the explicit opt-in: `vp run infra:deploy --confirm-destructive`.
+
+## Deploy production infrastructure
+
+Run from the repository root on the branch containing the infrastructure definition you intend to deploy. Select the project interactively and link production explicitly, then review the plan:
+
+```bash
+railway link --environment production
+railway config plan
+```
+
+Apply the reviewed changes:
+
+```bash
+vp run infra:deploy
+```
+
+If the plan includes an intended deletion, use `vp run infra:deploy --confirm-destructive`. Check every deletion before confirming; keep this flag out of the automated production workflow.
+
+For the one-time cleanup after the shared API rollout, the infrastructure definition is already on `main`. Apply it from an up-to-date `main` before merging the dependency upgrade. The plan removes the obsolete `NEXT_PUBLIC_IMAGEKIT_ID`; verify that any other deletions are intended. Until the deploy task is merged into `main`, use `railway config apply --confirm-destructive` directly. Future production applies can then use the ordinary task without encountering that deletion again.
 
 ## Notes
 

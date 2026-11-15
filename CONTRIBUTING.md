@@ -39,6 +39,7 @@ The most-used scripts — run `pnpm run` for the full list, which is authoritati
 | `pnpm test` | Unit tests on Node through Vite+. |
 | `pnpm fallow` | Audit changed files (dead code, complexity, duplication). |
 | `pnpm db:push` / `pnpm db:studio` | Apply schema / open Drizzle Studio. |
+| `vp run infra:deploy` | Apply the linked Railway environment's infrastructure; see [production deployment](.railway/README.md#deploy-production-infrastructure). |
 | `pnpm sync:titles` | Refresh the local title cache (see `scripts/README.md`). |
 | `pnpm ingest:search` | Load TMDB's id exports into the fuzzy search index (see `scripts/README.md`). |
 
