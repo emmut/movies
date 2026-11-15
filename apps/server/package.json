@@ -18,7 +18,7 @@
     "@movies/services": "workspace:*",
     "@orpc/server": "catalog:",
     "drizzle-orm": "catalog:",
-    "hono": "^4.9.0",
+    "hono": "^4.13.16",
     "pg": "catalog:",
     "pino": "^10.4.0",
     "server-only": "catalog:",
