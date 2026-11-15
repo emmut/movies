@@ -4,6 +4,8 @@ import { defineRailway, github, image, postgres, preserve, project, service, vol
 
 const APP_DOMAIN = "movies.emmut.space";
 const CDN_DOMAIN = "cdn.emmut.space";
+// Web listens here; the API reaches it on this port over the private network.
+const WEB_PORT = "8080";
 
 // Railway sizes memory in decimal bytes (1 GB = 1_000_000_000).
 const MB_IN_BYTES = 1_000_000;
@@ -118,6 +120,7 @@ export default defineRailway((ctx) => {
     deploy: { startCommand: "./node_modules/.bin/vp run start", limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
     domains: settings.appDomains,
     env: {
+      PORT: WEB_PORT,
       API_URL: "https://${{api.RAILWAY_PUBLIC_DOMAIN}}",
       RPC_IP_SOURCE: "railway",
       BETTER_AUTH_SECRET: preserve(),
@@ -164,8 +167,11 @@ export default defineRailway((ctx) => {
       MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
       // Same database as web: fuzzy search reads its search_index table.
       DATABASE_URL: db.env.DATABASE_URL,
-      AUTH_URL: "https://${{movies.RAILWAY_PUBLIC_DOMAIN}}",
-      WEB_URL: "https://${{movies.RAILWAY_PUBLIC_DOMAIN}}",
+      // Reach web over the private network. The public custom domain sits
+      // behind Cloudflare, which answers Railway egress with a 403 challenge,
+      // so session checks and cache invalidation never reached web.
+      AUTH_URL: `http://\${{movies.RAILWAY_PRIVATE_DOMAIN}}:${WEB_PORT}`,
+      WEB_URL: `http://\${{movies.RAILWAY_PRIVATE_DOMAIN}}:${WEB_PORT}`,
       AUTH_IP_SOURCE: "railway",
       AUTH_PROXY_SECRET: movies.env.BETTER_AUTH_SECRET,
     },
