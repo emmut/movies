@@ -121,6 +121,16 @@ jobs:
       - name: Install Playwright browser
         run: vp run e2e:install
 
+      - name: Start product API
+        run: |
+          vp run dev:api > /tmp/movies-api.log 2>&1 &
+          curl --retry 30 --retry-connrefused --retry-delay 1 --fail http://localhost:3001/health
+        env:
+          MOVIE_DB_ACCESS_TOKEN: ${{ secrets.MOVIE_DB_ACCESS_TOKEN }}
+          AUTH_URL: http://localhost:3000
+          WEB_URL: http://localhost:3000
+          AUTH_PROXY_SECRET: ${{ env.BETTER_AUTH_SECRET }}
+
       - name: Run e2e tests
         run: vp run e2e
         env:

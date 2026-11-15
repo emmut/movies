@@ -8,7 +8,6 @@ const nextConfig: NextConfig = {
     '@movies/config',
     '@movies/auth',
     '@movies/api',
-    '@movies/services',
   ],
   reactCompiler: true,
   cacheComponents: true,

@@ -7,6 +7,7 @@ import type { CoercedEnvSchema } from '@/env';
 vi.mock('@/env', () => ({
   ENV: {
     NODE_ENV: 'test',
+    API_URL: 'http://localhost:3001',
     MOVIE_DB_ACCESS_TOKEN: 'unit-test-movies-token',
     BETTER_AUTH_SECRET: 'unit-test-auth-secret-at-least-32-characters',
     DATABASE_URL: 'postgres://test:test@localhost/movies_test',

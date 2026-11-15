@@ -1,4 +1,4 @@
-// Framework-independent transport shared by the Hono host, web app, and title-sync job.
+// Framework-independent upstream transport used by Hono and offline title-sync jobs.
 // Each consumer binds its own access token with createTmdbFetch.
 
 type TmdbSearchParams = Record<string, string | number | undefined>;

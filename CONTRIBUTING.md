@@ -14,7 +14,7 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 1. Run `vp env install` and `vp install` to install the pinned runtime, package manager, and dependencies. Vite+ runs tasks and TypeScript scripts on Node; pnpm installs the dependency patches in `pnpm-workspace.yaml`.
 2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. The web app and root-level database/cron commands read this app-local file. `apps/web/.env.schema` is the source of truth for web configuration. Varlock validates it when Next starts or builds; `pnpm env:generate` creates the ignored, app-scoped `ENV` modules. Unit tests mock configuration without loading deployment secrets.
 3. Apply the schema to your database: `pnpm db:push`.
-4. Start the dev server: `pnpm dev`.
+4. Configure `apps/server/.env` with the same database, TMDB token and `AUTH_PROXY_SECRET` as web's `BETTER_AUTH_SECRET`; keep web `API_URL` and server `AUTH_URL`/`WEB_URL` pointed at the local services. Start the dev servers: `pnpm dev`.
 5. Optional: populate IMDb ratings with `pnpm ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.
 
 `pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `apps/web/.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
@@ -25,7 +25,7 @@ The TMDB request collection is `apps/web/movie-db.http`; it reads `apps/web/.env
 
 ## Native app
 
-`apps/native` contains the Expo React Native app; `apps/server` hosts its public oRPC API. Root `pnpm dev` starts Docker, web, API, and Expo together. Start just the native services with `pnpm dev:native` and `pnpm dev:api`. See [the native setup](apps/native/README.md) and [the recorded decisions and full parity roadmap](docs/native-app-roadmap.md) for environment setup, device URLs, current scope, and browser checks. `pnpm check-types` includes both workspaces.
+`apps/native` contains the Expo React Native app; `apps/server` hosts the single product oRPC API used by both clients, including Next server components and metadata. Root `pnpm dev` starts Docker, web, API, and Expo together. Start just the native services with `pnpm dev:native` and `pnpm dev:api`. See [the native setup](apps/native/README.md) and [the recorded decisions and full parity roadmap](docs/native-app-roadmap.md) for environment setup, device URLs, current scope, and browser checks. `pnpm check-types` includes both workspaces.
 
 ## Common commands
 

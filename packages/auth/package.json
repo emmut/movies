@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./redirect": "./src/redirect.ts",
-    "./proxy": "./src/proxy.ts"
+    "./proxy": "./src/proxy.ts",
+    "./cache-events": "./src/cache-events.ts"
   },
   "dependencies": {
     "server-only": "catalog:"

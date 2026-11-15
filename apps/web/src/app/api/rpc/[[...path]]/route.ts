@@ -1,17 +1,37 @@
-import { appRouter } from '@movies/api/router';
-import { RPCHandler } from '@orpc/server/fetch';
+import { ENV } from '@/env';
 
-import { createApiContext } from '@/lib/api-server';
-
-const handler = new RPCHandler(appRouter);
-
+/** Cookie-preserving transport only. Hono validates inputs, sessions and ownership. */
 async function handle(request: Request) {
-  const context = createApiContext(request.headers);
-  const result = await handler.handle(request, { prefix: '/api/rpc', context });
-  if (!result.matched) {
-    return new Response('Not found', { status: 404 });
+  const source = new URL(request.url);
+  const target = new URL(ENV.API_URL);
+  target.pathname = source.pathname.replace(/^\/api\/rpc(?=\/|$)/, '/rpc');
+  target.search = source.search;
+  const headers = new Headers();
+  for (const name of ['cookie', 'content-type', 'accept']) {
+    const value = request.headers.get(name);
+    if (value) {
+      headers.set(name, value);
+    }
   }
-  return result.response;
+  // Cookie-bearing browser writes must originate from this application.
+  const origin = request.headers.get('origin');
+  if (origin && origin !== new URL(ENV.NEXT_PUBLIC_BASE_URL).origin) {
+    return new Response('Forbidden', { status: 403 });
+  }
+  const response = await fetch(target, {
+    method: request.method,
+    headers,
+    body: request.method === 'GET' ? undefined : await request.arrayBuffer(),
+    cache: 'no-store',
+    redirect: 'manual',
+    signal: request.signal,
+  });
+  const outgoing = new Headers({ 'Cache-Control': 'no-store' });
+  const contentType = response.headers.get('content-type');
+  if (contentType) {
+    outgoing.set('content-type', contentType);
+  }
+  return new Response(response.body, { status: response.status, headers: outgoing });
 }
 
 export const GET = handle;

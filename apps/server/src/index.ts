@@ -5,18 +5,21 @@ import { getConnInfo } from '@hono/node-server/conninfo';
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
 import { createServices } from '@movies/services/create-services';
 import { createDatabase } from '@movies/services/database';
+import { readWikidataClaims } from '@movies/services/watch-links-service';
 import { createApp } from '@server/app';
 import { authClientIp } from '@server/auth-client-ip';
 import { createAuthGateway } from '@server/auth-gateway';
+import { createCacheInvalidator } from '@server/cache-invalidation';
 import { ENV } from '@server/env';
 import { createLogger, createRequestLogger } from '@server/logger';
+import { cachePublicRead } from '@server/public-cache';
 
-const fetchTmdb = createTmdbFetch(ENV.MOVIE_DB_ACCESS_TOKEN, ENV.TMDB_API_URL_OVERRIDE);
+const fetchTmdb = cachePublicRead(
+  createTmdbFetch(ENV.MOVIE_DB_ACCESS_TOKEN, ENV.TMDB_API_URL_OVERRIDE),
+  60_000,
+) as ReturnType<typeof createTmdbFetch>;
 const database = createDatabase(ENV.DATABASE_URL, ENV.DB_POOL_MAX);
 const logger = createLogger(ENV.LOG_LEVEL, ENV.NODE_ENV === 'development');
-if (ENV.NODE_ENV === 'production' && ENV.AUTH_URL && !ENV.AUTH_PROXY_SECRET) {
-  throw new Error('Production authentication forwarding requires AUTH_PROXY_SECRET');
-}
 
 /** Configured origin without a trailing slash; production without one allows no origin. */
 function resolveCorsOrigin() {
@@ -29,8 +32,18 @@ function resolveCorsOrigin() {
   return undefined;
 }
 
+const webUrl = ENV.WEB_URL ?? ENV.AUTH_URL;
+if (
+  (ENV.AUTH_URL || webUrl || ENV.NODE_ENV === 'production') &&
+  (!ENV.AUTH_URL || !webUrl || !ENV.AUTH_PROXY_SECRET)
+) {
+  throw new Error(
+    'Account API requires AUTH_URL and AUTH_PROXY_SECRET for verification and invalidation',
+  );
+}
 const app = createApp(
   createServices(fetchTmdb, database, {
+    readWikidataClaims: cachePublicRead(readWikidataClaims, 86_400_000),
     onCustomListSyncError(error) {
       logger.error({ err: error }, 'Could not sync custom-list title');
     },
@@ -49,5 +62,8 @@ const app = createApp(
   ENV.AUTH_URL ? createAuthGateway(ENV.AUTH_URL, fetch, ENV.AUTH_PROXY_SECRET) : undefined,
   (context) =>
     authClientIp(ENV.AUTH_IP_SOURCE, context.req.raw.headers, getConnInfo(context).remote.address),
+  webUrl && ENV.AUTH_PROXY_SECRET
+    ? createCacheInvalidator(webUrl, ENV.AUTH_PROXY_SECRET)
+    : undefined,
 );
 serve({ fetch: app.fetch, port: ENV.PORT });

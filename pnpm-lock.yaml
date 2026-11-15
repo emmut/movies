@@ -710,18 +710,12 @@ importers:
       '@movies/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@movies/services':
-        specifier: workspace:*
-        version: link:../../packages/services
       '@movies/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@orpc/client':
         specifier: 'catalog:'
         version: 1.16.1
-      '@orpc/server':
-        specifier: 'catalog:'
-        version: 1.16.1(ws@8.22.0)
       '@primer/octicons-react':
         specifier: 'catalog:'
         version: 19.42.0(react@19.3.1)

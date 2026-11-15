@@ -1,5 +1,5 @@
 import 'server-only';
-import { appRouter, type AppServices } from '@movies/api/router';
+import { appRouter, type AppServices, type AppContext } from '@movies/api/router';
 import { AUTH_NOT_CONFIGURED } from '@movies/api/session';
 import { isLocalBrowserOrigin } from '@movies/config/native-auth';
 import { RPCHandler } from '@orpc/server/fetch';
@@ -17,6 +17,7 @@ export function createApp(
   middleware: MiddlewareHandler[] = [],
   auth?: AuthGateway,
   clientIp?: (context: Context) => string,
+  onMutation?: AppContext['onMutation'],
 ) {
   const app = new Hono();
   for (const use of middleware) {
@@ -60,6 +61,7 @@ export function createApp(
       prefix: '/rpc',
       context: {
         ...services,
+        onMutation,
         session: auth
           ? { current: () => auth.current(c.req.raw.headers, clientIp?.(c)) }
           : undefined,
