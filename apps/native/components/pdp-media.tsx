@@ -1,7 +1,7 @@
 import type { PdpExtras } from '@movies/api/pdp';
 import { PlayIcon } from '@native/components/icons';
 import { MediaViewer } from '@native/components/media-viewer';
-import type { GalleryMedia as Media } from '@native/components/media-viewer-types';
+import type { GalleryMedia } from '@native/components/media-viewer-types';
 import { PdpImage } from '@native/components/pdp-image';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -13,24 +13,24 @@ const kindLabels: Record<MediaKind, string> = { images: 'Images', videos: 'Video
 
 export function PdpMedia({ data, title }: { data: PdpExtras; title: string }) {
   const [selected, setSelected] = useState<Selection | null>(null);
-  const images: Media[] = data.images.map((item, index) => ({
+  const images: GalleryMedia[] = data.images.map((item, index) => ({
     id: item.file_path,
     title: 'Image ' + (index + 1),
     image: item.file_path,
   }));
-  const videos: Media[] = data.videos.map((item) => ({
+  const videos: GalleryMedia[] = data.videos.map((item) => ({
     id: item.id,
     title: videoTitle(item),
     video: item.key,
   }));
-  const groups = { images, videos };
+  const mediaByKind = { images, videos };
   return (
     <View className="gap-6">
       <VideoButton count={videos.length} open={() => setSelected({ kind: 'videos', index: 0 })} />
       <ImageThumbnails images={images} open={(index) => setSelected({ kind: 'images', index })} />
       {selected ? (
         <SelectedViewer
-          items={groups[selected.kind]}
+          items={mediaByKind[selected.kind]}
           selected={selected}
           setIndex={(index) => setSelected({ ...selected, index })}
           close={() => setSelected(null)}
@@ -42,7 +42,11 @@ export function PdpMedia({ data, title }: { data: PdpExtras; title: string }) {
 }
 
 function videoTitle(item: PdpExtras['videos'][number]) {
-  return item.name + ' · ' + item.type + (item.official ? ' · Official' : '');
+  const titleParts = [item.name, item.type];
+  if (item.official) {
+    titleParts.push('Official');
+  }
+  return titleParts.join(' · ');
 }
 
 function VideoButton({ count, open }: { count: number; open: () => void }) {
@@ -62,7 +66,13 @@ function VideoButton({ count, open }: { count: number; open: () => void }) {
   );
 }
 
-function ImageThumbnails({ images, open }: { images: Media[]; open: (index: number) => void }) {
+function ImageThumbnails({
+  images,
+  open,
+}: {
+  images: GalleryMedia[];
+  open: (index: number) => void;
+}) {
   if (images.length === 0) {
     return null;
   }
@@ -99,7 +109,7 @@ function SelectedViewer({
   close,
   title,
 }: {
-  items: Media[];
+  items: GalleryMedia[];
   selected: Selection;
   setIndex: (index: number) => void;
   close: () => void;
@@ -108,13 +118,16 @@ function SelectedViewer({
   if (items.length === 0) {
     return null;
   }
+  const currentIndex = Math.min(selected.index, items.length - 1);
+  const viewerTitle = `${title} — ${kindLabels[selected.kind]}`;
+
   return (
     <MediaViewer
       items={items}
-      index={Math.min(selected.index, items.length - 1)}
+      index={currentIndex}
       setIndex={setIndex}
       close={close}
-      title={title + ' — ' + kindLabels[selected.kind]}
+      title={viewerTitle}
     />
   );
 }

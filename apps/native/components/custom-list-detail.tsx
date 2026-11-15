@@ -12,7 +12,6 @@ import {
   useCustomListsDetails,
 } from '@movies/api/react/use-custom-lists-query';
 import { useAccountRegion } from '@movies/api/react/use-preferences-query';
-import type { RegionCode } from '@movies/config/regions';
 import { AccountScreen } from '@native/components/account-screen';
 import { CatalogPagination } from '@native/components/catalog-pagination';
 import { CustomListDialogs } from '@native/components/custom-list-dialogs';
@@ -30,101 +29,41 @@ import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-function NotFound() {
-  return (
-    <View className="gap-4 p-5">
-      <Text accessibilityRole="header" className="text-xl font-bold text-foreground">
-        List not found
-      </Text>
-      <Text className="text-muted">This list is unavailable to your account.</Text>
-      <Link href="/more/lists" className="text-foreground">
-        Back to My Lists
-      </Link>
-    </View>
-  );
+type ListFilters = ReturnType<typeof readListPageState>;
+type ListDetailInput = ListFilters & { listId: string };
+
+export function CustomListDetailScreen() {
+  return <AccountScreen>{(userId) => <RegionalDetail userId={userId} />}</AccountScreen>;
 }
-function Entry({ item, region }: { item: CustomListEntry; region: string }) {
-  if (item.type === 'person') {
+
+function RegionalDetail({ userId }: { userId: string }) {
+  const params = useLocalSearchParams();
+  const region = useAccountRegion(userId);
+  const id = customListIdInput.safeParse({ listId: scalar(params.listId) });
+  if (!id.success) {
+    return <NotFound />;
+  }
+  if (!region.data) {
     return (
-      <PersonCredit
-        person={{
-          creditId: item.listItemId,
-          id: item.id,
-          name: item.title,
-          profileUrl: item.posterUrl,
-          role: 'Person',
+      <ScreenQueryState
+        label="your region"
+        failed={region.isError}
+        retry={() => {
+          void region.refetch();
         }}
-        region={region}
-        compact={false}
       />
     );
   }
-  return <MediaPoster item={item} region={region} />;
-}
-function ListContents({
-  result,
-  input,
-  userId,
-  stale,
-  change,
-  retry,
-}: {
-  result: CustomListDetail;
-  input: { listId: string; region: RegionCode; providerIds: number[]; page: number };
-  userId: string;
-  stale: boolean;
-  change: (params: Record<string, string>) => void;
-  retry: () => void;
-}) {
-  const router = useRouter();
-  const [editing, setEditing] = useState<CustomListSummary | null>(null);
-  const [deleting, setDeleting] = useState<CustomListSummary | null>(null);
-  const move = useCustomListsMoveItemMutation({ accountId: userId });
-  const remove = useCustomListsRemoveMutation({ accountId: userId });
-  const busy = stale || move.isPending || remove.isPending;
   return (
-    <>
-      <CustomListScroll memoryKey={'custom-list:' + userId + ':' + JSON.stringify(input)}>
-        <DetailHeader
-          result={result}
-          busy={busy}
-          edit={() => setEditing(result)}
-          remove={() => setDeleting(result)}
-        />
-        <SystemListFilters input={input} userId={userId} change={change} />
-        <DetailNotices
-          failed={move.isError || remove.isError}
-          unavailable={result.unavailableItems}
-          retry={retry}
-        />
-        <ReorderableEntries
-          result={result}
-          input={input}
-          busy={busy}
-          remove={(item) =>
-            remove.mutate({ listId: result.id, resourceId: item.id, resourceType: item.type })
-          }
-          move={(item, position) => move.mutate({ itemId: item.listItemId, position })}
-        />
-        <DetailEmpty total={result.totalItems} filtered={input.providerIds.length > 0} />
-        <CatalogPagination
-          page={result.currentPage}
-          totalPages={result.totalPages}
-          disabled={busy}
-          onChange={(page) => change({ page: String(page) })}
-        />
-      </CustomListScroll>
-      <CustomListDialogs
-        userId={userId}
-        editor={editing}
-        deleting={deleting}
-        closeEditor={() => setEditing(null)}
-        closeDelete={() => setDeleting(null)}
-        deleted={() => router.replace('/more/lists')}
-      />
-    </>
+    <DetailQuery
+      key={id.data.listId}
+      listId={id.data.listId}
+      userId={userId}
+      region={region.data.region}
+    />
   );
 }
+
 function DetailQuery({
   listId,
   userId,
@@ -156,10 +95,10 @@ function DetailQuery({
   return (
     <ListContents
       key={listId}
-      result={query.data}
+      list={query.data}
       input={input}
       userId={userId}
-      stale={query.isFetching}
+      isFetching={query.isFetching}
       change={(values) => router.setParams(values)}
       retry={() => {
         void query.refetch();
@@ -167,57 +106,138 @@ function DetailQuery({
     />
   );
 }
-function RegionalDetail({ userId }: { userId: string }) {
-  const params = useLocalSearchParams();
-  const region = useAccountRegion(userId);
-  const id = customListIdInput.safeParse({ listId: scalar(params.listId) });
-  if (!id.success) {
-    return <NotFound />;
+
+function ListContents({
+  list,
+  input,
+  userId,
+  isFetching,
+  change,
+  retry,
+}: {
+  list: CustomListDetail;
+  input: ListDetailInput;
+  userId: string;
+  isFetching: boolean;
+  change: (params: Record<string, string>) => void;
+  retry: () => void;
+}) {
+  const router = useRouter();
+  const [editing, setEditing] = useState<CustomListSummary | null>(null);
+  const [deleting, setDeleting] = useState<CustomListSummary | null>(null);
+  const moveMutation = useCustomListsMoveItemMutation({ accountId: userId });
+  const removeMutation = useCustomListsRemoveMutation({ accountId: userId });
+  const busy = isFetching || moveMutation.isPending || removeMutation.isPending;
+  const hasMutationError = moveMutation.isError || removeMutation.isError;
+  const scrollMemoryKey = `custom-list:${userId}:${JSON.stringify(input)}`;
+
+  function removeEntry(item: CustomListEntry) {
+    removeMutation.mutate({
+      listId: list.id,
+      resourceId: item.id,
+      resourceType: item.type,
+    });
   }
-  if (!region.data) {
+
+  function moveEntry(item: CustomListEntry, position: number) {
+    moveMutation.mutate({ itemId: item.listItemId, position });
+  }
+
+  return (
+    <>
+      <CustomListScroll memoryKey={scrollMemoryKey}>
+        <DetailHeader
+          list={list}
+          busy={busy}
+          edit={() => setEditing(list)}
+          remove={() => setDeleting(list)}
+        />
+        <SystemListFilters input={input} userId={userId} change={change} />
+        <DetailNotices
+          failed={hasMutationError}
+          unavailable={list.unavailableItems}
+          retry={retry}
+        />
+        <ReorderableEntries
+          list={list}
+          input={input}
+          busy={busy}
+          remove={removeEntry}
+          move={moveEntry}
+        />
+        <DetailEmpty total={list.totalItems} filtered={input.providerIds.length > 0} />
+        <CatalogPagination
+          page={list.currentPage}
+          totalPages={list.totalPages}
+          disabled={busy}
+          onChange={(page) => change({ page: String(page) })}
+        />
+      </CustomListScroll>
+      <CustomListDialogs
+        userId={userId}
+        editor={editing}
+        deleting={deleting}
+        closeEditor={() => setEditing(null)}
+        closeDelete={() => setDeleting(null)}
+        deleted={() => router.replace('/more/lists')}
+      />
+    </>
+  );
+}
+
+function NotFound() {
+  return (
+    <View className="gap-4 p-5">
+      <Text accessibilityRole="header" className="text-xl font-bold text-foreground">
+        List not found
+      </Text>
+      <Text className="text-muted">This list is unavailable to your account.</Text>
+      <Link href="/more/lists" className="text-foreground">
+        Back to My Lists
+      </Link>
+    </View>
+  );
+}
+
+function Entry({ item, region }: { item: CustomListEntry; region: string }) {
+  if (item.type === 'person') {
     return (
-      <ScreenQueryState
-        label="your region"
-        failed={region.isError}
-        retry={() => {
-          void region.refetch();
+      <PersonCredit
+        person={{
+          creditId: item.listItemId,
+          id: item.id,
+          name: item.title,
+          profileUrl: item.posterUrl,
+          role: 'Person',
         }}
+        region={region}
+        compact={false}
       />
     );
   }
-  return (
-    <DetailQuery
-      key={id.data.listId}
-      listId={id.data.listId}
-      userId={userId}
-      region={region.data.region}
-    />
-  );
-}
-export function CustomListDetailScreen() {
-  return <AccountScreen>{(userId) => <RegionalDetail userId={userId} />}</AccountScreen>;
+  return <MediaPoster item={item} region={region} />;
 }
 
 function DetailHeader({
-  result,
+  list,
   busy,
   edit,
   remove,
 }: {
-  result: CustomListDetail;
+  list: CustomListDetail;
   busy: boolean;
   edit: () => void;
   remove: () => void;
 }) {
   return (
     <View className="gap-3">
-      <Text className="text-4xl">{result.emoji}</Text>
+      <Text className="text-4xl">{list.emoji}</Text>
       <Text accessibilityRole="header" className="text-3xl font-bold text-foreground">
-        {result.name}
+        {list.name}
       </Text>
-      {result.description ? <Text className="text-muted">{result.description}</Text> : null}
+      {list.description ? <Text className="text-muted">{list.description}</Text> : null}
       <Text className="text-muted">
-        {result.itemCount} {result.itemCount === 1 ? 'item' : 'items'}
+        {list.itemCount} {list.itemCount === 1 ? 'item' : 'items'}
       </Text>
       <View className="flex-row gap-3">
         <Pressable
@@ -333,41 +353,43 @@ function DetailNotices({
   );
 }
 function ReorderableEntries({
-  result,
+  list,
   input,
   busy,
   remove,
   move,
 }: {
-  result: CustomListDetail;
-  input: { page: number; providerIds: number[]; region: string };
+  list: CustomListDetail;
+  input: ListFilters;
   busy: boolean;
   remove: (item: CustomListEntry) => void;
   move: (item: CustomListEntry, position: number) => void;
 }) {
-  const [reordering, setReordering] = useState(false);
-  const reorderDisabled = !canReorderList(input, result, busy);
-  const offset = (result.currentPage - 1) * result.itemsPerPage;
+  const [isReordering, setIsReordering] = useState(false);
+  const canReorder = canReorderList(input, list, busy);
+  const offset = (list.currentPage - 1) * list.itemsPerPage;
+  const order = {
+    offset,
+    total: list.totalItems,
+    pending: busy,
+    enabled: isReordering && canReorder,
+  };
+
   return (
     <>
       <Pressable
         accessibilityRole="button"
-        disabled={reorderDisabled}
-        accessibilityState={{ disabled: reorderDisabled }}
+        disabled={!canReorder}
+        accessibilityState={{ disabled: !canReorder }}
         className="bg-default min-h-12 justify-center self-start rounded-lg px-4"
-        onPress={() => setReordering(!reordering)}
+        onPress={() => setIsReordering(!isReordering)}
       >
-        <Text className="text-foreground">{reordering ? 'Done reordering' : 'Reorder'}</Text>
+        <Text className="text-foreground">{isReordering ? 'Done reordering' : 'Reorder'}</Text>
       </Pressable>
       <ListEntries
-        items={result.items}
+        items={list.items}
         region={input.region}
-        order={{
-          offset,
-          total: result.totalItems,
-          pending: busy,
-          enabled: reordering && !reorderDisabled,
-        }}
+        order={order}
         remove={remove}
         move={move}
       />

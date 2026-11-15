@@ -1,3 +1,4 @@
+import type { PdpExtras } from '@movies/api/pdp';
 import {
   corsHeaders,
   detailFixture,
@@ -21,6 +22,7 @@ const episode = {
 };
 const extras = {
   companies: [{ id: 1, name: 'Studio Pictures', logo_path: null }],
+  networks: [],
   collection: { id: 20, name: 'Story Collection' },
   images: [{ file_path: '/one.jpg' }, { file_path: '/two.jpg' }],
   videos: [
@@ -47,7 +49,7 @@ const extras = {
   ],
   next: null,
   latest: episode,
-};
+} satisfies PdpExtras;
 
 test.beforeEach(async ({ page }) => {
   await mockEmptySupport({ page });

@@ -21,6 +21,12 @@ import type { z } from 'zod';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 type Resource = z.infer<typeof customListResourceInput>;
+type ListOption = CustomListStatus[number];
+
+type PickerActions = {
+  toggle: (list: ListOption) => void;
+  create: () => void;
+};
 
 export function CustomListPicker({
   input,
@@ -32,10 +38,20 @@ export function CustomListPicker({
   close: () => void;
 }) {
   const [creating, setCreating] = useState(false);
-  const query = useCustomListsStatus(userId, input);
+  const listsQuery = useCustomListsStatus(userId, input);
   const add = useCustomListsAddMutation({ accountId: userId });
   const remove = useCustomListsRemoveMutation({ accountId: userId });
   const pending = add.isPending || remove.isPending;
+  function toggleList(list: ListOption) {
+    const mutation = list.hasItem ? remove : add;
+    const membership = { ...input, listId: list.id };
+    mutation.mutate(membership);
+  }
+
+  function addToCreatedList(listId: string) {
+    add.mutate({ ...input, listId });
+  }
+
   function dismiss() {
     if (!pending) {
       close();
@@ -43,11 +59,7 @@ export function CustomListPicker({
   }
   if (creating) {
     return (
-      <CustomListForm
-        userId={userId}
-        close={() => setCreating(false)}
-        created={(listId) => add.mutate({ ...input, listId })}
-      />
+      <CustomListForm userId={userId} close={() => setCreating(false)} created={addToCreatedList} />
     );
   }
   return (
@@ -68,13 +80,10 @@ export function CustomListPicker({
           </Pressable>
         </View>
         <PickerQueryContents
-          query={query}
+          listsQuery={listsQuery}
           pending={pending}
           failed={add.isError || remove.isError}
-          toggle={(item) => {
-            const mutation = item.hasItem ? remove : add;
-            mutation.mutate({ ...input, listId: item.id });
-          }}
+          toggle={toggleList}
           create={() => setCreating(true)}
         />
       </SafeAreaView>
@@ -129,6 +138,40 @@ function AuthenticatedListActions({ input, userId }: { input: Resource; userId: 
   );
 }
 
+function PickerQueryContents({
+  listsQuery,
+  pending,
+  failed,
+  toggle,
+  create,
+}: {
+  listsQuery: ReturnType<typeof useCustomListsStatus>;
+  pending: boolean;
+  failed: boolean;
+} & PickerActions) {
+  if (!listsQuery.data || listsQuery.isError) {
+    return (
+      <ScreenQueryState
+        label="your lists"
+        failed={listsQuery.isError}
+        retry={() => {
+          void listsQuery.refetch();
+        }}
+      />
+    );
+  }
+  return (
+    <PickerContents
+      items={listsQuery.data}
+      disabled={pending || listsQuery.isFetching}
+      failed={failed}
+      pending={pending}
+      toggle={toggle}
+      create={create}
+    />
+  );
+}
+
 function PickerContents({
   items,
   disabled,
@@ -141,9 +184,7 @@ function PickerContents({
   disabled: boolean;
   failed: boolean;
   pending: boolean;
-  toggle: (item: CustomListStatus[number]) => void;
-  create: () => void;
-}) {
+} & PickerActions) {
   return (
     <ScrollView contentContainerClassName="gap-3 p-5 pb-12">
       <ListMutationError failed={failed} />
@@ -169,7 +210,7 @@ function PickerRow({
   disabled,
   toggle,
 }: {
-  item: CustomListStatus[number];
+  item: ListOption;
   disabled: boolean;
   toggle: () => void;
 }) {
@@ -193,41 +234,5 @@ function PickerRow({
       </View>
       {item.hasItem ? <CheckIcon className="size-5 text-yellow-500" accessible={false} /> : null}
     </Pressable>
-  );
-}
-
-function PickerQueryContents({
-  query,
-  pending,
-  failed,
-  toggle,
-  create,
-}: {
-  query: ReturnType<typeof useCustomListsStatus>;
-  pending: boolean;
-  failed: boolean;
-  toggle: (item: CustomListStatus[number]) => void;
-  create: () => void;
-}) {
-  if (!query.data || query.isError) {
-    return (
-      <ScreenQueryState
-        label="your lists"
-        failed={query.isError}
-        retry={() => {
-          void query.refetch();
-        }}
-      />
-    );
-  }
-  return (
-    <PickerContents
-      items={query.data}
-      disabled={pending || query.isFetching}
-      failed={failed}
-      pending={pending}
-      toggle={toggle}
-      create={create}
-    />
   );
 }
