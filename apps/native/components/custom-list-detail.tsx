@@ -18,6 +18,7 @@ import { CatalogPagination } from '@native/components/catalog-pagination';
 import { CustomListDialogs } from '@native/components/custom-list-dialogs';
 import { CustomListScroll } from '@native/components/custom-list-scroll';
 import { ListMoveControls } from '@native/components/list-controls';
+import { ListMutationError } from '@native/components/list-mutation-error';
 import { MediaPoster } from '@native/components/media-poster';
 import { PersonCredit } from '@native/components/person-credits';
 import { ScreenQueryState } from '@native/components/screen-query-state';
@@ -78,12 +79,9 @@ function ListContents({
   const router = useRouter();
   const [editing, setEditing] = useState<CustomListSummary | null>(null);
   const [deleting, setDeleting] = useState<CustomListSummary | null>(null);
-  const [reordering, setReordering] = useState(false);
   const move = useCustomListsMoveItemMutation({ accountId: userId });
   const remove = useCustomListsRemoveMutation({ accountId: userId });
   const busy = stale || move.isPending || remove.isPending;
-  const reorderDisabled = !canReorderList(input, result, busy);
-  const offset = (result.currentPage - 1) * result.itemsPerPage;
   return (
     <>
       <CustomListScroll memoryKey={'custom-list:' + userId + ':' + JSON.stringify(input)}>
@@ -94,43 +92,15 @@ function ListContents({
           remove={() => setDeleting(result)}
         />
         <SystemListFilters input={input} userId={userId} change={change} />
-        <Pressable
-          accessibilityRole="button"
-          disabled={reorderDisabled}
-          accessibilityState={{ disabled: reorderDisabled }}
-          className="bg-default min-h-12 justify-center self-start rounded-lg px-4"
-          onPress={() => setReordering(!reordering)}
-        >
-          <Text className="text-foreground">{reordering ? 'Done reordering' : 'Reorder'}</Text>
-        </Pressable>
-        {move.isError || remove.isError ? (
-          <Text accessibilityRole="alert" className="text-red-600 dark:text-red-400">
-            Couldn’t update your list. Please try again.
-          </Text>
-        ) : null}
-        {result.unavailableItems > 0 ? (
-          <View className="gap-2">
-            <Text className="text-muted">
-              {result.unavailableItems} saved titles couldn’t load.
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              className="bg-default min-h-12 justify-center self-start rounded-lg px-4"
-              onPress={retry}
-            >
-              <Text className="text-foreground">Retry saved titles</Text>
-            </Pressable>
-          </View>
-        ) : null}
-        <ListEntries
-          items={result.items}
-          region={input.region}
-          order={{
-            offset,
-            total: result.totalItems,
-            pending: busy,
-            enabled: reordering && !reorderDisabled,
-          }}
+        <DetailNotices
+          failed={move.isError || remove.isError}
+          unavailable={result.unavailableItems}
+          retry={retry}
+        />
+        <ReorderableEntries
+          result={result}
+          input={input}
+          busy={busy}
           remove={(item) =>
             remove.mutate({ listId: result.id, resourceId: item.id, resourceType: item.type })
           }
@@ -332,5 +302,75 @@ function DetailEmpty({ total, filtered }: { total: number; filtered: boolean }) 
         </Pressable>
       </Link>
     </View>
+  );
+}
+
+function DetailNotices({
+  failed,
+  unavailable,
+  retry,
+}: {
+  failed: boolean;
+  unavailable: number;
+  retry: () => void;
+}) {
+  return (
+    <>
+      <ListMutationError failed={failed} />
+      {unavailable > 0 ? (
+        <View className="gap-2">
+          <Text className="text-muted">{unavailable} saved titles couldn’t load.</Text>
+          <Pressable
+            accessibilityRole="button"
+            className="bg-default min-h-12 justify-center self-start rounded-lg px-4"
+            onPress={retry}
+          >
+            <Text className="text-foreground">Retry saved titles</Text>
+          </Pressable>
+        </View>
+      ) : null}
+    </>
+  );
+}
+function ReorderableEntries({
+  result,
+  input,
+  busy,
+  remove,
+  move,
+}: {
+  result: CustomListDetail;
+  input: { page: number; providerIds: number[]; region: string };
+  busy: boolean;
+  remove: (item: CustomListEntry) => void;
+  move: (item: CustomListEntry, position: number) => void;
+}) {
+  const [reordering, setReordering] = useState(false);
+  const reorderDisabled = !canReorderList(input, result, busy);
+  const offset = (result.currentPage - 1) * result.itemsPerPage;
+  return (
+    <>
+      <Pressable
+        accessibilityRole="button"
+        disabled={reorderDisabled}
+        accessibilityState={{ disabled: reorderDisabled }}
+        className="bg-default min-h-12 justify-center self-start rounded-lg px-4"
+        onPress={() => setReordering(!reordering)}
+      >
+        <Text className="text-foreground">{reordering ? 'Done reordering' : 'Reorder'}</Text>
+      </Pressable>
+      <ListEntries
+        items={result.items}
+        region={input.region}
+        order={{
+          offset,
+          total: result.totalItems,
+          pending: busy,
+          enabled: reordering && !reorderDisabled,
+        }}
+        remove={remove}
+        move={move}
+      />
+    </>
   );
 }

@@ -22,6 +22,18 @@ export default function SearchResults({
   if (!searchQuery) {
     return <SearchBox mediaType={mediaType} />;
   }
+  return <SearchQueryResults query={query} searchQuery={searchQuery} userId={userId} />;
+}
+
+function SearchQueryResults({
+  query,
+  searchQuery,
+  userId,
+}: {
+  query: ReturnType<typeof useSearchList>;
+  searchQuery: string;
+  userId?: string;
+}) {
   switch (query.status) {
     case 'pending':
       return <ItemGrid.Skeletons className="w-full" />;

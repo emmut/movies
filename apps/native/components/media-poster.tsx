@@ -18,12 +18,12 @@ function keyExtractor(item: MediaCard) {
 }
 
 function CardMetadata({ item, featured }: { item: MediaCard; featured: boolean }) {
+  const appearance = featured
+    ? { spacing: 'gap-2 p-5', title: 'text-2xl leading-tight tracking-tight' }
+    : { spacing: 'gap-1 p-3', title: 'text-sm' };
   return (
-    <View className={`absolute right-0 bottom-0 left-0 ${featured ? 'gap-2 p-5' : 'gap-1 p-3'}`}>
-      <Text
-        numberOfLines={2}
-        className={`font-semibold text-white ${featured ? 'text-2xl leading-tight tracking-tight' : 'text-sm'}`}
-      >
+    <View className={`absolute right-0 bottom-0 left-0 ${appearance.spacing}`}>
+      <Text numberOfLines={2} className={`font-semibold text-white ${appearance.title}`}>
         {item.title}
       </Text>
       <View className="flex-row items-center justify-between">
@@ -73,15 +73,26 @@ function CardImage({
   featured: boolean;
   fluid: boolean;
 }) {
-  const source = featured ? item.backdropUrl : item.posterUrl;
-  const [failedSource, setFailedSource] = useState<string | null>(null);
-  const reducedMotion = useReducedMotion();
-  const hasImage = source !== null && source !== failedSource;
   return (
     <View
       className={`items-center justify-center overflow-hidden border border-border bg-zinc-800 ${posterDimensions(featured, fluid)}`}
     >
-      {hasImage ? (
+      <PosterArtwork source={featured ? item.backdropUrl : item.posterUrl} />
+      <View className="absolute top-2 left-2">
+        <MediaBadge type={item.type} />
+      </View>
+      <CardMetadata item={item} featured={featured} />
+    </View>
+  );
+}
+
+function PosterArtwork({ source }: { source: string | null }) {
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const reducedMotion = useReducedMotion();
+  const hasImage = source !== null && source !== failedSource;
+  if (hasImage) {
+    return (
+      <>
         <Image
           source={source}
           contentFit="cover"
@@ -91,18 +102,17 @@ function CardImage({
           accessibilityIgnoresInvertColors
           accessible={false}
         />
-      ) : null}
+        <View className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
+      </>
+    );
+  }
+  return (
+    <>
       <View className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent" />
-      {!hasImage ? (
-        <Text className="absolute inset-x-3 top-20 text-center text-xs text-zinc-400">
-          No image available
-        </Text>
-      ) : null}
-      <View className="absolute top-2 left-2">
-        <MediaBadge type={item.type} />
-      </View>
-      <CardMetadata item={item} featured={featured} />
-    </View>
+      <Text className="absolute inset-x-3 top-20 text-center text-xs text-zinc-400">
+        No image available
+      </Text>
+    </>
   );
 }
 function mediaLabel(type: MediaCard['type']) {

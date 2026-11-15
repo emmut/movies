@@ -21,14 +21,8 @@ function Separator() {
 }
 
 function ReviewsResults({ input, region }: { input: ReviewsInput; region: string }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const query = useCatalogReviews(input);
   const details = useCatalogDetails({ id: input.id, type: input.type, region });
-  const title = details.data?.title || 'this title';
-  const { ref, onScroll, onLayout, onContentSizeChange, onScrollBeginDrag } = useRememberedScroll<
-    FlatList<Review>
-  >('reviews:' + input.type + ':' + input.id + ':' + input.page, 'entry');
   if (query.isPending || query.isError) {
     return (
       <ScreenQueryState
@@ -40,7 +34,25 @@ function ReviewsResults({ input, region }: { input: ReviewsInput; region: string
       />
     );
   }
-  const data = query.data;
+  return <ReviewList input={input} region={region} data={query.data} title={details.data?.title} />;
+}
+function ReviewList({
+  input,
+  region,
+  data,
+  title,
+}: {
+  input: ReviewsInput;
+  region: string;
+  title?: string;
+  data: NonNullable<ReturnType<typeof useCatalogReviews>['data']>;
+}) {
+  const titleLabel = title || 'this title';
+  const router = useRouter();
+  const pathname = usePathname();
+  const { ref, onScroll, onLayout, onContentSizeChange, onScrollBeginDrag } = useRememberedScroll<
+    FlatList<Review>
+  >('reviews:' + input.type + ':' + input.id + ':' + input.page, 'entry');
   return (
     <FlatList
       testID="reviews-scroll"
@@ -68,14 +80,14 @@ function ReviewsResults({ input, region }: { input: ReviewsInput; region: string
             asChild
           >
             <Pressable accessibilityRole="link" className="min-h-11 justify-center self-start">
-              <Text className="text-sm text-muted">← Back to {title}</Text>
+              <Text className="text-sm text-muted">← Back to {titleLabel}</Text>
             </Pressable>
           </Link>
           <Text accessibilityRole="header" className="text-3xl font-bold text-foreground">
             Reviews
           </Text>
           <Text className="text-sm text-muted">
-            {reviewCountLabel(data.totalResults)} of {title} from TMDb
+            {reviewCountLabel(data.totalResults)} of {titleLabel} from TMDb
           </Text>
         </View>
       }

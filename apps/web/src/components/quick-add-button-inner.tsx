@@ -228,8 +228,10 @@ function useQuickAddState({
     { resourceId: mediaId, resourceType: systemResourceType },
     isOpen && showWatchlist && mediaType !== 'person',
   );
-  const isInWatchlist = memberships?.inWatchlist ?? false;
-  const isWatched = memberships?.watched ?? false;
+  const { inWatchlist: isInWatchlist, watched: isWatched } = memberships ?? {
+    inWatchlist: false,
+    watched: false,
+  };
 
   const actions = useQuickAddActions(mediaId, mediaType, lists);
 

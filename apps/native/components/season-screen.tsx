@@ -42,61 +42,20 @@ function Episodes({ data }: { data: SeasonPage }) {
         </Text>
       </Pressable>
       {!data.episodes.length ? <Text className="text-muted">No episodes available.</Text> : null}
-      {data.episodes.map((episode) => {
-        const visible = revealed.includes(episode.id);
-        return (
-          <View
-            key={episode.id}
-            className="overflow-hidden rounded-xl border border-border bg-background"
-          >
-            <View className="bg-default aspect-video items-center justify-center">
-              {visible ? (
-                <PdpImage path={episode.still_path} title={episode.name} />
-              ) : (
-                <Text className="text-muted">Episode details hidden</Text>
-              )}
-            </View>
-            <View className="gap-3 p-4">
-              <Text className="text-xs text-muted">{episode.air_date || 'Air date TBA'}</Text>
-              <Text accessibilityRole="header" className="text-lg font-semibold text-foreground">
-                {visible ? episode.name : 'Episode ' + episode.episode_number}
-              </Text>
-              <View className="flex-row flex-wrap gap-3">
-                {episode.runtime ? (
-                  <Text className="text-xs text-muted">{episode.runtime} min</Text>
-                ) : null}
-                <Text className="text-xs text-muted">
-                  {episode.vote_count > 0
-                    ? episode.vote_average.toFixed(1) + '/10 (' + episode.vote_count + ' votes)'
-                    : 'Not yet rated'}
-                </Text>
-              </View>
-              {visible ? (
-                <Text className="text-base leading-6 text-foreground">
-                  {episode.overview || 'No overview available.'}
-                </Text>
-              ) : null}
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={
-                  (visible ? 'Hide' : 'Reveal') + ' episode ' + episode.episode_number
-                }
-                accessibilityState={{ expanded: visible }}
-                onPress={() =>
-                  setRevealed((ids) =>
-                    visible ? ids.filter((id) => id !== episode.id) : [...ids, episode.id],
-                  )
-                }
-                className="bg-default min-h-11 justify-center self-start rounded-lg px-4"
-              >
-                <Text className="font-semibold text-foreground">
-                  {visible ? 'Hide details' : 'Reveal details'}
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        );
-      })}
+      {data.episodes.map((episode) => (
+        <EpisodeCard
+          key={episode.id}
+          episode={episode}
+          visible={revealed.includes(episode.id)}
+          toggle={() =>
+            setRevealed((ids) =>
+              ids.includes(episode.id)
+                ? ids.filter((id) => id !== episode.id)
+                : [...ids, episode.id],
+            )
+          }
+        />
+      ))}
     </View>
   );
 }
@@ -138,5 +97,75 @@ export function SeasonScreen() {
       )}
       <BottomNavigation />
     </SafeAreaView>
+  );
+}
+
+type Episode = SeasonPage['episodes'][number];
+function EpisodeCard({
+  episode,
+  visible,
+  toggle,
+}: {
+  episode: Episode;
+  visible: boolean;
+  toggle: () => void;
+}) {
+  const action = visible ? 'Hide' : 'Reveal';
+  return (
+    <View className="overflow-hidden rounded-xl border border-border bg-background">
+      <View className="bg-default aspect-video items-center justify-center">
+        {visible ? (
+          <PdpImage path={episode.still_path} title={episode.name} />
+        ) : (
+          <Text className="text-muted">Episode details hidden</Text>
+        )}
+      </View>
+      <View className="gap-3 p-4">
+        <EpisodeHeading episode={episode} visible={visible} />
+        <EpisodeStats episode={episode} />
+        <EpisodeOverview episode={episode} visible={visible} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={action + ' episode ' + episode.episode_number}
+          accessibilityState={{ expanded: visible }}
+          onPress={toggle}
+          className="bg-default min-h-11 justify-center self-start rounded-lg px-4"
+        >
+          <Text className="font-semibold text-foreground">{action + ' details'}</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+function EpisodeHeading({ episode, visible }: { episode: Episode; visible: boolean }) {
+  return (
+    <>
+      <Text className="text-xs text-muted">{episode.air_date || 'Air date TBA'}</Text>
+      <Text accessibilityRole="header" className="text-lg font-semibold text-foreground">
+        {visible ? episode.name : 'Episode ' + episode.episode_number}
+      </Text>
+    </>
+  );
+}
+function EpisodeStats({ episode }: { episode: Episode }) {
+  return (
+    <View className="flex-row flex-wrap gap-3">
+      {episode.runtime ? <Text className="text-xs text-muted">{episode.runtime} min</Text> : null}
+      <Text className="text-xs text-muted">
+        {episode.vote_count > 0
+          ? episode.vote_average.toFixed(1) + '/10 (' + episode.vote_count + ' votes)'
+          : 'Not yet rated'}
+      </Text>
+    </View>
+  );
+}
+function EpisodeOverview({ episode, visible }: { episode: Episode; visible: boolean }) {
+  if (!visible) {
+    return null;
+  }
+  return (
+    <Text className="text-base leading-6 text-foreground">
+      {episode.overview || 'No overview available.'}
+    </Text>
   );
 }

@@ -69,10 +69,6 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
     cancelBeforeNavigation,
   } = useRememberedScroll('catalog:' + item.type + ':' + item.id, 'entry');
   const input = { id: item.id, type: item.type, region };
-  const noOverview =
-    item.type === 'movie'
-      ? 'No overview available for this movie.'
-      : 'No overview available for this TV show.';
   return (
     <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
       <ScrollView
@@ -90,38 +86,16 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
         <CatalogArtwork item={item} />
         <View className="gap-6 px-4">
           <CatalogHeading item={item} region={region} />
-          <CatalogStats item={item} imdb={imdb.data?.rating} />
-          <CatalogSectionState
-            label="IMDb rating"
-            pending={imdb.isFetching && imdb.data?.ratingUnavailable === true}
-            failed={imdb.isError || imdb.data?.ratingUnavailable === true}
-            retry={() => {
-              void imdb.refetch();
-            }}
-          />
+          <CatalogRating item={item} query={imdb} />
           <SystemListActions input={{ resourceId: item.id, resourceType: item.type }} />
           <CustomListActions input={{ resourceId: item.id, resourceType: item.type }} />
           <CatalogTrailer input={{ id: item.id, type: item.type }} title={item.title} />
           <Genres item={item} region={region} />
           <CatalogOriginCountries item={item} region={region} />
-          <View className="gap-3">
-            <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
-              Overview
-            </Text>
-            <Text className="text-base leading-relaxed text-foreground">
-              {item.overview || noOverview}
-            </Text>
-          </View>
+          <Overview item={item} />
           <CatalogFacts item={item} />
           <PdpSections input={input} title={item.title} />
-          {item.type === 'tv' ? (
-            <PersonCreditGroup
-              title="Created By"
-              people={item.creators ?? []}
-              compact
-              region={region}
-            />
-          ) : null}
+          <Creators item={item} region={region} />
           <PdpSections input={input} title={item.title} part="seasons" />
           <CatalogCredits input={input} />
           <CatalogProviders input={input} />
@@ -129,21 +103,69 @@ export function CatalogContent({ item, region }: { item: CatalogDetail; region: 
           <CatalogRelated input={input} kind="similar" />
           <CatalogRelated input={input} kind="recommendations" />
           <CatalogReviews input={input} />
-          <View className="flex-row flex-wrap gap-2">
-            {imdb.data?.url ? (
-              <ExternalLink href={imdb.data.url} prominent>
-                IMDb
-              </ExternalLink>
-            ) : null}
-            <ExternalLink href={`https://www.themoviedb.org/${item.type}/${item.id}`}>
-              TMDB
-            </ExternalLink>
-            {item.homepage ? (
-              <ExternalLink href={item.homepage}>Official website</ExternalLink>
-            ) : null}
-          </View>
+          <SourceLinks item={item} imdbUrl={imdb.data?.url} />
         </View>
       </ScrollView>
     </ScrollNavigationProvider>
+  );
+}
+
+function CatalogRating({
+  item,
+  query,
+}: {
+  item: CatalogDetail;
+  query: ReturnType<typeof useCatalogImdb>;
+}) {
+  const { rating, ratingUnavailable } = query.data ?? {};
+  return (
+    <>
+      <CatalogStats item={item} imdb={rating} />
+      <CatalogSectionState
+        label="IMDb rating"
+        pending={query.isFetching && ratingUnavailable === true}
+        failed={query.isError || ratingUnavailable === true}
+        retry={() => {
+          void query.refetch();
+        }}
+      />
+    </>
+  );
+}
+function Overview({ item }: { item: CatalogDetail }) {
+  const noOverview =
+    item.type === 'movie'
+      ? 'No overview available for this movie.'
+      : 'No overview available for this TV show.';
+  return (
+    <View className="gap-3">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
+        Overview
+      </Text>
+      <Text className="text-base leading-relaxed text-foreground">
+        {item.overview || noOverview}
+      </Text>
+    </View>
+  );
+}
+function Creators({ item, region }: { item: CatalogDetail; region: string }) {
+  if (item.type !== 'tv') {
+    return null;
+  }
+  return (
+    <PersonCreditGroup title="Created By" people={item.creators ?? []} compact region={region} />
+  );
+}
+function SourceLinks({ item, imdbUrl }: { item: CatalogDetail; imdbUrl?: string | null }) {
+  return (
+    <View className="flex-row flex-wrap gap-2">
+      {imdbUrl ? (
+        <ExternalLink href={imdbUrl} prominent>
+          IMDb
+        </ExternalLink>
+      ) : null}
+      <ExternalLink href={`https://www.themoviedb.org/${item.type}/${item.id}`}>TMDB</ExternalLink>
+      {item.homepage ? <ExternalLink href={item.homepage}>Official website</ExternalLink> : null}
+    </View>
   );
 }

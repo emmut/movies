@@ -199,11 +199,8 @@ export function PdpSections({
 }) {
   const query = useCatalogExtras(input);
   const data = query.data;
-  if (part === 'seasons') {
-    return data && input.type === 'tv' ? <Seasons data={data} input={input} /> : null;
-  }
-  if (part === 'availability') {
-    return data ? <Availability data={data} region={input.region} /> : null;
+  if (part !== 'details') {
+    return data ? <SupportingSections part={part} data={data} input={input} /> : null;
   }
   return (
     <View className="gap-6">
@@ -224,4 +221,22 @@ export function PdpSections({
       ) : null}
     </View>
   );
+}
+
+function SupportingSections({
+  part,
+  data,
+  input,
+}: {
+  part: 'seasons' | 'availability';
+  data: PdpExtras;
+  input: CatalogDetailInput;
+}) {
+  if (part === 'availability') {
+    return <Availability data={data} region={input.region} />;
+  }
+  if (input.type !== 'tv') {
+    return null;
+  }
+  return <Seasons data={data} input={input} />;
 }

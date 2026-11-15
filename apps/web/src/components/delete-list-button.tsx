@@ -66,9 +66,7 @@ export function DeleteListButton({
           <AlertDialogTitle>Delete List</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to delete &quot;{listName}&quot;?
-            {itemCount > 0 &&
-              ` This list contains ${itemCount} item${itemCount !== 1 ? 's' : ''}.`}{' '}
-            This action cannot be undone.
+            <ListContentsWarning count={itemCount} /> This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -79,5 +77,17 @@ export function DeleteListButton({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+function ListContentsWarning({ count }: { count: number }) {
+  if (count === 0) {
+    return null;
+  }
+  return (
+    <>
+      {' '}
+      This list contains {count} {count === 1 ? 'item' : 'items'}.
+    </>
   );
 }

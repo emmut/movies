@@ -54,12 +54,8 @@ export function createPasskeyCeremony(sources: Sources) {
       return failure('PASSKEY_UNAVAILABLE');
     }
     try {
-      const registration = ceremony === 'registration';
-      const query = registration ? { name: passkeyNameSchema.parse(name) } : undefined;
-      const options = await sources.request(
-        '/passkey/generate-' + (registration ? 'register' : 'authenticate') + '-options',
-        { method: 'GET', query },
-      );
+      const query = registrationQuery(ceremony, name);
+      const options = await sources.request(optionsPath(ceremony), { method: 'GET', query });
       if (options.error) {
         return options;
       }
@@ -80,10 +76,7 @@ export function createPasskeyCeremony(sources: Sources) {
         method: 'POST',
         body,
       });
-      if (!verified.error && !verified.data) {
-        return failure('PASSKEY_FAILED');
-      }
-      return verified;
+      return verificationResult(verified);
     } catch (error) {
       return failure(cancelled(error) ? 'PASSKEY_CANCELLED' : 'PASSKEY_FAILED');
     }
@@ -96,4 +89,22 @@ export function createPasskeyCeremony(sources: Sources) {
       return perform('authentication');
     },
   };
+}
+
+function registrationQuery(ceremony: 'registration' | 'authentication', name?: string) {
+  if (ceremony === 'registration') {
+    return { name: passkeyNameSchema.parse(name) };
+  }
+  return undefined;
+}
+function optionsPath(ceremony: 'registration' | 'authentication') {
+  const action = ceremony === 'registration' ? 'register' : 'authenticate';
+  return '/passkey/generate-' + action + '-options';
+}
+
+function verificationResult(result: Result) {
+  if (!result.error && !result.data) {
+    return failure('PASSKEY_FAILED');
+  }
+  return result;
 }

@@ -1,4 +1,4 @@
-import type { customListResourceInput } from '@movies/api/custom-lists';
+import type { CustomListStatus, customListResourceInput } from '@movies/api/custom-lists';
 import {
   useCustomListsAddMutation,
   useCustomListsRemoveMutation,
@@ -7,6 +7,7 @@ import {
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { CustomListForm } from '@native/components/custom-list-form';
 import { CheckIcon } from '@native/components/icons';
+import { ListMutationError } from '@native/components/list-mutation-error';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { Sheet } from '@native/components/sheet';
 import { authClient } from '@native/lib/auth-client';
@@ -65,61 +66,16 @@ export function CustomListPicker({
             <Text className="text-foreground">Done</Text>
           </Pressable>
         </View>
-        {!query.data || query.isError ? (
-          <ScreenQueryState
-            label="your lists"
-            failed={query.isError}
-            retry={() => {
-              void query.refetch();
-            }}
-          />
-        ) : (
-          <ScrollView contentContainerClassName="gap-3 p-5 pb-12">
-            {add.isError || remove.isError ? (
-              <Text accessibilityRole="alert" className="text-red-600 dark:text-red-400">
-                Couldn’t update your list. Please try again.
-              </Text>
-            ) : null}
-            {query.data.length === 0 ? (
-              <Text className="text-muted">Create your first list to save this item.</Text>
-            ) : null}
-            {query.data.map((item) => (
-              <Pressable
-                key={item.id}
-                accessibilityRole="checkbox"
-                accessibilityLabel={item.name}
-                accessibilityState={{
-                  checked: item.hasItem,
-                  disabled: pending || query.isFetching,
-                }}
-                aria-checked={item.hasItem}
-                disabled={pending || query.isFetching}
-                className="bg-default min-h-16 flex-row items-center gap-3 rounded-xl border border-border p-4"
-                onPress={() => {
-                  const mutation = item.hasItem ? remove : add;
-                  mutation.mutate({ ...input, listId: item.id });
-                }}
-              >
-                <Text className="text-2xl">{item.emoji}</Text>
-                <View className="flex-1 gap-1">
-                  <Text className="font-semibold text-foreground">{item.name}</Text>
-                  <Text className="text-sm text-muted">{item.itemCount} items</Text>
-                </View>
-                {item.hasItem ? (
-                  <CheckIcon className="size-5 text-yellow-500" accessible={false} />
-                ) : null}
-              </Pressable>
-            ))}
-            <Pressable
-              accessibilityRole="button"
-              disabled={pending}
-              className="min-h-12 items-center justify-center rounded-xl bg-foreground px-4"
-              onPress={() => setCreating(true)}
-            >
-              <Text className="font-semibold text-background">Create New List</Text>
-            </Pressable>
-          </ScrollView>
-        )}
+        <PickerQueryContents
+          query={query}
+          pending={pending}
+          failed={add.isError || remove.isError}
+          toggle={(item) => {
+            const mutation = item.hasItem ? remove : add;
+            mutation.mutate({ ...input, listId: item.id });
+          }}
+          create={() => setCreating(true)}
+        />
       </SafeAreaView>
     </Sheet>
   );
@@ -128,7 +84,6 @@ export function CustomListPicker({
 export function CustomListActions({ input }: { input: Resource }) {
   const session = authClient.useSession();
   const returnUrl = useCurrentUrl();
-  const [open, setOpen] = useState(false);
   if (session.isPending || session.error) {
     return (
       <CatalogSectionState
@@ -153,6 +108,10 @@ export function CustomListActions({ input }: { input: Resource }) {
       </Link>
     );
   }
+  return <AuthenticatedListActions input={input} userId={session.data.user.id} />;
+}
+function AuthenticatedListActions({ input, userId }: { input: Resource; userId: string }) {
+  const [open, setOpen] = useState(false);
   return (
     <>
       <Pressable
@@ -163,13 +122,111 @@ export function CustomListActions({ input }: { input: Resource }) {
         <Text className="font-semibold text-foreground">Add to Lists</Text>
       </Pressable>
       {open ? (
-        <CustomListPicker
-          key={session.data.user.id}
-          input={input}
-          userId={session.data.user.id}
-          close={() => setOpen(false)}
-        />
+        <CustomListPicker key={userId} input={input} userId={userId} close={() => setOpen(false)} />
       ) : null}
     </>
+  );
+}
+
+function PickerContents({
+  items,
+  disabled,
+  failed,
+  pending,
+  toggle,
+  create,
+}: {
+  items: CustomListStatus;
+  disabled: boolean;
+  failed: boolean;
+  pending: boolean;
+  toggle: (item: CustomListStatus[number]) => void;
+  create: () => void;
+}) {
+  return (
+    <ScrollView contentContainerClassName="gap-3 p-5 pb-12">
+      <ListMutationError failed={failed} />
+      {items.length === 0 ? (
+        <Text className="text-muted">Create your first list to save this item.</Text>
+      ) : null}
+      {items.map((item) => (
+        <PickerRow key={item.id} item={item} disabled={disabled} toggle={() => toggle(item)} />
+      ))}
+      <Pressable
+        accessibilityRole="button"
+        disabled={pending}
+        className="min-h-12 items-center justify-center rounded-xl bg-foreground px-4"
+        onPress={create}
+      >
+        <Text className="font-semibold text-background">Create New List</Text>
+      </Pressable>
+    </ScrollView>
+  );
+}
+function PickerRow({
+  item,
+  disabled,
+  toggle,
+}: {
+  item: CustomListStatus[number];
+  disabled: boolean;
+  toggle: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityLabel={item.name}
+      accessibilityState={{
+        checked: item.hasItem,
+        disabled,
+      }}
+      aria-checked={item.hasItem}
+      disabled={disabled}
+      className="bg-default min-h-16 flex-row items-center gap-3 rounded-xl border border-border p-4"
+      onPress={toggle}
+    >
+      <Text className="text-2xl">{item.emoji}</Text>
+      <View className="flex-1 gap-1">
+        <Text className="font-semibold text-foreground">{item.name}</Text>
+        <Text className="text-sm text-muted">{item.itemCount} items</Text>
+      </View>
+      {item.hasItem ? <CheckIcon className="size-5 text-yellow-500" accessible={false} /> : null}
+    </Pressable>
+  );
+}
+
+function PickerQueryContents({
+  query,
+  pending,
+  failed,
+  toggle,
+  create,
+}: {
+  query: ReturnType<typeof useCustomListsStatus>;
+  pending: boolean;
+  failed: boolean;
+  toggle: (item: CustomListStatus[number]) => void;
+  create: () => void;
+}) {
+  if (!query.data || query.isError) {
+    return (
+      <ScreenQueryState
+        label="your lists"
+        failed={query.isError}
+        retry={() => {
+          void query.refetch();
+        }}
+      />
+    );
+  }
+  return (
+    <PickerContents
+      items={query.data}
+      disabled={pending || query.isFetching}
+      failed={failed}
+      pending={pending}
+      toggle={toggle}
+      create={create}
+    />
   );
 }

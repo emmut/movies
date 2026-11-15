@@ -37,28 +37,13 @@ export async function SystemListPage({
   }
 
   const params = await searchParams;
-  const mediaType = (params.mediaType ?? 'movie') as 'movie' | 'tv';
-  const page = Number(params.page ?? '1');
 
-  const { userRegion, availableWatchProviders, activeProviders, activeRegion } =
-    await getListFilterContext(params);
+  const context = await getListFilterContext(params);
+  const { userRegion, availableWatchProviders } = context;
 
-  const queryClient = getQueryClient();
-
-  const api = createApiQueryUtils(createServerApi(await headers()));
-  const input = {
-    listType,
-    resourceType: mediaType,
-    page,
-    providerIds: activeProviders ?? [],
-    region: regionPreferenceSchema.shape.region.parse(activeRegion ?? userRegion),
-  };
-  const [watchProviders] = await Promise.all([
+  const [watchProviders, queryClient] = await Promise.all([
     availableWatchProviders,
-    queryClient.prefetchQuery({
-      ...api.systemLists.page.queryOptions({ input }),
-      queryKey: accountQueryKey(api.systemLists.page.queryKey({ input }), user.id),
-    }),
+    prefetchSystemList(listType, params, user.id, context),
   ]);
 
   return (
@@ -71,4 +56,27 @@ export async function SystemListPage({
       />
     </HydrationBoundary>
   );
+}
+
+async function prefetchSystemList(
+  listType: SystemListType,
+  params: Awaited<SystemListPageProps['searchParams']>,
+  userId: string,
+  context: Awaited<ReturnType<typeof getListFilterContext>>,
+) {
+  const { mediaType = 'movie', page = '1' } = params;
+  const queryClient = getQueryClient();
+  const api = createApiQueryUtils(createServerApi(await headers()));
+  const input = {
+    listType,
+    resourceType: mediaType as 'movie' | 'tv',
+    page: Number(page),
+    providerIds: context.activeProviders ?? [],
+    region: regionPreferenceSchema.shape.region.parse(context.activeRegion ?? context.userRegion),
+  };
+  await queryClient.prefetchQuery({
+    ...api.systemLists.page.queryOptions({ input }),
+    queryKey: accountQueryKey(api.systemLists.page.queryKey({ input }), userId),
+  });
+  return queryClient;
 }

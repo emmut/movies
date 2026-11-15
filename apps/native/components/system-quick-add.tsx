@@ -26,37 +26,15 @@ export function SystemQuickAdd({ item }: { item: MediaCard }) {
       </Pressable>
       {open ? (
         <Sheet visible onRequestClose={() => setOpen(false)}>
-          <SafeAreaView className="flex-1 gap-6 bg-background p-5">
-            <View className="flex-row items-center justify-between gap-3">
-              <Text accessibilityRole="header" className="flex-1 text-xl font-bold text-foreground">
-                {item.title}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Close quick add"
-                className="bg-default min-h-12 justify-center rounded-lg px-4"
-                onPress={() => setOpen(false)}
-              >
-                <Text className="text-foreground">Done</Text>
-              </Pressable>
-            </View>
-            <SystemListActions
-              input={{ resourceId: item.id, resourceType: item.type }}
-              onSignIn={() => setOpen(false)}
-            />
-            {session.data ? (
-              <Pressable
-                accessibilityRole="button"
-                className="bg-default min-h-12 justify-center rounded-lg border border-border px-4"
-                onPress={() => {
-                  setOpen(false);
-                  setCustomOpen(true);
-                }}
-              >
-                <Text className="font-semibold text-foreground">Add to Lists</Text>
-              </Pressable>
-            ) : null}
-          </SafeAreaView>
+          <QuickAddContents
+            item={item}
+            close={() => setOpen(false)}
+            canUseLists={Boolean(session.data)}
+            openLists={() => {
+              setOpen(false);
+              setCustomOpen(true);
+            }}
+          />
         </Sheet>
       ) : null}
       {customOpen && session.data ? (
@@ -68,5 +46,48 @@ export function SystemQuickAdd({ item }: { item: MediaCard }) {
         />
       ) : null}
     </>
+  );
+}
+
+function QuickAddContents({
+  item,
+  close,
+  canUseLists,
+  openLists,
+}: {
+  item: MediaCard;
+  close: () => void;
+  canUseLists: boolean;
+  openLists: () => void;
+}) {
+  return (
+    <SafeAreaView className="flex-1 gap-6 bg-background p-5">
+      <View className="flex-row items-center justify-between gap-3">
+        <Text accessibilityRole="header" className="flex-1 text-xl font-bold text-foreground">
+          {item.title}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Close quick add"
+          className="bg-default min-h-12 justify-center rounded-lg px-4"
+          onPress={close}
+        >
+          <Text className="text-foreground">Done</Text>
+        </Pressable>
+      </View>
+      <SystemListActions
+        input={{ resourceId: item.id, resourceType: item.type }}
+        onSignIn={close}
+      />
+      {canUseLists ? (
+        <Pressable
+          accessibilityRole="button"
+          className="bg-default min-h-12 justify-center rounded-lg border border-border px-4"
+          onPress={openLists}
+        >
+          <Text className="font-semibold text-foreground">Add to Lists</Text>
+        </Pressable>
+      ) : null}
+    </SafeAreaView>
   );
 }

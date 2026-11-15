@@ -62,65 +62,72 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
     <div className="space-y-2">
       {passkeys.map((passkey, index) => (
         <div key={passkey.id}>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="font-medium">{passkey.name || 'Unnamed passkey'}</div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="capitalize">{passkey.deviceType}</span>
-                    <span>Created: {formatPasskeyDate(passkey.createdAt)}</span>
-                  </div>
-                </div>
-
-                <Dialog
-                  open={deleteDialogOpen === passkey.id}
-                  onOpenChange={(open) => setDeleteDialogOpen(open ? passkey.id : null)}
-                >
-                  <DialogTrigger
-                    render={
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        disabled={deletingIds.has(passkey.id)}
-                      />
-                    }
-                  >
-                    {deletingIds.has(passkey.id) ? 'Deleting...' : 'Delete'}
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Delete Passkey</DialogTitle>
-                      <DialogDescription>
-                        Are you sure you want to delete &quot;
-                        {passkey.name || 'Unnamed passkey'}&quot;? This action cannot be undone and
-                        you will no longer be able to use this passkey to sign in.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => setDeleteDialogOpen(null)}
-                        disabled={deletingIds.has(passkey.id)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleDeletePasskey(passkey.id)}
-                        disabled={deletingIds.has(passkey.id)}
-                      >
-                        {deletingIds.has(passkey.id) ? 'Deleting...' : 'Delete Passkey'}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardContent>
-          </Card>
+          <PasskeyRow
+            passkey={passkey}
+            deleting={deletingIds.has(passkey.id)}
+            open={deleteDialogOpen === passkey.id}
+            setOpen={(open) => setDeleteDialogOpen(open ? passkey.id : null)}
+            remove={() => handleDeletePasskey(passkey.id)}
+          />
           {index < passkeys.length - 1 && <Separator />}
         </div>
       ))}
     </div>
+  );
+}
+
+function PasskeyRow({
+  passkey,
+  deleting,
+  open,
+  setOpen,
+  remove,
+}: {
+  passkey: PasskeyMetadata;
+  deleting: boolean;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  remove: () => void;
+}) {
+  const name = passkey.name || 'Unnamed passkey';
+  const deleteLabel = deleting ? 'Deleting...' : 'Delete';
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="font-medium">{name}</div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <span className="capitalize">{passkey.deviceType}</span>
+              <span>Created: {formatPasskeyDate(passkey.createdAt)}</span>
+            </div>
+          </div>
+
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger render={<Button variant="destructive" size="sm" disabled={deleting} />}>
+              {deleteLabel}
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete Passkey</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete &quot;
+                  {name}&quot;? This action cannot be undone and you will no longer be able to use
+                  this passkey to sign in.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={deleting}>
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={remove} disabled={deleting}>
+                  {deleting ? 'Deleting...' : 'Delete Passkey'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

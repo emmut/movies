@@ -59,21 +59,27 @@ export function PersonCredit({
         }
       >
         <Portrait person={person} compact={compact} />
-        <View className={compact ? 'flex-1 gap-1' : 'gap-1'}>
-          <Text numberOfLines={2} className="text-sm font-medium text-foreground">
-            {person.name}
-          </Text>
-          {person.episodeCount !== undefined ? (
-            <Text className="text-xs text-muted">{person.episodeCount} episodes</Text>
-          ) : null}
-          {person.role ? (
-            <Text numberOfLines={2} className="text-xs text-muted">
-              {person.role}
-            </Text>
-          ) : null}
-        </View>
+        <CreditMetadata person={person} compact={compact} />
       </Pressable>
     </Link>
+  );
+}
+
+function CreditMetadata({ person, compact }: { person: CreditPerson; compact: boolean }) {
+  return (
+    <View className={compact ? 'flex-1 gap-1' : 'gap-1'}>
+      <Text numberOfLines={2} className="text-sm font-medium text-foreground">
+        {person.name}
+      </Text>
+      {person.episodeCount !== undefined ? (
+        <Text className="text-xs text-muted">{person.episodeCount} episodes</Text>
+      ) : null}
+      {person.role ? (
+        <Text numberOfLines={2} className="text-xs text-muted">
+          {person.role}
+        </Text>
+      ) : null}
+    </View>
   );
 }
 

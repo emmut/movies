@@ -8,6 +8,7 @@ import { CatalogPagination } from '@native/components/catalog-pagination';
 import { CustomListDialogs } from '@native/components/custom-list-dialogs';
 import { CustomListScroll } from '@native/components/custom-list-scroll';
 import { ListMoveControls } from '@native/components/list-controls';
+import { ListMutationError } from '@native/components/list-mutation-error';
 import { ScreenQueryState } from '@native/components/screen-query-state';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
 import { listPage } from '@native/lib/list-page-state';
@@ -114,11 +115,7 @@ function ListIndex({ userId }: { userId: string }) {
           create={() => setEditor('create')}
           toggleReorder={() => setReordering(!reordering)}
         />
-        {move.isError ? (
-          <Text accessibilityRole="alert" className="text-red-600 dark:text-red-400">
-            Couldn’t reorder your lists. Please try again.
-          </Text>
-        ) : null}
+        <ListMutationError failed={move.isError} action="reorder your lists" />
         <IndexRows
           items={result.lists}
           order={{ offset, total: result.totalItems, pending: blocked, enabled: reordering }}

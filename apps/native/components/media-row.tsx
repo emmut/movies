@@ -18,11 +18,7 @@ function RowState({
   featured?: boolean;
 }) {
   if (pending) {
-    return (
-      <View className={featured ? undefined : 'px-4'}>
-        <PosterRowSkeleton label="Loading titles" featured={featured} />
-      </View>
-    );
+    return <LoadingRow featured={featured} />;
   }
   if (failed) {
     return (
@@ -89,6 +85,14 @@ export function TrendingCard({ type }: { type: 'movie' | 'tv' }) {
         }}
       />
       {item ? <MediaPoster item={item} featured /> : null}
+    </View>
+  );
+}
+
+function LoadingRow({ featured }: { featured: boolean }) {
+  return (
+    <View className={featured ? undefined : 'px-4'}>
+      <PosterRowSkeleton label="Loading titles" featured={featured} />
     </View>
   );
 }

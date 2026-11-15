@@ -20,15 +20,14 @@ type MediaTypeSelectorDropdownProps = {
   currentMediaType: MediaType;
 };
 
-/**
- * Renders a dropdown selector for choosing between media types.
- *
- * Updates the URL query parameters and navigates to reflect the selected media type. If a genre is selected that is not valid for the new media type, it is removed from the query parameters.
- *
- * @param currentMediaType - The currently selected media type.
- * @param includePersons - Whether to show the persons option. Defaults to false.
- * @param includeAll - Whether to show the all option. Defaults to false.
- */
+const mediaTypes = {
+  all: { label: 'All', Icon: Search },
+  movie: { label: 'Movies', Icon: Film },
+  tv: { label: 'TV Shows', Icon: Tv },
+  person: { label: 'Persons', Icon: User },
+};
+
+/** Navigates between media types, retaining genres supported by the destination catalog. */
 export default function MediaTypeSelectorDropdown({
   currentMediaType,
 }: MediaTypeSelectorDropdownProps) {
@@ -43,7 +42,6 @@ export default function MediaTypeSelectorDropdown({
 
   async function handleMediaTypeChange(mediaType: MediaType) {
     const params = new URLSearchParams(searchParams);
-    const currentGenreId = params.get('genreId');
 
     startTransition(() => {
       setOptimisticMediaType(mediaType);
@@ -56,51 +54,15 @@ export default function MediaTypeSelectorDropdown({
     }
     params.delete('page');
 
-    if (currentGenreId && mediaType !== 'person' && mediaType !== 'all') {
-      const query = mediaType === 'movie' ? movieOptions : tvOptions;
-      const { data } = await query.refetch();
-      // Preserve the selected genre if upstream validation is temporarily unavailable.
-      const genreExists = data?.genres.some((genre) => String(genre.id) === currentGenreId) ?? true;
-
-      if (!genreExists) {
-        params.delete('genreId');
-      }
-    } else if (mediaType === 'person' || mediaType === 'all') {
-      // Persons and mixed results don't have genres, so remove genreId
+    if (mediaType === 'movie') {
+      await preserveGenre(params, movieOptions);
+    } else if (mediaType === 'tv') {
+      await preserveGenre(params, tvOptions);
+    } else {
       params.delete('genreId');
     }
 
     router.push(`${pathname}?${params.toString()}`);
-  }
-
-  function getDisplayName(mediaType: MediaType) {
-    switch (mediaType) {
-      case 'all':
-        return 'All';
-      case 'movie':
-        return 'Movies';
-      case 'tv':
-        return 'TV Shows';
-      case 'person':
-        return 'Persons';
-      default:
-        return 'All';
-    }
-  }
-
-  function getIcon(mediaType: MediaType) {
-    switch (mediaType) {
-      case 'all':
-        return <Search className="h-4 w-4" />;
-      case 'movie':
-        return <Film className="h-4 w-4" />;
-      case 'tv':
-        return <Tv className="h-4 w-4" />;
-      case 'person':
-        return <User className="h-4 w-4" />;
-      default:
-        return <Search className="h-4 w-4" />;
-    }
   }
 
   // Only render the dropdown after mounting to avoid hydration mismatch
@@ -109,8 +71,7 @@ export default function MediaTypeSelectorDropdown({
     return (
       <div className="flex h-9 w-[180px] items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs">
         <div className="flex items-center gap-2">
-          {getIcon(currentMediaType)}
-          {getDisplayName(currentMediaType)}
+          <MediaTypeLabel mediaType={currentMediaType} />
         </div>
       </div>
     );
@@ -124,37 +85,44 @@ export default function MediaTypeSelectorDropdown({
       <SelectTrigger className="w-[180px]">
         <SelectValue>
           <div className="flex items-center gap-2">
-            {getIcon(optimisticMediaType)}
-            {getDisplayName(optimisticMediaType)}
+            <MediaTypeLabel mediaType={optimisticMediaType} />
           </div>
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all">
-          <div className="flex items-center gap-2">
-            <Search className="h-4 w-4" />
-            All
-          </div>
-        </SelectItem>
-        <SelectItem value="movie">
-          <div className="flex items-center gap-2">
-            <Film className="h-4 w-4" />
-            Movies
-          </div>
-        </SelectItem>
-        <SelectItem value="tv">
-          <div className="flex items-center gap-2">
-            <Tv className="h-4 w-4" />
-            TV Shows
-          </div>
-        </SelectItem>
-        <SelectItem value="person">
-          <div className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Persons
-          </div>
-        </SelectItem>
+        {Object.entries(mediaTypes).map(([value, { label, Icon }]) => (
+          <SelectItem key={value} value={value}>
+            <div className="flex items-center gap-2">
+              <Icon className="h-4 w-4" />
+              {label}
+            </div>
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   );
+}
+
+function MediaTypeLabel({ mediaType }: { mediaType: MediaType }) {
+  const { label, Icon } = mediaTypes[mediaType];
+  return (
+    <>
+      <Icon className="h-4 w-4" />
+      {label}
+    </>
+  );
+}
+async function preserveGenre(
+  params: URLSearchParams,
+  query: ReturnType<typeof useDiscoveryOptions>,
+) {
+  const genreId = params.get('genreId');
+  if (!genreId) {
+    return;
+  }
+  const { data } = await query.refetch();
+  // Keep the selection when upstream validation is temporarily unavailable.
+  if (data && !data.genres.some((genre) => String(genre.id) === genreId)) {
+    params.delete('genreId');
+  }
 }

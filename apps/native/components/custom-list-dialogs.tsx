@@ -17,14 +17,27 @@ export function CustomListDialogs({
   closeDelete: () => void;
   deleted?: () => void;
 }) {
-  const item = editor === 'create' ? undefined : (editor ?? undefined);
-  const key = item?.id ?? 'create';
   return (
     <>
-      {editor ? <CustomListForm key={key} userId={userId} item={item} close={closeEditor} /> : null}
+      {editor ? <ListEditor editor={editor} userId={userId} close={closeEditor} /> : null}
       {deleting ? (
         <CustomListDelete item={deleting} userId={userId} close={closeDelete} deleted={deleted} />
       ) : null}
     </>
   );
+}
+
+function ListEditor({
+  editor,
+  userId,
+  close,
+}: {
+  editor: CustomListSummary | 'create';
+  userId: string;
+  close: () => void;
+}) {
+  if (editor === 'create') {
+    return <CustomListForm key="create" userId={userId} close={close} />;
+  }
+  return <CustomListForm key={editor.id} userId={userId} item={editor} close={close} />;
 }

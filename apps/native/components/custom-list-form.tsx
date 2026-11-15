@@ -36,19 +36,7 @@ export function CustomListForm({
   const [description, setDescription] = useState(initial.description);
   const [emoji, setEmoji] = useState(initial.emoji);
   const [validation, setValidation] = useState<string | null>(null);
-  async function saved() {
-    close();
-  }
-  const create = useCustomListsCreateMutation({
-    accountId: userId,
-    async onSuccess(result) {
-      await saved();
-      created?.(result.listId);
-    },
-  });
-  const update = useCustomListsUpdateMutation({ accountId: userId, onSuccess: saved });
-  const pending = create.isPending || update.isPending;
-  const failed = create.isError || update.isError;
+  const { pending, failed, save } = useListSave({ userId, item, close, created });
   function dismiss() {
     if (!pending) {
       close();
@@ -61,14 +49,12 @@ export function CustomListForm({
       return;
     }
     setValidation(null);
-    if (item) {
-      update.mutate({ ...parsed.data, listId: item.id });
-    } else {
-      create.mutate(parsed.data);
-    }
+    save(parsed.data);
   }
-  const title = item ? 'Edit List' : 'Create New List';
-  const submitLabel = item ? 'Save Changes' : 'Create List';
+
+  const { title, submitLabel } = item
+    ? { title: 'Edit List', submitLabel: 'Save Changes' }
+    : { title: 'Create New List', submitLabel: 'Create List' };
   return (
     <Sheet visible onRequestClose={dismiss}>
       <SafeAreaView className="flex-1 bg-background">
@@ -194,4 +180,38 @@ function FormError({ validation, failed }: { validation: string | null; failed: 
       {validation ?? 'Couldn’t save your list. Please try again.'}
     </Text>
   );
+}
+
+function useListSave({
+  userId,
+  item,
+  close,
+  created,
+}: {
+  userId: string;
+  item?: CustomListSummary;
+  close: () => void;
+  created?: (id: string) => void;
+}) {
+  async function saved() {
+    close();
+  }
+  const create = useCustomListsCreateMutation({
+    accountId: userId,
+    async onSuccess(result) {
+      await saved();
+      created?.(result.listId);
+    },
+  });
+  const update = useCustomListsUpdateMutation({ accountId: userId, onSuccess: saved });
+  const pending = create.isPending || update.isPending;
+  const failed = create.isError || update.isError;
+  function save(input: ReturnType<typeof createListSchema.parse>) {
+    if (item) {
+      update.mutate({ ...input, listId: item.id });
+    } else {
+      create.mutate(input);
+    }
+  }
+  return { pending, failed, save };
 }

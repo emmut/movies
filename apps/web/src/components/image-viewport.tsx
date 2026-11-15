@@ -15,13 +15,7 @@ import {
 } from 'react';
 
 import type { MediaSlide } from '@/components/media-viewer';
-
-function getDragAxis(x: number, y: number) {
-  if (Math.max(Math.abs(x), Math.abs(y)) < 8) {
-    return null;
-  }
-  return Math.abs(y) > Math.abs(x) ? 'y' : 'x';
-}
+import { readImageDrag, shouldDismissImage, type ImageDrag } from '@/lib/image-drag';
 
 function getTrackTransform(count: number, moving: MediaDirection | null) {
   let offset = 'var(--media-drag, 0px)';
@@ -65,15 +59,7 @@ export function ImageViewport({
   const drag = useRef({ x: 0, y: 0 });
   const [closing, setClosing] = useState(false);
   const [settling, setSettling] = useState(false);
-  const pointer = useRef<{
-    id: number;
-    x: number;
-    y: number;
-    offset: number;
-    offsetY: number;
-    axis: 'x' | 'y' | null;
-    width: number;
-  } | null>(null);
+  const pointer = useRef<ImageDrag | null>(null);
 
   function writeBackdrop(y: number) {
     const opacity = Math.max(0, 1 - y / window.innerHeight);
@@ -178,11 +164,7 @@ export function ImageViewport({
       return;
     }
     pointer.current = null;
-    if (
-      event.pointerType === 'touch' &&
-      start.axis === 'y' &&
-      start.offsetY + event.clientY - start.y >= 100
-    ) {
+    if (shouldDismissImage(start, event)) {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         onClose();
       } else {
@@ -238,18 +220,11 @@ export function ImageViewport({
         if (!start || start.id !== event.pointerId) {
           return;
         }
-        const x = event.clientX - start.x;
-        const y = event.clientY - start.y;
-        start.axis ??= getDragAxis(x, y);
-        if (!start.axis || (start.axis === 'y' && event.pointerType !== 'touch')) {
+        const position = readImageDrag(start, event, items.length);
+        if (!position) {
           return;
         }
-        const limit = Math.max(start.width * 0.85, Math.abs(start.offset));
-        drag.current.x = start.offset;
-        if (start.axis === 'x' && items.length > 1) {
-          drag.current.x = Math.max(-limit, Math.min(limit, start.offset + x));
-        }
-        drag.current.y = start.axis === 'y' ? Math.max(0, start.offsetY + y) : start.offsetY;
+        drag.current = position;
         if (frame.current === null) {
           frame.current = requestAnimationFrame(flushDrag);
         }

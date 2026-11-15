@@ -44,9 +44,12 @@ export async function signInDevicePasskey() {
 export async function readPasskeys() {
   const result = await authClient.passkey.listUserPasskeys();
   if (result.error || !result.data) {
-    throw Object.assign(new Error('Could not load passkeys'), {
-      code: result.error?.status === 401 ? 'UNAUTHORIZED' : result.error?.code,
-    });
+    throw passkeyListError(result.error);
   }
   return passkeyListSchema.parse(result.data);
+}
+
+function passkeyListError(error: { status?: number; code?: string } | null) {
+  const code = error?.status === 401 ? 'UNAUTHORIZED' : error?.code;
+  return Object.assign(new Error('Could not load passkeys'), { code });
 }
