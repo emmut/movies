@@ -14,7 +14,7 @@ import { getAllWatchProviders, getUserRegion, getUserWatchProviders } from '@/li
 
 import { AddPasskey } from './add-passkey';
 import { LinkAccount } from './link-account';
-import { getUserPasskeys } from './passkey-actions';
+import { getUserPasskeys } from './passkey-data';
 import { PasskeyList } from './passkey-list';
 import { RegionForm } from './region-form';
 import { WatchProviderForm } from './watch-provider-form';

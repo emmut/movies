@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vite-plus/test';
 
-import { formatPasskeyDate, passkeyListSchema, passkeyNameSchema } from './passkeys';
+import {
+  classifyPasskeyError,
+  deviceTypeLabel,
+  formatPasskeyDate,
+  PASSKEY_ERROR,
+  passkeyFailureMessage,
+  passkeyListSchema,
+  passkeyNameSchema,
+} from './passkeys';
 
 describe('shared passkey presentation', () => {
   it('keeps only presentation metadata and parses dates without caching credential material', () => {
@@ -33,5 +41,61 @@ describe('shared passkey presentation', () => {
     expect(passkeyNameSchema.parse(' My phone ')).toBe('My phone');
     expect(passkeyNameSchema.safeParse(' ').success).toBe(false);
     expect(passkeyNameSchema.safeParse('a'.repeat(101)).success).toBe(false);
+  });
+});
+
+describe('deviceTypeLabel', () => {
+  it.each([
+    ['multiDevice', 'Synced'],
+    ['singleDevice', 'This device only'],
+    ['somethingNew', 'somethingNew'],
+  ])('labels %s as %s', (deviceType, label) => {
+    expect(deviceTypeLabel(deviceType)).toBe(label);
+  });
+});
+
+describe('classifyPasskeyError', () => {
+  it.each([
+    PASSKEY_ERROR.cancelled,
+    'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY',
+    'ERROR_CEREMONY_ABORTED',
+  ])('treats %s as a cancelled prompt', (code) => {
+    expect(classifyPasskeyError({ code })).toBe('cancelled');
+  });
+
+  it.each([PASSKEY_ERROR.alreadyRegistered, 'ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED'])(
+    'treats %s as an authenticator that already holds a passkey',
+    (code) => {
+      expect(classifyPasskeyError({ code })).toBe('already-registered');
+    },
+  );
+
+  it('recognises a device without a passkey for the site', () => {
+    expect(classifyPasskeyError({ code: PASSKEY_ERROR.noCredentials })).toBe('no-credentials');
+  });
+
+  it.each([
+    ['an unrelated code', { code: 'AUTH_CANCELLED' }],
+    ['a non-string code', { code: 401 }],
+    ['an inherited code', Object.create({ code: PASSKEY_ERROR.cancelled })],
+    ['a thrown Error', new Error('network down')],
+    ['null', null],
+    ['a string', 'boom'],
+  ])('treats %s as a failure', (_label, error) => {
+    expect(classifyPasskeyError(error)).toBe('failed');
+  });
+});
+
+describe('passkeyFailureMessage', () => {
+  it('stays silent for a cancelled prompt', () => {
+    expect(passkeyFailureMessage('cancelled', 'fallback')).toBeNull();
+  });
+
+  it.each([
+    ['already-registered', 'This device already has a passkey for your account.'],
+    ['no-credentials', 'No passkey for Movies was found on this device.'],
+    ['failed', 'fallback'],
+  ] as const)('describes %s', (reason, message) => {
+    expect(passkeyFailureMessage(reason, 'fallback')).toBe(message);
   });
 });

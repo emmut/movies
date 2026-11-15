@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { hasErrorCode } from './errors';
+
 export const passkeyNameSchema = z
   .string()
   .trim()
@@ -47,4 +49,71 @@ export function formatPasskeyDate(value: Date | null | undefined) {
     return 'Unknown';
   }
   return value.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+/**
+ * Human label for WebAuthn's credential device type: synced passkeys are
+ * `multiDevice`, device-bound ones (e.g. most security keys) `singleDevice`.
+ */
+export function deviceTypeLabel(deviceType: string) {
+  if (deviceType === 'multiDevice') {
+    return 'Synced';
+  }
+  if (deviceType === 'singleDevice') {
+    return 'This device only';
+  }
+  return deviceType;
+}
+
+export type PasskeyFailure = 'cancelled' | 'already-registered' | 'no-credentials' | 'failed';
+export type PasskeyResult = { ok: true } | { ok: false; reason: PasskeyFailure };
+
+/** Codes both clients produce. Browser codes come from `@simplewebauthn/browser`; `PASSKEY_*` from the native ceremony. */
+export const PASSKEY_ERROR = {
+  cancelled: 'PASSKEY_CANCELLED',
+  alreadyRegistered: 'PASSKEY_ALREADY_REGISTERED',
+  noCredentials: 'PASSKEY_NO_CREDENTIALS',
+} as const;
+
+// A dismissed or timed-out OS prompt surfaces as `NotAllowedError`, which the
+// browser SDK passes through; an aborted ceremony has its own code.
+const CANCELLED_CODES = [
+  PASSKEY_ERROR.cancelled,
+  'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY',
+  'ERROR_CEREMONY_ABORTED',
+];
+const ALREADY_REGISTERED_CODES = [
+  PASSKEY_ERROR.alreadyRegistered,
+  'ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED',
+];
+
+/** Sorts a passkey error from either client into the outcomes the UI distinguishes. */
+export function classifyPasskeyError(error: unknown): PasskeyFailure {
+  if (hasErrorCode(error, ...CANCELLED_CODES)) {
+    return 'cancelled';
+  }
+  if (hasErrorCode(error, ...ALREADY_REGISTERED_CODES)) {
+    return 'already-registered';
+  }
+  if (hasErrorCode(error, PASSKEY_ERROR.noCredentials)) {
+    return 'no-credentials';
+  }
+  return 'failed';
+}
+
+/**
+ * The message for a failed passkey operation, or `null` when the user
+ * dismissed the prompt themselves and no message is needed.
+ */
+export function passkeyFailureMessage(reason: PasskeyFailure, fallback: string) {
+  switch (reason) {
+    case 'cancelled':
+      return null;
+    case 'already-registered':
+      return 'This device already has a passkey for your account.';
+    case 'no-credentials':
+      return 'No passkey for Movies was found on this device.';
+    case 'failed':
+      return fallback;
+  }
 }

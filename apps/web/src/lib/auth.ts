@@ -11,6 +11,7 @@ import { anonymous } from 'better-auth/plugins';
 
 import { ENV } from '@/env';
 import { db } from '@/lib/db';
+import { APP_NAME, passkeyOptions } from '@/lib/passkey-options';
 import { passkeyOrigins } from '@/lib/passkey-origins';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -20,6 +21,7 @@ function deploymentOrigin(host: string | undefined) {
 }
 
 export const auth = betterAuth({
+  appName: APP_NAME,
   baseURL: ENV.NEXT_PUBLIC_BASE_URL,
   advanced: { ipAddress: { ipAddressHeaders: [AUTH_CLIENT_IP_HEADER, 'x-real-ip'] } },
   trustedOrigins: async (request) =>
@@ -72,7 +74,7 @@ export const auth = betterAuth({
       },
     }),
     passkey({
-      rpName: 'Movies',
+      ...passkeyOptions,
       origin: passkeyOrigins(
         ENV.NEXT_PUBLIC_BASE_URL,
         ENV.PASSKEY_ANDROID_FINGERPRINTS,
