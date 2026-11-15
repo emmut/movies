@@ -1,5 +1,6 @@
 'use client';
 
+import { RegionWatchProviders } from '@movies/api/tmdb-types/watch-provider';
 import { DEFAULT_REGION, Region, regions, type RegionCode } from '@movies/config/regions';
 import { Dot } from '@movies/ui/components/dot';
 import {
@@ -10,8 +11,6 @@ import {
   SelectValue,
 } from '@movies/ui/components/select';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
-
-import { RegionWatchProviders } from '@/types/watch-provider';
 
 const regionCodes = regions.map((r) => r.code);
 

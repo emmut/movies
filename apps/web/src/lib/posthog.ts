@@ -1,7 +1,7 @@
 import { PostHog } from 'posthog-node';
 
-import { env } from '@/env';
+import { ENV } from '@/env';
 
-export const posthog = new PostHog(env.NEXT_PUBLIC_POSTHOG_KEY, {
-  host: env.NEXT_PUBLIC_POSTHOG_HOST,
+export const posthog = new PostHog(ENV.NEXT_PUBLIC_POSTHOG_KEY, {
+  host: ENV.NEXT_PUBLIC_POSTHOG_HOST,
 });

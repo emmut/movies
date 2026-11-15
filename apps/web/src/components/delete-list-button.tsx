@@ -1,5 +1,6 @@
 'use client';
 
+import { useCustomListsDeleteMutation } from '@movies/api/react/use-custom-lists-query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,14 +13,9 @@ import {
   AlertDialogTrigger,
 } from '@movies/ui/components/alert-dialog';
 import { Button } from '@movies/ui/components/button';
-import { useQueryClient } from '@tanstack/react-query';
 import { Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 import { toast } from 'sonner';
-
-import { deleteList } from '@/lib/lists';
-import { queryKeys } from '@/lib/query-keys';
 
 interface DeleteListButtonProps {
   listId: string;
@@ -37,19 +33,13 @@ export function DeleteListButton({
   children,
 }: DeleteListButtonProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
+  const remove = useCustomListsDeleteMutation();
+  const isLoading = remove.isPending;
 
   async function handleDelete() {
-    setIsLoading(true);
     try {
-      await deleteList(listId);
+      await remove.mutateAsync({ listId });
       toast.success('List deleted successfully');
-
-      // Invalidate all list queries to ensure fresh data
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.lists.all,
-      });
 
       router.refresh();
       if (redirectAfterDelete) {
@@ -57,8 +47,6 @@ export function DeleteListButton({
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to delete list');
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -79,9 +67,7 @@ export function DeleteListButton({
           <AlertDialogTitle>Delete List</AlertDialogTitle>
           <AlertDialogDescription>
             Are you sure you want to delete &quot;{listName}&quot;?
-            {itemCount > 0 &&
-              ` This list contains ${itemCount} item${itemCount !== 1 ? 's' : ''}.`}{' '}
-            This action cannot be undone.
+            <ListContentsWarning count={itemCount} /> This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -92,5 +78,17 @@ export function DeleteListButton({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+function ListContentsWarning({ count }: { count: number }) {
+  if (count === 0) {
+    return null;
+  }
+  return (
+    <>
+      {' '}
+      This list contains {count} {count === 1 ? 'item' : 'items'}.
+    </>
   );
 }

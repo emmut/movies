@@ -16,6 +16,9 @@ export default defineConfig({
       '!/scripts/',
       '!/patches/',
       '!/vite.config.ts',
+      'apps/web/src/env.ts',
+      'apps/native/src/env.ts',
+      'apps/server/src/env.ts',
     ],
     sortTailwindcss: {
       stylesheet: './apps/web/src/app/globals.css',
@@ -31,6 +34,12 @@ export default defineConfig({
       { name: 'vite-plus', specifier: 'vite-plus/oxlint-plugin' },
     ],
     ignorePatterns: ['.next/**', 'out/**', 'build/**', 'next-env.d.ts'],
+    overrides: [
+      {
+        files: ['apps/native/**', 'apps/server/**', 'packages/**'],
+        rules: { curly: 'error' },
+      },
+    ],
     rules: {
       'vite-plus/prefer-vite-plus-imports': 'error',
       'better-tailwindcss/no-conflicting-classes': [
@@ -41,15 +50,20 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
+    setupFiles: ['./apps/web/src/test/setup-env.ts'],
     globals: true,
     include: [
       'apps/web/src/**/*.{test,spec}.{ts,tsx}',
       'packages/**/*.{test,spec}.{ts,tsx}',
       'patches/**/*.test.ts',
+      'apps/server/src/**/*.test.ts',
+      'apps/native/lib/**/*.test.ts',
     ],
     alias: [
       // The single `@/* -> src/*` tsconfig path mapping, inlined (no plugin/dep).
       { find: /^@\//, replacement: fileURLToPath(new URL('./apps/web/src/', import.meta.url)) },
+      { find: /^@native\//, replacement: fileURLToPath(new URL('./apps/native/', import.meta.url)) },
+      { find: /^@server\//, replacement: fileURLToPath(new URL('./apps/server/src/', import.meta.url)) },
       // Next.js poison-pill packages have no runtime in a plain Node test.
       { find: 'server-only', replacement: emptyModule },
       { find: 'client-only', replacement: emptyModule },

@@ -1,15 +1,12 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useDiscoveryFacets } from '@movies/api/react/use-discovery-query';
 import { Building2, Tv } from 'lucide-react';
 import { parseAsArrayOf, parseAsInteger, useQueryStates } from 'nuqs';
 import { useId } from 'react';
 
 import { NamedFilterSearch } from '@/components/named-filter-search';
 import { SelectedFilterChips } from '@/components/selected-filter-chips';
-import { getCompanies, searchCompanies } from '@/lib/company-search';
-import { getNetworks, searchNetworks } from '@/lib/network-search';
-import { queryKeys } from '@/lib/query-keys';
 
 const organizationFilters = {
   company: {
@@ -19,9 +16,6 @@ const organizationFilters = {
     noun: 'company',
     plural: 'production companies',
     icon: Building2,
-    search: searchCompanies,
-    get: getCompanies,
-    queryKey: queryKeys.search.companies,
   },
   network: {
     urlKey: 'networkId',
@@ -30,9 +24,6 @@ const organizationFilters = {
     noun: 'network',
     plural: 'networks',
     icon: Tv,
-    search: searchNetworks,
-    get: getNetworks,
-    queryKey: queryKeys.search.networks,
   },
 };
 
@@ -52,12 +43,7 @@ export function OrganizationFilter({
     },
     { urlKeys: { ids: config.urlKey }, history: 'push' },
   );
-  const { data } = useQuery({
-    queryKey: [config.urlKey, ids],
-    queryFn: () => config.get(ids),
-    enabled: ids.length > 0,
-    staleTime: 60 * 1000,
-  });
+  const { data } = useDiscoveryFacets({ kind, ids, query: '' }, ids.length > 0);
   const items = ids.map((id) => ({
     id,
     name: data?.find((company) => company.id === id)?.name ?? `${config.singular} ${id}`,
@@ -86,8 +72,7 @@ export function OrganizationFilter({
             void setState({ ids: [...ids, id], page: 1 });
           }
         }}
-        search={config.search}
-        queryKey={config.queryKey}
+        kind={kind}
         label={config.plural}
         icon={config.icon}
       />

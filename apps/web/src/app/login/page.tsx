@@ -1,8 +1,8 @@
+import { LOGIN_COPY, LOGIN_FEATURES } from '@movies/config/login';
 import { cn } from 'cn';
 import { LogIn, Shield, Users, Zap } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
-import { LOGIN_COPY, LOGIN_FEATURES } from '@/components/login-copy';
 import { LoginForm } from '@/components/login-form';
 import { getSession } from '@/lib/auth-server';
 import { getSafeRedirectUrl } from '@/lib/utils';

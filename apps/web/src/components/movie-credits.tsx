@@ -1,9 +1,9 @@
+import { getBilledCastMembers } from '@movies/api/cast-members';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 import { CastSlider } from '@/components/cast-slider';
 import { CrewList } from '@/components/crew-list';
-import { getBilledCastMembers } from '@/lib/cast-members';
 import { getMovieCredits } from '@/lib/movies';
 import { optional } from '@/lib/tmdb';
 

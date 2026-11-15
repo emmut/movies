@@ -15,7 +15,7 @@ describe('PDP route validation', () => {
       expect(seasonRouteSchema.safeParse({ tvId: id, seasonNumber: '1' }).success).toBe(false);
     },
   );
-  it.each(['-1', '1.5', '1e3', '', '9007199254740992'])(
+  it.each(['-1', '1.5', '1e3', '', '01', ' 1', '10001', '9007199254740992'])(
     'rejects invalid season number %j',
     (seasonNumber) => {
       expect(seasonRouteSchema.safeParse({ tvId: '1', seasonNumber }).success).toBe(false);

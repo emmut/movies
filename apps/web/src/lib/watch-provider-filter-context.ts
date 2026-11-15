@@ -1,5 +1,9 @@
 import 'server-only';
 import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
+import {
+  activeWatchProviderFilter,
+  loadWatchProviderSearchParams,
+} from '@/lib/watch-provider-search-params';
 
 /**
  * Resolves what a list page needs to render the stream-provider filter: the
@@ -20,4 +24,14 @@ export async function getWatchProviderFilterContext(watchRegionParam: string | n
     userRegion,
     availableWatchProviders: getWatchProviders(userRegion, userWatchProviders),
   };
+}
+
+/** One URL/filter normalization for list prefetches and their client query keys. */
+export async function getListFilterContext(search: {
+  with_watch_providers?: string;
+  watch_region?: string;
+}) {
+  const { with_watch_providers, watch_region } = loadWatchProviderSearchParams(search);
+  const context = await getWatchProviderFilterContext(watch_region);
+  return { ...context, ...activeWatchProviderFilter(with_watch_providers, context.userRegion) };
 }

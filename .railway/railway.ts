@@ -21,6 +21,9 @@ function currentGitBranch() {
 
 export default defineRailway((ctx) => {
   const prod = ctx.isEnvironment("production");
+  const settings = prod
+    ? { appDomains: [APP_DOMAIN], cdnDomains: [CDN_DOMAIN], enableIngest: "true" }
+    : { appDomains: [], cdnDomains: [], enableIngest: "false" };
 
   // Railway provisions this volume with the managed Postgres; declare it so
   // plans don't try to delete it or shrink it.
@@ -87,7 +90,7 @@ export default defineRailway((ctx) => {
     },
     // Pin next to the users (and the DB volume region).
     replicas: { "europe-west4": 1 },
-    domains: prod ? [CDN_DOMAIN] : [],
+    domains: settings.cdnDomains,
     networking: { privateNetworkEndpoint: "imgproxy-hrto" },
     env: {
       IMGPROXY_KEY: preserve(),
@@ -100,7 +103,7 @@ export default defineRailway((ctx) => {
 
   const movies = service("movies", {
     // PR environments track their PR branch; plan/apply for them must run from that branch's checkout.
-    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    source: applicationSource(prod),
     // Runs before each deploy; a non-zero exit aborts the deploy and keeps the
     // old version live. Both environments apply committed migrations — PR
     // databases start empty and the chain builds them from scratch. The
@@ -113,8 +116,10 @@ export default defineRailway((ctx) => {
     preDeploy: "./node_modules/.bin/vp run db:migrate:railway",
     build: { buildCommand: "./node_modules/.bin/vp run build" },
     deploy: { startCommand: "./node_modules/.bin/vp run start", limitOverride: { containers: { cpu: 2, memoryBytes: 1 * GB_IN_BYTES } }, sleepApplication: true },
-    domains: prod ? [APP_DOMAIN] : [],
+    domains: settings.appDomains,
     env: {
+      API_URL: "https://${{api.RAILWAY_PUBLIC_DOMAIN}}",
+      RPC_IP_SOURCE: "railway",
       BETTER_AUTH_SECRET: preserve(),
       BETTER_AUTH_TRUSTED_ORIGIN: preserve(),
       // Every environment uses its own postgres-db.
@@ -129,11 +134,40 @@ export default defineRailway((ctx) => {
       IMGPROXY_SALT: imgproxyHRto.env.IMGPROXY_SALT,
       MOVIE_DB_ACCESS_TOKEN: preserve(),
       NEXT_PUBLIC_BASE_URL: preserve(),
-      NEXT_PUBLIC_IMAGEKIT_ID: preserve(),
       NEXT_PUBLIC_IMGPROXY_BASE_URL: preserve(),
       NEXT_PUBLIC_IMGPROXY_ENDPOINT: preserve(),
       NEXT_PUBLIC_POSTHOG_HOST: preserve(),
       NEXT_PUBLIC_POSTHOG_KEY: preserve(),
+    },
+  });
+
+  // Public Hono/oRPC API for the native app. Runs the TypeScript entrypoint
+  // directly (tsx), so the build only installs dependencies. Auth requests are
+  // forwarded to this environment's web service, which stays the single
+  // session authority. Native clients send no Origin, so CORS_ORIGIN stays
+  // unset and production admits no browser origins. Railway configuration
+  // cannot register a new custom domain, so the Railway infra workflow gives
+  // every environment a generated domain after apply. To move production to
+  // a custom domain, add it in the dashboard and declare it here.
+  const api = service("api", {
+    source: applicationSource(prod),
+    build: { buildCommand: "echo 'skipping app build — the API runs its TypeScript entrypoint'" },
+    deploy: {
+      startCommand: "./node_modules/.bin/vp run @movies/server#start",
+      healthcheckPath: "/health",
+      sleepApplication: true,
+      limitOverride: { containers: { cpu: 1, memoryBytes: 500 * MB_IN_BYTES } },
+    },
+    replicas: { "europe-west4": 1 },
+    env: {
+      NODE_ENV: "production",
+      MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
+      // Same database as web: fuzzy search reads its search_index table.
+      DATABASE_URL: db.env.DATABASE_URL,
+      AUTH_URL: "https://${{movies.RAILWAY_PUBLIC_DOMAIN}}",
+      WEB_URL: "https://${{movies.RAILWAY_PUBLIC_DOMAIN}}",
+      AUTH_IP_SOURCE: "railway",
+      AUTH_PROXY_SECRET: movies.env.BETTER_AUTH_SECRET,
     },
   });
 
@@ -149,7 +183,7 @@ export default defineRailway((ctx) => {
     // commit and then the infra apply redeploys it at main, cancelling the
     // first — and Railway reports that cancelled deployment as a failed PR
     // check. Pinning the branch keeps the single deployment green.
-    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    source: applicationSource(prod),
     // The cron only needs dependencies + Vite+. Railpack's default web build
     // would run `next build`, which fails env validation
     // since this service only has DATABASE_URL.
@@ -174,7 +208,7 @@ export default defineRailway((ctx) => {
   // Availability rows go stale after ~20h, so a run every night refreshes all
   // of them; details only weekly.
   const titleSync = service("title-sync", {
-    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    source: applicationSource(prod),
     build: { buildCommand: "echo 'skipping app build — cron runs vpx directly'" },
     deploy: {
       startCommand: "./node_modules/.bin/vpx scripts/sync-titles.ts",
@@ -191,7 +225,7 @@ export default defineRailway((ctx) => {
       // Off outside production: the service exists in every environment (see
       // imdb-ingest), but a preview should not spend TMDB requests refreshing
       // its cache. Flip it on a preview by hand when testing the sync there.
-      TITLE_SYNC_ENABLED: prod ? "true" : "false",
+      TITLE_SYNC_ENABLED: settings.enableIngest,
     },
   });
 
@@ -200,7 +234,7 @@ export default defineRailway((ctx) => {
   // UTC, so run an hour later. Only needs the database: the exports are
   // public files, not API calls.
   const searchIndexIngest = service("search-index-ingest", {
-    source: github("emmut/movies", prod ? {} : { branch: currentGitBranch() }),
+    source: applicationSource(prod),
     build: { buildCommand: "echo 'skipping app build — cron runs vpx directly'" },
     deploy: {
       startCommand: "./node_modules/.bin/vpx scripts/ingest-search-index.ts",
@@ -215,11 +249,15 @@ export default defineRailway((ctx) => {
       DATABASE_URL: db.env.DATABASE_URL,
       // Off outside production, same reasoning as title-sync: a preview should
       // not load 4–5M rows nightly unless someone is testing search there.
-      SEARCH_INDEX_INGEST_ENABLED: prod ? "true" : "false",
+      SEARCH_INDEX_INGEST_ENABLED: settings.enableIngest,
     },
   });
 
   return project("movies", {
-    resources: [movies, imgproxyHRto, db, dbVolume, imdbIngest, titleSync, searchIndexIngest],
+    resources: [movies, api, imgproxyHRto, db, dbVolume, imdbIngest, titleSync, searchIndexIngest],
   });
 });
+
+function applicationSource(production: boolean) {
+  return github("emmut/movies", production ? {} : { branch: currentGitBranch() });
+}

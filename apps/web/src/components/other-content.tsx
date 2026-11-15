@@ -1,10 +1,9 @@
+import type { MediaCard } from '@movies/api/home';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { Suspense } from 'react';
 
 import ItemCard from '@/components/item-card';
 import { ItemSlider } from '@/components/item-slider';
-import { Movie } from '@/types/movie';
-import { TvShow } from '@/types/tv-show';
 
 type OtherContentProps = {
   id: number;
@@ -13,8 +12,8 @@ type OtherContentProps = {
   // id here lets cards render their quick-add button on the server instead of
   // falling back to the client-session path meant for prerendered lists.
   userId?: string;
-  getSimilar: (id: number) => Promise<(Movie | TvShow)[]>;
-  getRecommendations: (id: number) => Promise<(Movie | TvShow)[]>;
+  getSimilar: (id: number) => Promise<MediaCard[]>;
+  getRecommendations: (id: number) => Promise<MediaCard[]>;
 };
 
 async function SimilarContent({
@@ -40,7 +39,7 @@ async function SimilarContent({
 
       <ItemSlider>
         {similar.map((item) => (
-          <ItemCard key={item.id} resource={item} type={type} userId={userId} className="w-48" />
+          <ItemCard key={item.id} resource={item} userId={userId} className="w-48" />
         ))}
       </ItemSlider>
     </div>
@@ -49,10 +48,9 @@ async function SimilarContent({
 
 async function RecommendationsContent({
   id,
-  type,
   userId,
   getRecommendations,
-}: Pick<OtherContentProps, 'id' | 'type' | 'userId' | 'getRecommendations'>) {
+}: Pick<OtherContentProps, 'id' | 'userId' | 'getRecommendations'>) {
   const recommendations = await getRecommendations(id);
 
   if (recommendations.length === 0) {
@@ -68,7 +66,7 @@ async function RecommendationsContent({
 
       <ItemSlider>
         {recommendations.map((item) => (
-          <ItemCard key={item.id} resource={item} type={type} userId={userId} className="w-48" />
+          <ItemCard key={item.id} resource={item} userId={userId} className="w-48" />
         ))}
       </ItemSlider>
     </div>
@@ -105,12 +103,7 @@ export function OtherContent({
       </Suspense>
 
       <Suspense fallback={<OtherContentSkeleton />}>
-        <RecommendationsContent
-          id={id}
-          type={type}
-          userId={userId}
-          getRecommendations={getRecommendations}
-        />
+        <RecommendationsContent id={id} userId={userId} getRecommendations={getRecommendations} />
       </Suspense>
     </div>
   );

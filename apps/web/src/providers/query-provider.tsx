@@ -1,14 +1,26 @@
 'use client';
 
+import { ApiProvider } from '@movies/api/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
+import { PreferenceRefresh } from '@/components/preference-refresh';
+import { api } from '@/lib/api-client';
+import { useSession } from '@/lib/auth-client';
 import { getQueryClient } from '@/lib/query-client';
 
 type QueryProviderProps = {
   children: ReactNode;
 };
+
+/** `undefined` while the session resolves; `null` once the visitor is known to be signed out. */
+function accountIdFromSession(session: ReturnType<typeof useSession>) {
+  if (session.isPending) {
+    return undefined;
+  }
+  return session.data?.user.id ?? null;
+}
 
 /**
  * Provides React Query context to the application.
@@ -20,11 +32,15 @@ type QueryProviderProps = {
  */
 export function QueryProvider({ children }: QueryProviderProps) {
   const queryClient = getQueryClient();
+  const session = useSession();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ApiProvider api={api} accountId={accountIdFromSession(session)}>
+        <PreferenceRefresh />
+        {children}
+        <ReactQueryDevtools initialIsOpen={false} />
+      </ApiProvider>
     </QueryClientProvider>
   );
 }

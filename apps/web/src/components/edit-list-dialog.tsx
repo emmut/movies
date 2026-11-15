@@ -1,12 +1,12 @@
 'use client';
 
+import { useCustomListsUpdateMutation } from '@movies/api/react/use-custom-lists-query';
 import { Button } from '@movies/ui/components/button';
 import { Edit } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { ListFormDialog, type ListFormValues } from '@/components/list-form-dialog';
-import { updateList } from '@/lib/lists';
 import { getErrorMessage } from '@/lib/utils';
 
 interface EditListDialogProps {
@@ -25,10 +25,11 @@ export function EditListDialog({
   children,
 }: EditListDialogProps) {
   const router = useRouter();
+  const update = useCustomListsUpdateMutation();
 
   async function handleSubmit(values: ListFormValues) {
     try {
-      await updateList(listId, values.name, values.description, values.emoji);
+      await update.mutateAsync({ listId, ...values });
       toast.success('List updated successfully');
       router.refresh();
       return true;

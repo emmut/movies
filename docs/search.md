@@ -43,7 +43,7 @@ Allow disk space for the additional index.
 Run the database regressions against a migrated test database:
 
 ```sh
-SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test apps/web/src/lib/search-index.integration.test.ts
+SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test packages/services/src/search-index.integration.test.ts
 ```
 
 Fixtures live in a temporary table. Tests cover typos through the page and

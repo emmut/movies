@@ -1,6 +1,6 @@
-import { parseSearchQuery } from '@/lib/parse-search-query';
-import type { SearchMultiResult } from '@/lib/search';
-import { formatDateYear, formatImageUrl } from '@/lib/utils';
+import { parseSearchQuery } from '@movies/api/parse-search-query';
+import type { SearchItem, SearchPage } from '@movies/api/search';
+
 import type { ProxyImageUrls } from '@/types/proxy-image';
 
 export type SearchCommandItem = {
@@ -15,73 +15,14 @@ export type SearchCommandItem = {
   fallbackEmoji: string;
 };
 
-type MultiResult = SearchMultiResult['results'][number];
-
-function getImageUrls(result: object, field: 'posterImageUrls' | 'profileImageUrls') {
-  return (result as Record<typeof field, ProxyImageUrls | undefined>)[field];
-}
-
-function toSearchCommandItem(result: MultiResult): SearchCommandItem | null {
-  if (result.media_type === 'movie') {
-    return {
-      key: `movie-${result.id}`,
-      href: `/movie/${result.id}`,
-      title: result.title,
-      subtitle: result.release_date ? formatDateYear(result.release_date) : '',
-      badge: 'Movie',
-      badgeVariant: 'yellow',
-      imageUrls: getImageUrls(result, 'posterImageUrls'),
-      fallbackSrc: formatImageUrl(result.poster_path, 92),
-      fallbackEmoji: '🎬',
-    };
-  }
-
-  if (result.media_type === 'tv') {
-    return {
-      key: `tv-${result.id}`,
-      href: `/tv/${result.id}`,
-      title: result.name,
-      subtitle: result.first_air_date ? formatDateYear(result.first_air_date) : '',
-      badge: 'TV Show',
-      badgeVariant: 'red',
-      imageUrls: getImageUrls(result, 'posterImageUrls'),
-      fallbackSrc: formatImageUrl(result.poster_path, 92),
-      fallbackEmoji: '📺',
-    };
-  }
-
-  if (result.media_type === 'person') {
-    return {
-      key: `person-${result.id}`,
-      href: `/person/${result.id}`,
-      title: result.name,
-      subtitle: result.known_for_department ?? '',
-      badge: 'Person',
-      badgeVariant: 'blue',
-      imageUrls: getImageUrls(result, 'profileImageUrls'),
-      fallbackSrc: formatImageUrl(result.profile_path, 92),
-      fallbackEmoji: '👤',
-    };
-  }
-
-  return null;
-}
-
 /**
- * Maps a multi-search response to command-palette rows, dropping unsupported
- * media types (e.g. collections) and capping the list.
+ * Maps validated search results to command-palette rows, capped at the requested limit.
  *
- * @param data - The multi search result, or undefined while nothing has loaded
+ * @param data - The search page, or undefined while nothing has loaded
  * @param limit - Maximum number of rows to return
  */
-export function toSearchCommandItems(
-  data: SearchMultiResult | undefined,
-  limit = 8,
-): SearchCommandItem[] {
-  return (data?.results ?? [])
-    .map(toSearchCommandItem)
-    .filter((item): item is SearchCommandItem => item !== null)
-    .slice(0, limit);
+export function toSearchCommandItems(data: SearchPage | undefined, limit = 8): SearchCommandItem[] {
+  return (data?.items ?? []).slice(0, limit).map(toApiSearchCommandItem);
 }
 
 /**
@@ -161,4 +102,36 @@ export function moveSelection(key: string, index: number, count: number): number
   }
 
   return index;
+}
+
+const TITLE_PRESENTATION = {
+  movie: { badge: 'Movie', badgeVariant: 'yellow', fallbackEmoji: '🎬' },
+  tv: { badge: 'TV Show', badgeVariant: 'red', fallbackEmoji: '📺' },
+} as const satisfies Record<
+  'movie' | 'tv',
+  Pick<SearchCommandItem, 'badge' | 'badgeVariant' | 'fallbackEmoji'>
+>;
+
+function toApiSearchCommandItem(item: SearchItem): SearchCommandItem {
+  if (item.type === 'person') {
+    return {
+      key: `person-${item.id}`,
+      href: `/person/${item.id}`,
+      title: item.name,
+      subtitle: item.department,
+      badge: 'Person',
+      badgeVariant: 'blue',
+      fallbackSrc: item.profileUrl ?? '',
+      fallbackEmoji: '👤',
+    };
+  }
+
+  return {
+    key: `${item.type}-${item.id}`,
+    href: `/${item.type}/${item.id}`,
+    title: item.title,
+    subtitle: item.releaseDate.slice(0, 4),
+    ...TITLE_PRESENTATION[item.type],
+    fallbackSrc: item.posterUrl ?? '',
+  };
 }

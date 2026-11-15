@@ -13,21 +13,19 @@
  * personal, non-commercial use only.
  */
 
-import { Transform, type TransformCallback } from 'node:stream';
-import { Readable } from 'node:stream';
+import { Readable, Transform, type TransformCallback } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
-
-import { parse } from 'csv-parse';
-import { drizzle } from 'drizzle-orm/node-postgres';
 
 import {
   deleteStaleRatings,
   parseRatingRecord,
   upsertRatingsBatch,
   type ImdbRatingRow,
-} from '@/lib/imdb-ingest';
+} from '@movies/db/imdb-ingest';
+import { parse } from 'csv-parse';
+import { drizzle } from 'drizzle-orm/node-postgres';
 
 import { env } from './env';
 
@@ -102,7 +100,6 @@ async function main() {
     }
 
     const nodeStream = Readable.fromWeb(response.body as NodeReadableStream<Uint8Array>);
-
     const gunzipped = nodeStream.pipe(createGunzip());
 
     const parser = parse({
@@ -113,9 +110,7 @@ async function main() {
       trim: true,
     });
 
-    const ratingTransform = createRatingTransform();
-
-    await pipeline(gunzipped, parser, ratingTransform);
+    await pipeline(gunzipped, parser, createRatingTransform());
   } finally {
     clearTimeout(timeout);
   }

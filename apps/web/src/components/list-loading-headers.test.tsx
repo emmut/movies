@@ -18,9 +18,19 @@ const list = vi.hoisted(() => ({
   updatedAt: new Date('2026-01-01T00:00:00.000Z'),
   itemCount: 1,
   totalPages: 1,
-  allItems: [],
+  items: [],
 }));
 const queryState = vi.hoisted(() => ({ isPlaceholderData: false }));
+
+vi.mock('@movies/api/react/use-custom-lists-query', () => ({
+  useCustomListsDetails: () => ({
+    data: list,
+    isLoading: false,
+    isError: false,
+    isPlaceholderData: queryState.isPlaceholderData,
+  }),
+  useCustomListsMoveItemMutation: () => ({ mutateAsync: vi.fn() }),
+}));
 
 vi.mock('@tanstack/react-query', () => ({
   keepPreviousData(previousData: unknown) {
@@ -66,7 +76,6 @@ vi.mock('@/components/watch-provider-filter', () => ({
 vi.mock('@/hooks/use-reorderable-items', () => ({
   useReorderableItems: () => ({ localItems: [], isPending: false, move: vi.fn() }),
 }));
-vi.mock('@/lib/lists', () => ({ moveListItem: vi.fn() }));
 
 describe('list loading headers', () => {
   it('reserves every system-list header control at its loaded height', () => {
@@ -121,12 +130,7 @@ describe('list loading headers', () => {
 
   it('renders a custom list description in the loaded header', () => {
     const markup = renderToStaticMarkup(
-      <ListDetailsContent
-        listId={list.id}
-        fetchListDetailsAction={vi.fn()}
-        watchProviders={[]}
-        userRegion="SE"
-      />,
+      <ListDetailsContent listId={list.id} watchProviders={[]} userRegion="SE" />,
     );
 
     expect(markup).toContain(list.description);
@@ -141,12 +145,7 @@ describe('list loading headers', () => {
 
     try {
       const markup = renderToStaticMarkup(
-        <ListDetailsContent
-          listId={list.id}
-          fetchListDetailsAction={vi.fn()}
-          watchProviders={[]}
-          userRegion="SE"
-        />,
+        <ListDetailsContent listId={list.id} watchProviders={[]} userRegion="SE" />,
       );
 
       expect(markup).toContain('aria-busy="true"');

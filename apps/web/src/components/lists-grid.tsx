@@ -3,8 +3,10 @@
 import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, rectSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import type { CustomListSummary } from '@movies/api/custom-lists';
+import { sameIdOrder } from '@movies/api/list-order';
+import { useCustomListsMoveMutation } from '@movies/api/react/use-custom-lists-query';
 import { Button } from '@movies/ui/components/button';
-import { useQueryClient } from '@tanstack/react-query';
 import { cn } from 'cn';
 import { Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -16,9 +18,8 @@ import { EditListDialog } from '@/components/edit-list-dialog';
 import { ReorderButton } from '@/components/reorder-button';
 import { ReorderControls } from '@/components/reorder-controls';
 import { useReorderSensors } from '@/hooks/use-reorder-sensors';
-import { sameIdOrder } from '@/lib/list-order';
-import { LocalList, moveList } from '@/lib/lists';
-import { queryKeys } from '@/lib/query-keys';
+
+type LocalList = CustomListSummary;
 
 interface ListsGridProps {
   lists: LocalList[];
@@ -32,13 +33,10 @@ function reorderErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Failed to reorder lists';
 }
 
-// Not useOptimistic/useTransition: moveList's revalidatePath makes Next
-// intermittently never settle the transition, wedging isPending at true
-// (https://github.com/vercel/next.js/discussions/82289). Manual pending
-// state with a finally block cannot wedge.
+// Local order is optimistic; the shared mutation owns pending state and invalidation.
 function useReorderableLists(lists: LocalList[], offset: number) {
-  const queryClient = useQueryClient();
-  const [isPending, setIsPending] = useState(false);
+  const moveMutation = useCustomListsMoveMutation();
+  const isPending = moveMutation.isPending;
   const [localLists, setLocalLists] = useState(lists);
   const [prevLists, setPrevLists] = useState(lists);
 
@@ -62,16 +60,11 @@ function useReorderableLists(lists: LocalList[], offset: number) {
   }
 
   async function commitMove(listId: string, toLocalIndex: number, previous: LocalList[]) {
-    setIsPending(true);
     try {
-      await moveList(listId, Math.max(0, offset + toLocalIndex));
-      // Fire-and-forget: awaiting ties pending to unrelated refetches.
-      queryClient.invalidateQueries({ queryKey: queryKeys.lists.all });
+      await moveMutation.mutateAsync({ listId, position: Math.max(0, offset + toLocalIndex) });
     } catch (error) {
       setLocalLists(previous);
       toast.error(reorderErrorMessage(error));
-    } finally {
-      setIsPending(false);
     }
   }
 
@@ -112,7 +105,7 @@ function ListCardLink({ list }: { list: LocalList }) {
         <div className="mt-4 border-t border-muted pt-4">
           <p className="text-sm text-muted-foreground">{list.itemCount} items</p>
           <p className="text-xs text-muted-foreground">
-            Updated {list.updatedAt.toLocaleDateString()}
+            Updated {new Date(list.updatedAt).toLocaleDateString()}
           </p>
         </div>
       </div>

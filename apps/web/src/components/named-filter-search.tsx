@@ -1,39 +1,33 @@
 'use client';
 
 import { Combobox } from '@base-ui/react/combobox';
+import type { DiscoveryFacetInput } from '@movies/api/discover';
+import { useDebouncedValue } from '@movies/api/react/use-debounced-value';
+import { useDiscoveryFacets } from '@movies/api/react/use-discovery-query';
 import { Button } from '@movies/ui/components/button';
 import { Input } from '@movies/ui/components/input';
-import { useQuery } from '@tanstack/react-query';
 import { Search, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 
-import { useDebouncedValue } from '@/hooks/use-debounced-value';
 type NamedItem = { id: number; name: string };
 
 export function NamedFilterSearch({
   selectedIds,
   onSelect,
-  search,
-  queryKey,
+  kind,
   label,
   icon: Icon,
 }: {
   selectedIds: number[];
   onSelect: (id: number) => void;
-  search: (query: string) => Promise<NamedItem[]>;
-  queryKey: (query: string) => readonly unknown[];
+  kind: DiscoveryFacetInput['kind'];
   label: string;
   icon: LucideIcon;
 }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const trimmedQuery = query.trim();
-  const { data, pending, error, refetch } = useNamedSuggestions(
-    trimmedQuery,
-    open,
-    search,
-    queryKey,
-  );
+  const { data, pending, error, refetch } = useNamedSuggestions(trimmedQuery, open, kind);
   const items = pending ? [] : data.filter((item) => !selectedIds.includes(item.id));
 
   function handleSelect(item: NamedItem | null) {
@@ -83,25 +77,17 @@ export function NamedFilterSearch({
   );
 }
 
-function useNamedSuggestions(
-  query: string,
-  open: boolean,
-  search: (query: string) => Promise<NamedItem[]>,
-  queryKey: (query: string) => readonly unknown[],
-) {
+function useNamedSuggestions(query: string, open: boolean, kind: DiscoveryFacetInput['kind']) {
   const debouncedQuery = useDebouncedValue(query, 300);
   const {
     data = [],
     isFetching,
     isError,
     refetch,
-  } = useQuery({
-    queryKey: queryKey(debouncedQuery),
-    queryFn: () => search(debouncedQuery),
-    enabled: open && debouncedQuery.length >= 2,
-    staleTime: 60 * 1000,
-    retry: false,
-  });
+  } = useDiscoveryFacets(
+    { kind, query: debouncedQuery, ids: [] },
+    open && debouncedQuery.length >= 2,
+  );
   const pending = query !== debouncedQuery || isFetching;
   return { data, pending, error: isError && !pending, refetch };
 }

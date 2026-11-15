@@ -8,10 +8,12 @@
     "test:watch": "vp run -w test:watch apps/web/src",
     "dev": "next dev",
     "build": "next build",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "env:generate": "varlock codegen"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
+    "@better-auth/expo": "catalog:",
     "@better-auth/passkey": "catalog:",
     "@dnd-kit/core": "catalog:",
     "@dnd-kit/sortable": "catalog:",
@@ -23,10 +25,11 @@
     "@movies/config": "workspace:*",
     "@movies/db": "workspace:*",
     "@movies/ui": "workspace:*",
+    "@orpc/client": "catalog:",
     "@primer/octicons-react": "catalog:",
-    "@t3-oss/env-nextjs": "catalog:",
     "@tailwindcss/postcss": "catalog:",
     "@tanstack/react-query": "catalog:",
+    "@varlock/nextjs-integration": "1.2.2",
     "babel-plugin-react-compiler": "catalog:",
     "better-auth": "catalog:",
     "class-variance-authority": "catalog:",
@@ -44,6 +47,7 @@
     "sonner": "catalog:",
     "tailwindcss": "catalog:",
     "tailwindcss-animate": "catalog:",
+    "varlock": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

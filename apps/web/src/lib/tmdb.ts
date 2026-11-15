@@ -1,21 +1,5 @@
 import 'server-only';
-import { env } from '@/env';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
-
-import { createTmdbFetch } from './tmdb-fetch';
-
-/**
- * Fetches a TMDb API endpoint with authorization and JSON parsing, bound to
- * the app's access token. See {@link createTmdbFetch} for retry semantics.
- *
- * @param path - The API path (e.g. '/movie/123' or '/trending/movie/day').
- * @param searchParams - Optional query parameters; `undefined` values are skipped.
- * @param errorMessage - Error message thrown on a non-OK response.
- * @returns The parsed JSON response.
- *
- * @throws {TmdbRequestError} If the response status is not OK.
- */
-export const tmdbFetch = createTmdbFetch(env.MOVIE_DB_ACCESS_TOKEN);
 
 /**
  * Degrades an optional TMDb fetch to `fallback` when it fails, so a single

@@ -1,5 +1,7 @@
 'use client';
 
+import { useDebouncedValue } from '@movies/api/react/use-debounced-value';
+import { useSearchSuggestions } from '@movies/api/react/use-search-query';
 import { Dialog, DialogContent, DialogTitle } from '@movies/ui/components/dialog';
 import { Input } from '@movies/ui/components/input';
 import { Kbd } from '@movies/ui/components/kbd';
@@ -14,8 +16,6 @@ import { flushSync } from 'react-dom';
 import Badge from '@/components/badge';
 import ClientImage from '@/components/client-image';
 import Spinner from '@/components/spinner';
-import { useDebouncedValue } from '@/hooks/use-debounced-value';
-import { useSearchSuggestions } from '@/hooks/use-search-query';
 import { useSearchShortcut } from '@/hooks/use-search-shortcut';
 import { useShortcutLabel } from '@/hooks/use-shortcut-label';
 import { saveBackTarget } from '@/lib/back-target';
@@ -254,7 +254,10 @@ function SearchCommandPanel({ inputRef, onNavigate, urlQuery }: SearchCommandPan
   }
 
   const debouncedQuery = useDebouncedValue(query.trim(), 250);
-  const { data, isLoading, isFetching, isPlaceholderData } = useSearchSuggestions(debouncedQuery);
+  const { data, isLoading, isFetching, isPlaceholderData } = useSearchSuggestions(
+    { query: debouncedQuery },
+    debouncedQuery.length > 0,
+  );
 
   const items = toSearchCommandItems(data, RESULT_LIMIT);
   const clampedIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));

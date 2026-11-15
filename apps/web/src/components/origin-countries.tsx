@@ -1,7 +1,11 @@
+import {
+  getCountryFlag,
+  getCountryName,
+  sanitizeOriginCountryCodes,
+} from '@movies/config/countries';
 import Link from 'next/link';
 
 import Pill from '@/components/pill';
-import { getCountryFlag, getCountryName, sanitizeOriginCountryCodes } from '@/lib/countries';
 
 /**
  * Derives what the origin-countries section renders: null when TMDb reports

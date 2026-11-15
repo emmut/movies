@@ -1,21 +1,16 @@
 'use client';
 
+import type { MediaCard, HomeMediaCategory } from '@movies/api/home';
+import { useApiAccountId } from '@movies/api/react';
+import { useHomeList } from '@movies/api/react/use-home-query';
+import { useAccountRegion } from '@movies/api/react/use-preferences-query';
 import { DEFAULT_REGION } from '@movies/config/regions';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import ItemCard from '@/components/item-card';
-import { useUserRegion } from '@/hooks/use-user-region';
-import { getHomeMediaList, HomeMediaCategory } from '@/lib/home-media';
-import { queryKeys } from '@/lib/query-keys';
-import { Movie } from '@/types/movie';
-import { TvShow } from '@/types/tv-show';
-
-type MediaItem = Movie | TvShow;
 
 type PersonalizedMediaListProps = {
   category: HomeMediaCategory;
-  type: 'movie' | 'tv';
-  initialItems: MediaItem[];
+  initialItems: MediaCard[];
 };
 
 /**
@@ -28,23 +23,13 @@ type PersonalizedMediaListProps = {
  */
 export default function PersonalizedMediaList({
   category,
-  type,
   initialItems,
 }: PersonalizedMediaListProps) {
-  const { data: region } = useUserRegion();
-  const effectiveRegion = region ?? DEFAULT_REGION;
-
-  const { data } = useQuery({
-    queryKey: queryKeys.home.list(category, effectiveRegion),
-    queryFn: () => getHomeMediaList(category, effectiveRegion),
-    initialData: effectiveRegion === DEFAULT_REGION ? initialItems : undefined,
-    placeholderData: keepPreviousData,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
+  const accountId = useApiAccountId();
+  const { data: accountRegion } = useAccountRegion(accountId);
+  const region = accountRegion?.region ?? DEFAULT_REGION;
+  const { data } = useHomeList({ category, region });
   const items = data ?? initialItems;
 
-  return items.map((item) => (
-    <ItemCard className="max-w-[150px]" key={item.id} resource={item} type={type} />
-  ));
+  return items.map((item) => <ItemCard className="max-w-[150px]" key={item.id} resource={item} />);
 }

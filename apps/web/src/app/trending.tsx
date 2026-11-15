@@ -3,8 +3,7 @@ import { Skeleton } from '@movies/ui/components/skeleton';
 import { BackTargetLink } from '@/components/back-target-link';
 import Badge from '@/components/badge';
 import { Imgproxy } from '@/components/image-proxy';
-import { fetchTrendingMovies } from '@/lib/movies';
-import { fetchTrendingTvShows } from '@/lib/tv-shows';
+import { createServerApi } from '@/lib/api-server';
 import { formatDateYear } from '@/lib/utils';
 
 type TrendingCardProp = {
@@ -23,17 +22,15 @@ type TrendingCardProp = {
  * @returns A React element representing the trending card, or `null` if the index is invalid.
  */
 async function Trending({ index, type }: TrendingCardProp) {
-  const resources = type === 'movie' ? await fetchTrendingMovies() : await fetchTrendingTvShows();
+  const resources = await createServerApi(new Headers()).home.trending({ type });
 
-  if (resources.length < index - 1) {
+  const resource = resources[index];
+  if (!resource) {
     return null;
   }
 
-  const resource = resources[index];
-
-  const title = 'title' in resource ? resource.title : resource.name;
-  const releaseDate = 'release_date' in resource ? resource.release_date : resource.first_air_date;
-  const href = type === 'movie' ? `/movie/${resource.id}` : `/tv/${resource.id}`;
+  const { title, releaseDate, backdropUrl } = resource;
+  const href = `/${type}/${resource.id}`;
 
   const borderColor = type === 'movie' ? 'hover:border-yellow-300' : 'hover:border-red-500';
 
@@ -46,9 +43,9 @@ async function Trending({ index, type }: TrendingCardProp) {
       // title paints through the header as the card scrolls under it.
       className={`group relative isolate h-52 overflow-hidden rounded-xl border ${borderColor} transition-all hover:scale-[1.02] focus:scale-[1.02] focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none lg:h-72 lg:flex-1`}
     >
-      {resource.backdrop_path && (
+      {backdropUrl && (
         <Imgproxy
-          src={resource.backdrop_path}
+          src={backdropUrl}
           alt={`Poster of ${title}`}
           className="col-span-full row-span-full object-cover"
           sizes="(max-width:1024px) 100vw, 33vw"

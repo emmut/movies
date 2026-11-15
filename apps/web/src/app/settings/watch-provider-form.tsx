@@ -1,5 +1,7 @@
 'use client';
 
+import { usePreferencesSetProvidersMutation } from '@movies/api/react/use-preferences-query';
+import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
 import {
   Card,
@@ -8,16 +10,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@movies/ui/components/card';
-import { useQueryClient } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import Image from 'next/image';
-import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
-import { setUserWatchProviders } from '@/lib/user-actions';
 import { formatImageUrl } from '@/lib/utils';
-import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFormProps {
   availableProviders: WatchProvider[];
@@ -27,8 +26,9 @@ interface WatchProviderFormProps {
 export function WatchProviderForm({ availableProviders, userProviders }: WatchProviderFormProps) {
   const [selectedProviders, setSelectedProviders] = useState<number[]>(userProviders);
   const [brokenImages, setBrokenImages] = useState<Set<number>>(new Set());
-  const [isPending, startTransition] = useTransition();
-  const queryClient = useQueryClient();
+  const router = useRouter();
+  const save = usePreferencesSetProvidersMutation();
+  const isPending = save.isPending;
 
   function handleProviderToggle(providerId: number) {
     setSelectedProviders((prev) =>
@@ -41,19 +41,14 @@ export function WatchProviderForm({ availableProviders, userProviders }: WatchPr
   }
 
   async function handleSave() {
-    startTransition(async () => {
-      try {
-        await setUserWatchProviders(selectedProviders);
-        // Server caches are revalidated by the action; drop the in-memory React
-        // Query cache for the user's queries too, so client-side consumers
-        // don't serve the old selection until it goes stale.
-        await invalidateUserPreferenceQueries(queryClient);
-        toast.success('Preferences saved!');
-      } catch (error) {
-        console.error('Error saving watch providers:', error);
-        toast.error('Failed to save preferences. Please try again.');
-      }
-    });
+    try {
+      await save.mutateAsync({ providerIds: selectedProviders });
+      router.refresh();
+      toast.success('Preferences saved!');
+    } catch (error) {
+      console.error('Error saving watch providers:', error);
+      toast.error('Failed to save preferences. Please try again.');
+    }
   }
 
   function handleClearAll() {

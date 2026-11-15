@@ -1,12 +1,12 @@
 'use client';
 
+import { useCustomListsCreateMutation } from '@movies/api/react/use-custom-lists-query';
 import { Button } from '@movies/ui/components/button';
 import { ListPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { ListFormDialog, type ListFormValues } from '@/components/list-form-dialog';
-import { createList } from '@/lib/lists';
 import { getErrorMessage } from '@/lib/utils';
 
 interface CreateListDialogProps {
@@ -31,11 +31,12 @@ export function CreateListDialog({
   successMessage = 'List created successfully',
 }: CreateListDialogProps) {
   const router = useRouter();
+  const create = useCustomListsCreateMutation();
   const isControlled = open !== undefined;
 
   async function handleSubmit(values: ListFormValues) {
     try {
-      const result = await createList(values.name, values.description, values.emoji);
+      const result = await create.mutateAsync(values);
       if (!result.success) {
         return false;
       }

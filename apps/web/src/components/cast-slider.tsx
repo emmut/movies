@@ -1,10 +1,10 @@
+import type { CastMemberSummary } from '@movies/api/tmdb-types/pdp';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { Users } from 'lucide-react';
 
 import { BackTargetLink } from '@/components/back-target-link';
 import { Imgproxy } from '@/components/image-proxy';
 import { ItemSlider } from '@/components/item-slider';
-import type { CastMemberSummary } from '@/types/pdp';
 
 /**
  * Horizontal slider of billed cast, each linking to the person page. Renders

@@ -1,11 +1,13 @@
 'use client';
 
+import { useDiscoveryList } from '@movies/api/react/use-discovery-query';
+
 import { PaginationControls } from '@/components/pagination-controls';
 import Spinner from '@/components/spinner';
-import { useDiscoverMedia, type DiscoverMediaParams } from '@/hooks/use-discover-query';
+import { webDiscoveryInput, type DiscoverMediaParams } from '@/lib/discover-input';
 
 export default function Pagination({ query }: { query: DiscoverMediaParams }) {
-  const { data, isLoading } = useDiscoverMedia(query);
+  const { data, isLoading } = useDiscoveryList(webDiscoveryInput(query));
 
   if (isLoading) {
     return <Spinner className="mx-auto mt-8" />;

@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,9 +20,9 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./apps/web/src/*"
-      ]
+      "@/*": ["./apps/web/src/*"],
+      "@native/*": ["./apps/native/*"],
+      "@server/*": ["./apps/server/src/*"]
     },
     "allowImportingTsExtensions": true
   },
@@ -42,9 +38,8 @@
     "drizzle.config.ts",
     "vite.config.ts",
     "playwright.config.ts",
-    ".railway/railway.ts"
+    ".railway/railway.ts",
+    "apps/web/src/app/.well-known/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

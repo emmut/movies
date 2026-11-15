@@ -25,8 +25,6 @@ import { pipeline as pipelineAsync } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
 
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-
 import {
   deleteStaleSearchIndexRows,
   exportDates,
@@ -36,7 +34,8 @@ import {
   MIN_EXPORT_ROWS,
   SEARCH_INDEX_EXPORTS,
   type SearchIndexExport,
-} from '@/lib/search-index-ingest';
+} from '@movies/db/search-index-ingest';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 
 import { connectForCron } from './cron-db';
 import { describeError } from './describe-error';
@@ -149,26 +148,23 @@ async function ingestExport(
     );
   }
   const timeout = setTimeout(stall, STALL_TIMEOUT_MS);
-  const resetTimeout = () => timeout.refresh();
+  function resetTimeout() {
+    timeout.refresh();
+  }
 
   try {
     const archive = join(workDir, `${file}.json.gz`);
     await downloadExport(file, archive, { signal: controller.signal, onChunk: resetTimeout });
     resetTimeout();
 
-    // `.pipe()` does not forward errors, so a read failure used to crash the
-    // process as an unhandled 'error' event on the source Readable.
-    // `pipeline` wires error handling across both streams and destroys the
-    // gunzip output with the error, which readline then surfaces as a
-    // rejection of the line loop below.
+    // `.pipe()` does not forward errors; `pipeline` wires error handling
+    // across both streams and destroys the gunzip output with the error,
+    // which readline then surfaces as a rejection of the line loop below.
     const source = pipeline(createReadStream(archive), createGunzip(), () => {});
     // The file read never hangs on its own; a stall here means the database
     // did. Destroying the source ends the line loop with the abort reason.
     controller.signal.addEventListener('abort', () => source.destroy(controller.signal.reason));
-    const lines = createInterface({
-      input: source,
-      crlfDelay: Infinity,
-    });
+    const lines = createInterface({ input: source, crlfDelay: Infinity });
 
     const { total, skipped } = await ingestExportLines(db, mediaType, lines, {
       batchSize: BATCH_SIZE,

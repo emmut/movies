@@ -5,11 +5,12 @@ vi.mock('@/components/image-proxy', () => ({ Imgproxy: () => null }));
 vi.mock('@/components/cast-slider', () => ({ CastSlider: () => <div>Cast preview</div> }));
 vi.mock('@/lib/movies', () => ({ getMovieCredits: vi.fn(), getMovieDetails: vi.fn() }));
 
+import type { CrewMember } from '@movies/api/tmdb-types/movie';
+
 import MovieCrewPage from '@/app/movie/[movieId]/crew/page';
 import { CrewList } from '@/components/crew-list';
 import { groupCrewMembers } from '@/lib/crew-members';
 import { getMovieCredits, getMovieDetails } from '@/lib/movies';
-import type { CrewMember } from '@/types/movie';
 
 import { MovieCredits } from './movie-credits';
 

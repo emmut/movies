@@ -27,10 +27,11 @@ vi.mock('@/components/streaming-providers', () => ({
   ),
 }));
 
+import type { DirectWatchLink } from '@movies/api/tmdb-types/watch-provider';
+
 import { getMovieWatchProviders } from '@/lib/movies';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
 import { getWikidataWatchLinks } from '@/lib/wikidata';
-import type { DirectWatchLink } from '@/types/watch-provider';
 
 import { StreamingSection } from './streaming-section';
 

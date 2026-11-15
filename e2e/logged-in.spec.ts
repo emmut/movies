@@ -7,6 +7,7 @@ import { MOVIE_PATH, signInAnonymously } from './helpers';
 // These need the local Postgres — the server actions read/write the DB — so
 // they only pass with the database wired into dev/CI.
 
+// Next retains hidden route trees; counts and cards belong to the visible page.
 test.describe('logged-in watchlist and lists', () => {
   test('adds and removes a movie via the watchlist button', async ({ page }) => {
     await signInAnonymously(page, MOVIE_PATH);
@@ -22,8 +23,8 @@ test.describe('logged-in watchlist and lists', () => {
     // The movie now shows up on the watchlist page.
     await page.goto('/watchlist');
     await expect(page.getByRole('heading', { name: /my watchlist/i })).toBeVisible();
-    await expect(page.getByText(/1 movie saved/i)).toBeVisible();
-    await expect(page.locator(`a[href="${MOVIE_PATH}"]`).first()).toBeVisible();
+    await expect(page.getByText(/1 movie saved/i).filter({ visible: true })).toBeVisible();
+    await expect(page.locator(`a[href="${MOVIE_PATH}"]`).filter({ visible: true }).first()).toBeVisible();
 
     // Remove it again from the detail page and confirm the watchlist empties.
     await page.goto(MOVIE_PATH);
@@ -136,13 +137,13 @@ test.describe('logged-in watchlist and lists', () => {
     // The movie shows up on the watched page.
     await page.goto('/watched');
     await expect(page.getByRole('heading', { name: /^watched$/i })).toBeVisible();
-    await expect(page.getByText(/1 movie watched/i)).toBeVisible();
-    await expect(page.locator(`a[href="${MOVIE_PATH}"]`).first()).toBeVisible();
+    await expect(page.getByText(/1 movie watched/i).filter({ visible: true })).toBeVisible();
+    await expect(page.locator(`a[href="${MOVIE_PATH}"]`).filter({ visible: true }).first()).toBeVisible();
 
     // And it is still on the watchlist.
     await page.goto('/watchlist');
-    await expect(page.getByText(/1 movie saved/i)).toBeVisible();
-    await expect(page.locator(`a[href="${MOVIE_PATH}"]`).first()).toBeVisible();
+    await expect(page.getByText(/1 movie saved/i).filter({ visible: true })).toBeVisible();
+    await expect(page.locator(`a[href="${MOVIE_PATH}"]`).filter({ visible: true }).first()).toBeVisible();
 
     // Un-mark it from the detail page and confirm the watched page empties.
     await page.goto(MOVIE_PATH);
@@ -173,7 +174,7 @@ test.describe('logged-in watchlist and lists', () => {
     // Neither must the add-to-list dropdown on a detail page.
     await page.goto(MOVIE_PATH);
     await page.getByRole('button', { name: 'Add to list', exact: true }).click();
-    await expect(page.getByText('No lists yet')).toBeVisible();
+    await expect(page.getByText('No lists yet').filter({ visible: true })).toBeVisible();
     await expect(page.getByRole('menuitem', { name: /watchlist/i })).toHaveCount(0);
   });
 
@@ -188,7 +189,7 @@ test.describe('logged-in watchlist and lists', () => {
     await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeEnabled();
 
     await page.goto('/watchlist');
-    const card = page.locator(`a[href="${MOVIE_PATH}"]`).first();
+    const card = page.locator(`a[href="${MOVIE_PATH}"]`).filter({ visible: true }).first();
     await expect(card).toBeVisible();
 
     // Open the card's quick-add dropdown and use its watchlist toggle to remove it.
@@ -200,6 +201,6 @@ test.describe('logged-in watchlist and lists', () => {
     // Reload for a deterministic server render and confirm the card is gone.
     await page.goto('/watchlist');
     await expect(page.getByRole('heading', { name: /your watchlist is empty/i })).toBeVisible();
-    await expect(page.locator(`a[href="${MOVIE_PATH}"]`)).toHaveCount(0);
+    await expect(page.locator(`a[href="${MOVIE_PATH}"]`).filter({ visible: true })).toHaveCount(0);
   });
 });

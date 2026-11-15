@@ -15,10 +15,12 @@ import { randomUUID } from 'crypto';
 import { user } from '@movies/db/schema/auth';
 import { lists, listItems } from '@movies/db/schema/lists';
 import { and, eq } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/node-postgres';
 
-import { env } from '@/env';
-import { TMDB_API_URL } from '@/lib/constants';
-import { db } from '@/lib/db';
+import { env } from './env';
+
+const TMDB_API_URL = env.TMDB_API_URL_OVERRIDE ?? 'https://api.themoviedb.org/3';
+const db = drizzle({ connection: { connectionString: env.DATABASE_URL, max: 1 } });
 
 type TmdbMovie = {
   id: number;

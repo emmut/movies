@@ -6,7 +6,6 @@ import { ItemSlider } from '@/components/item-slider';
 import { MediaViewer, MediaViewerTrigger } from '@/components/media-viewer';
 import { buildProxyImageUrls } from '@/lib/imgproxy-url';
 import { getPdpExtras } from '@/lib/pdp';
-import { getGalleryImages } from '@/lib/pdp-extra-content';
 import { optional } from '@/lib/tmdb';
 
 export async function PdpImages({
@@ -19,7 +18,7 @@ export async function PdpImages({
   title: string;
 }) {
   const extras = await optional(getPdpExtras(type, id), null);
-  const pictures = getGalleryImages(extras?.images);
+  const pictures = extras?.images ?? [];
   if (pictures.length === 0) {
     return null;
   }

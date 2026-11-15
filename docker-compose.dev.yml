@@ -1,3 +1,6 @@
+# Worktrees share local services and the existing movies_postgres-data volume.
+name: movies
+
 services:
   postgres:
     image: postgres:16

@@ -1,5 +1,6 @@
 'use client';
 
+import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
 import { Label } from '@movies/ui/components/label';
 import {
@@ -17,7 +18,6 @@ import { ComponentProps, useState } from 'react';
 import { FilterCount } from '@/components/filter-count';
 import { useWatchProviderSelection } from '@/hooks/use-watch-provider-selection';
 import { formatImageUrl } from '@/lib/utils';
-import { WatchProvider } from '@/types/watch-provider';
 
 interface WatchProviderFilterProps {
   providers: WatchProvider[];

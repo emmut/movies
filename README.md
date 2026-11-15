@@ -60,7 +60,7 @@ Install the [global Vite+ CLI](https://viteplus.dev/guide/global-cli) first and 
 ```bash
 vp env install
 vp install
-cp apps/web/.env.example apps/web/.env  # fill in secrets; apps/web/src/env.ts defines the required values
+cp apps/web/.env.example apps/web/.env  # fill in secrets; apps/web/.env.schema defines the required values
 pnpm dev:docker:up  # start local Postgres + imgproxy via Docker
 pnpm db:push        # apply the schema
 pnpm dev            # dev server (starts the Docker services if needed)

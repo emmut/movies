@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
-vi.mock('./tmdb', () => ({ tmdbFetch: vi.fn(), addPosterImageUrls: vi.fn() }));
+vi.mock('./tmdb', () => ({ addPosterImageUrls: vi.fn() }));
 vi.mock('./tmdb-external-ids', () => ({ getTmdbExternalIds: vi.fn() }));
 vi.mock('next/cache', () => ({ cacheLife: vi.fn(), cacheTag: vi.fn() }));
 

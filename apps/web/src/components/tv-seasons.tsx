@@ -1,9 +1,9 @@
+import type { Episode, SeasonSummary } from '@movies/api/tmdb-types/pdp';
 import { ArrowUpRight, CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 
 import { ItemSlider } from '@/components/item-slider';
 import { PosterArtwork } from '@/components/poster-artwork';
-import type { Episode, SeasonSummary } from '@/types/pdp';
 
 function EpisodeSummary({
   label,

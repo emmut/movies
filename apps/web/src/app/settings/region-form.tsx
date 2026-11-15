@@ -1,5 +1,7 @@
 'use client';
 
+import { regionPreferenceSchema } from '@movies/api/preferences';
+import { usePreferencesSetRegionMutation } from '@movies/api/react/use-preferences-query';
 import type { Region } from '@movies/config/regions';
 import { Button } from '@movies/ui/components/button';
 import { Label } from '@movies/ui/components/label';
@@ -10,41 +12,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movies/ui/components/select';
-import { useQueryClient } from '@tanstack/react-query';
-import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { toast } from 'sonner';
-
-import { invalidateUserPreferenceQueries } from '@/lib/query-invalidation';
 
 interface RegionFormProps {
   currentRegion: string;
   regions: readonly Region[];
-  updateRegionAction: (region: string) => Promise<{ success: boolean; region: string }>;
 }
 
-export function RegionForm({ currentRegion, regions, updateRegionAction }: RegionFormProps) {
+export function RegionForm({ currentRegion, regions }: RegionFormProps) {
   const [selectedRegion, setSelectedRegion] = useState(currentRegion);
-  const [isPending, startTransition] = useTransition();
-  const queryClient = useQueryClient();
+  const router = useRouter();
+  const save = usePreferencesSetRegionMutation();
+  const isPending = save.isPending;
 
   async function handleSubmit() {
     if (selectedRegion === currentRegion) {
       return;
     }
 
-    startTransition(async () => {
-      try {
-        await updateRegionAction(selectedRegion);
-        // Region drives the homepage lists too, so drop their client cache as
-        // well — otherwise client-side navigation back to / serves the old
-        // region until useUserRegion's query goes stale.
-        await invalidateUserPreferenceQueries(queryClient, { includeHomeLists: true });
-        toast('Region settings saved!');
-      } catch (error) {
-        console.error('Error updating region:', error);
-        toast.error('Could not save region settings');
-      }
-    });
+    try {
+      await save.mutateAsync({
+        region: regionPreferenceSchema.shape.region.parse(selectedRegion),
+      });
+      router.refresh();
+      toast('Region settings saved!');
+    } catch (error) {
+      console.error('Error updating region:', error);
+      toast.error('Could not save region settings');
+    }
   }
 
   return (

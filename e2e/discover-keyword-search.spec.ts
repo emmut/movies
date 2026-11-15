@@ -57,7 +57,7 @@ test('shows a failed tag search and retries successfully', async ({ page }) => {
   const input = page.getByRole('combobox', { name: 'Search tags' });
   await expect(input).toBeVisible();
   let failSearch = true;
-  await page.route('**/discover*', async (route) => {
+  await page.route('**/api/rpc/discovery/facets*', async (route) => {
     if (route.request().method() === 'POST' && failSearch) {
       failSearch = false;
       await route.abort('failed');

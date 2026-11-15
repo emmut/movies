@@ -10,10 +10,14 @@ for (const width of [1440, 390, 320]) {
 
     test('shows provider selections as removable chips and restores reordering when cleared', async ({ page }, testInfo) => {
       await signInAnonymously(page, MOVIE_PATH);
-      await page.getByRole('button', { name: /add to watchlist/i }).click();
-      await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeEnabled({ timeout: 15_000 });
-      await page.getByRole('button', { name: /^mark as watched$/i }).click();
-      await expect(page.getByRole('button', { name: /mark as not watched/i })).toBeEnabled({ timeout: 15_000 });
+      // Reordering is available only when there are multiple saved titles.
+      for (const moviePath of [MOVIE_PATH, '/movie/603']) {
+        await page.goto(moviePath);
+        await page.getByRole('button', { name: /add to watchlist/i }).click();
+        await expect(page.getByRole('button', { name: /remove from watchlist/i })).toBeEnabled({ timeout: 15_000 });
+        await page.getByRole('button', { name: /^mark as watched$/i }).click();
+        await expect(page.getByRole('button', { name: /mark as not watched/i })).toBeEnabled({ timeout: 15_000 });
+      }
 
       for (const path of ['/watchlist', '/watched']) {
         await page.goto(`${path}?mediaType=movie&page=2`);

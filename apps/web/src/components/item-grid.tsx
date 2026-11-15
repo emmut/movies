@@ -1,10 +1,9 @@
-import { Movie } from '@/types/movie';
-import { TvShow } from '@/types/tv-show';
+import type { MediaCard } from '@movies/api/home';
 
 import ItemCard from './item-card';
 
 type ItemGridProps = {
-  resources: Movie[] | TvShow[];
+  resources: MediaCard[];
   type: 'movie' | 'tv';
   userId?: string;
 };
@@ -21,7 +20,7 @@ type ItemGridProps = {
 // the LCP image doesn't wait for the browser's lazy-load scan.
 const EAGER_IMAGE_COUNT = 4;
 
-export function ItemGrid({ resources, type, userId }: ItemGridProps) {
+function ItemGrid({ resources, type, userId }: ItemGridProps) {
   const resourceName = type === 'movie' ? 'movies' : 'TV shows';
 
   return (
@@ -30,7 +29,6 @@ export function ItemGrid({ resources, type, userId }: ItemGridProps) {
         <ItemCard
           key={resource.id}
           resource={resource}
-          type={type}
           userId={userId}
           eagerImage={index < EAGER_IMAGE_COUNT}
         />

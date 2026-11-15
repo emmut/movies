@@ -6,20 +6,26 @@ A pnpm monorepo with a Next.js (App Router) movies app in `apps/web`, shared pac
 
 - **Vite+** for Node and pnpm management. Install the global CLI from [viteplus.dev](https://viteplus.dev/guide/global-cli), then open a new terminal so its shims take precedence over older runtime/package-manager shims.
 - A **PostgreSQL** database for local development.
-- A **TMDB API** access token and the other secrets defined in `apps/web/src/env.ts`.
+- A **TMDB API** access token and the other secrets defined in `apps/web/.env.schema`.
 - Node **24.11.1** is pinned in `.node-version`; pnpm **12.18.0** is pinned with integrity in `package.json`. Vite+ installs and selects both.
 
 ## Getting started
 
 1. Run `vp env install` and `vp install` to install the pinned runtime, package manager, and dependencies. Vite+ runs tasks and TypeScript scripts on Node; pnpm installs the dependency patches in `pnpm-workspace.yaml`.
-2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. The web app and root-level database/cron commands read this app-local file. `apps/web/src/env.ts` is the source of truth for what's required. `SKIP_ENV_VALIDATION=true` bypasses validation (used in tests/CI).
+2. Copy `apps/web/.env.example` to `apps/web/.env` and fill it in. The web app and root-level database/cron commands read this app-local file. `apps/web/.env.schema` is the source of truth for web configuration. Varlock validates it when Next starts or builds; `pnpm env:generate` creates the ignored, app-scoped `ENV` modules. Unit tests mock configuration without loading deployment secrets.
 3. Apply the schema to your database: `pnpm db:push`.
-4. Start the dev server: `pnpm dev`.
+4. Configure `apps/server/.env` with the same database, TMDB token and `AUTH_PROXY_SECRET` as web's `BETTER_AUTH_SECRET`; keep web `API_URL` and server `AUTH_URL`/`WEB_URL` pointed at the local services. Start the dev servers: `pnpm dev`.
 5. Optional: populate IMDb ratings with `pnpm ingest:imdb` (~2–5 min, ~1.5M rows). Detail pages work without it — the IMDb card is simply hidden.
 
 `pnpm dev` also boots a local PostgreSQL and imgproxy via Docker Compose, so Docker needs to be running. The default `DATABASE_URL` in `apps/web/.env.example` points at that local database; run `pnpm db:push` once it's up to apply the schema.
 
+All checkouts and worktrees share the Compose project `movies`, including its PostgreSQL database and imgproxy on ports 5432 and 8080. Docker commands load `apps/web/.env`; keep the local imgproxy signing keys consistent across worktrees. `pnpm dev:docker:down` stops these services for every worktree, but preserves the database volume. Older worktree-specific containers and volumes are not removed or migrated.
+
 The TMDB request collection is `apps/web/movie-db.http`; it reads `apps/web/.env` from the same directory.
+
+## Native app
+
+`apps/native` contains the Expo React Native app; `apps/server` hosts the single product oRPC API used by both clients, including Next server components and metadata. Root `pnpm dev` starts Docker, web, API, and Expo together. Start just the native services with `pnpm dev:native` and `pnpm dev:api`. See [the native setup](apps/native/README.md) and [the recorded decisions and full parity roadmap](docs/native-app-roadmap.md) for environment setup, device URLs, current scope, and browser checks. `pnpm check-types` includes both workspaces.
 
 ## Common commands
 
@@ -40,7 +46,7 @@ Before opening a PR, make sure `pnpm lint`, `pnpm exec tsc --noEmit`, `pnpm test
 
 Use `pnpm exec vp check` (or `pnpm check`) for formatting, linting, and type-aware checks, `pnpm exec vp test run` for unit tests, and `pnpm test:coverage` for coverage. Formatting covers `apps`, `packages`, `scripts`, patch regression tests, and `vite.config.ts`. The pnpm `packageManager` field remains authoritative for installation; run `pnpm install --frozen-lockfile` in CI.
 
-Dependencies shared by workspaces use `catalog:` references; update their versions in the `pnpm-workspace.yaml` catalog. Dependency patch regression tests live in `patches/` and run with `pnpm test`. Railway SDK 3.16 requires Railway CLI 5.42.1 or newer because the IaC compiler now ships with the CLI.
+Dependencies shared by workspaces use `catalog:` references; update their versions in the `pnpm-workspace.yaml` catalog. Dependency patch regression tests live in `patches/` and run with `pnpm test`. The Better Auth passkey client patch preserves WebAuthn causes so browsers can distinguish a dismissed prompt from a security failure; keep its SDK-boundary tests when upgrading. Railway SDK 3.16 requires Railway CLI 5.42.1 or newer because the IaC compiler now ships with the CLI.
 
 Use `pnpm test:watch` to watch the full suite or `pnpm --filter @movies/web test:watch` for web tests. The package script delegates to the shared root runner with Vite+'s `vp run -w` workspace selector and a test file filter.
 
@@ -51,9 +57,16 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 ## Conventions
 
 - Prefer normal functions over arrow functions except for inline usage.
+- Every `if` and `else` body uses braces, including single-line early returns.
+- When moving a module into a shared package, update its consumers to import directly from the package. Remove the old import/re-export or forwarding shim rather than keeping a compatibility layer.
+- Write clean, maintainable code with small, cohesive modules and explicit control flow. Avoid nested ternaries and dense chained expressions; prefer descriptive helpers, intermediate values and ordinary blocks when they clarify the behavior.
+- Native styling uses Tailwind/Uniwind classes; use React Native style objects only when a library cannot accept classes.
+- Web, native and Hono apps use per-app Varlock `.env.schema` files and generated app-scoped `ENV` modules. Generate with `pnpm env:generate`; do not edit generated files or add env re-export wrappers. Next uses `@varlock/nextjs-integration` for loading, client substitution and secret protection. Standalone database/cron scripts retain their separate T3 Env schema in `scripts/env.ts`, reading the same web `.env` file.
 - Naming: kebab-case files, PascalCase exports.
+- Use app path aliases for internal imports: `@/` in web, `@native/` in Expo, and `@server/` in Hono. Keep each app tsconfig and the root test resolver aligned; avoid relative parent paths.
 - Server-only modules import `server-only`; keep secrets and DB access out of client components.
-- Mutations go through server actions: every action authenticates via `requireUser()` and validates input with the Zod schemas in `apps/web/src/lib/validations.ts`.
+- Product reads, including cached server-rendered metadata, go through the shared oRPC router. Next cache adapters must not fetch upstream data or query the database directly.
+- Product mutations go through shared API hooks and authenticated router procedures; ownership comes from the verified session and inputs use the shared Zod contracts.
 - Caching uses the `'use cache'` directive with tags in `apps/web/src/lib/cache-tags.ts`; invalidate via the helpers in `apps/web/src/lib/cache-invalidation.ts`.
 - User list pages use `'use cache: private'` after authentication, with the user ID, page, and provider filter in the cache key. Membership, counts, preferences, and list pages share mutation invalidation tags. Private caching reuses browser navigation results for 60 seconds; it does not retain results across production server requests. Authentication and ownership checks remain required.
 - Completed public search results (including fuzzy-index work and image URLs) share a short `'use cache: remote'` cache across signed-in and signed-out visitors. Raw TMDB searches retain their longer cache. This directive uses the default in-memory handler unless a remote handler is configured; it does not itself provision shared storage across instances.
@@ -66,13 +79,19 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - List pages answer the stream-provider filter from a local cache of the titles in users' lists (`titles`, `title_availability`), written through on add and refreshed nightly by `scripts/sync-titles.ts`. TMDB stays the source of truth; everything else (discover, search, detail pages) reads TMDB through `'use cache'`. See `docs/title-cache-plan.md` for what the cache is meant to unlock next.
 - Full-page search merges TMDB with a local fuzzy index on page one: `search_index` holds every TMDB id with its original title (from the daily exports). GIN indexes support both `pg_trgm` typo matching and built-in word search for reordered words and an incomplete final word. Local retrieval puts exact titles first, then matches covering all query words, then fuzzy matches; popularity breaks equal-distance candidate ties before the cutoff. Title-match tiers provide the primary merged order, with reciprocal-rank fusion combining source ranks inside each tier. Only index candidates absent from TMDB are hydrated, capped at three when TMDB has results. The command palette stays TMDB-first with a zero-result fuzzy fallback to avoid database wake-up latency on every keystroke. An empty index simply degrades to TMDB-only results. See [search.md](docs/search.md) for the extension assessment and migration details.
 - Discover's TV network search uses TMDB's daily network ID export because TMDB has no network search endpoint. Allow outbound HTTPS to `files.tmdb.org` as well as `api.themoviedb.org`; the catalogue is cached daily. Network filtering and PDP links use the regular TMDB API.
-- Auth is Better Auth with Discord/GitHub social providers and passkey support.
+- Auth is Better Auth with Google/Discord/GitHub social providers and passkey support. Passkey sign-in is usernameless, so registration requires discoverable, user-verified credentials (`apps/web/src/lib/passkey-options.ts`). The relying-party ID is derived from `NEXT_PUBLIC_BASE_URL`, so each environment's passkeys only work on that environment's domain.
 - UI primitives are Base UI (`@base-ui/react`) styled in `packages/ui/src/components/`, shadcn-managed via `components.json`.
+
+## Google sign-in setup
+
+Create a **Web application** OAuth client in [Google Cloud Console](https://console.cloud.google.com/auth/clients). Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/web/.env` and on the web service for each deployment. Register each exact authorized redirect URI: `<NEXT_PUBLIC_BASE_URL>/api/auth/callback/google` (locally, `http://localhost:3000/api/auth/callback/google`). Preview environments need their own registered callback URL. Configure the consent screen and test users while the Google app is in testing.
+
+Google uses the existing social sign-in and anonymous-account transfer flow; it needs no database migration.
 
 ## Testing
 
 - Vitest, Node environment, tests co-located as `apps/web/src/**/*.test.ts, packages/**/*.test.ts`.
-- Pure logic is tested directly. Server actions mock `@/lib/db`, `@/lib/auth-server`, and `next/cache` — see `apps/web/src/lib/lists.test.ts` for the chainable db-mock pattern.
+- Pure logic is tested directly. Shared product services live in `packages/services/src` with colocated tests; shared query/mutation hooks live in `packages/api/src/react`. Test Next cache invalidation separately from the domain services. See [shared API architecture](docs/shared-api.md).
 
 ## CI
 
@@ -81,7 +100,7 @@ Use `pnpm exec vp run dev` for this project's Docker and Next.js development wor
 - **Lint, typecheck & test**.
 - **Fallow audit** — fails only on findings newly introduced relative to the merge-base.
 
-The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test apps/web/src/lib/search-index.integration.test.ts`; fixtures use a temporary table.
+The PostgreSQL search regression tests run in the e2e CI job after migrations. Run them locally against a migrated database with `SEARCH_TEST_DATABASE_URL="$DATABASE_URL" pnpm test packages/services/src/search-index.integration.test.ts`; fixtures use a temporary table.
 
 ## Direct streaming links
 

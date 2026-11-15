@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 // Concrete env so the module-level consts capture deterministic values at import.
 vi.mock('@/env', () => ({
-  env: {
+  ENV: {
     NEXT_PUBLIC_IMGPROXY_ENDPOINT: 'https://imgproxy.test',
     NEXT_PUBLIC_IMGPROXY_BASE_URL: 'https://base.test/',
     IMGPROXY_KEY: 'deadbeef',

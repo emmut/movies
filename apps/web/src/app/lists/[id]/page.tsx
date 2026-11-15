@@ -1,27 +1,17 @@
+import { accountQueryKey } from '@movies/api/account-query-key';
+import { hasErrorCode } from '@movies/api/errors';
+import { regionPreferenceSchema } from '@movies/api/preferences';
+import { createApiQueryUtils } from '@movies/api/query-utils';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { headers } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
 
+import { createServerApi } from '@/lib/api-server';
 import { getUser } from '@/lib/auth-server';
-import { getListDetailsWithResources, getOwnedCustomList } from '@/lib/lists';
 import { getQueryClient } from '@/lib/query-client';
-import { queryKeys } from '@/lib/query-keys';
-import { getWatchProviderFilterContext } from '@/lib/watch-provider-filter-context';
-import {
-  activeWatchProviderFilter,
-  loadWatchProviderSearchParams,
-} from '@/lib/watch-provider-search-params';
+import { getListFilterContext } from '@/lib/watch-provider-filter-context';
 
 import { ListDetailsContent } from './list-details-content';
-
-// Covers nonexistent, foreign, and system lists (e.g. the watchlist) —
-// without this, prefetchQuery swallows the throw and the client renders a
-// skeleton forever.
-async function assertOwnedCustomList(listId: string) {
-  const list = await getOwnedCustomList(listId);
-  if (!list) {
-    notFound();
-  }
-}
 
 /** Canonical URL for a list page, keeping an active provider filter intact. */
 function canonicalListPageUrl(
@@ -55,60 +45,38 @@ export default async function ListDetailsPage({
   const search = await searchParams;
   const page = Number(search.page ?? '1');
 
-  const { with_watch_providers, watch_region } = loadWatchProviderSearchParams(search);
+  const { userRegion, availableWatchProviders, activeProviders, activeRegion } =
+    await getListFilterContext(search);
 
-  // Authorization first: nothing below may start work for a list the
-  // requester doesn't own.
-  await assertOwnedCustomList(id);
-
-  const { userRegion, availableWatchProviders } = await getWatchProviderFilterContext(watch_region);
-
-  // Normalized exactly like the client content computes them, so the
-  // prefetched query key matches after hydration.
-  const { activeProviders, activeRegion } = activeWatchProviderFilter(
-    with_watch_providers,
-    userRegion,
-  );
-
-  // Prefetch list details with React Query for client-side caching
   const queryClient = getQueryClient();
 
-  const [watchProviders] = await Promise.all([
-    availableWatchProviders,
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.lists.detail(id, page, activeProviders, activeRegion),
-      queryFn: async () => {
-        const result = await getListDetailsWithResources(id, page, activeProviders, activeRegion);
-
-        // If requested page is beyond the last, canonicalize the URL
-        if (result.totalPages > 0 && page > result.totalPages) {
-          redirect(canonicalListPageUrl(id, result.totalPages, activeProviders, activeRegion));
-        }
-
-        return result;
-      },
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes
-    }),
-  ]);
-
-  // Create a server action to fetch list details
-  async function fetchListDetails(
-    listId: string,
-    page: number,
-    watchProviders?: number[],
-    watchRegion?: string,
-  ) {
-    'use server';
-    return getListDetailsWithResources(listId, page, watchProviders, watchRegion);
+  const api = createApiQueryUtils(createServerApi(await headers()));
+  const input = {
+    listId: id,
+    page,
+    providerIds: activeProviders ?? [],
+    region: regionPreferenceSchema.shape.region.parse(activeRegion ?? userRegion),
+  };
+  const options = {
+    ...api.customLists.details.queryOptions({ input }),
+    queryKey: accountQueryKey(api.customLists.details.queryKey({ input }), user.id),
+  };
+  const result = await queryClient.fetchQuery(options).catch((error: unknown) => {
+    if (hasErrorCode(error, 'NOT_FOUND')) {
+      notFound();
+    }
+    throw error;
+  });
+  if (result.currentPage !== page) {
+    redirect(canonicalListPageUrl(id, result.currentPage, activeProviders, activeRegion));
   }
+  const watchProviders = await availableWatchProviders;
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ListDetailsContent
         listId={id}
-        userId={user?.id}
-        fetchListDetailsAction={fetchListDetails}
+        userId={user.id}
         watchProviders={watchProviders}
         userRegion={userRegion}
       />

@@ -1,7 +1,6 @@
+import { formatCompactNumber } from '@movies/api/formatting';
+import type { ImdbRating } from '@movies/api/imdb';
 import { Star } from 'lucide-react';
-
-import type { ImdbRating } from '@/lib/imdb';
-import { formatCompactNumber } from '@/lib/utils';
 
 type RatingsCardProps = {
   score: number;

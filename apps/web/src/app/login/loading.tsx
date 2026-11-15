@@ -1,7 +1,6 @@
+import { LOGIN_COPY, LOGIN_FEATURES } from '@movies/config/login';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { cn } from 'cn';
-
-import { LOGIN_COPY, LOGIN_FEATURES } from '@/components/login-copy';
 
 /**
  * Loading skeleton for the login page.

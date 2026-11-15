@@ -1,0 +1,180 @@
+import {
+  CANDIDATE_LIMIT,
+  FUZZY_QUERY_TIMEOUT_MS,
+  fuzzyQuery,
+  MIN_FUZZY_QUERY_LENGTH,
+  MIN_SIMILARITY,
+} from '@movies/db/search-index';
+import { PgDialect } from 'drizzle-orm/pg-core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
+
+import { createSearchIndexReader } from './search-index';
+const db = { execute: vi.fn(), transaction: vi.fn() } as unknown as Parameters<
+  typeof createSearchIndexReader
+>[0];
+const { searchIndexFuzzy } = createSearchIndexReader(db);
+
+function render(query: string, options: { mediaType?: 'movie' | 'tv' | 'person'; limit: number }) {
+  const rendered = new PgDialect().sqlToQuery(fuzzyQuery(query, options));
+  return { sql: rendered.sql.replace(/\s+/g, ' ').trim(), params: rendered.params };
+}
+
+function rows(list: Record<string, unknown>[]) {
+  return { rows: list } as never;
+}
+
+const transactionExecute = vi.fn();
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  transactionExecute.mockReset().mockResolvedValueOnce(rows([])).mockImplementation(db.execute);
+  vi.mocked(db.transaction).mockImplementation(async (callback) => {
+    const tx = { execute: transactionExecute };
+    return callback(tx as never);
+  });
+});
+
+describe('fuzzyQuery', () => {
+  it('filters by indexed similarity before ordering candidates', () => {
+    const { sql } = render('intersteller', { limit: 8 });
+
+    expect(sql).toMatch(/where "search_index"\."search_title" % \$\d+::text/);
+    expect(sql).toMatch(/where \$\d+::text <% "search_index"\."search_title"/);
+  });
+  it('retains the closest filtered candidates by both trigram distances', () => {
+    const { sql, params } = render('intersteller', { limit: 5 });
+
+    expect(sql).toMatch(/order by "search_index"\."search_title" <-> \$\d+::text,/);
+    expect(sql).toContain('<<-> "search_index"."search_title",');
+    expect(params.filter((param) => param === CANDIDATE_LIMIT)).toHaveLength(3);
+    // Word and trigram scans are unioned so each title appears once.
+    expect(sql.match(/\) union \(/g)).toHaveLength(2);
+  });
+
+  it('re-ranks candidates by similarity, prefix boost, and log popularity', () => {
+    const { sql, params } = render('inter', { limit: 5 });
+
+    expect(sql).toContain('greatest(similarity(search_title, $');
+    expect(sql).toContain('word_similarity($');
+    expect(sql).toContain('case when search_title like $');
+    expect(sql).toContain('similarity + prefix_boost + 0.05 * ln(1 + popularity) as score');
+    expect(sql).toContain(
+      'order by exact_match desc, word_match desc, score desc, popularity desc',
+    );
+    expect(params).toContain('inter%');
+    expect(params).toContain(MIN_SIMILARITY);
+    expect(params[params.length - 1]).toBe(5);
+  });
+
+  it('applies the media type filter inside every candidate scan', () => {
+    const { sql, params } = render('brad pit', { mediaType: 'person', limit: 5 });
+
+    expect(sql.match(/and "search_index"."media_type" = \$\d+::text/g)).toHaveLength(3);
+    expect(params.filter((param) => param === 'person')).toHaveLength(3);
+  });
+
+  it('omits the filter when no media type is given', () => {
+    const { sql } = render('brad pit', { limit: 5 });
+
+    expect(sql).not.toContain('media_type" =');
+  });
+
+  it('requires every query word and prefix-matches only the final word', () => {
+    const { sql, params } = render('rings fellowship', { limit: 8 });
+
+    expect(sql).toContain('to_tsvector(\'simple\'::regconfig, "search_index"."search_title") @@');
+    expect(params).toContain('rings & fellowship:*');
+    expect(sql).toContain('where word_match or similarity >=');
+  });
+});
+
+describe('searchIndexFuzzy', () => {
+  it('sets a server timeout and matching thresholds in the query transaction', async () => {
+    vi.mocked(db.execute).mockResolvedValue(rows([]));
+
+    await searchIndexFuzzy('intersteller', { limit: 8 });
+
+    const settings = new PgDialect().sqlToQuery(transactionExecute.mock.calls[0][0]);
+    expect(settings.sql).toContain("set_config('statement_timeout', $1, true)");
+    expect(settings.sql).toContain("set_config('pg_trgm.similarity_threshold', $2, true)");
+    expect(settings.sql).toContain("set_config('pg_trgm.word_similarity_threshold', $3, true)");
+    expect(settings.params).toEqual(['1500', '0.3', '0.6']);
+    expect(db.transaction).toHaveBeenCalledTimes(1);
+    expect(transactionExecute).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns nothing for queries too short to trigram-match, without querying', async () => {
+    expect(MIN_FUZZY_QUERY_LENGTH).toBe(3);
+
+    await expect(searchIndexFuzzy('ab', { limit: 5 })).resolves.toEqual([]);
+    await expect(searchIndexFuzzy('  ', { limit: 5 })).resolves.toEqual([]);
+    await expect(searchIndexFuzzy('!!!', { limit: 5 })).resolves.toEqual([]);
+    expect(db.execute).not.toHaveBeenCalled();
+  });
+
+  it('maps rows to hits with numeric similarity and score', async () => {
+    vi.mocked(db.execute).mockResolvedValue(
+      rows([
+        {
+          tmdb_id: 157336,
+          media_type: 'movie',
+          title: 'Interstellar',
+          popularity: 120,
+          similarity: '0.77',
+          score: '1.4',
+        },
+      ]),
+    );
+
+    await expect(searchIndexFuzzy('Intersteller', { limit: 5 })).resolves.toEqual([
+      {
+        tmdbId: 157336,
+        mediaType: 'movie',
+        title: 'Interstellar',
+        popularity: 120,
+        similarity: 0.77,
+        score: 1.4,
+      },
+    ]);
+    expect(db.execute).toHaveBeenCalledTimes(1);
+  });
+
+  it('folds the query before searching', async () => {
+    vi.mocked(db.execute).mockResolvedValue(rows([]));
+
+    await searchIndexFuzzy('  Amélie! ', { limit: 5 });
+
+    const statement = vi.mocked(db.execute).mock.calls[0][0];
+    const { params } = new PgDialect().sqlToQuery(statement as never);
+    expect(params).toContain('amelie');
+    expect(params).toContain('amelie%');
+  });
+
+  describe('when the database is slow', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('gives up after the timeout and returns nothing', async () => {
+      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.mocked(db.execute).mockReturnValue(new Promise(() => {}) as never);
+
+      const pending = searchIndexFuzzy('intersteller', { limit: 5 });
+      await vi.advanceTimersByTimeAsync(FUZZY_QUERY_TIMEOUT_MS);
+
+      await expect(pending).resolves.toEqual([]);
+      expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining('did not answer'));
+      consoleWarn.mockRestore();
+    });
+
+    it('returns the rows when the database answers in time', async () => {
+      vi.mocked(db.execute).mockResolvedValue(rows([]));
+
+      await expect(searchIndexFuzzy('intersteller', { limit: 5 })).resolves.toEqual([]);
+    });
+  });
+});

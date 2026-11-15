@@ -1,20 +1,9 @@
 import 'server-only';
 import { cacheLife, cacheTag } from 'next/cache';
 
-import type { GenreResponse } from '@/types/genre';
-import {
-  TvCredits,
-  TvDetails,
-  TvRecommendations,
-  TvResponse,
-  TvSimilar,
-  TvWatchProviders,
-} from '@/types/tv-show';
+import { createServerApi } from '@/lib/api-server';
 
 import { CACHE_TAGS } from './cache-tags';
-import { buildDiscoverSearchParams, type DiscoverParams } from './discover-params';
-import { DEFAULT_REGION } from './regions';
-import { addPosterImageUrls, tmdbFetch } from './tmdb';
 import { getTmdbExternalIds } from './tmdb-external-ids';
 
 /**
@@ -31,9 +20,7 @@ export async function getTvShowDetails(tvId: number) {
   // Near-static data, fanned out once per row on list pages — keep it warm.
   cacheLife('hours');
 
-  return await tmdbFetch<TvDetails>(`/tv/${tvId}`, {
-    errorMessage: 'Failed loading TV show details',
-  });
+  return createServerApi(new Headers()).catalog.tvDetails({ id: tvId });
 }
 
 /**
@@ -49,9 +36,7 @@ export async function getTvShowCredits(resourceId: number) {
   cacheTag(CACHE_TAGS.public.tv.credits(resourceId));
   cacheLife('minutes');
 
-  return await tmdbFetch<TvCredits>(`/tv/${resourceId}/credits`, {
-    errorMessage: 'Failed loading tv credits',
-  });
+  return createServerApi(new Headers()).catalog.tvCredits({ id: resourceId });
 }
 
 /**
@@ -69,107 +54,7 @@ export async function getTvShowWatchProviders(tvId: number) {
   // rarely, and the provider filter fans this out once per list row.
   cacheLife('days');
 
-  const watchProviders = await tmdbFetch<TvWatchProviders>(`/tv/${tvId}/watch/providers`, {
-    errorMessage: 'Failed loading tv watch providers',
-  });
-
-  return {
-    results: watchProviders.results,
-  };
-}
-
-/** Fetches discovered TV shows with shared filters and caps pagination at 500. */
-export async function fetchDiscoverTvShows(params: DiscoverParams) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.discover.tv);
-  cacheLife('minutes');
-
-  const searchParams = buildDiscoverSearchParams(params);
-
-  const tvShows = await tmdbFetch<TvResponse>('/discover/tv', {
-    searchParams,
-    errorMessage: 'Error loading discover tv shows',
-  });
-
-  return {
-    tvShows: tvShows.results.map(addPosterImageUrls),
-    totalPages: Math.min(tvShows.total_pages, 500),
-  };
-}
-
-/**
- * Fetches the list of trending TV shows for the current day from TMDb.
- *
- * @returns An array of trending TV shows for today.
- *
- * @throws If the trending TV shows cannot be loaded from the API.
- */
-export async function fetchTrendingTvShows() {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.trendingTv);
-  cacheLife('minutes');
-
-  const tvShows = await tmdbFetch<TvResponse>('/trending/tv/day', {
-    errorMessage: 'Failed loading trending TV shows',
-  });
-  return tvShows.results;
-}
-
-/**
- * Fetches the list of top-rated TV shows for the default region.
- *
- * @returns An array of top-rated TV show objects.
- *
- * @throws If the request to the TMDb API fails.
- */
-export async function fetchTopRatedTvShows(region: string = DEFAULT_REGION) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.topRatedTv);
-  cacheLife('days');
-
-  const tvShows = await tmdbFetch<TvResponse>('/tv/top_rated', {
-    searchParams: { region },
-    errorMessage: 'Failed loading top rated TV shows',
-  });
-  return tvShows.results;
-}
-
-/**
- * Fetches TV shows that are currently airing in the default region.
- *
- * @returns An array of TV show objects currently on the air in the default region.
- *
- * @throws If the request to the TMDb API fails.
- */
-export async function fetchOnTheAirTvShows(region: string = DEFAULT_REGION) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.onTheAirTv);
-  cacheLife('days');
-
-  const tvShows = await tmdbFetch<TvResponse>('/tv/on_the_air', {
-    searchParams: { region },
-    errorMessage: 'Failed loading on the air TV shows',
-  });
-  return tvShows.results;
-}
-
-/**
- * Fetches a list of popular TV shows for the default region.
- *
- * @returns An array of popular TV shows.
- *
- * @throws If the request to the TMDb API fails.
- */
-export async function fetchPopularTvShows(region: string = DEFAULT_REGION) {
-  'use cache: remote';
-  cacheTag(CACHE_TAGS.public.home.popularTv);
-  cacheLife('days');
-
-  const tvShows = await tmdbFetch<TvResponse>('/tv/popular', {
-    searchParams: { region },
-    errorMessage: 'Failed loading popular TV shows',
-  });
-  return tvShows.results;
+  return createServerApi(new Headers()).catalog.availability({ type: 'tv', id: tvId });
 }
 
 /**
@@ -184,10 +69,7 @@ export async function fetchAvailableTvGenres() {
   cacheTag(CACHE_TAGS.public.genres.tv);
   cacheLife('biweekly');
 
-  const tvGenres = await tmdbFetch<GenreResponse>('/genre/tv/list', {
-    errorMessage: 'Error loading TV genres',
-  });
-  return tvGenres.genres;
+  return createServerApi(new Headers()).discovery.genres({ type: 'tv' });
 }
 
 export async function getTvShowSimilar(tvId: number, userRegion?: string) {
@@ -195,11 +77,12 @@ export async function getTvShowSimilar(tvId: number, userRegion?: string) {
   cacheTag(CACHE_TAGS.public.tv.similar(tvId));
   cacheLife('hours');
 
-  const tvShows = await tmdbFetch<TvSimilar>(`/tv/${tvId}/similar`, {
-    searchParams: { region: userRegion },
-    errorMessage: 'Failed loading similar TV shows',
+  return createServerApi(new Headers()).catalog.related({
+    type: 'tv',
+    id: tvId,
+    region: userRegion,
+    kind: 'similar',
   });
-  return tvShows.results;
 }
 
 export async function getTvShowRecommendations(tvId: number, userRegion?: string) {
@@ -207,11 +90,12 @@ export async function getTvShowRecommendations(tvId: number, userRegion?: string
   cacheTag(CACHE_TAGS.public.tv.recommendations(tvId));
   cacheLife('hours');
 
-  const tvShows = await tmdbFetch<TvRecommendations>(`/tv/${tvId}/recommendations`, {
-    searchParams: { region: userRegion },
-    errorMessage: 'Failed loading TV show recommendations',
+  return createServerApi(new Headers()).catalog.related({
+    type: 'tv',
+    id: tvId,
+    region: userRegion,
+    kind: 'recommendations',
   });
-  return tvShows.results;
 }
 
 export async function getTvShowImdbId(tvId: number) {

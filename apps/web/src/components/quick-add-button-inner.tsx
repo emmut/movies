@@ -1,5 +1,16 @@
 'use client';
 
+import type { CustomListStatus } from '@movies/api/custom-lists';
+import { useApiAccountId } from '@movies/api/react';
+import {
+  useCustomListsStatus,
+  useCustomListsAddMutation,
+  useCustomListsRemoveMutation,
+} from '@movies/api/react/use-custom-lists-query';
+import {
+  useSystemListsMemberships,
+  useSystemListsToggleMutation,
+} from '@movies/api/react/use-system-lists-query';
 import { Button } from '@movies/ui/components/button';
 import {
   DropdownMenu,
@@ -9,21 +20,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@movies/ui/components/dropdown-menu';
-import { type Query, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, CircleCheck, Eye, List, ListPlus, Star } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 
 import { CreateListDialog } from '@/components/create-list-dialog';
-import {
-  addToList,
-  getUserListsWithStatus,
-  removeFromList,
-  type UserListsWithStatus,
-} from '@/lib/lists';
-import { queryKeys } from '@/lib/query-keys';
-import { toggleSystemListItem } from '@/lib/system-list-actions';
-import { isResourceInSystemList } from '@/lib/system-list-queries';
 import { getErrorMessage } from '@/lib/utils';
 import type { SystemListType } from '@/lib/validations';
 
@@ -34,15 +35,10 @@ export interface QuickAddButtonProps {
   showWatchlist?: boolean;
 }
 
-type ListWithStatus = UserListsWithStatus[number];
+type ListWithStatus = CustomListStatus[number];
 
-function findListName(lists: UserListsWithStatus, listId: string) {
+function findListName(lists: CustomListStatus, listId: string) {
   return lists.find((list) => list.id === listId)?.name ?? 'list';
-}
-
-// list details query keys are shaped [..., ..., listId]; match by that slot.
-function listDetailsPredicate(listId: string) {
-  return (query: Query) => query.queryKey[2] === listId;
 }
 
 const SYSTEM_LIST_MENU_COPY: Record<
@@ -137,7 +133,7 @@ function ListMenuItems({
   disabled,
   onToggle,
 }: {
-  lists: UserListsWithStatus;
+  lists: CustomListStatus;
   isLoading: boolean;
   disabled: boolean;
   onToggle: (listId: string, hasItem: boolean) => void;
@@ -161,19 +157,98 @@ function ListMenuItems({
   ));
 }
 
-function useSystemListStatus(
-  listType: SystemListType,
+/** System lists only accept movie and TV resources. */
+function toSystemResourceType(mediaType: QuickAddButtonProps['mediaType']) {
+  return mediaType === 'tv' ? 'tv' : 'movie';
+}
+
+function useQuickAddActions(
   mediaId: number,
-  mediaType: string,
-  { enabled }: { enabled: boolean },
+  mediaType: QuickAddButtonProps['mediaType'],
+  lists: CustomListStatus,
 ) {
-  const { data = false } = useQuery({
-    queryKey: queryKeys[listType].status(mediaId, mediaType),
-    queryFn: () => isResourceInSystemList(listType, mediaId, mediaType),
-    staleTime: 30_000,
-    enabled,
-  });
-  return data;
+  const add = useCustomListsAddMutation();
+  const remove = useCustomListsRemoveMutation();
+  const toggle = useSystemListsToggleMutation();
+  const isPending = add.isPending || remove.isPending || toggle.isPending;
+
+  async function handleToggleList(listId: string, hasItem: boolean) {
+    const listName = findListName(lists, listId);
+    try {
+      if (hasItem) {
+        await remove.mutateAsync({ listId, resourceId: mediaId, resourceType: mediaType });
+        toast.success(`Removed from "${listName}"`);
+      } else {
+        await add.mutateAsync({ listId, resourceId: mediaId, resourceType: mediaType });
+        toast.success(`Added to "${listName}"`);
+      }
+    } catch (error) {
+      toast.error(getErrorMessage(error, `Couldn't update "${listName}"`));
+    }
+  }
+
+  async function handleToggleSystemList(listType: SystemListType) {
+    const copy = SYSTEM_LIST_MENU_COPY[listType];
+    try {
+      const result = await toggle.mutateAsync({
+        listType,
+        resourceId: mediaId,
+        resourceType: toSystemResourceType(mediaType),
+      });
+      // 'added' and 'unchanged' both mean the row is present (the latter when a
+      // concurrent insert won the race); only 'removed' clears it. From the
+      // user's view the end state is identical, so both show "Added".
+      const isInList = result.action !== 'removed';
+      toast.success(isInList ? copy.addedToast : copy.removedToast);
+    } catch (error) {
+      toast.error(getErrorMessage(error, copy.errorToast));
+    }
+  }
+
+  async function handleListCreated(listId: string) {
+    await add.mutateAsync({ listId, resourceId: mediaId, resourceType: mediaType });
+  }
+
+  return { isPending, handleToggleList, handleToggleSystemList, handleListCreated };
+}
+
+function useQuickAddState({
+  mediaId,
+  mediaType,
+  showWatchlist = true,
+}: Omit<QuickAddButtonProps, 'userId'>) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  const accountId = useApiAccountId();
+  const { data: lists = [], isLoading: isLoadingLists } = useCustomListsStatus(
+    accountId ?? '',
+    { resourceId: mediaId, resourceType: mediaType },
+    isOpen && Boolean(accountId),
+  );
+  const { data: memberships } = useSystemListsMemberships(
+    accountId,
+    { resourceId: mediaId, resourceType: toSystemResourceType(mediaType) },
+    isOpen && showWatchlist && mediaType !== 'person',
+  );
+  const { inWatchlist: isInWatchlist, watched: isWatched } = memberships ?? {
+    inWatchlist: false,
+    watched: false,
+  };
+
+  const actions = useQuickAddActions(mediaId, mediaType, lists);
+
+  return {
+    isOpen,
+    setIsOpen,
+    isCreateOpen,
+    setIsCreateOpen,
+    ...actions,
+    lists,
+    isLoadingLists,
+    isInWatchlist,
+    isWatched,
+  };
 }
 
 export function QuickAddButtonInner({
@@ -181,80 +256,20 @@ export function QuickAddButtonInner({
   mediaType,
   showWatchlist = true,
 }: Omit<QuickAddButtonProps, 'userId'>) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-  const queryClient = useQueryClient();
-
-  const { data: lists = [], isLoading: isLoadingLists } = useQuery({
-    queryKey: queryKeys.lists.withStatus(mediaId, mediaType),
-    queryFn: () => getUserListsWithStatus(mediaId, mediaType),
-    staleTime: 30_000,
-    enabled: isOpen,
-  });
-
-  const systemItemsEnabled = isOpen && showWatchlist;
-  const isInWatchlist = useSystemListStatus('watchlist', mediaId, mediaType, {
-    enabled: systemItemsEnabled,
-  });
-  const isWatched = useSystemListStatus('watched', mediaId, mediaType, {
-    enabled: systemItemsEnabled,
-  });
-
-  async function handleToggleList(listId: string, hasItem: boolean) {
-    const listName = findListName(lists, listId);
-    setIsPending(true);
-    try {
-      if (hasItem) {
-        await removeFromList(listId, mediaId, mediaType);
-        toast.success(`Removed from "${listName}"`);
-      } else {
-        await addToList(listId, mediaId, mediaType);
-        toast.success(`Added to "${listName}"`);
-      }
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.lists.details(),
-        predicate: listDetailsPredicate(listId),
-      });
-      queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
-    } catch (error) {
-      toast.error(getErrorMessage(error, `Couldn't update "${listName}"`));
-    } finally {
-      setIsPending(false);
-    }
-  }
-
-  async function handleToggleSystemList(listType: SystemListType) {
-    const copy = SYSTEM_LIST_MENU_COPY[listType];
-    const statusKey = queryKeys[listType].status(mediaId, mediaType);
-    const previous = queryClient.getQueryData<boolean>(statusKey) ?? false;
-    queryClient.setQueryData(statusKey, !previous);
-    setIsPending(true);
-    try {
-      const result = await toggleSystemListItem({
-        listType,
-        resourceId: mediaId,
-        resourceType: mediaType,
-      });
-      // 'added' and 'unchanged' both mean the row is present (the latter when a
-      // concurrent insert won the race); only 'removed' clears it. From the
-      // user's view the end state is identical, so both show "Added".
-      const isInList = result.action !== 'removed';
-      queryClient.setQueryData(statusKey, isInList);
-      toast.success(isInList ? copy.addedToast : copy.removedToast);
-      queryClient.invalidateQueries({ queryKey: queryKeys[listType].all });
-    } catch (error) {
-      queryClient.setQueryData(statusKey, previous);
-      toast.error(getErrorMessage(error, copy.errorToast));
-    } finally {
-      setIsPending(false);
-    }
-  }
-
-  async function handleListCreated(listId: string) {
-    await addToList(listId, mediaId, mediaType);
-    queryClient.invalidateQueries({ queryKey: queryKeys.lists.withStatus(mediaId, mediaType) });
-  }
+  const {
+    isOpen,
+    setIsOpen,
+    isCreateOpen,
+    setIsCreateOpen,
+    isPending,
+    lists,
+    isLoadingLists,
+    isInWatchlist,
+    isWatched,
+    handleToggleList,
+    handleToggleSystemList,
+    handleListCreated,
+  } = useQuickAddState({ mediaId, mediaType, showWatchlist });
 
   return (
     <>

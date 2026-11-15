@@ -1,11 +1,18 @@
 'use client';
 
+import type { CustomListDetail } from '@movies/api/custom-lists';
+import { canReorderList } from '@movies/api/list-order';
+import { regionPreferenceSchema } from '@movies/api/preferences';
+import {
+  useCustomListsDetails,
+  useCustomListsMoveItemMutation,
+} from '@movies/api/react/use-custom-lists-query';
+import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { DeleteListButton } from '@/components/delete-list-button';
 import { EditListDialog } from '@/components/edit-list-dialog';
@@ -17,42 +24,17 @@ import { ListToolbar } from '@/components/list-toolbar';
 import { PaginationControls } from '@/components/pagination-controls';
 import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
+import { UnavailableListItems } from '@/components/unavailable-list-items';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
+import { apiListItem, type ApiListItem as ListItem } from '@/lib/api-list-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
-import { moveListItem } from '@/lib/lists';
-import { queryKeys } from '@/lib/query-keys';
 import { activeWatchProviderFilter } from '@/lib/watch-provider-search-params';
-import { MovieDetails } from '@/types/movie';
-import { PersonDetails } from '@/types/person';
-import { TvDetails } from '@/types/tv-show';
-import type { WatchProvider } from '@/types/watch-provider';
 
-export type ListItem =
-  | (MovieDetails & { resourceType: 'movie'; listItemId: string })
-  | (TvDetails & { resourceType: 'tv'; listItemId: string })
-  | (PersonDetails & { resourceType: 'person'; listItemId: string });
-
-type ListDetailsData = {
-  id: string;
-  name: string;
-  description: string | null;
-  emoji: string;
-  createdAt: Date;
-  updatedAt: Date;
-  itemCount: number;
-  totalPages: number;
-  allItems: ListItem[];
-};
+type ListDetailsData = CustomListDetail & { allItems: ListItem[] };
 
 type ListDetailsContentProps = {
   listId: string;
   userId?: string;
-  fetchListDetailsAction: (
-    listId: string,
-    page: number,
-    watchProviders?: number[],
-    watchRegion?: string,
-  ) => Promise<ListDetailsData>;
   watchProviders: WatchProvider[];
   userRegion: string;
 };
@@ -64,12 +46,10 @@ type ListDetailsContentProps = {
 export function ListDetailsContent({
   listId,
   userId,
-  fetchListDetailsAction,
   watchProviders,
   userRegion,
 }: ListDetailsContentProps) {
-  // Use nuqs to manage URL state
-  const [urlState] = useQueryStates(
+  const [urlState, setUrlState] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
       with_watch_providers: parseAsArrayOf(parseAsInteger).withDefault([]),
@@ -89,19 +69,28 @@ export function ListDetailsContent({
     urlState.watch_region,
   );
   const isProviderFiltered = activeProviders !== undefined;
+  const providerIds = activeProviders ?? [];
 
   const {
     data: list,
     isLoading,
     isError,
     isPlaceholderData,
-  } = useQuery({
-    queryKey: queryKeys.lists.detail(listId, page, activeProviders, activeRegion),
-    queryFn: () => fetchListDetailsAction(listId, page, activeProviders, activeRegion),
-    placeholderData: keepPreviousData,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 30, // 30 minutes
+    isFetching,
+    refetch,
+  } = useCustomListsDetails(userId ?? '', {
+    listId,
+    page,
+    providerIds,
+    region: regionPreferenceSchema.shape.region.parse(activeRegion ?? userRegion),
   });
+
+  const isPageReconciled = !list || list.currentPage === page;
+  useEffect(() => {
+    if (list && !isError && !isPlaceholderData && !isPageReconciled) {
+      void setUrlState({ page: list.currentPage }, { history: 'replace' });
+    }
+  }, [list, isError, isPlaceholderData, isPageReconciled, setUrlState]);
 
   // Without this, a failed fetch (e.g. a provider availability outage) leaves
   // the skeleton up forever.
@@ -113,16 +102,28 @@ export function ListDetailsContent({
     return <ListDetailsLoadingSkeleton />;
   }
 
+  const displayList: ListDetailsData = { ...list, allItems: list.items.map(apiListItem) };
+  const canReorder = canReorderList({ page, providerIds }, list, isFetching || isPlaceholderData);
+
   return (
-    <ListDetailsView
-      list={list}
-      page={page}
-      userId={userId}
-      watchProviders={watchProviders}
-      userRegion={userRegion}
-      isProviderFiltered={isProviderFiltered}
-      isPlaceholderData={isPlaceholderData}
-    />
+    <>
+      <UnavailableListItems
+        count={list.unavailableItems}
+        retry={() => {
+          void refetch();
+        }}
+      />
+      <ListDetailsView
+        list={displayList}
+        page={list.currentPage}
+        userId={userId}
+        watchProviders={watchProviders}
+        userRegion={userRegion}
+        isProviderFiltered={isProviderFiltered}
+        isPlaceholderData={isPlaceholderData}
+        canReorder={canReorder}
+      />
+    </>
   );
 }
 
@@ -133,6 +134,7 @@ interface ListDetailsViewProps {
   watchProviders: WatchProvider[];
   userRegion: string;
   isProviderFiltered: boolean;
+  canReorder: boolean;
   isPlaceholderData: boolean;
 }
 
@@ -143,21 +145,17 @@ function ListDetailsView({
   watchProviders,
   userRegion,
   isProviderFiltered,
+  canReorder,
   isPlaceholderData,
 }: ListDetailsViewProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const queryClient = useQueryClient();
-  // Reorder only the current unfiltered page, whose offsets match the full list.
-  const canReorder = !isProviderFiltered && !isPlaceholderData;
-
+  const moveMutation = useCustomListsMoveItemMutation();
   const offset = (page - 1) * ITEMS_PER_PAGE;
   const { localItems, isPending, move } = useReorderableItems(
     list.allItems,
     offset,
     async (itemId, globalIndex) => {
-      await moveListItem(itemId, globalIndex);
-      // Fire-and-forget: awaiting ties pending to unrelated refetches.
-      queryClient.invalidateQueries({ queryKey: queryKeys.lists.all });
+      await moveMutation.mutateAsync({ itemId, position: globalIndex });
     },
   );
 
@@ -217,7 +215,7 @@ function ListDetailsBody({
     return <EmptyListState emoji={list.emoji} />;
   }
 
-  if (items.length === 0 && isProviderFiltered) {
+  if (items.length === 0 && isProviderFiltered && list.unavailableItems === 0) {
     return <FilteredEmptyListState emoji={list.emoji} />;
   }
 

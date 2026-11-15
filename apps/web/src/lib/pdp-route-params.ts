@@ -1,3 +1,4 @@
+import { seasonNumberParam } from '@movies/api/pdp';
 import { z } from 'zod';
 
 const routeIntegerSchema = z
@@ -9,5 +10,5 @@ const resourceIdSchema = routeIntegerSchema.pipe(z.number().min(1));
 
 export const seasonRouteSchema = z.object({
   tvId: resourceIdSchema,
-  seasonNumber: routeIntegerSchema,
+  seasonNumber: seasonNumberParam,
 });

@@ -1,6 +1,9 @@
 'use client';
 
-import { useDiscoverMedia, type DiscoverMediaParams } from '@/hooks/use-discover-query';
+import type { MediaCard } from '@movies/api/home';
+import { useDiscoveryList } from '@movies/api/react/use-discovery-query';
+
+import { webDiscoveryInput, type DiscoverMediaParams } from '@/lib/discover-input';
 
 import ItemGrid from './item-grid';
 
@@ -10,13 +13,13 @@ type DiscoverGridProps = {
 };
 
 export default function DiscoverGrid({ query, userId }: DiscoverGridProps) {
-  const { data, isLoading, error } = useDiscoverMedia(query);
+  const { data, isPending, isError } = useDiscoveryList(webDiscoveryInput(query));
 
-  if (isLoading) {
+  if (isPending) {
     return <ItemGrid.Skeletons className="w-full" />;
   }
 
-  if (error) {
+  if (isError) {
     return (
       <div className="col-span-full text-center text-red-500">
         Error loading content. Please try again.
@@ -24,9 +27,13 @@ export default function DiscoverGrid({ query, userId }: DiscoverGridProps) {
     );
   }
 
-  if (!data || data.results.length === 0) {
+  return <DiscoveryResults items={data.items} query={query} userId={userId} />;
+}
+
+function DiscoveryResults({ items, query, userId }: DiscoverGridProps & { items: MediaCard[] }) {
+  if (items.length === 0) {
     return <div className="col-span-full text-center text-muted-foreground">No results found.</div>;
   }
 
-  return <ItemGrid resources={data.results} type={query.mediaType} userId={userId} />;
+  return <ItemGrid resources={items} type={query.mediaType} userId={userId} />;
 }

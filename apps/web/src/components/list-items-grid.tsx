@@ -4,11 +4,11 @@ import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
 import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable';
 import type { ReactNode } from 'react';
 
-import type { ListItem } from '@/app/lists/[id]/list-details-content';
 import ItemCard from '@/components/item-card';
 import PersonCard from '@/components/person-card';
 import { SortableItemCard } from '@/components/sortable-item-card';
 import { useReorderSensors } from '@/hooks/use-reorder-sensors';
+import type { ApiListItem as ListItem } from '@/lib/api-list-items';
 
 interface ListItemsGridProps {
   items: ListItem[];
@@ -52,7 +52,6 @@ function renderItemCard(
   return (
     <ItemCard
       resource={item}
-      type={item.resourceType}
       userId={userId}
       showListButton={!editing}
       listId={editing ? undefined : listId}

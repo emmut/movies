@@ -1,3 +1,4 @@
+import { getKnownFor, personCreditFields } from '@movies/api/person-filmography';
 import { Calendar, MapPin, Star, Users } from 'lucide-react';
 
 import Badge from '@/components/badge';
@@ -9,9 +10,9 @@ import { ItemSlider } from '@/components/item-slider';
 import { PersonFilmography } from '@/components/person-filmography';
 import { QuickAddButton } from '@/components/quick-add-button';
 import { getUser } from '@/lib/auth-server';
-import { getKnownFor, type PersonTitle } from '@/lib/person-filmography';
 import { getPersonDetails, getPersonMovieCredits, getPersonTvCredits } from '@/lib/persons';
 import { optional } from '@/lib/tmdb';
+import { formatImageUrl } from '@/lib/utils';
 
 type PersonPageProps = {
   params: Promise<{
@@ -52,45 +53,17 @@ export default async function PersonPage(props: PersonPageProps) {
     imdb_id,
   } = person;
 
-  // Convert movies to format expected by ItemCard
-  const moviesForGrid: PersonTitle[] = movieCredits.cast.map((movie) => ({
-    id: movie.id,
+  const moviesForGrid = movieCredits.cast.map((movie) => ({
+    ...personCreditFields(movie, 'movie'),
     title: movie.title,
-    poster_path: movie.poster_path,
-    release_date: movie.release_date,
-    vote_average: movie.vote_average,
-    adult: false,
-    backdrop_path: '',
-    original_language: '',
-    original_title: movie.original_title,
-    overview: '',
-    media_type: 'movie',
-    genre_ids: movie.genre_ids ?? [],
-    popularity: movie.popularity,
-    video: false,
-    vote_count: movie.vote_count ?? 0,
-    character: movie.character,
-    order: movie.order,
+    posterUrl: movie.poster_path ? formatImageUrl(movie.poster_path, 500) : null,
+    backdropUrl: null,
   }));
-
-  // Convert TV shows to format expected by ItemCard
-  const tvShowsForGrid: PersonTitle[] = tvCredits.cast.map((show) => ({
-    id: show.id,
-    name: show.name,
-    original_name: show.original_name,
-    poster_path: show.poster_path,
-    first_air_date: show.first_air_date,
-    vote_average: show.vote_average,
-    backdrop_path: '',
-    overview: '',
-    vote_count: show.vote_count ?? 0,
-    character: show.character,
-    episode_count: show.episode_count,
-    genre_ids: show.genre_ids ?? [],
-    popularity: show.popularity,
-    media_type: 'tv',
-    origin_country: [],
-    original_language: '',
+  const tvShowsForGrid = tvCredits.cast.map((show) => ({
+    ...personCreditFields(show, 'tv'),
+    title: show.name,
+    posterUrl: show.poster_path ? formatImageUrl(show.poster_path, 500) : null,
+    backdropUrl: null,
   }));
 
   const birthYear = birthday ? new Date(birthday).getFullYear() : null;
@@ -190,10 +163,9 @@ export default async function PersonPage(props: PersonPageProps) {
               <ItemSlider>
                 {knownFor.map((item) => (
                   <ItemCard
-                    key={`${item.media_type}:${item.id}`}
+                    key={`${item.type}:${item.id}`}
                     resource={item}
                     className="w-40 sm:w-48"
-                    type={'title' in item ? 'movie' : 'tv'}
                     userId={user?.id}
                   />
                 ))}

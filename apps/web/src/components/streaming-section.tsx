@@ -1,3 +1,4 @@
+import type { DirectWatchLink } from '@movies/api/tmdb-types/watch-provider';
 import type { RegionCode } from '@movies/config/regions';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { Suspense, type ComponentProps } from 'react';
@@ -7,7 +8,6 @@ import { getMovieWatchProviders } from '@/lib/movies';
 import { optional } from '@/lib/tmdb';
 import { getTvShowWatchProviders } from '@/lib/tv-shows';
 import { getWikidataWatchLinks } from '@/lib/wikidata';
-import type { DirectWatchLink } from '@/types/watch-provider';
 
 type StreamingSectionProps = {
   resourceId: number;
