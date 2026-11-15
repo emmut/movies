@@ -3,12 +3,13 @@ import { signInDevicePasskey } from '@native/lib/passkeys';
 import { createSignInFlow, type SignInMethod } from '@native/lib/sign-in-flow';
 import { Platform } from 'react-native';
 
-function authCallback(path: string) {
+function authCallback(path: string): string {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     return window.location.origin + path;
   }
   return path;
 }
+
 type SocialProvider = 'discord' | 'github';
 async function socialSignIn(
   provider: SocialProvider,
@@ -21,6 +22,7 @@ async function socialSignIn(
     errorCallbackURL: authCallback(errorDestination),
   });
 }
+
 async function signIn(method: SignInMethod, destination: string) {
   if (method === 'anonymous') {
     return authClient.signIn.anonymous();
@@ -30,10 +32,12 @@ async function signIn(method: SignInMethod, destination: string) {
   }
   return socialSignIn(method, destination, '/login?error=failed_to_login');
 }
+
 async function currentUser() {
   const result = await authClient.getSession({ query: { disableCookieCache: true } });
   return result.data?.user ?? null;
 }
+
 export const runSignIn = createSignInFlow({ signIn, current: currentUser });
 export const runAccountLink = createSignInFlow<SocialProvider>(
   {

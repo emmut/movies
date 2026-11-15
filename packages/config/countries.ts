@@ -324,17 +324,26 @@ function matchesCountryQuery(code: string, query: string) {
   return code.toLowerCase() === query || getCountryName(code).toLowerCase().includes(query);
 }
 
+type CountryMatch = { code: string; name: string; prefix: boolean };
+
+function toCountryMatch(code: string, query: string): CountryMatch {
+  const name = getCountryName(code).toLowerCase();
+  return { code, name, prefix: name.startsWith(query) || code.toLowerCase() === query };
+}
+
+function compareCountryMatches(a: CountryMatch, b: CountryMatch): number {
+  if (a.prefix !== b.prefix) {
+    return Number(b.prefix) - Number(a.prefix);
+  }
+  return a.name.localeCompare(b.name);
+}
+
 /** Name-prefix matches (and exact code matches) first, then alphabetical by name. */
-function rankCountryMatches(query: string) {
+function rankCountryMatches(query: string): string[] {
   return originCountries
     .filter((code) => matchesCountryQuery(code, query))
-    .map((code) => {
-      const name = getCountryName(code).toLowerCase();
-      return { code, name, prefix: name.startsWith(query) || code.toLowerCase() === query };
-    })
-    .sort((a, b) =>
-      a.prefix === b.prefix ? a.name.localeCompare(b.name) : Number(b.prefix) - Number(a.prefix),
-    )
+    .map((code) => toCountryMatch(code, query))
+    .sort(compareCountryMatches)
     .map((match) => match.code);
 }
 

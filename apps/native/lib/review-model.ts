@@ -7,17 +7,18 @@ const reviewDateFormatter = new Intl.DateTimeFormat('en-US', {
   timeZone: 'UTC',
 });
 
-export function formatReviewDate(value: string) {
+export function formatReviewDate(value: string): string | null {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : reviewDateFormatter.format(date);
 }
 
-export function isReviewExpandable(content: string) {
+export function isReviewExpandable(content: string): boolean {
   return content.length > 300 || content.split('\n').length > 5;
 }
 
-export function reviewCountLabel(count: number) {
-  return count.toLocaleString('en-US') + (count === 1 ? ' review' : ' reviews');
+export function reviewCountLabel(count: number): string {
+  const noun = count === 1 ? 'review' : 'reviews';
+  return `${count.toLocaleString('en-US')} ${noun}`;
 }
 
 export function readReviewsInput(params: SearchParams) {

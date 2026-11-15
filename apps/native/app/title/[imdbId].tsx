@@ -25,7 +25,9 @@ function UnavailableTitle() {
   );
 }
 
-function ResolveTitle({ imdbId }: { imdbId: string }) {
+type ResolveTitleProps = { imdbId: string };
+
+function ResolveTitle({ imdbId }: ResolveTitleProps) {
   const query = useCatalogResolveImdb({ imdbId });
   if (query.isPending || query.isError) {
     return (

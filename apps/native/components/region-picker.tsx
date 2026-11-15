@@ -6,6 +6,7 @@ import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-conte
 import { withUniwind } from 'uniwind';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
+
 export function RegionPicker({
   visible,
   selected,

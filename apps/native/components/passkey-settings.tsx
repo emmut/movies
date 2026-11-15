@@ -21,15 +21,18 @@ import {
 } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
+
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
-function passkeyName(key: PasskeyMetadata) {
+function passkeyName(key: PasskeyMetadata): string {
   return key.name || 'Unnamed passkey';
 }
-async function refresh(userId: string) {
+
+async function refresh(userId: string): Promise<void> {
   await queryClient.invalidateQueries({ queryKey: passkeyKey(userId) });
 }
-function registrationMessage(error: unknown) {
+
+function registrationMessage(error: unknown): string {
   if (
     hasErrorCode(
       error,
@@ -137,6 +140,7 @@ function AddPasskey({ userId, close }: { userId: string; close: () => void }) {
     </Sheet>
   );
 }
+
 function DeletePasskey({
   item,
   userId,
@@ -203,6 +207,7 @@ function DeletePasskey({
     </Sheet>
   );
 }
+
 function PasskeyRows({
   items,
   remove,
@@ -238,6 +243,7 @@ function PasskeyRows({
     </View>
   );
 }
+
 function PasskeyData({
   userId,
   remove,
@@ -262,6 +268,7 @@ function PasskeyData({
   }
   return <PasskeyRows items={query.data} remove={remove} />;
 }
+
 export function PasskeySettings({ userId }: { userId: string }) {
   const [adding, setAdding] = useState(false);
   const [deleting, setDeleting] = useState<PasskeyMetadata | null>(null);

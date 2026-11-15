@@ -1,6 +1,7 @@
 'use client';
+
 import { usePreferencesSetProvidersMutation } from '@movies/api/react/use-preferences-query';
-import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
+import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
 import {
   Card,

@@ -7,7 +7,12 @@ import {
 } from '@movies/api/catalog-support';
 import type { CatalogService } from '@movies/api/router';
 import type { TmdbFetch } from '@movies/api/tmdb-fetch';
-import { tmdbImageUrl, toMediaCard, tmdbCardSchema } from '@movies/services/media-card';
+import {
+  publicWebUrl,
+  tmdbCardSchema,
+  tmdbImageUrl,
+  toMediaCard,
+} from '@movies/services/media-card';
 import { z } from 'zod';
 
 const videosSchema = z.object({
@@ -29,19 +34,11 @@ const regionProvidersSchema = z.object({
 const providersSchema = z.object({ results: z.record(z.string(), regionProvidersSchema) });
 const cardsSchema = z.object({ results: z.array(tmdbCardSchema) });
 
-function watchLink(link: string | undefined, { id, type }: CatalogDetailInput) {
-  if (link) {
-    try {
-      const url = new URL(link);
-      if (url.protocol === 'https:' || url.protocol === 'http:') {
-        return url.href;
-      }
-    } catch {
-      // Missing/invalid upstream links use TMDB's documented watch page.
-    }
-  }
-  return `https://www.themoviedb.org/${type}/${id}/watch`;
+/** Missing/invalid upstream links use TMDB's documented watch page. */
+function watchLink(link: string | undefined, { id, type }: CatalogDetailInput): string {
+  return publicWebUrl(link ?? null) ?? `https://www.themoviedb.org/${type}/${id}/watch`;
 }
+
 function providerCard(item: z.infer<typeof providerSchema>) {
   return {
     id: item.provider_id,

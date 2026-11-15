@@ -7,6 +7,7 @@ import { WebView as NativeWebView } from 'react-native-webview';
 import { withUniwind } from 'uniwind';
 
 const WebView = withUniwind(NativeWebView);
+
 export function TrailerPlayer({ videoKey, title }: { videoKey: string; title: string }) {
   const [failed, setFailed] = useState(false);
   if (failed || !applicationId) {

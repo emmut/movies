@@ -3,7 +3,7 @@ import {
   useCustomListsCreateMutation,
   useCustomListsUpdateMutation,
 } from '@movies/api/react/use-custom-lists-query';
-import { createListSchema } from '@movies/api/validations';
+import { createListSchema, type CreateListData } from '@movies/api/validations';
 import { EMOJI_OPTIONS } from '@movies/config/constants';
 import { Sheet } from '@native/components/sheet';
 import { useState } from 'react';
@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
+
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
 export function CustomListForm({
@@ -149,23 +150,24 @@ function EmojiPicker({
         nestedScrollEnabled
         keyboardShouldPersistTaps="handled"
       >
-        {EMOJI_OPTIONS.map((option) => (
-          <Pressable
-            key={option}
-            accessibilityRole="radio"
-            accessibilityLabel={'Emoji ' + option}
-            accessibilityState={{ checked: emoji === option, disabled: pending }}
-            aria-checked={emoji === option}
-            disabled={pending}
-            onPress={() => setEmoji(option)}
-            className={
-              'min-h-12 min-w-12 items-center justify-center rounded-lg ' +
-              (emoji === option ? 'bg-foreground' : 'bg-default')
-            }
-          >
-            <Text className="text-2xl">{option}</Text>
-          </Pressable>
-        ))}
+        {EMOJI_OPTIONS.map((option) => {
+          const checked = emoji === option;
+          const background = checked ? 'bg-foreground' : 'bg-default';
+          return (
+            <Pressable
+              key={option}
+              accessibilityRole="radio"
+              accessibilityLabel={'Emoji ' + option}
+              accessibilityState={{ checked, disabled: pending }}
+              aria-checked={checked}
+              disabled={pending}
+              onPress={() => setEmoji(option)}
+              className={'min-h-12 min-w-12 items-center justify-center rounded-lg ' + background}
+            >
+              <Text className="text-2xl">{option}</Text>
+            </Pressable>
+          );
+        })}
       </ScrollView>
       <Text className="text-foreground/75">Selected: {emoji}</Text>
     </>
@@ -193,20 +195,22 @@ function useListSave({
   close: () => void;
   created?: (id: string) => void;
 }) {
-  async function saved() {
-    close();
-  }
   const create = useCustomListsCreateMutation({
     accountId: userId,
-    async onSuccess(result) {
-      await saved();
+    onSuccess(result) {
+      close();
       created?.(result.listId);
     },
   });
-  const update = useCustomListsUpdateMutation({ accountId: userId, onSuccess: saved });
+  const update = useCustomListsUpdateMutation({
+    accountId: userId,
+    onSuccess() {
+      close();
+    },
+  });
   const pending = create.isPending || update.isPending;
   const failed = create.isError || update.isError;
-  function save(input: ReturnType<typeof createListSchema.parse>) {
+  function save(input: CreateListData) {
     if (item) {
       update.mutate({ ...input, listId: item.id });
     } else {

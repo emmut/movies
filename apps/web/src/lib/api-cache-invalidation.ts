@@ -11,7 +11,7 @@ import {
 } from '@/lib/cache-invalidation';
 
 /** Next's server render cache and React Query are separate cache layers. */
-export function invalidateApiMutation(event: MutationEvent) {
+export function invalidateApiMutation(event: MutationEvent): void {
   switch (event.domain) {
     case 'preferences':
       invalidatePreferences(event.userId);
@@ -25,7 +25,7 @@ export function invalidateApiMutation(event: MutationEvent) {
   }
 }
 
-function invalidatePreferences(userId: string) {
+function invalidatePreferences(userId: string): void {
   revalidateUserPreferenceCache(userId);
   for (const page of ['/', '/settings', '/discover']) {
     revalidatePath(page);
@@ -36,7 +36,7 @@ function invalidateCustomList({
   userId,
   listId,
   resource,
-}: Extract<MutationEvent, { domain: 'customLists' }>) {
+}: Extract<MutationEvent, { domain: 'customLists' }>): void {
   revalidateUserListCache(userId, listId);
   if (resource) {
     revalidateUserListStatusCache(userId, resource.resourceType, resource.resourceId);
@@ -49,7 +49,7 @@ function invalidateSystemList({
   userId,
   listType,
   resource,
-}: Extract<MutationEvent, { domain: 'systemLists' }>) {
+}: Extract<MutationEvent, { domain: 'systemLists' }>): void {
   revalidateUserSystemListPageCache(userId, listType);
   if (resource) {
     revalidateUserSystemListCache(userId, listType, resource.resourceType, resource.resourceId);

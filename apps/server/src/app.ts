@@ -7,7 +7,7 @@ import type { AuthGateway } from '@server/auth-gateway';
 import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
 
-function localOrigin(origin: string) {
+function localOrigin(origin: string): string {
   return isLocalBrowserOrigin(origin) ? origin : '';
 }
 
@@ -23,10 +23,11 @@ export function createApp(
     app.use(use);
   }
   const handler = new RPCHandler(appRouter);
+  const corsOrigin = origin ?? localOrigin;
   app.use(
     '/rpc/*',
     cors({
-      origin: origin ?? localOrigin,
+      origin: corsOrigin,
       allowMethods: ['GET', 'POST', 'OPTIONS'],
       credentials: true,
       allowHeaders: ['Content-Type'],
@@ -35,7 +36,7 @@ export function createApp(
   app.use(
     '/api/auth/*',
     cors({
-      origin: origin ?? localOrigin,
+      origin: corsOrigin,
       credentials: true,
       allowMethods: ['GET', 'POST', 'OPTIONS'],
       allowHeaders: ['Content-Type', 'expo-origin'],

@@ -54,7 +54,7 @@ function DiscoveryResults({
     return (
       <ScreenQueryState
         label="discovered titles"
-        failed={query.isError}
+        failed
         retry={() => {
           void query.refetch();
         }}

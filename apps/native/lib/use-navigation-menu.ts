@@ -2,7 +2,7 @@ import { getMenuDestination, type NativeMenuPath } from '@native/lib/navigation-
 import { captureActiveScroll } from '@native/lib/navigation-scroll';
 import { usePathname, useRouter } from 'expo-router';
 
-export function useNavigationMenu() {
+export function useNavigationMenu(): (id: string) => void {
   const router = useRouter();
   const pathname = usePathname();
   function navigateNative(path: NativeMenuPath) {

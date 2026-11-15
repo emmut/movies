@@ -15,6 +15,7 @@ export function ScrollNavigationProvider({
 }) {
   return <ScrollNavigation value={{ capture, cancel }}>{children}</ScrollNavigation>;
 }
+
 export function useScrollNavigation() {
   const { capture, cancel } = useContext(ScrollNavigation);
   function remember(event?: NavigationPress) {

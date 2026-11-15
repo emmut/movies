@@ -12,9 +12,22 @@ export type TmdbCard = {
   backdrop_path: string | null;
   vote_average: number;
 };
-export function tmdbImageUrl(path: string | null, size: string) {
+export function tmdbImageUrl(path: string | null, size: string): string | null {
   return path ? `https://image.tmdb.org/t/p/${size}${path}` : null;
 }
+
+/** Upstream homepage metadata is only exposed when it is a usable http(s) URL. */
+export function publicWebUrl(value: string | null): string | null {
+  if (!value || !URL.canParse(value)) {
+    return null;
+  }
+  const url = new URL(value);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return null;
+  }
+  return url.href;
+}
+
 export function toMediaCard(item: TmdbCard, type: MediaCard['type']): MediaCard {
   return {
     id: item.id,

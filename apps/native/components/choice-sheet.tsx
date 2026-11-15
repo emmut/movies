@@ -118,13 +118,10 @@ function SearchFeedback({
   retry,
   hasOptions,
 }: ChoiceFeedbackProps & { hasOptions: boolean }) {
-  if (!hasOptions) {
+  if (!hasOptions || (!pending && !failed)) {
     return null;
   }
-  if (pending || failed) {
-    return <ChoiceFeedback pending={pending} failed={failed} retry={retry} emptyLabel="" />;
-  }
-  return null;
+  return <ChoiceFeedback pending={pending} failed={failed} retry={retry} emptyLabel="" />;
 }
 
 export function ChoiceSheet({

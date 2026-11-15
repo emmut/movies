@@ -1,5 +1,5 @@
 import { useCatalogDetails, useCatalogReviews } from '@movies/api/react/use-catalog-query';
-import type { Review, ReviewsInput } from '@movies/api/reviews';
+import type { Review, ReviewsInput, ReviewsPage } from '@movies/api/reviews';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogPagination } from '@native/components/catalog-pagination';
 import { ReviewCard } from '@native/components/review-card';
@@ -36,6 +36,7 @@ function ReviewsResults({ input, region }: { input: ReviewsInput; region: string
   }
   return <ReviewList input={input} region={region} data={query.data} title={details.data?.title} />;
 }
+
 function ReviewList({
   input,
   region,
@@ -45,7 +46,7 @@ function ReviewList({
   input: ReviewsInput;
   region: string;
   title?: string;
-  data: NonNullable<ReturnType<typeof useCatalogReviews>['data']>;
+  data: ReviewsPage;
 }) {
   const titleLabel = title || 'this title';
   const router = useRouter();

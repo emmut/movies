@@ -4,6 +4,7 @@ import { Sheet } from '@native/components/sheet';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
+
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
 export function CustomListDelete({
@@ -19,7 +20,7 @@ export function CustomListDelete({
 }) {
   const mutation = useCustomListsDeleteMutation({
     accountId: userId,
-    async onSuccess() {
+    onSuccess() {
       close();
       deleted?.();
     },

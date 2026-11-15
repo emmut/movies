@@ -16,7 +16,7 @@ import {
 import { createCatalogPdpService } from '@movies/services/catalog-pdp-service';
 import { createCatalogReviewsService } from '@movies/services/catalog-reviews-service';
 import { createCatalogSupportService } from '@movies/services/catalog-support-service';
-import { tmdbImageUrl } from '@movies/services/media-card';
+import { publicWebUrl, tmdbImageUrl } from '@movies/services/media-card';
 import {
   createWatchLinksService,
   type WikidataClaimsReader,
@@ -69,21 +69,6 @@ const detailsSchema = z.object({
     )
     .default([]),
 });
-
-function publicHomepage(value: string) {
-  if (!value) {
-    return null;
-  }
-  try {
-    const url = new URL(value);
-    if (url.protocol === 'https:' || url.protocol === 'http:') {
-      return url.href;
-    }
-  } catch {
-    // Optional upstream homepage metadata may not be a usable URL.
-  }
-  return null;
-}
 
 async function readCertification(fetchTmdb: TmdbFetch, { id, type, region }: CatalogDetailInput) {
   if (type === 'movie') {
@@ -159,7 +144,7 @@ export function createCatalogService(
         status: item.status,
         languages: item.spoken_languages.map((language) => language.english_name),
         originCountries: item.origin_country,
-        homepage: publicHomepage(item.homepage),
+        homepage: publicWebUrl(item.homepage),
         certification: rating,
       };
       if (input.type === 'movie') {

@@ -8,6 +8,7 @@ import { Pressable, Text, View } from 'react-native';
 import { withUniwind } from 'uniwind';
 
 const Image = withUniwind(NativeImage);
+
 function PersonImage({ item, fluid }: { item: SearchPersonCard; fluid: boolean }) {
   return (
     <View

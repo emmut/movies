@@ -23,19 +23,24 @@ import {
 } from './ordering-lock';
 import { listItems, lists } from './schema/lists';
 import { streamableOnProviders } from './title-availability';
+
 export class CustomListNotFoundError extends Error {
   constructor() {
     super('List not found');
     this.name = 'CustomListNotFoundError';
   }
 }
+
 export class CustomListConflictError extends Error {
   constructor() {
     super('Item already in list');
     this.name = 'CustomListConflictError';
   }
 }
+
 const CUSTOM_LIST_TYPE = 'custom' as const;
+const UNIQUE_VIOLATION = '23505';
+
 function ownedCustomListsFilter(userId: string) {
   return and(eq(lists.userId, userId), eq(lists.type, CUSTOM_LIST_TYPE));
 }
@@ -47,6 +52,20 @@ function manualListOrder() {
 function itemManualOrder() {
   return [asc(listItems.position), desc(listItems.createdAt)];
 }
+
+function isUniqueViolation(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  const { cause } = error;
+  if (typeof cause === 'object' && cause !== null && 'code' in cause) {
+    if (cause.code === UNIQUE_VIOLATION) {
+      return true;
+    }
+  }
+  return error.message.includes('unique');
+}
+
 /** Canonical custom-list records for verified accounts; hosts own cache invalidation and title hydration. */
 export function createCustomListStore(
   db: NodePgDatabase,
@@ -121,6 +140,7 @@ export function createCustomListStore(
 
     return { ...list, ...itemsPage, itemCount };
   }
+
   async function owned(userId: string, listId: string) {
     const result = await db
       .select({ id: lists.id })
@@ -129,6 +149,7 @@ export function createCustomListStore(
       .limit(1);
     return result[0] ?? null;
   }
+
   async function total(userId: string) {
     const rows = await db
       .select({ count: count() })
@@ -136,13 +157,9 @@ export function createCustomListStore(
       .where(ownedCustomListsFilter(userId));
     return rows[0]?.count ?? 0;
   }
-  async function index(userId: string, page: number = 1) {
-    const totalCountResult = await db
-      .select({ count: count() })
-      .from(lists)
-      .where(ownedCustomListsFilter(userId));
 
-    const totalItems = totalCountResult[0]?.count ?? 0;
+  async function index(userId: string, page: number = 1) {
+    const totalItems = await total(userId);
     const { offset, ...pagination } = pageWindow(totalItems, page, LISTS_PER_PAGE);
 
     if (totalItems === 0) {
@@ -169,6 +186,7 @@ export function createCustomListStore(
 
     return { lists: listsWithCounts, ...pagination };
   }
+
   async function pageRows(
     userId: string,
     listId: string,
@@ -181,6 +199,7 @@ export function createCustomListStore(
     }
     return queryUnfilteredListPage(list, page);
   }
+
   async function createList(
     userId: string,
     name: string,
@@ -194,11 +213,10 @@ export function createCustomListStore(
     // Locked so concurrent creates can't read the same max(position) and append
     // to the same slot.
     await withOrderingLock(listOrderingScope(userId), async (tx) => {
-      // Append to the end of the user's manual ordering.
       const position = await nextPosition(tx, lists, ownedCustomListsFilter(userId));
       await tx.insert(lists).values({
         id: listId,
-        userId: userId,
+        userId,
         name: validatedData.name,
         description: validatedData.description,
         emoji: validatedData.emoji,
@@ -227,7 +245,6 @@ export function createCustomListStore(
       // Locked so concurrent adds can't read the same max(position) and append
       // to the same slot.
       await withOrderingLock(listItemOrderingScope(validatedData.listId), async (tx) => {
-        // Append to the end of the list's manual ordering.
         const position = await nextPosition(
           tx,
           listItems,
@@ -242,10 +259,7 @@ export function createCustomListStore(
         });
       });
     } catch (error) {
-      const cause = error instanceof Error ? error.cause : undefined;
-      const uniqueViolation =
-        typeof cause === 'object' && cause !== null && 'code' in cause && cause.code === '23505';
-      if (uniqueViolation || (error instanceof Error && error.message.includes('unique'))) {
+      if (isUniqueViolation(error)) {
         throw new CustomListConflictError();
       }
       throw error;
@@ -375,6 +389,7 @@ export function createCustomListStore(
       throw new Error('Failed to fetch user lists');
     }
   }
+
   return {
     owned,
     total,

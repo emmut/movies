@@ -1,3 +1,4 @@
+import type { DiscoveryInput } from '@movies/api/discover';
 import { discoveryInputFromParams } from '@movies/api/discovery-input';
 
 export type DiscoverMediaParams = {
@@ -14,7 +15,7 @@ export type DiscoverMediaParams = {
   originCountry?: string;
 };
 
-export function webDiscoveryInput(params: DiscoverMediaParams) {
+export function webDiscoveryInput(params: DiscoverMediaParams): DiscoveryInput {
   return discoveryInputFromParams(params.mediaType, {
     genreIds: params.genreIds,
     keywordIds: params.keywordIds,

@@ -1,12 +1,13 @@
 'use client';
 
 import type { PdpExtras } from '@movies/api/pdp';
-type PlayableVideo = PdpExtras['videos'][number];
 import { buttonVariants } from '@movies/ui/components/button';
 import { cn } from 'cn';
 import { ArrowUpRight, PlayCircle } from 'lucide-react';
 
 import { MediaViewer, MediaViewerTrigger } from '@/components/media-viewer';
+
+type PlayableVideo = PdpExtras['videos'][number];
 
 function VideoPlayer({ video, title }: { video: PlayableVideo; title: string }) {
   return (

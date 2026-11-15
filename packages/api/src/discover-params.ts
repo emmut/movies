@@ -7,6 +7,14 @@ export const MIN_RUNTIME_FILTER_MINUTES = 1;
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
+function hasEntityFilter(
+  keywordIds: number[],
+  companyIds: number[],
+  networkIds: number[],
+): boolean {
+  return keywordIds.length > 0 || companyIds.length > 0 || networkIds.length > 0;
+}
+
 /** Keyword, company and network browsing only use providers explicitly selected in the URL. */
 export function getDiscoverWatchProviders(
   urlProviders: number[],
@@ -14,11 +22,11 @@ export function getDiscoverWatchProviders(
   keywordIds: number[],
   companyIds: number[] = [],
   networkIds: number[] = [],
-) {
-  return getWatchProvidersString(
-    urlProviders,
-    keywordIds.length > 0 || companyIds.length > 0 || networkIds.length > 0 ? [] : savedProviders,
-  );
+): string | undefined {
+  if (hasEntityFilter(keywordIds, companyIds, networkIds)) {
+    return getWatchProvidersString(urlProviders, []);
+  }
+  return getWatchProvidersString(urlProviders, savedProviders);
 }
 
 export type DiscoverParams = {
@@ -87,12 +95,7 @@ export function buildDiscoverSearchParams({
   if (watchProviders && watchRegion) {
     params.with_watch_providers = watchProviders;
     params.watch_region = watchRegion;
-  } else if (
-    !withOriginCountry &&
-    keywordIds.length === 0 &&
-    companyIds.length === 0 &&
-    networkIds.length === 0
-  ) {
+  } else if (!withOriginCountry && !hasEntityFilter(keywordIds, companyIds, networkIds)) {
     // Country, company, network and keyword browsing include the full catalog unless a provider
     // is explicitly selected.
     params.with_watch_providers = majorProviders;

@@ -21,26 +21,29 @@ export function CatalogOriginCountries({ item, region }: { item: CatalogDetail; 
         {countries.length === 1 ? 'Country of Origin' : 'Countries of Origin'}
       </Text>
       <View className="flex-row flex-wrap gap-2">
-        {countries.map((code) => (
-          <Link
-            key={code}
-            href={{
-              pathname: '/discover',
-              params: { with_origin_country: code, mediaType: item.type, watch_region: region },
-            }}
-            asChild
-          >
-            <Pressable
-              {...navigationPress}
-              accessibilityRole="link"
-              accessibilityLabel={`Discover ${media} from ${getCountryName(code)}`}
-              className="bg-default min-h-11 flex-row items-center gap-2 rounded-full border border-border px-3"
+        {countries.map((code) => {
+          const name = getCountryName(code);
+          return (
+            <Link
+              key={code}
+              href={{
+                pathname: '/discover',
+                params: { with_origin_country: code, mediaType: item.type, watch_region: region },
+              }}
+              asChild
             >
-              <Text accessible={false}>{getCountryFlag(code)}</Text>
-              <Text className="text-sm text-foreground">{getCountryName(code)}</Text>
-            </Pressable>
-          </Link>
-        ))}
+              <Pressable
+                {...navigationPress}
+                accessibilityRole="link"
+                accessibilityLabel={`Discover ${media} from ${name}`}
+                className="bg-default min-h-11 flex-row items-center gap-2 rounded-full border border-border px-3"
+              >
+                <Text accessible={false}>{getCountryFlag(code)}</Text>
+                <Text className="text-sm text-foreground">{name}</Text>
+              </Pressable>
+            </Link>
+          );
+        })}
       </View>
     </View>
   );

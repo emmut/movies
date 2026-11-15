@@ -104,6 +104,14 @@ export function moveSelection(key: string, index: number, count: number): number
   return index;
 }
 
+const TITLE_PRESENTATION = {
+  movie: { badge: 'Movie', badgeVariant: 'yellow', fallbackEmoji: '🎬' },
+  tv: { badge: 'TV Show', badgeVariant: 'red', fallbackEmoji: '📺' },
+} as const satisfies Record<
+  'movie' | 'tv',
+  Pick<SearchCommandItem, 'badge' | 'badgeVariant' | 'fallbackEmoji'>
+>;
+
 function toApiSearchCommandItem(item: SearchItem): SearchCommandItem {
   if (item.type === 'person') {
     return {
@@ -117,14 +125,13 @@ function toApiSearchCommandItem(item: SearchItem): SearchCommandItem {
       fallbackEmoji: '👤',
     };
   }
+
   return {
     key: `${item.type}-${item.id}`,
     href: `/${item.type}/${item.id}`,
     title: item.title,
     subtitle: item.releaseDate.slice(0, 4),
-    badge: item.type === 'movie' ? 'Movie' : 'TV Show',
-    badgeVariant: item.type === 'movie' ? 'yellow' : 'red',
+    ...TITLE_PRESENTATION[item.type],
     fallbackSrc: item.posterUrl ?? '',
-    fallbackEmoji: item.type === 'movie' ? '🎬' : '📺',
   };
 }

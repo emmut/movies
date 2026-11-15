@@ -1,7 +1,8 @@
+import type { MediaCard } from '@movies/api/home';
 import { useCatalogKeyword } from '@movies/api/react/use-catalog-query';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
-import { MediaPoster, MediaPosterRow } from '@native/components/media-poster';
+import { MediaPoster } from '@native/components/media-poster';
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { readKeywordInput } from '@native/lib/keyword-model';
 import { useRegion } from '@native/lib/preferences';
@@ -10,7 +11,9 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
+
 const SafeAreaView = withUniwind(NativeSafeAreaView);
+
 function KeywordQuery({
   id,
   type,
@@ -81,14 +84,8 @@ function KeywordQuery({
     </ScrollNavigationProvider>
   );
 }
-function KeywordResults({
-  items,
-  region,
-}: {
-  items: Parameters<typeof MediaPosterRow>[0]['items'];
-  region: string;
-}) {
-  if (!items.length) {
+function KeywordResults({ items, region }: { items: MediaCard[]; region: string }) {
+  if (items.length === 0) {
     return <Text className="text-muted">No titles found.</Text>;
   }
   return (
@@ -123,6 +120,11 @@ export function KeywordScreen() {
   );
 }
 
+const mediaTypeOptions = [
+  { value: 'movie', label: 'Movies' },
+  { value: 'tv', label: 'TV Shows' },
+] as const;
+
 function KeywordMediaTypes({
   type,
   change,
@@ -132,19 +134,22 @@ function KeywordMediaTypes({
 }) {
   return (
     <View className="flex-row gap-3">
-      {(['movie', 'tv'] as const).map((option) => (
-        <Pressable
-          key={option}
-          accessibilityRole="button"
-          accessibilityState={{ selected: type === option }}
-          onPress={() => change(option)}
-          className={`min-h-11 justify-center rounded-lg border px-4 ${type === option ? 'border-blue-500 bg-blue-700' : 'bg-default border-border'}`}
-        >
-          <Text className={type === option ? 'font-semibold text-white' : 'text-foreground'}>
-            {option === 'movie' ? 'Movies' : 'TV Shows'}
-          </Text>
-        </Pressable>
-      ))}
+      {mediaTypeOptions.map((option) => {
+        const selected = type === option.value;
+        const buttonColors = selected ? 'border-blue-500 bg-blue-700' : 'bg-default border-border';
+        const textClass = selected ? 'font-semibold text-white' : 'text-foreground';
+        return (
+          <Pressable
+            key={option.value}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            onPress={() => change(option.value)}
+            className={`min-h-11 justify-center rounded-lg border px-4 ${buttonColors}`}
+          >
+            <Text className={textClass}>{option.label}</Text>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }

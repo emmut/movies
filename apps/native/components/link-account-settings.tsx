@@ -11,6 +11,16 @@ const providers = [
 ] as const;
 type Provider = (typeof providers)[number]['id'];
 
+function linkError(error: string | null, routeError: string | undefined) {
+  if (error) {
+    return error;
+  }
+  if (routeError === 'failed_to_link_account') {
+    return 'Couldn’t link your account. Please try again.';
+  }
+  return null;
+}
+
 export function LinkAccountSettings() {
   const [pending, setPending] = useState<Provider | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +44,7 @@ export function LinkAccountSettings() {
       setPending(null);
     }
   }
-  const routeError = scalar(params.error) === 'failed_to_link_account';
-  const failure = error ?? (routeError ? 'Couldn’t link your account. Please try again.' : null);
+  const failure = linkError(error, scalar(params.error));
   return (
     <View className="gap-4 rounded-xl border border-border p-4">
       <View className="gap-1">

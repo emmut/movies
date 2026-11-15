@@ -5,14 +5,14 @@ import { createApiContext } from '@/lib/api-server';
 
 const handler = new RPCHandler(appRouter);
 
-async function handle(request: Request) {
+async function handle(request: Request): Promise<Response> {
   const context = createApiContext(request.headers);
   const result = await handler.handle(request, { prefix: '/api/rpc', context });
-  return result.matched ? result.response : new Response('Not found', { status: 404 });
+  if (!result.matched) {
+    return new Response('Not found', { status: 404 });
+  }
+  return result.response;
 }
-export async function GET(request: Request) {
-  return handle(request);
-}
-export async function POST(request: Request) {
-  return handle(request);
-}
+
+export const GET = handle;
+export const POST = handle;

@@ -58,6 +58,6 @@ export function getMenuDestination(id: string): MenuDestination | null {
 }
 
 /** Hide auth actions until the session is known; an active guest session can also sign out. */
-export function getMoreMenuItems(signedIn: boolean | null) {
+export function getMoreMenuItems(signedIn: boolean | null): (typeof MORE_MENU_ITEMS)[number][] {
   return MORE_MENU_ITEMS.filter((item) => item.id !== 'login' || signedIn === false);
 }

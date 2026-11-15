@@ -10,6 +10,7 @@ import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-conte
 import { withUniwind } from 'uniwind';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
+
 export function SystemQuickAdd({ item }: { item: MediaCard }) {
   const [open, setOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);

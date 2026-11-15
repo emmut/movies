@@ -103,7 +103,6 @@ export function createSystemListStore(db: NodePgDatabase) {
     // Locked so concurrent adds can't read the same max(position) and append to
     // the same slot.
     const inserted = await withOrderingLock(listItemOrderingScope(listId), async (tx) => {
-      // Append to the end of the list's manual ordering for this resource type.
       const position = await nextPosition(
         tx,
         listItems,

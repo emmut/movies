@@ -14,6 +14,10 @@ const sorts: { value: CreditSort; label: string }[] = [
   { value: 'newest', label: 'Newest first' },
 ];
 
+function sortLabel(sort: CreditSort): string | undefined {
+  return sorts.find((item) => item.value === sort)?.label;
+}
+
 function CreditSortControl({
   title,
   sort,
@@ -39,9 +43,7 @@ function CreditSortControl({
         className="bg-default min-h-11 flex-row items-center gap-2 rounded-xl border border-border px-3"
         onPress={() => setOpen(true)}
       >
-        <Text className="text-sm text-foreground">
-          {sorts.find((item) => item.value === sort)?.label}
-        </Text>
+        <Text className="text-sm text-foreground">{sortLabel(sort)}</Text>
         <ChevronDownIcon className="size-3 text-muted" accessible={false} />
       </Pressable>
       {open ? (

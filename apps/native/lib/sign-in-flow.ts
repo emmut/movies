@@ -5,7 +5,7 @@ type Sources<Method extends SignInMethod> = {
   current(): Promise<User | null>;
 };
 
-function completed(method: SignInMethod, user: User | null) {
+function completed(method: SignInMethod, user: User | null): boolean {
   if (!user) {
     return false;
   }
@@ -15,15 +15,17 @@ function completed(method: SignInMethod, user: User | null) {
   }
   return true;
 }
+
 const defaultMessages = {
   failed: 'Couldn’t sign in. Please try again.',
   cancelled: 'Sign-in was cancelled or did not finish. Please try again.',
   network: 'Couldn’t sign in. Check your connection and try again.',
 };
+
 export function createSignInFlow<Method extends SignInMethod>(
   sources: Sources<Method>,
   messages = defaultMessages,
-) {
+): (method: Method, destination: string) => Promise<string | null> {
   return async function authenticate(method: Method, destination: string) {
     try {
       const result = await sources.signIn(method, destination);

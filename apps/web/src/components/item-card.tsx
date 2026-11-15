@@ -1,5 +1,4 @@
-import type { MediaCard } from '@movies/api/home';
-import { displayRating } from '@movies/api/home';
+import { displayRating, type MediaCard } from '@movies/api/home';
 import { Skeleton } from '@movies/ui/components/skeleton';
 import { cn } from 'cn';
 import { Star } from 'lucide-react';
@@ -23,39 +22,32 @@ type ItemCardProps = {
   eagerImage?: boolean;
 };
 
-function CardArtwork({
-  item,
-  title,
-  type,
-  eagerImage,
-  imageUrls,
-}: {
+type CardArtworkProps = {
   item: MediaCard;
-  title: string;
-  type: MediaCard['type'];
   eagerImage: boolean;
   imageUrls?: ProxyImageUrls;
-}) {
-  const poster = item.posterUrl;
-  return (
-    <>
-      {poster ? (
-        <ClientImage
-          imageUrls={imageUrls}
-          fallbackSrc={poster}
-          alt={title}
-          className="h-full w-full object-cover"
-          eager={eagerImage}
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center bg-zinc-800">
-          <div className="text-center text-zinc-400">
-            <div className="mb-2 text-4xl">{type === 'movie' ? '🎬' : '📺'}</div>
-            <div className="text-sm font-semibold">No Poster</div>
-          </div>
+};
+
+function CardArtwork({ item, eagerImage, imageUrls }: CardArtworkProps) {
+  if (!item.posterUrl) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-zinc-800">
+        <div className="text-center text-zinc-400">
+          <div className="mb-2 text-4xl">{item.type === 'movie' ? '🎬' : '📺'}</div>
+          <div className="text-sm font-semibold">No Poster</div>
         </div>
-      )}
-    </>
+      </div>
+    );
+  }
+
+  return (
+    <ClientImage
+      imageUrls={imageUrls}
+      fallbackSrc={item.posterUrl}
+      alt={item.title}
+      className="h-full w-full object-cover"
+      eager={eagerImage}
+    />
   );
 }
 
@@ -70,6 +62,8 @@ function CardOverlay({
   score: number;
   type: MediaCard['type'];
 }) {
+  const isMovie = type === 'movie';
+
   return (
     <>
       <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100" />
@@ -88,9 +82,7 @@ function CardOverlay({
       </div>
 
       <div className="absolute top-2 left-2 opacity-0 transition-opacity group-focus-within/item:opacity-100 group-hover/item:opacity-100 group-focus/item:opacity-100">
-        <Badge variant={type === 'movie' ? 'yellow' : 'red'}>
-          {type === 'movie' ? 'Movie' : 'TV Show'}
-        </Badge>
+        <Badge variant={isMovie ? 'yellow' : 'red'}>{isMovie ? 'Movie' : 'TV Show'}</Badge>
       </div>
     </>
   );
@@ -142,6 +134,7 @@ export default function ItemCard({
     type === 'movie'
       ? 'hover:border-yellow-300 focus-within:border-yellow-300'
       : 'hover:border-red-500 focus-within:border-red-500';
+
   return (
     <div
       className={cn(
@@ -152,13 +145,7 @@ export default function ItemCard({
     >
       <BackTargetLink href={`/${type}/${item.id}`}>
         <div className="relative h-full w-full">
-          <CardArtwork
-            item={item}
-            title={title}
-            type={type}
-            eagerImage={eagerImage}
-            imageUrls={imageUrls}
-          />
+          <CardArtwork item={item} eagerImage={eagerImage} imageUrls={imageUrls} />
           <CardOverlay
             title={title}
             releaseYear={releaseYear}

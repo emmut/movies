@@ -1,7 +1,6 @@
 import { ScrollNavigationProvider } from '@native/components/scroll-navigation';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import type { ComponentRef } from 'react';
-import type { ReactNode } from 'react';
+import type { ComponentRef, ReactNode } from 'react';
 import { ScrollView } from 'react-native';
 
 export function CustomListScroll({

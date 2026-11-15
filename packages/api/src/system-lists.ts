@@ -8,7 +8,12 @@ import {
   regionPreferenceSchema,
   watchProviderIdSchema,
 } from './preferences';
-import { resourceIdSchema, systemListTypeSchema, watchProviderFilterSchema } from './validations';
+import {
+  resourceIdSchema,
+  systemListTypeSchema,
+  watchProviderFilterSchema,
+  type WatchProviderFilter,
+} from './validations';
 
 export const systemListResourceInput = resourceIdSchema.extend({
   resourceId: postgresIntegerIdSchema,
@@ -58,7 +63,10 @@ export type SystemListToggle = z.infer<typeof systemListToggleSchema>;
 export type SystemListMoveResult = z.infer<typeof systemListMoveResultSchema>;
 
 /** Inactive filters ignore region; active provider filters use the supported region set. */
-export function parseWatchProviderFilter(providerIds?: number[], region?: string) {
+export function parseWatchProviderFilter(
+  providerIds?: number[],
+  region?: string,
+): WatchProviderFilter | null {
   if (!providerIds || providerIds.length === 0) {
     return null;
   }

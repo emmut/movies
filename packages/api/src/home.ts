@@ -64,6 +64,6 @@ export const mediaCardSchema = z.object({
 export type MediaCard = z.infer<typeof mediaCardSchema>;
 
 /** Match the web card/detail score: round upward to one decimal place. */
-export function displayRating(rating: number) {
+export function displayRating(rating: number): number {
   return Math.ceil(rating * 10) / 10;
 }

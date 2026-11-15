@@ -9,11 +9,11 @@ import { getQueryClient } from '@/lib/query-client';
 
 import { SearchContent } from './search-content';
 
-export default async function SearchPage({
-  searchParams,
-}: {
+type SearchPageProps = {
   searchParams: Promise<{ q?: string; page?: string; mediaType?: string }>;
-}) {
+};
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const input = searchInput.safeParse({
     query: params.q,

@@ -84,11 +84,10 @@ function ListIndex({ userId }: { userId: string }) {
   const params = useLocalSearchParams();
   const router = useRouter();
   const page = listPage(params.page);
-  const input = { page };
   const [editor, setEditor] = useState<CustomListSummary | 'create' | null>(null);
   const [deleting, setDeleting] = useState<CustomListSummary | null>(null);
   const [reordering, setReordering] = useState(false);
-  const query = useCustomListsIndex(userId, input);
+  const query = useCustomListsIndex(userId, { page });
   const move = useCustomListsMoveMutation({ accountId: userId });
   useCanonicalListPage(query, page);
   if (!query.data || query.isError) {

@@ -37,8 +37,8 @@ import {
   type DiscoveryOptions,
 } from './discover';
 import { homeListInput, trendingInput, mediaCardSchema, type MediaCard } from './home';
-import { imdbRatingSchema } from './imdb';
 import {
+  imdbRatingSchema,
   catalogImdbSchema,
   imdbIdSchema,
   imdbTitleSchema,
@@ -210,50 +210,40 @@ function mutationProcedure<TSchema extends z.ZodType>(
   });
 }
 
+const customListErrors = {
+  NOT_FOUND: { message: 'List or item not found' },
+  CONFLICT: { message: 'Item already in list' },
+};
+
 export const appRouter = {
   customLists: {
     index: authedProcedure
       .input(customListContracts.index.input)
       .output(customListContracts.index.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.index(context.user.id, input)),
     details: authedProcedure
       .input(customListContracts.details.input)
       .output(customListContracts.details.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.details(context.user.id, input)),
     create: mutationProcedure(customListContracts.create.input, () => ({ domain: 'customLists' }))
       .output(customListContracts.create.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.create(context.user.id, input)),
     update: mutationProcedure(customListContracts.update.input, (input) => ({
       domain: 'customLists',
       listId: input.listId,
     }))
       .output(customListContracts.update.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.update(context.user.id, input)),
     delete: mutationProcedure(customListContracts.delete.input, (input) => ({
       domain: 'customLists',
       listId: input.listId,
     }))
       .output(customListContracts.delete.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.delete(context.user.id, input)),
     add: mutationProcedure(customListContracts.add.input, (input) => ({
       domain: 'customLists',
@@ -261,10 +251,7 @@ export const appRouter = {
       resource: { resourceId: input.resourceId, resourceType: input.resourceType },
     }))
       .output(customListContracts.add.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.add(context.user.id, input)),
     remove: mutationProcedure(customListContracts.remove.input, (input) => ({
       domain: 'customLists',
@@ -272,37 +259,25 @@ export const appRouter = {
       resource: { resourceId: input.resourceId, resourceType: input.resourceType },
     }))
       .output(customListContracts.remove.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.remove(context.user.id, input)),
     status: authedProcedure
       .input(customListContracts.status.input)
       .output(customListContracts.status.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.status(context.user.id, input)),
     move: mutationProcedure(customListContracts.move.input, (input) => ({
       domain: 'customLists',
       listId: input.listId,
     }))
       .output(customListContracts.move.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.move(context.user.id, input)),
     moveItem: mutationProcedure(customListContracts.moveItem.input, () => ({
       domain: 'customLists',
     }))
       .output(customListContracts.moveItem.output)
-      .errors({
-        NOT_FOUND: { message: 'List or item not found' },
-        CONFLICT: { message: 'Item already in list' },
-      })
+      .errors(customListErrors)
       .handler(({ input, context }) => context.customLists.moveItem(context.user.id, input)),
   },
   systemLists: {

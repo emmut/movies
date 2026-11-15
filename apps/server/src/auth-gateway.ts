@@ -18,7 +18,13 @@ const forwardedHeaders = [
   'user-agent',
   'x-skip-oauth-proxy',
 ];
+const UPSTREAM_TIMEOUT_MS = 15_000;
+
 export type AuthGateway = ReturnType<typeof createAuthGateway>;
+
+function hasRequestBody(method: string): boolean {
+  return method !== 'GET' && method !== 'HEAD';
+}
 
 /** Web owns auth, OAuth callbacks and anonymous migration; the API never mints its own sessions. */
 export function createAuthGateway(
@@ -60,16 +66,13 @@ export function createAuthGateway(
     const target = endpoint(source.pathname);
     target.search = source.search;
     signHeaders(headers, clientIp, request.method, target.pathname);
-    const body =
-      request.method === 'GET' || request.method === 'HEAD'
-        ? undefined
-        : await request.arrayBuffer();
+    const body = hasRequestBody(request.method) ? await request.arrayBuffer() : undefined;
     const response = await fetcher(target, {
       method: request.method,
       headers,
       body,
       redirect: 'manual',
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
     const responseHeaders = new Headers(response.headers);
     responseHeaders.delete('content-encoding');
@@ -88,7 +91,7 @@ export function createAuthGateway(
     const response = await fetcher(endpoint('/api/auth/get-session?disableCookieCache=true'), {
       headers: trustedHeaders,
       redirect: 'manual',
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
     });
     if (!response.ok) {
       throw new Error('Could not verify the session');

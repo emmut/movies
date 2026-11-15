@@ -20,8 +20,16 @@ function searchCard(item: MultiSearchResult): SearchItem {
   }
   return toMediaCard(item, item.media_type);
 }
+
 async function noIndex() {
   return [];
+}
+
+const MAX_TMDB_PAGES = 500;
+
+/** TMDB refuses pages beyond 500 even when it reports more. */
+function reachablePages(totalPages: number): number {
+  return Math.min(MAX_TMDB_PAGES, totalPages);
 }
 
 export function createSearchService(
@@ -34,31 +42,31 @@ export function createSearchService(
       const page = await engine.getSearchMovies(input.query, input.page);
       return {
         items: page.movies.map((item) => toMediaCard(item, 'movie')),
-        totalPages: Math.min(500, page.totalPages),
+        totalPages: reachablePages(page.totalPages),
       };
     }
     if (input.type === 'tv') {
       const page = await engine.getSearchTvShows(input.query, input.page);
       return {
         items: page.tvShows.map((item) => toMediaCard(item, 'tv')),
-        totalPages: Math.min(500, page.totalPages),
+        totalPages: reachablePages(page.totalPages),
       };
     }
     if (input.type === 'person') {
       const page = await engine.getSearchPersons(input.query, input.page);
       return {
         items: page.persons.map((item) => searchCard({ ...item, media_type: 'person' })),
-        totalPages: Math.min(500, page.totalPages),
+        totalPages: reachablePages(page.totalPages),
       };
     }
     const page = await engine.getSearchMulti(input.query, input.page);
-    return { items: page.results.map(searchCard), totalPages: Math.min(500, page.totalPages) };
+    return { items: page.results.map(searchCard), totalPages: reachablePages(page.totalPages) };
   }
   async function suggestions({ query }: { query: string }): Promise<SearchPage> {
     const page = await engine.getSearchSuggestions(query);
     return {
       items: page.results.slice(0, 6).map(searchCard),
-      totalPages: Math.min(500, page.totalPages),
+      totalPages: reachablePages(page.totalPages),
     };
   }
   return { list, suggestions };

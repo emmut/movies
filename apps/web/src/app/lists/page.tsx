@@ -34,13 +34,11 @@ export default async function ListsPage(props: ListsPageProps) {
 
   const api = createServerApi(await headers());
   const paginatedData = await api.customLists.index({ page: Math.max(1, page) });
-  const totalListsCount = paginatedData.totalItems;
-
-  const { lists, totalPages } = paginatedData;
+  const { lists, totalPages, totalItems: totalListsCount } = paginatedData;
 
   // If requested page is beyond the last, canonicalize the URL
-  if (paginatedData.totalPages > 0 && page > paginatedData.totalPages) {
-    redirect(`/lists?page=${paginatedData.totalPages}`);
+  if (totalPages > 0 && page > totalPages) {
+    redirect(`/lists?page=${totalPages}`);
   }
 
   return (

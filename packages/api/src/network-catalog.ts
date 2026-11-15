@@ -4,8 +4,11 @@ import { gunzipSync } from 'node:zlib';
 import { z } from 'zod';
 
 const networkSchema = z.object({ id: z.number().int().positive(), name: z.string().min(1) });
+type Network = z.infer<typeof networkSchema>;
 
-export async function loadNetworkCatalog() {
+const NETWORK_SEARCH_LIMIT = 20;
+
+export async function loadNetworkCatalog(): Promise<Network[]> {
   // Yesterday's export is complete even before today's publication at 08:00 UTC.
   const date = new Date();
   date.setUTCDate(date.getUTCDate() - 1);
@@ -33,14 +36,20 @@ export async function loadNetworkCatalog() {
 }
 
 /** Keep web and native exact-name ordering and result limits in sync. */
-export function searchNetworkCatalog(networks: { id: number; name: string }[], query: string) {
+export function searchNetworkCatalog(networks: Network[], query: string): Network[] {
   const term = query.toLocaleLowerCase();
+  function isExactMatch(network: Network): boolean {
+    return network.name.toLocaleLowerCase() === term;
+  }
+  function compareNetworks(a: Network, b: Network): number {
+    const exactFirst = Number(isExactMatch(b)) - Number(isExactMatch(a));
+    if (exactFirst !== 0) {
+      return exactFirst;
+    }
+    return a.name.localeCompare(b.name);
+  }
   return networks
     .filter((network) => network.name.toLocaleLowerCase().includes(term))
-    .sort(
-      (a, b) =>
-        Number(b.name.toLocaleLowerCase() === term) - Number(a.name.toLocaleLowerCase() === term) ||
-        a.name.localeCompare(b.name),
-    )
-    .slice(0, 20);
+    .sort(compareNetworks)
+    .slice(0, NETWORK_SEARCH_LIMIT);
 }

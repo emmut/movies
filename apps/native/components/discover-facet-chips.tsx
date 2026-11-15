@@ -4,6 +4,16 @@ import { XIcon } from '@native/components/icons';
 import { facetFilters } from '@native/lib/discover-filters';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+type Facet = (typeof facetFilters)[keyof typeof facetFilters];
+
+function facetName(facet: Facet, id: number, names: { id: number; name: string }[] = []) {
+  const match = names.find((item) => item.id === id);
+  if (match) {
+    return match.name;
+  }
+  return `${facet.kind} ${id}`;
+}
+
 function FacetChips({
   filter,
   facet,
@@ -11,7 +21,7 @@ function FacetChips({
   change,
 }: {
   filter: string;
-  facet: (typeof facetFilters)[keyof typeof facetFilters];
+  facet: Facet;
   ids: number[];
   change: (params: Record<string, string>) => void;
 }) {
@@ -19,7 +29,7 @@ function FacetChips({
   return (
     <View className="flex-row gap-2">
       {ids.map((id) => {
-        const name = query.data?.find((item) => item.id === id)?.name ?? `${facet.kind} ${id}`;
+        const name = facetName(facet, id, query.data);
         return (
           <Pressable
             key={id}
@@ -50,9 +60,10 @@ export function DiscoverFacetChips({
     <ScrollView horizontal contentContainerClassName="gap-2" showsHorizontalScrollIndicator={false}>
       {Object.entries(facetFilters).map(([filter, facet]) => {
         const ids = input[facet.field];
-        return ids.length > 0 ? (
-          <FacetChips key={filter} filter={filter} facet={facet} ids={ids} change={change} />
-        ) : null;
+        if (ids.length === 0) {
+          return null;
+        }
+        return <FacetChips key={filter} filter={filter} facet={facet} ids={ids} change={change} />;
       })}
     </ScrollView>
   );

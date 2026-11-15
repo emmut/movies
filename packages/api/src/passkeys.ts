@@ -42,7 +42,7 @@ export const passkeyCredentialSchema = z
 export type PasskeyRegistrationOptions = z.infer<typeof passkeyRegistrationOptionsSchema>;
 export type PasskeyAuthenticationOptions = z.infer<typeof passkeyAuthenticationOptionsSchema>;
 
-export function formatPasskeyDate(value: Date | null | undefined) {
+export function formatPasskeyDate(value: Date | null | undefined): string {
   if (!value || !Number.isFinite(value.getTime())) {
     return 'Unknown';
   }

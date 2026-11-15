@@ -47,6 +47,7 @@ function ReviewContent({ review, clamped }: { review: Review; clamped: boolean }
   }
   return <ReviewText content={review.content} />;
 }
+
 function ReviewText({ content, lines }: { content: string; lines?: number }) {
   return (
     <Text selectable numberOfLines={lines} className="text-sm leading-relaxed text-foreground">
@@ -54,6 +55,7 @@ function ReviewText({ content, lines }: { content: string; lines?: number }) {
     </Text>
   );
 }
+
 function ExpandableReview({ review }: { review: Review }) {
   const [expanded, setExpanded] = useState(false);
   const toggleLabel = expanded ? 'Show less' : 'Show more';

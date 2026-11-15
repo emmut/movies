@@ -43,14 +43,6 @@ export function isExportComplete(mediaType: SearchIndexMediaType, total: number)
   return total >= MIN_EXPORT_ROWS[mediaType];
 }
 
-/**
- * Folds a title for trigram matching: Unicode-decomposed with combining
- * marks stripped (so "Amélie" and "Amelie" agree), lowercased, and every
- * run of punctuation or whitespace collapsed to one space ("Spider-Man" →
- * "spider man"). Letters and digits of every script survive. Apply the same
- * fold to queries.
- */
-
 function pad(value: number) {
   return String(value).padStart(2, '0');
 }
@@ -100,6 +92,7 @@ function readExportLine(line: string): ExportLine | null {
     return null;
   }
 }
+
 function positiveExportId(value: unknown) {
   if (typeof value !== 'number') {
     return null;
@@ -109,6 +102,7 @@ function positiveExportId(value: unknown) {
   }
   return value;
 }
+
 function finitePopularity(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0;
 }

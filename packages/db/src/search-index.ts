@@ -29,6 +29,17 @@ const MIN_WORD_SIMILARITY = 0.6;
 export const FUZZY_QUERY_TIMEOUT_MS = 1500;
 
 /**
+ * Every word must match, with prefix matching on the final word. `folded`
+ * contains only letters, digits and spaces, never tsquery syntax.
+ */
+function allWordsTsQuery(folded: string): string {
+  const words = folded.split(' ');
+  const lastIndex = words.length - 1;
+  words[lastIndex] = `${words[lastIndex]}:*`;
+  return words.join(' & ');
+}
+
+/**
  * Fuzzy search over the index, as one statement.
  *
  * GIN-backed text search selects titles containing every query word, in any
@@ -49,10 +60,7 @@ export const FUZZY_QUERY_TIMEOUT_MS = 1500;
 export function fuzzyQuery(folded: string, { mediaType, limit }: SearchIndexOptions): SQL {
   const typeFilter = mediaType ? sql`and ${searchIndex.mediaType} = ${mediaType}::text` : sql``;
   const q = sql`${folded}::text`;
-  // `folded` contains only letters, digits and spaces, never tsquery syntax.
-  const words = folded.split(' ');
-  const terms = words.map((word, i) => (i === words.length - 1 ? `${word}:*` : word)).join(' & ');
-  const wordQuery = sql`to_tsquery('simple'::regconfig, ${terms}::text)`;
+  const wordQuery = sql`to_tsquery('simple'::regconfig, ${allWordsTsQuery(folded)}::text)`;
   const titleWords = sql`to_tsvector('simple'::regconfig, ${searchIndex.searchTitle})`;
 
   return sql`
@@ -114,6 +122,15 @@ type FuzzyRow = {
   score: number | string;
 };
 
+/** Resolves to `null` if `promise` has not settled within the fuzzy query timeout. */
+function withTimeout<T>(promise: Promise<T>): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), FUZZY_QUERY_TIMEOUT_MS);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 /**
  * Ranks the local index against a free-text query. Returns nothing for
  * queries too short to trigram-match, and nothing (after a warning) when the
@@ -156,15 +173,6 @@ export function createSearchIndexReader<TSchema extends Record<string, unknown>>
       similarity: Number(row.similarity),
       score: Number(row.score),
     }));
-  }
-
-  /** Resolves to `null` if `promise` has not settled within the fuzzy query timeout. */
-  function withTimeout<T>(promise: Promise<T>): Promise<T | null> {
-    let timer: ReturnType<typeof setTimeout>;
-    const timeout = new Promise<null>((resolve) => {
-      timer = setTimeout(() => resolve(null), FUZZY_QUERY_TIMEOUT_MS);
-    });
-    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
   }
 
   return { searchIndexFuzzy };

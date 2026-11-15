@@ -1,9 +1,12 @@
 'use client';
+
 import type { CustomListDetail } from '@movies/api/custom-lists';
 import { canReorderList } from '@movies/api/list-order';
 import { regionPreferenceSchema } from '@movies/api/preferences';
-import { useCustomListsMoveItemMutation } from '@movies/api/react/use-custom-lists-query';
-import { useCustomListsDetails } from '@movies/api/react/use-custom-lists-query';
+import {
+  useCustomListsDetails,
+  useCustomListsMoveItemMutation,
+} from '@movies/api/react/use-custom-lists-query';
 import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { Button } from '@movies/ui/components/button';
 import { Edit, Trash2 } from 'lucide-react';
@@ -46,7 +49,6 @@ export function ListDetailsContent({
   watchProviders,
   userRegion,
 }: ListDetailsContentProps) {
-  // Use nuqs to manage URL state
   const [urlState, setUrlState] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
@@ -67,6 +69,7 @@ export function ListDetailsContent({
     urlState.watch_region,
   );
   const isProviderFiltered = activeProviders !== undefined;
+  const providerIds = activeProviders ?? [];
 
   const {
     data: list,
@@ -78,10 +81,9 @@ export function ListDetailsContent({
   } = useCustomListsDetails(userId ?? '', {
     listId,
     page,
-    providerIds: activeProviders ?? [],
+    providerIds,
     region: regionPreferenceSchema.shape.region.parse(activeRegion ?? userRegion),
   });
-  const displayList = list ? { ...list, allItems: list.items.map(apiListItem) } : undefined;
 
   const isPageReconciled = !list || list.currentPage === page;
   useEffect(() => {
@@ -100,6 +102,9 @@ export function ListDetailsContent({
     return <ListDetailsLoadingSkeleton />;
   }
 
+  const displayList: ListDetailsData = { ...list, allItems: list.items.map(apiListItem) };
+  const canReorder = canReorderList({ page, providerIds }, list, isFetching || isPlaceholderData);
+
   return (
     <>
       <UnavailableListItems
@@ -109,18 +114,14 @@ export function ListDetailsContent({
         }}
       />
       <ListDetailsView
-        list={displayList!}
+        list={displayList}
         page={list.currentPage}
         userId={userId}
         watchProviders={watchProviders}
         userRegion={userRegion}
         isProviderFiltered={isProviderFiltered}
         isPlaceholderData={isPlaceholderData}
-        canReorder={canReorderList(
-          { page, providerIds: activeProviders ?? [] },
-          list,
-          isFetching || isPlaceholderData || isError,
-        )}
+        canReorder={canReorder}
       />
     </>
   );

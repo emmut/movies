@@ -7,6 +7,7 @@ import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import { QueryClient, focusManager, onlineManager } from '@tanstack/react-query';
 import { AppState, Platform } from 'react-native';
+
 const client: AppRouterClient = createORPCClient(
   new RPCLink({
     url: `${serverUrl.replace(/\/$/, '')}/rpc`,
@@ -14,6 +15,7 @@ const client: AppRouterClient = createORPCClient(
   }),
 );
 export const orpc = createApiQueryUtils(client);
+
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
 });

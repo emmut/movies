@@ -42,9 +42,7 @@ function TitleLoadError({ error, retry }: { error: Error; retry: () => void }) {
       <Pressable
         accessibilityRole="button"
         className="bg-default rounded-lg px-4 py-3"
-        onPress={() => {
-          void retry();
-        }}
+        onPress={retry}
       >
         <Text className="font-semibold text-foreground">Try again</Text>
       </Pressable>

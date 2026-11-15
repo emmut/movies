@@ -1,4 +1,5 @@
 'use client';
+
 import { useDiscoveryFacets } from '@movies/api/react/use-discovery-query';
 import { Building2, Tv } from 'lucide-react';
 import { parseAsArrayOf, parseAsInteger, useQueryStates } from 'nuqs';

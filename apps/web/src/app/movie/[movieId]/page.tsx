@@ -2,7 +2,6 @@ import { formatCertification } from '@movies/api/certifications';
 import { formatRuntime } from '@movies/api/formatting';
 import { displayRating } from '@movies/api/home';
 import { Calendar, Clock, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -25,11 +24,11 @@ import { RatingsCard } from '@/components/ratings-card';
 import { ReviewsSection, ReviewsSectionSkeleton } from '@/components/reviews-section';
 import { StreamingSection, StreamingSectionSkeleton } from '@/components/streaming-section';
 import { TrailerContent } from '@/components/trailer-content';
-import { createServerApi } from '@/lib/api-server';
 import { getUser } from '@/lib/auth-server';
 import { getImdbRating } from '@/lib/imdb';
 import { getMediaCertification } from '@/lib/media-info';
 import { getMovieDetails, getMovieRecommendations, getMovieSimilar } from '@/lib/movies';
+import { getSystemListMemberships } from '@/lib/system-list-memberships';
 import { optional } from '@/lib/tmdb';
 import { getUserRegion } from '@/lib/user-actions';
 
@@ -60,14 +59,7 @@ export default async function MoviePage(props: MoviePageProps) {
   const [user, userRegion, { inWatchlist, watched }, movie, certification] = await Promise.all([
     getUser(),
     getUserRegion(),
-    getUser().then(async (user) =>
-      user
-        ? createServerApi(await headers()).systemLists.memberships({
-            resourceId: movieId,
-            resourceType: RESOURCE_TYPE,
-          })
-        : { inWatchlist: false, watched: false },
-    ),
+    getSystemListMemberships(movieId, RESOURCE_TYPE),
     getMovieDetails(movieId),
     optional(
       getUserRegion().then((region) => getMediaCertification(RESOURCE_TYPE, movieId, region)),

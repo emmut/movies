@@ -43,7 +43,6 @@ export const discoveryChoice = z.object({
   id: z.number().int().positive(),
   name: z.string().min(1),
 });
-const choice = discoveryChoice;
 export const discoveryFacetInput = z.object({
   kind: z.enum(['company', 'network', 'keyword']),
   query: z.string().trim().max(100).default(''),
@@ -52,8 +51,8 @@ export const discoveryFacetInput = z.object({
 export type DiscoveryFacetInput = z.infer<typeof discoveryFacetInput>;
 export type DiscoveryChoice = z.infer<typeof discoveryChoice>;
 export const discoveryOptionsSchema = z.object({
-  genres: z.array(choice),
-  providers: z.array(choice.extend({ logoUrl: z.string().url().nullable() })),
+  genres: z.array(discoveryChoice),
+  providers: z.array(discoveryChoice.extend({ logoUrl: z.string().url().nullable() })),
   countries: z.array(z.object({ code: z.string().regex(/^[A-Z]{2}$/), name: z.string() })),
 });
 export const discoveryPageSchema = z.object({

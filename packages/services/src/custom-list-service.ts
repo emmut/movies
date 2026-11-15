@@ -19,11 +19,13 @@ import { personDetailsSchema } from '@movies/services/tmdb-search-model';
 import { ORPCError } from '@orpc/server';
 
 type Dated = { createdAt: Date; updatedAt: Date };
+
 function serializeDates<T extends Dated>(
   row: T,
 ): Omit<T, keyof Dated> & { createdAt: string; updatedAt: string } {
   return { ...row, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() };
 }
+
 function translateListError(error: unknown): never {
   if (error instanceof CustomListNotFoundError || error instanceof ListItemNotFoundError) {
     throw new ORPCError('NOT_FOUND');
@@ -33,6 +35,7 @@ function translateListError(error: unknown): never {
   }
   throw error;
 }
+
 async function listOperation<T>(operation: () => Promise<T>): Promise<T> {
   try {
     return await operation();
@@ -66,6 +69,7 @@ export function createCustomListService(
     ensureTitleAvailability(database, source, scope),
   );
   const order = createListItemOrderingStore(database);
+
   async function hydrate(row: { id: string; resourceId: number; resourceType: string }) {
     if (row.resourceType === 'person') {
       const person = personDetailsSchema.parse(await fetchTmdb('/person/' + row.resourceId));
@@ -91,6 +95,7 @@ export function createCustomListService(
     }
     return { ...toMediaCard(raw, row.resourceType), listItemId: row.id };
   }
+
   return {
     async index(userId, input) {
       const page = await store.index(userId, input.page);

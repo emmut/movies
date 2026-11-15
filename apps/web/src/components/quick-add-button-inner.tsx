@@ -1,4 +1,5 @@
 'use client';
+
 import type { CustomListStatus } from '@movies/api/custom-lists';
 import { useApiAccountId } from '@movies/api/react';
 import {
@@ -156,6 +157,11 @@ function ListMenuItems({
   ));
 }
 
+/** System lists only accept movie and TV resources. */
+function toSystemResourceType(mediaType: QuickAddButtonProps['mediaType']): 'movie' | 'tv' {
+  return mediaType === 'tv' ? 'tv' : 'movie';
+}
+
 function useQuickAddActions(
   mediaId: number,
   mediaType: QuickAddButtonProps['mediaType'],
@@ -165,7 +171,7 @@ function useQuickAddActions(
   const remove = useCustomListsRemoveMutation();
   const toggle = useSystemListsToggleMutation();
   const isPending = add.isPending || remove.isPending || toggle.isPending;
-  const systemResourceType = mediaType === 'tv' ? 'tv' : 'movie';
+
   async function handleToggleList(listId: string, hasItem: boolean) {
     const listName = findListName(lists, listId);
     try {
@@ -183,18 +189,16 @@ function useQuickAddActions(
 
   async function handleToggleSystemList(listType: SystemListType) {
     const copy = SYSTEM_LIST_MENU_COPY[listType];
-
     try {
       const result = await toggle.mutateAsync({
         listType,
         resourceId: mediaId,
-        resourceType: systemResourceType,
+        resourceType: toSystemResourceType(mediaType),
       });
       // 'added' and 'unchanged' both mean the row is present (the latter when a
       // concurrent insert won the race); only 'removed' clears it. From the
       // user's view the end state is identical, so both show "Added".
       const isInList = result.action !== 'removed';
-
       toast.success(isInList ? copy.addedToast : copy.removedToast);
     } catch (error) {
       toast.error(getErrorMessage(error, copy.errorToast));
@@ -217,7 +221,6 @@ function useQuickAddState({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const accountId = useApiAccountId();
-  const systemResourceType = mediaType === 'tv' ? 'tv' : 'movie';
   const { data: lists = [], isLoading: isLoadingLists } = useCustomListsStatus(
     accountId ?? '',
     { resourceId: mediaId, resourceType: mediaType },
@@ -225,7 +228,7 @@ function useQuickAddState({
   );
   const { data: memberships } = useSystemListsMemberships(
     accountId,
-    { resourceId: mediaId, resourceType: systemResourceType },
+    { resourceId: mediaId, resourceType: toSystemResourceType(mediaType) },
     isOpen && showWatchlist && mediaType !== 'person',
   );
   const { inWatchlist: isInWatchlist, watched: isWatched } = memberships ?? {
@@ -267,6 +270,7 @@ export function QuickAddButtonInner({
     handleToggleSystemList,
     handleListCreated,
   } = useQuickAddState({ mediaId, mediaType, showWatchlist });
+
   return (
     <>
       <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>

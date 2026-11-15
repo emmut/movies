@@ -6,16 +6,20 @@ export function getDirectWatchUrl(
   providerId: number,
   region: string,
   type: WatchOfferType,
-) {
-  return links.find(
-    (link) =>
-      link.providerId === providerId &&
-      (!link.regions || link.regions.includes(region)) &&
-      link.types.includes(type),
-  )?.url;
+): string | undefined {
+  function matches(link: DirectWatchLink): boolean {
+    const inRegion = !link.regions || link.regions.includes(region);
+    return link.providerId === providerId && inRegion && link.types.includes(type);
+  }
+  return links.find(matches)?.url;
 }
 
-export function getTmdbWatchUrl(type: 'movie' | 'tv', id: number, region: string, link?: string) {
+export function getTmdbWatchUrl(
+  type: 'movie' | 'tv',
+  id: number,
+  region: string,
+  link?: string,
+): string {
   if (link) {
     try {
       const url = new URL(link);

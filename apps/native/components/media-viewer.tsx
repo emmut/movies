@@ -5,6 +5,10 @@ import type { GalleryMedia, MediaViewerProps } from '@native/components/media-vi
 import { useRef, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
+function clampPage(page: number, count: number): number {
+  return Math.max(0, Math.min(count - 1, page));
+}
+
 /** The OS owns paging momentum; only the settled page changes the active media. */
 export function MediaViewer({ items, index, setIndex, close, title }: MediaViewerProps) {
   const pager = useRef<FlatList<GalleryMedia>>(null);
@@ -47,7 +51,7 @@ export function MediaViewer({ items, index, setIndex, close, title }: MediaViewe
             getItemLayout={(_, page) => ({ length: width, offset: width * page, index: page })}
             onMomentumScrollEnd={(event) => {
               const page = Math.round(event.nativeEvent.contentOffset.x / width);
-              setIndex(Math.max(0, Math.min(items.length - 1, page)));
+              setIndex(clampPage(page, items.length));
             }}
             extraData={index}
             renderItem={({ item: media, index: page }) => (

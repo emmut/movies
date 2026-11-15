@@ -10,7 +10,7 @@ export type ImageDrag = {
 
 type DragEvent = { clientX: number; clientY: number; pointerType: string };
 
-function getDragAxis(x: number, y: number) {
+function getDragAxis(x: number, y: number): ImageDrag['axis'] {
   if (Math.max(Math.abs(x), Math.abs(y)) < 8) {
     return null;
   }
@@ -18,7 +18,11 @@ function getDragAxis(x: number, y: number) {
 }
 
 /** Locks the drag axis after the movement threshold; vertical dismissal is touch-only. */
-export function readImageDrag(start: ImageDrag, event: DragEvent, count: number) {
+export function readImageDrag(
+  start: ImageDrag,
+  event: DragEvent,
+  count: number,
+): { x: number; y: number } | null {
   const x = event.clientX - start.x;
   const y = event.clientY - start.y;
   start.axis ??= getDragAxis(x, y);
@@ -31,7 +35,7 @@ export function readImageDrag(start: ImageDrag, event: DragEvent, count: number)
   };
 }
 
-function horizontalOffset(start: ImageDrag, delta: number, count: number) {
+function horizontalOffset(start: ImageDrag, delta: number, count: number): number {
   if (start.axis !== 'x' || count <= 1) {
     return start.offset;
   }
@@ -42,7 +46,7 @@ function horizontalOffset(start: ImageDrag, delta: number, count: number) {
 export function shouldDismissImage(
   start: ImageDrag,
   event: Pick<DragEvent, 'clientY' | 'pointerType'>,
-) {
+): boolean {
   return (
     event.pointerType === 'touch' &&
     start.axis === 'y' &&

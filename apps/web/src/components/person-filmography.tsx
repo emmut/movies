@@ -1,4 +1,5 @@
 'use client';
+
 import type { MediaCard } from '@movies/api/home';
 import {
   type CreditSort,

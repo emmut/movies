@@ -22,6 +22,7 @@ export function SystemListFilters({
   const query = useSystemListsOptions(userId, optionsInput);
   const choices = providerChoices(query.data ?? [], input.providerIds);
   const blocked = query.isPending || query.isError;
+  const selectedProviders = input.providerIds.map(String);
   return (
     <View className="gap-2">
       <View className="flex-row flex-wrap gap-2">
@@ -61,11 +62,11 @@ export function SystemListFilters({
         <ChoiceSheet
           title="Providers"
           options={choices}
-          selected={input.providerIds.map(String)}
+          selected={selectedProviders}
           multiple
           onSelect={(value) =>
             change({
-              with_watch_providers: toggleSelection(input.providerIds.map(String), value).join('|'),
+              with_watch_providers: toggleSelection(selectedProviders, value).join('|'),
               page: '1',
             })
           }
@@ -92,6 +93,7 @@ function ClearProviders({ count, clear }: { count: number; clear: () => void }) 
     </Pressable>
   );
 }
+
 function ProviderError({ failed, retry }: { failed: boolean; retry: () => void }) {
   if (!failed) {
     return null;

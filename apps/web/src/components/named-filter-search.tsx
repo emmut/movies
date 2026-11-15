@@ -1,4 +1,5 @@
 'use client';
+
 import { Combobox } from '@base-ui/react/combobox';
 import type { DiscoveryFacetInput } from '@movies/api/discover';
 import { useDebouncedValue } from '@movies/api/react/use-debounced-value';
@@ -7,6 +8,7 @@ import { Button } from '@movies/ui/components/button';
 import { Input } from '@movies/ui/components/input';
 import { Search, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
+
 type NamedItem = { id: number; name: string };
 
 export function NamedFilterSearch({

@@ -14,6 +14,7 @@ import {
 } from './title-sync';
 
 const STREAMABLE_OFFER_TYPES = ['flatrate', 'free'] as const;
+const AVAILABILITY_SYNC_CONCURRENCY = 10;
 
 const queryBuilder = new QueryBuilder();
 
@@ -41,6 +42,8 @@ export async function ensureTitleAvailability(
   scope: SQL | undefined,
 ) {
   const missing = await selectTitlesNeedingAvailability(db, { scope });
-  await mapWithConcurrency(missing, 10, (key) => syncTitleAvailability(db, source, key));
+  await mapWithConcurrency(missing, AVAILABILITY_SYNC_CONCURRENCY, (key) =>
+    syncTitleAvailability(db, source, key),
+  );
   return missing.length;
 }

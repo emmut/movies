@@ -19,7 +19,7 @@ function canonicalListPageUrl(
   page: number,
   watchProviders?: number[],
   watchRegion?: string,
-) {
+): string {
   const params = new URLSearchParams({ page: String(page) });
   if (watchProviders && watchRegion) {
     params.set('with_watch_providers', watchProviders.join(','));
@@ -76,7 +76,7 @@ export default async function ListDetailsPage({
     <HydrationBoundary state={dehydrate(queryClient)}>
       <ListDetailsContent
         listId={id}
-        userId={user?.id}
+        userId={user.id}
         watchProviders={watchProviders}
         userRegion={userRegion}
       />

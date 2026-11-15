@@ -1,17 +1,18 @@
+const FALLBACK_DATE = '1900-01-01';
+
 export function deduplicateAndSortByPopularity<T extends { id: number; popularity: number }>(
   items: T[],
   getDateString: (item: T) => string,
 ): T[] {
+  function timeOf(item: T): number {
+    return new Date(getDateString(item) || FALLBACK_DATE).getTime();
+  }
   return items
     .filter((item, index, self) => index === self.findIndex((i) => i.id === item.id))
     .sort((a, b) => {
-      // Sort by popularity first, then by date
       if (b.popularity !== a.popularity) {
         return b.popularity - a.popularity;
       }
-      return (
-        new Date(getDateString(b) || '1900-01-01').getTime() -
-        new Date(getDateString(a) || '1900-01-01').getTime()
-      );
+      return timeOf(b) - timeOf(a);
     });
 }

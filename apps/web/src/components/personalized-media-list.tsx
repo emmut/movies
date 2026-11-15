@@ -8,11 +8,9 @@ import { DEFAULT_REGION } from '@movies/config/regions';
 
 import ItemCard from '@/components/item-card';
 
-type MediaItem = MediaCard;
-
 type PersonalizedMediaListProps = {
   category: HomeMediaCategory;
-  initialItems: MediaItem[];
+  initialItems: MediaCard[];
 };
 
 /**
@@ -27,12 +25,10 @@ export default function PersonalizedMediaList({
   category,
   initialItems,
 }: PersonalizedMediaListProps) {
-  const { data: accountRegion } = useAccountRegion(useApiAccountId());
-  const region = accountRegion?.region;
-  const effectiveRegion = region ?? DEFAULT_REGION;
-
-  const { data } = useHomeList({ category, region: effectiveRegion });
-
+  const accountId = useApiAccountId();
+  const { data: accountRegion } = useAccountRegion(accountId);
+  const region = accountRegion?.region ?? DEFAULT_REGION;
+  const { data } = useHomeList({ category, region });
   const items = data ?? initialItems;
 
   return items.map((item) => <ItemCard className="max-w-[150px]" key={item.id} resource={item} />);

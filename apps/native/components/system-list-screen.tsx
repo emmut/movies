@@ -27,10 +27,14 @@ import { useState, type ReactNode } from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 
 type Entry = SystemListPage['items'][number];
-function title(listType: SystemListType) {
+
+const mediaTabs = ['movie', 'tv'] as const;
+
+function title(listType: SystemListType): string {
   return SYSTEM_LIST_COPY[listType].title;
 }
-function itemKey(item: Entry) {
+
+function itemKey(item: Entry): string {
   return item.listItemId;
 }
 
@@ -59,7 +63,7 @@ function ListEmpty({
   return <EmptyListCopy input={input} total={result.counts.movie + result.counts.tv} />;
 }
 
-function emptyHint(copy: SystemListCopy, media: string, total: number) {
+function emptyHint(copy: SystemListCopy, media: string, total: number): string {
   if (total === 0) {
     return copy.emptyHintAll(media, 'tapping');
   }
@@ -108,7 +112,7 @@ function ListHeader({
       </Text>
       <Text className="text-muted">{listCountCaption(input, result)}</Text>
       <View className="flex-row gap-2">
-        {(['movie', 'tv'] as const).map((type) => (
+        {mediaTabs.map((type) => (
           <Pressable
             key={type}
             accessibilityRole="button"
@@ -126,7 +130,7 @@ function ListHeader({
   );
 }
 
-function listCountCaption(input: SystemListPageInput, result: SystemListPage) {
+function listCountCaption(input: SystemListPageInput, result: SystemListPage): string {
   const count = result.counts[input.resourceType];
   const noun = SYSTEM_LIST_MEDIA[input.resourceType].countNoun;
   const plural = count === 1 ? '' : 's';
@@ -327,19 +331,14 @@ function ListQuery({
   change: (params: Record<string, string>) => void;
 }) {
   const query = useSystemListsPage(userId, input);
+  function retry() {
+    void query.refetch();
+  }
   if (query.isPending) {
     return <PosterGridSkeleton label="Loading your list" />;
   }
   if (query.isError) {
-    return (
-      <ScreenQueryState
-        label="your list"
-        failed={query.isError}
-        retry={() => {
-          void query.refetch();
-        }}
-      />
-    );
+    return <ScreenQueryState label="your list" failed retry={retry} />;
   }
   return (
     <ListGrid
@@ -348,9 +347,7 @@ function ListQuery({
       userId={userId}
       change={change}
       stale={query.isFetching}
-      retry={() => {
-        void query.refetch();
-      }}
+      retry={retry}
     />
   );
 }

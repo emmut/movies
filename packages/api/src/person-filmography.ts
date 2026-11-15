@@ -15,43 +15,50 @@ export type PersonTitle = {
 
 export type CreditSort = 'relevance' | 'rating' | 'newest';
 
-function isAppearance(credit: PersonTitle) {
-  return (
-    (credit.genreIds ?? []).some((id) => [10763, 10764, 10767].includes(id)) ||
-    // Host/guest/presenter can be fictional roles; require an explicit self marker.
-    /\b(self|himself|herself|themselves)\b/i.test(credit.character ?? '')
-  );
+// TMDB genres for news, reality and talk shows.
+const APPEARANCE_GENRE_IDS = [10763, 10764, 10767];
+const KNOWN_FOR_LIMIT = 8;
+
+function isAppearance(credit: PersonTitle): boolean {
+  const appearanceGenre = (credit.genreIds ?? []).some((id) => APPEARANCE_GENRE_IDS.includes(id));
+  // Host/guest/presenter can be fictional roles; require an explicit self marker.
+  const playsSelf = /\b(self|himself|herself|themselves)\b/i.test(credit.character ?? '');
+  return appearanceGenre || playsSelf;
 }
 
-function releaseDate(credit: PersonTitle) {
+function releaseDate(credit: PersonTitle): string {
   return credit.releaseDate || '';
 }
 
-function relevance(credit: PersonTitle) {
+/** Billing order for films; episode count stands in for TV credits without one. */
+function prominence(credit: PersonTitle): number {
+  if (credit.order === undefined) {
+    return Math.log10(1 + Math.min(credit.episodeCount ?? 0, 100)) / 4;
+  }
+  return 1 / (1 + credit.order / 5);
+}
+
+function relevance(credit: PersonTitle): number {
   // Smooth small-sample ratings toward 6, then reward widely recognised titles.
   const votes = Math.max(0, credit.voteCount ?? 0);
   const rating = (credit.rating * votes + 6 * 100) / (votes + 100);
-  const prominence =
-    credit.order === undefined
-      ? Math.log10(1 + Math.min(credit.episodeCount ?? 0, 100)) / 4
-      : 1 / (1 + credit.order / 5);
   return (
     rating +
     Math.log10(1 + votes) +
     Math.log10(1 + Math.max(0, credit.popularity ?? 0)) * 0.5 +
-    prominence
+    prominence(credit)
   );
 }
 
-function compareRelevance(a: PersonTitle, b: PersonTitle) {
+function compareRelevance(a: PersonTitle, b: PersonTitle): number {
   return Number(isAppearance(a)) - Number(isAppearance(b)) || relevance(b) - relevance(a);
 }
 
-function compareRating(a: PersonTitle, b: PersonTitle) {
+function compareRating(a: PersonTitle, b: PersonTitle): number {
   return b.rating - a.rating || (b.voteCount ?? 0) - (a.voteCount ?? 0);
 }
 
-function compareNewest(a: PersonTitle, b: PersonTitle) {
+function compareNewest(a: PersonTitle, b: PersonTitle): number {
   return releaseDate(b).localeCompare(releaseDate(a));
 }
 
@@ -74,22 +81,22 @@ export function sortPersonTitles<T extends PersonTitle>(
   });
 }
 
+function isKnownForCandidate(title: PersonTitle, today: string): boolean {
+  const hasVotes = (title.voteCount ?? 0) > 0;
+  if (isAppearance(title) || !title.posterUrl || !hasVotes) {
+    return false;
+  }
+  const date = releaseDate(title);
+  return date !== '' && date <= today;
+}
+
 export function getKnownFor<T extends PersonTitle>(
   titles: T[],
   today = new Date().toISOString().slice(0, 10),
-) {
+): T[] {
   return sortPersonTitles(titles)
-    .filter((title) => {
-      const date = releaseDate(title);
-      return (
-        !isAppearance(title) &&
-        title.posterUrl &&
-        (title.voteCount ?? 0) > 0 &&
-        date &&
-        date <= today
-      );
-    })
-    .slice(0, 8);
+    .filter((title) => isKnownForCandidate(title, today))
+    .slice(0, KNOWN_FOR_LIMIT);
 }
 
 /** Preserve credit-specific fields that the generic movie/TV card mapper does not need. */

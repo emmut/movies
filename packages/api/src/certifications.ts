@@ -23,15 +23,18 @@ export type TvContentRatingsResponse = {
   results: TvContentRatingsResult[];
 };
 
-// Pure pickers shared by the movie and TV fetchers; kept free of 'server-only'
-// so unit tests can import them directly.
-
 export type Certification = {
   value: string;
   region: string;
 };
 
-function movieCertForRegion(results: MovieReleaseDatesResult[], region: string) {
+// Pure pickers shared by the movie and TV fetchers; kept free of 'server-only'
+// so unit tests can import them directly.
+
+function movieCertForRegion(
+  results: MovieReleaseDatesResult[],
+  region: string,
+): Certification | null {
   const entry = results.find((result) => result.iso_3166_1 === region);
   if (!entry) {
     return null;
@@ -43,9 +46,9 @@ function movieCertForRegion(results: MovieReleaseDatesResult[], region: string) 
   if (theatrical) {
     return { value: theatrical.certification, region };
   }
-  const any = entry.release_dates.find((date) => date.certification !== '');
-  if (any) {
-    return { value: any.certification, region };
+  const certified = entry.release_dates.find((date) => date.certification !== '');
+  if (certified) {
+    return { value: certified.certification, region };
   }
   return null;
 }
@@ -65,7 +68,7 @@ export function pickMovieCertification(
   return movieCertForRegion(results, region) ?? movieCertForRegion(results, 'US');
 }
 
-function tvCertForRegion(results: TvContentRatingsResult[], region: string) {
+function tvCertForRegion(results: TvContentRatingsResult[], region: string): Certification | null {
   const rating = results.find((result) => result.iso_3166_1 === region)?.rating;
   if (rating) {
     return { value: rating, region };
@@ -96,7 +99,10 @@ export function pickTvCertification(
  * @param userRegion - The region the user asked for.
  * @returns A label like "15" or "R (US)", or null when there is nothing to show.
  */
-export function formatCertification(certification: Certification | null, userRegion: string) {
+export function formatCertification(
+  certification: Certification | null,
+  userRegion: string,
+): string | null {
   if (!certification) {
     return null;
   }

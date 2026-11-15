@@ -28,11 +28,23 @@ export const facetFilters = {
   companyId: { kind: 'company', title: 'Production Companies', field: 'companyIds' },
   networkId: { kind: 'network', title: 'Networks', field: 'networkIds' },
 } as const;
-export function isFacetFilter(filter: Filter): filter is keyof typeof facetFilters {
+type FacetFilter = keyof typeof facetFilters;
+export function isFacetFilter(filter: Filter): filter is FacetFilter {
   return filter in facetFilters;
 }
 
-const builders = {
+type FilterBuilder = (input: DiscoveryInput, data: DiscoveryOptions) => FilterSpec;
+
+const RUNTIME_LIMITS = [0, 30, 60, 90, 120];
+
+function runtimeLabel(minutes: number): string {
+  if (minutes === 0) {
+    return 'Any';
+  }
+  return `Up to ${minutes} min`;
+}
+
+const builders: Record<Exclude<Filter, FacetFilter>, FilterBuilder> = {
   genreId(input: DiscoveryInput, data: DiscoveryOptions): FilterSpec {
     return {
       title: 'Genres',
@@ -59,7 +71,7 @@ const builders = {
       maxSelections: 50,
     };
   },
-  watch_region(input: DiscoveryInput, _data: DiscoveryOptions): FilterSpec {
+  watch_region(input: DiscoveryInput): FilterSpec {
     return {
       title: 'Watch Region',
       options: regions.map((item) => ({ value: item.code, label: item.name })),
@@ -67,18 +79,18 @@ const builders = {
       multiple: false,
     };
   },
-  runtime(input: DiscoveryInput, _data: DiscoveryOptions): FilterSpec {
+  runtime(input: DiscoveryInput): FilterSpec {
     return {
       title: 'Runtime',
-      options: [0, 30, 60, 90, 120].map((value) => ({
-        value: String(value),
-        label: value ? 'Up to ' + value + ' min' : 'Any',
+      options: RUNTIME_LIMITS.map((minutes) => ({
+        value: String(minutes),
+        label: runtimeLabel(minutes),
       })),
       selected: [String(input.runtime ?? 0)],
       multiple: false,
     };
   },
-  sort_by(input: DiscoveryInput, _data: DiscoveryOptions): FilterSpec {
+  sort_by(input: DiscoveryInput): FilterSpec {
     return {
       title: 'Sort By',
       options: input.type === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS,
@@ -108,7 +120,7 @@ export function filterSpec(
 }
 
 /** Count selected facets; the watch region always has a value and is context, not a facet. */
-export function activeDiscoverFilterCount(input: DiscoveryInput) {
+export function activeDiscoverFilterCount(input: DiscoveryInput): number {
   return (
     input.genreIds.length +
     input.keywordIds.length +

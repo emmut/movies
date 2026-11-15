@@ -2,7 +2,11 @@ import 'server-only';
 import { androidFingerprintsSchema } from '@movies/config/passkeys';
 
 /** OS assertions use HTTPS on iOS and the signed app's certificate hash on Android. */
-export function passkeyOrigins(baseUrl: string, fingerprints: unknown, development: boolean) {
+export function passkeyOrigins(
+  baseUrl: string,
+  fingerprints: unknown,
+  development: boolean,
+): string[] {
   const base = new URL(baseUrl);
   const origins = [base.origin];
   for (const fingerprint of androidFingerprintsSchema.parse(fingerprints)) {

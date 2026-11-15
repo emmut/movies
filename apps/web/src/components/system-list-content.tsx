@@ -1,8 +1,11 @@
 'use client';
+
 import { canReorderList } from '@movies/api/list-order';
 import { regionPreferenceSchema } from '@movies/api/preferences';
-import { useSystemListsMoveMutation } from '@movies/api/react/use-system-lists-query';
-import { useSystemListsPage } from '@movies/api/react/use-system-lists-query';
+import {
+  useSystemListsMoveMutation,
+  useSystemListsPage,
+} from '@movies/api/react/use-system-lists-query';
 import {
   SYSTEM_LIST_COPY as CONTENT_COPY,
   SYSTEM_LIST_MEDIA as MEDIA_META,
@@ -24,8 +27,7 @@ import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
 import { UnavailableListItems } from '@/components/unavailable-list-items';
 import { useReorderableItems } from '@/hooks/use-reorderable-items';
-import type { ApiListItem as ListItem } from '@/lib/api-list-items';
-import { apiListItem } from '@/lib/api-list-items';
+import { apiListItem, type ApiListItem as ListItem } from '@/lib/api-list-items';
 import { ITEMS_PER_PAGE } from '@/lib/config';
 import type { SystemListType } from '@/lib/validations';
 import { activeWatchProviderFilter } from '@/lib/watch-provider-search-params';
@@ -89,10 +91,8 @@ export function SystemListContent({
     providerIds: activeProviders ?? [],
     region: regionPreferenceSchema.shape.region.parse(activeRegion ?? userRegion),
   });
-  const { totalMovies, totalTvShows, items, totalPages, currentPage } = systemListView(
-    paginatedData,
-    page,
-  );
+  const { totalMovies, totalTvShows, items, unavailableItems, totalPages, currentPage } =
+    systemListView(paginatedData, page);
   const totalItems = totalMovies + totalTvShows;
 
   const [isEditing, setIsEditing] = useState(false);
@@ -144,13 +144,13 @@ export function SystemListContent({
       />
 
       <UnavailableListItems
-        count={paginatedData?.unavailableItems ?? 0}
+        count={unavailableItems}
         retry={() => {
           void refetch();
         }}
       />
       <SystemListBody
-        unavailableItems={paginatedData?.unavailableItems ?? 0}
+        unavailableItems={unavailableItems}
         listType={listType}
         mediaType={mediaType}
         userId={userId}
@@ -380,14 +380,31 @@ function EmptyState({
   );
 }
 
-function systemListView(data: SystemListPage | undefined, page: number) {
+type SystemListView = {
+  totalMovies: number;
+  totalTvShows: number;
+  items: ListItem[];
+  unavailableItems: number;
+  totalPages: number;
+  currentPage: number;
+};
+
+function systemListView(data: SystemListPage | undefined, page: number): SystemListView {
   if (!data) {
-    return { totalMovies: 0, totalTvShows: 0, items: [], totalPages: 0, currentPage: page };
+    return {
+      totalMovies: 0,
+      totalTvShows: 0,
+      items: [],
+      unavailableItems: 0,
+      totalPages: 0,
+      currentPage: page,
+    };
   }
   return {
     totalMovies: data.counts.movie,
     totalTvShows: data.counts.tv,
     items: data.items.map(apiListItem),
+    unavailableItems: data.unavailableItems,
     totalPages: data.totalPages,
     currentPage: data.currentPage,
   };

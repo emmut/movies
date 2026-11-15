@@ -18,21 +18,29 @@ export default function appConfig({ config }: ConfigContext): ExpoConfig {
 }
 
 const releaseProfiles = new Set<string | undefined>(['preview', 'production']);
-function validateReleaseApiUrl() {
-  if (releaseProfiles.has(ENV.EAS_BUILD_PROFILE)) {
-    if (!ENV.EXPO_PUBLIC_SERVER_URL || new URL(ENV.EXPO_PUBLIC_SERVER_URL).protocol !== 'https:') {
-      throw new Error(
-        'Set EXPO_PUBLIC_SERVER_URL to the HTTPS API URL in the EAS environment before building.',
-      );
-    }
+
+function isHttpsUrl(value: string | undefined): boolean {
+  if (!value) {
+    return false;
   }
+  return new URL(value).protocol === 'https:';
 }
-function associatedDomains(config: ConfigContext['config']) {
-  const associatedDomains = [...(config.ios?.associatedDomains ?? [])];
-  if (ENV.EXPO_PUBLIC_PASSKEY_DOMAIN) {
-    associatedDomains.push(
-      'webcredentials:' + passkeyDomainSchema.parse(ENV.EXPO_PUBLIC_PASSKEY_DOMAIN),
+
+function validateReleaseApiUrl(): void {
+  if (!releaseProfiles.has(ENV.EAS_BUILD_PROFILE)) {
+    return;
+  }
+  if (!isHttpsUrl(ENV.EXPO_PUBLIC_SERVER_URL)) {
+    throw new Error(
+      'Set EXPO_PUBLIC_SERVER_URL to the HTTPS API URL in the EAS environment before building.',
     );
   }
-  return [...new Set(associatedDomains)];
+}
+
+function associatedDomains(config: ConfigContext['config']): string[] {
+  const domains = [...(config.ios?.associatedDomains ?? [])];
+  if (ENV.EXPO_PUBLIC_PASSKEY_DOMAIN) {
+    domains.push(`webcredentials:${passkeyDomainSchema.parse(ENV.EXPO_PUBLIC_PASSKEY_DOMAIN)}`);
+  }
+  return [...new Set(domains)];
 }

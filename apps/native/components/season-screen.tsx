@@ -1,6 +1,5 @@
 import { parseCatalogId } from '@movies/api/catalog';
-import { seasonNumberParam } from '@movies/api/pdp';
-import type { SeasonPage } from '@movies/api/pdp';
+import { seasonNumberParam, type SeasonPage } from '@movies/api/pdp';
 import { useCatalogSeason } from '@movies/api/react/use-catalog-query';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
@@ -10,7 +9,25 @@ import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
+
 const SafeAreaView = withUniwind(NativeSafeAreaView);
+
+type Episode = SeasonPage['episodes'][number];
+
+function toggleId(ids: number[], id: number): number[] {
+  if (ids.includes(id)) {
+    return ids.filter((value) => value !== id);
+  }
+  return [...ids, id];
+}
+
+function ratingLabel(episode: Episode): string {
+  if (episode.vote_count === 0) {
+    return 'Not yet rated';
+  }
+  return episode.vote_average.toFixed(1) + '/10 (' + episode.vote_count + ' votes)';
+}
+
 function Episodes({ data }: { data: SeasonPage }) {
   const [revealed, setRevealed] = useState<number[]>([]);
   const all =
@@ -41,24 +58,21 @@ function Episodes({ data }: { data: SeasonPage }) {
           {all ? 'Hide spoilers' : 'Show spoilers'}
         </Text>
       </Pressable>
-      {!data.episodes.length ? <Text className="text-muted">No episodes available.</Text> : null}
+      {data.episodes.length === 0 ? (
+        <Text className="text-muted">No episodes available.</Text>
+      ) : null}
       {data.episodes.map((episode) => (
         <EpisodeCard
           key={episode.id}
           episode={episode}
           visible={revealed.includes(episode.id)}
-          toggle={() =>
-            setRevealed((ids) =>
-              ids.includes(episode.id)
-                ? ids.filter((id) => id !== episode.id)
-                : [...ids, episode.id],
-            )
-          }
+          toggle={() => setRevealed((ids) => toggleId(ids, episode.id))}
         />
       ))}
     </View>
   );
 }
+
 function SeasonQuery({ id, season }: { id: number; season: number }) {
   const query = useCatalogSeason({ id, season });
   return (
@@ -83,6 +97,7 @@ function SeasonQuery({ id, season }: { id: number; season: number }) {
     </ScrollView>
   );
 }
+
 export function SeasonScreen() {
   const params = useLocalSearchParams<{ id?: string; type?: string; season?: string }>();
   const id = parseCatalogId(params.id);
@@ -100,7 +115,6 @@ export function SeasonScreen() {
   );
 }
 
-type Episode = SeasonPage['episodes'][number];
 function EpisodeCard({
   episode,
   visible,
@@ -137,6 +151,7 @@ function EpisodeCard({
     </View>
   );
 }
+
 function EpisodeHeading({ episode, visible }: { episode: Episode; visible: boolean }) {
   return (
     <>
@@ -147,18 +162,16 @@ function EpisodeHeading({ episode, visible }: { episode: Episode; visible: boole
     </>
   );
 }
+
 function EpisodeStats({ episode }: { episode: Episode }) {
   return (
     <View className="flex-row flex-wrap gap-3">
       {episode.runtime ? <Text className="text-xs text-muted">{episode.runtime} min</Text> : null}
-      <Text className="text-xs text-muted">
-        {episode.vote_count > 0
-          ? episode.vote_average.toFixed(1) + '/10 (' + episode.vote_count + ' votes)'
-          : 'Not yet rated'}
-      </Text>
+      <Text className="text-xs text-muted">{ratingLabel(episode)}</Text>
     </View>
   );
 }
+
 function EpisodeOverview({ episode, visible }: { episode: Episode; visible: boolean }) {
   if (!visible) {
     return null;

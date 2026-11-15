@@ -65,6 +65,7 @@ function SearchForm({
     </View>
   );
 }
+
 function renderResult({ item }: { item: SearchItem }) {
   return (
     <View className="w-1/2 px-2 pb-4">
@@ -76,9 +77,11 @@ function renderResult({ item }: { item: SearchItem }) {
     </View>
   );
 }
-function resultKey(item: SearchItem) {
+
+function resultKey(item: SearchItem): string {
   return item.type + ':' + item.id;
 }
+
 function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: number) => void }) {
   const query = useSearchList(input);
   const {
@@ -97,7 +100,7 @@ function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: n
     return (
       <ScreenQueryState
         label="search results"
-        failed={query.isError}
+        failed
         retry={() => {
           void query.refetch();
         }}
@@ -134,6 +137,7 @@ function SearchResults({ input, onPage }: { input: SearchInput; onPage: (page: n
     </ScrollNavigationProvider>
   );
 }
+
 function SearchBody({ input, onPage }: { input: SearchInput; onPage: (page: number) => void }) {
   if (!input.query) {
     return (
@@ -144,14 +148,14 @@ function SearchBody({ input, onPage }: { input: SearchInput; onPage: (page: numb
   }
   return <SearchResults key={JSON.stringify(input)} input={input} onPage={onPage} />;
 }
+
 function SearchContent() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const state = readSearchState(params);
-  const query = state.query;
-  const [draft, setDraft] = useState(query);
-  const suggesting = draft.trim().length > 0 && draft.trim() !== query;
-  const type = state.type;
+  const [draft, setDraft] = useState(state.query);
+  const trimmedDraft = draft.trim();
+  const suggesting = trimmedDraft.length > 0 && trimmedDraft !== state.query;
   function search(value: string) {
     router.setParams({ q: value, page: '1' });
   }
@@ -174,7 +178,7 @@ function SearchContent() {
         <SearchForm draft={draft} setDraft={setDraft} onSearch={search} />
         <MediaTypeTabs
           options={types}
-          value={type}
+          value={state.type}
           onChange={selectType}
           label="Search media type"
         />
@@ -184,7 +188,7 @@ function SearchContent() {
           draft={draft}
           submit={() => {
             Keyboard.dismiss();
-            search(draft.trim());
+            search(trimmedDraft);
           }}
         />
       ) : (

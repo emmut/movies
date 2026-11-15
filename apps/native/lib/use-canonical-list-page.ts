@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 export function useCanonicalListPage(
   query: { data?: { currentPage: number }; isPlaceholderData: boolean },
   page: number,
-) {
+): void {
   const router = useRouter();
   useEffect(() => {
     if (query.data && !query.isPlaceholderData && query.data.currentPage !== page) {

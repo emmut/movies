@@ -17,12 +17,14 @@ import { withUniwind } from 'uniwind';
 
 const Image = withUniwind(ExpoImage);
 const providerKinds = [
-  { key: 'free', label: 'Free', accent: 'text-blue-500' },
-  { key: 'ads', label: 'Free with ads', accent: 'text-blue-500' },
-  { key: 'streaming', label: 'Streaming', accent: 'text-green-500' },
-  { key: 'rent', label: 'Rent', accent: 'text-blue-500' },
-  { key: 'buy', label: 'Buy', accent: 'text-yellow-500' },
+  { key: 'free', offer: 'free', label: 'Free', accent: 'text-blue-500' },
+  { key: 'ads', offer: 'ads', label: 'Free with ads', accent: 'text-blue-500' },
+  { key: 'streaming', offer: 'flatrate', label: 'Streaming', accent: 'text-green-500' },
+  { key: 'rent', offer: 'rent', label: 'Rent', accent: 'text-blue-500' },
+  { key: 'buy', offer: 'buy', label: 'Buy', accent: 'text-yellow-500' },
 ] as const;
+type ProviderKind = (typeof providerKinds)[number];
+
 function ProviderCard({ provider, href }: { provider: WatchProviderCard; href: string }) {
   return (
     <Pressable
@@ -45,6 +47,38 @@ function ProviderCard({ provider, href }: { provider: WatchProviderCard; href: s
     </Pressable>
   );
 }
+function ProviderSection({
+  kind,
+  groups,
+  links,
+  region,
+}: {
+  kind: ProviderKind;
+  groups: ProviderGroups;
+  links: DirectWatchLink[];
+  region: string;
+}) {
+  const providers = groups[kind.key];
+  if (providers.length === 0) {
+    return null;
+  }
+  return (
+    <View className="gap-3">
+      <View className="flex-row items-center gap-2">
+        <CatalogIcon label={kind.label} className={kind.accent} />
+        <Text accessibilityRole="header" className="text-lg font-medium text-foreground">
+          {kind.label}
+        </Text>
+      </View>
+      {providers.map((provider) => {
+        const directUrl = getDirectWatchUrl(links, provider.id, region, kind.offer);
+        return (
+          <ProviderCard key={provider.id} provider={provider} href={directUrl ?? groups.link} />
+        );
+      })}
+    </View>
+  );
+}
 function ProviderContent({
   groups,
   links,
@@ -54,7 +88,7 @@ function ProviderContent({
   links: DirectWatchLink[];
   region: string;
 }) {
-  const empty = providerKinds.every((kind) => (groups[kind.key] ?? []).length === 0);
+  const empty = providerKinds.every((kind) => groups[kind.key].length === 0);
   return (
     <View className="gap-6">
       {empty ? (
@@ -62,32 +96,9 @@ function ProviderContent({
           No services available for this region
         </Text>
       ) : null}
-      {providerKinds.map((kind) =>
-        (groups[kind.key] ?? []).length > 0 ? (
-          <View key={kind.key} className="gap-3">
-            <View className="flex-row items-center gap-2">
-              <CatalogIcon label={kind.label} className={kind.accent} />
-              <Text accessibilityRole="header" className="text-lg font-medium text-foreground">
-                {kind.label}
-              </Text>
-            </View>
-            {(groups[kind.key] ?? []).map((provider) => (
-              <ProviderCard
-                key={provider.id}
-                provider={provider}
-                href={
-                  getDirectWatchUrl(
-                    links,
-                    provider.id,
-                    region,
-                    kind.key === 'streaming' ? 'flatrate' : kind.key,
-                  ) ?? groups.link
-                }
-              />
-            ))}
-          </View>
-        ) : null,
-      )}
+      {providerKinds.map((kind) => (
+        <ProviderSection key={kind.key} kind={kind} groups={groups} links={links} region={region} />
+      ))}
       <View className="bg-default gap-2 rounded-lg p-3">
         <Text className="text-center text-sm text-foreground">
           Powered by JustWatch via TMDB API

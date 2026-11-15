@@ -7,9 +7,11 @@ import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
-const SafeAreaView = withUniwind(NativeSafeAreaView);
 
-function AccountContent({ children }: { children: (userId: string) => ReactNode }) {
+const SafeAreaView = withUniwind(NativeSafeAreaView);
+type AccountChildren = (userId: string) => ReactNode;
+
+function AccountContent({ children }: { children: AccountChildren }) {
   const session = authClient.useSession();
   const returnUrl = useCurrentUrl();
   if (session.isPending || session.error) {
@@ -32,7 +34,7 @@ function AccountContent({ children }: { children: (userId: string) => ReactNode 
     </View>
   );
 }
-export function AccountScreen({ children }: { children: (userId: string) => ReactNode }) {
+export function AccountScreen({ children }: { children: AccountChildren }) {
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right']}>
       <AccountContent>{children}</AccountContent>

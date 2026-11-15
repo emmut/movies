@@ -48,7 +48,7 @@ const MAX_RETRY_AFTER_MS = REQUEST_TIMEOUT_MS;
 // page. Once a retry wait would cross this deadline we surface what we have.
 const RETRY_BUDGET_MS = 2 * REQUEST_TIMEOUT_MS;
 
-function sleep(ms: number) {
+function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -66,18 +66,21 @@ function retryAfterMs(res: Response): number | null {
     return Math.max(0, seconds * 1000);
   }
   const date = Date.parse(header);
-  return Number.isNaN(date) ? null : Math.max(0, date - Date.now());
+  if (Number.isNaN(date)) {
+    return null;
+  }
+  return Math.max(0, date - Date.now());
 }
 
 /**
  * Whether this response is final — either usable or a non-retryable failure, or
  * we've exhausted our attempts and must surface whatever we got.
  */
-function isFinalResponse(res: Response, attempt: number) {
+function isFinalResponse(res: Response, attempt: number): boolean {
   return res.ok || !RETRYABLE_STATUS.has(res.status) || attempt >= MAX_ATTEMPTS;
 }
 
-function isTimeout(error: unknown) {
+function isTimeout(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'TimeoutError';
 }
 

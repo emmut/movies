@@ -5,6 +5,12 @@ import { useReducedMotion } from 'react-native-reanimated';
 import { withUniwind } from 'uniwind';
 
 const Image = withUniwind(NativeImage);
+
+const presentations = {
+  full: { size: 'original', fit: 'contain' },
+  card: { size: 'w500', fit: 'cover' },
+} as const;
+
 export function PdpImage({
   path,
   title,
@@ -46,9 +52,7 @@ function LoadedImage({
 }) {
   const [loaded, setLoaded] = useState(false);
   const reduced = useReducedMotion();
-  const presentation = full
-    ? { size: 'original', fit: 'contain' as const }
-    : { size: 'w500', fit: 'cover' as const };
+  const presentation = full ? presentations.full : presentations.card;
   return (
     <View className="relative size-full">
       <ImageLoading full={full} loaded={loaded} title={title} />

@@ -1,5 +1,6 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
 import { useCatalogReviews } from '@movies/api/react/use-catalog-query';
+import type { ReviewsPage } from '@movies/api/reviews';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
 import { ReviewCard } from '@native/components/review-card';
 import { useScrollNavigation } from '@native/components/scroll-navigation';
@@ -29,13 +30,7 @@ export function CatalogReviews({ input }: { input: CatalogDetailInput }) {
   );
 }
 
-function ReviewPreview({
-  data,
-  input,
-}: {
-  data: NonNullable<ReturnType<typeof useCatalogReviews>['data']>;
-  input: CatalogDetailInput;
-}) {
+function ReviewPreview({ data, input }: { data: ReviewsPage; input: CatalogDetailInput }) {
   const pathname = usePathname();
   const navigationPress = useScrollNavigation();
   return (

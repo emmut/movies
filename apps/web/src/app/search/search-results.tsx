@@ -1,5 +1,7 @@
 'use client';
+
 import { useSearchList } from '@movies/api/react/use-search-query';
+import type { SearchItem } from '@movies/api/search';
 
 import ItemCard from '@/components/item-card';
 import ItemGrid from '@/components/item-grid';
@@ -7,17 +9,19 @@ import PersonCard from '@/components/person-card';
 import SearchBox from '@/components/search-box';
 import type { MediaType } from '@/types/media-type';
 
+type SearchResultsProps = {
+  searchQuery: string;
+  currentPage: number;
+  mediaType: MediaType;
+  userId?: string;
+};
+
 export default function SearchResults({
   searchQuery,
   currentPage,
   mediaType,
   userId,
-}: {
-  searchQuery: string;
-  currentPage: number;
-  mediaType: MediaType;
-  userId?: string;
-}) {
+}: SearchResultsProps) {
   const query = useSearchList({ query: searchQuery, page: currentPage, type: mediaType });
   if (!searchQuery) {
     return <SearchBox mediaType={mediaType} />;
@@ -25,15 +29,13 @@ export default function SearchResults({
   return <SearchQueryResults query={query} searchQuery={searchQuery} userId={userId} />;
 }
 
-function SearchQueryResults({
-  query,
-  searchQuery,
-  userId,
-}: {
+type SearchQueryResultsProps = {
   query: ReturnType<typeof useSearchList>;
   searchQuery: string;
   userId?: string;
-}) {
+};
+
+function SearchQueryResults({ query, searchQuery, userId }: SearchQueryResultsProps) {
   switch (query.status) {
     case 'pending':
       return <ItemGrid.Skeletons className="w-full" />;
@@ -48,27 +50,25 @@ function SearchQueryResults({
   }
 }
 
-function Results({
-  items,
-  searchQuery,
-  userId,
-}: {
-  items: import('@movies/api/search').SearchItem[];
+type ResultsProps = {
+  items: SearchItem[];
   searchQuery: string;
   userId?: string;
-}) {
-  if (!items.length) {
+};
+
+function Results({ items, searchQuery, userId }: ResultsProps) {
+  if (items.length === 0) {
     return (
       <p className="col-span-full text-center text-zinc-400">
         No results found for “{searchQuery}”
       </p>
     );
   }
-  return items.map((item) =>
-    item.type === 'person' ? (
-      <PersonCard key={'person:' + item.id} person={item} userId={userId} />
-    ) : (
-      <ItemCard key={item.type + ':' + item.id} resource={item} userId={userId} />
-    ),
-  );
+  return items.map((item) => {
+    const key = `${item.type}:${item.id}`;
+    if (item.type === 'person') {
+      return <PersonCard key={key} person={item} userId={userId} />;
+    }
+    return <ItemCard key={key} resource={item} userId={userId} />;
+  });
 }

@@ -1,13 +1,14 @@
 import type { PersonDetail } from '@movies/api/person';
 import type { CatalogStat } from '@native/lib/catalog-model';
 
-function year(date: string | null) {
+function year(date: string | null): number | null {
   if (!date) {
     return null;
   }
   const value = new Date(date).getFullYear();
   return Number.isFinite(value) ? value : null;
 }
+
 export function personStats(
   person: PersonDetail,
   credits: number | undefined,
@@ -33,6 +34,7 @@ export function personStats(
   }
   return stats;
 }
+
 export function personFacts(person: PersonDetail) {
   const facts = [
     { label: 'Known for', value: person.department },
@@ -44,7 +46,10 @@ export function personFacts(person: PersonDetail) {
   return facts.filter((fact) => Boolean(fact.value));
 }
 
-export function personCreditCount(movie: unknown[] | undefined, tv: unknown[] | undefined) {
+export function personCreditCount(
+  movie: unknown[] | undefined,
+  tv: unknown[] | undefined,
+): number | undefined {
   if (!movie || !tv) {
     return undefined;
   }

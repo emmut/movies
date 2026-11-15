@@ -2,7 +2,7 @@ import { personCreditFields, sortPersonTitles } from '@movies/api/person-filmogr
 import 'server-only';
 import type { PersonService } from '@movies/api/router';
 import { TmdbRequestError, type TmdbFetch } from '@movies/api/tmdb-fetch';
-import { toMediaCard, tmdbImageUrl } from '@movies/services/media-card';
+import { publicWebUrl, toMediaCard, tmdbImageUrl } from '@movies/services/media-card';
 import {
   personDetailsSchema,
   searchedMovieSchema,
@@ -13,20 +13,15 @@ import { z } from 'zod';
 
 import { createPersonMetadataService } from './person-metadata-service';
 
-function publicUrl(value: string | null) {
-  if (!value) {
+const IMDB_PERSON_ID = /^nm\d+$/;
+
+function imdbPersonUrl(imdbId: string | null | undefined): string | null {
+  if (!imdbId || !IMDB_PERSON_ID.test(imdbId)) {
     return null;
   }
-  try {
-    const url = new URL(value);
-    if (url.protocol === 'http:' || url.protocol === 'https:') {
-      return url.toString();
-    }
-  } catch {
-    return null;
-  }
-  return null;
+  return `https://www.imdb.com/name/${imdbId}/`;
 }
+
 export function createPersonService(fetchTmdb: TmdbFetch): PersonService {
   return {
     ...createPersonMetadataService(fetchTmdb),
@@ -44,11 +39,8 @@ export function createPersonService(fetchTmdb: TmdbFetch): PersonService {
           department: person.known_for_department,
           aliases: person.also_known_as,
           popularity: person.popularity,
-          homepage: publicUrl(person.homepage),
-          imdbUrl:
-            person.imdb_id && /^nm\d+$/.test(person.imdb_id)
-              ? 'https://www.imdb.com/name/' + person.imdb_id + '/'
-              : null,
+          homepage: publicWebUrl(person.homepage),
+          imdbUrl: imdbPersonUrl(person.imdb_id),
         };
       } catch (error) {
         if (error instanceof TmdbRequestError && error.status === 404) {

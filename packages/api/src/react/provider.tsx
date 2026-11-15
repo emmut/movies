@@ -6,7 +6,7 @@ import type { createApiQueryUtils } from '../query-utils';
 
 type ApiQueryUtils = ReturnType<typeof createApiQueryUtils>;
 const AccountContext = createContext<string | null | undefined>(undefined);
-export function useApiAccountId() {
+export function useApiAccountId(): string | null {
   return useContext(AccountContext) ?? null;
 }
 
@@ -26,7 +26,7 @@ export function ApiProvider({
     </ApiContext.Provider>
   );
 }
-export function useApi() {
+export function useApi(): ApiQueryUtils {
   const api = useContext(ApiContext);
   if (!api) {
     throw new Error('API hooks require ApiProvider');
@@ -34,7 +34,10 @@ export function useApi() {
   return api;
 }
 
-export function useEffectiveAccountId(fallback: string | null) {
+export function useEffectiveAccountId(fallback: string | null): string | null {
   const accountId = useContext(AccountContext);
-  return accountId === undefined ? fallback : accountId;
+  if (accountId === undefined) {
+    return fallback;
+  }
+  return accountId;
 }

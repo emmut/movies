@@ -16,7 +16,6 @@ import {
   isUnauthorized,
   SETTINGS_LOGIN_HREF,
 } from '@native/lib/settings-session';
-import { useMutation } from '@tanstack/react-query';
 import { Image as ExpoImage } from 'expo-image';
 import { Redirect } from 'expo-router';
 import { useState, type ReactNode } from 'react';
@@ -124,7 +123,7 @@ function ProviderActions({
   );
 }
 
-function providerKey(provider: ProviderChoice) {
+function providerKey(provider: ProviderChoice): string {
   return String(provider.id);
 }
 
@@ -197,9 +196,7 @@ function ProviderControls({
   change,
 }: {
   read: ReturnType<typeof combineQueryStates>;
-  mutation: ReturnType<
-    typeof useMutation<{ providerIds: number[] }, Error, { providerIds: number[] }>
-  >;
+  mutation: ReturnType<typeof usePreferencesSetProvidersMutation>;
   selected: number[];
   change: (ids: number[]) => void;
 }) {

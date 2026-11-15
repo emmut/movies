@@ -15,7 +15,7 @@ function ratingStat(item: CatalogDetail, imdb: ImdbRating | null): CatalogStat {
     label: 'TMDB Rating',
     value: score,
     accent: 'yellow',
-    description: item.voteCount.toLocaleString('en-US') + ' votes',
+    description: `${item.voteCount.toLocaleString('en-US')} votes`,
   };
   if (!imdb) {
     return stat;
@@ -46,12 +46,13 @@ export function catalogStats(item: CatalogDetail, imdb: ImdbRating | null = null
   return stats;
 }
 
-function addFact(facts: Fact[], label: string, value: string) {
+function addFact(facts: Fact[], label: string, value: string): void {
   if (value) {
     facts.push({ label, value });
   }
 }
-function movieMoney(item: Extract<CatalogDetail, { type: 'movie' }>, facts: Fact[]) {
+
+function movieMoney(item: Extract<CatalogDetail, { type: 'movie' }>, facts: Fact[]): void {
   if (item.budget > 0) {
     addFact(facts, 'Budget', formatCurrency(item.budget, false));
   }
@@ -62,7 +63,8 @@ function movieMoney(item: Extract<CatalogDetail, { type: 'movie' }>, facts: Fact
     addFact(facts, 'Profit', formatCurrency(item.revenue - item.budget, false));
   }
 }
-function tvFacts(item: Extract<CatalogDetail, { type: 'tv' }>, facts: Fact[]) {
+
+function tvFacts(item: Extract<CatalogDetail, { type: 'tv' }>, facts: Fact[]): void {
   addFact(facts, 'Last Air Date', item.lastAirDate);
   addFact(facts, 'Episodes', String(item.episodes));
   addFact(facts, 'Seasons', String(item.seasons));
@@ -70,11 +72,11 @@ function tvFacts(item: Extract<CatalogDetail, { type: 'tv' }>, facts: Fact[]) {
   addFact(facts, 'Networks', item.networks.join(', '));
 }
 
-function originalTitle(item: CatalogDetail) {
-  if (item.type === 'movie') {
-    return item.originalTitle;
+function originalTitle(item: CatalogDetail): string {
+  if (item.type === 'tv' && item.originalTitle === item.title) {
+    return '';
   }
-  return item.originalTitle === item.title ? '' : item.originalTitle;
+  return item.originalTitle;
 }
 
 export function catalogFacts(item: CatalogDetail): Fact[] {

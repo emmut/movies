@@ -8,16 +8,17 @@ import { subscribeToPreferenceRefresh } from '@/lib/preference-refresh';
 import { invalidateAccountQueriesOnReturn } from '@/lib/query-invalidation';
 
 /** Private Next caches live in the browser: refresh both rendered props and client queries. */
-export function PreferenceRefresh() {
+export function PreferenceRefresh(): null {
   const router = useRouter();
   const queryClient = useQueryClient();
-  useEffect(
-    () =>
-      subscribeToPreferenceRefresh(() => {
-        router.refresh();
-        void invalidateAccountQueriesOnReturn(queryClient);
-      }),
-    [router, queryClient],
-  );
+
+  useEffect(() => {
+    const unsubscribe = subscribeToPreferenceRefresh(() => {
+      router.refresh();
+      void invalidateAccountQueriesOnReturn(queryClient);
+    });
+    return unsubscribe;
+  }, [router, queryClient]);
+
   return null;
 }

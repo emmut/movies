@@ -16,6 +16,7 @@ const creditsSchema = z.object({
   cast: z.array(personSchema.extend({ character: z.string().default('') })),
   crew: z.array(personSchema.extend({ job: z.string() })),
 });
+
 async function seriesCast(fetchTmdb: TmdbFetch, id: number) {
   try {
     const data = aggregateSchema.parse(await fetchTmdb(`/tv/${id}/aggregate_credits`));
@@ -31,6 +32,7 @@ async function seriesCast(fetchTmdb: TmdbFetch, id: number) {
     return null;
   }
 }
+
 const writerJobs = new Set(['Writer', 'Screenplay', 'Story', 'Original Story']);
 
 function creditPerson(person: z.infer<typeof personSchema>, role: string) {
@@ -54,18 +56,16 @@ export function createCatalogCreditsService(fetchTmdb: TmdbFetch): Pick<CatalogS
         }
       }
       const data = creditsSchema.parse(await fetchTmdb<unknown>(`/${type}/${id}/credits`));
-      const movieCrew = type === 'movie' ? data.crew : [];
+      const cast = data.cast.map((person) => creditPerson(person, person.character));
+      if (type !== 'movie') {
+        return { cast, directors: [], writers: [] };
+      }
+      const crew = data.crew.map((person) => creditPerson(person, person.job));
       return {
-        ...(type === 'movie'
-          ? { crew: movieCrew.map((person) => creditPerson(person, person.job)) }
-          : {}),
-        cast: data.cast.map((person) => creditPerson(person, person.character)),
-        directors: movieCrew
-          .filter((person) => person.job === 'Director')
-          .map((person) => creditPerson(person, person.job)),
-        writers: movieCrew
-          .filter((person) => writerJobs.has(person.job))
-          .map((person) => creditPerson(person, person.job)),
+        crew,
+        cast,
+        directors: crew.filter((person) => person.role === 'Director'),
+        writers: crew.filter((person) => writerJobs.has(person.role)),
       };
     },
   };

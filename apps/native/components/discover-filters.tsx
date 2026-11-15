@@ -8,6 +8,7 @@ import {
   facetFilters,
   isFacetFilter,
   type Filter,
+  type FilterSpec,
 } from '@native/lib/discover-filters';
 import { toggleSelection } from '@native/lib/discover-state';
 import { useState } from 'react';
@@ -24,6 +25,16 @@ const filters: Filter[] = [
   'with_watch_providers',
   'watch_region',
 ];
+
+function selectionSummary(spec: FilterSpec) {
+  const labels = spec.options
+    .filter((option) => spec.selected.includes(option.value))
+    .map((option) => option.label);
+  if (labels.length === 0) {
+    return 'Any';
+  }
+  return labels.join(', ');
+}
 
 function DiscoverFilterSheet({
   open,
@@ -72,26 +83,21 @@ export function DiscoverFilters({
       return;
     }
     const current = filterSpec(open, input, data);
-    const values = current.multiple
-      ? toggleSelection(current.selected, value, current.maxSelections)
-      : [value];
-    change({ [open]: values.join('|'), page: '1' });
     if (!current.multiple) {
+      change({ [open]: value, page: '1' });
       setOpen(null);
+      return;
     }
+    const values = toggleSelection(current.selected, value, current.maxSelections);
+    change({ [open]: values.join('|'), page: '1' });
   }
   const count = activeDiscoverFilterCount(input);
   const label = count > 0 ? `Filters (${count})` : 'Filters';
   const choices = filters
     .filter((filter) => filter !== 'networkId' || input.type === 'tv')
     .map((filter) => {
-      const item = filterSpec(filter, input, data);
-      const summary =
-        item.options
-          .filter((option) => item.selected.includes(option.value))
-          .map((option) => option.label)
-          .join(', ') || 'Any';
-      return { filter, title: item.title, summary };
+      const spec = filterSpec(filter, input, data);
+      return { filter, title: spec.title, summary: selectionSummary(spec) };
     });
 
   function clear() {

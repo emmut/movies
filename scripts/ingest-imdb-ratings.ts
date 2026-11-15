@@ -13,8 +13,7 @@
  * personal, non-commercial use only.
  */
 
-import { Transform, type TransformCallback } from 'node:stream';
-import { Readable } from 'node:stream';
+import { Readable, Transform, type TransformCallback } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { createGunzip } from 'node:zlib';
@@ -101,7 +100,6 @@ async function main() {
     }
 
     const nodeStream = Readable.fromWeb(response.body as NodeReadableStream<Uint8Array>);
-
     const gunzipped = nodeStream.pipe(createGunzip());
 
     const parser = parse({
@@ -112,9 +110,7 @@ async function main() {
       trim: true,
     });
 
-    const ratingTransform = createRatingTransform();
-
-    await pipeline(gunzipped, parser, ratingTransform);
+    await pipeline(gunzipped, parser, createRatingTransform());
   } finally {
     clearTimeout(timeout);
   }

@@ -11,8 +11,7 @@ import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-conte
 import { withUniwind } from 'uniwind';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
-type Method = SignInMethod;
-const methods: { id: Method; label: string; className: string }[] = [
+const methods: { id: SignInMethod; label: string; className: string }[] = [
   { id: 'discord', label: 'Continue with Discord', className: 'bg-[#5865F2]' },
   { id: 'github', label: 'Continue with GitHub', className: 'bg-[#24292e]' },
   { id: 'passkey', label: 'Authenticate with Passkey', className: 'bg-default' },
@@ -38,10 +37,10 @@ function LoginIntroduction() {
     </View>
   );
 }
-function passkeyUnavailable(method: Method) {
+function passkeyUnavailable(method: SignInMethod) {
   return method === 'passkey' && !isPasskeySupported();
 }
-function loginButtonTextClass(method: Method) {
+function loginButtonTextClass(method: SignInMethod) {
   return method === 'passkey' ? 'text-foreground' : 'text-white';
 }
 function LoginMethod({
@@ -50,8 +49,8 @@ function LoginMethod({
   authenticate,
 }: {
   method: (typeof methods)[number];
-  pending: Method | null;
-  authenticate: (method: Method) => Promise<void>;
+  pending: SignInMethod | null;
+  authenticate: (method: SignInMethod) => Promise<void>;
 }) {
   const unavailable = passkeyUnavailable(method.id);
   const busy = pending === method.id;
@@ -87,8 +86,8 @@ function LoginMethods({
   pending,
   authenticate,
 }: {
-  pending: Method | null;
-  authenticate: (method: Method) => Promise<void>;
+  pending: SignInMethod | null;
+  authenticate: (method: SignInMethod) => Promise<void>;
 }) {
   return methods.map((method) => (
     <LoginMethod key={method.id} method={method} pending={pending} authenticate={authenticate} />
@@ -117,13 +116,14 @@ function signedInAccount(user?: { isAnonymous?: boolean | null } | null) {
 export function LoginScreen() {
   const params = useLocalSearchParams<{ redirect_url?: string; error?: string }>();
   const destination = getSafeRedirectUrl(params.redirect_url);
+  const destinationHref = destination as Href;
   const router = useRouter();
   const session = authClient.useSession();
-  const [pending, setPending] = useState<Method | null>(null);
+  const [pending, setPending] = useState<SignInMethod | null>(null);
   const [error, setError] = useState<string | null>(null);
-  async function authenticate(method: Method) {
+  async function authenticate(method: SignInMethod) {
     if (method === 'anonymous' && session.data?.user.isAnonymous) {
-      router.replace(destination as Href);
+      router.replace(destinationHref);
       return;
     }
     setPending(method);
@@ -134,10 +134,10 @@ export function LoginScreen() {
       setError(failure);
       return;
     }
-    router.replace(destination as Href);
+    router.replace(destinationHref);
   }
   if (signedInAccount(session.data?.user)) {
-    return <Redirect href={destination as Href} />;
+    return <Redirect href={destinationHref} />;
   }
   const failure = loginError(error, params.error);
   return (

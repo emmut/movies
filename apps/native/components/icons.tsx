@@ -49,11 +49,10 @@ export const EllipsisIcon = styledIcon(Ellipsis);
 export const PlayIcon = styledIcon(Play);
 export const PlusIcon = styledIcon(Plus);
 export const PopcornIcon = styledIcon(Popcorn);
+export const SearchIcon = styledIcon(Search);
 export const ShoppingCartIcon = styledIcon(ShoppingCart);
 export const StarIcon = styledIcon(Star);
 export const TicketCheckIcon = styledIcon(TicketCheck);
 export const TvIcon = styledIcon(Tv);
 export const UsersIcon = styledIcon(Users);
 export const XIcon = styledIcon(X);
-
-export const SearchIcon = styledIcon(Search);

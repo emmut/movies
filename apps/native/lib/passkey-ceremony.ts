@@ -8,6 +8,7 @@ import {
   type PasskeyAuthenticationOptions,
 } from '@movies/api/passkeys';
 
+type Ceremony = 'registration' | 'authentication';
 type Result = { data: unknown; error: unknown };
 type RequestOptions = {
   method: 'GET' | 'POST';
@@ -20,36 +21,39 @@ type Sources = {
   register: (options: PasskeyRegistrationOptions) => Promise<unknown>;
   authenticate: (options: PasskeyAuthenticationOptions) => Promise<unknown>;
 };
+const CANCELLATION_NAMES = [
+  'NotAllowedError',
+  'UserCancelled',
+  'UserCancelledException',
+  'ERR_USER_CANCELLED',
+];
+
 function failure(code: string): Result {
   return { data: null, error: { code } };
 }
-function cancelled(error: unknown) {
+
+function cancelled(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) {
     return false;
   }
-  const names = [
-    'NotAllowedError',
-    'UserCancelled',
-    'UserCancelledException',
-    'ERR_USER_CANCELLED',
-  ];
   if ('message' in error && error.message === 'UserCancelled') {
     return true;
   }
-  return ('name' in error && names.includes(String(error.name))) || hasErrorCode(error, ...names);
+  if ('name' in error && CANCELLATION_NAMES.includes(String(error.name))) {
+    return true;
+  }
+  return hasErrorCode(error, ...CANCELLATION_NAMES);
 }
+
 /** The same challenge/verification protocol as the official browser client, using OS credentials. */
 export function createPasskeyCeremony(sources: Sources) {
-  async function credential(ceremony: 'registration' | 'authentication', options: unknown) {
+  async function credential(ceremony: Ceremony, options: unknown): Promise<unknown> {
     if (ceremony === 'registration') {
       return sources.register(passkeyRegistrationOptionsSchema.parse(options));
     }
     return sources.authenticate(passkeyAuthenticationOptionsSchema.parse(options));
   }
-  async function perform(
-    ceremony: 'registration' | 'authentication',
-    name?: string,
-  ): Promise<Result> {
+  async function perform(ceremony: Ceremony, name?: string): Promise<Result> {
     if (!sources.available()) {
       return failure('PASSKEY_UNAVAILABLE');
     }
@@ -72,7 +76,7 @@ export function createPasskeyCeremony(sources: Sources) {
       if (query) {
         body.name = query.name;
       }
-      const verified = await sources.request('/passkey/verify-' + ceremony, {
+      const verified = await sources.request(`/passkey/verify-${ceremony}`, {
         method: 'POST',
         body,
       });
@@ -91,18 +95,19 @@ export function createPasskeyCeremony(sources: Sources) {
   };
 }
 
-function registrationQuery(ceremony: 'registration' | 'authentication', name?: string) {
+function registrationQuery(ceremony: Ceremony, name?: string): { name: string } | undefined {
   if (ceremony === 'registration') {
     return { name: passkeyNameSchema.parse(name) };
   }
   return undefined;
 }
-function optionsPath(ceremony: 'registration' | 'authentication') {
+
+function optionsPath(ceremony: Ceremony): string {
   const action = ceremony === 'registration' ? 'register' : 'authenticate';
-  return '/passkey/generate-' + action + '-options';
+  return `/passkey/generate-${action}-options`;
 }
 
-function verificationResult(result: Result) {
+function verificationResult(result: Result): Result {
   if (!result.error && !result.data) {
     return failure('PASSKEY_FAILED');
   }

@@ -1,4 +1,5 @@
 'use client';
+
 import { closestCenter, DndContext, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, rectSortingStrategy, SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -17,6 +18,7 @@ import { EditListDialog } from '@/components/edit-list-dialog';
 import { ReorderButton } from '@/components/reorder-button';
 import { ReorderControls } from '@/components/reorder-controls';
 import { useReorderSensors } from '@/hooks/use-reorder-sensors';
+
 type LocalList = CustomListSummary;
 
 interface ListsGridProps {

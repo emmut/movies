@@ -12,7 +12,8 @@ export async function getUserRegion() {
   if (!user) {
     return DEFAULT_REGION;
   }
-  return (await createServerApi(await headers()).preferences.region()).region;
+  const { region } = await createServerApi(await headers()).preferences.region();
+  return region;
 }
 
 export async function getUserWatchProviders() {
@@ -20,17 +21,17 @@ export async function getUserWatchProviders() {
   if (!user) {
     return [];
   }
-  return (await createServerApi(await headers()).preferences.providers()).providerIds;
+  const { providerIds } = await createServerApi(await headers()).preferences.providers();
+  return providerIds;
 }
 
 /** Raw priority metadata is retained for web's existing provider filter presentation. */
 export async function getAllWatchProviders(region?: string) {
-  return (
-    await createServerApi(new Headers()).discovery.providerCatalog({
-      type: 'movie',
-      region: region ?? (await getUserRegion()),
-    })
-  ).map((provider) => ({ ...provider, logo_path: provider.logo_path ?? '' }));
+  const providers = await createServerApi(new Headers()).discovery.providerCatalog({
+    type: 'movie',
+    region: region ?? (await getUserRegion()),
+  });
+  return providers.map((provider) => ({ ...provider, logo_path: provider.logo_path ?? '' }));
 }
 
 export async function getWatchProviders(region?: string, providerIds?: number[]) {

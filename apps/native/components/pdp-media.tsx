@@ -6,10 +6,13 @@ import { PdpImage } from '@native/components/pdp-image';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+type MediaKind = 'images' | 'videos';
+type Selection = { kind: MediaKind; index: number };
+
+const kindLabels: Record<MediaKind, string> = { images: 'Images', videos: 'Videos' };
+
 export function PdpMedia({ data, title }: { data: PdpExtras; title: string }) {
-  const [selected, setSelected] = useState<{ kind: 'images' | 'videos'; index: number } | null>(
-    null,
-  );
+  const [selected, setSelected] = useState<Selection | null>(null);
   const images: Media[] = data.images.map((item, index) => ({
     id: item.file_path,
     title: 'Image ' + (index + 1),
@@ -38,9 +41,10 @@ export function PdpMedia({ data, title }: { data: PdpExtras; title: string }) {
   );
 }
 
-function videoTitle(item: PdpExtras['videos'][number]) {
+function videoTitle(item: PdpExtras['videos'][number]): string {
   return item.name + ' · ' + item.type + (item.official ? ' · Official' : '');
 }
+
 function VideoButton({ count, open }: { count: number; open: () => void }) {
   if (count === 0) {
     return null;
@@ -57,6 +61,7 @@ function VideoButton({ count, open }: { count: number; open: () => void }) {
     </Pressable>
   );
 }
+
 function ImageThumbnails({ images, open }: { images: Media[]; open: (index: number) => void }) {
   if (images.length === 0) {
     return null;
@@ -86,6 +91,7 @@ function ImageThumbnails({ images, open }: { images: Media[]; open: (index: numb
     </View>
   );
 }
+
 function SelectedViewer({
   items,
   selected,
@@ -94,7 +100,7 @@ function SelectedViewer({
   title,
 }: {
   items: Media[];
-  selected: { kind: 'images' | 'videos'; index: number };
+  selected: Selection;
   setIndex: (index: number) => void;
   close: () => void;
   title: string;
@@ -102,14 +108,13 @@ function SelectedViewer({
   if (items.length === 0) {
     return null;
   }
-  const labels = { images: 'Images', videos: 'Videos' };
   return (
     <MediaViewer
       items={items}
       index={Math.min(selected.index, items.length - 1)}
       setIndex={setIndex}
       close={close}
-      title={title + ' — ' + labels[selected.kind]}
+      title={title + ' — ' + kindLabels[selected.kind]}
     />
   );
 }

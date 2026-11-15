@@ -76,19 +76,15 @@ export function PasskeyList({ passkeys }: PasskeyListProps) {
   );
 }
 
-function PasskeyRow({
-  passkey,
-  deleting,
-  open,
-  setOpen,
-  remove,
-}: {
+type PasskeyRowProps = {
   passkey: PasskeyMetadata;
   deleting: boolean;
   open: boolean;
   setOpen: (open: boolean) => void;
   remove: () => void;
-}) {
+};
+
+function PasskeyRow({ passkey, deleting, open, setOpen, remove }: PasskeyRowProps) {
   const name = passkey.name || 'Unnamed passkey';
   const deleteLabel = deleting ? 'Deleting...' : 'Delete';
   return (

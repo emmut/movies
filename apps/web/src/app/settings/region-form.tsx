@@ -1,4 +1,5 @@
 'use client';
+
 import { regionPreferenceSchema } from '@movies/api/preferences';
 import { usePreferencesSetRegionMutation } from '@movies/api/react/use-preferences-query';
 import type { Region } from '@movies/config/regions';

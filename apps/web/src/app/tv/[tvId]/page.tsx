@@ -1,7 +1,6 @@
 import { formatCertification } from '@movies/api/certifications';
 import { displayRating } from '@movies/api/home';
 import { Calendar, Tv, Users } from 'lucide-react';
-import { headers } from 'next/headers';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -25,10 +24,10 @@ import { StreamingSection, StreamingSectionSkeleton } from '@/components/streami
 import { TrailerContent } from '@/components/trailer-content';
 import { TvCast } from '@/components/tv-cast';
 import { TvSeasons } from '@/components/tv-seasons';
-import { createServerApi } from '@/lib/api-server';
 import { getUser } from '@/lib/auth-server';
 import { getImdbRating } from '@/lib/imdb';
 import { getMediaCertification } from '@/lib/media-info';
+import { getSystemListMemberships } from '@/lib/system-list-memberships';
 import { optional } from '@/lib/tmdb';
 import {
   getTvShowDetails,
@@ -65,14 +64,7 @@ export default async function TvShowPage(props: TvShowPageProps) {
     await Promise.all([
       getUser(),
       getUserRegion(),
-      getUser().then(async (user) =>
-        user
-          ? createServerApi(await headers()).systemLists.memberships({
-              resourceId: tvId,
-              resourceType: RESOURCE_TYPE,
-            })
-          : { inWatchlist: false, watched: false },
-      ),
+      getSystemListMemberships(tvId, RESOURCE_TYPE),
       getTvShowDetails(tvId),
       getTvShowImdbId(tvId),
       optional(

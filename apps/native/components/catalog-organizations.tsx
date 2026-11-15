@@ -63,7 +63,7 @@ export function CatalogOrganizationSections({
     <>
       <CatalogOrganizations items={data.companies} input={input} kind="company" />
       {input.type === 'tv' ? (
-        <CatalogOrganizations items={data.networks ?? []} input={input} kind="network" />
+        <CatalogOrganizations items={data.networks} input={input} kind="network" />
       ) : null}
     </>
   );

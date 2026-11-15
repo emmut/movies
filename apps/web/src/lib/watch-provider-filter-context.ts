@@ -1,6 +1,5 @@
-import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import 'server-only';
-
+import { getUserRegion, getUserWatchProviders, getWatchProviders } from '@/lib/user-actions';
 import {
   activeWatchProviderFilter,
   loadWatchProviderSearchParams,

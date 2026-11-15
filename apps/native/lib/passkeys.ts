@@ -5,7 +5,7 @@ import { ENV } from '@native/src/env';
 import { requireOptionalNativeModule } from 'expo';
 import { Platform } from 'react-native';
 
-export function isPasskeySupported() {
+export function isPasskeySupported(): boolean {
   if (Platform.OS === 'web') {
     return typeof window !== 'undefined' && typeof window.PublicKeyCredential !== 'undefined';
   }
@@ -17,6 +17,7 @@ export function isPasskeySupported() {
   );
   return Boolean(nativePasskeys?.isSupported());
 }
+
 const ceremony = createPasskeyCeremony({
   available: isPasskeySupported,
   request: (path, options) => authClient.$fetch(path, { ...options, throw: false }),
@@ -29,18 +30,21 @@ const ceremony = createPasskeyCeremony({
     return passkeys.get(options);
   },
 });
+
 export async function addDevicePasskey(name: string) {
   if (Platform.OS === 'web') {
     return authClient.passkey.addPasskey({ name });
   }
   return ceremony.add(name);
 }
+
 export async function signInDevicePasskey() {
   if (Platform.OS === 'web') {
     return authClient.signIn.passkey();
   }
   return ceremony.signIn();
 }
+
 export async function readPasskeys() {
   const result = await authClient.passkey.listUserPasskeys();
   if (result.error || !result.data) {
@@ -49,7 +53,7 @@ export async function readPasskeys() {
   return passkeyListSchema.parse(result.data);
 }
 
-function passkeyListError(error: { status?: number; code?: string } | null) {
+function passkeyListError(error: { status?: number; code?: string } | null): Error {
   const code = error?.status === 401 ? 'UNAUTHORIZED' : error?.code;
   return Object.assign(new Error('Could not load passkeys'), { code });
 }

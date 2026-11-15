@@ -11,16 +11,6 @@ export function formatImageUrl(path: string | null, width = 500) {
   return `${IMAGE_CDN_URL}w${width}${path}`;
 }
 
-/**
- * Removes duplicate items by ID from an array and sorts the result by descending popularity and date.
- *
- * Items with the same ID are deduplicated, keeping the first occurrence. Sorting is performed first by the `popularity` property in descending order, then by date (as extracted by `getDateString`) in descending order. If a date is missing or invalid, it defaults to "1900-01-01".
- *
- * @param items - The array of items to process
- * @param getDateString - Function that returns a date string for each item
- * @returns An array of unique items sorted by popularity and date
- */
-
 export { createLoginUrl, getSafeRedirectUrl, isValidRedirectUrl } from '@movies/auth/redirect';
 
 /**

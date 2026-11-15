@@ -1,4 +1,4 @@
-import { regions } from '@movies/config/regions';
+import { getRegionByCode } from '@movies/config/regions';
 import { Brand } from '@native/components/brand';
 import { ChevronDownIcon } from '@native/components/icons';
 import { Stack } from 'expo-router';
@@ -13,7 +13,7 @@ function RegionControl({
   onPress: () => void;
   disabled: boolean;
 }) {
-  const name = regions.find((item) => item.code === region)?.name ?? region;
+  const name = getRegionByCode(region)?.name ?? region;
   return (
     <Pressable
       accessibilityRole="button"

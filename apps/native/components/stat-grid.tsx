@@ -8,6 +8,7 @@ const accents: Record<CatalogStat['accent'], string> = {
   green: 'text-green-500',
   purple: 'text-purple-500',
 };
+
 export function StatGrid({ stats }: { stats: CatalogStat[] }) {
   return (
     <View className="flex-row flex-wrap gap-3">

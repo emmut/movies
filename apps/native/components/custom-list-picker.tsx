@@ -18,6 +18,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
 import type { z } from 'zod';
+
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 type Resource = z.infer<typeof customListResourceInput>;
 

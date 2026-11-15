@@ -1,5 +1,5 @@
-import type { TmdbFetch } from '@movies/api/tmdb-fetch';
 import 'server-only';
+import type { TmdbFetch } from '@movies/api/tmdb-fetch';
 import { readWikidataClaims } from '@movies/services/watch-links-service';
 import { cacheLife } from 'next/cache';
 

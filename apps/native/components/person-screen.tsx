@@ -1,7 +1,6 @@
 import { parseCatalogId } from '@movies/api/catalog';
 import { hasErrorCode } from '@movies/api/errors';
-import type { PersonCredit } from '@movies/api/person';
-import { personInput, type PersonDetail } from '@movies/api/person';
+import { personInput, type PersonCredit, type PersonDetail } from '@movies/api/person';
 import { usePersonCredits, usePersonDetails } from '@movies/api/react/use-person-query';
 import { BottomNavigation } from '@native/components/bottom-navigation';
 import { CustomListActions } from '@native/components/custom-list-picker';
@@ -16,7 +15,7 @@ import { personCreditCount, personFacts, personStats } from '@native/lib/person-
 import { useRegion } from '@native/lib/preferences';
 import { regionOr } from '@native/lib/search-params';
 import { useRememberedScroll } from '@native/lib/use-remembered-scroll';
-import { type UseQueryResult } from '@tanstack/react-query';
+import type { UseQueryResult } from '@tanstack/react-query';
 import { Image as NativeImage } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -44,6 +43,7 @@ function PersonArtwork({ person }: { person: PersonDetail }) {
     </View>
   );
 }
+
 function PersonSources({ person }: { person: PersonDetail }) {
   return (
     <View className="flex-row flex-wrap gap-2">
@@ -69,12 +69,11 @@ function PersonStatistics({
   movie: UseQueryResult<PersonCredit[]>;
   tv: UseQueryResult<PersonCredit[]>;
 }) {
-  if (!movie.isSuccess || !tv.isSuccess) {
-    return <StatGrid stats={personStats(person, undefined)} />;
-  }
-  const credits = personCreditCount(movie.data, tv.data);
+  const credits =
+    movie.isSuccess && tv.isSuccess ? personCreditCount(movie.data, tv.data) : undefined;
   return <StatGrid stats={personStats(person, credits)} />;
 }
+
 function PersonContent({ person, region }: { person: PersonDetail; region: string }) {
   const movie = usePersonCredits({ id: person.id, type: 'movie' });
   const tv = usePersonCredits({ id: person.id, type: 'tv' });
@@ -87,6 +86,7 @@ function PersonContent({ person, region }: { person: PersonDetail; region: strin
     captureBeforeNavigation,
     cancelBeforeNavigation,
   } = useRememberedScroll('person:' + person.id, 'entry');
+  const allTitles = [...(movie.data ?? []), ...(tv.data ?? [])];
   return (
     <ScrollNavigationProvider capture={captureBeforeNavigation} cancel={cancelBeforeNavigation}>
       <ScrollView
@@ -113,7 +113,7 @@ function PersonContent({ person, region }: { person: PersonDetail; region: strin
         </View>
         <CustomListActions input={{ resourceId: person.id, resourceType: 'person' }} />
         <PersonStatistics person={person} movie={movie} tv={tv} />
-        <PersonKnownFor titles={[...(movie.data ?? []), ...(tv.data ?? [])]} region={region} />
+        <PersonKnownFor titles={allTitles} region={region} />
         <View className="gap-3">
           <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
             Biography
@@ -130,6 +130,7 @@ function PersonContent({ person, region }: { person: PersonDetail; region: strin
     </ScrollNavigationProvider>
   );
 }
+
 function PersonNotFound() {
   const router = useRouter();
   return (
@@ -147,6 +148,7 @@ function PersonNotFound() {
     </View>
   );
 }
+
 function PersonLoadError({ error, retry }: { error: Error; retry: () => Promise<unknown> }) {
   if (hasErrorCode(error, 'NOT_FOUND')) {
     return <PersonNotFound />;
@@ -182,6 +184,7 @@ function PersonQuery({ id, region }: { id: number; region: string }) {
     </>
   );
 }
+
 export function PersonScreen() {
   const params = useLocalSearchParams<{ id?: string; region?: string }>();
   const region = useRegion();

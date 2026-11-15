@@ -77,6 +77,13 @@ const extrasSchema = z.object({
   last_episode_to_air: episodeSchema.nullish(),
 });
 
+const keywordSchema = z.object({ name: z.string() });
+const keywordTitlesSchema = z.object({
+  results: z.array(tmdbCardSchema),
+  total_pages: z.number().int().nonnegative(),
+});
+const MAX_TMDB_PAGES = 500;
+
 export function createCatalogPdpService(fetchTmdb: TmdbFetch): PdpService {
   return {
     async extras({ id, type, region }) {
@@ -113,7 +120,7 @@ export function createCatalogPdpService(fetchTmdb: TmdbFetch): PdpService {
     },
     async keyword({ id, type, page, region }) {
       const [keyword, data] = await Promise.all([
-        fetchTmdb(`/keyword/${id}`).then((value) => z.object({ name: z.string() }).parse(value)),
+        fetchTmdb(`/keyword/${id}`).then((value) => keywordSchema.parse(value)),
         fetchTmdb(`/discover/${type}`, {
           searchParams: {
             with_keywords: id,
@@ -122,20 +129,13 @@ export function createCatalogPdpService(fetchTmdb: TmdbFetch): PdpService {
             include_adult: 'false',
             sort_by: 'popularity.desc',
           },
-        }).then((value) =>
-          z
-            .object({
-              results: z.array(tmdbCardSchema),
-              total_pages: z.number().int().nonnegative(),
-            })
-            .parse(value),
-        ),
+        }).then((value) => keywordTitlesSchema.parse(value)),
       ]);
       return {
         name: keyword.name,
         items: data.results.map((item) => toMediaCard(item, type)),
         page,
-        totalPages: Math.min(data.total_pages, 500),
+        totalPages: Math.min(data.total_pages, MAX_TMDB_PAGES),
       };
     },
   };

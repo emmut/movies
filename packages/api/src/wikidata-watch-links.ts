@@ -24,6 +24,9 @@ type LinkRule = {
 };
 
 function linkRules(type: 'movie' | 'tv'): LinkRule[] {
+  const isMovie = type === 'movie';
+  const appleProperty = isMovie ? 'P9586' : 'P9751';
+  const applePrefix = `https://tv.apple.com/${isMovie ? 'movie' : 'show'}/`;
   return [
     {
       property: 'P1874',
@@ -41,25 +44,25 @@ function linkRules(type: 'movie' | 'tv'): LinkRule[] {
       prefix: 'https://www.disneyplus.com/browse/',
     },
     {
-      property: type === 'movie' ? 'P9586' : 'P9751',
+      property: appleProperty,
       providerIds: [350],
       types: ['flatrate'],
       schema: z.string().regex(appleId),
-      prefix: `https://tv.apple.com/${type === 'movie' ? 'movie' : 'show'}/`,
+      prefix: applePrefix,
     },
     {
-      property: type === 'movie' ? 'P9586' : 'P9751',
+      property: appleProperty,
       providerIds: [2],
       types: ['rent', 'buy'],
       schema: z.string().regex(appleId),
-      prefix: `https://tv.apple.com/${type === 'movie' ? 'movie' : 'show'}/`,
+      prefix: applePrefix,
     },
     {
-      property: type === 'movie' ? 'P6466' : 'P6467',
+      property: isMovie ? 'P6466' : 'P6467',
       providerIds: [15],
       types: ['flatrate'],
       schema: uuidSchema,
-      prefix: `https://www.hulu.com/${type === 'movie' ? 'movie' : 'series'}/`,
+      prefix: `https://www.hulu.com/${isMovie ? 'movie' : 'series'}/`,
       regions: ['US'],
     },
     // P8055 explicitly identifies Amazon's US catalogue. Never reuse it abroad.
@@ -82,9 +85,9 @@ function linkRules(type: 'movie' | 'tv'): LinkRule[] {
   ];
 }
 
-function getIdentifier(value: unknown, schema: z.ZodType<string>) {
+function getIdentifier(value: unknown, schema: z.ZodType<string>): string | undefined {
   if (!Array.isArray(value)) {
-    return;
+    return undefined;
   }
   const statements = value.flatMap((entry) => {
     const result = statementSchema.safeParse(entry);
@@ -102,10 +105,13 @@ function getIdentifier(value: unknown, schema: z.ZodType<string>) {
   ];
   // Multiple conflicting IDs are ambiguous; do not pick an arbitrary edition.
   if (identifiers.length !== 1) {
-    return;
+    return undefined;
   }
   const parsed = schema.safeParse(identifiers[0]);
-  return parsed.success ? parsed.data : undefined;
+  if (!parsed.success) {
+    return undefined;
+  }
+  return parsed.data;
 }
 
 /** Construct URLs only from allowlisted properties, validated IDs and fixed provider origins. */

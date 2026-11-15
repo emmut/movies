@@ -18,7 +18,8 @@ export function DiscoverFacetSheet({
   onClose: () => void;
 }) {
   const [search, setSearch] = useState('');
-  const query = useDebouncedValue(search.trim(), 250);
+  const trimmedSearch = search.trim();
+  const query = useDebouncedValue(trimmedSearch, 250);
   const results = useDiscoveryFacets({ kind, query, ids: selected });
   const options = results.data ?? selected.map((id) => ({ id, name: `${kind} ${id}` }));
   return (
@@ -31,7 +32,7 @@ export function DiscoverFacetSheet({
       onSearch={setSearch}
       onSelect={onSelect}
       onClose={onClose}
-      pending={results.isPending || search.trim() !== query}
+      pending={results.isPending || trimmedSearch !== query}
       failed={results.isError}
       retry={() => {
         void results.refetch();

@@ -24,15 +24,13 @@ type TrendingCardProp = {
 async function Trending({ index, type }: TrendingCardProp) {
   const resources = await createServerApi(new Headers()).home.trending({ type });
 
-  if (!resources[index]) {
+  const resource = resources[index];
+  if (!resource) {
     return null;
   }
 
-  const resource = resources[index];
-
-  const title = resource.title;
-  const releaseDate = resource.releaseDate;
-  const href = type === 'movie' ? `/movie/${resource.id}` : `/tv/${resource.id}`;
+  const { title, releaseDate, backdropUrl } = resource;
+  const href = `/${type}/${resource.id}`;
 
   const borderColor = type === 'movie' ? 'hover:border-yellow-300' : 'hover:border-red-500';
 
@@ -45,9 +43,9 @@ async function Trending({ index, type }: TrendingCardProp) {
       // title paints through the header as the card scrolls under it.
       className={`group relative isolate h-52 overflow-hidden rounded-xl border ${borderColor} transition-all hover:scale-[1.02] focus:scale-[1.02] focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black focus:outline-none lg:h-72 lg:flex-1`}
     >
-      {resource.backdropUrl && (
+      {backdropUrl && (
         <Imgproxy
-          src={resource.backdropUrl}
+          src={backdropUrl}
           alt={`Poster of ${title}`}
           className="col-span-full row-span-full object-cover"
           sizes="(max-width:1024px) 100vw, 33vw"

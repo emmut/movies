@@ -21,38 +21,37 @@ type PersonCardProps = {
   eagerImage?: boolean;
 };
 
-function PersonArtwork({
-  person,
-  eager,
-  imageUrls,
-}: {
+type PersonArtworkProps = {
   person: SearchPersonCard;
   eager: boolean;
   imageUrls?: ProxyImageUrls;
-}) {
-  return (
-    <>
-      {person.profileUrl ? (
-        <ClientImage
-          imageUrls={imageUrls}
-          fallbackSrc={person.profileUrl}
-          alt={person.name}
-          className="h-full w-full object-cover"
-          eager={eager}
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center bg-zinc-800">
-          <div className="text-center text-zinc-400">
-            <div className="mb-2 text-4xl">
-              <User className="mx-auto h-12 w-12" />
-            </div>
-            <div className="text-sm font-semibold">No Photo</div>
+};
+
+function PersonArtwork({ person, eager, imageUrls }: PersonArtworkProps) {
+  if (!person.profileUrl) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-zinc-800">
+        <div className="text-center text-zinc-400">
+          <div className="mb-2 text-4xl">
+            <User className="mx-auto h-12 w-12" />
           </div>
+          <div className="text-sm font-semibold">No Photo</div>
         </div>
-      )}
-    </>
+      </div>
+    );
+  }
+
+  return (
+    <ClientImage
+      imageUrls={imageUrls}
+      fallbackSrc={person.profileUrl}
+      alt={person.name}
+      className="h-full w-full object-cover"
+      eager={eager}
+    />
   );
 }
+
 function PersonMetadata({ person }: { person: SearchPersonCard }) {
   const knownFor = person.knownFor.slice(0, 2).join(', ');
 

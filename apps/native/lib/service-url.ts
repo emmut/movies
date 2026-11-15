@@ -5,17 +5,27 @@ type ServiceUrlOptions = {
   port: number;
 };
 
+function developmentHost(browserOrigin?: string, expoHost?: string): string {
+  if (browserOrigin !== undefined) {
+    return browserOrigin;
+  }
+  if (expoHost) {
+    return `http://${expoHost}`;
+  }
+  return 'http://localhost';
+}
+
 export function resolveServiceUrl({
   explicitUrl,
   browserOrigin,
   expoHost,
   port,
-}: ServiceUrlOptions) {
-  if (explicitUrl?.trim()) {
-    return explicitUrl.trim().replace(/\/$/, '');
+}: ServiceUrlOptions): string {
+  const explicit = explicitUrl?.trim();
+  if (explicit) {
+    return explicit.replace(/\/$/, '');
   }
-  const host = browserOrigin ?? (expoHost ? `http://${expoHost}` : 'http://localhost');
-  const url = new URL(host);
+  const url = new URL(developmentHost(browserOrigin, expoHost));
   url.port = String(port);
   return url.origin;
 }

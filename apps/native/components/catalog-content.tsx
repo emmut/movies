@@ -152,9 +152,7 @@ function Creators({ item, region }: { item: CatalogDetail; region: string }) {
   if (item.type !== 'tv') {
     return null;
   }
-  return (
-    <PersonCreditGroup title="Created By" people={item.creators ?? []} compact region={region} />
-  );
+  return <PersonCreditGroup title="Created By" people={item.creators} compact region={region} />;
 }
 function SourceLinks({ item, imdbUrl }: { item: CatalogDetail; imdbUrl?: string | null }) {
   return (

@@ -3,7 +3,7 @@
  * decide if a refreshed server order can replace the local order without
  * visibly moving anything.
  */
-export function sameIdOrder(a: string[], b: string[]) {
+export function sameIdOrder(a: string[], b: string[]): boolean {
   return a.length === b.length && a.every((id, index) => id === b[index]);
 }
 
@@ -11,7 +11,7 @@ export function sameIdOrder(a: string[], b: string[]) {
  * Returns a copy of `orderedIds` with `id` moved to `toIndex`, clamping the
  * index to the array bounds. Returns `null` when `id` is not present.
  */
-export function moveIdToIndex(orderedIds: string[], id: string, toIndex: number) {
+export function moveIdToIndex(orderedIds: string[], id: string, toIndex: number): string[] | null {
   const fromIndex = orderedIds.indexOf(id);
 
   if (fromIndex === -1) {
@@ -29,7 +29,7 @@ export function canReorderList(
   input: { page: number; providerIds: readonly number[] },
   result: { currentPage: number; unavailableItems: number; totalItems: number } | undefined,
   stale: boolean,
-) {
+): boolean {
   if (!result || stale) {
     return false;
   }

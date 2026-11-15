@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@movies/ui/components/select';
-import { Film, Search, Tv, User } from 'lucide-react';
+import { Film, Search, Tv, User, type LucideIcon } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useOptimistic, useTransition } from 'react';
 
@@ -25,7 +25,7 @@ const mediaTypes = {
   movie: { label: 'Movies', Icon: Film },
   tv: { label: 'TV Shows', Icon: Tv },
   person: { label: 'Persons', Icon: User },
-};
+} satisfies Record<MediaType, { label: string; Icon: LucideIcon }>;
 
 /** Navigates between media types, retaining genres supported by the destination catalog. */
 export default function MediaTypeSelectorDropdown({
@@ -104,7 +104,9 @@ export default function MediaTypeSelectorDropdown({
 }
 
 function MediaTypeLabel({ mediaType }: { mediaType: MediaType }) {
+  // Fall back for unexpected runtime values, e.g. an unknown URL parameter.
   const { label, Icon } = mediaTypes[mediaType] ?? mediaTypes.all;
+
   return (
     <>
       <Icon className="h-4 w-4" />
@@ -112,10 +114,11 @@ function MediaTypeLabel({ mediaType }: { mediaType: MediaType }) {
     </>
   );
 }
+
 async function preserveGenre(
   params: URLSearchParams,
   query: ReturnType<typeof useDiscoveryOptions>,
-) {
+): Promise<void> {
   const genreId = params.get('genreId');
   if (!genreId) {
     return;

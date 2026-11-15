@@ -13,7 +13,9 @@ import { ENV } from '@/env';
 import { db } from '@/lib/db';
 import { passkeyOrigins } from '@/lib/passkey-origins';
 
-function deploymentOrigin(host: string | undefined) {
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+function deploymentOrigin(host: string | undefined): string | undefined {
   return host ? `https://${host}` : undefined;
 }
 
@@ -25,10 +27,7 @@ export const auth = betterAuth({
       ENV.BETTER_AUTH_TRUSTED_ORIGIN,
       deploymentOrigin(ENV.VERCEL_BRANCH_URL),
       deploymentOrigin(ENV.VERCEL_PROJECT_PRODUCTION_URL),
-      ...nativeTrustedOrigins(
-        process.env.NODE_ENV === 'development',
-        request?.headers.get('origin'),
-      ),
+      ...nativeTrustedOrigins(isDevelopment, request?.headers.get('origin')),
     ].filter((domain) => domain != null),
   database: drizzleAdapter(db, {
     provider: 'pg',
@@ -77,7 +76,7 @@ export const auth = betterAuth({
       origin: passkeyOrigins(
         ENV.NEXT_PUBLIC_BASE_URL,
         ENV.PASSKEY_ANDROID_FINGERPRINTS,
-        process.env.NODE_ENV === 'development',
+        isDevelopment,
       ),
     }),
     nextCookies(),

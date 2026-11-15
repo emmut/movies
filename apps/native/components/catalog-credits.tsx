@@ -1,4 +1,5 @@
 import type { CatalogDetailInput } from '@movies/api/catalog';
+import type { CatalogCredits as CatalogCreditsData } from '@movies/api/catalog-support';
 import type { CreditPerson } from '@movies/api/credits';
 import { useCatalogCredits } from '@movies/api/react/use-catalog-query';
 import { CatalogSectionState } from '@native/components/catalog-section-state';
@@ -43,7 +44,7 @@ export function CatalogCredits({ input }: { input: CatalogDetailInput }) {
   );
 }
 
-function hasCredits(data: NonNullable<ReturnType<typeof useCatalogCredits>['data']>) {
+function hasCredits(data: CatalogCreditsData) {
   return Object.values(data).some((people) => (people?.length ?? 0) > 0);
 }
 function FullCrew({ people = [], region }: { people?: CreditPerson[]; region: string }) {

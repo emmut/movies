@@ -1,7 +1,7 @@
 'use client';
 
 import type { Genre } from '@movies/api/tmdb-types/genre';
-import { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
+import type { WatchProvider } from '@movies/api/tmdb-types/watch-provider';
 import { useQueryStates } from 'nuqs';
 import { useRef } from 'react';
 

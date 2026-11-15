@@ -4,9 +4,15 @@ import type { SearchItem, SearchPage } from '@movies/api/search';
 import { Link } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
+const typeLabels: Record<SearchItem['type'], string> = {
+  movie: 'Movie',
+  tv: 'TV Show',
+  person: 'Person',
+};
+
 function Suggestion({ item }: { item: SearchItem }) {
   const title = item.type === 'person' ? item.name : item.title;
-  const label = { movie: 'Movie', tv: 'TV Show', person: 'Person' }[item.type];
+  const label = typeLabels[item.type];
   return (
     <Link
       href={{ pathname: '/search/[type]/[id]', params: { type: item.type, id: item.id } }}
@@ -29,9 +35,9 @@ function Suggestion({ item }: { item: SearchItem }) {
 export function SearchSuggestions({ draft, submit }: { draft: string; submit: () => void }) {
   const trimmed = draft.trim();
   const query = useDebouncedValue(trimmed, 250);
-  const results = useSearchSuggestions({ query }, query.length > 0 && query === trimmed);
   // Never expose a destination from a previous query while the debounce/request catches up.
   const current = query === trimmed;
+  const results = useSearchSuggestions({ query }, query.length > 0 && current);
   return (
     <ScrollView keyboardShouldPersistTaps="handled" contentContainerClassName="pb-6">
       <View className="mx-4 overflow-hidden rounded-xl border border-border">

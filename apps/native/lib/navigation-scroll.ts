@@ -1,7 +1,7 @@
 let activeCapture: (() => void) | null = null;
 
 /** Only the focused screen supplies a capture; old blur cleanup cannot unregister its successor. */
-export function registerScrollCapture(capture: () => void) {
+export function registerScrollCapture(capture: () => void): () => void {
   activeCapture = capture;
   return function unregister() {
     if (activeCapture === capture) {
@@ -9,6 +9,7 @@ export function registerScrollCapture(capture: () => void) {
     }
   };
 }
-export function captureActiveScroll() {
+
+export function captureActiveScroll(): void {
   activeCapture?.();
 }

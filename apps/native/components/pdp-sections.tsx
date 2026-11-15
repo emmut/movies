@@ -40,6 +40,7 @@ function CollectionParts({ parts, region }: { parts: CollectionPage['parts']; re
     </ScrollView>
   );
 }
+
 function Collection({ id, region }: { id: number; region: string }) {
   const query = useCatalogCollection({ id });
   return (
@@ -63,6 +64,7 @@ function Collection({ id, region }: { id: number; region: string }) {
     </View>
   );
 }
+
 function Seasons({ data, input }: { data: PdpExtras; input: CatalogDetailInput }) {
   const pathname = usePathname();
   const navigation = useScrollNavigation();
@@ -72,13 +74,13 @@ function Seasons({ data, input }: { data: PdpExtras; input: CatalogDetailInput }
       params: { id: input.id, type: 'tv', season, region: input.region },
     };
   }
+  if (data.seasons.length === 0 && !data.next && !data.latest) {
+    return null;
+  }
   const episodes = [
     { label: 'Next Episode', episode: data.next },
     { label: 'Latest Episode', episode: data.latest },
   ];
-  if (!data.seasons.length && !data.next && !data.latest) {
-    return null;
-  }
   return (
     <View className="gap-4">
       <Text accessibilityRole="header" className="text-xl font-semibold text-foreground">
@@ -127,11 +129,12 @@ function Seasons({ data, input }: { data: PdpExtras; input: CatalogDetailInput }
     </View>
   );
 }
+
 function Keywords({ items, input }: { items: PdpExtras['keywords']; input: CatalogDetailInput }) {
   const pathname = usePathname();
   const navigation = useScrollNavigation();
   const prefix = catalogPath(pathname).replace('/[type]/[id]', '');
-  if (!items.length) {
+  if (items.length === 0) {
     return null;
   }
   return (
@@ -162,8 +165,9 @@ function Keywords({ items, input }: { items: PdpExtras['keywords']; input: Catal
     </View>
   );
 }
+
 function Releases({ items, region }: { items: PdpExtras['releases']; region: string }) {
-  if (!items.length) {
+  if (items.length === 0) {
     return null;
   }
   return (
@@ -180,6 +184,7 @@ function Releases({ items, region }: { items: PdpExtras['releases']; region: str
     </View>
   );
 }
+
 function Availability({ data, region }: { data: PdpExtras; region: string }) {
   return (
     <View className="gap-6">
@@ -188,6 +193,7 @@ function Availability({ data, region }: { data: PdpExtras; region: string }) {
     </View>
   );
 }
+
 export function PdpSections({
   input,
   title,
