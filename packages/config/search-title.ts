@@ -5,7 +5,7 @@
  * "spider man"). Letters and digits of every script survive. Apply the same
  * fold to queries.
  */
-export function normalizeSearchTitle(title: string): string {
+export function normalizeSearchTitle(title: string) {
   return title
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')

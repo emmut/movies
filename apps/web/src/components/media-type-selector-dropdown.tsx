@@ -118,7 +118,7 @@ function MediaTypeLabel({ mediaType }: { mediaType: MediaType }) {
 async function preserveGenre(
   params: URLSearchParams,
   query: ReturnType<typeof useDiscoveryOptions>,
-): Promise<void> {
+) {
   const genreId = params.get('genreId');
   if (!genreId) {
     return;

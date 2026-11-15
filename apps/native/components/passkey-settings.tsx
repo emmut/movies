@@ -24,15 +24,15 @@ import { withUniwind } from 'uniwind';
 
 const SafeAreaView = withUniwind(NativeSafeAreaView);
 
-function passkeyName(key: PasskeyMetadata): string {
+function passkeyName(key: PasskeyMetadata) {
   return key.name || 'Unnamed passkey';
 }
 
-async function refresh(userId: string): Promise<void> {
+async function refresh(userId: string) {
   await queryClient.invalidateQueries({ queryKey: passkeyKey(userId) });
 }
 
-function registrationMessage(error: unknown): string {
+function registrationMessage(error: unknown) {
   if (
     hasErrorCode(
       error,

@@ -7,7 +7,7 @@ const unavailableAuthSchema = z.object({
 });
 
 /** Only an explicitly catalog-only host permits public fallback after a session-read error. */
-export function isAuthNotConfigured(error: unknown): boolean {
+export function isAuthNotConfigured(error: unknown) {
   return unavailableAuthSchema.safeParse(error).success;
 }
 

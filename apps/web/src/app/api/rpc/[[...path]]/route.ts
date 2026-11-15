@@ -5,7 +5,7 @@ import { createApiContext } from '@/lib/api-server';
 
 const handler = new RPCHandler(appRouter);
 
-async function handle(request: Request): Promise<Response> {
+async function handle(request: Request) {
   const context = createApiContext(request.headers);
   const result = await handler.handle(request, { prefix: '/api/rpc', context });
   if (!result.matched) {

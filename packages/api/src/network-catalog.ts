@@ -38,10 +38,10 @@ export async function loadNetworkCatalog(): Promise<Network[]> {
 /** Keep web and native exact-name ordering and result limits in sync. */
 export function searchNetworkCatalog(networks: Network[], query: string): Network[] {
   const term = query.toLocaleLowerCase();
-  function isExactMatch(network: Network): boolean {
+  function isExactMatch(network: Network) {
     return network.name.toLocaleLowerCase() === term;
   }
-  function compareNetworks(a: Network, b: Network): number {
+  function compareNetworks(a: Network, b: Network) {
     const exactFirst = Number(isExactMatch(b)) - Number(isExactMatch(a));
     if (exactFirst !== 0) {
       return exactFirst;

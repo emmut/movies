@@ -7,10 +7,7 @@ type ScrollMemory = {
 };
 
 /** One mounted scroll surface can display several filter/page keys over its lifetime. */
-export function createScrollMemory(
-  initialKey: string,
-  positions: Map<string, number>,
-): ScrollMemory {
+export function createScrollMemory(initialKey: string, positions: Map<string, number>) {
   let key = initialKey;
   const memory: ScrollMemory = {
     offset: positions.get(key) ?? 0,

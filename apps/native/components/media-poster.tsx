@@ -13,7 +13,7 @@ import { withUniwind } from 'uniwind';
 
 const Image = withUniwind(ExpoImage);
 
-function keyExtractor(item: MediaCard): string {
+function keyExtractor(item: MediaCard) {
   return `${item.type}-${item.id}`;
 }
 
@@ -55,7 +55,7 @@ function CardMetadata({ item, featured }: { item: MediaCard; featured: boolean }
   );
 }
 
-function posterDimensions(featured: boolean, fluid: boolean): string {
+function posterDimensions(featured: boolean, fluid: boolean) {
   if (featured) {
     return 'h-64 w-full rounded-2xl';
   }
@@ -123,11 +123,11 @@ function PosterArtwork({ source }: { source: string | null }) {
   );
 }
 
-function mediaLabel(type: MediaCard['type']): string {
+function mediaLabel(type: MediaCard['type']) {
   return type === 'movie' ? 'Movie' : 'TV Show';
 }
 
-function releaseYear(date: string): string {
+function releaseYear(date: string) {
   return date.slice(0, 4) || 'Release date TBA';
 }
 

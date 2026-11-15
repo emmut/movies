@@ -7,7 +7,7 @@ import type { AuthGateway } from '@server/auth-gateway';
 import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
 
-function localOrigin(origin: string): string {
+function localOrigin(origin: string) {
   return isLocalBrowserOrigin(origin) ? origin : '';
 }
 

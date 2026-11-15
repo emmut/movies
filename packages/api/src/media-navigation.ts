@@ -18,11 +18,7 @@ export function getSwipeMediaDirection(startX: number, endX: number): MediaDirec
   return null;
 }
 
-export function getAdjacentMediaIndex(
-  index: number,
-  count: number,
-  direction: MediaDirection,
-): number {
+export function getAdjacentMediaIndex(index: number, count: number, direction: MediaDirection) {
   const offset = direction === 'next' ? 1 : -1;
   return (index + offset + count) % count;
 }

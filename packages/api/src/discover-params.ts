@@ -7,11 +7,7 @@ export const MIN_RUNTIME_FILTER_MINUTES = 1;
 
 const majorProviders = MAJOR_STREAMING_PROVIDERS.join('|');
 
-function hasEntityFilter(
-  keywordIds: number[],
-  companyIds: number[],
-  networkIds: number[],
-): boolean {
+function hasEntityFilter(keywordIds: number[], companyIds: number[], networkIds: number[]) {
   return keywordIds.length > 0 || companyIds.length > 0 || networkIds.length > 0;
 }
 
@@ -22,7 +18,7 @@ export function getDiscoverWatchProviders(
   keywordIds: number[],
   companyIds: number[] = [],
   networkIds: number[] = [],
-): string | undefined {
+) {
   if (hasEntityFilter(keywordIds, companyIds, networkIds)) {
     return getWatchProvidersString(urlProviders, []);
   }

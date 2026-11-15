@@ -35,7 +35,7 @@ const providersSchema = z.object({ results: z.record(z.string(), regionProviders
 const cardsSchema = z.object({ results: z.array(tmdbCardSchema) });
 
 /** Missing/invalid upstream links use TMDB's documented watch page. */
-function watchLink(link: string | undefined, { id, type }: CatalogDetailInput): string {
+function watchLink(link: string | undefined, { id, type }: CatalogDetailInput) {
   return publicWebUrl(link ?? null) ?? `https://www.themoviedb.org/${type}/${id}/watch`;
 }
 

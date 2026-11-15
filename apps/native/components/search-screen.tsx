@@ -78,7 +78,7 @@ function renderResult({ item }: { item: SearchItem }) {
   );
 }
 
-function resultKey(item: SearchItem): string {
+function resultKey(item: SearchItem) {
   return item.type + ':' + item.id;
 }
 

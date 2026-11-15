@@ -12,20 +12,20 @@ import {
 const MAX_SELECTIONS = 50;
 
 /** URL lists accept `|` or `,` separators. */
-function listValues(value: Params[string]): string[] {
+function listValues(value: Params[string]) {
   return (scalar(value) ?? '').split(/[|,]/);
 }
 
-function isPositiveId(id: number): boolean {
+function isPositiveId(id: number) {
   return Number.isSafeInteger(id) && id > 0;
 }
 
-function ids(value: Params[string]): number[] {
+function ids(value: Params[string]) {
   const unique = new Set(listValues(value).map(Number).filter(isPositiveId));
   return [...unique].slice(0, MAX_SELECTIONS);
 }
 
-function boundedInteger(value: Params[string], max: number): number | undefined {
+function boundedInteger(value: Params[string], max: number) {
   const number = Number(scalar(value));
   if (!Number.isInteger(number)) {
     return undefined;
@@ -36,12 +36,12 @@ function boundedInteger(value: Params[string], max: number): number | undefined 
   return number;
 }
 
-function sortForType(type: 'movie' | 'tv', value: Params[string]): string {
+function sortForType(type: 'movie' | 'tv', value: Params[string]) {
   const options = type === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
   return options.find((option) => option.value === scalar(value))?.value ?? 'popularity.desc';
 }
 
-function countryCodes(value: Params[string]): string[] {
+function countryCodes(value: Params[string]) {
   return sanitizeOriginCountryCodes(listValues(value)).slice(0, MAX_SELECTIONS);
 }
 
@@ -76,7 +76,7 @@ export function readDiscoverState(
   });
 }
 
-export function toggleSelection(values: string[], value: string, maxSelections?: number): string[] {
+export function toggleSelection(values: string[], value: string, maxSelections?: number) {
   if (values.includes(value)) {
     return values.filter((entry) => entry !== value);
   }

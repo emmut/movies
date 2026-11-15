@@ -5,7 +5,7 @@ type Sources<Method extends SignInMethod> = {
   current(): Promise<User | null>;
 };
 
-function completed(method: SignInMethod, user: User | null): boolean {
+function completed(method: SignInMethod, user: User | null) {
   if (!user) {
     return false;
   }
@@ -25,7 +25,7 @@ const defaultMessages = {
 export function createSignInFlow<Method extends SignInMethod>(
   sources: Sources<Method>,
   messages = defaultMessages,
-): (method: Method, destination: string) => Promise<string | null> {
+) {
   return async function authenticate(method: Method, destination: string) {
     try {
       const result = await sources.signIn(method, destination);

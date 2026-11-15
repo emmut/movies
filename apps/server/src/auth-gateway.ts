@@ -22,7 +22,7 @@ const UPSTREAM_TIMEOUT_MS = 15_000;
 
 export type AuthGateway = ReturnType<typeof createAuthGateway>;
 
-function hasRequestBody(method: string): boolean {
+function hasRequestBody(method: string) {
   return method !== 'GET' && method !== 'HEAD';
 }
 

@@ -1,7 +1,7 @@
 import type { PersonDetail } from '@movies/api/person';
 import type { CatalogStat } from '@native/lib/catalog-model';
 
-function year(date: string | null): number | null {
+function year(date: string | null) {
   if (!date) {
     return null;
   }
@@ -46,10 +46,7 @@ export function personFacts(person: PersonDetail) {
   return facts.filter((fact) => Boolean(fact.value));
 }
 
-export function personCreditCount(
-  movie: unknown[] | undefined,
-  tv: unknown[] | undefined,
-): number | undefined {
+export function personCreditCount(movie: unknown[] | undefined, tv: unknown[] | undefined) {
   if (!movie || !tv) {
     return undefined;
   }

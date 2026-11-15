@@ -32,7 +32,7 @@ function failure(code: string): Result {
   return { data: null, error: { code } };
 }
 
-function cancelled(error: unknown): boolean {
+function cancelled(error: unknown) {
   if (typeof error !== 'object' || error === null) {
     return false;
   }
@@ -47,7 +47,7 @@ function cancelled(error: unknown): boolean {
 
 /** The same challenge/verification protocol as the official browser client, using OS credentials. */
 export function createPasskeyCeremony(sources: Sources) {
-  async function credential(ceremony: Ceremony, options: unknown): Promise<unknown> {
+  async function credential(ceremony: Ceremony, options: unknown) {
     if (ceremony === 'registration') {
       return sources.register(passkeyRegistrationOptionsSchema.parse(options));
     }
@@ -95,19 +95,19 @@ export function createPasskeyCeremony(sources: Sources) {
   };
 }
 
-function registrationQuery(ceremony: Ceremony, name?: string): { name: string } | undefined {
+function registrationQuery(ceremony: Ceremony, name?: string) {
   if (ceremony === 'registration') {
     return { name: passkeyNameSchema.parse(name) };
   }
   return undefined;
 }
 
-function optionsPath(ceremony: Ceremony): string {
+function optionsPath(ceremony: Ceremony) {
   const action = ceremony === 'registration' ? 'register' : 'authenticate';
   return `/passkey/generate-${action}-options`;
 }
 
-function verificationResult(result: Result): Result {
+function verificationResult(result: Result) {
   if (!result.error && !result.data) {
     return failure('PASSKEY_FAILED');
   }

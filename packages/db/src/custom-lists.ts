@@ -53,7 +53,7 @@ function itemManualOrder() {
   return [asc(listItems.position), desc(listItems.createdAt)];
 }
 
-function isUniqueViolation(error: unknown): boolean {
+function isUniqueViolation(error: unknown) {
   if (!(error instanceof Error)) {
     return false;
   }

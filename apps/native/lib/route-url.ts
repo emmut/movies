@@ -1,12 +1,12 @@
 /** `[id]` and `[...rest]` segments name the params `id` and `rest`. */
-function routeParamName(segment: string): string {
+function routeParamName(segment: string) {
   return segment
     .replaceAll('[', '')
     .replaceAll(']', '')
     .replace(/^\.\.\./, '');
 }
 
-function routeParamNames(segments: readonly string[]): Set<string> {
+function routeParamNames(segments: readonly string[]) {
   const dynamicSegments = segments.filter((segment) => segment.startsWith('['));
   return new Set(dynamicSegments.map(routeParamName));
 }
@@ -16,7 +16,7 @@ export function routeUrl(
   pathname: string,
   params: Record<string, string | string[] | undefined>,
   segments: readonly string[],
-): string {
+) {
   const routeParams = routeParamNames(segments);
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {

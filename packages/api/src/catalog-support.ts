@@ -37,9 +37,7 @@ export type TmdbVideo = {
 export type TmdbVideoResponse = { id: number; results: TmdbVideo[] };
 
 /** Preserve TMDB order: the first playable YouTube Trailer or Teaser wins. */
-export function pickYoutubeTrailer(
-  videos: Pick<TmdbVideo, 'key' | 'site' | 'type'>[],
-): string | null {
+export function pickYoutubeTrailer(videos: Pick<TmdbVideo, 'key' | 'site' | 'type'>[]) {
   const video = videos.find((item) => {
     const trailerType = item.type === 'Trailer' || item.type === 'Teaser';
     return trailerType && item.site === 'YouTube' && youtubeKeySchema.safeParse(item.key).success;
@@ -47,7 +45,7 @@ export function pickYoutubeTrailer(
   return video?.key ?? null;
 }
 
-export function trailerEmbedUrl(key: string): string {
+export function trailerEmbedUrl(key: string) {
   const safeKey = youtubeKeySchema.parse(key);
   return `https://www.youtube.com/embed/${safeKey}?autoplay=1&playsinline=1`;
 }

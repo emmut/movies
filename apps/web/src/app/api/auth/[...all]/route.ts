@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth';
 
 const handlers = toNextJsHandler(auth);
 
-async function handle(request: Request): Promise<Response> {
+async function handle(request: Request) {
   try {
     const verified = verifiedAuthRequest(request, ENV.BETTER_AUTH_SECRET);
     if (request.method === 'GET') {

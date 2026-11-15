@@ -8,6 +8,6 @@ export function glassHeaderOptions(platform: string, available: boolean) {
 }
 
 /** Native navigator color props cannot consume CSS tokens or Uniwind classes. */
-export function navigationColor(value: unknown): string | undefined {
+export function navigationColor(value: unknown) {
   return typeof value === 'string' ? value : undefined;
 }

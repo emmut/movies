@@ -123,7 +123,7 @@ function ProviderActions({
   );
 }
 
-function providerKey(provider: ProviderChoice): string {
+function providerKey(provider: ProviderChoice) {
   return String(provider.id);
 }
 

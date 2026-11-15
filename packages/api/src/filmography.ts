@@ -4,7 +4,7 @@ export function deduplicateAndSortByPopularity<T extends { id: number; popularit
   items: T[],
   getDateString: (item: T) => string,
 ): T[] {
-  function timeOf(item: T): number {
+  function timeOf(item: T) {
     return new Date(getDateString(item) || FALLBACK_DATE).getTime();
   }
   return items

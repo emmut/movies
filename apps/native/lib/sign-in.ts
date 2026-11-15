@@ -3,7 +3,7 @@ import { signInDevicePasskey } from '@native/lib/passkeys';
 import { createSignInFlow, type SignInMethod } from '@native/lib/sign-in-flow';
 import { Platform } from 'react-native';
 
-function authCallback(path: string): string {
+function authCallback(path: string) {
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     return window.location.origin + path;
   }

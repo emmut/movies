@@ -5,7 +5,7 @@ type ServiceUrlOptions = {
   port: number;
 };
 
-function developmentHost(browserOrigin?: string, expoHost?: string): string {
+function developmentHost(browserOrigin?: string, expoHost?: string) {
   if (browserOrigin !== undefined) {
     return browserOrigin;
   }
@@ -20,7 +20,7 @@ export function resolveServiceUrl({
   browserOrigin,
   expoHost,
   port,
-}: ServiceUrlOptions): string {
+}: ServiceUrlOptions) {
   const explicit = explicitUrl?.trim();
   if (explicit) {
     return explicit.replace(/\/$/, '');

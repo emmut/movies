@@ -37,7 +37,7 @@ type FilterBuilder = (input: DiscoveryInput, data: DiscoveryOptions) => FilterSp
 
 const RUNTIME_LIMITS = [0, 30, 60, 90, 120];
 
-function runtimeLabel(minutes: number): string {
+function runtimeLabel(minutes: number) {
   if (minutes === 0) {
     return 'Any';
   }
@@ -120,7 +120,7 @@ export function filterSpec(
 }
 
 /** Count selected facets; the watch region always has a value and is context, not a facet. */
-export function activeDiscoverFilterCount(input: DiscoveryInput): number {
+export function activeDiscoverFilterCount(input: DiscoveryInput) {
   return (
     input.genreIds.length +
     input.keywordIds.length +

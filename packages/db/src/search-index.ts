@@ -32,7 +32,7 @@ export const FUZZY_QUERY_TIMEOUT_MS = 1500;
  * Every word must match, with prefix matching on the final word. `folded`
  * contains only letters, digits and spaces, never tsquery syntax.
  */
-function allWordsTsQuery(folded: string): string {
+function allWordsTsQuery(folded: string) {
   const words = folded.split(' ');
   const lastIndex = words.length - 1;
   words[lastIndex] = `${words[lastIndex]}:*`;

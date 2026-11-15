@@ -331,7 +331,7 @@ function toCountryMatch(code: string, query: string): CountryMatch {
   return { code, name, prefix: name.startsWith(query) || code.toLowerCase() === query };
 }
 
-function compareCountryMatches(a: CountryMatch, b: CountryMatch): number {
+function compareCountryMatches(a: CountryMatch, b: CountryMatch) {
   if (a.prefix !== b.prefix) {
     return Number(b.prefix) - Number(a.prefix);
   }
@@ -339,7 +339,7 @@ function compareCountryMatches(a: CountryMatch, b: CountryMatch): number {
 }
 
 /** Name-prefix matches (and exact code matches) first, then alphabetical by name. */
-function rankCountryMatches(query: string): string[] {
+function rankCountryMatches(query: string) {
   return originCountries
     .filter((code) => matchesCountryQuery(code, query))
     .map((code) => toCountryMatch(code, query))

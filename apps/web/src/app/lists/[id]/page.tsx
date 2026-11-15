@@ -19,7 +19,7 @@ function canonicalListPageUrl(
   page: number,
   watchProviders?: number[],
   watchRegion?: string,
-): string {
+) {
   const params = new URLSearchParams({ page: String(page) });
   if (watchProviders && watchRegion) {
     params.set('with_watch_providers', watchProviders.join(','));

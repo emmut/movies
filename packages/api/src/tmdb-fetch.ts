@@ -76,11 +76,11 @@ function retryAfterMs(res: Response): number | null {
  * Whether this response is final — either usable or a non-retryable failure, or
  * we've exhausted our attempts and must surface whatever we got.
  */
-function isFinalResponse(res: Response, attempt: number): boolean {
+function isFinalResponse(res: Response, attempt: number) {
   return res.ok || !RETRYABLE_STATUS.has(res.status) || attempt >= MAX_ATTEMPTS;
 }
 
-function isTimeout(error: unknown): boolean {
+function isTimeout(error: unknown) {
   return error instanceof DOMException && error.name === 'TimeoutError';
 }
 

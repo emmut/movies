@@ -158,7 +158,7 @@ function ListMenuItems({
 }
 
 /** System lists only accept movie and TV resources. */
-function toSystemResourceType(mediaType: QuickAddButtonProps['mediaType']): 'movie' | 'tv' {
+function toSystemResourceType(mediaType: QuickAddButtonProps['mediaType']) {
   return mediaType === 'tv' ? 'tv' : 'movie';
 }
 

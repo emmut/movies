@@ -5,7 +5,7 @@ import { ENV } from '@native/src/env';
 import { requireOptionalNativeModule } from 'expo';
 import { Platform } from 'react-native';
 
-export function isPasskeySupported(): boolean {
+export function isPasskeySupported() {
   if (Platform.OS === 'web') {
     return typeof window !== 'undefined' && typeof window.PublicKeyCredential !== 'undefined';
   }
@@ -53,7 +53,7 @@ export async function readPasskeys() {
   return passkeyListSchema.parse(result.data);
 }
 
-function passkeyListError(error: { status?: number; code?: string } | null): Error {
+function passkeyListError(error: { status?: number; code?: string } | null) {
   const code = error?.status === 401 ? 'UNAUTHORIZED' : error?.code;
   return Object.assign(new Error('Could not load passkeys'), { code });
 }

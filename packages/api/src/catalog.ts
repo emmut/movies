@@ -45,7 +45,7 @@ export const catalogDetailSchema = z.discriminatedUnion('type', [
 export type CatalogDetail = z.infer<typeof catalogDetailSchema>;
 
 /** Route IDs are decimal positive integers, never coercible JS expressions. */
-export function parseCatalogId(value: string | string[] | undefined): number | null {
+export function parseCatalogId(value: string | string[] | undefined) {
   if (typeof value !== 'string' || !/^[1-9]\d*$/.test(value)) {
     return null;
   }

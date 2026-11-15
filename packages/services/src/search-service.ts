@@ -28,7 +28,7 @@ async function noIndex() {
 const MAX_TMDB_PAGES = 500;
 
 /** TMDB refuses pages beyond 500 even when it reports more. */
-function reachablePages(totalPages: number): number {
+function reachablePages(totalPages: number) {
   return Math.min(MAX_TMDB_PAGES, totalPages);
 }
 

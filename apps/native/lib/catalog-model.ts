@@ -46,13 +46,13 @@ export function catalogStats(item: CatalogDetail, imdb: ImdbRating | null = null
   return stats;
 }
 
-function addFact(facts: Fact[], label: string, value: string): void {
+function addFact(facts: Fact[], label: string, value: string) {
   if (value) {
     facts.push({ label, value });
   }
 }
 
-function movieMoney(item: Extract<CatalogDetail, { type: 'movie' }>, facts: Fact[]): void {
+function movieMoney(item: Extract<CatalogDetail, { type: 'movie' }>, facts: Fact[]) {
   if (item.budget > 0) {
     addFact(facts, 'Budget', formatCurrency(item.budget, false));
   }
@@ -64,7 +64,7 @@ function movieMoney(item: Extract<CatalogDetail, { type: 'movie' }>, facts: Fact
   }
 }
 
-function tvFacts(item: Extract<CatalogDetail, { type: 'tv' }>, facts: Fact[]): void {
+function tvFacts(item: Extract<CatalogDetail, { type: 'tv' }>, facts: Fact[]) {
   addFact(facts, 'Last Air Date', item.lastAirDate);
   addFact(facts, 'Episodes', String(item.episodes));
   addFact(facts, 'Seasons', String(item.seasons));
@@ -72,7 +72,7 @@ function tvFacts(item: Extract<CatalogDetail, { type: 'tv' }>, facts: Fact[]): v
   addFact(facts, 'Networks', item.networks.join(', '));
 }
 
-function originalTitle(item: CatalogDetail): string {
+function originalTitle(item: CatalogDetail) {
   if (item.type === 'tv' && item.originalTitle === item.title) {
     return '';
   }

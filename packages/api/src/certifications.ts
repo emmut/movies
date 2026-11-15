@@ -99,10 +99,7 @@ export function pickTvCertification(
  * @param userRegion - The region the user asked for.
  * @returns A label like "15" or "R (US)", or null when there is nothing to show.
  */
-export function formatCertification(
-  certification: Certification | null,
-  userRegion: string,
-): string | null {
+export function formatCertification(certification: Certification | null, userRegion: string) {
   if (!certification) {
     return null;
   }

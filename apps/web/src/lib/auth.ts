@@ -15,7 +15,7 @@ import { passkeyOrigins } from '@/lib/passkey-origins';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-function deploymentOrigin(host: string | undefined): string | undefined {
+function deploymentOrigin(host: string | undefined) {
   return host ? `https://${host}` : undefined;
 }
 

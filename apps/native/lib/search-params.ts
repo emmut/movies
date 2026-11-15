@@ -5,7 +5,7 @@ export type SearchParams = Record<string, string | string[] | undefined>;
 export type SearchParamValue = SearchParams[string];
 
 /** Expo Router repeats a key as an array; the first occurrence wins. */
-export function scalar(value: SearchParamValue): string | undefined {
+export function scalar(value: SearchParamValue) {
   if (Array.isArray(value)) {
     return value[0];
   }
@@ -13,7 +13,7 @@ export function scalar(value: SearchParamValue): string | undefined {
 }
 
 /** Provider ids from a `|`- or `,`-separated URL value, keeping only storable ids. */
-export function providerIdList(value: SearchParamValue): number[] {
+export function providerIdList(value: SearchParamValue) {
   return (scalar(value) ?? '')
     .split(/[|,]/)
     .map(Number)
@@ -21,7 +21,7 @@ export function providerIdList(value: SearchParamValue): number[] {
 }
 
 /** A valid region from the URL, or the caller's fallback. */
-export function regionOr(value: SearchParamValue, fallback: string): string {
+export function regionOr(value: SearchParamValue, fallback: string) {
   const parsed = regionSchema.safeParse(scalar(value));
   if (parsed.success) {
     return parsed.data;

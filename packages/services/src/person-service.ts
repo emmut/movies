@@ -15,7 +15,7 @@ import { createPersonMetadataService } from './person-metadata-service';
 
 const IMDB_PERSON_ID = /^nm\d+$/;
 
-function imdbPersonUrl(imdbId: string | null | undefined): string | null {
+function imdbPersonUrl(imdbId: string | null | undefined) {
   if (!imdbId || !IMDB_PERSON_ID.test(imdbId)) {
     return null;
   }

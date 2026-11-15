@@ -19,14 +19,14 @@ export default function appConfig({ config }: ConfigContext): ExpoConfig {
 
 const releaseProfiles = new Set<string | undefined>(['preview', 'production']);
 
-function isHttpsUrl(value: string | undefined): boolean {
+function isHttpsUrl(value: string | undefined) {
   if (!value) {
     return false;
   }
   return new URL(value).protocol === 'https:';
 }
 
-function validateReleaseApiUrl(): void {
+function validateReleaseApiUrl() {
   if (!releaseProfiles.has(ENV.EAS_BUILD_PROFILE)) {
     return;
   }
@@ -37,7 +37,7 @@ function validateReleaseApiUrl(): void {
   }
 }
 
-function associatedDomains(config: ConfigContext['config']): string[] {
+function associatedDomains(config: ConfigContext['config']) {
   const domains = [...(config.ios?.associatedDomains ?? [])];
   if (ENV.EXPO_PUBLIC_PASSKEY_DOMAIN) {
     domains.push(`webcredentials:${passkeyDomainSchema.parse(ENV.EXPO_PUBLIC_PASSKEY_DOMAIN)}`);

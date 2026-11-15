@@ -3,7 +3,7 @@ export function subscribeToPreferenceRefresh(
   refresh: () => void,
   browser: Pick<Window, 'addEventListener' | 'removeEventListener'> = window,
   page: Pick<Document, 'addEventListener' | 'removeEventListener' | 'visibilityState'> = document,
-): () => void {
+) {
   let timer: ReturnType<typeof setTimeout> | undefined;
   function onReturn() {
     if (page.visibilityState !== 'visible') {

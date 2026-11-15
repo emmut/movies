@@ -14,7 +14,7 @@ const sorts: { value: CreditSort; label: string }[] = [
   { value: 'newest', label: 'Newest first' },
 ];
 
-function sortLabel(sort: CreditSort): string | undefined {
+function sortLabel(sort: CreditSort) {
   return sorts.find((item) => item.value === sort)?.label;
 }
 

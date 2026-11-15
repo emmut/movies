@@ -5,7 +5,7 @@ import type { GalleryMedia, MediaViewerProps } from '@native/components/media-vi
 import { useRef, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
-function clampPage(page: number, count: number): number {
+function clampPage(page: number, count: number) {
   return Math.max(0, Math.min(count - 1, page));
 }
 

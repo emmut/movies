@@ -15,7 +15,7 @@ type QueryProviderProps = {
 };
 
 /** `undefined` while the session resolves; `null` once the visitor is known to be signed out. */
-function accountIdFromSession(session: ReturnType<typeof useSession>): string | null | undefined {
+function accountIdFromSession(session: ReturnType<typeof useSession>) {
   if (session.isPending) {
     return undefined;
   }

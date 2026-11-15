@@ -14,14 +14,14 @@ const SafeAreaView = withUniwind(NativeSafeAreaView);
 
 type Episode = SeasonPage['episodes'][number];
 
-function toggleId(ids: number[], id: number): number[] {
+function toggleId(ids: number[], id: number) {
   if (ids.includes(id)) {
     return ids.filter((value) => value !== id);
   }
   return [...ids, id];
 }
 
-function ratingLabel(episode: Episode): string {
+function ratingLabel(episode: Episode) {
   if (episode.vote_count === 0) {
     return 'Not yet rated';
   }

@@ -30,11 +30,11 @@ type Entry = SystemListPage['items'][number];
 
 const mediaTabs = ['movie', 'tv'] as const;
 
-function title(listType: SystemListType): string {
+function title(listType: SystemListType) {
   return SYSTEM_LIST_COPY[listType].title;
 }
 
-function itemKey(item: Entry): string {
+function itemKey(item: Entry) {
   return item.listItemId;
 }
 
@@ -63,7 +63,7 @@ function ListEmpty({
   return <EmptyListCopy input={input} total={result.counts.movie + result.counts.tv} />;
 }
 
-function emptyHint(copy: SystemListCopy, media: string, total: number): string {
+function emptyHint(copy: SystemListCopy, media: string, total: number) {
   if (total === 0) {
     return copy.emptyHintAll(media, 'tapping');
   }
@@ -130,7 +130,7 @@ function ListHeader({
   );
 }
 
-function listCountCaption(input: SystemListPageInput, result: SystemListPage): string {
+function listCountCaption(input: SystemListPageInput, result: SystemListPage) {
   const count = result.counts[input.resourceType];
   const noun = SYSTEM_LIST_MEDIA[input.resourceType].countNoun;
   const plural = count === 1 ? '' : 's';

@@ -6,7 +6,7 @@ import type { createApiQueryUtils } from '../query-utils';
 
 type ApiQueryUtils = ReturnType<typeof createApiQueryUtils>;
 const AccountContext = createContext<string | null | undefined>(undefined);
-export function useApiAccountId(): string | null {
+export function useApiAccountId() {
   return useContext(AccountContext) ?? null;
 }
 
@@ -34,7 +34,7 @@ export function useApi(): ApiQueryUtils {
   return api;
 }
 
-export function useEffectiveAccountId(fallback: string | null): string | null {
+export function useEffectiveAccountId(fallback: string | null) {
   const accountId = useContext(AccountContext);
   if (accountId === undefined) {
     return fallback;

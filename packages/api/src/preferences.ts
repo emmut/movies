@@ -43,10 +43,7 @@ export function resolveWatchProviderIds(urlProviders: number[], userProviders: n
   return userProviders;
 }
 
-export function getWatchProvidersString(
-  urlProviders: number[],
-  userProviders: number[],
-): string | undefined {
+export function getWatchProvidersString(urlProviders: number[], userProviders: number[]) {
   const ids = resolveWatchProviderIds(urlProviders, userProviders);
   if (ids.length === 0) {
     return undefined;

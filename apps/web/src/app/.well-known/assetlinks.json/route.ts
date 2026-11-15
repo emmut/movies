@@ -2,7 +2,7 @@ import { androidFingerprintsSchema, androidPasskeyAssociation } from '@movies/co
 
 import { ENV } from '@/env';
 
-export function GET(): Response {
+export function GET() {
   const fingerprints = androidFingerprintsSchema.parse(ENV.PASSKEY_ANDROID_FINGERPRINTS);
   if (fingerprints.length === 0) {
     return new Response(null, { status: 404 });

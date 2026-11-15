@@ -41,7 +41,7 @@ export function PdpMedia({ data, title }: { data: PdpExtras; title: string }) {
   );
 }
 
-function videoTitle(item: PdpExtras['videos'][number]): string {
+function videoTitle(item: PdpExtras['videos'][number]) {
   return item.name + ' · ' + item.type + (item.official ? ' · Official' : '');
 }
 

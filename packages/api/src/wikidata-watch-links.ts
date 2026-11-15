@@ -85,7 +85,7 @@ function linkRules(type: 'movie' | 'tv'): LinkRule[] {
   ];
 }
 
-function getIdentifier(value: unknown, schema: z.ZodType<string>): string | undefined {
+function getIdentifier(value: unknown, schema: z.ZodType<string>) {
   if (!Array.isArray(value)) {
     return undefined;
   }
