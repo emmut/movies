@@ -52,7 +52,15 @@ describe('web Varlock schema', () => {
     expect(graph.configSchema.NEXT_PUBLIC_BASE_URL.isDynamic).toBe(false);
     expect(values.NEXT_PUBLIC_BASE_URL).toBe(fixture.NEXT_PUBLIC_BASE_URL);
     expect(graph.getSerializedGraph().config.NEXT_PUBLIC_BASE_URL.isSensitive).toBe(false);
-    for (const key of ['MOVIE_DB_ACCESS_TOKEN', 'BETTER_AUTH_SECRET', 'GITHUB_CLIENT_SECRET']) {
+    for (const key of ['DISCORD_CLIENT_ID', 'GITHUB_CLIENT_ID']) {
+      expect(graph.getSerializedGraph().config[key].isSensitive).toBe(false);
+    }
+    for (const key of [
+      'MOVIE_DB_ACCESS_TOKEN',
+      'BETTER_AUTH_SECRET',
+      'DISCORD_CLIENT_SECRET',
+      'GITHUB_CLIENT_SECRET',
+    ]) {
       expect(graph.getSerializedGraph().config[key].isSensitive).toBe(true);
     }
   });
