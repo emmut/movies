@@ -21,8 +21,10 @@ function isPositiveId(id: number) {
 }
 
 function ids(value: Params[string]) {
-  const unique = new Set(listValues(value).map(Number).filter(isPositiveId));
-  return [...unique].slice(0, MAX_SELECTIONS);
+  const parsedIds = listValues(value).map(Number);
+  const validIds = parsedIds.filter(isPositiveId);
+  const uniqueIds = [...new Set(validIds)];
+  return uniqueIds.slice(0, MAX_SELECTIONS);
 }
 
 function boundedInteger(value: Params[string], max: number) {
@@ -38,11 +40,15 @@ function boundedInteger(value: Params[string], max: number) {
 
 function sortForType(type: 'movie' | 'tv', value: Params[string]) {
   const options = type === 'movie' ? MOVIE_SORT_OPTIONS : TV_SORT_OPTIONS;
-  return options.find((option) => option.value === scalar(value))?.value ?? 'popularity.desc';
+  const requestedSort = scalar(value);
+  const selectedOption = options.find((option) => option.value === requestedSort);
+  return selectedOption?.value ?? 'popularity.desc';
 }
 
 function countryCodes(value: Params[string]) {
-  return sanitizeOriginCountryCodes(listValues(value)).slice(0, MAX_SELECTIONS);
+  const requestedCountries = listValues(value);
+  const supportedCountries = sanitizeOriginCountryCodes(requestedCountries);
+  return supportedCountries.slice(0, MAX_SELECTIONS);
 }
 
 export function readDiscoverState(
