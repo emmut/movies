@@ -38,7 +38,9 @@ for (const width of [1440, 390, 320]) {
         }
         if (width === 1440) {
           const [movieBounds, filterBounds] = await Promise.all([movies.boundingBox(), trigger.boundingBox()]);
-          expect(filterBounds!.x).toBeGreaterThan(movieBounds!.x);
+          const controlsBounds = (await toolbar.locator('[data-slot="list-toolbar-controls"]').boundingBox())!;
+          expect(Math.abs(movieBounds!.x - controlsBounds.x)).toBeLessThan(1);
+          expect(Math.abs(filterBounds!.x + filterBounds!.width - controlsBounds.x - controlsBounds.width)).toBeLessThan(1);
           expect(Math.abs((movieBounds!.y + movieBounds!.height / 2) - (filterBounds!.y + filterBounds!.height / 2))).toBeLessThan(1);
         }
         await trigger.click();
