@@ -286,6 +286,11 @@ export function GenreNavigationClient({
     <nav aria-label="Discover filters" className="space-y-4">
       <div className="flex flex-wrap items-center gap-4">
         <div className="shrink-0">{mediaTypeControls}</div>
+        {totalActiveFilterCount > 0 && (
+          <div className="hidden @[60rem]:block">
+            <ClearFiltersButton hasSelection onClear={handleClearAllFilters} />
+          </div>
+        )}
         <div className="ml-auto">
           <FilterDropdown
             genres={genres}
@@ -310,11 +315,6 @@ export function GenreNavigationClient({
             onToggleGenre={handleGenreToggle}
           />
         </div>
-        {totalActiveFilterCount > 0 && (
-          <div className="hidden @[60rem]:block">
-            <ClearFiltersButton hasSelection onClear={handleClearAllFilters} />
-          </div>
-        )}
         <div className="hidden @[60rem]:block">
           <SortByFilter mediaType={mediaType} controlId="discover-desktop-sort" compact />
         </div>
