@@ -133,9 +133,22 @@ jobs:
       - name: Ensure API domain
         run: .github/scripts/ensure-service-domain.sh api
 
-      - name: Redeploy web after Postgres bootstrap
-        if: env.RAILWAY_BOOTSTRAP_POSTGRES == 'true'
-        run: railway redeploy --service movies --from-source --yes
+      - name: Recover web after preview provisioning
+        # The fork can build web before the preview API domain is provisioned.
+        # Homepage prerendering calls that API, so retry a failed build only
+        # after the public endpoint is reachable and IaC references are updated.
+        run: |
+          services=$(railway service list --json)
+          if [ "$RAILWAY_BOOTSTRAP_POSTGRES" != 'true' ] && ! jq -e \
+            'any(.[]; .name == "movies" and .status == "FAILED")' <<<"$services" >/dev/null; then
+            echo "Web does not need a recovery build."
+            exit 0
+          fi
+          domains=$(railway domain list --service api --json)
+          api_domain=$(jq -er '.domains[0].domain' <<<"$domains")
+          curl --fail --silent --show-error --retry 30 --retry-delay 5 \
+            --retry-all-errors --connect-timeout 10 --max-time 20 "https://$api_domain/health"
+          railway redeploy --service movies --from-source --yes
 
   apply-prod:
     name: Apply infra to production
