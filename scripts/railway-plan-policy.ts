@@ -125,7 +125,16 @@ export function checkProductionPlan(input: unknown): number {
   const parsed = planSchema.safeParse(input);
   // Do not print Zod errors or the plan: either can contain secret values.
   if (!parsed.success) {
-    reject('unsupported or malformed saved plan');
+    const issues = parsed.error.issues.map((issue) => ({
+      code: issue.code,
+      path: issue.path.slice(0, 4).map((part) => {
+        if (typeof part === 'number') {
+          return part;
+        }
+        return /^[a-zA-Z]+$/.test(String(part)) ? part : '[field]';
+      }),
+    }));
+    reject(`unsupported or malformed saved plan (${JSON.stringify(issues)})`);
   }
   const { changeSet } = parsed.data;
   if (changeSet.diagnostics.some((diagnostic) => diagnostic.severity === 'error')) {
