@@ -112,7 +112,15 @@ for (const width of [1440, 1920]) {
       await removeTag.click();
       await expect(page).not.toHaveURL(/keywordId=/);
       await expect(filters).toHaveAccessibleName('Filters (2)');
+      const filterBoundsBeforeClear = (await filters.boundingBox())!;
+      const clearBounds = (await nav.getByRole('button', { name: 'Clear all', exact: true }).boundingBox())!;
+      expect(Math.abs(filterBoundsBeforeClear.x - clearBounds.x - clearBounds.width - 16)).toBeLessThan(1);
       await nav.getByRole('button', { name: 'Clear all', exact: true }).click();
+      await expect(filters).toHaveAccessibleName('Filters');
+      await expect.poll(async () => {
+        const bounds = (await filters.boundingBox())!;
+        return Math.abs(bounds.x - filterBoundsBeforeClear.x);
+      }).toBeLessThan(1);
       await expect(page).not.toHaveURL(/runtime=|sort_by=/);
       expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
       const duplicateIds = await page.evaluate(() => {

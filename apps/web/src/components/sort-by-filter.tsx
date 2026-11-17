@@ -52,7 +52,7 @@ export default function SortByFilter({ mediaType, controlId, compact }: SortByFi
   }
 
   return (
-    <div className="min-w-54">
+    <div className={cn('min-w-54', compact && 'w-60')}>
       <Label
         className={cn('text-muted-foreground', compact ? 'sr-only' : 'mb-2')}
         htmlFor={controlId}
