@@ -1,5 +1,6 @@
 import type { CatalogDetail } from '@movies/api/catalog';
 import type { ProviderGroups } from '@movies/api/catalog-support';
+import type { PdpExtras } from '@movies/api/pdp';
 import type { Page, Request, Route } from '@playwright/test';
 
 export const corsHeaders = {
@@ -85,6 +86,7 @@ export async function mockEmptySupport({ page }: { page: Page }) {
       if (path.endsWith('/extras')) {
         response = {
           companies: [],
+          networks: [],
           collection: null,
           images: [],
           videos: [],
@@ -93,7 +95,7 @@ export async function mockEmptySupport({ page }: { page: Page }) {
           seasons: [],
           next: null,
           latest: null,
-        };
+        } satisfies PdpExtras;
       }
       if (path.endsWith('/imdb')) {
         response = { url: null, rating: null, ratingUnavailable: false };

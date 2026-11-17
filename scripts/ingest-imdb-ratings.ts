@@ -7,7 +7,7 @@
  * Usage:
  *   pnpm ingest:imdb
  *
- * Runs daily on Railway as the imdb-ingest cron service.
+ * Runs daily through the daily-maintenance Railway cron service.
  *
  * Data: https://developer.imdb.com/non-commercial-datasets/ — licensed for
  * personal, non-commercial use only.

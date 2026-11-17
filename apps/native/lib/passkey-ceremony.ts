@@ -16,12 +16,17 @@ type RequestOptions = {
   query?: { name: string };
   body?: Record<string, unknown>;
 };
-type Sources = {
+type PasskeySources = {
   available: () => boolean;
   request: (path: string, options: RequestOptions) => Promise<Result>;
   register: (options: PasskeyRegistrationOptions) => Promise<unknown>;
   authenticate: (options: PasskeyAuthenticationOptions) => Promise<unknown>;
 };
+const CHALLENGE_PATHS = {
+  registration: '/passkey/generate-register-options',
+  authentication: '/passkey/generate-authenticate-options',
+};
+
 const CANCELLATION_NAMES = [
   'NotAllowedError',
   'UserCancelled',
@@ -72,8 +77,8 @@ function deviceErrorCode(error: unknown) {
 }
 
 /** The same challenge/verification protocol as the official browser client, using OS credentials. */
-export function createPasskeyCeremony(sources: Sources) {
-  async function credential(ceremony: Ceremony, options: unknown) {
+export function createPasskeyCeremony(sources: PasskeySources) {
+  async function requestDeviceCredential(ceremony: Ceremony, options: unknown) {
     if (ceremony === 'registration') {
       return sources.register(passkeyRegistrationOptionsSchema.parse(options));
     }
@@ -85,28 +90,26 @@ export function createPasskeyCeremony(sources: Sources) {
     }
     try {
       const query = registrationQuery(ceremony, name);
-      const options = await sources.request(optionsPath(ceremony), { method: 'GET', query });
-      if (options.error) {
-        return options;
+      const challenge = await sources.request(CHALLENGE_PATHS[ceremony], {
+        method: 'GET',
+        query,
+      });
+      if (challenge.error) {
+        return challenge;
       }
-      if (!options.data) {
+      if (!challenge.data) {
         return failure(PASSKEY_ERROR.failed);
       }
-      const result = await credential(ceremony, options.data);
-      if (!result) {
+      const deviceCredential = await requestDeviceCredential(ceremony, challenge.data);
+      if (!deviceCredential) {
         return failure(PASSKEY_ERROR.cancelled);
       }
-      const { clientExtensionResults: _extensions, ...response } =
-        passkeyCredentialSchema.parse(result);
-      const body: Record<string, unknown> = { response };
-      if (query) {
-        body.name = query.name;
-      }
-      const verified = await sources.request(`/passkey/verify-${ceremony}`, {
+      const body = verificationBody(deviceCredential, query);
+      const verification = await sources.request(`/passkey/verify-${ceremony}`, {
         method: 'POST',
         body,
       });
-      return verificationResult(verified);
+      return verificationResult(verification);
     } catch (error) {
       return failure(deviceErrorCode(error));
     }
@@ -128,9 +131,16 @@ function registrationQuery(ceremony: Ceremony, name?: string) {
   return undefined;
 }
 
-function optionsPath(ceremony: Ceremony) {
-  const action = ceremony === 'registration' ? 'register' : 'authenticate';
-  return `/passkey/generate-${action}-options`;
+function verificationBody(credential: unknown, query?: { name: string }) {
+  const { clientExtensionResults: _extensions, ...response } =
+    passkeyCredentialSchema.parse(credential);
+  const body: Record<string, unknown> = { response };
+
+  if (query) {
+    body.name = query.name;
+  }
+
+  return body;
 }
 
 function verificationResult(result: Result) {
