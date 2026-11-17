@@ -113,6 +113,8 @@ for (const width of [1440, 1920]) {
       await expect(page).not.toHaveURL(/keywordId=/);
       await expect(filters).toHaveAccessibleName('Filters (2)');
       const filterBoundsBeforeClear = (await filters.boundingBox())!;
+      const clearBounds = (await nav.getByRole('button', { name: 'Clear all', exact: true }).boundingBox())!;
+      expect(Math.abs(filterBoundsBeforeClear.x - clearBounds.x - clearBounds.width - 16)).toBeLessThan(1);
       await nav.getByRole('button', { name: 'Clear all', exact: true }).click();
       await expect(filters).toHaveAccessibleName('Filters');
       await expect.poll(async () => {
