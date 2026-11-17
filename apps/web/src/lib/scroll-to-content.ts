@@ -1,10 +1,10 @@
 // Coordinates "paginate, then scroll to the top of the results".
 //
-// The scroll can't happen at click time: the new page renders later and the
-// document height changes under an early scroll. Instead the click schedules
-// the scroll here and PaginationControls performs it in an effect once the
-// new page is on screen. Module state rather than React state: a loading
-// state can swap the controls out during the navigation (e.g. discover's
+// The click schedules a scroll; PaginationControls performs it when the
+// destination is on screen. Server navigations wait for the new page, while
+// shallow client-query updates scroll once skeletons mount and the URL
+// flushes, without waiting for the request. Module state rather than React
+// state: a loading state can swap the controls out (e.g. discover's
 // spinner), and a remount would lose anything stored in the component.
 // The body keeps its current height in the meantime: at narrow WebKit
 // viewports, the brief route handoff can otherwise clamp the scroll position
@@ -89,8 +89,7 @@ export function scrollToContentIfScheduled() {
   // call, not a bare property read, so the minifier can't drop it.
   results.getBoundingClientRect();
   document.body.style.minHeight = bodyMinHeight;
-  // Smooth is safe here: the scroll runs after the new page has rendered, so
-  // no skeleton swap can move the target mid-animation (which is what forced
-  // the old click-time implementation to scroll instantly).
+  // The destination's results or skeletons are laid out before scrolling, so
+  // the target stays in place as the request completes.
   results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
