@@ -53,6 +53,29 @@ describe('production Railway plan policy', () => {
     ).toBe(4);
   });
 
+  it.each([true, false, undefined])('accepts the CLI ownership claim flag (%s)', (claim) => {
+    const input = plan([
+      create,
+      ...['imdb-ingest', 'title-sync', 'search-index-ingest'].map(deletion),
+    ]);
+    expect(checkProductionPlan({ ...input, claim })).toBe(4);
+    expect(checkProductionPlan({ ...plan(), claim })).toBe(0);
+  });
+
+  it('does not let an ownership claim bypass deletion or storage protection', () => {
+    for (const change of [deletion('postgres-db'), { ...update, field: 'volumeAttachments' }]) {
+      expect(() => checkProductionPlan({ ...plan([change]), claim: true })).toThrow(
+        'plan rejected',
+      );
+    }
+  });
+
+  it('reports the invalid field without disclosing its value', () => {
+    const input = { ...plan(), claim: 'secret-token' };
+    expect(() => checkProductionPlan(input)).toThrow('"path":["claim"]');
+    expect(() => checkProductionPlan(input)).not.toThrow('secret-token');
+  });
+
   it('accepts ordinary application configuration and variable updates', () => {
     expect(
       checkProductionPlan(
@@ -116,7 +139,7 @@ describe('production Railway plan policy', () => {
     { ...plan(), environmentId: 'preview' },
     { ...plan(), changeSet: {} },
     { ...plan(), changeSetHash: 'invalid' },
-    { ...plan(), claim: true },
+    { ...plan(), claim: 'true' },
     { ...plan(), unexpected: 'operation' },
     { ...plan(), changeSet: { ...plan().changeSet, version: 2 } },
     { ...plan(), changeSet: { ...plan().changeSet, changes: null } },

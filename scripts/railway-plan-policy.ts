@@ -31,7 +31,10 @@ const planSchema = z
     changeSetHash: z.string().regex(/^sha256:[a-f0-9]{64}$/),
     destructive: z.boolean(),
     diff: z.string().optional(),
-    claim: z.literal(false).optional(),
+    // Ownership bookkeeping: CLI 5.74.1 sets this when declared resources
+    // have not yet been claimed by the current IaC definition, even for the
+    // default project definition. Every resource change is still checked below.
+    claim: z.boolean().optional(),
     changeSet: z
       .object({
         version: z.literal(1),
@@ -123,7 +126,7 @@ function checkCreation(change: Change, name: string) {
 
 export function checkProductionPlan(input: unknown): number {
   const parsed = planSchema.safeParse(input);
-  // Do not print Zod errors or the plan: either can contain secret values.
+  // Only report issue codes and field paths, never messages or input values.
   if (!parsed.success) {
     const issues = parsed.error.issues.map((issue) => ({
       code: issue.code,
