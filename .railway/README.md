@@ -64,10 +64,10 @@ For reviewed deletions, use `vp run infra:deploy --confirm-destructive`.
 
 The config replaces `title-sync`, `imdb-ingest`, and `search-index-ingest` with
 `daily-maintenance` at 09:00 UTC. No database or volume is removed. Review the
-production plan before applying: this migration deletes the three old cron
-services, so the normal production workflow deliberately refuses it. After
-merging, link the production environment, inspect `railway config plan`, and
-apply the reviewed migration with `vp run infra:deploy --confirm-destructive`.
+production plan before applying. Production CI now saves the plan, validates it
+with `scripts/check-infra-plan.ts`, and applies that exact artifact with
+`--yes --confirm-destructive`. Only the three old stateless cron services are
+allowlisted for deletion, so merging the guarded workflow enables this migration.
 Do this between runs, after the old jobs have finished. Verify that the new
 service has its database/token references and both production enable flags,
 and inspect its first run for the three job results. Railway may execute the
@@ -76,3 +76,31 @@ new deployment immediately as well as on its daily schedule.
 PR environments already allow destructive applies. Their existing deployment
 wait keeps forked builds from being cancelled during the replacement. The new
 service keeps IMDb enabled and title/search sync disabled in previews.
+
+## Production CI policy
+
+The workflow pins Railway CLI 5.74.1 and validates saved-plan format v1 against
+that CLI's `src/iac/saved_plan.rs` and `src/iac/change_set.rs` contract. It rejects
+unknown formats, operations, severities, plan errors, and non-production plans.
+Application updates must be marked safe and target `movies`, `api`,
+`imgproxy-HRto`, or `daily-maintenance`. Deletions are allowed only for the three
+retired cron names, with a GitHub source of `emmut/movies` and no attached volume.
+Remove those exceptions after the production migration has completed.
+
+All changes to database, volume, bucket, unknown services, and the image-backed
+`postgres-db` service require manual review. This intentionally also blocks safe
+storage updates. Volume attachments and variable deletions are never automated.
+Other operations require a policy change with tests or a separately reviewed
+manual apply; do not disable the guard to make a deployment green.
+
+The apply step consumes the saved artifact without replanning. Railway validates
+its change-set hash, source tree and live environment etag, rejecting drift.
+The file can contain secrets: it stays in the runner's temporary directory, is
+never uploaded as an artifact, and is removed even when validation fails.
+
+`CODEOWNERS` requests review of the policy, tests, workflow, and infrastructure.
+To make those reviews mandatory, a repository administrator must enable required
+code-owner reviews and prohibit bypasses in the `main` branch ruleset. CODEOWNERS
+alone does not prevent an authorized contributor from changing the guard. A sole
+owner cannot approve their own PR; configure another trusted reviewer if needed.
+This PR does not change repository-level rules or Railway token permissions.

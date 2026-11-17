@@ -172,14 +172,20 @@ jobs:
         run: vp install --frozen-lockfile
 
       - name: Install Railway CLI
-        run: npm i -g @railway/cli
+        run: npm i -g @railway/cli@5.74.1
 
-      - name: Apply Railway config
-        # --yes only auto-confirms additive changes; destructive plans still fail
-        # without --confirm-destructive, which we deliberately never pass here.
+      - name: Plan and guard production infrastructure
         run: |
           railway link --project movies --environment "$RAILWAY_ENVIRONMENT"
-          railway config apply --yes
+          railway config plan --out "$RUNNER_TEMP/railway-production-plan.json"
+          ./node_modules/.bin/vpx scripts/check-infra-plan.ts "$RUNNER_TEMP/railway-production-plan.json"
+
+      - name: Apply approved production plan
+        run: railway config apply --plan "$RUNNER_TEMP/railway-production-plan.json" --yes --confirm-destructive
+
+      - name: Remove saved plan
+        if: always()
+        run: rm -f "$RUNNER_TEMP/railway-production-plan.json"
 
       - name: Ensure API domain
         run: .github/scripts/ensure-service-domain.sh api
