@@ -58,6 +58,7 @@ export default defineConfig({
       'patches/**/*.test.ts',
       'apps/server/src/**/*.test.ts',
       'apps/native/lib/**/*.test.ts',
+      'scripts/**/*.test.ts',
     ],
     alias: [
       // The single `@/* -> src/*` tsconfig path mapping, inlined (no plugin/dep).

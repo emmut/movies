@@ -8,7 +8,7 @@
  * Usage:
  *   pnpm sync:titles
  *
- * Runs nightly on Railway as the title-sync cron service. Titles are also
+ * Runs daily through the daily-maintenance Railway cron service. Titles are also
  * written through when added to a list, so this job's work is refreshing
  * stale rows (availability daily, details weekly) and catching anything the
  * write-through missed.

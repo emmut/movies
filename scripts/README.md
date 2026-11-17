@@ -1,5 +1,21 @@
 # Scripts
 
+## Daily maintenance
+
+`pnpm maintenance:daily` runs title sync, IMDb ratings, and search-index ingest
+sequentially in separate processes. Railway runs this as `daily-maintenance`
+at **09:00 UTC daily**, after TMDB publishes its exports by 08:00. Title sync
+and IMDb ratings now run later than their former 04:00 and 05:30 schedules.
+Each job logs its result; failures do not prevent subsequent jobs from running,
+and the runner exits non-zero if any job fails. Each child has a six-hour limit
+so a hung job cannot indefinitely block the next scheduled run.
+
+The service uses one CPU and 1 GB RAM. It inherits `DATABASE_URL` and
+`MOVIE_DB_ACCESS_TOKEN` from the environment, including `apps/web/.env` for the
+local command. `TITLE_SYNC_ENABLED` and `SEARCH_INDEX_INGEST_ENABLED` stay true
+in production and false in previews; IMDb still runs in previews. Individual
+commands below remain available for rerunning one failed job.
+
 ## Ingest IMDb Ratings
 
 Downloads IMDb's [non-commercial ratings dataset](https://developer.imdb.com/non-commercial-datasets/) (`title.ratings.tsv.gz`, ~1.5M rows) and upserts it into the `imdb_ratings` table. Detail pages join on it to show IMDb ratings.
@@ -10,7 +26,7 @@ Downloads IMDb's [non-commercial ratings dataset](https://developer.imdb.com/non
 pnpm ingest:imdb
 ```
 
-Needs `DATABASE_URL` (from `apps/web/.env` locally). Runs daily in production as the `imdb-ingest` Railway cron service (05:30 UTC, shortly after IMDb refreshes the datasets). The dataset is licensed for personal, non-commercial use only.
+Needs `DATABASE_URL` (from `apps/web/.env` locally). Runs daily in production through `daily-maintenance` (starting at 09:00 UTC). The dataset is licensed for personal, non-commercial use only.
 
 ## Sync Titles
 
@@ -22,7 +38,7 @@ Refreshes the local title cache — the `titles`, `title_availability`, and `tit
 pnpm sync:titles
 ```
 
-Needs `DATABASE_URL`, `MOVIE_DB_ACCESS_TOKEN`, and `TITLE_SYNC_ENABLED=true` (from `apps/web/.env` locally); without the flag the script exits immediately, which is how preview environments stay quiet. Runs nightly in production as the `title-sync` Railway cron service (04:00 UTC), where the Railway config sets the flag. Titles are also written through when they are added to a list, so a run mostly refreshes stale rows: availability daily, details weekly. A title TMDB has deleted is recorded with an empty availability set so filtered pages stop retrying it. The run exits non-zero if any title failed to sync; failed titles stay stale and are retried the next night.
+Needs `DATABASE_URL`, `MOVIE_DB_ACCESS_TOKEN`, and `TITLE_SYNC_ENABLED=true` (from `apps/web/.env` locally); without the flag the script exits immediately, which is how preview environments stay quiet. Runs daily in production through `daily-maintenance` (09:00 UTC), where the Railway config sets the flag. Titles are also written through when they are added to a list, so a run mostly refreshes stale rows: availability daily, details weekly. A title TMDB has deleted is recorded with an empty availability set so filtered pages stop retrying it. The run exits non-zero if any title failed to sync; failed titles stay stale and are retried the next night.
 
 Watch-provider data comes from JustWatch through TMDB and must be attributed as such wherever it is shown.
 
@@ -36,7 +52,7 @@ Downloads TMDB's [daily id exports](https://developer.themoviedb.org/docs/daily-
 pnpm ingest:search
 ```
 
-Needs `DATABASE_URL` and `SEARCH_INDEX_INGEST_ENABLED=true` (from `apps/web/.env` locally; without the flag the script exits immediately) plus the `pg_trgm` extension, which migration `0015` creates (`0017` replaces the GiST index with GIN for filtered search). Migration `0019` adds a second GIN index for built-in word matching; it indexes existing rows without another ingest. Runs daily in production as the `search-index-ingest` Railway cron service (09:00 UTC, after TMDB publishes at 08:00), where the Railway config sets the flag; preview environments leave it off. Without a run the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
+Needs `DATABASE_URL` and `SEARCH_INDEX_INGEST_ENABLED=true` (from `apps/web/.env` locally; without the flag the script exits immediately) plus the `pg_trgm` extension, which migration `0015` creates (`0017` replaces the GiST index with GIN for filtered search). Migration `0019` adds a second GIN index for built-in word matching; it indexes existing rows without another ingest. Runs daily in production through `daily-maintenance` (after title sync and IMDb ratings), where the Railway config sets the flag; preview environments leave it off. Without a run the index is simply empty and search behaves as before; run it once locally to try fuzzy search. Attribute TMDB wherever results are shown.
 
 ## List Watch Providers
 

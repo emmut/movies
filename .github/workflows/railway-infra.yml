@@ -67,7 +67,7 @@ jobs:
         run: |
           # Creating a PR environment immediately starts deployments copied
           # from production. The config apply below changes preview-only
-          # variables on the title-sync and search-index-ingest services,
+          # variables on the daily-maintenance service,
           # which starts replacement deployments. Applying while the forked
           # builds are active cancels them, and Railway leaves their original
           # GitHub checks failed even when the replacements succeed.
@@ -124,8 +124,7 @@ jobs:
 
       - name: Apply Railway config for PR
         # PR environments are ephemeral forks of production, so they start with
-        # prod-only services (imdb-ingest) that the config must delete — the
-        # first apply in every new PR environment is inherently destructive.
+        # old services that a config migration may need to delete.
         # Destructive applies are fine here: nothing in a PR environment is
         # worth protecting. Production keeps the guardrail below.
         run: railway config apply --yes --confirm-destructive

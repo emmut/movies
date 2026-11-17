@@ -7,7 +7,7 @@
  * Usage:
  *   pnpm ingest:search
  *
- * Runs daily on Railway as the search-index-ingest cron service.
+ * Runs daily through the daily-maintenance Railway cron service.
  *
  * Data: https://developer.themoviedb.org/docs/daily-id-exports — published by
  * TMDB for exactly this purpose (a full id list without crawling the API).

@@ -59,3 +59,20 @@ For reviewed deletions, use `vp run infra:deploy --confirm-destructive`.
 - Use `replicas` for scaling; advanced placement can still specify region names.
 - Use `group("Name", [resources])` to keep large projects organized on the Railway canvas.
 - Secrets imported from Railway are rendered as `preserve()` so existing values are retained without writing secret values to source. Use `railway config pull --omit-preserved-variables` for a smaller import.
+
+## Consolidating the daily cron services
+
+The config replaces `title-sync`, `imdb-ingest`, and `search-index-ingest` with
+`daily-maintenance` at 09:00 UTC. No database or volume is removed. Review the
+production plan before applying: this migration deletes the three old cron
+services, so the normal production workflow deliberately refuses it. After
+merging, link the production environment, inspect `railway config plan`, and
+apply the reviewed migration with `vp run infra:deploy --confirm-destructive`.
+Do this between runs, after the old jobs have finished. Verify that the new
+service has its database/token references and both production enable flags,
+and inspect its first run for the three job results. Railway may execute the
+new deployment immediately as well as on its daily schedule.
+
+PR environments already allow destructive applies. Their existing deployment
+wait keeps forked builds from being cancelled during the replacement. The new
+service keeps IMDb enabled and title/search sync disabled in previews.
