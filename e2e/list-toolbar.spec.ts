@@ -37,11 +37,12 @@ for (const width of [1440, 390, 320]) {
           expect(reorderBounds!.height).toBe(44);
         }
         if (width === 1440) {
-          const [movieBounds, filterBounds] = await Promise.all([movies.boundingBox(), trigger.boundingBox()]);
+          // The selector's outer edge includes padding around the Movies button.
+          const [mediaTypeBounds, filterBounds] = await Promise.all([movies.locator('..').boundingBox(), trigger.boundingBox()]);
           const controlsBounds = (await toolbar.locator('[data-slot="list-toolbar-controls"]').boundingBox())!;
-          expect(Math.abs(movieBounds!.x - controlsBounds.x)).toBeLessThan(1);
+          expect(Math.abs(mediaTypeBounds!.x - controlsBounds.x)).toBeLessThan(1);
           expect(Math.abs(filterBounds!.x + filterBounds!.width - controlsBounds.x - controlsBounds.width)).toBeLessThan(1);
-          expect(Math.abs((movieBounds!.y + movieBounds!.height / 2) - (filterBounds!.y + filterBounds!.height / 2))).toBeLessThan(1);
+          expect(Math.abs((mediaTypeBounds!.y + mediaTypeBounds!.height / 2) - (filterBounds!.y + filterBounds!.height / 2))).toBeLessThan(1);
         }
         await trigger.click();
         const popup = page.locator('[data-slot="popover-content"]').filter({ has: page.getByRole('heading', { name: 'Watch Providers', exact: true }) });
