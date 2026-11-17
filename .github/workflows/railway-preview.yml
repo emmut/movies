@@ -1,11 +1,8 @@
-name: Railway infra
+name: Railway preview infra
 
 on:
-  # Every pull request, whatever its base: a stacked PR targets another
-  # feature branch and would otherwise get no CI and no preview infra.
+  # Include stacked PRs targeting feature branches.
   pull_request:
-  push:
-    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,7 +11,7 @@ concurrency:
 jobs:
   apply-pr:
     name: Apply infra to PR environment
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     env:
       RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
@@ -126,7 +123,7 @@ jobs:
         # PR environments are ephemeral forks of production, so they start with
         # old services that a config migration may need to delete.
         # Destructive applies are fine here: nothing in a PR environment is
-        # worth protecting. Production keeps the guardrail below.
+        # worth protecting. Production has its own guarded workflow.
         run: railway config apply --yes --confirm-destructive
 
       - name: Ensure API domain
@@ -148,38 +145,3 @@ jobs:
           curl --fail --silent --show-error --retry 30 --retry-delay 5 \
             --retry-all-errors --connect-timeout 10 --max-time 20 "https://$api_domain/health"
           railway redeploy --service movies --from-source --yes
-
-  apply-prod:
-    name: Apply infra to production
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    env:
-      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
-      RAILWAY_IAC_BRANCH: main
-      RAILWAY_ENVIRONMENT: production
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Setup Vite+, Node and pnpm
-        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
-        with:
-          version-file: pnpm-workspace.yaml
-          node-version-file: .node-version
-          cache: true
-          run-install: false
-
-      - name: Install dependencies
-        run: vp install --frozen-lockfile
-
-      - name: Install Railway CLI
-        run: npm i -g @railway/cli
-
-      - name: Apply Railway config
-        # --yes only auto-confirms additive changes; destructive plans still fail
-        # without --confirm-destructive, which we deliberately never pass here.
-        run: |
-          railway link --project movies --environment "$RAILWAY_ENVIRONMENT"
-          railway config apply --yes
-
-      - name: Ensure API domain
-        run: .github/scripts/ensure-service-domain.sh api
