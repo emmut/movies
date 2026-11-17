@@ -10,6 +10,7 @@ const state = vi.hoisted(() => ({
   providers: [] as number[],
   isError: false,
   isLoading: false,
+  isFetching: false,
   isPlaceholderData: false,
   unavailableItems: 0,
   effects: [] as (() => void)[],
@@ -60,7 +61,7 @@ vi.mock('@movies/api/react/use-system-lists-query', () => ({
       totalPages: state.totalPages,
     },
     isLoading: state.isLoading,
-    isFetching: false,
+    isFetching: state.isFetching,
     refetch: vi.fn(),
     isPlaceholderData: state.isPlaceholderData,
     isError: state.isError,
@@ -105,6 +106,7 @@ beforeEach(() => {
     providers: [],
     isError: false,
     isLoading: false,
+    isFetching: false,
     isPlaceholderData: false,
     unavailableItems: 0,
     effects: [],
@@ -154,6 +156,46 @@ describe('system-list page reconciliation', () => {
 });
 
 describe('system-list loading guards', () => {
+  it.each(['watchlist', 'watched'] as const)(
+    'shows poster placeholders while changing a %s page or filter',
+    (listType) => {
+      state.isPlaceholderData = true;
+      state.isFetching = true;
+
+      const html = renderToStaticMarkup(
+        <SystemListContent listType={listType} userId="user" watchProviders={[]} userRegion="SE" />,
+      );
+
+      expect(html).toContain('aria-label="Loading titles"');
+      expect(html).toContain('aria-busy="true"');
+      expect(html).not.toContain('data-offset=');
+    },
+  );
+
+  it('shows poster placeholders on the initial fetch', () => {
+    state.isLoading = true;
+    expect(renderContent()).toContain('aria-label="Loading titles"');
+  });
+
+  it('keeps the current items visible during a background refresh', () => {
+    state.isFetching = true;
+    const html = renderContent();
+    expect(html).toContain('data-offset="0"');
+    expect(html).not.toContain('aria-label="Loading titles"');
+  });
+
+  it('replaces the placeholders with items when the requested page arrives', () => {
+    state.isPlaceholderData = true;
+    expect(renderContent()).toContain('aria-label="Loading titles"');
+
+    state.isPlaceholderData = false;
+    state.currentPage = 2;
+    state.totalPages = 2;
+    const html = renderContent();
+    expect(html).not.toContain('aria-label="Loading titles"');
+    expect(html).toContain('data-offset="20"');
+  });
+
   it('preserves the requested page while the previous page is a placeholder', () => {
     state.totalPages = 2;
     state.isPlaceholderData = true;
