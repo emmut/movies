@@ -27,6 +27,56 @@ function normalizedSearch(url: URL) {
 }
 
 let scheduled: ScheduledScroll | null = null;
+let cancelScroll: (() => void) | null = null;
+const SCROLL_DURATION_MS = 1000;
+
+function scrollToResults(results: HTMLElement) {
+  const root = document.documentElement;
+  const padding = Number.parseFloat(getComputedStyle(root).scrollPaddingTop) || 0;
+  const margin = Number.parseFloat(getComputedStyle(results).scrollMarginTop) || 0;
+  const startY = window.scrollY;
+  const top = results.getBoundingClientRect().top + startY - padding - margin;
+  const targetY = Math.max(0, Math.min(top, root.scrollHeight - window.innerHeight));
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    window.scrollTo({ top: targetY, behavior: 'instant' });
+    return;
+  }
+
+  const startedAt = performance.now();
+  const url = window.location.href;
+  let frame = 0;
+
+  function cancel() {
+    cancelAnimationFrame(frame);
+    window.removeEventListener('wheel', cancel);
+    window.removeEventListener('touchstart', cancel);
+    window.removeEventListener('keydown', cancel);
+    cancelScroll = null;
+  }
+
+  function step(now: number) {
+    if (window.location.href !== url) {
+      cancel();
+      return;
+    }
+
+    const progress = Math.min(1, (now - startedAt) / SCROLL_DURATION_MS);
+    const eased = (1 - Math.cos(Math.PI * progress)) / 2;
+    window.scrollTo({ top: startY + (targetY - startY) * eased, behavior: 'instant' });
+    if (progress < 1) {
+      frame = requestAnimationFrame(step);
+    } else {
+      cancel();
+    }
+  }
+
+  cancelScroll = cancel;
+  window.addEventListener('wheel', cancel, { passive: true });
+  window.addEventListener('touchstart', cancel, { passive: true });
+  window.addEventListener('keydown', cancel);
+  frame = requestAnimationFrame(step);
+}
 
 /**
  * Called at click time, before the pagination navigation starts.
@@ -34,6 +84,7 @@ let scheduled: ScheduledScroll | null = null;
  * @param href - The pagination link's destination (`?page=N` or a full path).
  */
 export function scheduleScrollToContent(href: string) {
+  cancelScroll?.();
   if (scheduled) {
     document.body.style.minHeight = scheduled.bodyMinHeight;
   }
@@ -91,5 +142,5 @@ export function scrollToContentIfScheduled() {
   document.body.style.minHeight = bodyMinHeight;
   // The destination's results or skeletons are laid out before scrolling, so
   // the target stays in place as the request completes.
-  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  scrollToResults(results);
 }

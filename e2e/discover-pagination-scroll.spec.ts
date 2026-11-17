@@ -23,7 +23,7 @@ const SCROLL_MARGIN = 20; // scroll-m-5 on #content (1.25rem)
 
 type ScrollSamplingWindow = Window & {
   __paginationScrollFrame?: number;
-  __paginationScrollSamples?: number[];
+  __paginationScrollSamples?: { y: number; time: number }[];
 };
 
 /** Height of the sticky header, which the root scroll-padding reserves. */
@@ -76,7 +76,10 @@ async function startScrollSampling(page: Page) {
     samplingWindow.__paginationScrollSamples = [];
 
     function sample() {
-      samplingWindow.__paginationScrollSamples?.push(Math.round(window.scrollY));
+      samplingWindow.__paginationScrollSamples?.push({
+        y: Math.round(window.scrollY),
+        time: performance.now(),
+      });
       samplingWindow.__paginationScrollFrame = requestAnimationFrame(sample);
     }
 
@@ -163,7 +166,15 @@ async function paginateAndExpectResultsTop(page: Page) {
   // gap) — not yanked above it first (the narrow-WebKit bug), and not left
   // far down the page.
   expectRestingAtResultsTop(finalY, containerTop, header);
-  expect(Math.min(...scrollSamples)).toBeGreaterThan(containerTop - header - SCROLL_MARGIN - 60);
+  expect(Math.min(...scrollSamples.map((sample) => sample.y))).toBeGreaterThan(
+    containerTop - header - SCROLL_MARGIN - 60,
+  );
+  const movingSamples = scrollSamples.filter(
+    (sample, index) => index > 0 && sample.y !== scrollSamples[index - 1].y,
+  );
+  expect(movingSamples.length).toBeGreaterThan(1);
+  const duration = movingSamples.at(-1)!.time - movingSamples[0].time;
+  expect(duration).toBeGreaterThan(700);
 }
 
 test('scrolls to loading skeletons before the next Discover request finishes', async ({ page }) => {
