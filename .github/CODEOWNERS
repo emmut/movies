@@ -1,7 +1,8 @@
 # Production infrastructure policy changes require owner review when the
 # main branch ruleset enables required code-owner reviews.
 /.github/CODEOWNERS @emmut
-/.github/workflows/railway-infra.yml @emmut
+/.github/workflows/railway-preview.yml @emmut
+/.github/workflows/railway-production.yml @emmut
 /.railway/ @emmut
 /scripts/check-infra-plan.ts @emmut
 /scripts/railway-plan-policy.ts @emmut

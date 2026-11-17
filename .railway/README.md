@@ -77,6 +77,14 @@ PR environments already allow destructive applies. Their existing deployment
 wait keeps forked builds from being cancelled during the replacement. The new
 service keeps IMDb enabled and title/search sync disabled in previews.
 
+## Workflow triggers
+
+`railway-preview.yml` runs only for pull requests (including stacked PRs).
+`railway-production.yml` runs only for pushes to `main`. Each workflow contains
+only its environment's deployment job, so production does not show up as a
+skipped preview job or vice versa. Preview deployments still exclude forks,
+which do not receive the Railway secret. The existing job/check names are kept.
+
 ## Production CI policy
 
 The workflow pins Railway CLI 5.74.1 and validates saved-plan format v1 against
