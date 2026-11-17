@@ -8,7 +8,7 @@
 // spinner), and a remount would lose anything stored in the component.
 // The body keeps its current height in the meantime: at narrow WebKit
 // viewports, the brief route handoff can otherwise clamp the scroll position
-// above the results before the smooth scroll begins.
+// above the results before or during the smooth scroll.
 //
 // The schedule is scoped to the navigation's destination so it can't leak: a
 // later render anywhere else (the navigation was abandoned or superseded)
@@ -17,7 +17,7 @@
 type ScheduledScroll = {
   pathname: string;
   search: string;
-  bodyMinHeight: string;
+  restoreLayout: () => void;
 };
 
 function normalizedSearch(url: URL) {
@@ -27,6 +27,50 @@ function normalizedSearch(url: URL) {
 }
 
 let scheduled: ScheduledScroll | null = null;
+let finishScroll: (() => void) | null = null;
+
+function holdPageLayout() {
+  const { style } = document.body;
+  const { minHeight, overflowAnchor } = style;
+  style.minHeight = `${document.documentElement.scrollHeight}px`;
+  style.overflowAnchor = 'none';
+
+  return function restoreLayout() {
+    style.minHeight = minHeight;
+    style.overflowAnchor = overflowAnchor;
+  };
+}
+
+function restoreAfterScroll(restoreLayout: () => void) {
+  let finished = false;
+  let timer: ReturnType<typeof setTimeout>;
+
+  function finish() {
+    if (finished) {
+      return;
+    }
+    finished = true;
+    clearTimeout(timer);
+    document.removeEventListener('scroll', onScroll);
+    document.removeEventListener('scrollend', finish);
+    window.removeEventListener('popstate', finish);
+    restoreLayout();
+    finishScroll = null;
+  }
+
+  function onScroll() {
+    clearTimeout(timer);
+    timer = setTimeout(finish, 200);
+  }
+
+  finishScroll = finish;
+  document.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scrollend', finish);
+  window.addEventListener('popstate', finish);
+  // Also covers browsers without scrollend and calls that do not move the
+  // viewport. This observes scroll completion; the browser owns the animation.
+  onScroll();
+}
 
 /**
  * Called at click time, before the pagination navigation starts.
@@ -34,19 +78,15 @@ let scheduled: ScheduledScroll | null = null;
  * @param href - The pagination link's destination (`?page=N` or a full path).
  */
 export function scheduleScrollToContent(href: string) {
-  if (scheduled) {
-    document.body.style.minHeight = scheduled.bodyMinHeight;
-  }
+  finishScroll?.();
+  scheduled?.restoreLayout();
 
   const destination = new URL(href, window.location.href);
   scheduled = {
     pathname: destination.pathname,
     search: normalizedSearch(destination),
-    bodyMinHeight: document.body.style.minHeight,
+    restoreLayout: holdPageLayout(),
   };
-  // Keep WebKit from clamping the bottom-of-page position during the brief
-  // route handoff. The destination render releases this before scrolling.
-  document.body.style.minHeight = `${document.documentElement.scrollHeight}px`;
 }
 
 /**
@@ -65,7 +105,7 @@ export function scrollToContentIfScheduled() {
   if (!atDestination) {
     // The scheduled navigation never landed — drop it so it can't scroll an
     // unrelated page later.
-    document.body.style.minHeight = scheduled.bodyMinHeight;
+    scheduled.restoreLayout();
     scheduled = null;
     return;
   }
@@ -78,20 +118,18 @@ export function scrollToContentIfScheduled() {
     return;
   }
 
-  const { bodyMinHeight } = scheduled;
+  const { restoreLayout } = scheduled;
   scheduled = null;
-  // Lay the new page out while the height hold is still in place. This can
-  // run in the same task as the commit that swapped the results in (e.g. for
-  // signed-in users), before WebKit has laid the new DOM out. Releasing the
-  // hold first makes that first layout clamp the scroll well above the
-  // results — even though the finished page is as tall as the old one — so
-  // the smooth scroll then starts from there instead of from the bottom. A
-  // call, not a bare property read, so the minifier can't drop it.
+  // Keep the old height and suppress scroll anchoring until scrolling ends.
+  // A shorter cached page, or a response arriving mid-scroll, would otherwise
+  // clamp the viewport partway up before the native animation can reach it.
   results.getBoundingClientRect();
-  document.body.style.minHeight = bodyMinHeight;
-  // The destination's results or skeletons are laid out before scrolling, so
-  // the target stays in place as the request completes. Let the browser
-  // animate the scroll independently of JavaScript rendering the results.
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reducedMotion) {
+    restoreAfterScroll(restoreLayout);
+  }
   results.scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'start' });
+  if (reducedMotion) {
+    restoreLayout();
+  }
 }

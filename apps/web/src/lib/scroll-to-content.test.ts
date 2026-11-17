@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
 import { scheduleScrollToContent, scrollToContentIfScheduled } from './scroll-to-content';
 
@@ -16,27 +16,38 @@ function stubBrowser({
     ...contentElement,
   };
   const location = { href: url };
-  const bodyStyle = { minHeight: '' };
+  const bodyStyle = { minHeight: '', overflowAnchor: '' };
+  const documentEvents = new EventTarget();
+  const windowEvents = new EventTarget();
   vi.stubGlobal('window', {
     location,
     matchMedia: vi.fn(() => ({ matches: reducedMotion })),
+    addEventListener: windowEvents.addEventListener.bind(windowEvents),
+    removeEventListener: windowEvents.removeEventListener.bind(windowEvents),
   });
   vi.stubGlobal('document', {
     body: { style: bodyStyle },
     documentElement: { scrollHeight: 2400 },
+    addEventListener: documentEvents.addEventListener.bind(documentEvents),
+    removeEventListener: documentEvents.removeEventListener.bind(documentEvents),
     getElementById: vi.fn(function getElementById(id: string) {
       return id === 'content' ? results : null;
     }),
   });
 
-  return { bodyStyle, location };
+  return { bodyStyle, location, documentEvents, windowEvents };
 }
+
+beforeEach(() => vi.useFakeTimers());
 
 afterEach(function resetModuleState() {
   // Drain any schedule left behind so tests stay independent: a render away
   // from the scheduled destination clears it.
+  scheduleScrollToContent('/cancel');
   stubBrowser({ url: 'http://app.test/drain', contentElement: null });
   scrollToContentIfScheduled();
+  vi.clearAllTimers();
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
 
@@ -89,21 +100,25 @@ describe('scrollToContentIfScheduled', () => {
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
   });
 
-  it('holds the document height through navigation and releases it before scrolling', () => {
+  it('keeps the page height and suppresses anchoring until native scrolling ends', () => {
     const scrollIntoView = vi.fn();
-    const { bodyStyle, location } = stubBrowser({
+    const { bodyStyle, location, documentEvents } = stubBrowser({
       url: 'http://app.test/discover',
       contentElement: { scrollIntoView },
     });
 
     scheduleScrollToContent('?page=2');
     expect(bodyStyle.minHeight).toBe('2400px');
+    expect(bodyStyle.overflowAnchor).toBe('none');
 
     location.href = 'http://app.test/discover?page=2';
     scrollToContentIfScheduled();
 
-    expect(bodyStyle.minHeight).toBe('');
+    expect(bodyStyle.minHeight).toBe('2400px');
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    documentEvents.dispatchEvent(new Event('scrollend'));
+    expect(bodyStyle.minHeight).toBe('');
+    expect(bodyStyle.overflowAnchor).toBe('');
   });
 
   it('lays out the new page while the height hold is still in place', () => {
@@ -124,7 +139,61 @@ describe('scrollToContentIfScheduled', () => {
     scrollToContentIfScheduled();
 
     expect(holdAtLayout).toEqual(['2400px']);
+    expect(bodyStyle.minHeight).toBe('2400px');
+  });
+
+  it('releases the height hold after scrolling is idle when scrollend is unavailable', () => {
+    const { bodyStyle, documentEvents } = stubBrowser({
+      url: 'http://app.test/discover?page=2',
+      contentElement: { scrollIntoView: vi.fn() },
+    });
+    scheduleScrollToContent('?page=2');
+    scrollToContentIfScheduled();
+    vi.advanceTimersByTime(150);
+    documentEvents.dispatchEvent(new Event('scroll'));
+    vi.advanceTimersByTime(150);
+    expect(bodyStyle.minHeight).toBe('2400px');
+    vi.advanceTimersByTime(50);
     expect(bodyStyle.minHeight).toBe('');
+    expect(bodyStyle.overflowAnchor).toBe('');
+  });
+
+  it('restores the previous layout styles when scrolling does not move the viewport', () => {
+    const { bodyStyle } = stubBrowser({
+      url: 'http://app.test/discover?page=2',
+      contentElement: { scrollIntoView: vi.fn() },
+    });
+    bodyStyle.minHeight = '100vh';
+    bodyStyle.overflowAnchor = 'auto';
+    scheduleScrollToContent('?page=2');
+    scrollToContentIfScheduled();
+    vi.advanceTimersByTime(200);
+    expect(bodyStyle).toEqual({ minHeight: '100vh', overflowAnchor: 'auto' });
+  });
+
+  it('does not let a previous scroll completion release the next page height hold', () => {
+    const { bodyStyle, documentEvents } = stubBrowser({
+      url: 'http://app.test/discover?page=2',
+      contentElement: { scrollIntoView: vi.fn() },
+    });
+    scheduleScrollToContent('?page=2');
+    scrollToContentIfScheduled();
+    scheduleScrollToContent('?page=3');
+    documentEvents.dispatchEvent(new Event('scrollend'));
+    vi.advanceTimersByTime(500);
+    expect(bodyStyle.minHeight).toBe('2400px');
+  });
+
+  it('cleans up the layout hold when browser history interrupts a scroll', () => {
+    const { bodyStyle, windowEvents } = stubBrowser({
+      url: 'http://app.test/discover?page=2',
+      contentElement: { scrollIntoView: vi.fn() },
+    });
+    scheduleScrollToContent('?page=2');
+    scrollToContentIfScheduled();
+    windowEvents.dispatchEvent(new Event('popstate'));
+    expect(bodyStyle.minHeight).toBe('');
+    expect(bodyStyle.overflowAnchor).toBe('');
   });
 
   it('consumes the schedule so a later render does not scroll again', () => {

@@ -26,6 +26,11 @@ type ScrollSamplingWindow = Window & {
   __paginationScrollSamples?: number[];
 };
 
+type PaginationScrollProbe = typeof window & {
+  __paginationStartY: number;
+  __paginationScrolls: { y: number; heightHeld: boolean }[];
+};
+
 /** Height of the sticky header, which the root scroll-padding reserves. */
 function headerHeight(page: Page): Promise<number> {
   return page.evaluate(() =>
@@ -215,6 +220,80 @@ test('scrolls to loading skeletons before the next Discover request finishes', a
   await page.goBack();
   await expect(page).toHaveURL(/genreId=28/);
   await expect.poll(() => firstCardHref(page)).toBe(firstHrefBefore);
+});
+
+test('shorter fetched and cached pages start scrolling from the clicked position', async ({ page }) => {
+  let pageReads = 0;
+  await page.route('**/api/rpc/discovery/list*', async (route) => {
+    const input = route.request().postDataJSON() as { json: { page: number } };
+    if (input.json.page !== 2) {
+      await route.continue();
+      return;
+    }
+    pageReads++;
+    const response = await route.fetch();
+    const body = (await response.json()) as { json: { items: unknown[] } };
+    body.json.items = body.json.items.slice(0, 4);
+    await route.fulfill({ response, json: body });
+  });
+  await page.goto('/discover?genreId=28');
+  const cards = page.locator('#content a[href^="/movie/"]');
+  await expect(cards.first()).toBeVisible();
+  const initialCount = await cards.count();
+  expect(initialCount).toBeGreaterThan(4);
+
+  await page.evaluate(() => {
+    const probe = window as PaginationScrollProbe;
+    probe.__paginationScrolls = [];
+    document.addEventListener(
+      'click',
+      (event) => {
+        if (
+          event.target instanceof Element &&
+          event.target.closest('[aria-label="Go to next page"]')
+        ) {
+          probe.__paginationStartY = window.scrollY;
+        }
+      },
+      true,
+    );
+    const original = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function scrollIntoView(options) {
+      if (this.id === 'content') {
+        probe.__paginationScrolls.push({
+          y: window.scrollY,
+          heightHeld: document.body.style.minHeight !== '',
+        });
+      }
+      original.call(this, options);
+    };
+  });
+
+  for (const cached of [false, true]) {
+    if (cached) {
+      await page.goBack();
+      await expect(cards).toHaveCount(initialCount);
+    }
+    await page.evaluate(() => {
+      (window as PaginationScrollProbe).__paginationScrolls = [];
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+    });
+    await page.getByRole('button', { name: 'Go to next page' }).click();
+    await expect(page).toHaveURL(/page=2/);
+    await expect(cards).toHaveCount(4);
+    await settledScrollY(page);
+    const trace = await page.evaluate(() => {
+      const probe = window as PaginationScrollProbe;
+      return { start: probe.__paginationStartY, scrolls: probe.__paginationScrolls };
+    });
+    expect(trace.start).toBeGreaterThan(500);
+    expect(trace.scrolls).toHaveLength(1);
+    expect(Math.abs(trace.scrolls[0].y - trace.start)).toBeLessThan(2);
+    expect(trace.scrolls[0].heightHeld).toBe(true);
+    expect(pageReads).toBe(1);
+    await expect.poll(() => page.evaluate(() => document.body.style.minHeight)).toBe('');
+    expect(await page.evaluate(() => document.body.style.overflowAnchor)).toBe('');
+  }
 });
 
 // Users with saved streaming services hit a different data path on a bare
