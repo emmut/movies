@@ -3,196 +3,198 @@ import { afterEach, describe, expect, it, vi } from 'vite-plus/test';
 import { scheduleScrollToContent, scrollToContentIfScheduled } from './scroll-to-content';
 
 function stubBrowser({
-  url = 'http://app.test/discover',
-  hasContent = true,
-  reducedMotion = true,
-} = {}) {
+  url,
+  contentElement,
+  reducedMotion = false,
+}: {
+  url: string;
+  reducedMotion?: boolean;
+  contentElement: { scrollIntoView: () => void; getBoundingClientRect?: () => void } | null;
+}) {
+  const results = contentElement && {
+    getBoundingClientRect: vi.fn(),
+    ...contentElement,
+  };
   const location = { href: url };
   const bodyStyle = { minHeight: '' };
-  const events = new EventTarget();
-  const frames = new Map<number, FrameRequestCallback>();
-  let nextFrame = 0;
-  let now = 0;
-  const viewport = {
+  vi.stubGlobal('window', {
     location,
-    scrollY: 2000,
-    innerHeight: 800,
     matchMedia: vi.fn(() => ({ matches: reducedMotion })),
-    addEventListener: events.addEventListener.bind(events),
-    removeEventListener: vi.fn(events.removeEventListener.bind(events)),
-    scrollTo: vi.fn(({ top }: ScrollToOptions) => {
-      viewport.scrollY = top ?? 0;
-    }),
-  };
-  const root = { scrollHeight: 6000 };
-  const results = {
-    getBoundingClientRect: vi.fn(() => ({ top: 300 - viewport.scrollY })),
-  };
-  vi.stubGlobal('window', viewport);
+  });
   vi.stubGlobal('document', {
     body: { style: bodyStyle },
-    documentElement: root,
-    getElementById: (id: string) => (id === 'content' && hasContent ? results : null),
+    documentElement: { scrollHeight: 2400 },
+    getElementById: vi.fn(function getElementById(id: string) {
+      return id === 'content' ? results : null;
+    }),
   });
-  vi.stubGlobal('getComputedStyle', (element: unknown) => ({
-    scrollPaddingTop: element === root ? '64px' : '0px',
-    scrollMarginTop: element === results ? '20px' : '0px',
-  }));
-  vi.stubGlobal('performance', { now: () => now });
-  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
-    frames.set(++nextFrame, callback);
-    return nextFrame;
-  });
-  vi.stubGlobal('cancelAnimationFrame', (id: number) => frames.delete(id));
 
-  function advance(timestamp: number) {
-    now = timestamp;
-    const callbacks = [...frames.values()];
-    frames.clear();
-    for (const callback of callbacks) {
-      callback(timestamp);
-    }
-  }
-
-  return {
-    location,
-    bodyStyle,
-    viewport,
-    results,
-    frames,
-    events,
-    advance,
-    mountContent() {
-      hasContent = true;
-    },
-    navigate() {
-      scheduleScrollToContent('?page=2');
-      location.href = 'http://app.test/discover?page=2';
-      scrollToContentIfScheduled();
-    },
-  };
+  return { bodyStyle, location };
 }
 
-afterEach(() => {
-  stubBrowser({ url: 'http://app.test/drain' });
-  scheduleScrollToContent('/cancel');
+afterEach(function resetModuleState() {
+  // Drain any schedule left behind so tests stay independent: a render away
+  // from the scheduled destination clears it.
+  stubBrowser({ url: 'http://app.test/drain', contentElement: null });
   scrollToContentIfScheduled();
   vi.unstubAllGlobals();
 });
 
 describe('scrollToContentIfScheduled', () => {
-  it('does nothing when no scroll was scheduled', () => {
-    const { viewport } = stubBrowser();
-    scrollToContentIfScheduled();
-    expect(viewport.scrollTo).not.toHaveBeenCalled();
-  });
-
-  it('respects the header padding and results margin when reduced motion is requested', () => {
-    const browser = stubBrowser();
-    browser.navigate();
-    expect(browser.viewport.scrollTo).toHaveBeenCalledWith({ top: 216, behavior: 'instant' });
-    expect(browser.frames.size).toBe(0);
-  });
-
-  it('holds the document height until the destination has been laid out', () => {
-    const browser = stubBrowser();
-    const holdAtLayout: string[] = [];
-    browser.results.getBoundingClientRect.mockImplementation(() => {
-      holdAtLayout.push(browser.bodyStyle.minHeight);
-      return { top: -1700 };
+  it('lets the browser handle reduced motion without an animation loop', () => {
+    const scrollIntoView = vi.fn();
+    const requestFrame = vi.fn();
+    vi.stubGlobal('requestAnimationFrame', requestFrame);
+    stubBrowser({
+      url: 'http://app.test/discover?page=2',
+      contentElement: { scrollIntoView },
+      reducedMotion: true,
     });
     scheduleScrollToContent('?page=2');
-    expect(browser.bodyStyle.minHeight).toBe('6000px');
-    browser.location.href = 'http://app.test/discover?page=2';
     scrollToContentIfScheduled();
-    expect(holdAtLayout[0]).toBe('6000px');
-    expect(browser.bodyStyle.minHeight).toBe('');
+    expect(scrollIntoView).toHaveBeenCalledExactlyOnceWith({ behavior: 'instant', block: 'start' });
+    expect(requestFrame).not.toHaveBeenCalled();
+  });
+
+  it('delegates smooth scrolling once instead of driving each frame from JavaScript', () => {
+    const scrollIntoView = vi.fn();
+    const requestFrame = vi.fn();
+    vi.stubGlobal('requestAnimationFrame', requestFrame);
+    stubBrowser({ url: 'http://app.test/discover?page=2', contentElement: { scrollIntoView } });
+    scheduleScrollToContent('?page=2');
+    scrollToContentIfScheduled();
+    scrollToContentIfScheduled();
+    expect(scrollIntoView).toHaveBeenCalledExactlyOnceWith({ behavior: 'smooth', block: 'start' });
+    expect(requestFrame).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when no scroll was scheduled', () => {
+    const scrollIntoView = vi.fn();
+    stubBrowser({ url: 'http://app.test/discover', contentElement: { scrollIntoView } });
+
+    scrollToContentIfScheduled();
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('scrolls #content into view once the scheduled destination renders', () => {
+    const scrollIntoView = vi.fn();
+    stubBrowser({ url: 'http://app.test/discover', contentElement: { scrollIntoView } });
+
+    scheduleScrollToContent('?page=2');
+    stubBrowser({ url: 'http://app.test/discover?page=2', contentElement: { scrollIntoView } });
+    scrollToContentIfScheduled();
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+  });
+
+  it('holds the document height through navigation and releases it before scrolling', () => {
+    const scrollIntoView = vi.fn();
+    const { bodyStyle, location } = stubBrowser({
+      url: 'http://app.test/discover',
+      contentElement: { scrollIntoView },
+    });
+
+    scheduleScrollToContent('?page=2');
+    expect(bodyStyle.minHeight).toBe('2400px');
+
+    location.href = 'http://app.test/discover?page=2';
+    scrollToContentIfScheduled();
+
+    expect(bodyStyle.minHeight).toBe('');
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('lays out the new page while the height hold is still in place', () => {
+    // Record the hold each time layout is forced, as WebKit lays out on read.
+    const holdAtLayout: string[] = [];
+    const { bodyStyle, location } = stubBrowser({
+      url: 'http://app.test/discover',
+      contentElement: {
+        scrollIntoView: vi.fn(),
+        getBoundingClientRect: vi.fn(function getBoundingClientRect() {
+          holdAtLayout.push(bodyStyle.minHeight);
+        }),
+      },
+    });
+    scheduleScrollToContent('?page=2');
+
+    location.href = 'http://app.test/discover?page=2';
+    scrollToContentIfScheduled();
+
+    expect(holdAtLayout).toEqual(['2400px']);
+    expect(bodyStyle.minHeight).toBe('');
   });
 
   it('consumes the schedule so a later render does not scroll again', () => {
-    const browser = stubBrowser();
-    browser.navigate();
+    const scrollIntoView = vi.fn();
+    stubBrowser({ url: 'http://app.test/discover?page=2', contentElement: { scrollIntoView } });
+
+    scheduleScrollToContent('?page=2');
     scrollToContentIfScheduled();
-    expect(browser.viewport.scrollTo).toHaveBeenCalledTimes(1);
+    scrollToContentIfScheduled();
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
-  it('waits for the results anchor to mount', () => {
-    const browser = stubBrowser({ hasContent: false });
-    browser.navigate();
-    expect(browser.viewport.scrollTo).not.toHaveBeenCalled();
-    browser.mountContent();
+  it('keeps the schedule while #content is missing and scrolls once it mounts', () => {
+    stubBrowser({ url: 'http://app.test/lists?page=3', contentElement: null });
+
+    scheduleScrollToContent('/lists?page=3');
+    expect(scrollToContentIfScheduled).not.toThrow();
+
+    const scrollIntoView = vi.fn();
+    stubBrowser({ url: 'http://app.test/lists?page=3', contentElement: { scrollIntoView } });
     scrollToContentIfScheduled();
-    expect(browser.viewport.scrollTo).toHaveBeenCalledTimes(1);
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
-  it('matches the destination regardless of parameter order', () => {
-    const browser = stubBrowser();
+  it('does not scroll when a superseding query state lands on the same page number', () => {
+    stubBrowser({ url: 'http://app.test/discover?page=2', contentElement: null });
+    scheduleScrollToContent('?page=1');
+
+    // A filter change also resolves to a page-1 result set on the same
+    // pathname — that is a different destination, not the scheduled one.
+    const scrollIntoView = vi.fn();
+    stubBrowser({
+      url: 'http://app.test/discover?page=1&sort_by=vote_average.desc',
+      contentElement: { scrollIntoView },
+    });
+    scrollToContentIfScheduled();
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('matches the destination regardless of query parameter order', () => {
+    const scrollIntoView = vi.fn();
+    stubBrowser({ url: 'http://app.test/discover?mediaType=tv&page=1', contentElement: null });
     scheduleScrollToContent('?mediaType=tv&page=2');
-    browser.location.href = 'http://app.test/discover?page=2&mediaType=tv';
+
+    stubBrowser({
+      url: 'http://app.test/discover?page=2&mediaType=tv',
+      contentElement: { scrollIntoView },
+    });
     scrollToContentIfScheduled();
-    expect(browser.viewport.scrollTo).toHaveBeenCalledTimes(1);
+
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
-  it.each(['/watchlist', '/discover?page=2&sort_by=vote_average.desc'])(
-    'drops an abandoned schedule after navigating to %s',
-    (destination) => {
-      const browser = stubBrowser();
-      scheduleScrollToContent('?page=2');
-      browser.location.href = 'http://app.test' + destination;
-      scrollToContentIfScheduled();
-      expect(browser.bodyStyle.minHeight).toBe('');
-      browser.location.href = 'http://app.test/discover?page=2';
-      scrollToContentIfScheduled();
-      expect(browser.viewport.scrollTo).not.toHaveBeenCalled();
-    },
-  );
-});
-
-describe('pagination scroll animation', () => {
-  it('moves gently for a full second before stopping below the header', () => {
-    const browser = stubBrowser({ reducedMotion: false });
-    browser.navigate();
-    expect(browser.viewport.scrollY).toBe(2000);
-    browser.advance(500);
-    expect(browser.viewport.scrollY).toBeGreaterThan(216);
-    expect(browser.viewport.scrollY).toBeLessThan(2000);
-    browser.advance(900);
-    expect(browser.viewport.scrollY).toBeGreaterThan(216);
-    expect(browser.frames.size).toBe(1);
-    browser.advance(1000);
-    expect(browser.viewport.scrollY).toBe(216);
-    expect(browser.frames.size).toBe(0);
-    expect(browser.viewport.removeEventListener).toHaveBeenCalledTimes(3);
-  });
-
-  it.each(['wheel', 'touchstart', 'keydown'])('lets %s interrupt the animation', (event) => {
-    const browser = stubBrowser({ reducedMotion: false });
-    browser.navigate();
-    browser.advance(200);
-    const position = browser.viewport.scrollY;
-    browser.events.dispatchEvent(new Event(event));
-    browser.advance(1000);
-    expect(browser.viewport.scrollY).toBe(position);
-    expect(browser.frames.size).toBe(0);
-  });
-
-  it('stops when the user navigates elsewhere', () => {
-    const browser = stubBrowser({ reducedMotion: false });
-    browser.navigate();
-    browser.advance(200);
-    browser.location.href = 'http://app.test/movie/42';
-    browser.advance(400);
-    expect(browser.viewport.scrollTo).toHaveBeenCalledTimes(1);
-    expect(browser.frames.size).toBe(0);
-  });
-
-  it('cancels an earlier animation when another pagination starts', () => {
-    const browser = stubBrowser({ reducedMotion: false });
-    browser.navigate();
-    browser.advance(200);
+  it('drops an abandoned schedule instead of scrolling an unrelated page', () => {
+    stubBrowser({ url: 'http://app.test/discover', contentElement: null });
     scheduleScrollToContent('?page=3');
-    browser.advance(400);
-    expect(browser.viewport.scrollTo).toHaveBeenCalledTimes(1);
-    expect(browser.frames.size).toBe(0);
+
+    // The navigation never landed; the next render happens elsewhere.
+    const scrollIntoView = vi.fn();
+    stubBrowser({ url: 'http://app.test/watchlist', contentElement: { scrollIntoView } });
+    scrollToContentIfScheduled();
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    // Even reaching the original destination later must not scroll — the
+    // stale schedule was cleared by the unrelated render.
+    stubBrowser({ url: 'http://app.test/discover?page=3', contentElement: { scrollIntoView } });
+    scrollToContentIfScheduled();
+    expect(scrollIntoView).not.toHaveBeenCalled();
   });
 });
