@@ -21,7 +21,7 @@ for (const width of [1440, 390, 320]) {
 
       for (const path of ['/watchlist', '/watched']) {
         await page.goto(`${path}?mediaType=movie&page=2`);
-        const toolbar = page.locator('[data-slot="list-toolbar"]');
+        const toolbar = page.locator('[data-slot="list-toolbar"]').filter({ visible: true });
         const header = page.locator('[data-slot="list-header-row"]');
         const reorder = header.getByRole('button', { name: 'Reorder items', exact: true });
         const movies = toolbar.getByRole('button', { name: 'Movies', exact: true });
