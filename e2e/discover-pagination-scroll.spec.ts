@@ -207,6 +207,9 @@ test('scrolls to loading skeletons before the next Discover request finishes', a
     await expect(container.locator('a[href^="/movie/"]')).toHaveCount(0);
     const finalY = await settledScrollY(page);
     expectRestingAtResultsTop(finalY, containerTop, header);
+    // Safari may lay out an empty grid during the later skeleton/results
+    // replacement. Keep layout protection until that render has committed.
+    expect(await page.evaluate(() => document.body.style.minHeight)).not.toBe('');
     expect(serverNavigations).toHaveLength(0);
   } finally {
     releaseRequest();
@@ -216,6 +219,7 @@ test('scrolls to loading skeletons before the next Discover request finishes', a
   expect(await firstCardHref(page)).not.toBe(firstHrefBefore);
   await expect(container.locator('[data-slot="item-card-skeleton"]')).toHaveCount(0);
   expectRestingAtResultsTop(await settledScrollY(page), containerTop, header);
+  await expect.poll(() => page.evaluate(() => document.body.style.minHeight)).toBe('');
 
   await page.goBack();
   await expect(page).toHaveURL(/genreId=28/);

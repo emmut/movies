@@ -8,7 +8,8 @@
 // spinner), and a remount would lose anything stored in the component.
 // The body keeps its current height in the meantime: at narrow WebKit
 // viewports, the brief route handoff can otherwise clamp the scroll position
-// above the results before or during the smooth scroll.
+// above the results before or during the smooth scroll, or when delayed
+// results replace the skeletons after scrolling has finished.
 //
 // The schedule is scoped to the navigation's destination so it can't leak: a
 // later render anywhere else (the navigation was abandoned or superseded)
@@ -17,6 +18,9 @@
 type ScheduledScroll = {
   pathname: string;
   search: string;
+  page: number;
+  contentReady: boolean;
+  scrollFinished: boolean;
   restoreLayout: () => void;
 };
 
@@ -27,18 +31,65 @@ function normalizedSearch(url: URL) {
 }
 
 let scheduled: ScheduledScroll | null = null;
+let active: ScheduledScroll | null = null;
 let finishScroll: (() => void) | null = null;
 
 function holdPageLayout() {
   const { style } = document.body;
   const { minHeight, overflowAnchor } = style;
+  let restored = false;
   style.minHeight = `${document.documentElement.scrollHeight}px`;
   style.overflowAnchor = 'none';
 
-  return function restoreLayout() {
+  function restoreLayout() {
+    if (restored) {
+      return;
+    }
+    restored = true;
+    window.removeEventListener('popstate', restoreLayout);
     style.minHeight = minHeight;
     style.overflowAnchor = overflowAnchor;
-  };
+  }
+  window.addEventListener('popstate', restoreLayout);
+  return restoreLayout;
+}
+
+function restoreIfComplete(scroll: ScheduledScroll) {
+  if (!scroll.contentReady || !scroll.scrollFinished) {
+    return;
+  }
+  // WebKit can lay out an empty grid while React replaces the skeletons.
+  // Flush the completed results layout before releasing the height hold.
+  document.getElementById('content')?.getBoundingClientRect();
+  scroll.restoreLayout();
+  if (active === scroll) {
+    active = null;
+  }
+}
+
+/** The results have committed, including cached, empty and error states. */
+export function markPaginationContentReady(page: number) {
+  const scroll = scheduled ?? active;
+  if (!scroll) {
+    return;
+  }
+  if (scroll.page !== page) {
+    if (active) {
+      cancelScrollToContent();
+    }
+    return;
+  }
+  scroll.contentReady = true;
+  restoreIfComplete(scroll);
+}
+
+/** Release pending layout protection when the results unmount or navigation changes. */
+export function cancelScrollToContent() {
+  finishScroll?.();
+  active?.restoreLayout();
+  active = null;
+  scheduled?.restoreLayout();
+  scheduled = null;
 }
 
 function restoreAfterScroll(restoreLayout: () => void) {
@@ -77,14 +128,16 @@ function restoreAfterScroll(restoreLayout: () => void) {
  *
  * @param href - The pagination link's destination (`?page=N` or a full path).
  */
-export function scheduleScrollToContent(href: string) {
-  finishScroll?.();
-  scheduled?.restoreLayout();
+export function scheduleScrollToContent(href: string, { waitForContent = false } = {}) {
+  cancelScrollToContent();
 
   const destination = new URL(href, window.location.href);
   scheduled = {
     pathname: destination.pathname,
     search: normalizedSearch(destination),
+    page: Number(destination.searchParams.get('page') ?? '1'),
+    contentReady: !waitForContent,
+    scrollFinished: false,
     restoreLayout: holdPageLayout(),
   };
 }
@@ -118,18 +171,22 @@ export function scrollToContentIfScheduled() {
     return;
   }
 
-  const { restoreLayout } = scheduled;
+  const scroll = scheduled;
+  active = scroll;
   scheduled = null;
-  // Keep the old height and suppress scroll anchoring until scrolling ends.
-  // A shorter cached page, or a response arriving mid-scroll, would otherwise
-  // clamp the viewport partway up before the native animation can reach it.
+  // Protect both the animation and the results commit: a delayed response
+  // can replace skeletons after scrolling has already finished.
   results.getBoundingClientRect();
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (!reducedMotion) {
-    restoreAfterScroll(restoreLayout);
+    restoreAfterScroll(() => {
+      scroll.scrollFinished = true;
+      restoreIfComplete(scroll);
+    });
   }
   results.scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'start' });
   if (reducedMotion) {
-    restoreLayout();
+    scroll.scrollFinished = true;
+    restoreIfComplete(scroll);
   }
 }

@@ -145,7 +145,7 @@ export function PaginationControls({ totalPages, shallow = false }: PaginationCo
       value !== currentPageNumber
     ) {
       const href = buildPageHref(value);
-      scheduleScrollToContent(href);
+      scheduleScrollToContent(href, { waitForContent: shallow });
       if (shallow) {
         // nuqs updates the query immediately, so skeletons mount while the
         // request runs. Wait only for its history flush before consuming the

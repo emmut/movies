@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
-import { scheduleScrollToContent, scrollToContentIfScheduled } from './scroll-to-content';
+import {
+  cancelScrollToContent,
+  markPaginationContentReady,
+  scheduleScrollToContent,
+  scrollToContentIfScheduled,
+} from './scroll-to-content';
 
 function stubBrowser({
   url,
@@ -52,6 +57,82 @@ afterEach(function resetModuleState() {
 });
 
 describe('scrollToContentIfScheduled', () => {
+  it('keeps the height hold after scrolling while delayed results are still pending', () => {
+    const { bodyStyle, documentEvents } = stubBrowser({
+      url: 'http://app.test/discover?page=2',
+      contentElement: { scrollIntoView: vi.fn() },
+    });
+    scheduleScrollToContent('?page=2', { waitForContent: true });
+    scrollToContentIfScheduled();
+    documentEvents.dispatchEvent(new Event('scrollend'));
+    vi.advanceTimersByTime(1000);
+    expect(bodyStyle.minHeight).toBe('2400px');
+    markPaginationContentReady(2);
+    expect(bodyStyle.minHeight).toBe('');
+    expect(bodyStyle.overflowAnchor).toBe('');
+  });
+
+  it('waits for scrolling when cached results commit before the URL flush', () => {
+    const { bodyStyle, location, documentEvents } = stubBrowser({
+      url: 'http://app.test/discover?page=1',
+      contentElement: { scrollIntoView: vi.fn() },
+    });
+    scheduleScrollToContent('?page=2', { waitForContent: true });
+    markPaginationContentReady(1);
+    markPaginationContentReady(2);
+    location.href = 'http://app.test/discover?page=2';
+    scrollToContentIfScheduled();
+    expect(bodyStyle.minHeight).toBe('2400px');
+    documentEvents.dispatchEvent(new Event('scrollend'));
+    expect(bodyStyle.minHeight).toBe('');
+  });
+
+  it('lays out the committed results while the height is protected before releasing it', () => {
+    const holdAtLayout: string[] = [];
+    const { bodyStyle } = stubBrowser({
+      url: 'http://app.test/discover?page=2',
+      contentElement: {
+        scrollIntoView: vi.fn(),
+        getBoundingClientRect() {
+          holdAtLayout.push(bodyStyle.minHeight);
+        },
+      },
+    });
+    scheduleScrollToContent('?page=2', { waitForContent: true });
+    scrollToContentIfScheduled();
+    vi.advanceTimersByTime(200);
+    holdAtLayout.length = 0;
+    markPaginationContentReady(2);
+    expect(holdAtLayout).toEqual(['2400px']);
+    expect(bodyStyle.minHeight).toBe('');
+  });
+
+  it('releases layout protection if results unmount before the request completes', () => {
+    const { bodyStyle } = stubBrowser({
+      url: 'http://app.test/discover?page=2',
+      contentElement: { scrollIntoView: vi.fn() },
+    });
+    scheduleScrollToContent('?page=2', { waitForContent: true });
+    scrollToContentIfScheduled();
+    vi.advanceTimersByTime(200);
+    cancelScrollToContent();
+    expect(bodyStyle.minHeight).toBe('');
+    markPaginationContentReady(2);
+    expect(bodyStyle.minHeight).toBe('');
+  });
+
+  it('releases a waiting hold when a different page replaces the requested results', () => {
+    const { bodyStyle } = stubBrowser({
+      url: 'http://app.test/discover?page=2',
+      contentElement: { scrollIntoView: vi.fn() },
+    });
+    scheduleScrollToContent('?page=2', { waitForContent: true });
+    scrollToContentIfScheduled();
+    vi.advanceTimersByTime(200);
+    markPaginationContentReady(3);
+    expect(bodyStyle.minHeight).toBe('');
+  });
+
   it('lets the browser handle reduced motion without an animation loop', () => {
     const scrollIntoView = vi.fn();
     const requestFrame = vi.fn();
