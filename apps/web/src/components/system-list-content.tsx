@@ -94,6 +94,7 @@ export function SystemListContent({
   const { totalMovies, totalTvShows, items, unavailableItems, totalPages, currentPage } =
     systemListView(paginatedData, page);
   const totalItems = totalMovies + totalTvShows;
+  const isLoadingItems = isLoading || isPlaceholderData;
 
   const [isEditing, setIsEditing] = useState(false);
   const moveMutation = useSystemListsMoveMutation();
@@ -130,7 +131,7 @@ export function SystemListContent({
   );
 
   return (
-    <div className="@container w-full">
+    <div aria-busy={isLoadingItems} className="@container w-full">
       <SystemListHeader
         listType={listType}
         mediaType={mediaType}
@@ -143,18 +144,20 @@ export function SystemListContent({
         canReorder={canReorder}
       />
 
-      <UnavailableListItems
-        count={unavailableItems}
-        retry={() => {
-          void refetch();
-        }}
-      />
+      {!isLoadingItems && (
+        <UnavailableListItems
+          count={unavailableItems}
+          retry={() => {
+            void refetch();
+          }}
+        />
+      )}
       <SystemListBody
         unavailableItems={unavailableItems}
         listType={listType}
         mediaType={mediaType}
         userId={userId}
-        isLoading={isLoading}
+        isLoading={isLoadingItems}
         isError={isError}
         isAllEmpty={totalItems === 0}
         isProviderFiltered={isProviderFiltered}

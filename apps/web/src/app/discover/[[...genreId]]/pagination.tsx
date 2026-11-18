@@ -17,5 +17,5 @@ export default function Pagination({ query }: { query: DiscoverMediaParams }) {
     return null;
   }
 
-  return <PaginationControls totalPages={data.totalPages} />;
+  return <PaginationControls totalPages={data.totalPages} shallow />;
 }

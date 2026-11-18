@@ -1,14 +1,15 @@
 // Coordinates "paginate, then scroll to the top of the results".
 //
-// The scroll can't happen at click time: the new page renders later and the
-// document height changes under an early scroll. Instead the click schedules
-// the scroll here and PaginationControls performs it in an effect once the
-// new page is on screen. Module state rather than React state: a loading
-// state can swap the controls out during the navigation (e.g. discover's
+// The click schedules a scroll; PaginationControls performs it when the
+// destination is on screen. Server navigations wait for the new page, while
+// shallow client-query updates scroll once skeletons mount and the URL
+// flushes, without waiting for the request. Module state rather than React
+// state: a loading state can swap the controls out (e.g. discover's
 // spinner), and a remount would lose anything stored in the component.
 // The body keeps its current height in the meantime: at narrow WebKit
 // viewports, the brief route handoff can otherwise clamp the scroll position
-// above the results before the smooth scroll begins.
+// above the results before or during the smooth scroll, or when delayed
+// results replace the skeletons after scrolling has finished.
 //
 // The schedule is scoped to the navigation's destination so it can't leak: a
 // later render anywhere else (the navigation was abandoned or superseded)
@@ -17,7 +18,10 @@
 type ScheduledScroll = {
   pathname: string;
   search: string;
-  bodyMinHeight: string;
+  page: number;
+  contentReady: boolean;
+  scrollFinished: boolean;
+  restoreLayout: () => void;
 };
 
 function normalizedSearch(url: URL) {
@@ -27,26 +31,115 @@ function normalizedSearch(url: URL) {
 }
 
 let scheduled: ScheduledScroll | null = null;
+let active: ScheduledScroll | null = null;
+let finishScroll: (() => void) | null = null;
+
+function holdPageLayout() {
+  const { style } = document.body;
+  const { minHeight, overflowAnchor } = style;
+  let restored = false;
+  style.minHeight = `${document.documentElement.scrollHeight}px`;
+  style.overflowAnchor = 'none';
+
+  function restoreLayout() {
+    if (restored) {
+      return;
+    }
+    restored = true;
+    window.removeEventListener('popstate', restoreLayout);
+    style.minHeight = minHeight;
+    style.overflowAnchor = overflowAnchor;
+  }
+  window.addEventListener('popstate', restoreLayout);
+  return restoreLayout;
+}
+
+function restoreIfComplete(scroll: ScheduledScroll) {
+  if (!scroll.contentReady || !scroll.scrollFinished) {
+    return;
+  }
+  // WebKit can lay out an empty grid while React replaces the skeletons.
+  // Flush the completed results layout before releasing the height hold.
+  document.getElementById('content')?.getBoundingClientRect();
+  scroll.restoreLayout();
+  if (active === scroll) {
+    active = null;
+  }
+}
+
+/** The results have committed, including cached, empty and error states. */
+export function markPaginationContentReady(page: number) {
+  const scroll = scheduled ?? active;
+  if (!scroll) {
+    return;
+  }
+  if (scroll.page !== page) {
+    if (active) {
+      cancelScrollToContent();
+    }
+    return;
+  }
+  scroll.contentReady = true;
+  restoreIfComplete(scroll);
+}
+
+/** Release pending layout protection when the results unmount or navigation changes. */
+export function cancelScrollToContent() {
+  finishScroll?.();
+  active?.restoreLayout();
+  active = null;
+  scheduled?.restoreLayout();
+  scheduled = null;
+}
+
+function restoreAfterScroll(restoreLayout: () => void) {
+  let finished = false;
+  let timer: ReturnType<typeof setTimeout>;
+
+  function finish() {
+    if (finished) {
+      return;
+    }
+    finished = true;
+    clearTimeout(timer);
+    document.removeEventListener('scroll', onScroll);
+    document.removeEventListener('scrollend', finish);
+    window.removeEventListener('popstate', finish);
+    restoreLayout();
+    finishScroll = null;
+  }
+
+  function onScroll() {
+    clearTimeout(timer);
+    timer = setTimeout(finish, 200);
+  }
+
+  finishScroll = finish;
+  document.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scrollend', finish);
+  window.addEventListener('popstate', finish);
+  // Also covers browsers without scrollend and calls that do not move the
+  // viewport. This observes scroll completion; the browser owns the animation.
+  onScroll();
+}
 
 /**
  * Called at click time, before the pagination navigation starts.
  *
  * @param href - The pagination link's destination (`?page=N` or a full path).
  */
-export function scheduleScrollToContent(href: string) {
-  if (scheduled) {
-    document.body.style.minHeight = scheduled.bodyMinHeight;
-  }
+export function scheduleScrollToContent(href: string, { waitForContent = false } = {}) {
+  cancelScrollToContent();
 
   const destination = new URL(href, window.location.href);
   scheduled = {
     pathname: destination.pathname,
     search: normalizedSearch(destination),
-    bodyMinHeight: document.body.style.minHeight,
+    page: Number(destination.searchParams.get('page') ?? '1'),
+    contentReady: !waitForContent,
+    scrollFinished: false,
+    restoreLayout: holdPageLayout(),
   };
-  // Keep WebKit from clamping the bottom-of-page position during the brief
-  // route handoff. The destination render releases this before scrolling.
-  document.body.style.minHeight = `${document.documentElement.scrollHeight}px`;
 }
 
 /**
@@ -65,7 +158,7 @@ export function scrollToContentIfScheduled() {
   if (!atDestination) {
     // The scheduled navigation never landed — drop it so it can't scroll an
     // unrelated page later.
-    document.body.style.minHeight = scheduled.bodyMinHeight;
+    scheduled.restoreLayout();
     scheduled = null;
     return;
   }
@@ -78,19 +171,22 @@ export function scrollToContentIfScheduled() {
     return;
   }
 
-  const { bodyMinHeight } = scheduled;
+  const scroll = scheduled;
+  active = scroll;
   scheduled = null;
-  // Lay the new page out while the height hold is still in place. This can
-  // run in the same task as the commit that swapped the results in (e.g. for
-  // signed-in users), before WebKit has laid the new DOM out. Releasing the
-  // hold first makes that first layout clamp the scroll well above the
-  // results — even though the finished page is as tall as the old one — so
-  // the smooth scroll then starts from there instead of from the bottom. A
-  // call, not a bare property read, so the minifier can't drop it.
+  // Protect both the animation and the results commit: a delayed response
+  // can replace skeletons after scrolling has already finished.
   results.getBoundingClientRect();
-  document.body.style.minHeight = bodyMinHeight;
-  // Smooth is safe here: the scroll runs after the new page has rendered, so
-  // no skeleton swap can move the target mid-animation (which is what forced
-  // the old click-time implementation to scroll instantly).
-  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reducedMotion) {
+    restoreAfterScroll(() => {
+      scroll.scrollFinished = true;
+      restoreIfComplete(scroll);
+    });
+  }
+  results.scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'start' });
+  if (reducedMotion) {
+    scroll.scrollFinished = true;
+    restoreIfComplete(scroll);
+  }
 }

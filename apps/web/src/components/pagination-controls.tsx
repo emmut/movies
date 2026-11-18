@@ -12,12 +12,14 @@ import {
 import { clsx } from 'cn';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { parseAsInteger, useQueryStates } from 'nuqs';
-import { useEffect } from 'react';
 
+import { usePaginationScroll } from '@/hooks/use-pagination-scroll';
 import { scheduleScrollToContent, scrollToContentIfScheduled } from '@/lib/scroll-to-content';
 
 type PaginationControlsProps = {
   totalPages: number;
+  /** Change client-query pages without waiting for a server-rendered route. */
+  shallow?: boolean;
 };
 
 // Numbered links are reserved for screens with room for the full range.
@@ -106,23 +108,17 @@ function PageJump({
   );
 }
 
-export function PaginationControls({ totalPages }: PaginationControlsProps) {
+export function PaginationControls({ totalPages, shallow = false }: PaginationControlsProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [{ page: currentPageNumber }] = useQueryStates({
+  const [{ page: currentPageNumber }, setUrlState] = useQueryStates({
     page: parseAsInteger.withDefault(1),
   });
 
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
 
-  // A pagination click schedules a scroll to the clicked destination (via the
-  // links' onNavigate, which skips modifier/middle clicks that open a new
-  // tab); it runs here once the new page is on screen — when this instance
-  // re-renders with the new page number, or when a fresh instance mounts
-  // after a loading state (e.g. discover's spinner) swapped the controls out
-  // during the navigation.
-  useEffect(scrollToContentIfScheduled, [currentPageNumber]);
+  usePaginationScroll(currentPageNumber, shallow);
 
   function buildPageHref(page: number) {
     const params = new URLSearchParams(searchParams.toString());
@@ -130,7 +126,7 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
     return `?${params.toString()}`;
   }
 
-  function jumpToPage(value: number) {
+  async function jumpToPage(value: number) {
     if (
       Number.isInteger(value) &&
       value >= 1 &&
@@ -138,8 +134,28 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
       value !== currentPageNumber
     ) {
       const href = buildPageHref(value);
-      scheduleScrollToContent(href);
-      router.push(href);
+      scheduleScrollToContent(href, { waitForContent: shallow });
+      if (shallow) {
+        // nuqs updates the query immediately, so skeletons mount while the
+        // request runs. Wait only for its history flush before consuming the
+        // scroll schedule; the old URL would otherwise discard it.
+        await setUrlState(
+          { page: value },
+          { history: 'push', shallow: true, clearOnDefault: false },
+        );
+        scrollToContentIfScheduled();
+      } else {
+        router.push(href);
+      }
+    }
+  }
+
+  function navigateToPage(event: { preventDefault: () => void }, page: number) {
+    if (shallow) {
+      event.preventDefault();
+      void jumpToPage(page);
+    } else {
+      scheduleScrollToContent(buildPageHref(page));
     }
   }
 
@@ -153,8 +169,9 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
             <PaginationContent className="flex-nowrap gap-2">
               <PaginationItem>
                 <PaginationPrevious
+                  prefetch={shallow ? false : undefined}
                   href={buildPageHref(Math.max(1, currentPageNumber - 1))}
-                  onNavigate={() => scheduleScrollToContent(buildPageHref(currentPageNumber - 1))}
+                  onNavigate={(event) => navigateToPage(event, currentPageNumber - 1)}
                   aria-disabled={!hasPrevPage}
                   tabIndex={hasPrevPage ? 0 : -1}
                   className={clsx(
@@ -180,13 +197,14 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
                 ) : (
                   <PaginationItem key={pageNumber} className="hidden lg:block">
                     <PaginationLink
+                      prefetch={shallow ? false : undefined}
                       href={buildPageHref(pageNumber)}
                       // The active page's link is a no-op navigation; never
                       // schedule a scroll for the page already on screen.
                       onNavigate={
                         pageNumber === currentPageNumber
                           ? undefined
-                          : () => scheduleScrollToContent(buildPageHref(pageNumber))
+                          : (event) => navigateToPage(event, pageNumber)
                       }
                       isActive={pageNumber === currentPageNumber}
                       className="size-10 text-sm"
@@ -199,8 +217,9 @@ export function PaginationControls({ totalPages }: PaginationControlsProps) {
 
               <PaginationItem>
                 <PaginationNext
+                  prefetch={shallow ? false : undefined}
                   href={buildPageHref(Math.min(totalPages, currentPageNumber + 1))}
-                  onNavigate={() => scheduleScrollToContent(buildPageHref(currentPageNumber + 1))}
+                  onNavigate={(event) => navigateToPage(event, currentPageNumber + 1)}
                   aria-disabled={!hasNextPage}
                   tabIndex={hasNextPage ? 0 : -1}
                   className={clsx(

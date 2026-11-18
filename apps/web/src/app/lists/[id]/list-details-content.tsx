@@ -22,6 +22,7 @@ import { ListHeaderRow } from '@/components/list-header-row';
 import { ListItemsGrid } from '@/components/list-items-grid';
 import { ListToolbar } from '@/components/list-toolbar';
 import { PaginationControls } from '@/components/pagination-controls';
+import { PosterSkeletonGrid } from '@/components/poster-skeleton-grid';
 import { ReorderButtonSlot } from '@/components/reorder-button';
 import SectionTitle from '@/components/section-title';
 import { UnavailableListItems } from '@/components/unavailable-list-items';
@@ -107,12 +108,14 @@ export function ListDetailsContent({
 
   return (
     <>
-      <UnavailableListItems
-        count={list.unavailableItems}
-        retry={() => {
-          void refetch();
-        }}
-      />
+      {!isPlaceholderData && (
+        <UnavailableListItems
+          count={list.unavailableItems}
+          retry={() => {
+            void refetch();
+          }}
+        />
+      )}
       <ListDetailsView
         list={displayList}
         page={list.currentPage}
@@ -175,6 +178,7 @@ function ListDetailsView({
       />
 
       <ListDetailsBody
+        isLoading={isPlaceholderData}
         list={list}
         items={localItems}
         offset={offset}
@@ -185,7 +189,7 @@ function ListDetailsView({
         userId={userId}
       />
 
-      {list.itemCount > 0 && list.totalPages > 1 && (
+      {!isPlaceholderData && list.itemCount > 0 && list.totalPages > 1 && (
         <PaginationControls totalPages={list.totalPages} />
       )}
     </div>
@@ -193,6 +197,7 @@ function ListDetailsView({
 }
 
 function ListDetailsBody({
+  isLoading,
   list,
   items,
   offset,
@@ -202,6 +207,7 @@ function ListDetailsBody({
   onMove,
   userId,
 }: {
+  isLoading: boolean;
   list: ListDetailsData;
   items: ListItem[];
   offset: number;
@@ -211,6 +217,10 @@ function ListDetailsBody({
   onMove: (id: string, toIndex: number) => void;
   userId?: string;
 }) {
+  if (isLoading) {
+    return <PosterSkeletonGrid />;
+  }
+
   if (list.itemCount === 0) {
     return <EmptyListState emoji={list.emoji} />;
   }

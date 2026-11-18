@@ -7,6 +7,10 @@ const state = vi.hoisted(() => ({
   page: 2,
   returned: 1,
   placeholder: false,
+  isLoading: false,
+  isFetching: false,
+  isError: false,
+  itemCount: 20,
   unavailable: 0,
   setParams: vi.fn(),
   effects: [] as (() => void)[],
@@ -37,7 +41,7 @@ vi.mock('@movies/api/react/use-custom-lists-query', () => ({
       createdAt: '',
       updatedAt: '',
       totalItems: 20,
-      itemCount: 20,
+      itemCount: state.itemCount,
       totalPages: 1,
       currentPage: state.returned,
       itemsPerPage: 20,
@@ -55,8 +59,9 @@ vi.mock('@movies/api/react/use-custom-lists-query', () => ({
         },
       ],
     },
-    isLoading: false,
-    isError: false,
+    isLoading: state.isLoading,
+    isFetching: state.isFetching,
+    isError: state.isError,
     isPlaceholderData: state.placeholder,
     refetch: vi.fn(),
   }),
@@ -89,7 +94,17 @@ function render() {
 }
 beforeEach(() => {
   vi.clearAllMocks();
-  Object.assign(state, { page: 2, returned: 1, placeholder: false, unavailable: 0, effects: [] });
+  Object.assign(state, {
+    page: 2,
+    returned: 1,
+    placeholder: false,
+    isLoading: false,
+    isFetching: false,
+    isError: false,
+    itemCount: 20,
+    unavailable: 0,
+    effects: [],
+  });
 });
 it('uses the returned page offset and disables moves until the URL is reconciled', () => {
   const html = render();
@@ -102,8 +117,44 @@ it('does not replace a pending page with the previous placeholder page', () => {
   state.placeholder = true;
   const html = render();
   expect(html).toContain('aria-busy="true"');
+  expect(html).toContain('aria-label="Loading titles"');
+  expect(html).toContain('Favorites');
+  expect(html).not.toContain('data-offset=');
   for (const effect of state.effects) effect();
   expect(state.setParams).not.toHaveBeenCalled();
+});
+it('shows placeholders instead of the previous empty state during a filter change', () => {
+  state.placeholder = true;
+  state.itemCount = 0;
+  const html = render();
+  expect(html).toContain('aria-label="Loading titles"');
+  expect(html).not.toContain('This list is empty');
+});
+it('shows placeholders on the initial fetch', () => {
+  state.isLoading = true;
+  expect(render()).toContain('aria-label="Loading titles"');
+});
+it('keeps items visible during a background refresh', () => {
+  state.isFetching = true;
+  const html = render();
+  expect(html).toContain('data-offset="0"');
+  expect(html).not.toContain('aria-label="Loading titles"');
+});
+it('replaces placeholders with the requested page when it arrives', () => {
+  state.placeholder = true;
+  expect(render()).toContain('aria-label="Loading titles"');
+  state.placeholder = false;
+  state.returned = 2;
+  const html = render();
+  expect(html).not.toContain('aria-label="Loading titles"');
+  expect(html).toContain('data-offset="20"');
+});
+it('shows a failed read instead of leaving the placeholders visible', () => {
+  state.isError = true;
+  const html = render();
+  expect(html).not.toContain('aria-label="Loading titles"');
+  expect(html).not.toContain('data-offset=');
+  expect(html).toContain('Refresh the page to retry.');
 });
 it('keeps incomplete pages non-reorderable and explains the missing titles', () => {
   state.page = 1;

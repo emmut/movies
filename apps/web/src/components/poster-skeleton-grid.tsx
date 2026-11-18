@@ -13,8 +13,11 @@ import { ITEMS_PER_PAGE } from '@/lib/config';
 export function PosterSkeletonGrid() {
   return (
     <div className="grid grid-cols-2 gap-4 @3xl:grid-cols-4 @8xl:grid-cols-5">
+      <output aria-label="Loading titles" className="sr-only">
+        Loading titles
+      </output>
       {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
-        <Skeleton key={i} className="aspect-2/3 w-full rounded-lg" />
+        <Skeleton key={i} aria-hidden="true" className="aspect-2/3 w-full rounded-lg" />
       ))}
     </div>
   );

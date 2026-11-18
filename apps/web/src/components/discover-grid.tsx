@@ -3,6 +3,7 @@
 import type { MediaCard } from '@movies/api/home';
 import { useDiscoveryList } from '@movies/api/react/use-discovery-query';
 
+import { usePaginationContentReady } from '@/hooks/use-pagination-scroll';
 import { webDiscoveryInput, type DiscoverMediaParams } from '@/lib/discover-input';
 
 import ItemGrid from './item-grid';
@@ -14,6 +15,8 @@ type DiscoverGridProps = {
 
 export default function DiscoverGrid({ query, userId }: DiscoverGridProps) {
   const { data, isPending, isError } = useDiscoveryList(webDiscoveryInput(query));
+
+  usePaginationContentReady(query.page, { data, isPending, isError });
 
   if (isPending) {
     return <ItemGrid.Skeletons className="w-full" />;

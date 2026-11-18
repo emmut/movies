@@ -3,9 +3,8 @@ import { expect, type Page, test } from '@playwright/test';
 import { signInAnonymously } from './helpers';
 
 // Paginating scrolls to the top of the results: the click schedules the
-// scroll and PaginationControls performs it once the new page is on screen
-// (see src/lib/scroll-to-content.ts), so a mid-navigation render can't move
-// the ground under it.
+// scroll and PaginationControls performs it once the next page's query state
+// (including loading skeletons) is on screen, before the request finishes.
 //
 // This runs under the `mobile-safari` project (WebKit + a narrow viewport) —
 // the engine and viewport size where the route handoff historically clamped
@@ -25,6 +24,11 @@ const SCROLL_MARGIN = 20; // scroll-m-5 on #content (1.25rem)
 type ScrollSamplingWindow = Window & {
   __paginationScrollFrame?: number;
   __paginationScrollSamples?: number[];
+};
+
+type PaginationScrollProbe = typeof window & {
+  __paginationStartY: number;
+  __paginationScrolls: { y: number; heightHeld: boolean }[];
 };
 
 /** Height of the sticky header, which the root scroll-padding reserves. */
@@ -167,6 +171,135 @@ async function paginateAndExpectResultsTop(page: Page) {
   expect(Math.min(...scrollSamples)).toBeGreaterThan(containerTop - header - SCROLL_MARGIN - 60);
 }
 
+test('scrolls to loading skeletons before the next Discover request finishes', async ({ page }) => {
+  await page.goto('/discover?genreId=28');
+  const container = page.locator('#content');
+  await expect(container.locator('a[href^="/movie/"]').first()).toBeVisible();
+  const firstHrefBefore = await firstCardHref(page);
+  const containerTop = await container.evaluate((element) =>
+    Math.round(element.getBoundingClientRect().top + window.scrollY),
+  );
+  const header = await headerHeight(page);
+  let releaseRequest = () => {};
+  const responseGate = new Promise<void>((resolve) => {
+    releaseRequest = resolve;
+  });
+  await page.route('**/api/rpc/discovery/list*', async (route) => {
+    await responseGate;
+    await route.continue();
+  });
+  const serverNavigations: string[] = [];
+  page.on('request', (request) => {
+    if (
+      new URL(request.url()).pathname === '/discover' &&
+      request.headers()['rsc'] === '1' &&
+      request.headers()['next-router-prefetch'] !== '1'
+    ) {
+      serverNavigations.push(request.url());
+    }
+  });
+
+  try {
+    await page.getByRole('button', { name: /go to next page/i }).click();
+    await expect(page).toHaveURL(/page=2/);
+    await expect(page).toHaveURL(/genreId=28/);
+    await expect(container.locator('[data-slot="item-card-skeleton"]')).toHaveCount(20);
+    await expect(container.locator('a[href^="/movie/"]')).toHaveCount(0);
+    const finalY = await settledScrollY(page);
+    expectRestingAtResultsTop(finalY, containerTop, header);
+    // Safari may lay out an empty grid during the later skeleton/results
+    // replacement. Keep layout protection until that render has committed.
+    expect(await page.evaluate(() => document.body.style.minHeight)).not.toBe('');
+    expect(serverNavigations).toHaveLength(0);
+  } finally {
+    releaseRequest();
+  }
+
+  await expect(container.locator('a[href^="/movie/"]').first()).toBeVisible();
+  expect(await firstCardHref(page)).not.toBe(firstHrefBefore);
+  await expect(container.locator('[data-slot="item-card-skeleton"]')).toHaveCount(0);
+  expectRestingAtResultsTop(await settledScrollY(page), containerTop, header);
+  await expect.poll(() => page.evaluate(() => document.body.style.minHeight)).toBe('');
+
+  await page.goBack();
+  await expect(page).toHaveURL(/genreId=28/);
+  await expect.poll(() => firstCardHref(page)).toBe(firstHrefBefore);
+});
+
+test('shorter fetched and cached pages start scrolling from the clicked position', async ({ page }) => {
+  let pageReads = 0;
+  await page.route('**/api/rpc/discovery/list*', async (route) => {
+    const input = route.request().postDataJSON() as { json: { page: number } };
+    if (input.json.page !== 2) {
+      await route.continue();
+      return;
+    }
+    pageReads++;
+    const response = await route.fetch();
+    const body = (await response.json()) as { json: { items: unknown[] } };
+    body.json.items = body.json.items.slice(0, 4);
+    await route.fulfill({ response, json: body });
+  });
+  await page.goto('/discover?genreId=28');
+  const cards = page.locator('#content a[href^="/movie/"]');
+  await expect(cards.first()).toBeVisible();
+  const initialCount = await cards.count();
+  expect(initialCount).toBeGreaterThan(4);
+
+  await page.evaluate(() => {
+    const probe = window as PaginationScrollProbe;
+    probe.__paginationScrolls = [];
+    document.addEventListener(
+      'click',
+      (event) => {
+        if (
+          event.target instanceof Element &&
+          event.target.closest('[aria-label="Go to next page"]')
+        ) {
+          probe.__paginationStartY = window.scrollY;
+        }
+      },
+      true,
+    );
+    const original = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function scrollIntoView(options) {
+      if (this.id === 'content') {
+        probe.__paginationScrolls.push({
+          y: window.scrollY,
+          heightHeld: document.body.style.minHeight !== '',
+        });
+      }
+      original.call(this, options);
+    };
+  });
+
+  for (const cached of [false, true]) {
+    if (cached) {
+      await page.goBack();
+      await expect(cards).toHaveCount(initialCount);
+    }
+    await page.evaluate(() => {
+      (window as PaginationScrollProbe).__paginationScrolls = [];
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' });
+    });
+    await page.getByRole('button', { name: 'Go to next page' }).click();
+    await expect(page).toHaveURL(/page=2/);
+    await expect(cards).toHaveCount(4);
+    await settledScrollY(page);
+    const trace = await page.evaluate(() => {
+      const probe = window as PaginationScrollProbe;
+      return { start: probe.__paginationStartY, scrolls: probe.__paginationScrolls };
+    });
+    expect(trace.start).toBeGreaterThan(500);
+    expect(trace.scrolls).toHaveLength(1);
+    expect(Math.abs(trace.scrolls[0].y - trace.start)).toBeLessThan(2);
+    expect(trace.scrolls[0].heightHeld).toBe(true);
+    expect(pageReads).toBe(1);
+    await expect.poll(() => page.evaluate(() => document.body.style.minHeight)).toBe('');
+    expect(await page.evaluate(() => document.body.style.overflowAnchor)).toBe('');
+  }
+});
+
 // Users with saved streaming services hit a different data path on a bare
 // /discover URL: the server prefetches with their saved providers while the
 // client hook derives its React Query key from the URL alone. When those
@@ -174,9 +307,9 @@ async function paginateAndExpectResultsTop(page: Page) {
 // client-side with the wrong (major-providers) filter — skeleton swaps, a
 // vanishing pagination bar, and pagination scrolling from the page top
 // instead of from where the user was. With the client pinned to the server's
-// provider fallback, the keys match and each page arrives once, already
-// hydrated: no client re-fetch ever fires.
-test('pagination for a user with saved providers stays on the hydrated data', async ({ page }) => {
+// provider fallback, the keys match: the initial page stays hydrated and
+// shallow pagination fetches the next page with the same provider defaults.
+test('pagination for a user with saved providers preserves the provider filter', async ({ page }) => {
   await signInAnonymously(page, '/settings');
   await page
     .getByRole('button')
@@ -186,13 +319,13 @@ test('pagination for a user with saved providers stays on the hydrated data', as
   await page.getByRole('button', { name: 'Save Preferences' }).click();
   await expect(page.getByText('Preferences saved!')).toBeVisible({ timeout: 15_000 });
 
-  // Client-side discover re-fetches are server-action POSTs. None may happen:
-  // a POST here means the client's React Query key missed the data the server
-  // prefetched and dehydrated — the provider-fallback mismatch this test pins.
-  const actionPosts: string[] = [];
+  // Initial results use the dehydrated query; the next page uses one client
+  // RPC request with the same saved provider defaults.
+  const clientReads: string[] = [];
   page.on('request', (request) => {
-    if (request.method() === 'POST' && request.url().includes('/discover')) {
-      actionPosts.push(request.postData() ?? '');
+    const url = new URL(request.url());
+    if (url.pathname === '/api/rpc/discovery/list') {
+      clientReads.push(url.searchParams.get('data') ?? request.postData() ?? '');
     }
   });
 
@@ -200,6 +333,7 @@ test('pagination for a user with saved providers stays on the hydrated data', as
   const firstCard = page.locator('#content a[href^="/movie/"]').first();
   await expect(firstCard).toBeVisible({ timeout: 20_000 });
   const firstHrefBefore = await firstCardHref(page);
+  expect(clientReads).toHaveLength(0);
 
   const containerTop = await page.evaluate(() => {
     const el = document.querySelector('#content')!;
@@ -222,9 +356,8 @@ test('pagination for a user with saved providers stays on the hydrated data', as
     )
     .toBe(true);
 
-  // Both the initial load and the pagination were served by the dehydrated
-  // server prefetch — the client never had to re-fetch.
-  expect(actionPosts).toHaveLength(0);
+  expect(clientReads).toHaveLength(1);
+  expect(clientReads[0]).toContain('"providerIds":[8]');
 
   // And the scroll invariant holds on this path too: settle at the top of the
   // results, not the page top.
