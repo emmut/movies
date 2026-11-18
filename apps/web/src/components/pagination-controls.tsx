@@ -12,8 +12,8 @@ import {
 import { clsx } from 'cn';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { parseAsInteger, useQueryStates } from 'nuqs';
-import { useEffect } from 'react';
 
+import { usePaginationScroll } from '@/hooks/use-pagination-scroll';
 import { scheduleScrollToContent, scrollToContentIfScheduled } from '@/lib/scroll-to-content';
 
 type PaginationControlsProps = {
@@ -118,18 +118,7 @@ export function PaginationControls({ totalPages, shallow = false }: PaginationCo
   const hasPrevPage = currentPageNumber > 1;
   const hasNextPage = currentPageNumber < totalPages;
 
-  // A pagination click schedules a scroll to the clicked destination (via the
-  // links' onNavigate, which skips modifier/middle clicks that open a new
-  // tab); it runs here once the new page is on screen — when this instance
-  // re-renders with the new page number, or when a fresh instance mounts
-  // after a loading state (e.g. discover's spinner) swapped the controls out
-  // during the navigation. Shallow pagination consumes its schedule after
-  // the URL flush instead, while the client query is still loading.
-  useEffect(() => {
-    if (!shallow) {
-      scrollToContentIfScheduled();
-    }
-  }, [currentPageNumber, shallow]);
+  usePaginationScroll(currentPageNumber, shallow);
 
   function buildPageHref(page: number) {
     const params = new URLSearchParams(searchParams.toString());
