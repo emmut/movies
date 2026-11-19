@@ -3,9 +3,18 @@
   "ui": "tui",
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**"
+      ],
       "cache": false,
       "env": [
         "API_URL",
@@ -31,7 +40,9 @@
       ]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": [
+        "^check-types"
+      ]
     },
     "dev": {
       "cache": false,
@@ -44,9 +55,27 @@
         "TMDB_API_URL_OVERRIDE",
         "PORT",
         "CORS_ORIGIN",
-        "EXPO_PUBLIC_*"
+        "EXPO_PUBLIC_*",
+        "BETTER_AUTH_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_TRUSTED_ORIGIN",
+        "AUTH_PROXY_SECRET",
+        "AUTH_IP_SOURCE",
+        "AUTH_RATE_LIMIT_DISABLED",
+        "WEB_URL",
+        "DATABASE_URL",
+        "DB_POOL_MAX",
+        "DISCORD_CLIENT_ID",
+        "DISCORD_CLIENT_SECRET",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "PASSKEY_ANDROID_FINGERPRINTS"
       ]
     }
   },
-  "globalDependencies": ["apps/*/.env*", "packages/*/.env*", "tsconfig.json"]
+  "globalDependencies": [
+    "apps/*/.env*",
+    "packages/*/.env*",
+    "tsconfig.json"
+  ]
 }

@@ -7,7 +7,14 @@ const secret = 'a-fixture-secret-at-least-32-characters';
 function setup() {
   const services = mockServices();
   vi.mocked(services.preferences.region).mockResolvedValue({ region: 'SE' });
-  const auth = { handle: vi.fn(), current: vi.fn().mockResolvedValue({ id: 'owner' }) };
+  const auth = {
+    handler: vi.fn(),
+    api: {
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ user: { id: 'owner', name: 'Owner', email: 'owner@example.com' } }),
+    },
+  };
   const app = createApp(services, { auth, rpcProxySecret: secret, clientIp: () => '198.51.100.1' });
   return { app, auth, services };
 }
@@ -21,7 +28,9 @@ describe('RPC ingress identity', () => {
     const { app, auth } = setup();
     const headers = authProxyHeaders(secret, '203.0.113.10', 'POST', '/rpc/preferences/region');
     expect((await app.request('/rpc/preferences/region', request(headers))).status).toBe(200);
-    expect(auth.current).toHaveBeenCalledWith(expect.any(Headers), '203.0.113.10');
+    expect(auth.api.getSession.mock.calls[0][0].headers.get('x-movies-auth-client-ip')).toBe(
+      '203.0.113.10',
+    );
   });
   it('keeps direct native requests on trusted API ingress identity, ignoring unsigned identity fields', async () => {
     const { app, auth } = setup();
@@ -30,7 +39,9 @@ describe('RPC ingress identity', () => {
       'x-user-id': 'victim',
     });
     expect((await app.request('/rpc/preferences/region', request(headers))).status).toBe(200);
-    expect(auth.current).toHaveBeenCalledWith(expect.any(Headers), '198.51.100.1');
+    expect(auth.api.getSession.mock.calls[0][0].headers.get('x-movies-auth-client-ip')).toBe(
+      '198.51.100.1',
+    );
   });
   it('rejects forged and path-replayed assertions before verifying a session or executing services', async () => {
     for (const [key, path] of [
@@ -40,7 +51,7 @@ describe('RPC ingress identity', () => {
       const { app, auth, services } = setup();
       const headers = authProxyHeaders(key, '203.0.113.10', 'POST', path);
       expect((await app.request('/rpc/preferences/region', request(headers))).status).toBe(500);
-      expect(auth.current).not.toHaveBeenCalled();
+      expect(auth.api.getSession).not.toHaveBeenCalled();
       expect(services.preferences.region).not.toHaveBeenCalled();
     }
   });

@@ -128,7 +128,8 @@ jobs:
           curl --retry 30 --retry-connrefused --retry-delay 1 --fail http://localhost:3001/health
         env:
           MOVIE_DB_ACCESS_TOKEN: ${{ secrets.MOVIE_DB_ACCESS_TOKEN }}
-          AUTH_URL: http://localhost:3000
+          BETTER_AUTH_URL: http://localhost:3000
+          AUTH_RATE_LIMIT_DISABLED: "true"
           WEB_URL: http://localhost:3000
           AUTH_PROXY_SECRET: ${{ env.BETTER_AUTH_SECRET }}
 

@@ -18,7 +18,7 @@ The native dev commands clear Metro's cache at startup. After dependency changes
 
 For Expo Go, keep your phone and computer on the same network and scan the current terminal QR code. The phone must be able to reach Expo on port 8081 and the API on port 3001. A saved link with an old IP will not load. A tunnel for Expo does not tunnel the API: supply an explicit reachable API URL when using one.
 
-The API defaults to port 3001. Local development permits localhost and private LAN browser origins. Set `CORS_ORIGIN` to the exact browser origin in production; an explicit value overrides the development allowlist. Native requests do not require browser CORS. Catalog reads are public. Native sign-in uses the canonical web auth service through the API; configure AUTH_URL as described below.
+The API defaults to port 3001. Local development permits localhost and private LAN browser origins. Set `CORS_ORIGIN` to the exact browser origin in production; an explicit value overrides the development allowlist. Native requests do not require browser CORS. Catalog reads are public. Native sign-in uses Better Auth hosted directly by Hono; configure `BETTER_AUTH_URL` with the public web origin as described below.
 
 ## Current behavior
 
@@ -61,7 +61,7 @@ Web now uses its own Varlock schema and generated `ENV`, like native and Hono. S
 
 ## Hosting
 
-Railway runs the API as the `api` service in production and every PR environment. It installs the workspace, starts `@movies/server` with tsx and checks `/health`. It shares the environment's database and TMDB token with web, and forwards auth to the same environment's web domain (`AUTH_URL`). `CORS_ORIGIN` stays unset because native requests send no browser origin. After each config apply, the infra workflow generates a `*.up.railway.app` domain for the API if it has none (`railway domain list --service api` shows it). Build native against a hosted API by setting `EXPO_PUBLIC_SERVER_URL` to that domain. When changing these build-time URLs, clear Metro’s transform cache (`expo export --clear` or `expo start --clear`) so a previous local bundle cannot reuse old inlined settings.
+Railway runs the API as the `api` service in production and every PR environment. It installs the workspace, starts `@movies/server` with tsx and checks `/health`. It shares the environment's database and TMDB token with web, and hosts Better Auth with the shared `@movies/auth` factory. `CORS_ORIGIN` stays unset because native requests send no browser origin. After each config apply, the infra workflow generates a `*.up.railway.app` domain for the API if it has none (`railway domain list --service api` shows it). Build native against a hosted API by setting `EXPO_PUBLIC_SERVER_URL` to that domain. When changing these build-time URLs, clear Metro’s transform cache (`expo export --clear` or `expo start --clear`) so a previous local bundle cannot reuse old inlined settings.
 
 ## Verify
 
@@ -83,15 +83,15 @@ Movie/TV detail headers use native Liquid Glass when available, with a native ma
 
 ## Native identity
 
-Set `AUTH_URL=http://localhost:3000` in `apps/server/.env` for local development, pointing at the same web instance/database used by browser clients. Restart the API after changes. Production must use the canonical deployed web auth origin and configure CORS_ORIGIN for its browser client; auth remains unavailable with a clear error if AUTH_URL is absent. The public catalog API still works without auth configuration.
+Set `BETTER_AUTH_URL=http://localhost:3000` in `apps/server/.env`, with the existing `BETTER_AUTH_SECRET`, shared `DATABASE_URL` and Discord/GitHub credentials. This URL is the public web origin for cookies, OAuth callbacks and passkey RP identity; Next proxies its existing auth paths to Hono. Native continues to use `EXPO_PUBLIC_SERVER_URL` for the API. Restart the API after changes. A catalog-only local API may omit auth configuration; production requires it. See [the auth-host migration](../../docs/shared-api.md#migrating-the-auth-host).
 
 The API forwards only auth requests to that configured host. Better Auth on web remains responsible for social credentials/callbacks, session revocation, rate limits, passkeys and anonymous watchlist migration. Its Expo plugin allows the Movies app scheme; local browser/Expo Go origins are admitted only during development. Hono's identity RPC verifies each request's cookie with cookie-cache bypass and exposes public identity fields, never session tokens. Private procedures must use this verified identity instead of caller-provided user IDs.
 
-Production auth forwarding requires `AUTH_PROXY_SECRET`, matching the canonical web auth signing secret. The gateway carries the original client IP in authenticated metadata so web's rate limiter does not group all native users under the API's egress address. Direct hosts use `AUTH_IP_SOURCE=socket`; the Railway config explicitly selects `railway` for its sanitized public ingress and references the web secret. Web rejects tampered/expired metadata and removes unsigned caller-selected identities. See [the review trust contract and verification](../../docs/native-pr-review.md#additional-review-findings--2026-10-11). Local development can omit the signing key; its production-only rate limiter is disabled. A catalog-only API without `AUTH_URL` still supports public Discover, while private screens remain unavailable.
+Hono uses its own trusted ingress IP for native auth rate limits (`AUTH_IP_SOURCE=socket` locally, `railway` behind Railway ingress). Browser requests reach it through Next's auth proxy, which signs the original IP with `AUTH_PROXY_SECRET` matching web's signing key. Hono rejects tampered/expired assertions and strips unsigned caller-selected IPs. These signatures authenticate service metadata, not user sessions; Better Auth validates those locally.
 
 Native uses the official Better Auth Expo client and Expo SecureStore, with manually forwarded secure cookies on RPC requests and the platform cookie jar disabled. The browser preview uses credentialed fetches. Account changes clear query caches; sign-out restores the default session region. Passkey sign-in uses Better Auth in browsers and the optional native OS module in signed builds. Expo Go cannot create or authenticate device credentials; metadata management remains available. Physical-device acceptance remains pending.
 
-Anonymous sign-in/revocation is checked against the real local web service with a disposable test account. Run `AUTH_TEST_WEB_URL=http://localhost:3000 AUTH_TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/movies pnpm test apps/server/src/auth-gateway.integration.test.ts`; it rejects remote hosts and deletes only its own newly created anonymous fixture. Device restart, secure storage and real OAuth/provider flows still require device verification.
+`pnpm test apps/server/src/auth.test.ts` exercises real Better Auth anonymous sign-in, private RPC ownership and sign-out/revocation with cached session cookies in an in-memory database. `packages/auth/src/index.test.ts` checks the shared configuration and passkey options. Device restart, secure storage and real OAuth/provider flows still require device verification.
 
 ### Shared preference verification
 
@@ -119,13 +119,13 @@ The cross-client tests use real movie and TV data, Hono mutations, database cach
 
 These are explicit local integration tests and are skipped without all three service/database URL settings. Device interaction, restart and hosted verification remain separate acceptance work.
 
-Custom-list reads/mutations use authenticated `customLists.*` procedures and the same `@movies/db/custom-lists` store as web. The account session determines ownership, and all private query keys include that account. Set `DATABASE_URL` and `AUTH_URL` on the API for these workflows. Optional `CUSTOM_LIST_TEST_DATABASE_URL` enables isolated PostgreSQL ordering/ownership/filter checks.
+Custom-list reads/mutations use authenticated `customLists.*` procedures and the same `@movies/db/custom-lists` store as web. The account session determines ownership, and all private query keys include that account. Set `DATABASE_URL` and `BETTER_AUTH_URL` on the API for these workflows. Optional `CUSTOM_LIST_TEST_DATABASE_URL` enables isolated PostgreSQL ordering/ownership/filter checks.
 
 ### Signed preview configuration
 
 The `preview` EAS profile creates an internal build (Android APK); `production` targets stores. Configure `EXPO_PUBLIC_SERVER_URL` to an explicit reachable HTTPS API URL for either profile. Configure `EXPO_PUBLIC_PASSKEY_DOMAIN` to the canonical auth hostname, without scheme or path; iOS adds its webcredentials association while retaining the existing application identity. Expo Go cannot load the optional native passkey module.
 
-On the web auth host configure `PASSKEY_APPLE_TEAM_ID` and comma-separated `PASSKEY_ANDROID_FINGERPRINTS` using the actual signing identities. The public association endpoints remain unavailable until configured. Native and web use `com.movies.app`; do not substitute example signing values. The host must serve both well-known association paths over HTTPS. Native Android origins are derived from those fingerprints by the canonical auth service.
+On web configure `PASSKEY_APPLE_TEAM_ID` and comma-separated `PASSKEY_ANDROID_FINGERPRINTS` using the actual signing identities. The public association endpoints remain unavailable until configured. Native and web use `com.movies.app`; do not substitute example signing values. The host must serve both well-known association paths over HTTPS. Also set the same `PASSKEY_ANDROID_FINGERPRINTS` on Hono; the shared auth config derives the Android assertion origins from them.
 
 No EAS project/signing credentials or signed-device acceptance is implied by local exports. Validate account linking, passkey creation/sign-in/deletion, secure-session restart, deep-link return and cancellation on both actual platforms before release. See `docs/native-app-parity.md` for validation evidence and outstanding acceptance.
 

@@ -27,7 +27,10 @@ function setup(signedIn = true) {
     move: vi.fn().mockResolvedValue({ success: true }),
     options: vi.fn().mockResolvedValue([]),
   };
-  const auth = { current: vi.fn().mockResolvedValue(signedIn ? user : null), handle: vi.fn() };
+  const auth = {
+    api: { getSession: vi.fn().mockResolvedValue(signedIn ? { user } : null) },
+    handler: vi.fn(),
+  };
   const app = createApp(mockServices({ systemLists }), { auth });
   return { systemLists, app, client: createTestClient(app, { Cookie: 'test-session' }) };
 }

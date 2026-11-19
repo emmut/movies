@@ -1,10 +1,10 @@
 import 'server-only';
 import { appRouter, type AppServices, type AppContext } from '@movies/api/router';
 import { AUTH_NOT_CONFIGURED } from '@movies/api/session';
-import { verifiedProxyIp } from '@movies/auth/proxy';
+import { AuthProxyMetadataError } from '@movies/auth/proxy';
 import { isLocalBrowserOrigin } from '@movies/config/native-auth';
 import { RPCHandler } from '@orpc/server/fetch';
-import type { AuthGateway } from '@server/auth-gateway';
+import { authHeaders, authRequest, currentUser, type AuthHost } from '@server/auth';
 import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
 
@@ -15,7 +15,7 @@ function localOrigin(origin: string) {
 type AppOptions = {
   origin?: string;
   middleware?: MiddlewareHandler[];
-  auth?: AuthGateway;
+  auth?: AuthHost;
   clientIp?: (context: Context) => string;
   rpcProxySecret?: string;
   onMutation?: AppContext['onMutation'];
@@ -23,10 +23,6 @@ type AppOptions = {
 
 export function createApp(services: AppServices, options: AppOptions = {}) {
   const { origin, middleware = [], auth, clientIp, rpcProxySecret, onMutation } = options;
-  function rpcClientIp(context: Context) {
-    const forwarded = rpcProxySecret ? verifiedProxyIp(context.req.raw, rpcProxySecret) : undefined;
-    return forwarded ?? clientIp?.(context);
-  }
   const app = new Hono();
   for (const use of middleware) {
     app.use(use);
@@ -59,9 +55,12 @@ export function createApp(services: AppServices, options: AppOptions = {}) {
       );
     }
     try {
-      return await auth.handle(c.req.raw, clientIp?.(c));
-    } catch {
-      return c.json({ message: 'Could not reach authentication service' }, 502);
+      return await auth.handler(authRequest(c.req.raw, rpcProxySecret, () => clientIp?.(c)));
+    } catch (error) {
+      if (error instanceof AuthProxyMetadataError) {
+        return c.json({ code: 'INVALID_AUTH_PROXY_METADATA', message: error.message }, 400);
+      }
+      return c.json({ message: 'Authentication failed' }, 500);
     }
   });
   app.on('POST', '/rpc/*', async (c) => {
@@ -71,7 +70,13 @@ export function createApp(services: AppServices, options: AppOptions = {}) {
         ...services,
         onMutation,
         session: auth
-          ? { current: () => auth.current(c.req.raw.headers, rpcClientIp(c)) }
+          ? {
+              current: () =>
+                currentUser(
+                  auth,
+                  authHeaders(c.req.raw, rpcProxySecret, () => clientIp?.(c)),
+                ),
+            }
           : undefined,
       },
     });

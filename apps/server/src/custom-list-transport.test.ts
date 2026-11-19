@@ -15,7 +15,10 @@ const user: SessionUser = {
 };
 function setup(signedIn = true) {
   const services = mockServices();
-  const auth = { current: vi.fn().mockResolvedValue(signedIn ? user : null), handle: vi.fn() };
+  const auth = {
+    api: { getSession: vi.fn().mockResolvedValue(signedIn ? { user } : null) },
+    handler: vi.fn(),
+  };
   const app = createApp(services, { auth });
   return { app, client: createTestClient(app), service: services.customLists };
 }

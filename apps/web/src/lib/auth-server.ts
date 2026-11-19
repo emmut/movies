@@ -1,20 +1,24 @@
+import 'server-only';
+import type { Session } from '@movies/auth';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
 
-import { auth } from './auth';
+import { serverAuthClient } from './auth-server-client';
 
 /**
  * Retrieves the current authentication session using the request headers.
  *
  * @returns The current session object, or null if no session exists.
  */
-export const getSession = cache(async () => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
+export const getSession = cache(async (): Promise<Session | null> => {
+  const { data, error } = await serverAuthClient.getSession({
+    fetchOptions: { headers: await headers() },
   });
-
-  return session;
+  if (error) {
+    throw new Error('Could not read authentication session', { cause: error });
+  }
+  return data;
 });
 
 /**

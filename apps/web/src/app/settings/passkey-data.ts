@@ -2,7 +2,7 @@ import 'server-only';
 import type { PasskeyMetadata } from '@movies/api/passkeys';
 import { headers } from 'next/headers';
 
-import { auth } from '@/lib/auth';
+import { serverAuthClient } from '@/lib/auth-server-client';
 
 /**
  * Lists the signed-in user's passkeys with only the fields the settings page
@@ -12,11 +12,14 @@ import { auth } from '@/lib/auth';
  */
 export async function getUserPasskeys(): Promise<PasskeyMetadata[]> {
   try {
-    const passkeys = await auth.api.listPasskeys({
-      headers: await headers(),
+    const { data: passkeys, error } = await serverAuthClient.passkey.listUserPasskeys({
+      fetchOptions: { headers: await headers() },
     });
+    if (error) {
+      throw new Error('Could not list passkeys', { cause: error });
+    }
 
-    return passkeys.map((passkey) => ({
+    return (passkeys ?? []).map((passkey) => ({
       id: passkey.id,
       name: passkey.name ?? null,
       deviceType: passkey.deviceType,

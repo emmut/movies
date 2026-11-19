@@ -3,12 +3,12 @@ import 'server-only';
 import 'varlock/auto-load';
 import { getConnInfo } from '@hono/node-server/conninfo';
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
+import { createAuth } from '@movies/auth';
 import { createServices } from '@movies/services/create-services';
 import { createDatabase } from '@movies/services/database';
 import { readWikidataClaims } from '@movies/services/watch-links-service';
 import { createApp } from '@server/app';
 import { authClientIp } from '@server/auth-client-ip';
-import { createAuthGateway } from '@server/auth-gateway';
 import { createCacheInvalidator } from '@server/cache-invalidation';
 import { ENV } from '@server/env';
 import { createLogger, createRequestLogger } from '@server/logger';
@@ -35,10 +35,22 @@ function resolveCorsOrigin() {
   return undefined;
 }
 
-const webUrl = ENV.WEB_URL ?? ENV.AUTH_URL;
-const auth = ENV.AUTH_URL
-  ? createAuthGateway(ENV.AUTH_URL, fetch, ENV.AUTH_PROXY_SECRET)
-  : undefined;
+const webUrl = ENV.WEB_URL;
+const auth =
+  ENV.BETTER_AUTH_URL && database
+    ? createAuth(
+        {
+          ...ENV,
+          BETTER_AUTH_URL: ENV.BETTER_AUTH_URL,
+          BETTER_AUTH_SECRET: ENV.BETTER_AUTH_SECRET!,
+          DISCORD_CLIENT_ID: ENV.DISCORD_CLIENT_ID!,
+          DISCORD_CLIENT_SECRET: ENV.DISCORD_CLIENT_SECRET!,
+          GITHUB_CLIENT_ID: ENV.GITHUB_CLIENT_ID!,
+          GITHUB_CLIENT_SECRET: ENV.GITHUB_CLIENT_SECRET!,
+        },
+        database,
+      )
+    : undefined;
 const onMutation =
   webUrl && ENV.AUTH_PROXY_SECRET
     ? createCacheInvalidator(webUrl, ENV.AUTH_PROXY_SECRET, {

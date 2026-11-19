@@ -1,9 +1,9 @@
 import { createApp } from '@server/app';
-import type { AuthGateway } from '@server/auth-gateway';
+import type { AuthHost } from '@server/auth';
 import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vite-plus/test';
 
-function setup(auth?: AuthGateway) {
+function setup(auth?: AuthHost) {
   const services = mockServices();
   const app = createApp(services, { auth });
   const client = createTestClient(app, { Cookie: 'signed-test-cookie' });
@@ -43,24 +43,24 @@ describe('native authentication HTTP and RPC', () => {
       isAnonymous: true,
     };
     const auth = {
-      handle: vi.fn().mockResolvedValue(Response.json({ success: true })),
-      current: vi.fn().mockResolvedValue(user),
+      handler: vi.fn().mockResolvedValue(Response.json({ success: true })),
+      api: { getSession: vi.fn().mockResolvedValue({ user }) },
     };
     const { app, client } = setup(auth);
     expect(
       (await app.request('/api/auth/sign-in/anonymous', { method: 'POST', body: '{}' })).status,
     ).toBe(200);
-    expect(auth.handle).toHaveBeenCalledOnce();
+    expect(auth.handler).toHaveBeenCalledOnce();
     expect(await client.session.current()).toEqual(user);
-    expect(auth.current.mock.calls[0][0].get('cookie')).toBe('signed-test-cookie');
+    expect(auth.api.getSession.mock.calls[0][0].headers.get('cookie')).toBe('signed-test-cookie');
   });
   it('keeps upstream failures separate from an unauthenticated session', async () => {
     const auth = {
-      handle: vi.fn().mockRejectedValue(new Error('offline')),
-      current: vi.fn().mockRejectedValue(new Error('offline')),
+      handler: vi.fn().mockRejectedValue(new Error('offline')),
+      api: { getSession: vi.fn().mockRejectedValue(new Error('offline')) },
     };
     const { app, client } = setup(auth);
-    expect((await app.request('/api/auth/get-session')).status).toBe(502);
+    expect((await app.request('/api/auth/get-session')).status).toBe(500);
     await expect(client.session.current()).rejects.toMatchObject({ code: 'INTERNAL_SERVER_ERROR' });
   });
 });
