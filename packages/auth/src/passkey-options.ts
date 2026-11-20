@@ -11,8 +11,8 @@ export const APP_NAME = 'Movies';
  * from registering credentials that could never sign in. A passkey is the sole
  * factor, so the authenticator must also verify the user (PIN or biometric).
  *
- * The plugin derives `rpID` from `baseURL` (`NEXT_PUBLIC_BASE_URL`, set per
- * Railway environment). `auth.ts` adds the allowed origins, including the
+ * The plugin derives `rpID` from `baseURL` (`BETTER_AUTH_URL`, set per
+ * Railway environment). `index.ts` adds the allowed origins, including the
  * native Android app's signing-key origins.
  */
 export const passkeyOptions = {

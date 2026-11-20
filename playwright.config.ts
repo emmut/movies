@@ -44,9 +44,6 @@ export default defineConfig({
     ? {
         command: process.env.E2E_WEBSERVER_CMD ?? 'vp run build && vp run start',
         url: baseURL,
-        // Every test signs in anonymously from one IP; better-auth's default
-        // rate limit (3 sign-ins per 10s per IP) would 429 the suite.
-        env: { AUTH_RATE_LIMIT_DISABLED: 'true' },
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,
         // Stream build/server output so headless runs aren't silent.

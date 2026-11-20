@@ -125,6 +125,7 @@ export default defineRailway((ctx) => {
       RPC_IP_SOURCE: "railway",
       BETTER_AUTH_SECRET: preserve(),
       BETTER_AUTH_TRUSTED_ORIGIN: preserve(),
+      PASSKEY_ANDROID_FINGERPRINTS: preserve(),
       // Every environment uses its own postgres-db.
       DATABASE_URL: db.env.DATABASE_URL,
       DISCORD_CLIENT_ID: preserve(),
@@ -145,9 +146,9 @@ export default defineRailway((ctx) => {
   });
 
   // Public Hono/oRPC API for the native app. Runs the TypeScript entrypoint
-  // directly (tsx), so the build only installs dependencies. Auth requests are
-  // forwarded to this environment's web service, which stays the single
-  // session authority. Native clients send no Origin, so CORS_ORIGIN stays
+  // directly (tsx), so the build only installs dependencies. Hono hosts
+  // Better Auth from @movies/auth; web proxies its existing auth URLs here.
+  // Native clients send no Origin, so CORS_ORIGIN stays
   // unset and production admits no browser origins. Railway configuration
   // cannot register a new custom domain, so the Railway infra workflow gives
   // every environment a generated domain after apply. To move production to
@@ -169,8 +170,15 @@ export default defineRailway((ctx) => {
       DATABASE_URL: db.env.DATABASE_URL,
       // Reach web over the private network. The public custom domain sits
       // behind Cloudflare, which answers Railway egress with a 403 challenge,
-      // so session checks and cache invalidation never reached web.
-      AUTH_URL: `http://\${{movies.RAILWAY_PRIVATE_DOMAIN}}:${WEB_PORT}`,
+      // so cache invalidation must use the private network.
+      BETTER_AUTH_URL: movies.env.NEXT_PUBLIC_BASE_URL,
+      BETTER_AUTH_SECRET: movies.env.BETTER_AUTH_SECRET,
+      BETTER_AUTH_TRUSTED_ORIGIN: movies.env.BETTER_AUTH_TRUSTED_ORIGIN,
+      DISCORD_CLIENT_ID: movies.env.DISCORD_CLIENT_ID,
+      DISCORD_CLIENT_SECRET: movies.env.DISCORD_CLIENT_SECRET,
+      GITHUB_CLIENT_ID: movies.env.GITHUB_CLIENT_ID,
+      GITHUB_CLIENT_SECRET: movies.env.GITHUB_CLIENT_SECRET,
+      PASSKEY_ANDROID_FINGERPRINTS: movies.env.PASSKEY_ANDROID_FINGERPRINTS,
       WEB_URL: `http://\${{movies.RAILWAY_PRIVATE_DOMAIN}}:${WEB_PORT}`,
       AUTH_IP_SOURCE: "railway",
       AUTH_PROXY_SECRET: movies.env.BETTER_AUTH_SECRET,

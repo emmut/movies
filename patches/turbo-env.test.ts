@@ -22,3 +22,23 @@ it.each(['build', 'dev'])('preserves the product API origin in Turbo strict %s t
   const hash = createHash('sha256').update(apiUrl).digest('hex');
   expect(web?.environmentVariables.configured).toContain(`API_URL=${hash}`);
 });
+
+it('preserves the Hono auth configuration in Turbo strict dev tasks', () => {
+  const config = {
+    BETTER_AUTH_URL: 'https://movies.example.com',
+    BETTER_AUTH_SECRET: 'auth-secret-fixture-for-strict-mode',
+  };
+  const output = execFileSync(
+    process.execPath,
+    [require.resolve('turbo/bin/turbo'), 'run', 'dev', '--filter=@movies/server', '--dry=json'],
+    { cwd: root, env: { ...process.env, ...config }, encoding: 'utf8' },
+  );
+  const report = JSON.parse(output) as {
+    tasks: { taskId: string; environmentVariables: { configured: string[] } }[];
+  };
+  const server = report.tasks.find((entry) => entry.taskId === '@movies/server#dev');
+  for (const [name, value] of Object.entries(config)) {
+    const hash = createHash('sha256').update(value).digest('hex');
+    expect(server?.environmentVariables.configured).toContain(`${name}=${hash}`);
+  }
+});

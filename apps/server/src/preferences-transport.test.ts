@@ -1,6 +1,6 @@
 import type { SessionUser } from '@movies/api/session';
 import { createApp } from '@server/app';
-import type { AuthGateway } from '@server/auth-gateway';
+import { mockAuth, testSession } from '@server/test-auth';
 import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vite-plus/test';
 
@@ -12,7 +12,7 @@ const user: SessionUser = {
   isAnonymous: false,
 };
 
-function setup(current: AuthGateway['current'] | undefined) {
+function setup(current: ((headers: Headers) => Promise<SessionUser | null>) | undefined) {
   const preferences = {
     providers: vi.fn().mockResolvedValue({ providerIds: [8] }),
     setProviders: vi.fn().mockImplementation(async (_userId, input) => input),
@@ -20,9 +20,12 @@ function setup(current: AuthGateway['current'] | undefined) {
     region: vi.fn().mockResolvedValue({ region: 'NO' }),
     setRegion: vi.fn().mockImplementation(async (_userId, input) => input),
   };
-  let auth: AuthGateway | undefined;
+  let auth: ReturnType<typeof mockAuth> | undefined;
   if (current) {
-    auth = { handle: vi.fn(), current };
+    auth = mockAuth();
+    vi.mocked(auth.api.getSession).mockImplementation(async (input) =>
+      testSession(await current(new Headers(input?.headers))),
+    );
   }
   const app = createApp(mockServices({ preferences }), { auth });
   return { app, preferences, client: createTestClient(app, { Cookie: 'signed-test-cookie' }) };

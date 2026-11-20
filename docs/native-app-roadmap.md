@@ -110,7 +110,7 @@ Apply these conventions in new work immediately. The owner explicitly deferred a
 
 ## Identity transport checkpoint
 
-Native auth uses the official Better Auth Expo client and SecureStore. During this incremental port, the existing web auth host stays canonical: Hono forwards `/api/auth/*` to its validated AUTH_URL and verifies session cookies through the same host with cookie-cache bypass. This preserves configured social callback URLs, rate limits, anonymous migration and revocation without duplicating auth rules or secrets in another server. A future auth-host extraction must migrate both consumers together; it must not introduce a second session authority.
+Native auth uses the official Better Auth Expo client and SecureStore. Hono hosts the shared `@movies/auth` factory and validates sessions locally with `auth.api.getSession`, bypassing cookie caches for private RPCs. Next proxies its public `/api/auth/*` paths to Hono so existing OAuth callbacks, browser cookies and passkey RP identity remain stable. Configure `BETTER_AUTH_URL` with the public web origin and preserve the existing signing secret/database; see [migration and configuration](shared-api.md#migrating-the-auth-host). There is one session authority for both clients.
 
 Browser previews use credentialed CORS with explicit origins; app schemes are trusted by the canonical Expo server plugin, and LAN/Expo Go origins are restricted to development. Native OAuth uses system browser/deep-link handling, then verifies a returned non-anonymous session before completing navigation. Discarded OAuth cannot incorrectly finish using an old anonymous session. Session changes clear native query caches.
 
