@@ -1,64 +1,45 @@
 import 'server-only';
-import { sessionUserSchema, type SessionUser } from '@movies/api/session';
-import type { Auth } from '@movies/auth';
-import { AUTH_CLIENT_IP_HEADER, verifiedProxyIp } from '@movies/auth/proxy';
+import { createAuth } from '@movies/auth';
+import { database } from '@server/database';
+import { ENV } from '@server/env';
 
-/** The small Better Auth surface used by Hono; no session-token implementation lives here. */
-export type AuthHost = Pick<Auth, 'handler'> & {
-  api: {
-    getSession(input: { headers: Headers; query: { disableCookieCache: boolean } }): Promise<{
-      user: Omit<SessionUser, 'image' | 'isAnonymous'> & {
-        image?: string | null;
-        isAnonymous?: boolean | null;
-      };
-    } | null>;
-  };
-};
-
-/** Only the ingress peer or a signed web proxy can assert the rate-limit IP. */
-export function authHeaders(
-  request: Request,
-  secret?: string,
-  clientIp?: () => string | undefined,
-) {
-  const forwarded = secret ? verifiedProxyIp(request, secret) : undefined;
-  const headers = new Headers(request.headers);
-  for (const name of [
-    AUTH_CLIENT_IP_HEADER,
-    'x-movies-auth-ip-signature',
-    'x-movies-auth-ip-time',
-    'x-real-ip',
-    'x-forwarded-for',
-  ]) {
-    headers.delete(name);
+function configureAuth() {
+  const {
+    BETTER_AUTH_URL,
+    BETTER_AUTH_SECRET,
+    DISCORD_CLIENT_ID,
+    DISCORD_CLIENT_SECRET,
+    GITHUB_CLIENT_ID,
+    GITHUB_CLIENT_SECRET,
+  } = ENV;
+  if (!BETTER_AUTH_URL) {
+    return undefined;
   }
-  const ip = forwarded ?? clientIp?.();
-  if (ip) {
-    headers.set(AUTH_CLIENT_IP_HEADER, ip);
+  if (
+    !database ||
+    !BETTER_AUTH_SECRET ||
+    !DISCORD_CLIENT_ID ||
+    !DISCORD_CLIENT_SECRET ||
+    !GITHUB_CLIENT_ID ||
+    !GITHUB_CLIENT_SECRET
+  ) {
+    throw new Error('Authentication requires a database, signing secret and provider credentials');
   }
-  return headers;
+  return createAuth(
+    {
+      BETTER_AUTH_URL,
+      BETTER_AUTH_SECRET,
+      DISCORD_CLIENT_ID,
+      DISCORD_CLIENT_SECRET,
+      GITHUB_CLIENT_ID,
+      GITHUB_CLIENT_SECRET,
+      NODE_ENV: ENV.NODE_ENV,
+      AUTH_RATE_LIMIT_DISABLED: ENV.AUTH_RATE_LIMIT_DISABLED,
+      BETTER_AUTH_TRUSTED_ORIGIN: ENV.BETTER_AUTH_TRUSTED_ORIGIN,
+      PASSKEY_ANDROID_FINGERPRINTS: ENV.PASSKEY_ANDROID_FINGERPRINTS,
+    },
+    database,
+  );
 }
 
-export function authRequest(
-  request: Request,
-  secret?: string,
-  clientIp?: () => string | undefined,
-) {
-  return new Request(request, { headers: authHeaders(request, secret, clientIp) });
-}
-
-/** Better Auth checks the database locally, including revocations hidden by cookie caches. */
-export async function currentUser(auth: AuthHost, headers: Headers) {
-  const session = await auth.api.getSession({
-    headers,
-    query: { disableCookieCache: true },
-  });
-  if (!session) {
-    return null;
-  }
-  return sessionUserSchema.parse({
-    ...session.user,
-    image: session.user.image ?? null,
-    isAnonymous: session.user.isAnonymous ?? false,
-  });
-}
+export const auth = configureAuth();

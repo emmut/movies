@@ -3,13 +3,13 @@ import 'server-only';
 import 'varlock/auto-load';
 import { getConnInfo } from '@hono/node-server/conninfo';
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
-import { createAuth } from '@movies/auth';
 import { createServices } from '@movies/services/create-services';
-import { createDatabase } from '@movies/services/database';
 import { readWikidataClaims } from '@movies/services/watch-links-service';
 import { createApp } from '@server/app';
+import { auth } from '@server/auth';
 import { authClientIp } from '@server/auth-client-ip';
 import { createCacheInvalidator } from '@server/cache-invalidation';
+import { database } from '@server/database';
 import { ENV } from '@server/env';
 import { createLogger, createRequestLogger } from '@server/logger';
 import { cachePublicRead } from '@server/public-cache';
@@ -21,7 +21,6 @@ const fetchTmdb = cachePublicRead(
   createTmdbFetch(ENV.MOVIE_DB_ACCESS_TOKEN, ENV.TMDB_API_URL_OVERRIDE),
   TMDB_CACHE_MS,
 );
-const database = createDatabase(ENV.DATABASE_URL, ENV.DB_POOL_MAX);
 const logger = createLogger(ENV.LOG_LEVEL, ENV.NODE_ENV === 'development');
 
 /** Configured origin without a trailing slash; production without one allows no origin. */
@@ -36,21 +35,6 @@ function resolveCorsOrigin() {
 }
 
 const webUrl = ENV.WEB_URL;
-const auth =
-  ENV.BETTER_AUTH_URL && database
-    ? createAuth(
-        {
-          ...ENV,
-          BETTER_AUTH_URL: ENV.BETTER_AUTH_URL,
-          BETTER_AUTH_SECRET: ENV.BETTER_AUTH_SECRET!,
-          DISCORD_CLIENT_ID: ENV.DISCORD_CLIENT_ID!,
-          DISCORD_CLIENT_SECRET: ENV.DISCORD_CLIENT_SECRET!,
-          GITHUB_CLIENT_ID: ENV.GITHUB_CLIENT_ID!,
-          GITHUB_CLIENT_SECRET: ENV.GITHUB_CLIENT_SECRET!,
-        },
-        database,
-      )
-    : undefined;
 const onMutation =
   webUrl && ENV.AUTH_PROXY_SECRET
     ? createCacheInvalidator(webUrl, ENV.AUTH_PROXY_SECRET, {
@@ -82,7 +66,7 @@ const app = createApp(
     origin: resolveCorsOrigin(),
     middleware: [createRequestLogger(logger)],
     auth,
-    rpcProxySecret: ENV.AUTH_PROXY_SECRET,
+    authProxySecret: ENV.AUTH_PROXY_SECRET,
     clientIp(context) {
       return authClientIp(
         ENV.AUTH_IP_SOURCE,

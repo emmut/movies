@@ -1,6 +1,6 @@
 import type { SessionUser } from '@movies/api/session';
 import { createApp } from '@server/app';
-import type { AuthHost } from '@server/auth';
+import { mockAuth, testSession } from '@server/test-auth';
 import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vite-plus/test';
 
@@ -20,17 +20,12 @@ function setup(current: ((headers: Headers) => Promise<SessionUser | null>) | un
     region: vi.fn().mockResolvedValue({ region: 'NO' }),
     setRegion: vi.fn().mockImplementation(async (_userId, input) => input),
   };
-  let auth: AuthHost | undefined;
+  let auth: ReturnType<typeof mockAuth> | undefined;
   if (current) {
-    auth = {
-      handler: vi.fn(),
-      api: {
-        getSession: vi.fn(async ({ headers }) => {
-          const user = await current(headers);
-          return user ? { user } : null;
-        }),
-      },
-    };
+    auth = mockAuth();
+    vi.mocked(auth.api.getSession).mockImplementation(async (input) =>
+      testSession(await current(new Headers(input?.headers))),
+    );
   }
   const app = createApp(mockServices({ preferences }), { auth });
   return { app, preferences, client: createTestClient(app, { Cookie: 'signed-test-cookie' }) };

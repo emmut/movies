@@ -1,24 +1,19 @@
 import { AUTH_CLIENT_IP_HEADER, authProxyHeaders } from '@movies/auth/proxy';
 import { createApp } from '@server/app';
+import { createTestAuth } from '@server/test-auth';
 import { mockServices } from '@server/test-services';
-import { betterAuth } from 'better-auth';
-import { memoryAdapter } from 'better-auth/adapters/memory';
-import { anonymous } from 'better-auth/plugins';
 import { expect, it } from 'vite-plus/test';
 
 it('uses trusted ingress and signed web IPs for Better Auth limits, rejecting spoofed metadata', async () => {
   const secret = 'a-shared-auth-secret-of-at-least-32-characters';
-  const auth = betterAuth({
+  const auth = createTestAuth({
     baseURL: 'http://auth.test',
-    secret,
-    database: memoryAdapter({ user: [], session: [], account: [], verification: [] }),
-    plugins: [anonymous()],
     advanced: { ipAddress: { ipAddressHeaders: [AUTH_CLIENT_IP_HEADER] } },
     rateLimit: { enabled: true, storage: 'memory' },
   });
   const app = createApp(mockServices(), {
     auth,
-    rpcProxySecret: secret,
+    authProxySecret: secret,
     clientIp: () => '203.0.113.77',
   });
   function attempt(signed?: Headers) {

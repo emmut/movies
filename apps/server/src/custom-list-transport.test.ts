@@ -2,6 +2,7 @@ import { customListContracts } from '@movies/api/custom-lists';
 import type { SessionUser } from '@movies/api/session';
 import { ORPCError } from '@orpc/server';
 import { createApp } from '@server/app';
+import { mockAuth } from '@server/test-auth';
 import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vite-plus/test';
 
@@ -15,10 +16,7 @@ const user: SessionUser = {
 };
 function setup(signedIn = true) {
   const services = mockServices();
-  const auth = {
-    api: { getSession: vi.fn().mockResolvedValue(signedIn ? { user } : null) },
-    handler: vi.fn(),
-  };
+  const auth = mockAuth(signedIn ? user : null);
   const app = createApp(services, { auth });
   return { app, client: createTestClient(app), service: services.customLists };
 }

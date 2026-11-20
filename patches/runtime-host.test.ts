@@ -5,6 +5,7 @@ import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import { createApp } from '@server/app';
 import { createCacheInvalidator } from '@server/cache-invalidation';
+import { mockAuth, testSession } from '@server/test-auth';
 import { mockServices } from '@server/test-services';
 import { revalidateTag } from 'next/cache';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
@@ -37,16 +38,12 @@ beforeEach(() => {
   services = mockServices();
   vi.mocked(services.home.list).mockResolvedValue([]);
   vi.mocked(services.preferences.setRegion).mockImplementation(async (_user, input) => input);
-  const auth = {
-    handler: vi.fn(),
-    api: {
-      getSession: vi.fn(async ({ headers }: { headers: Headers }) => {
-        const cookie = headers.get('cookie');
-        const user = cookie === 'session=other' ? { ...owner, id: 'other' } : owner;
-        return !revoked && cookie?.startsWith('session=') ? { user } : null;
-      }),
-    },
-  };
+  const auth = mockAuth();
+  vi.mocked(auth.api.getSession).mockImplementation(async (input) => {
+    const cookie = new Headers(input?.headers).get('cookie');
+    const user = cookie === 'session=other' ? { ...owner, id: 'other' } : owner;
+    return testSession(!revoked && cookie?.startsWith('session=') ? user : null);
+  });
   const callback = createCacheInvalidator('http://localhost:3000', ENV.BETTER_AUTH_SECRET, {
     fetcher: async (url, init) =>
       unavailableCallback
