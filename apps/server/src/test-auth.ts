@@ -5,7 +5,7 @@ import { memoryAdapter } from 'better-auth/adapters/memory';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { vi } from 'vite-plus/test';
 
-type TestAuthOptions = Pick<BetterAuthOptions, 'advanced' | 'rateLimit' | 'session'> & {
+type TestAuthOptions = Pick<BetterAuthOptions, 'advanced' | 'rateLimit' | 'session' | 'account'> & {
   baseURL?: string;
 };
 

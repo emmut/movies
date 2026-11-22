@@ -5,7 +5,7 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 import { ENV } from './src/env.ts';
 
 export default function appConfig({ config }: ConfigContext): ExpoConfig {
-  validateReleaseApiUrl();
+  validateReleaseUrls();
   return {
     ...config,
     name: config.name ?? 'Movies',
@@ -26,13 +26,18 @@ function isHttpsUrl(value: string | undefined) {
   return new URL(value).protocol === 'https:';
 }
 
-function validateReleaseApiUrl() {
+function validateReleaseUrls() {
   if (!releaseProfiles.has(ENV.EAS_BUILD_PROFILE)) {
     return;
   }
   if (!isHttpsUrl(ENV.EXPO_PUBLIC_SERVER_URL)) {
     throw new Error(
       'Set EXPO_PUBLIC_SERVER_URL to the HTTPS API URL in the EAS environment before building.',
+    );
+  }
+  if (!isHttpsUrl(ENV.EXPO_PUBLIC_WEB_URL)) {
+    throw new Error(
+      'Set EXPO_PUBLIC_WEB_URL to the HTTPS web auth origin in the EAS environment before building.',
     );
   }
 }

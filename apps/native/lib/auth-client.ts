@@ -1,12 +1,12 @@
 import { expoClient } from '@better-auth/expo/client';
 import { passkeyClient } from '@better-auth/passkey/client';
-import { serverUrl } from '@native/lib/connections';
+import { authUrl } from '@native/lib/connections';
 import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 import * as SecureStore from 'expo-secure-store';
 
 export const authClient = createAuthClient({
-  baseURL: serverUrl,
+  baseURL: authUrl,
   plugins: [
     expoClient({
       scheme: 'movies',

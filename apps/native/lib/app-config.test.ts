@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 const env = vi.hoisted(() => ({
   EAS_BUILD_PROFILE: undefined as string | undefined,
   EXPO_PUBLIC_SERVER_URL: undefined as string | undefined,
+  EXPO_PUBLIC_WEB_URL: undefined as string | undefined,
   EXPO_PUBLIC_PASSKEY_DOMAIN: undefined as string | undefined,
 }));
 vi.mock('varlock/auto-load', () => ({}));
@@ -19,6 +20,7 @@ const context: ConfigContext = {
 beforeEach(() => {
   env.EAS_BUILD_PROFILE = undefined;
   env.EXPO_PUBLIC_SERVER_URL = undefined;
+  env.EXPO_PUBLIC_WEB_URL = undefined;
   env.EXPO_PUBLIC_PASSKEY_DOMAIN = undefined;
 });
 describe('native build configuration', () => {
@@ -31,6 +33,10 @@ describe('native build configuration', () => {
     env.EXPO_PUBLIC_SERVER_URL = 'http://localhost:4000';
     expect(() => appConfig(context)).toThrow('HTTPS API URL');
     env.EXPO_PUBLIC_SERVER_URL = 'https://api.example.com';
+    expect(() => appConfig(context)).toThrow('HTTPS web auth origin');
+    env.EXPO_PUBLIC_WEB_URL = 'http://localhost:3000';
+    expect(() => appConfig(context)).toThrow('HTTPS web auth origin');
+    env.EXPO_PUBLIC_WEB_URL = 'https://movies.example.com';
     expect(() => appConfig(context)).not.toThrow();
   });
   it('preserves configured names and deduplicates associated domains', () => {
