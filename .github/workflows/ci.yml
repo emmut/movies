@@ -15,7 +15,7 @@ concurrency:
 jobs:
   test:
     name: Lint, typecheck & test
-    runs-on: Emil-Macbook
+    runs-on: [self-hosted, macOS, ARM64]
     # Env validation is skipped; secrets are not needed for lint/typecheck/tests.
     env:
       SKIP_ENV_VALIDATION: "true"
@@ -44,7 +44,7 @@ jobs:
 
   e2e:
     name: E2E (Playwright)
-    runs-on: Emil-Macbook
+    runs-on: [self-hosted, macOS, ARM64]
     services:
       postgres:
         image: postgres:16
@@ -134,7 +134,7 @@ jobs:
 
   fallow:
     name: Fallow audit
-    runs-on: Emil-Macbook
+    runs-on: [self-hosted, macOS, ARM64]
     steps:
       - uses: actions/checkout@v7
         with:
