@@ -1,3 +1,4 @@
+import { NATIVE_APP_ID } from '@movies/config/passkeys';
 import appConfig from '@native/app.config';
 import appManifest from '@native/app.json';
 import easConfig from '@native/eas.json';
@@ -34,11 +35,15 @@ describe('native build configuration', () => {
       EAS_BUILD_PROFILE: 'production',
       EXPO_PUBLIC_SERVER_URL: 'https://api.example.com',
     });
-    const config = appConfig({ ...context, config: { ios: appManifest.expo.ios } });
+    const config = appConfig({
+      ...context,
+      config: { ios: appManifest.expo.ios, android: appManifest.expo.android },
+    });
     expect(config.ios).toMatchObject({
-      bundleIdentifier: 'com.movies.app',
+      bundleIdentifier: NATIVE_APP_ID,
       associatedDomains: ['webcredentials:movies.emmut.space'],
     });
+    expect(config.android?.package).toBe(NATIVE_APP_ID);
   });
   it.each(['preview', 'production'])('requires HTTPS for the %s build', (profile) => {
     env.EAS_BUILD_PROFILE = profile;

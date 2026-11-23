@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const NATIVE_APP_ID = 'com.movies.app';
+export const NATIVE_APP_ID = 'com.emmut.movies.app';
 export const passkeyDomainSchema = z
   .string()
   .max(253)

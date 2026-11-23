@@ -156,4 +156,4 @@ The owner requested Expo 58, less generic app identity/name and native icons aft
 
 The existing Movies popcorn brand supplies an opaque square 1024×1024 iOS/general icon and a padded transparent Android adaptive foreground with an opaque background. Store screenshots, listing metadata, privacy declarations and signed-device acceptance remain release work.
 
-Owner decision: keep the public name `Movies`, the existing domain, and the existing `com.movies.app` bundle/package identifiers. No identity migration is planned. Store registration and signed-device acceptance remain release checks; this repository does not establish store-name or identifier availability.
+Owner decision: keep the public name `Movies` and the existing domain. On 2026-11-23 the owner recalled `com.emmut.movies.app` as the TestFlight bundle ID; native configuration and association documents now use that identifier. Verify it against App Store Connect and the signed build before publishing associations or rebuilding. No registered-app identity migration has been performed. Store registration and signed-device acceptance remain release checks.
