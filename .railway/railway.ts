@@ -125,6 +125,7 @@ export default defineRailway((ctx) => {
       RPC_IP_SOURCE: "railway",
       BETTER_AUTH_SECRET: preserve(),
       BETTER_AUTH_TRUSTED_ORIGIN: preserve(),
+      PASSKEY_APPLE_TEAM_ID: preserve(),
       PASSKEY_ANDROID_FINGERPRINTS: preserve(),
       // Every environment uses its own postgres-db.
       DATABASE_URL: db.env.DATABASE_URL,

@@ -1,4 +1,6 @@
 import appConfig from '@native/app.config';
+import appManifest from '@native/app.json';
+import easConfig from '@native/eas.json';
 import type { ConfigContext } from 'expo/config';
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test';
 
@@ -26,6 +28,17 @@ beforeEach(() => {
 describe('native build configuration', () => {
   it('keeps local builds usable without a hosted API', () => {
     expect(appConfig(context)).toMatchObject({ name: 'Movies', slug: 'movies' });
+  });
+  it('includes the production webcredentials entitlement in the signed app configuration', () => {
+    Object.assign(env, easConfig.build.production.env, {
+      EAS_BUILD_PROFILE: 'production',
+      EXPO_PUBLIC_SERVER_URL: 'https://api.example.com',
+    });
+    const config = appConfig({ ...context, config: { ios: appManifest.expo.ios } });
+    expect(config.ios).toMatchObject({
+      bundleIdentifier: 'com.movies.app',
+      associatedDomains: ['webcredentials:movies.emmut.space'],
+    });
   });
   it.each(['preview', 'production'])('requires HTTPS for the %s build', (profile) => {
     env.EAS_BUILD_PROFILE = profile;

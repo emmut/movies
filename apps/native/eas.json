@@ -14,7 +14,8 @@
       "distribution": "store",
       "environment": "production",
       "env": {
-        "EXPO_PUBLIC_WEB_URL": "https://movies.emmut.space"
+        "EXPO_PUBLIC_WEB_URL": "https://movies.emmut.space",
+        "EXPO_PUBLIC_PASSKEY_DOMAIN": "movies.emmut.space"
       }
     }
   }
