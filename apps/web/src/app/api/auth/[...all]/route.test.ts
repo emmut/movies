@@ -1,4 +1,7 @@
+import { authProxyHeaders } from '@movies/auth/proxy';
 import { afterEach, expect, it, vi } from 'vite-plus/test';
+
+import { ENV } from '@/env';
 
 import { GET, POST } from './route';
 
@@ -62,3 +65,31 @@ it('fails when Hono is unavailable without executing authentication locally', as
     'offline',
   );
 });
+
+it.each(['GET', 'POST'])(
+  'bounds the new-web/old-API rollout to one proxy hop for %s',
+  async (method) => {
+    const path = method === 'GET' ? '/api/auth/get-session' : '/api/auth/sign-in/anonymous';
+    fetcher.mockImplementation(async (_target, init) => {
+      // The deployed legacy gateway signs the request and forwards it back to web.
+      const headers = new Headers(init?.headers);
+      authProxyHeaders(ENV.BETTER_AUTH_SECRET, '203.0.113.1', method, path).forEach((value, name) =>
+        headers.set(name, value),
+      );
+      const request = new Request('http://localhost:3000' + path, { ...init, headers });
+      return method === 'GET' ? GET(request) : POST(request);
+    });
+    vi.stubGlobal('fetch', fetcher);
+    const request = new Request('http://localhost:3000' + path, {
+      method,
+      headers: { cookie: 'existing-session', 'content-type': 'application/json' },
+      body: method === 'POST' ? '{}' : undefined,
+    });
+    const result = await (method === 'GET' ? GET(request) : POST(request));
+    expect(result.status).toBe(503);
+    expect(await result.json()).toMatchObject({ code: 'AUTH_DEPLOYING' });
+    expect(result.headers.get('retry-after')).toBe('5');
+    expect(result.headers.get('cache-control')).toBe('no-store');
+    expect(fetcher).toHaveBeenCalledOnce();
+  },
+);

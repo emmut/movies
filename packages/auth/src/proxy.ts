@@ -60,9 +60,14 @@ function verify(request: Request, secret: string, now: number) {
   return ip;
 }
 
+/** Metadata presence is a transport signal, not proof of a trusted caller. */
+export function hasAuthProxyMetadata(headers: Headers) {
+  return headers.has(SIGNATURE_HEADER) || headers.has(TIMESTAMP_HEADER);
+}
+
 /** Only trusted web/API hosts can assert the original ingress IP. Signatures bind method and path. */
 export function verifiedProxyIp(request: Request, secret: string, now = Date.now()) {
-  if (!request.headers.has(SIGNATURE_HEADER) && !request.headers.has(TIMESTAMP_HEADER)) {
+  if (!hasAuthProxyMetadata(request.headers)) {
     return undefined;
   }
   return verify(request, secret, now);
