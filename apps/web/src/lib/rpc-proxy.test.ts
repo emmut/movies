@@ -63,3 +63,21 @@ it('forwards RPC cookies without IP signatures because sessions are read locally
   );
   expect([...headers]).toEqual([['cookie', 'session']]);
 });
+
+it('keeps public RPC headers independent of request-scoped auth configuration', () => {
+  Object.defineProperty(config, 'RPC_IP_SOURCE', {
+    configurable: true,
+    get() {
+      throw new Error('Request scope is unavailable during public prerendering');
+    },
+  });
+  try {
+    expect([...rpcProxyHeaders(new Headers(), 'POST', '/rpc/home/list')]).toEqual([]);
+  } finally {
+    Object.defineProperty(config, 'RPC_IP_SOURCE', {
+      configurable: true,
+      writable: true,
+      value: 'none',
+    });
+  }
+});
