@@ -12,7 +12,10 @@
     },
     "production": {
       "distribution": "store",
-      "environment": "production"
+      "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_WEB_URL": "https://movies.emmut.space"
+      }
     }
   }
 }
