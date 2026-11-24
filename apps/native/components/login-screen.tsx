@@ -1,11 +1,12 @@
 import { getSafeRedirectUrl } from '@movies/auth/redirect';
 import { LOGIN_COPY, LOGIN_FEATURES } from '@movies/config/login';
+import { XIcon } from '@native/components/icons';
 import { authClient } from '@native/lib/auth-client';
 import { isPasskeySupported } from '@native/lib/passkeys';
 import { runSignIn } from '@native/lib/sign-in';
 import type { SignInMethod, SignInOutcome } from '@native/lib/sign-in-flow';
 import { Stack, useLocalSearchParams, useRouter, Redirect, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView as NativeSafeAreaView } from 'react-native-safe-area-context';
 import { withUniwind } from 'uniwind';
@@ -120,6 +121,21 @@ function outcomeError(outcome: SignInOutcome) {
 function signedInAccount(user?: { isAnonymous?: boolean | null } | null) {
   return Boolean(user && !user.isAnonymous);
 }
+
+function CloseSignIn({ close }: { close: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Close sign in"
+      accessibilityHint="Return to More"
+      className="min-h-11 min-w-11 items-center justify-center"
+      onPress={close}
+    >
+      <XIcon className="size-6 text-foreground" accessible={false} />
+    </Pressable>
+  );
+}
+
 export function LoginScreen() {
   const params = useLocalSearchParams<{ redirect_url?: string; error?: string }>();
   const destination = getSafeRedirectUrl(params.redirect_url);
@@ -128,6 +144,24 @@ export function LoginScreen() {
   const session = authClient.useSession();
   const [pending, setPending] = useState<SignInMethod | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState(false);
+  const dismissed = useRef(false);
+  function close() {
+    dismissed.current = true;
+    setLeaving(true);
+    // A callback or protected-page redirect may leave no safe history entry to pop.
+    router.dismissTo('/more');
+  }
+  function finishSignIn(outcome: SignInOutcome) {
+    if (dismissed.current) {
+      return;
+    }
+    setPending(null);
+    setError(outcomeError(outcome));
+    if (outcome.status === 'signed-in') {
+      router.replace(destinationHref);
+    }
+  }
   async function authenticate(method: SignInMethod) {
     if (method === 'anonymous' && session.data?.user.isAnonymous) {
       router.replace(destinationHref);
@@ -135,20 +169,17 @@ export function LoginScreen() {
     }
     setPending(method);
     setError(null);
-    const outcome = await runSignIn(method, destination);
-    setPending(null);
-    setError(outcomeError(outcome));
-    if (outcome.status === 'signed-in') {
-      router.replace(destinationHref);
-    }
+    finishSignIn(await runSignIn(method, destination));
   }
-  if (signedInAccount(session.data?.user)) {
+  if (!leaving && signedInAccount(session.data?.user)) {
     return <Redirect href={destinationHref} />;
   }
   const failure = loginError(error, params.error);
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['left', 'right', 'bottom']}>
-      <Stack.Screen options={{ title: 'Sign in' }} />
+      <Stack.Screen
+        options={{ title: 'Sign in', headerRight: () => <CloseSignIn close={close} /> }}
+      />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         contentContainerClassName="gap-6 px-5 pt-6 pb-12"
