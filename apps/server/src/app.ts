@@ -1,10 +1,12 @@
 import 'server-only';
 import { appRouter, type AppServices, type AppContext } from '@movies/api/router';
 import { AUTH_NOT_CONFIGURED } from '@movies/api/session';
-import { verifiedProxyIp } from '@movies/auth/proxy';
+import type { Auth } from '@movies/auth';
+import { AuthProxyMetadataError } from '@movies/auth/proxy';
 import { isLocalBrowserOrigin } from '@movies/config/native-auth';
 import { RPCHandler } from '@orpc/server/fetch';
-import type { AuthGateway } from '@server/auth-gateway';
+import { authIngressHeaders } from '@server/auth-ingress';
+import { createContext } from '@server/context';
 import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { cors } from 'hono/cors';
 
@@ -15,18 +17,14 @@ function localOrigin(origin: string) {
 type AppOptions = {
   origin?: string;
   middleware?: MiddlewareHandler[];
-  auth?: AuthGateway;
+  auth?: Pick<Auth, 'handler' | 'api'>;
   clientIp?: (context: Context) => string;
-  rpcProxySecret?: string;
+  authProxySecret?: string;
   onMutation?: AppContext['onMutation'];
 };
 
 export function createApp(services: AppServices, options: AppOptions = {}) {
-  const { origin, middleware = [], auth, clientIp, rpcProxySecret, onMutation } = options;
-  function rpcClientIp(context: Context) {
-    const forwarded = rpcProxySecret ? verifiedProxyIp(context.req.raw, rpcProxySecret) : undefined;
-    return forwarded ?? clientIp?.(context);
-  }
+  const { origin, middleware = [], auth, clientIp, authProxySecret, onMutation } = options;
   const app = new Hono();
   for (const use of middleware) {
     app.use(use);
@@ -59,21 +57,22 @@ export function createApp(services: AppServices, options: AppOptions = {}) {
       );
     }
     try {
-      return await auth.handle(c.req.raw, clientIp?.(c));
-    } catch {
-      return c.json({ message: 'Could not reach authentication service' }, 502);
+      return await auth.handler(
+        new Request(c.req.raw, {
+          headers: authIngressHeaders(c.req.raw, authProxySecret, () => clientIp?.(c)),
+        }),
+      );
+    } catch (error) {
+      if (error instanceof AuthProxyMetadataError) {
+        return c.json({ code: 'INVALID_AUTH_PROXY_METADATA', message: error.message }, 400);
+      }
+      throw error;
     }
   });
   app.on('POST', '/rpc/*', async (c) => {
     const result = await handler.handle(c.req.raw, {
       prefix: '/rpc',
-      context: {
-        ...services,
-        onMutation,
-        session: auth
-          ? { current: () => auth.current(c.req.raw.headers, rpcClientIp(c)) }
-          : undefined,
-      },
+      context: createContext(services, c.req.raw.headers, auth, onMutation),
     });
     return result.matched ? result.response : c.notFound();
   });

@@ -8,10 +8,10 @@
     "plugins": ["expo-router", "expo-secure-store"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.movies.app"
+      "bundleIdentifier": "com.emmut.movies.app"
     },
     "android": {
-      "package": "com.movies.app",
+      "package": "com.emmut.movies.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFA500"

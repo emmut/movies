@@ -60,30 +60,15 @@ function verify(request: Request, secret: string, now: number) {
   return ip;
 }
 
+/** Metadata presence is a transport signal, not proof of a trusted caller. */
+export function hasAuthProxyMetadata(headers: Headers) {
+  return headers.has(SIGNATURE_HEADER) || headers.has(TIMESTAMP_HEADER);
+}
+
 /** Only trusted web/API hosts can assert the original ingress IP. Signatures bind method and path. */
 export function verifiedProxyIp(request: Request, secret: string, now = Date.now()) {
-  if (!request.headers.has(SIGNATURE_HEADER) && !request.headers.has(TIMESTAMP_HEADER)) {
+  if (!hasAuthProxyMetadata(request.headers)) {
     return undefined;
   }
   return verify(request, secret, now);
-}
-
-/** Strip caller metadata; only a verified gateway signature may populate Better Auth's IP key. */
-export function verifiedAuthRequest(request: Request, secret: string, now = Date.now()) {
-  const headers = new Headers(request.headers);
-  headers.delete(AUTH_CLIENT_IP_HEADER);
-  headers.delete(SIGNATURE_HEADER);
-  headers.delete(TIMESTAMP_HEADER);
-  if (request.headers.has(SIGNATURE_HEADER) || request.headers.has(TIMESTAMP_HEADER)) {
-    headers.set(AUTH_CLIENT_IP_HEADER, verify(request, secret, now));
-  }
-  const init: RequestInit & { duplex: 'half' } = {
-    method: request.method,
-    headers,
-    body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
-    signal: request.signal,
-    duplex: 'half',
-  };
-  // Next may supply a proxied Request: Undici's copy constructor checks private state.
-  return new Request(request.url, init);
 }

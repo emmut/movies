@@ -4,8 +4,8 @@ import { createAuthenticatedFetch } from '@native/lib/auth-transport';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
 import { createApp } from '@server/app';
-import { createAuthGateway } from '@server/auth-gateway';
 import { createCacheInvalidator } from '@server/cache-invalidation';
+import { mockAuth, testSession } from '@server/test-auth';
 import { mockServices } from '@server/test-services';
 import { revalidateTag } from 'next/cache';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test';
@@ -38,17 +38,11 @@ beforeEach(() => {
   services = mockServices();
   vi.mocked(services.home.list).mockResolvedValue([]);
   vi.mocked(services.preferences.setRegion).mockImplementation(async (_user, input) => input);
-  const auth = createAuthGateway('http://localhost:3000', async (_url, init) => {
-    const cookie = new Headers(init?.headers).get('cookie');
+  const auth = mockAuth();
+  vi.mocked(auth.api.getSession).mockImplementation(async (input) => {
+    const cookie = new Headers(input?.headers).get('cookie');
     const user = cookie === 'session=other' ? { ...owner, id: 'other' } : owner;
-    return Response.json(
-      !revoked && cookie?.startsWith('session=')
-        ? {
-            user,
-            session: { expiresAt: '2099-01-01' },
-          }
-        : null,
-    );
+    return testSession(!revoked && cookie?.startsWith('session=') ? user : null);
   });
   const callback = createCacheInvalidator('http://localhost:3000', ENV.BETTER_AUTH_SECRET, {
     fetcher: async (url, init) =>

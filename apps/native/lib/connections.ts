@@ -13,3 +13,11 @@ export const serverUrl = resolveServiceUrl({
   expoHost,
   port: 3001,
 });
+
+/** Start Expo's browser flow on the same origin that receives the provider callback. */
+export const authUrl = resolveServiceUrl({
+  explicitUrl: ENV.EXPO_PUBLIC_WEB_URL,
+  browserOrigin,
+  expoHost,
+  port: 3000,
+});

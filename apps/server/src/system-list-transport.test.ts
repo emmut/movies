@@ -1,5 +1,6 @@
 import type { SessionUser } from '@movies/api/session';
 import { createApp } from '@server/app';
+import { mockAuth } from '@server/test-auth';
 import { createTestClient, mockServices } from '@server/test-services';
 import { describe, expect, it, vi } from 'vite-plus/test';
 
@@ -27,7 +28,7 @@ function setup(signedIn = true) {
     move: vi.fn().mockResolvedValue({ success: true }),
     options: vi.fn().mockResolvedValue([]),
   };
-  const auth = { current: vi.fn().mockResolvedValue(signedIn ? user : null), handle: vi.fn() };
+  const auth = mockAuth(signedIn ? user : null);
   const app = createApp(mockServices({ systemLists }), { auth });
   return { systemLists, app, client: createTestClient(app, { Cookie: 'test-session' }) };
 }

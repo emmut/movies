@@ -18,14 +18,14 @@ it('signs Railway ingress identity without forwarding caller identities or proxy
     'a-forged-secret',
     '198.51.100.99',
     'POST',
-    '/rpc/preferences/region',
+    '/api/auth/sign-in/anonymous',
   );
   source.set('cookie', 'verified-session-cookie');
   source.set('x-real-ip', '203.0.113.10');
   source.set('x-user-id', 'victim');
   source.set('authorization', 'forged');
-  const headers = rpcProxyHeaders(source, 'POST', '/rpc/preferences/region');
-  const request = new Request('https://api.example.com/rpc/preferences/region', {
+  const headers = rpcProxyHeaders(source, 'POST', '/api/auth/sign-in/anonymous');
+  const request = new Request('https://api.example.com/api/auth/sign-in/anonymous', {
     method: 'POST',
     headers,
   });
@@ -50,8 +50,34 @@ it('does not trust IP fields when trusted ingress is not configured', () => {
 });
 it('fails closed for missing Railway identity and leaves public prerender reads unsigned', () => {
   config.RPC_IP_SOURCE = 'railway';
-  expect(() =>
-    rpcProxyHeaders(new Headers({ cookie: 'session' }), 'POST', '/rpc/session/current'),
-  ).toThrow();
+  expect(() => rpcProxyHeaders(new Headers(), 'POST', '/api/auth/sign-in/anonymous')).toThrow();
   expect(Array.from(rpcProxyHeaders(new Headers(), 'POST', '/rpc/home/list')).length).toBe(0);
+});
+
+it('forwards RPC cookies without IP signatures because sessions are read locally', () => {
+  config.RPC_IP_SOURCE = 'railway';
+  const headers = rpcProxyHeaders(
+    new Headers({ cookie: 'session', 'x-movies-auth-client-ip': 'forged' }),
+    'POST',
+    '/rpc/session/current',
+  );
+  expect([...headers]).toEqual([['cookie', 'session']]);
+});
+
+it('keeps public RPC headers independent of request-scoped auth configuration', () => {
+  Object.defineProperty(config, 'RPC_IP_SOURCE', {
+    configurable: true,
+    get() {
+      throw new Error('Request scope is unavailable during public prerendering');
+    },
+  });
+  try {
+    expect([...rpcProxyHeaders(new Headers(), 'POST', '/rpc/home/list')]).toEqual([]);
+  } finally {
+    Object.defineProperty(config, 'RPC_IP_SOURCE', {
+      configurable: true,
+      writable: true,
+      value: 'none',
+    });
+  }
 });

@@ -4,12 +4,12 @@ import 'varlock/auto-load';
 import { getConnInfo } from '@hono/node-server/conninfo';
 import { createTmdbFetch } from '@movies/api/tmdb-fetch';
 import { createServices } from '@movies/services/create-services';
-import { createDatabase } from '@movies/services/database';
 import { readWikidataClaims } from '@movies/services/watch-links-service';
 import { createApp } from '@server/app';
+import { auth } from '@server/auth';
 import { authClientIp } from '@server/auth-client-ip';
-import { createAuthGateway } from '@server/auth-gateway';
 import { createCacheInvalidator } from '@server/cache-invalidation';
+import { database } from '@server/database';
 import { ENV } from '@server/env';
 import { createLogger, createRequestLogger } from '@server/logger';
 import { cachePublicRead } from '@server/public-cache';
@@ -21,7 +21,6 @@ const fetchTmdb = cachePublicRead(
   createTmdbFetch(ENV.MOVIE_DB_ACCESS_TOKEN, ENV.TMDB_API_URL_OVERRIDE),
   TMDB_CACHE_MS,
 );
-const database = createDatabase(ENV.DATABASE_URL, ENV.DB_POOL_MAX);
 const logger = createLogger(ENV.LOG_LEVEL, ENV.NODE_ENV === 'development');
 
 /** Configured origin without a trailing slash; production without one allows no origin. */
@@ -35,10 +34,7 @@ function resolveCorsOrigin() {
   return undefined;
 }
 
-const webUrl = ENV.WEB_URL ?? ENV.AUTH_URL;
-const auth = ENV.AUTH_URL
-  ? createAuthGateway(ENV.AUTH_URL, fetch, ENV.AUTH_PROXY_SECRET)
-  : undefined;
+const webUrl = ENV.WEB_URL;
 const onMutation =
   webUrl && ENV.AUTH_PROXY_SECRET
     ? createCacheInvalidator(webUrl, ENV.AUTH_PROXY_SECRET, {
@@ -70,7 +66,7 @@ const app = createApp(
     origin: resolveCorsOrigin(),
     middleware: [createRequestLogger(logger)],
     auth,
-    rpcProxySecret: ENV.AUTH_PROXY_SECRET,
+    authProxySecret: ENV.AUTH_PROXY_SECRET,
     clientIp(context) {
       return authClientIp(
         ENV.AUTH_IP_SOURCE,

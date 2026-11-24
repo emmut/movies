@@ -1,0 +1,126 @@
+name: iOS App Store Connect
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+# Do not cancel a build or upload that has already started on Expo's servers.
+concurrency:
+  group: ios-app-store-connect
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and upload iOS
+    if: >-
+      vars.IOS_RELEASE_ENABLED == 'true' &&
+      ((github.event_name == 'workflow_run' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_repository.full_name == github.repository) ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+      EXPO_OWNER: ${{ vars.EXPO_OWNER }}
+      ASC_APP_ID: ${{ vars.ASC_APP_ID }}
+      IOS_BUNDLE_IDENTIFIER: ${{ vars.IOS_BUNDLE_IDENTIFIER }}
+    steps:
+      - name: Require successful CI on the current main commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          main_sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [ "$SOURCE_SHA" != "$main_sha" ]; then
+            echo "This commit has been superseded on main; refusing to release it."
+            exit 1
+          fi
+          successful_runs=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml \
+            --commit "$SOURCE_SHA" --event push --status success --json databaseId --jq length)
+          if [ "$successful_runs" -eq 0 ]; then
+            echo "CI must pass for this main commit before it can be released."
+            exit 1
+          fi
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "Configure the EXPO_TOKEN repository secret."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          persist-credentials: false
+
+      - name: Setup Vite+, Node and pnpm
+        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
+        with:
+          version-file: pnpm-workspace.yaml
+          node-version-file: .node-version
+          cache: true
+          run-install: false
+
+      - name: Configure the existing Expo and App Store Connect apps
+        working-directory: apps/native
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync } from 'node:fs';
+
+          const patterns = {
+            EAS_PROJECT_ID: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+            EXPO_OWNER: /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/,
+            ASC_APP_ID: /^[0-9]+$/,
+            IOS_BUNDLE_IDENTIFIER: /^[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+$/,
+          };
+          for (const [name, pattern] of Object.entries(patterns)) {
+            if (!pattern.test(process.env[name] ?? '')) {
+              throw new Error(`Configure a valid ${name} repository variable.`);
+            }
+          }
+          const app = JSON.parse(readFileSync('app.json', 'utf8'));
+          if (app.expo.ios.bundleIdentifier !== process.env.IOS_BUNDLE_IDENTIFIER) {
+            throw new Error('The source bundle ID must match the verified App Store Connect bundle ID.');
+          }
+          app.expo.owner = process.env.EXPO_OWNER;
+          app.expo.extra = {
+            ...app.expo.extra,
+            eas: { ...app.expo.extra?.eas, projectId: process.env.EAS_PROJECT_ID },
+          };
+          const eas = JSON.parse(readFileSync('eas.json', 'utf8'));
+          eas.submit.production.ios.ascAppId = process.env.ASC_APP_ID;
+          writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n');
+          writeFileSync('eas.json', JSON.stringify(eas, null, 2) + '\n');
+          JS
+
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
+
+      - name: Install EAS CLI
+        run: npm install --global eas-cli@27.11.0
+
+      - name: Build iOS
+        id: build
+        working-directory: apps/native
+        run: |
+          set -euo pipefail
+          eas build --platform ios --profile production --non-interactive --wait --json \
+            > "$RUNNER_TEMP/ios-build.json"
+          build_id=$(jq -er 'if length == 1 then .[0] | select(.platform == "IOS" and .status == "FINISHED") | .id else empty end' \
+            "$RUNNER_TEMP/ios-build.json")
+          echo "id=$build_id" >> "$GITHUB_OUTPUT"
+
+      - name: Upload this build to App Store Connect
+        working-directory: apps/native
+        env:
+          BUILD_ID: ${{ steps.build.outputs.id }}
+        run: eas submit --platform ios --profile production --id "$BUILD_ID" --non-interactive --wait

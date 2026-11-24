@@ -94,7 +94,9 @@
     "typescript": "catalog:",
     "varlock": "catalog:",
     "vite-plus": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@movies/auth": "workspace:*",
+    "@orpc/client": "catalog:"
   },
   "engines": {
     "node": "24.x"

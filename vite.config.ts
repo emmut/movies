@@ -49,6 +49,8 @@ export default defineConfig({
     },
   },
   test: {
+    // Exercise the real Expo auth adapter with native platform modules mocked in Node.
+    server: { deps: { inline: ['@better-auth/expo'] } },
     environment: 'node',
     setupFiles: ['./apps/web/src/test/setup-env.ts'],
     globals: true,
@@ -63,8 +65,14 @@ export default defineConfig({
     alias: [
       // The single `@/* -> src/*` tsconfig path mapping, inlined (no plugin/dep).
       { find: /^@\//, replacement: fileURLToPath(new URL('./apps/web/src/', import.meta.url)) },
-      { find: /^@native\//, replacement: fileURLToPath(new URL('./apps/native/', import.meta.url)) },
-      { find: /^@server\//, replacement: fileURLToPath(new URL('./apps/server/src/', import.meta.url)) },
+      {
+        find: /^@native\//,
+        replacement: fileURLToPath(new URL('./apps/native/', import.meta.url)),
+      },
+      {
+        find: /^@server\//,
+        replacement: fileURLToPath(new URL('./apps/server/src/', import.meta.url)),
+      },
       // Next.js poison-pill packages have no runtime in a plain Node test.
       { find: 'server-only', replacement: emptyModule },
       { find: 'client-only', replacement: emptyModule },

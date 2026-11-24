@@ -11,14 +11,14 @@ const fingerprint = '01'.repeat(32);
 describe('native passkey association metadata', () => {
   it('uses one app identity for Apple and Android without claiming app-link handling', () => {
     expect(applePasskeyAssociation('AB12CD34EF')).toEqual({
-      webcredentials: { apps: ['AB12CD34EF.com.movies.app'] },
+      webcredentials: { apps: ['AB12CD34EF.com.emmut.movies.app'] },
     });
     expect(androidPasskeyAssociation([fingerprint])).toEqual([
       {
         relation: ['delegate_permission/common.get_login_creds'],
         target: {
           namespace: 'android_app',
-          package_name: 'com.movies.app',
+          package_name: 'com.emmut.movies.app',
           sha256_cert_fingerprints: [Array(32).fill('01').join(':')],
         },
       },

@@ -22,7 +22,7 @@ describe('public credential association routes', () => {
     expect(response.headers.get('Content-Type')).toContain('application/json');
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=3600');
     expect(await response.json()).toEqual({
-      webcredentials: { apps: ['AB12CD34EF.com.movies.app'] },
+      webcredentials: { apps: ['AB12CD34EF.com.emmut.movies.app'] },
     });
     expect((await android().json())[0].target.sha256_cert_fingerprints).toEqual([
       Array(32).fill('AB').join(':'),

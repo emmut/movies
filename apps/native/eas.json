@@ -1,6 +1,6 @@
 {
   "cli": {
-    "appVersionSource": "local"
+    "appVersionSource": "remote"
   },
   "build": {
     "preview": {
@@ -12,7 +12,19 @@
     },
     "production": {
       "distribution": "store",
-      "environment": "production"
+      "environment": "production",
+      "ios": {
+        "autoIncrement": true
+      },
+      "env": {
+        "EXPO_PUBLIC_WEB_URL": "https://movies.emmut.space",
+        "EXPO_PUBLIC_PASSKEY_DOMAIN": "movies.emmut.space"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {}
     }
   }
 }

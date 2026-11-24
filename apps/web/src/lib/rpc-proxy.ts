@@ -17,7 +17,8 @@ export function rpcProxyHeaders(
       headers.set(name, value);
     }
   }
-  if (headers.has('cookie') && ENV.RPC_IP_SOURCE === 'railway') {
+  // Public RPCs run inside Next caches; dynamic ingress config needs a request scope.
+  if (path.startsWith('/api/auth/') && ENV.RPC_IP_SOURCE === 'railway') {
     const signed = authProxyHeaders(
       ENV.BETTER_AUTH_SECRET,
       source.get('x-real-ip') ?? '',
