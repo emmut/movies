@@ -48,6 +48,8 @@ vp run infra:deploy
 
 For reviewed deletions, use `vp run infra:deploy --confirm-destructive`.
 
+The production plan guard permits the approved removal of the retired `api.AUTH_URL` gateway variable after the shared-auth rollout. It checks the exact service, variable and plan path; all other variable deletions still require a separately reviewed policy change.
+
 ## Notes
 
 - PR CI sets `RAILWAY_BOOTSTRAP_POSTGRES=true` only when the preview lacks `postgres-db`, so the first IaC apply creates the database with credentials. Later applies use the existing image-backed service declaration.

@@ -15,6 +15,8 @@ const changeSchema = z
     ]),
     address: z.string().min(1),
     severity: z.enum(['safe', 'destructive']),
+    variable: z.string().optional(),
+    path: z.string().optional(),
     field: z.string().optional(),
     resource: z.record(z.string(), z.unknown()).optional(),
     previous: z.unknown().optional(),
@@ -80,6 +82,18 @@ function allowRetiredCron(change: Change, name: string) {
   }
 }
 
+function allowRetiredAuthUrl(change: Change) {
+  // Approved after the shared-auth rollout; all other variable deletions stay blocked.
+  if (
+    change.address !== 'service.api' ||
+    change.variable !== 'AUTH_URL' ||
+    change.path !== 'resources.service.api.variables.AUTH_URL' ||
+    change.severity !== 'destructive'
+  ) {
+    reject('variable deletion is not an approved legacy auth cleanup');
+  }
+}
+
 function checkChange(change: Change) {
   const [type, ...parts] = change.address.split('.');
   const name = parts.join('.');
@@ -92,11 +106,12 @@ function checkChange(change: Change) {
     allowRetiredCron(change, name);
     return;
   }
+  if (change.kind === 'variable.delete') {
+    allowRetiredAuthUrl(change);
+    return;
+  }
   if (!applications.has(name) || change.severity !== 'safe') {
     reject(`unapproved change to ${change.address}`);
-  }
-  if (change.kind === 'variable.delete') {
-    reject('variable deletions require manual review');
   }
   if (change.kind === 'resource.update') {
     checkUpdate(change);

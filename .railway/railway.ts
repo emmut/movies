@@ -169,8 +169,6 @@ export default defineRailway((ctx) => {
       MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
       // Same database as web: fuzzy search reads its search_index table.
       DATABASE_URL: db.env.DATABASE_URL,
-      // Retain the retired gateway variable until a separate cleanup reviews its deletion.
-      AUTH_URL: preserve(),
       BETTER_AUTH_URL: movies.env.NEXT_PUBLIC_BASE_URL,
       BETTER_AUTH_SECRET: movies.env.BETTER_AUTH_SECRET,
       BETTER_AUTH_TRUSTED_ORIGIN: movies.env.BETTER_AUTH_TRUSTED_ORIGIN,

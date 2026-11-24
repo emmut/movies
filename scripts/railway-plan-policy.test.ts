@@ -43,7 +43,45 @@ const update = {
   field: 'deploy',
 };
 
+// Railway CLI 5.74.1 src/iac/change_set.rs serializes variable deletions this way.
+const retiredAuthUrl = {
+  kind: 'variable.delete',
+  address: 'service.api',
+  variable: 'AUTH_URL',
+  path: 'resources.service.api.variables.AUTH_URL',
+  severity: 'destructive',
+};
+
 describe('production Railway plan policy', () => {
+  it('accepts the specifically approved legacy API AUTH_URL deletion', () => {
+    expect(checkProductionPlan({ ...plan([retiredAuthUrl]), destructive: true })).toBe(1);
+    expect(checkProductionPlan(plan())).toBe(0);
+  });
+
+  it.each([
+    { address: 'service.movies' },
+    { address: 'service.postgres-db' },
+    { address: 'database.api' },
+    { variable: 'BETTER_AUTH_URL' },
+    { variable: 'AUTH_PROXY_SECRET' },
+    { variable: undefined },
+    { path: 'resources.service.api.variables.BETTER_AUTH_URL' },
+    { path: undefined },
+    { severity: 'safe' },
+  ])('rejects other variable deletions despite the legacy cleanup exception: %j', (override) => {
+    expect(() => checkProductionPlan(plan([{ ...retiredAuthUrl, ...override }]))).toThrow(
+      'plan rejected',
+    );
+  });
+
+  it('does not let the approved AUTH_URL cleanup permit another deletion', () => {
+    expect(() =>
+      checkProductionPlan(
+        plan([retiredAuthUrl, { ...retiredAuthUrl, variable: 'BETTER_AUTH_SECRET' }]),
+      ),
+    ).toThrow('plan rejected');
+  });
+
   it('accepts no-op and the three-cron migration without trusting the destructive flag', () => {
     expect(checkProductionPlan(plan())).toBe(0);
     expect(
