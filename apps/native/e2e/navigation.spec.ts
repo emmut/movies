@@ -4,6 +4,7 @@ import {
   mockEmptySupport,
   preflight,
 } from '@native/e2e/catalog-fixtures';
+import { sessionResponse } from '@native/e2e/session-fixtures';
 import { expect, test, type Page } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
@@ -97,6 +98,73 @@ test('More opens Lists natively and preserves the sign-in return destination', a
   await page.getByRole('link', { name: 'Lists', exact: true }).click();
   await expect(page).toHaveURL(/\/login\?redirect_url=%2Fmore%2Flists$/);
   expect(page.context().pages()).toHaveLength(1);
+});
+
+test('can close sign-in opened directly from a failed OAuth callback', async ({ page }) => {
+  await page.goto('/login?error=failed_to_login');
+  await expect(page.getByRole('alert')).toHaveText('Couldn’t sign in. Please try again.');
+  await page.getByRole('button', { name: 'Close sign in', exact: true }).click();
+  await expect(page).toHaveURL('http://localhost:8083/more');
+  await expect(page.getByRole('heading', { name: 'More', exact: true })).toBeVisible();
+});
+
+test('closing a protected-page sign-in returns to More without another login redirect', async ({
+  page,
+}) => {
+  await page.goto('/more');
+  await page.getByRole('link', { name: 'Lists', exact: true }).click();
+  await expect(page).toHaveURL(/\/login\?redirect_url=%2Fmore%2Flists$/);
+  await page.getByRole('button', { name: 'Close sign in', exact: true }).click();
+  await expect(page).toHaveURL('http://localhost:8083/more');
+  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
+  await page.getByRole('link', { name: 'Sign in', exact: true }).click();
+  await expect(page).toHaveURL('http://localhost:8083/login');
+  await expect(page.getByRole('button', { name: 'Close sign in', exact: true })).toBeVisible();
+});
+
+test('closing a pending sign-in prevents its later result from reopening the protected page', async ({
+  page,
+}) => {
+  let signedIn = false;
+  let release = () => {};
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/auth/get-session*', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    const session = sessionResponse();
+    session.user.isAnonymous = false;
+    await route.fulfill({ json: signedIn ? session : null, headers: corsHeaders });
+  });
+  await page.route('**/api/auth/sign-in/social', async (route) => {
+    if (await preflight(route)) {
+      return;
+    }
+    await pending;
+    signedIn = true;
+    await route.fulfill({ json: { redirect: false }, headers: corsHeaders });
+  });
+  await page.goto('/login?redirect_url=%2Fmore%2Flists');
+  await page.getByRole('button', { name: 'Continue with GitHub', exact: true }).click();
+  await expect(page.getByLabel('Signing in')).toBeVisible();
+  await page.getByRole('button', { name: 'Close sign in', exact: true }).click();
+  await expect(page).toHaveURL('http://localhost:8083/more');
+  const verified = page.waitForResponse(
+    (response) => signedIn && response.url().includes('/api/auth/get-session'),
+  );
+  release();
+  await (await verified).finished();
+  // Allow the verification response and any resulting navigation to commit.
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  await expect(page.getByRole('heading', { name: 'More', exact: true })).toBeVisible();
+  await expect(page).toHaveURL('http://localhost:8083/more');
 });
 
 test('detail screens retain the dock and Home returns to the native homepage', async ({ page }) => {
