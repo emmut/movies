@@ -169,9 +169,8 @@ export default defineRailway((ctx) => {
       MOVIE_DB_ACCESS_TOKEN: movies.env.MOVIE_DB_ACCESS_TOKEN,
       // Same database as web: fuzzy search reads its search_index table.
       DATABASE_URL: db.env.DATABASE_URL,
-      // Reach web over the private network. The public custom domain sits
-      // behind Cloudflare, which answers Railway egress with a 403 challenge,
-      // so cache invalidation must use the private network.
+      // Retain the retired gateway variable until a separate cleanup reviews its deletion.
+      AUTH_URL: preserve(),
       BETTER_AUTH_URL: movies.env.NEXT_PUBLIC_BASE_URL,
       BETTER_AUTH_SECRET: movies.env.BETTER_AUTH_SECRET,
       BETTER_AUTH_TRUSTED_ORIGIN: movies.env.BETTER_AUTH_TRUSTED_ORIGIN,
@@ -180,6 +179,7 @@ export default defineRailway((ctx) => {
       GITHUB_CLIENT_ID: movies.env.GITHUB_CLIENT_ID,
       GITHUB_CLIENT_SECRET: movies.env.GITHUB_CLIENT_SECRET,
       PASSKEY_ANDROID_FINGERPRINTS: movies.env.PASSKEY_ANDROID_FINGERPRINTS,
+      // Cache invalidation uses the private network to avoid Cloudflare's egress challenge.
       WEB_URL: `http://\${{movies.RAILWAY_PRIVATE_DOMAIN}}:${WEB_PORT}`,
       AUTH_IP_SOURCE: "railway",
       AUTH_PROXY_SECRET: movies.env.BETTER_AUTH_SECRET,
